@@ -960,13 +960,14 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             const projectPath = StateMachine.context().projectPath;
             const showLibraryConfigVariables = extension.ballerinaExtInstance.showLibraryConfigVariables();
 
-            // if params includeLibraries is not set, then use settings 
+            // if params includeLibraries is not set, then use settings
             const includeLibraries = params?.includeLibraries !== undefined
                 ? params.includeLibraries
                 : showLibraryConfigVariables !== false;
 
             const variables = await StateMachine.langClient().getConfigVariablesV2({
                 projectPath: projectPath,
+                configTomlPath: params?.configTomlPath,
                 includeLibraries
             }) as ConfigVariableResponse;
             resolve(variables);

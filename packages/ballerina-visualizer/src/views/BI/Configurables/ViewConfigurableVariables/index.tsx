@@ -80,6 +80,8 @@ const searchIcon = (<Codicon name="search" sx={{ cursor: "auto" }} />);
 export interface ConfigProps {
     projectPath: string;
     fileName: string;
+    testsFileName?: string;
+    testsConfigTomlPath?: string;
     org: string;
     addNew?: boolean;
 }
@@ -119,6 +121,9 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     const [selectedModule, setSelectedModule] = useState<PackageModuleState>(null);
     const integrationCategory = useRef<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isTestsContext, setIsTestsContext] = useState<boolean>(false);
+    const [testConfigVariables, setTestConfigVariables] = useState<ConfigVariablesState>({});
+    const [testCategoriesWithModules, setTestCategoriesWithModules] = useState<CategoryWithModules[]>([]);
 
     useEffect(() => {
         rpcClient
@@ -228,10 +233,12 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         setSelectedModule({ category, module });
     };
 
+    const activeFileName = isTestsContext ? props.testsFileName : props.fileName;
+
     const handleOpenConfigFile = () => {
         rpcClient
             .getBIDiagramRpcClient()
-            .OpenConfigTomlRequest({ filePath: props.fileName });
+            .OpenConfigTomlRequest({ filePath: activeFileName });
     }
 
     const handleAddConfigVariableFormOpen = () => {
@@ -243,15 +250,20 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     };
 
     const handleFormSubmit = async () => {
-        getConfigVariables();
+        if (isTestsContext) {
+            getTestConfigVariables();
+        } else {
+            getConfigVariables();
+        }
     }
 
     const handleOnDeleteConfigVariable = async (index: number) => {
         if (!selectedModule) return;
 
+        const activeVariables = isTestsContext ? testConfigVariables : configVariables;
         const variables = searchValue ?
             filteredConfigVariables[selectedModule.category]?.[selectedModule.module] :
-            configVariables[selectedModule.category]?.[selectedModule.module];
+            activeVariables[selectedModule.category]?.[selectedModule.module];
 
         const variable = variables?.[index];
         if (!variable) return;
@@ -259,7 +271,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         rpcClient
             .getBIDiagramRpcClient()
             .deleteConfigVariableV2({
-                configFilePath: props.fileName,
+                configFilePath: activeFileName,
                 configVariable: variable,
                 packageName: selectedModule.category,
                 moduleName: selectedModule.module
@@ -272,7 +284,11 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                 }
             })
             .finally(() => {
-                getConfigVariables();
+                if (isTestsContext) {
+                    getTestConfigVariables();
+                } else {
+                    getConfigVariables();
+                }
             });
     };
 
@@ -313,15 +329,44 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         setIsLoading(false);
     };
 
+    const getTestConfigVariables = async () => {
+        setIsLoading(true);
+        const variables = await rpcClient
+            .getBIDiagramRpcClient()
+            .getConfigVariablesV2({
+                projectPath: '',
+                configTomlPath: props.testsConfigTomlPath
+            });
+        const data = (variables as any).configVariables as ConfigVariablesState;
+
+        setTestConfigVariables(data || {});
+        const categories = Object.keys(data || {}).map(category => ({
+            name: category,
+            modules: Object.keys(data[category])
+        }));
+        setTestCategoriesWithModules(categories);
+
+        if (categories.length > 0 && categories[0].modules.length > 0) {
+            setSelectedModule({ category: categories[0].name, module: categories[0].modules[0] });
+        } else {
+            setSelectedModule(null);
+        }
+        setIsLoading(false);
+    };
+
     const updateErrorMessage = (message: string) => {
         setErrorMessage(message);
     };
 
-    const categoryDisplay = selectedModule?.category === integrationCategory.current ? 'Integration' : selectedModule?.category;
-    const title = selectedModule?.module ? `${categoryDisplay} : ${selectedModule?.module}` : categoryDisplay;
+    const categoryDisplay = isTestsContext ? 'Tests'
+        : selectedModule?.category === integrationCategory.current ? 'Integration'
+        : selectedModule?.category;
+    const title = isTestsContext
+        ? (selectedModule?.module ? `Tests : ${selectedModule?.module}` : 'Tests')
+        : (selectedModule?.module ? `${categoryDisplay} : ${selectedModule?.module}` : categoryDisplay);
 
-    let renderVariables: ConfigVariablesState = configVariables;
-    if (searchValue) {
+    let renderVariables: ConfigVariablesState = isTestsContext ? testConfigVariables : configVariables;
+    if (!isTestsContext && searchValue) {
         renderVariables = getFilteredConfigVariables();
     }
 
@@ -380,6 +425,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                             id={category.name}
                                             expandByDefault={true}
                                             onSelect={() => {
+                                                setIsTestsContext(false);
                                                 if (category.modules.length > 0) {
                                                     handleModuleSelect(category.name, category.modules[0]);
                                                 }
@@ -436,7 +482,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                         backgroundColor: 'transparent',
                                                         paddingLeft: '35px',
                                                         height: '25px',
-                                                        border: selectedModule?.category === category.name && selectedModule?.module === moduleName
+                                                        border: !isTestsContext && selectedModule?.category === category.name && selectedModule?.module === moduleName
                                                             ? '1px solid var(--vscode-focusBorder)'
                                                             : 'none'
                                                     }}
@@ -446,13 +492,14 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                         style={{ display: 'flex', height: '20px', alignItems: 'center' }}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
+                                                            setIsTestsContext(false);
                                                             handleModuleSelect(category.name, moduleName);
                                                         }}
                                                     >
                                                         <Typography
                                                             variant="body3"
                                                             sx={{
-                                                                fontWeight: selectedModule?.category === category.name && selectedModule?.module === moduleName
+                                                                fontWeight: !isTestsContext && selectedModule?.category === category.name && selectedModule?.module === moduleName
                                                                     ? 'bold' : 'normal'
                                                             }}
                                                         >
@@ -476,6 +523,37 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                     </div>
                                                 </TreeViewItem>
                                             ))}
+                                            {/* Tests sublevel — only show if testsFileName is provided */}
+                                            {props.testsFileName && (
+                                                <TreeViewItem
+                                                    key="tests-sublevel"
+                                                    id="tests-sublevel"
+                                                    sx={{
+                                                        backgroundColor: 'transparent',
+                                                        paddingLeft: '35px',
+                                                        height: '25px',
+                                                        border: isTestsContext ? '1px solid var(--vscode-focusBorder)' : 'none'
+                                                    }}
+                                                    selectedId="tests-sublevel"
+                                                >
+                                                    <div
+                                                        style={{ display: 'flex', height: '20px', alignItems: 'center' }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setIsTestsContext(true);
+                                                            setSelectedModule(null);
+                                                            getTestConfigVariables();
+                                                        }}
+                                                    >
+                                                        <Typography
+                                                            variant="body3"
+                                                            sx={{ fontWeight: isTestsContext ? 'bold' : 'normal' }}
+                                                        >
+                                                            Tests
+                                                        </Typography>
+                                                    </div>
+                                                </TreeViewItem>
+                                            )}
                                         </TreeView>
                                     ))}
 
@@ -533,6 +611,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                             }}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
+                                                                setIsTestsContext(false);
                                                                 handleModuleSelect(category.name, "");
                                                             }}
                                                         >
@@ -612,7 +691,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                         {/* Only show Add Config button at the top when the module has configurations */}
                                                         {selectedModule &&
                                                             renderVariables[selectedModule?.category]?.[selectedModule?.module]?.length > 0 &&
-                                                            selectedModule.category === integrationCategory.current && (
+                                                            (isTestsContext || selectedModule.category === integrationCategory.current) && (
                                                                 <Button
                                                                     sx={{ display: 'flex', justifySelf: 'flex-end' }}
                                                                     appearance="primary"
@@ -641,7 +720,8 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                                     packageName={selectedModule.category}
                                                                                     moduleName={selectedModule.module}
                                                                                     index={index}
-                                                                                    fileName={props.fileName}
+                                                                                    fileName={activeFileName}
+                                                                                    configTomlPath={isTestsContext ? props.testsConfigTomlPath : undefined}
                                                                                     onDeleteConfigVariable={handleOnDeleteConfigVariable}
                                                                                     onFormSubmit={handleFormSubmit}
                                                                                     updateErrorMessage={updateErrorMessage}
@@ -672,7 +752,8 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                             onClose={handleFormClose}
                                                             onSubmit={handleFormSubmit}
                                                             title={`Add Configurable Variable`}
-                                                            filename={props.fileName}
+                                                            filename={activeFileName}
+                                                            configTomlPath={isTestsContext ? props.testsConfigTomlPath : undefined}
                                                             packageName={selectedModule.category}
                                                             moduleName={selectedModule.module}
                                                         />
