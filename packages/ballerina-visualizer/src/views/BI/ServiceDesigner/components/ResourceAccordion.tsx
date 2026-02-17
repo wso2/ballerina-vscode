@@ -20,6 +20,7 @@ import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import { Button, Codicon, Confirm, Icon } from '@wso2/ui-toolkit';
 import { FunctionModel } from '@wso2/ballerina-core';
+import { ResourceAccordionSkeleton } from '../../../../components/Skeletons';
 import { canDataBind } from '../utils';
 
 
@@ -141,6 +142,7 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
     const [confirmEl, setConfirmEl] = React.useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
 
     const toggleAccordion = () => {
@@ -169,7 +171,12 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
 
     const handleConfirm = (status: boolean) => {
         if (status) {
-            onDeleteResource && onDeleteResource(functionModel);
+            setIsDeleting(true);
+            try {
+                onDeleteResource && onDeleteResource(functionModel);
+            } catch (error) {
+                setIsDeleting(false);
+            }
         }
         setConfirmOpen(false);
         setConfirmEl(null);
@@ -177,6 +184,10 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
 
     const handleResourceImplement = () => {
         onResourceImplement(functionModel)
+    }
+
+    if (isDeleting) {
+        return <ResourceAccordionSkeleton />;
     }
 
     return (
