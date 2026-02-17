@@ -69,7 +69,6 @@ import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
-import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
@@ -104,7 +103,6 @@ class ServiceIndexGenerator {
 
     public static void main(String[] args) {
         DatabaseManager.createDatabase();
-        BuildProject buildProject = PackageUtil.getSampleProject();
 
         Gson gson = new Gson();
         URL resource = ServiceIndexGenerator.class.getClassLoader().getResource(SERVICE_ARTIFACTS_JSON);
@@ -113,17 +111,17 @@ class ServiceIndexGenerator {
                     typeToken);
             ForkJoinPool forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
             forkJoinPool.submit(() -> packagesMap.forEach((key, value) -> value.forEach(
-                    packageMetadataInfo -> resolvePackage(buildProject, key, packageMetadataInfo)))).join();
+                    packageMetadataInfo -> resolvePackage(key, packageMetadataInfo)))).join();
         } catch (IOException e) {
             LOGGER.severe("Error reading packages JSON file: " + e.getMessage());
         }
     }
 
-    private static void resolvePackage(BuildProject buildProject, String org,
+    private static void resolvePackage(String org,
                                        PackageMetadataInfo packageMetadataInfo) {
         Package resolvedPackage;
         try {
-            Optional<Package> packageOpt = PackageUtil.getModulePackage(buildProject, org,
+            Optional<Package> packageOpt = PackageUtil.getModulePackage(org,
 
                     packageMetadataInfo.name(), packageMetadataInfo.version());
             if (packageOpt.isEmpty()) {

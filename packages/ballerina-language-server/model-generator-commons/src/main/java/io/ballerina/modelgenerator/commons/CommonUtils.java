@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com)
+ *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -22,6 +22,7 @@ import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
+import io.ballerina.compiler.api.symbols.ConstantSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.FutureTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
@@ -43,7 +44,10 @@ import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.BindingPatternNode;
 import io.ballerina.compiler.syntax.tree.BuiltinSimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ChildNodeList;
+import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.DoStatementNode;
+import io.ballerina.compiler.syntax.tree.EnumMemberNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.InterpolationNode;
@@ -53,6 +57,8 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
@@ -61,7 +67,9 @@ import io.ballerina.compiler.syntax.tree.TemplateExpressionNode;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleDescriptor;
+import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.projects.ProjectKind;
@@ -1417,5 +1425,151 @@ public class CommonUtils {
             }
         }
         return resultMap;
+    }
+
+    /**
+     * Directly extracts the default value from a symbol without requiring FunctionDataBuilder.
+     * This method contains the core default value extraction logic decoupled from function building.
+     *
+     * @param paramSymbol     the parameter or record field symbol
+     * @param typeSymbol      the type descriptor of the parameter
+     * @param semanticModel   the semantic model for symbol resolution (can be null)
+     * @param resolvedPackage the resolved package containing the symbol (can be null)
+     * @return the extracted default value as a string
+     */
+    public static String resolveDefaultValue(Symbol paramSymbol, TypeSymbol typeSymbol,
+                                                    SemanticModel semanticModel, Package resolvedPackage) {
+        return resolveDefaultValue(paramSymbol, typeSymbol, semanticModel, resolvedPackage, null);
+    }
+
+    /**
+     * Directly extracts the default value from a symbol without requiring FunctionDataBuilder.
+     * This method contains the core default value extraction logic decoupled from function building.
+     *
+     * @param paramSymbol     the parameter or record field symbol
+     * @param typeSymbol      the type descriptor of the parameter
+     * @param semanticModel   the semantic model for symbol resolution (can be null)
+     * @param resolvedPackage the resolved package containing the symbol (can be null)
+     * @param document        the document containing the symbol (can be null for optimization)
+     * @return the extracted default value as a string
+     */
+    public static String resolveDefaultValue(Symbol paramSymbol, TypeSymbol typeSymbol,
+                                                    SemanticModel semanticModel, Package resolvedPackage,
+                                             Document document) {
+        String defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
+
+        Optional<Location> symbolLocation = paramSymbol.getLocation();
+        if (resolvedPackage == null || symbolLocation.isEmpty()) {
+            return defaultValue;
+        }
+        if (document == null) {
+            // TODO: Remove the document passing logic to separate imported and local packages
+            document = findDocument(resolvedPackage, symbolLocation.get().lineRange().fileName());
+            if (document == null) {
+                return defaultValue;
+            }
+        }
+
+        ModulePartNode rootNode = document.syntaxTree().rootNode();
+        TextRange textRange = symbolLocation.get().textRange();
+        NonTerminalNode node = rootNode.findNode(TextRange.from(textRange.startOffset(), textRange.length()));
+
+        ExpressionNode expression;
+        switch (node.kind()) {
+            case DEFAULTABLE_PARAM -> expression = (ExpressionNode) ((DefaultableParameterNode) node).expression();
+            case RECORD_FIELD_WITH_DEFAULT_VALUE -> expression = ((RecordFieldWithDefaultValueNode) node).expression();
+            default -> {
+                return defaultValue;
+            }
+        }
+
+        if (expression instanceof SimpleNameReferenceNode simpleNameReferenceNode) {
+            String enumValue = resolveEnumMemberValue(simpleNameReferenceNode, resolvedPackage,
+                    semanticModel, document);
+            return enumValue != null ? enumValue : simpleNameReferenceNode.name().text();
+        } else if (expression instanceof QualifiedNameReferenceNode qualifiedNameReferenceNode) {
+            String enumValue = resolveEnumMemberValue(qualifiedNameReferenceNode, resolvedPackage,
+                    semanticModel, document);
+            return enumValue != null ? enumValue :
+                    qualifiedNameReferenceNode.modulePrefix().text() + ":" + qualifiedNameReferenceNode.identifier()
+                    .text();
+        } else {
+            return expression.toSourceCode();
+        }
+    }
+
+    /**
+     * Helper method to find a document in a package by file path.
+     */
+    public static Document findDocument(Package pkg, String path) {
+        if (pkg == null) {
+            return null;
+        }
+        Project project = pkg.project();
+        Module defaultModule = pkg.getDefaultModule();
+        String module = pkg.packageName().value();
+        // TODO: Unify the supported for the submodules
+        Path docPath = project.sourceRoot().resolve("modules").resolve(module).resolve(path);
+        try {
+            DocumentId documentId = project.documentId(docPath);
+            return defaultModule.document(documentId);
+        } catch (RuntimeException ex) {
+            return null;
+        }
+    }
+
+    /**
+     * Helper method to resolve enum member values from expressions.
+     */
+    private static String resolveEnumMemberValue(ExpressionNode expression, Package resolvedPackage,
+                                                 SemanticModel semanticModel, Document document) {
+        if (semanticModel == null) {
+            return null;
+        }
+
+        Optional<Symbol> symbolOpt = semanticModel.symbol(expression);
+        if (symbolOpt.isEmpty()) {
+            return null;
+        }
+
+        Symbol symbol = symbolOpt.get();
+        if (symbol.kind() == SymbolKind.CONSTANT) {
+            if (symbol instanceof ConstantSymbol constantSymbol) {
+                return String.valueOf(constantSymbol.constValue());
+            }
+            // Handle case where kind is CONSTANT but not instanceof ConstantSymbol
+            return null;
+        }
+
+        if (symbol.kind() != SymbolKind.ENUM_MEMBER) {
+            return null;
+        }
+
+        Optional<Location> symbolLocation = symbol.getLocation();
+        if (resolvedPackage == null || symbolLocation.isEmpty()) {
+            return null;
+        }
+
+        if (document == null) {
+            document = findDocument(resolvedPackage, symbolLocation.get().lineRange().fileName());
+            if (document == null) {
+                return null;
+            }
+        }
+
+        ModulePartNode rootNode = document.syntaxTree().rootNode();
+        TextRange textRange = symbolLocation.get().textRange();
+        NonTerminalNode node = rootNode.findNode(TextRange.from(textRange.startOffset(), textRange.length()));
+
+        if (!(node instanceof EnumMemberNode enumMemberNode)) {
+            return null;
+        }
+
+        if (enumMemberNode.constExprNode().isEmpty()) {
+            return enumMemberNode.identifier().text();
+        }
+
+        ExpressionNode valueExpression = enumMemberNode.constExprNode().get();
+        return valueExpression.toSourceCode().trim();
     }
 }

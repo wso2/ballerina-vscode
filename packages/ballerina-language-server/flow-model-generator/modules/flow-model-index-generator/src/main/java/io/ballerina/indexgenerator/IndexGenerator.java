@@ -38,7 +38,6 @@ import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.projects.Package;
-import io.ballerina.projects.directory.BuildProject;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -66,7 +65,6 @@ class IndexGenerator {
 
     public static void main(String[] args) {
         DatabaseManager.createDatabase();
-        BuildProject buildProject = PackageUtil.getSampleProject();
 
         Gson gson = new Gson();
         URL resource = IndexGenerator.class.getClassLoader().getResource(PackageListGenerator.PACKAGE_JSON_FILE);
@@ -75,7 +73,7 @@ class IndexGenerator {
                     typeToken);
             ForkJoinPool forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
             forkJoinPool.submit(() -> packagesMap.forEach((key, value) -> value.forEach(
-                    packageMetadataInfo -> resolvePackage(buildProject, key, packageMetadataInfo)))).join();
+                    packageMetadataInfo -> resolvePackage(key, packageMetadataInfo)))).join();
         } catch (IOException e) {
             LOGGER.severe("Error reading packages JSON file: " + e.getMessage());
         }
@@ -117,11 +115,11 @@ class IndexGenerator {
         DatabaseManager.updateTypeParameter("lang.value", "value:Type", "(any|error)");
     }
 
-    private static void resolvePackage(BuildProject buildProject, String org,
+    private static void resolvePackage(String org,
                                        PackageListGenerator.PackageMetadataInfo packageMetadataInfo) {
         Package resolvedPackage;
         try {
-            resolvedPackage = Objects.requireNonNull(PackageUtil.getModulePackage(buildProject, org,
+            resolvedPackage = Objects.requireNonNull(PackageUtil.getModulePackage(org,
                     packageMetadataInfo.name(), packageMetadataInfo.version())).orElseThrow();
         } catch (Throwable e) {
             LOGGER.severe("Error resolving package: " + packageMetadataInfo.name() + e.getMessage());
@@ -234,6 +232,10 @@ class IndexGenerator {
         // Create ModuleInfo for the function
         ModuleInfo moduleInfo = ModuleInfo.from(module.descriptor());
 
+        // Create and set the resolved package for the function
+        Optional<Package> resolvedPackage = PackageUtil.resolveModulePackage(
+                moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version());
+
         // Determine function kind based on function type
         FunctionData.Kind functionKind = mapFunctionTypeToKind(functionType);
 
@@ -243,6 +245,7 @@ class IndexGenerator {
                 .semanticModel(semanticModel)
                 .functionSymbol(functionSymbol)
                 .moduleInfo(moduleInfo)
+                .resolvedPackage(resolvedPackage.orElse(null))
                 .functionResultKind(functionKind);
 
         // Handle special cases for connectors and class symbols

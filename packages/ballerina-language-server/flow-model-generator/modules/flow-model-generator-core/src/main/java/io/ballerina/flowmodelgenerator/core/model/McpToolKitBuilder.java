@@ -97,6 +97,8 @@ public class McpToolKitBuilder extends NodeBuilder {
         FunctionData functionData = new FunctionDataBuilder().parentSymbolType(AI_MCP_TOOL_KIT_CLASS)
                 .name(INIT_METHOD_NAME).moduleInfo(codedataModuleInfo).userModuleInfo(moduleInfo)
                 .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.MCP_TOOL_KIT)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath())
                 .build();
 
         metadata().label(functionData.packageName()).description(functionData.description())

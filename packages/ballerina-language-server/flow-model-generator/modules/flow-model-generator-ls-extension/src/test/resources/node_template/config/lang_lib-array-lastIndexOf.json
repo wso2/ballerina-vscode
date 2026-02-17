@@ -119,7 +119,7 @@
           "kind": "DEFAULTABLE",
           "originalName": "startIndex"
         },
-        "defaultValue": "0"
+        "defaultValue": "arr.length() - 1"
       },
       "type": {
         "metadata": {

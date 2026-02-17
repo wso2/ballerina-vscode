@@ -50,27 +50,6 @@
     },
     {
       "metadata": {
-        "label": "OracleDB",
-        "description": "Represents a OracleDB client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_oracledb_1.14.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "oracledb",
-        "packageName": "oracledb",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.14.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
         "label": "Ctg",
         "description": "IBM CTG client.",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ibm.ctg_0.1.1.png",
@@ -86,6 +65,27 @@
         "object": "Client",
         "symbol": "init",
         "version": "0.1.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "OracleDB",
+        "description": "Represents a OracleDB client.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_oracledb_1.14.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "oracledb",
+        "packageName": "oracledb",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.14.0",
         "isGenerated": false
       },
       "enabled": true
@@ -134,27 +134,6 @@
     },
     {
       "metadata": {
-        "label": "Onedrive",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.onedrive_3.0.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "microsoft.onedrive",
-        "packageName": "microsoft.onedrive",
-        "object": "Client",
-        "symbol": "init",
-        "version": "3.0.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
         "label": "Redshift",
         "description": "",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.redshift_1.1.0.png",
@@ -170,6 +149,27 @@
         "object": "Client",
         "symbol": "init",
         "version": "1.1.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Onedrive",
+        "description": "",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.onedrive_3.0.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "microsoft.onedrive",
+        "packageName": "microsoft.onedrive",
+        "object": "Client",
+        "symbol": "init",
+        "version": "3.0.0",
         "isGenerated": false
       },
       "enabled": true
@@ -197,27 +197,6 @@
     },
     {
       "metadata": {
-        "label": "PostgreSQL",
-        "description": "Represents a PostgreSQL database client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.16.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "postgresql",
-        "packageName": "postgresql",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.16.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
         "label": "Jdbc",
         "description": "Represents a JDBC client.",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_java.jdbc_1.14.0.png",
@@ -233,6 +212,27 @@
         "object": "Client",
         "symbol": "init",
         "version": "1.14.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "PostgreSQL",
+        "description": "Represents a PostgreSQL database client.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.16.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "postgresql",
+        "packageName": "postgresql",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.16.1",
         "isGenerated": false
       },
       "enabled": true
@@ -323,6 +323,48 @@
     },
     {
       "metadata": {
+        "label": "Events",
+        "description": "",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_hubspot.marketing.events_0.1.0.png",
+        "data": {
+          "isAgentSupport": true
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "hubspot.marketing.events",
+        "packageName": "hubspot.marketing.events",
+        "object": "Client",
+        "symbol": "init",
+        "version": "0.1.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Forms",
+        "description": "",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_hubspot.marketing.forms_0.1.0.png",
+        "data": {
+          "isAgentSupport": true
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "hubspot.marketing.forms",
+        "packageName": "hubspot.marketing.forms",
+        "object": "Client",
+        "symbol": "init",
+        "version": "0.1.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
         "label": "Actions",
         "description": "",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_hubspot.automation.actions_1.0.0.png",
@@ -380,48 +422,6 @@
         "object": "Client",
         "symbol": "init",
         "version": "1.0.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Events",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_hubspot.marketing.events_0.1.0.png",
-        "data": {
-          "isAgentSupport": true
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "hubspot.marketing.events",
-        "packageName": "hubspot.marketing.events",
-        "object": "Client",
-        "symbol": "init",
-        "version": "0.1.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Forms",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_hubspot.marketing.forms_0.1.0.png",
-        "data": {
-          "isAgentSupport": true
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "hubspot.marketing.forms",
-        "packageName": "hubspot.marketing.forms",
-        "object": "Client",
-        "symbol": "init",
-        "version": "0.1.0",
         "isGenerated": false
       },
       "enabled": true

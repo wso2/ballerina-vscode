@@ -185,7 +185,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "serviceUrl"
           },
-          "defaultValue": "\"\""
+          "defaultValue": "https://api.anthropic.com/v1"
         },
         "maxTokens": {
           "metadata": {
@@ -213,7 +213,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "maxTokens"
           },
-          "defaultValue": "0"
+          "defaultValue": "512"
         },
         "temperature": {
           "metadata": {
@@ -241,7 +241,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "temperature"
           },
-          "defaultValue": "0.0d"
+          "defaultValue": "0.7"
         },
         "httpVersion": {
           "metadata": {
@@ -282,7 +282,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "httpVersion"
           },
-          "defaultValue": "\"2.0\""
+          "defaultValue": "http:HTTP_2_0"
         },
         "http1Settings": {
           "metadata": {
@@ -384,7 +384,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "timeout"
           },
-          "defaultValue": "0.0d"
+          "defaultValue": "60"
         },
         "forwarded": {
           "metadata": {
@@ -412,7 +412,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "forwarded"
           },
-          "defaultValue": "\"\""
+          "defaultValue": "\"disable\""
         },
         "poolConfig": {
           "metadata": {
@@ -527,7 +527,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "compression"
           },
-          "defaultValue": "\"AUTO\""
+          "defaultValue": "AUTO"
         },
         "circuitBreaker": {
           "metadata": {
@@ -740,7 +740,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "validation"
           },
-          "defaultValue": "false"
+          "defaultValue": "true"
         },
         "scope": {
           "metadata": {

@@ -134,7 +134,9 @@ public class NewConnectionBuilder extends CallBuilder {
                         codedata.version()))
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(FunctionData.Kind.CONNECTOR)
-                .userModuleInfo(moduleInfo);
+                .userModuleInfo(moduleInfo)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath());
 
         // TODO: If we set the module info properly this logic can be removed.
         if (Boolean.TRUE.equals(codedata.isGenerated())) {
@@ -244,7 +246,8 @@ public class NewConnectionBuilder extends CallBuilder {
                             .stepOut();
                 }
                 default -> {
-                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
+                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo,
+                            paramResult.defaultValue());
                 }
             }
 

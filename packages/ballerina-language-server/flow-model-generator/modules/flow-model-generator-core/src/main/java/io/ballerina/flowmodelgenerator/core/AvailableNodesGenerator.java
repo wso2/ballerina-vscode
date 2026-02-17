@@ -52,6 +52,7 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Package;
 import io.ballerina.tools.text.LinePosition;
@@ -385,11 +386,17 @@ public class AvailableNodesGenerator {
                     .map(moduleSymbol -> ModuleInfo.from(moduleSymbol.id()))
                     .orElse(null);
 
+            // Create and set the resolved package for the function
+            Optional<Package> resolvedPackage = moduleInfo != null ?
+                    PackageUtil.resolveModulePackage(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version()) :
+                    Optional.empty();
+
             FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                     .parentSymbol(classSymbol)
                     .parentSymbolType(className)
                     .project(pkg.project())
                     .moduleInfo(moduleInfo)
+                    .resolvedPackage(resolvedPackage.orElse(null))
                     .enableIndex();
 
             // Obtain methods of the classes

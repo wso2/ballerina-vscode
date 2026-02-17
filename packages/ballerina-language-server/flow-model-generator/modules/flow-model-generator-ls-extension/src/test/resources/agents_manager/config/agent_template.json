@@ -190,7 +190,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "agentType"
         },
-        "defaultValue": "\"FUNCTION_CALL_AGENT\""
+        "defaultValue": "FUNCTION_CALL_AGENT"
       },
       "maxIter": {
         "metadata": {
@@ -218,7 +218,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "maxIter"
         },
-        "defaultValue": "0"
+        "defaultValue": "5"
       },
       "verbose": {
         "metadata": {
@@ -269,7 +269,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "memory"
         },
-        "defaultValue": "()"
+        "defaultValue": "new MessageWindowChatMemory()"
       },
       "type": {
         "metadata": {
