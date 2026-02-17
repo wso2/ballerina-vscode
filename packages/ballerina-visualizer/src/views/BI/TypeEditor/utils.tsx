@@ -174,6 +174,17 @@ export const getFilteredTypesByKind = (types: Category[], kind: FunctionKind) =>
                     continue;
                 }
 
+                let subCategoryKind = categoryKind;
+                if (kind === functionKinds.CURRENT) {
+                    // HACK: If item is under the current workspace category,
+                    // but it is not in the current integration, then 
+                    // treat is as an imported item.
+                    subCategoryKind = getFunctionItemKind(categoryItem.metadata.label);
+                    if (subCategoryKind !== functionKinds.CURRENT) {
+                        subCategoryKind = functionKinds.IMPORTED
+                    }
+                }
+
                 subCategories.push({
                     category: categoryItem.metadata.label,
                     items: categoryItem.items.map((item) => ({
@@ -181,7 +192,7 @@ export const getFilteredTypesByKind = (types: Category[], kind: FunctionKind) =>
                         insertText: item.metadata.label,
                         type: COMPLETION_ITEM_KIND.TypeParameter,
                         codedata: (item as AvailableNode).codedata,
-                        kind: categoryKind
+                        kind: subCategoryKind
                     }))
                 });
             } else {
