@@ -19,7 +19,7 @@
 import { ConnectionListItem, getTypeForDisplayType, ServiceInfoVisibilityEnum, type MarketplaceItem } from "@wso2/wso2-platform-core";
 import React, { useEffect, type FC } from "react";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { DevantConnectionFlow, DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { ConnectionConfigurationForm, ConnectionConfigurationFormProps } from "../ConnectionConfigurationPopup";
 import { DIRECTORY_MAP } from "@wso2/ballerina-core";

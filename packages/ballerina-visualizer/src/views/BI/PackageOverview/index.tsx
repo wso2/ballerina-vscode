@@ -33,14 +33,12 @@ import { ThemeColors } from "@wso2/ui-toolkit";
 import ComponentDiagram from "../ComponentDiagram";
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
 import ReactMarkdown from "react-markdown";
-import { useQuery } from '@tanstack/react-query'
 import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
-import { PlatformExtPopover } from "./PlatformExtPopover";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -642,7 +640,6 @@ export function PackageOverview(props: PackageOverviewProps) {
     const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
     const [isWorkspace, setIsWorkspace] = useState(false);
     const [isLibrary, setIsLibrary] = useState<boolean>(false);
-    const [devantBtnAnchor, setDevantBtnAnchor] = useState<HTMLElement>(null);
 
     const fetchContext = () => {
         rpcClient
@@ -853,11 +850,6 @@ export function PackageOverview(props: PackageOverviewProps) {
                     </Button>
                 </>
             )}
-
-            <Button appearance="icon" onClick={(e)=>setDevantBtnAnchor(e.currentTarget as HTMLElement)} buttonSx={{ padding: "4px" }}>
-                <Icon name="Devant" sx={{ fontSize: "18px", width: "18px" }} />
-            </Button>
-            <PlatformExtPopover anchorEl={devantBtnAnchor} onClose={() => setDevantBtnAnchor(null)} isVisible={!!devantBtnAnchor} />
         </>
     );
 

@@ -18,9 +18,10 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Codicon, Icon } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { HistoryEntry, MACHINE_VIEW, WorkspaceTypeResponse } from "@wso2/ballerina-core";
+import { PlatformExtPopover } from "../../views/BI/PlatformExtPopover";
 
 const NavContainer = styled.div`
     display: flex;
@@ -38,6 +39,7 @@ const BreadcrumbContainer = styled.div`
     gap: 8px;
     margin-left: 4px;
     color: var(--vscode-foreground);
+    flex: 1;
 `;
 
 const BreadcrumbSeparator = styled.span`
@@ -109,6 +111,7 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
     const { rpcClient } = useRpcContext();
     const [history, setHistory] = useState<HistoryEntry[]>([]);
     const [workspaceType, setWorkspaceType] = useState<WorkspaceTypeResponse>(null);
+    const [devantBtnAnchor, setDevantBtnAnchor] = useState<HTMLElement>(null);
 
     useEffect(() => {
         Promise.all([
@@ -223,6 +226,10 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                     return null;
                 })}
             </BreadcrumbContainer>
+            <Button tooltip="Manage Devant" appearance="icon" onClick={(e)=>setDevantBtnAnchor(e.currentTarget as HTMLElement)}>
+                <Icon name="Devant" sx={{ fontSize: "18px", width: "18px" }} />
+            </Button>
+            <PlatformExtPopover anchorEl={devantBtnAnchor} onClose={() => setDevantBtnAnchor(null)} isVisible={!!devantBtnAnchor} />
         </NavContainer>
     );
 }
