@@ -35,7 +35,6 @@ import { ActionButton, ConnectorContentContainer, ConnectorInfoContainer, Footer
 import { DevantConnectionFlow, DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { generateInitialConnectionName, isValidDevantConnName } from "./utils";
 
-
 const Row = styled.div<{}>`
     display: flex;
     flex-direction: row;
@@ -146,23 +145,24 @@ interface CreateConnectionForm {
 }
 
 interface DevantConnectorCreateFormProps {
-    marketplaceItem: MarketplaceItem | undefined,
+    marketplaceItem: MarketplaceItem | undefined;
+    projectPath: string;
     devantConfigs: DevantTempConfig[];
-    devantFlow: DevantConnectionFlow,
-    existingDevantConnNames?: string[],
-    biConnectionNames?: string[],
-    onSuccess?: (data: { connectionNode?: any; connectionName?: string }) => void,
+    devantFlow: DevantConnectionFlow;
+    existingDevantConnNames?: string[];
+    biConnectionNames?: string[];
+    onSuccess?: (data: { connectionNode?: any; connectionName?: string }) => void;
 }
 
 export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
     biConnectionNames,
     marketplaceItem,
     existingDevantConnNames = [],
-    devantFlow,
+    projectPath,
     onSuccess,
     devantConfigs = [],
 }) => {
-    const { platformExtState, platformRpcClient, projectPath } = usePlatformExtContext();
+    const { platformExtState, platformRpcClient } = usePlatformExtContext();
     const [showAdvancedSection, setShowAdvancedSection] = useState(false);
 
     const visibilities = getPossibleVisibilities(marketplaceItem, platformExtState?.selectedContext?.project);
@@ -173,7 +173,7 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
             name: generateInitialConnectionName(
                 biConnectionNames,
                 existingDevantConnNames,
-                marketplaceItem?.name || ""
+                marketplaceItem?.name || "",
             ),
             visibility: getInitialVisibility(marketplaceItem, visibilities),
             schemaId: "",
@@ -187,7 +187,7 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
             name: generateInitialConnectionName(
                 biConnectionNames,
                 existingDevantConnNames,
-                marketplaceItem?.name || ""
+                marketplaceItem?.name || "",
             ),
             visibility: getInitialVisibility(marketplaceItem, visibilities),
             schemaId: "",
@@ -197,10 +197,8 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
 
     const { mutate: createConnection, isPending: isCreatingConnection } = useMutation({
         mutationFn: async (data: CreateConnectionForm) => {
-             const createdConnection = await platformRpcClient?.createInternalConnection({
-                componentId: isProjectLevel
-                    ? ""
-                    : platformExtState.selectedComponent?.metadata?.id,
+            const createdConnection = await platformRpcClient?.createInternalConnection({
+                componentId: isProjectLevel ? "" : platformExtState.selectedComponent?.metadata?.id,
                 name: data.name,
                 orgId: platformExtState.selectedContext?.org.id?.toString(),
                 orgUuid: platformExtState.selectedContext?.org?.uuid,
@@ -215,9 +213,7 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
                 generateCreds: true,
             });
 
-            const securityType = createdConnection?.schemaName?.toLowerCase()?.includes("oauth")
-                        ? "oauth"
-                        : "apikey";
+            const securityType = createdConnection?.schemaName?.toLowerCase()?.includes("oauth") ? "oauth" : "apikey";
 
             const initializeResp = await platformRpcClient?.initializeDevantOASConnection({
                 devantConfigs,
@@ -226,7 +222,7 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
                 name: data.name,
                 securityType,
                 visibility: data.visibility,
-            })
+            });
 
             await platformRpcClient.createConnectionConfig({
                 marketplaceItem: marketplaceItem,
@@ -338,11 +334,7 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
                             sx={{ width: "100%" }}
                             {...form.register("name", {
                                 validate: (value) =>
-                                    isValidDevantConnName(
-                                        value,
-                                        existingDevantConnNames,
-                                        biConnectionNames,
-                                    ),
+                                    isValidDevantConnName(value, existingDevantConnNames, biConnectionNames),
                             })}
                             errorMsg={form.formState.errors.name?.message}
                         />

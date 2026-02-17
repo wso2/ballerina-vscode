@@ -187,7 +187,6 @@ const FormWrap = styled.div`
     padding: 16px;
 `;
 
-
 enum PullingStatus {
     FETCHING = "fetching",
     PULLING = "pulling",

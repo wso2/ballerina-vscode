@@ -28,45 +28,44 @@ import { FooterContainer } from "../../Connection/styles";
 import { FormStyles } from "../../Forms/styles";
 import { Configurables, ConfigurablesPageProps } from "./Configurables";
 
-interface DevantConfigurablesProps extends Omit<ConfigurablesPageProps, 'excludedConfigs' | 'onAddNewConfigurable'> {
-     devantExpressionEditor?: ExpressionEditorDevantProps;
+interface DevantConfigurablesProps extends Omit<ConfigurablesPageProps, "excludedConfigs" | "onAddNewConfigurable"> {
+    devantExpressionEditor?: ExpressionEditorDevantProps;
 }
 
 export const DevantConfigurables = (props: DevantConfigurablesProps) => {
     const { devantExpressionEditor, onClose } = props;
     const { rpcClient } = useRpcContext();
-    const { projectPath, projectToml } = usePlatformExtContext();
     const { addModal, closeModal } = useModalStack();
 
     const { data: existingConfigVariables = [] } = useQuery({
-        queryFn: () =>
-            rpcClient.getBIDiagramRpcClient().getConfigVariablesV2({
-                projectPath,
+        queryFn: async () => {
+            const visualizerLocation = await rpcClient.getVisualizerLocation();
+            const data = await rpcClient.getBIDiagramRpcClient().getConfigVariablesV2({
+                projectPath: visualizerLocation?.projectPath || "",
                 includeLibraries: false,
-            }),
-        queryKey: ["config-variables", projectPath],
-        select: (data) => {
+            });
             const configNames: string[] = [];
+            const projectToml = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
             const configVars = (data.configVariables as any)?.[
-                `${projectToml?.values?.package?.org}/${projectToml?.values?.package?.name}`
+                `${projectToml?.package?.org}/${projectToml?.package?.name}`
             ]?.[""] as ConfigVariable[];
             configVars.forEach((configVar) =>
                 configNames.push(configVar?.properties?.variable?.value?.toString() || ""),
             );
             return configNames;
         },
+        queryKey: ["config-variables"],
     });
-
 
     const { mutate, isPending } = useMutation({
         mutationFn: (data: {
             name: string;
             value: string;
             isSecret: boolean;
-            refreshConfigVariables: () => Promise<void>
+            refreshConfigVariables: () => Promise<void>;
         }) => {
-            if(devantExpressionEditor?.onAddDevantConfig){
-                return devantExpressionEditor.onAddDevantConfig(data.name, data.value, data.isSecret)
+            if (devantExpressionEditor?.onAddDevantConfig) {
+                return devantExpressionEditor.onAddDevantConfig(data.name, data.value, data.isSecret);
             }
         },
         onSuccess: (_, input) => {
@@ -79,25 +78,31 @@ export const DevantConfigurables = (props: DevantConfigurablesProps) => {
     const onAddNewConfigurable = (refreshConfigVariables: () => Promise<void>) => {
         addModal(
             <DevantNewConfigurableForm
-                onSave={(data) =>  mutate({...data, refreshConfigVariables })}
-                existingNames={[ ...existingConfigVariables, ...(devantExpressionEditor?.devantConfigs || [] )]}
+                onSave={(data) => mutate({ ...data, refreshConfigVariables })}
+                existingNames={[...existingConfigVariables, ...(devantExpressionEditor?.devantConfigs || [])]}
                 isSaving={isPending}
-            />, POPUP_IDS.CONFIGURABLES, "New Devant Configurable", 400)
+            />,
+            POPUP_IDS.CONFIGURABLES,
+            "New Devant Configurable",
+            400,
+        );
 
-        if(onClose){
+        if (onClose) {
             onClose();
         }
-    }
+    };
 
     return (
-        <Configurables 
-            {...props} 
-            excludedConfigs={existingConfigVariables?.filter((config) => !(devantExpressionEditor?.devantConfigs || [] ).includes(config))} 
+        <Configurables
+            {...props}
+            excludedConfigs={existingConfigVariables?.filter(
+                (config) => !(devantExpressionEditor?.devantConfigs || []).includes(config),
+            )}
             onAddNewConfigurable={onAddNewConfigurable}
             showAddNew={!!devantExpressionEditor?.onAddDevantConfig}
         />
-    )
-}
+    );
+};
 
 interface DevantNewConfigurableData {
     name: string;
@@ -176,7 +181,9 @@ const DevantNewConfigurableForm: React.FC<DevantNewConfigurableFormProps> = ({
 
     return (
         <FormStyles.Container style={{ padding: 16, height: "100%" }}>
-            <Typography variant="body3">Create a new configurable that will be used when your integration is running in Devant</Typography>
+            <Typography variant="body3">
+                Create a new configurable that will be used when your integration is running in Devant
+            </Typography>
             <FormStyles.Row>
                 <TextField
                     value={name}
@@ -200,12 +207,8 @@ const DevantNewConfigurableForm: React.FC<DevantNewConfigurableFormProps> = ({
                 />
             </FormStyles.Row>
 
-           <FormStyles.Row>
-                <CheckBox
-                    label="Mark as secret"
-                    checked={isSecret}
-                    onChange={() => setIsSecret(!isSecret)}
-                />
+            <FormStyles.Row>
+                <CheckBox label="Mark as secret" checked={isSecret} onChange={() => setIsSecret(!isSecret)} />
             </FormStyles.Row>
 
             <FooterContainer style={{ flex: 1, display: "flex", alignItems: "end", alignSelf: "end" }}>

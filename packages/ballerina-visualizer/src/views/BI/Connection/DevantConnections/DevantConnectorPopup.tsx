@@ -16,14 +16,7 @@
  * under the License.
  */
 
-import {
-    AvailableNode,
-    ConfigVariable,
-    DIRECTORY_MAP,
-    FlowNode,
-    LinePosition,
-    ParentPopupData,
-} from "@wso2/ballerina-core";
+import { AvailableNode, ConfigVariable, DIRECTORY_MAP, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { Codicon, ProgressRing, Stepper, ThemeColors } from "@wso2/ui-toolkit";
 import {
     PopupOverlay,
@@ -62,17 +55,18 @@ import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { URI } from "vscode-uri";
 import { set } from "lodash";
 
-interface AddConnectionPopupProps {
+interface DevantConnectorPopupProps {
     onClose?: (parent?: ParentPopupData) => void;
     onNavigateToOverview: () => void;
     isPopup?: boolean;
     fileName: string;
     target?: LinePosition;
+    projectPath: string;
 }
 
-export function DevantConnectorPopup(props: AddConnectionPopupProps) {
-    const { onClose, onNavigateToOverview, isPopup, fileName, target } = props;
-    const { platformRpcClient, projectPath, projectToml, platformExtState, importConnection } = usePlatformExtContext();
+export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
+    const { onClose, onNavigateToOverview, isPopup, fileName, target, projectPath } = props;
+    const { platformRpcClient, platformExtState, importConnection } = usePlatformExtContext();
     const [isCreating, setIsCreating] = useState<boolean>(true);
     const { rpcClient } = useRpcContext();
     const [selectedFlow, setSelectedFlow] = useState<DevantConnectionFlow | null>(null);
@@ -101,7 +95,7 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
     useEffect(() => {
         if (importConnection?.connection) {
             setImportingConn(importConnection.connection);
-            handleInitImportConnector(importConnection.connection); // todo: use mutation
+            handleInitImportConnector(importConnection.connection);
             importConnection.setConnection(undefined);
             setIsCreating(false);
         }
@@ -166,8 +160,10 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                 includeLibraries: false,
             });
             const existingConfigs = new Set<string>();
+
+            const projectToml = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
             const configVars = (configResp.configVariables as any)?.[
-                `${projectToml?.values?.package?.org}/${projectToml?.values?.package?.name}`
+                `${projectToml?.package?.org}/${projectToml?.package?.name}`
             ]?.[""] as ConfigVariable[];
             configVars.forEach((configVar) =>
                 existingConfigs.add(configVar?.properties?.variable?.value?.toString() || ""),
@@ -258,71 +254,71 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
         },
     });
 
-    const { data: existingDevantConnNames = devantConfigs?.map((conn) => conn.name) || [] } = useQuery(
-        {
-            queryKey: ["devant-connection-names-in-project", platformExtState?.selectedContext?.project.id],
-            queryFn: async () => {
-                const allConnNamesSet = new Set<string>();
-                const connections = await platformRpcClient?.getConnections({
-                    projectId: platformExtState?.selectedContext?.project.id,
-                    orgId: platformExtState?.selectedContext?.org.id?.toString(),
-                    componentId: "",
-                });
-                if (connections && connections.length > 0) {
-                    connections.forEach(conn => allConnNamesSet.add(conn.name));
-                }
-                const components = await platformRpcClient?.getComponentList({
-                    projectId: platformExtState?.selectedContext?.project.id,
-                    orgId: platformExtState?.selectedContext?.org.id?.toString(),
-                    orgHandle: platformExtState?.selectedContext?.org.handle || "",
-                    projectHandle: platformExtState?.selectedContext?.project.handler || "",
-                });
-                const allConns = await Promise.all(components.map(comp=>platformRpcClient.getConnections({
-                    projectId: platformExtState?.selectedContext?.project.id,
-                    orgId: platformExtState?.selectedContext?.org.id?.toString(),
-                    componentId: comp.metadata.id || "",
-                })))
-                allConns.forEach(conns => conns.forEach(conn => allConnNamesSet.add(conn.name)));
-                return Array.from(allConnNamesSet)
-            },
-        }
-    );
+    const { data: existingDevantConnNames = devantConfigs?.map((conn) => conn.name) || [] } = useQuery({
+        queryKey: ["devant-connection-names-in-project", platformExtState?.selectedContext?.project.id],
+        queryFn: async () => {
+            const allConnNamesSet = new Set<string>();
+            const connections = await platformRpcClient?.getConnections({
+                projectId: platformExtState?.selectedContext?.project.id,
+                orgId: platformExtState?.selectedContext?.org.id?.toString(),
+                componentId: "",
+            });
+            if (connections && connections.length > 0) {
+                connections.forEach((conn) => allConnNamesSet.add(conn.name));
+            }
+            const components = await platformRpcClient?.getComponentList({
+                projectId: platformExtState?.selectedContext?.project.id,
+                orgId: platformExtState?.selectedContext?.org.id?.toString(),
+                orgHandle: platformExtState?.selectedContext?.org.handle || "",
+                projectHandle: platformExtState?.selectedContext?.project.handler || "",
+            });
+            const allConns = await Promise.all(
+                components.map((comp) =>
+                    platformRpcClient.getConnections({
+                        projectId: platformExtState?.selectedContext?.project.id,
+                        orgId: platformExtState?.selectedContext?.org.id?.toString(),
+                        componentId: comp.metadata.id || "",
+                    }),
+                ),
+            );
+            allConns.forEach((conns) => conns.forEach((conn) => allConnNamesSet.add(conn.name)));
+            return Array.from(allConnNamesSet);
+        },
+    });
 
     const { mutateAsync: importInternalOASConnection, isPending: initializingOASConn } = useMutation({
         mutationFn: async () => {
-                const connectionDetailed = await platformRpcClient.getConnection({
-                    connectionGroupId: importingConn?.groupUuid,
-                    orgId: platformExtState?.selectedContext?.org?.id?.toString()
-                })
+            const connectionDetailed = await platformRpcClient.getConnection({
+                connectionGroupId: importingConn?.groupUuid,
+                orgId: platformExtState?.selectedContext?.org?.id?.toString(),
+            });
 
-                let visibility: ServiceInfoVisibilityEnum = ServiceInfoVisibilityEnum.Public;
-                if(connectionDetailed?.schemaName?.toLowerCase()?.includes("organization")) {
-                    visibility = ServiceInfoVisibilityEnum.Organization;
-                } else if(connectionDetailed?.schemaName?.toLowerCase()?.includes("project")) {
-                    visibility = ServiceInfoVisibilityEnum.Project;
-                }
+            let visibility: ServiceInfoVisibilityEnum = ServiceInfoVisibilityEnum.Public;
+            if (connectionDetailed?.schemaName?.toLowerCase()?.includes("organization")) {
+                visibility = ServiceInfoVisibilityEnum.Organization;
+            } else if (connectionDetailed?.schemaName?.toLowerCase()?.includes("project")) {
+                visibility = ServiceInfoVisibilityEnum.Project;
+            }
 
-                await platformRpcClient.createConnectionConfig({
-                    marketplaceItem: selectedMarketplaceItem,
-                    name: connectionDetailed.name,
-                    visibility: visibility,
-                    componentDir: projectPath,
-                });
+            await platformRpcClient.createConnectionConfig({
+                marketplaceItem: selectedMarketplaceItem,
+                name: connectionDetailed.name,
+                visibility: visibility,
+                componentDir: projectPath,
+            });
 
-                const securityType = connectionDetailed?.schemaName?.toLowerCase()?.includes("oauth")
-                    ? "oauth"
-                    : "apikey";
-                const configurations = connectionDetailed?.configurations;
+            const securityType = connectionDetailed?.schemaName?.toLowerCase()?.includes("oauth") ? "oauth" : "apikey";
+            const configurations = connectionDetailed?.configurations;
 
-                const resp = await platformRpcClient.initializeDevantOASConnection({
-                    name: connectionDetailed.name,
-                    marketplaceItem: selectedMarketplaceItem,
-                    visibility,
-                    configurations,
-                    securityType,
-                    devantConfigs: devantConfigs
-                });
-                return resp;
+            const resp = await platformRpcClient.initializeDevantOASConnection({
+                name: connectionDetailed.name,
+                marketplaceItem: selectedMarketplaceItem,
+                visibility,
+                configurations,
+                securityType,
+                devantConfigs: devantConfigs,
+            });
+            return resp;
         },
         onSuccess: (data) => {
             platformRpcClient.refreshConnectionList();
@@ -337,7 +333,7 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
 
     const { mutate: generateCustomConnectorFromOAS, isPending: generatingCustomConnectorFromOAS } = useMutation({
         mutationFn: async () => {
-            if(selectedFlow === DevantConnectionFlow.IMPORT_INTERNAL_OAS) {
+            if (selectedFlow === DevantConnectionFlow.IMPORT_INTERNAL_OAS) {
                 await importInternalOASConnection();
             } else {
                 const resp = await platformRpcClient?.generateCustomConnectorFromOAS({
@@ -415,7 +411,12 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                                                 <DevantConnectorMarketplaceInfo
                                                     item={selectedMarketplaceItem}
                                                     onNextClick={() => {
-                                                        if ([DevantConnectionFlow.IMPORT_INTERNAL_OAS,DevantConnectionFlow.CREATE_THIRD_PARTY_OAS].includes(selectedFlow)) {
+                                                        if (
+                                                            [
+                                                                DevantConnectionFlow.IMPORT_INTERNAL_OAS,
+                                                                DevantConnectionFlow.CREATE_THIRD_PARTY_OAS,
+                                                            ].includes(selectedFlow)
+                                                        ) {
                                                             generateCustomConnectorFromOAS();
                                                         } else {
                                                             goToNextStep();
@@ -424,13 +425,18 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                                                     onFlowChange={(flow) => setSelectedFlow(flow)}
                                                     loading={generatingCustomConnectorFromOAS || initializingOASConn}
                                                     importedConnection={importingConn}
-                                                    saveButtonText={selectedFlow === DevantConnectionFlow.IMPORT_INTERNAL_OAS ? "Save" : "Continue"}
+                                                    saveButtonText={
+                                                        selectedFlow === DevantConnectionFlow.IMPORT_INTERNAL_OAS
+                                                            ? "Save"
+                                                            : "Continue"
+                                                    }
                                                 />
                                             )}
                                             {steps[currentStepIndex] ===
                                                 DevantConnectionFlowStep.INIT_DEVANT_INTERNAL_OAS_CONNECTOR && (
                                                 <DevantConnectorCreateForm
                                                     biConnectionNames={biConnectionNames}
+                                                    projectPath={projectPath}
                                                     marketplaceItem={selectedMarketplaceItem}
                                                     existingDevantConnNames={existingDevantConnNames}
                                                     devantFlow={selectedFlow!}

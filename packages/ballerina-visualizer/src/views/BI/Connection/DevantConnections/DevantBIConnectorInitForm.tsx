@@ -16,7 +16,12 @@
  * under the License.
  */
 
-import { ConnectionListItem, getTypeForDisplayType, ServiceInfoVisibilityEnum, type MarketplaceItem } from "@wso2/wso2-platform-core";
+import {
+    ConnectionListItem,
+    getTypeForDisplayType,
+    ServiceInfoVisibilityEnum,
+    type MarketplaceItem,
+} from "@wso2/wso2-platform-core";
 import React, { useEffect, type FC } from "react";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 import { useMutation } from "@tanstack/react-query";
@@ -100,11 +105,11 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
                     configs: devantConfigs,
                     createdConnection: connectionDetailed,
                 });
-                
+
                 let visibility: ServiceInfoVisibilityEnum = ServiceInfoVisibilityEnum.Public;
-                if(connectionDetailed?.schemaName?.toLowerCase()?.includes("organization")) {
+                if (connectionDetailed?.schemaName?.toLowerCase()?.includes("organization")) {
                     visibility = ServiceInfoVisibilityEnum.Organization;
-                } else if(connectionDetailed?.schemaName?.toLowerCase()?.includes("project")) {
+                } else if (connectionDetailed?.schemaName?.toLowerCase()?.includes("project")) {
                     visibility = ServiceInfoVisibilityEnum.Project;
                 }
 
@@ -197,11 +202,12 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
                 ].includes(selectedFlow)
             ) {
                 const isProjectLevel = !!!platformExtState?.selectedComponent?.metadata?.id;
-                const visibilities = getPossibleVisibilities(selectedMarketplaceItem, platformExtState?.selectedContext?.project);
+                const visibilities = getPossibleVisibilities(
+                    selectedMarketplaceItem,
+                    platformExtState?.selectedContext?.project,
+                );
                 const createdConnection = await platformRpcClient?.createInternalConnection({
-                    componentId: isProjectLevel
-                        ? ""
-                        : platformExtState.selectedComponent?.metadata?.id,
+                    componentId: isProjectLevel ? "" : platformExtState.selectedComponent?.metadata?.id,
                     name: recentIdentifier,
                     orgId: platformExtState.selectedContext?.org.id?.toString(),
                     orgUuid: platformExtState.selectedContext?.org?.uuid,
@@ -266,11 +272,7 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
             loading={isCreating}
             customValidator={(fieldKey, value) => {
                 if (fieldKey === "variable") {
-                    return isValidDevantConnName(
-                        value,
-                        existingDevantConnNames,
-                        biConnectionNames,
-                    );
+                    return isValidDevantConnName(value, existingDevantConnNames, biConnectionNames);
                 }
                 return undefined;
             }}

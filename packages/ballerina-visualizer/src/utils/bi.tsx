@@ -24,7 +24,6 @@ import {
     ParameterValue,
     Parameter,
     FormImports,
-    Node,
 } from "@wso2/ballerina-side-panel";
 import { AddNodeVisitor, RemoveNodeVisitor, NodeIcon, traverseFlow, ConnectorIcon, AIModelIcon } from "@wso2/bi-diagram";
 import {
@@ -57,7 +56,6 @@ import {
     SubPanel,
     SubPanelView,
     NodeMetadata,
-    PackageTomlValues,
     Type,
     getPrimaryInputType,
     isTemplateType,
@@ -83,7 +81,7 @@ import { DocSection } from "../components/ExpressionEditor";
 import ballerina from "../languages/ballerina.js";
 import { FUNCTION_REGEX } from "../resources/constants";
 import { ConnectionKind, getConnectionKindConfig } from "../components/ConnectionSelector";
-import { ConnectionListItem, ContextItemEnriched } from "@wso2/wso2-platform-core";
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
 hljs.registerLanguage("ballerina", ballerina);
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";

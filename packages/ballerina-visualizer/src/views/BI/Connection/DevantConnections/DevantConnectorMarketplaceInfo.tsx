@@ -18,10 +18,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { VSCodePanelTab, VSCodePanelView, VSCodePanels } from "@vscode/webview-ui-toolkit/react";
-import type { ConnectionListItem, MarketplaceItem, Organization } from "@wso2/wso2-platform-core";
+import type { ConnectionListItem, MarketplaceItem } from "@wso2/wso2-platform-core";
 import { useEffect, type FC, type ReactNode } from "react";
 import styled from "@emotion/styled";
-import { Button, Badge, ProgressRing, Icon, Codicon, ThemeColors, Typography } from "@wso2/ui-toolkit";
+import { Badge, ProgressRing, Icon } from "@wso2/ui-toolkit";
 import ReactMarkdown from "react-markdown";
 import SwaggerUIReact from "swagger-ui-react";
 import "@wso2/ui-toolkit/src/styles/swagger/styles.css";
@@ -31,7 +31,6 @@ import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-pr
 import {
     ConnectorDetailCard,
     ConnectorOptionButtons,
-    ConnectorOptionCard,
     ConnectorOptionContent,
     ConnectorOptionDescription,
     ConnectorOptionIcon,
@@ -118,7 +117,14 @@ const disableTryItOutPlugin = () => ({
     },
 });
 
-export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, onNextClick, onFlowChange, loading, importedConnection, saveButtonText = "Continue" }) => {
+export const DevantConnectorMarketplaceInfo: FC<Props> = ({
+    item,
+    onNextClick,
+    onFlowChange,
+    loading,
+    importedConnection,
+    saveButtonText = "Continue",
+}) => {
     const { platformRpcClient, platformExtState } = usePlatformExtContext();
 
     const {
@@ -167,7 +173,7 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, onNextClick, o
                     newFlow = DevantConnectionFlow.CREATE_INTERNAL_OTHER;
                 }
             }
-            onFlowChange(newFlow);            
+            onFlowChange(newFlow);
         }
     }, [serviceIdl, serviceIdlError]);
 

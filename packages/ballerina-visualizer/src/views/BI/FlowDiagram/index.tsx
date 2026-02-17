@@ -78,12 +78,10 @@ import { ConnectionKind } from "../../../components/ConnectionSelector";
 import {
     findFlowNodeByModuleVarName,
     getAgentFilePath,
-    removeAgentNode,
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
 import { DiagramSkeleton } from "../../../components/Skeletons";
 import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, GET_DEFAULT_MODEL_PROVIDER, LOADING_MESSAGE } from "../../../constants";
-import { useMutation } from "@tanstack/react-query";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 

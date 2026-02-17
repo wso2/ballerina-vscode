@@ -28,36 +28,32 @@ interface PersistedClient {
 }
 
 const webviewStatePersister = (queryBaseKey: string) => {
-    const { rpcClient } = useRpcContext()
+    const { rpcClient } = useRpcContext();
     return {
         persistClient: async (client: PersistedClient) => {
-			await rpcClient.getCommonRpcClient().setWebviewCache({cacheKey: queryBaseKey, data: client});
-		},
-		restoreClient: async () => {
-			const cache = await rpcClient.getCommonRpcClient().restoreWebviewCache(queryBaseKey);
-			return cache;
-		},
-		removeClient: async () => {
-			await rpcClient.getCommonRpcClient().clearWebviewCache(queryBaseKey);
-		},
+            await rpcClient.getCommonRpcClient().setWebviewCache({ cacheKey: queryBaseKey, data: client });
+        },
+        restoreClient: async () => {
+            const cache = await rpcClient.getCommonRpcClient().restoreWebviewCache(queryBaseKey);
+            return cache;
+        },
+        removeClient: async () => {
+            await rpcClient.getCommonRpcClient().clearWebviewCache(queryBaseKey);
+        },
     };
 };
 
-export const ReactQueryProvider = ({ 
-    children 
-}: { 
-    children: React.ReactNode; 
-}) => {
+export const ReactQueryProvider = ({ children }: { children: React.ReactNode }) => {
     return (
         <PersistQueryClientProvider
             client={
                 new QueryClient({
                     defaultOptions: {
                         queries: {
-							gcTime: 1000 * 60 * 60 * 24 * 7, // 1 week
-							retry: false,
-							refetchOnWindowFocus: false,
-						},
+                            gcTime: 1000 * 60 * 60 * 24 * 7, // 1 week
+                            retry: false,
+                            refetchOnWindowFocus: false,
+                        },
                     },
                 })
             }

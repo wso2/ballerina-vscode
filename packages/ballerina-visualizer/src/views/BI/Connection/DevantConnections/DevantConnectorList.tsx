@@ -84,7 +84,6 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
                 .search({ filePath: fileName, queryMap: { limit: 60, orgName: "ballerina" }, searchKind: "CONNECTOR" }),
     });
 
-
     const handleMarketplaceItemClick = (item: MarketplaceItem, type: DevantConnectionType) => {
         // TODO: once we store the connector info in Devant side,
         // we should be able to open the correct form
