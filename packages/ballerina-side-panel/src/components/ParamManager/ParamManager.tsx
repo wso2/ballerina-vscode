@@ -28,7 +28,7 @@ import { useFormContext } from '../../context';
 import { Imports, NodeKind } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { EditorFactory } from '../editors/EditorFactory';
-import { getFieldKeyForAdvanceProp } from '../editors/utils';
+import { buildRequiredRule, getFieldKeyForAdvanceProp } from '../editors/utils';
 
 export interface Parameter {
     id: number;
@@ -145,10 +145,11 @@ export function ParamManagerEditor(props: ParamManagerEditorProps) {
                 control={control}
                 name={field.key}
                 rules={{
-                    required: {
-                        value: !field.optional && !field.placeholder,
+                    required: buildRequiredRule({
+                        isRequired: !field.optional,
+                        label: field.label,
                         message: `${selectedNode === "DATA_MAPPER_DEFINITION" ? 'Input type' : field.label} is required`
-                    }
+                    })
                 }}
                 render={({ field: { onChange }, fieldState: { error } }) => (
                     <>
