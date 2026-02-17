@@ -22,7 +22,7 @@ import { Dropdown, LocationSelector } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 import { FormField } from "../Form/types";
-import { capitalize, getValueForDropdown } from "./utils";
+import { buildRequiredRule } from "./utils";
 import { useFormContext } from "../../context";
 import { Controller } from "react-hook-form";
 
@@ -48,7 +48,7 @@ export function FileSelect(props: DropdownEditorProps) {
         <Controller
             control={control}
             name={field.key}
-            rules={{ required: !field.optional && !field.placeholder }}
+            rules={{ required: buildRequiredRule({ isRequired: !field.optional, label: field.label }) }}
             render={({ field: { value }, fieldState: { error } }) => (
                 <LocationSelector
                     label={`Select ${field.label} File`}

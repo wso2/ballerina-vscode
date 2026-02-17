@@ -39,12 +39,14 @@ interface TypeFieldProps {
     label?: string;
     required?: boolean;
     autoFocus?: boolean;
+    fieldIndex?: number;
 }
 
 export const TypeField = forwardRef<HTMLInputElement, TypeFieldProps>((props, ref) => {
     const {
         type,
         onChange,
+        fieldIndex,
         onUpdateImports,
         placeholder,
         sx,
@@ -206,7 +208,7 @@ export const TypeField = forwardRef<HTMLInputElement, TypeFieldProps>((props, re
 
     const handleTypeCreate = (typeName?: string) => {
         setHelperPaneOpened(false);
-        onTypeCreate?.(typeName);
+        onTypeCreate?.(fieldIndex, typeName);
     };
 
     /* Track cursor position */
@@ -221,6 +223,11 @@ export const TypeField = forwardRef<HTMLInputElement, TypeFieldProps>((props, re
             document.removeEventListener('selectionchange', handleSelectionChange);
         };
     }, [typeFieldRef.current]);
+
+    /* Validate on initial mount to catch empty fields and existing errors */
+    useEffect(() => {
+        validateType(memberName);
+    }, []);
 
     return (
         <>

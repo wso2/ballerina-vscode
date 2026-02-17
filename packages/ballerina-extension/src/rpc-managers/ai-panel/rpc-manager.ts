@@ -45,8 +45,7 @@ import {
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";
-import { workspace } from 'vscode';
-import { URI } from "vscode-uri";
+import { extensions, workspace } from 'vscode';
 
 import { isNumber } from "lodash";
 import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
@@ -56,11 +55,11 @@ import { extension } from "../../BalExtensionContext";
 import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
-import { OLD_BACKEND_URL } from "../../features/ai/utils";
-import { fetchWithAuth } from "../../features/ai/utils/ai-client";
+import { submitFeedback as submitFeedbackUtil } from "../../features/ai/utils/feedback";
+import { sendGenerationKeptTelemetry, sendGenerationDiscardTelemetry } from "../../features/ai/utils/generation-response";
 import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
-import { getLoginMethod, loginGithubCopilot } from "../../utils/ai/auth";
+import { getLoginMethod, isPlatformExtensionAvailable, loginGithubCopilot } from "../../utils/ai/auth";
 import { normalizeCodeContext } from "../../views/ai-panel/codeContextUtils";
 import { refreshDataMapper } from "../data-mapper/utils";
 import {
@@ -71,6 +70,7 @@ import { addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "
 import { onHideReviewActions } from '@wso2/ballerina-core';
 import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent } from '../../features/ai/agent/index';
 import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
+import { WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
 import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
 import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/InlineMappingExecutor';
@@ -89,9 +89,13 @@ export class AiPanelRpcManager implements AIPanelAPI {
         });
     }
 
+    async isPlatformExtensionAvailable(): Promise<boolean> {
+        return isPlatformExtensionAvailable();
+    }
+
     async getDefaultPrompt(): Promise<AIPanelPrompt> {
         let defaultPrompt: AIPanelPrompt = extension.aiChatDefaultPrompt;
-        
+
         // Normalize code context to use relative paths
         if (defaultPrompt && 'codeContext' in defaultPrompt && defaultPrompt.codeContext) {
             defaultPrompt = {
@@ -99,7 +103,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 codeContext: normalizeCodeContext(defaultPrompt.codeContext)
             };
         }
-        
+
         return new Promise((resolve) => {
             resolve(defaultPrompt);
         });
@@ -156,15 +160,29 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async showSignInAlert(): Promise<boolean> {
+        // Don't show alert in WI environment (WSO2 Integrator extension is installed)
+        const isInWI = !!extensions.getExtension(WI_EXTENSION_ID);
+        if (isInWI) {
+            return false;
+        }
+
+        // Don't show alert in Devant environment
+        const isInDevant = !!process.env.CLOUD_STS_TOKEN;
+        if (isInDevant) {
+            return false;
+        }
+
+        // Check if alert was already dismissed
         const resp = await extension.context.secrets.get('LOGIN_ALERT_SHOWN');
         if (resp === 'true') {
             return false;
         }
-        const isWso2Signed = await this.isCopilotSignedIn();
 
+        const isWso2Signed = await this.isCopilotSignedIn();
         if (isWso2Signed) {
             return false;
         }
+
         return true;
     }
 
@@ -221,34 +239,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async submitFeedback(content: SubmitFeedbackRequest): Promise<boolean> {
-        return new Promise(async (resolve) => {
-            try {
-                const payload = {
-                    feedback: content.feedbackText,
-                    positive: content.positive,
-                    messages: content.messages,
-                    diagnostics: cleanDiagnosticMessages(content.diagnostics)
-                };
-
-                const response = await fetchWithAuth(`${OLD_BACKEND_URL}/feedback`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    resolve(true);
-                } else {
-                    console.error("Failed to submit feedback");
-                    resolve(false);
-                }
-            } catch (error) {
-                console.error("Error submitting feedback:", error);
-                resolve(false);
-            }
-        });
+        return await submitFeedbackUtil(content);
     }
 
     async generateOpenAPI(params: GenerateOpenAPIRequest): Promise<void> {
@@ -473,6 +464,9 @@ export class AiPanelRpcManager implements AIPanelAPI {
             chatStateStorage.acceptAllReviews(workspaceId, threadId);
             console.log("[Review Actions] Marked all under_review generations as accepted");
 
+            // Send telemetry for generation kept
+            sendGenerationKeptTelemetry(latestReview.id);
+
             // Clear affectedPackagePaths from all completed reviews to prevent stale data
             for (const generation of underReviewGenerations) {
                 chatStateStorage.updateReviewState(workspaceId, threadId, generation.id, {
@@ -525,6 +519,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
             chatStateStorage.declineAllReviews(workspaceId, threadId);
             console.log("[Review Actions] Marked all under_review generations as declined");
 
+            // Send telemetry for generation discard
+            const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
+            sendGenerationDiscardTelemetry(latestReview.id);
+
             // Clear affectedPackagePaths from all completed reviews to prevent stale data
             for (const generation of underReviewGenerations) {
                 chatStateStorage.updateReviewState(workspaceId, threadId, generation.id, {
@@ -566,6 +564,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async cancelConnectorSpec(params: { requestId: string; comment?: string }): Promise<void> {
         approvalManager.resolveConnectorSpec(params.requestId, false, undefined, params.comment);
+    }
+
+    async provideConfiguration(params: { requestId: string; configValues: Record<string, string> }): Promise<void> {
+        approvalManager.resolveConfiguration(params.requestId, true, params.configValues);
+    }
+
+    async cancelConfiguration(params: { requestId: string; comment?: string }): Promise<void> {
+        approvalManager.resolveConfiguration(params.requestId, false, undefined, params.comment);
     }
 
     async restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {

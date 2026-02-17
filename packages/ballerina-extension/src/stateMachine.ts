@@ -310,11 +310,13 @@ const stateMachine = createMachine<MachineContext>(
                                 type: (context, event) => event.viewLocation?.type,
                                 isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                 metadata: (context, event) => event.viewLocation?.metadata,
+                                agentMetadata: (context, event) => event.viewLocation?.agentMetadata,
                                 addType: (context, event) => event.viewLocation?.addType,
                                 dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
                                 artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
                                 rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
                                 reviewData: (context, event) => event.viewLocation?.reviewData,
+                                evalsetData: (context, event) => event.viewLocation?.evalsetData,
                                 isViewUpdateTransition: false
                             }),
                             (context, event) => notifyTreeView(
@@ -375,8 +377,10 @@ const stateMachine = createMachine<MachineContext>(
                                     position: (context, event) => event.data.position,
                                     syntaxTree: (context, event) => event.data.syntaxTree,
                                     focusFlowDiagramView: (context, event) => event.data.focusFlowDiagramView,
+                                    agentMetadata: (context, event) => event.data.agentMetadata,
                                     dataMapperMetadata: (context, event) => event.data.dataMapperMetadata,
                                     reviewData: (context, event) => event.data.reviewData,
+                                    evalsetData: (context, event) => event.data.evalsetData,
                                     isViewUpdateTransition: false
                                 })
                             }
@@ -399,11 +403,13 @@ const stateMachine = createMachine<MachineContext>(
                                         type: (context, event) => event.viewLocation?.type,
                                         isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                         metadata: (context, event) => event.viewLocation?.metadata,
+                                        agentMetadata: (context, event) => event.viewLocation?.agentMetadata,
                                         addType: (context, event) => event.viewLocation?.addType,
                                         dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
                                         artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
                                         rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
                                         reviewData: (context, event) => event.viewLocation?.reviewData,
+                                        evalsetData: (context, event) => event.viewLocation?.evalsetData,
                                         isViewUpdateTransition: false
                                     }),
                                     (context, event) => notifyTreeView(
@@ -424,10 +430,16 @@ const stateMachine = createMachine<MachineContext>(
                                         identifier: (context, event) => event.viewLocation.identifier,
                                         serviceType: (context, event) => event.viewLocation.serviceType,
                                         type: (context, event) => event.viewLocation?.type,
+                                        agentMetadata: (context, event) => event.viewLocation?.agentMetadata,
                                         isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                         addType: (context, event) => event.viewLocation?.addType,
                                         dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
                                         reviewData: (context, event) => event.viewLocation?.reviewData,
+                                        evalsetData: (context, event) => event.viewLocation?.evalsetData,
+                                        metadata: (context, event) => event.viewLocation?.metadata ? {
+                                            ...context.metadata,
+                                            ...event.viewLocation.metadata
+                                        } : context.metadata,
                                         isViewUpdateTransition: true
                                     }),
                                     (context, event) => notifyTreeView(
@@ -652,8 +664,10 @@ const stateMachine = createMachine<MachineContext>(
                             type: context?.type,
                             isGraphql: context?.isGraphql,
                             addType: context?.addType,
+                            agentMetadata: context?.agentMetadata,
                             dataMapperMetadata: context?.dataMapperMetadata,
-                            reviewData: context?.reviewData
+                            reviewData: context?.reviewData,
+                            evalsetData: context?.evalsetData
                         }
                     });
                     return resolve();

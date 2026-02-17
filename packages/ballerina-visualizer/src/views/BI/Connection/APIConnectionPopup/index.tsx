@@ -19,7 +19,7 @@
 import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
 import { Button, Codicon, Dropdown, Stepper, TextField, ThemeColors, Typography, Icon } from "@wso2/ui-toolkit";
-import { AvailableNode, Category, DataMapperDisplayMode, DIRECTORY_MAP, FlowNode, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
+import { AvailableNode, Category, EditorConfig, DIRECTORY_MAP, FlowNode, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ExpressionFormField } from "@wso2/ballerina-side-panel";
 import ConnectionConfigView from "../ConnectionConfigView";
@@ -203,9 +203,9 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
     const [updatedExpressionField, setUpdatedExpressionField] = useState<ExpressionFormField>(undefined);
     const [selectedFlowNode, setSelectedFlowNode] = useState<FlowNode | undefined>(undefined);
 
-    const steps = useMemo(() => ["Import API Specification", "Create Connection"], []);
+    const steps = useMemo(() => ["Import API Specification", "Create Connection"], []);    
 
-    const handleOnFormSubmit = async (node: FlowNode, _dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => {
+    const handleOnFormSubmit = async (node: FlowNode, _editorConfig?: EditorConfig, options?: FormSubmitOptions) => {
         console.log(">>> on form submit", node);
         if (selectedFlowNode) {
             setIsSavingConnection(true);
@@ -420,7 +420,6 @@ export function APIConnectionForm(props: APIConnectionFormProps) {
         }
     };
 
-
     const findConnectorByModule = (categories: Category[], moduleName: string): AvailableNode | null => {
         for (const category of categories) {
             if (category.items) {
@@ -437,17 +436,12 @@ export function APIConnectionForm(props: APIConnectionFormProps) {
         return null;
     };
 
-
     const handleSaveConnector = async () => {
         if (!selectedFilePath || !connectorName || !rpcClient) {
             return;
         }
         setIsSavingConnector(true);
         setConnectionError(null);
-        if (availableNode) {
-            onSave(availableNode, null, specType, connectorName, selectedFilePath);
-            return;
-        }
         const generateResponse = await handleOnGenerateSubmit(selectedFilePath, connectorName, specType);
 
         // Only proceed if there's no error message

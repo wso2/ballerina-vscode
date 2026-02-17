@@ -26,7 +26,7 @@ import styled from "@emotion/styled";
 import { Dropdown } from "@wso2/ui-toolkit";
 
 import { FormField } from "../Form/types";
-import { capitalize, getValueForDropdown } from "./utils";
+import { buildRequiredRule, capitalize, getValueForDropdown } from "./utils";
 import { useFormContext } from "../../context";
 import { SubPanel, SubPanelView } from "@wso2/ballerina-core";
 
@@ -63,7 +63,10 @@ export function CustomDropdownEditor(props: CustomDropdownEditorProps) {
                 <Dropdown
                     id={field.key}
                     description={field.documentation}
-                    {...register(field.key, { required: !field.optional, value: getValueForDropdown(field) })}
+                    {...register(field.key, {
+                        required: buildRequiredRule({ isRequired: !field.optional, label: field.label }),
+                        value: getValueForDropdown(field)
+                    })}
                     label={capitalize(field.label)}
                     items={field.itemOptions ? field.itemOptions : field.items?.map((item) => ({ id: item, content: item, value: item }))}
                     required={!field.optional}
@@ -85,7 +88,10 @@ export function CustomDropdownEditor(props: CustomDropdownEditorProps) {
         <Dropdown
             id={field.key}
             description={field.documentation}
-            {...register(field.key, { required: !field.optional, value: getValueForDropdown(field) })}
+            {...register(field.key, {
+                required: buildRequiredRule({ isRequired: !field.optional, label: field.label }),
+                value: getValueForDropdown(field)
+            })}
             label={capitalize(field.label)}
             items={field.itemOptions ? field.itemOptions : field.items?.map((item) => ({ id: item, content: item, value: item }))}
             required={!field.optional}

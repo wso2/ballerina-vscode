@@ -39,7 +39,7 @@ import {
     Member,
     TypeNodeKind,
     NodeKind,
-    DataMapperDisplayMode,
+    EditorConfig,
     InputType,
     getPrimaryInputType
 } from "@wso2/ballerina-core";
@@ -124,7 +124,7 @@ interface FormProps {
     editForm?: boolean;
     isGraphql?: boolean;
     submitText?: string;
-    onSubmit: (node?: FlowNode, dataMapperMode?: DataMapperDisplayMode, formImports?: FormImports, rawFormValues?: FormValues) => void;
+    onSubmit: (node?: FlowNode, editorConfig?: EditorConfig, formImports?: FormImports, rawFormValues?: FormValues) => void;
     showProgressIndicator?: boolean;
     subPanelView?: SubPanelView;
     openSubPanel?: (subPanel: SubPanel) => void;
@@ -136,7 +136,7 @@ interface FormProps {
         description?: string; // Optional description explaining what the action button does
         callback: () => void;
     };
-    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void;
+    handleOnFormSubmit?: (updatedNode?: FlowNode, editorConfig?: EditorConfig, options?: FormSubmitOptions) => void;
     isInModal?: boolean;
     scopeFieldAddon?: React.ReactNode;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
@@ -264,14 +264,17 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     const skipFormValidation = useMemo(() => {
         const isAgentNode = node && (
-            node.codedata.node === "AGENT_CALL" &&
+            (node.codedata.node === "AGENT_CALL" || node.codedata.node === "AGENT_RUN") &&
             node.codedata.org === "ballerina" &&
             node.codedata.module === "ai" &&
             node.codedata.packageName === "ai" &&
             node.codedata.object === "Agent" &&
             node.codedata.symbol === "run"
         );
-        return isAgentNode;
+        const isDataMapperCreationNode = node && node.codedata.node === "DATA_MAPPER_CREATION";
+        const isFunctionCreationNode = node && node.codedata.node === "FUNCTION_CREATION";
+        
+        return isAgentNode || isDataMapperCreationNode || isFunctionCreationNode;
     }, [node]);
 
     const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
@@ -322,6 +325,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (stack.length === 0) return;
         setStack((prev) => {
             const newStack = [...prev];
+            //preserve fieldIndex if exists
+            if (newStack[newStack.length - 1].fieldIndex) {
+                item.fieldIndex = newStack[newStack.length - 1].fieldIndex;
+            }
             newStack[newStack.length - 1] = item;
             return newStack;
         });
@@ -448,7 +455,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         const recordTypeFields = Object.entries(formProperties)
             .filter(([_, property]) => {
                 const primaryInputType = getPrimaryInputType(property?.types);
-            
+
                 return primaryInputType?.typeMembers &&
                     primaryInputType?.typeMembers.some(member => member.kind === "RECORD_TYPE");
             })
@@ -503,8 +510,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         console.log(">>> FormGenerator handleOnSubmit", data);
         if (node && targetLineRange) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
-            const dataMapperMode = data["openInDataMapper"] ? DataMapperDisplayMode.VIEW : DataMapperDisplayMode.NONE;
-            onSubmit(updatedNode, dataMapperMode, formImports);
+            const editorConfig = data["editorConfig"];
+            onSubmit(updatedNode, editorConfig, formImports);
         }
     };
 
@@ -1093,8 +1100,28 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const onSaveType = (type: Type | string) => {
         handleValueTypeConstChange(typeof type === 'string' ? type : (type as Type).name);
         if (stack.length > 0) {
+            if (stack.length > 1) {
+                const newStack = [...stack]
+                const currentTop = newStack[newStack.length - 1];
+                const newTop = newStack[newStack.length - 2];
+                const fieldIndex = newTop.fieldIndex;
+                if (fieldIndex === undefined) {
+                    return;
+                }
+                if (newTop.type.codedata.node === "CLASS") {
+                    const fn = newTop.type.functions?.[fieldIndex];
+                    if (!fn) { return; }
+                    fn.returnType = currentTop!.type.name;
+                } else {
+                    const member = newTop.type.members?.[fieldIndex];
+                    if (!member) { return; }
+                    member.type = currentTop!.type.name;
+                }
+                newStack[newStack.length - 2] = newTop;
+                newStack.pop();
+                setStack(newStack);
+            }
             setRefetchForCurrentModal(true);
-            popTypeStack();
         }
         handleSelectedTypeChange(typeof type === 'string' ? type : (type as Type).name);
         setTypeEditorState({ ...typeEditorState, isOpen: stack.length !== 1 });
@@ -1302,7 +1329,12 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         })
     }
 
-    const getNewTypeCreateForm = (typeName?: string) => {
+    const getNewTypeCreateForm = (fieldIndex?: number, typeName?: string) => {
+        const currentTopItem = peekTypeStack();
+        if (currentTopItem) {
+            currentTopItem.fieldIndex = fieldIndex;
+            replaceTop(currentTopItem);
+        }
         pushTypeStack(getDefaultValue(typeName));
     }
 

@@ -17,18 +17,72 @@
  * under the License.
  */
 
-import { tests, workspace, TestRunProfileKind, TestController, Uri } from "vscode";
+import { tests, workspace, TestRunProfileKind, TestController, Uri, window, commands } from "vscode";
 import { BallerinaExtension } from "../../core";
 import { runHandler } from "./runner";
 import { activateEditBiTest } from "./commands";
+import { createNewEvalset, createNewThread, deleteEvalset, deleteThread } from "./evalset-commands";
 import { discoverTestFunctionsInProject, handleFileChange as handleTestFileUpdate, handleFileDelete as handleTestFileDelete } from "./discover";
 import { getCurrentBallerinaProject, getWorkspaceRoot } from "../../utils/project-utils";
 import { checkIsBallerinaPackage, checkIsBallerinaWorkspace } from "../../utils";
 import { PROJECT_TYPE } from "../project";
+import { EvalsetTreeDataProvider } from "./evalset-tree-view";
+import { openView } from "../../stateMachine";
+import { EvalSet, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import * as fs from 'fs';
 
 export let testController: TestController;
 
+export const EVALUATION_GROUP = 'evaluations';
+
 export async function activate(ballerinaExtInstance: BallerinaExtension) {
+    // Register command to open evalset viewer
+    const openEvalsetCommand = commands.registerCommand('ballerina.openEvalsetViewer', async (uri: Uri, threadId?: string) => {
+        try {
+            const content = await fs.promises.readFile(uri.fsPath, 'utf-8');
+            const evalsetData = JSON.parse(content) as EvalSet;
+
+            openView(EVENT_TYPE.OPEN_VIEW, {
+                view: MACHINE_VIEW.EvalsetViewer,
+                evalsetData: {
+                    filePath: uri.fsPath,
+                    content: evalsetData,
+                    threadId: threadId
+                }
+            });
+        } catch (error) {
+            console.error('Error opening evalset:', error);
+            window.showErrorMessage(`Failed to open evalset: ${error}`);
+        }
+    });
+
+    // Register command to save evalset changes
+    const saveEvalThreadCommand = commands.registerCommand('ballerina.saveEvalThread', async (data: { filePath: string, updatedEvalSet: EvalSet }) => {
+        try {
+            const { filePath, updatedEvalSet } = data;
+
+            // Write the updated evalset back to the file
+            await fs.promises.writeFile(
+                filePath,
+                JSON.stringify(updatedEvalSet, null, 2),
+                'utf-8'
+            );
+
+            window.showInformationMessage('Evalset saved successfully');
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving evalset:', error);
+            window.showErrorMessage(`Failed to save evalset: ${error}`);
+            return { success: false, error: String(error) };
+        }
+    });
+
+    // Register commands for creating evalsets and threads
+    const createEvalsetCommand = commands.registerCommand('ballerina.createNewEvalset', createNewEvalset);
+    const createThreadCommand = commands.registerCommand('ballerina.createNewThread', createNewThread);
+    const deleteEvalsetCommand = commands.registerCommand('ballerina.deleteEvalset', deleteEvalset);
+    const deleteThreadCommand = commands.registerCommand('ballerina.deleteThread', deleteThread);
+
     testController = tests.createTestController('ballerina-integrator-tests', 'WSO2 Integrator: BI Tests');
 
     const workspaceRoot = getWorkspaceRoot();
@@ -46,6 +100,13 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
         return;
     }
 
+    // Create and register Evalset TreeView
+    const evalsetTreeDataProvider = new EvalsetTreeDataProvider();
+    const evalsetTreeView = window.createTreeView('ballerina-evalsets', {
+        treeDataProvider: evalsetTreeDataProvider,
+        showCollapseAll: true
+    });
+
     // Create test profiles to display.
     testController.createRunProfile('Run Tests', TestRunProfileKind.Run, runHandler, true);
     testController.createRunProfile('Debug Tests', TestRunProfileKind.Debug, runHandler, true);
@@ -62,9 +123,9 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
     discoverTestFunctionsInProject(ballerinaExtInstance, testController);
 
     // Register the test controller and file watcher with the extension context
-    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher);
+    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand, saveEvalThreadCommand, createEvalsetCommand, createThreadCommand, deleteEvalsetCommand, deleteThreadCommand);
 
-    activateEditBiTest();
+    activateEditBiTest(ballerinaExtInstance);
 }
 
 
