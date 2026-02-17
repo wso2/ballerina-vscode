@@ -111,6 +111,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [functionModel, setFunctionModel] = useState<FunctionModel>();
     const [servicePosition, setServicePosition] = useState<NodePosition>();
     const [isSaving, setIsSaving] = useState(false);
+    const [isTracingEnabled, setIsTracingEnabled] = useState(false);
 
     useEffect(() => {
         rpcClient.getVisualizerLocation().then((location) => {
@@ -163,6 +164,25 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         });
     }, [rpcClient]);
 
+
+    useEffect(() => {
+        checkTracingStatus();
+    }, []);
+
+    const checkTracingStatus = async () => {
+        try {
+            const status = await rpcClient.getAgentChatRpcClient().getTracingStatus();
+            setIsTracingEnabled(status.enabled);
+        } catch (error) {
+            setIsTracingEnabled(false);
+        }
+    };
+
+    const handleToggleTracing = async () => {
+        const command = isTracingEnabled ? "ballerina.disableTracing" : "ballerina.enableTracing";
+        await rpcClient.getCommonRpcClient().executeCommand({ commands: [command] });
+        setTimeout(checkTracingStatus, 1000);
+    };
 
     const handleFunctionClose = () => {
         setFunctionModel(undefined);
@@ -271,23 +291,47 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const getActions = () => {
         if (isAgent) {
             return (
-                <ActionButton
-                    appearance="secondary"
-                    onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
-                >
-                    <Icon
-                        name="comment-discussion"
-                        isCodicon={true}
-                        sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
-                    />
-                    Chat
-                </ActionButton>
+                <>
+                    <ActionButton
+                        appearance={isTracingEnabled ? "primary" : "secondary"}
+                        onClick={handleToggleTracing}
+                    >
+                        <Icon
+                            name={isTracingEnabled ? "eye" : "eye-closed"}
+                            isCodicon={true}
+                            sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
+                        />
+                        {isTracingEnabled ? "Tracing: On" : "Tracing: Off"}
+                    </ActionButton>
+                    <ActionButton
+                        appearance="secondary"
+                        onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
+                    >
+                        <Icon
+                            name="comment-discussion"
+                            isCodicon={true}
+                            sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
+                        />
+                        Chat
+                    </ActionButton>
+                </>
             );
         }
 
         if (isResource && serviceType === "http") {
             return (
                 <>
+                    <ActionButton
+                        appearance={isTracingEnabled ? "primary" : "secondary"}
+                        onClick={handleToggleTracing}
+                    >
+                        <Icon
+                            name={isTracingEnabled ? "eye" : "eye-closed"}
+                            isCodicon={true}
+                            sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
+                        />
+                        {isTracingEnabled ? "Tracing: On" : "Tracing: Off"}
+                    </ActionButton>
                     <ActionButton id="bi-edit" appearance="secondary" onClick={() => getFunctionModel()}>
                         <Icon
                             name="bi-settings"
