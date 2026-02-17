@@ -399,7 +399,7 @@ export function ForkForm(props: ForkFormProps) {
                             <FormStyles.Row key={variableField.key}>
                                 <FieldGroup>
                                     <div>
-                                        <EditorFactory field={variableField} />
+                                        <EditorFactory fieldInputType={{ fieldType: "IDENTIFIER", selected: false }} field={variableField} />
                                     </div>
                                     <div>
                                         <TypeEditor
