@@ -124,6 +124,102 @@
               "optional": true,
               "editable": true,
               "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Data Provider",
+                "description": "Data provider function"
+              },
+              "valueType": "EXPRESSION",
+              "originalName": "dataProvider",
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Data Provider Mode",
+                "description": "Mode of data provider (function or evalSet)"
+              },
+              "valueType": "EXPRESSION",
+              "originalName": "dataProviderMode",
+              "value": "function",
+              "optional": true,
+              "editable": true,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "EvalSet File",
+                "description": "Path to the evalSet data file"
+              },
+              "valueType": "EXPRESSION",
+              "originalName": "evalSetFile",
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Depends On",
+                "description": "Functions this test depends on"
+              },
+              "valueType": "EXPRESSION_SET",
+              "originalName": "dependsOn",
+              "value": [],
+              "optional": true,
+              "editable": true,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "After",
+                "description": "Function to run after this test"
+              },
+              "valueType": "EXPRESSION",
+              "originalName": "after",
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Before",
+                "description": "Function to run before this test"
+              },
+              "valueType": "EXPRESSION",
+              "originalName": "before",
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Runs",
+                "description": "Number of times to execute this test"
+              },
+              "valueType": "EXPRESSION",
+              "originalName": "runs",
+              "value": "1",
+              "optional": true,
+              "editable": true,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Minimum Pass Rate (%)",
+                "description": "Minimum percentage of runs that must pass (0-100)"
+              },
+              "valueType": "SLIDER",
+              "originalName": "minPassRate",
+              "value": "1",
+              "optional": true,
+              "editable": true,
+              "advanced": false
             }
           ]
         }
