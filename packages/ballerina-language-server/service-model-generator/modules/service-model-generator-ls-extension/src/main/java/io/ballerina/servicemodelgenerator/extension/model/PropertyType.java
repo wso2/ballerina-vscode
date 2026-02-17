@@ -426,40 +426,6 @@ public class PropertyType {
                 });
     }
 
-    public void handleIncludedRecordRestArgs(Value.ValueBuilder builder, List<LinkedHashMap<String, Node>> values,
-                                             List<PropertyType> propertyTypes) {
-        // Find and update the matching property type
-        propertyTypes.stream()
-                .filter(propType -> propType.fieldType().equals(Value.FieldType.REPEATABLE_MAP))
-                .findFirst()
-                .ifPresent(matchingPropType -> {
-                    matchingPropType.selected(true);
-
-                    Value template = matchingPropType.template();
-                    if (template == null) {
-                        return;
-                    }
-
-                    // Build value list from binding pattern nodes
-                    Map<String, Value> valueMap = new LinkedHashMap<>();
-                    for (LinkedHashMap<String, Node> arg : values) {
-                        String fieldKey = arg.keySet().iterator().next();
-                        Node fieldValueNode = arg.get(fieldKey);
-
-                        Value property = createPropertyFrom(template);
-                        property.getTypes().stream()
-                                .filter(pt -> pt.fieldType() == Value.FieldType.EXPRESSION)
-                                .findFirst()
-                                .ifPresent(pt -> pt.selected(true));
-                        property.setValue(fieldValueNode.toSourceCode().trim());
-
-                        valueMap.put(fieldKey, property);
-                    }
-
-                    builder.value(valueMap);
-                });
-    }
-
     private static void handleMapValue(TypeSymbol typeSymbol, ModuleInfo moduleInfo, Value.ValueBuilder builder,
                                        MappingBindingPatternNode bindingPatternNode,
                                        Optional<TypeSymbol> paramType, List<PropertyType> propertyTypes) {
