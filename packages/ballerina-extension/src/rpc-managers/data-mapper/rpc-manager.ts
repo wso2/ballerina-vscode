@@ -431,7 +431,24 @@ export class DataMapperRpcManager implements DataMapperAPI {
     }
 
     async createConvertedVariable(params: CreateConvertedVariableRequest): Promise<DataMapperSourceResponse> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .createConvertedVariable(params)
+                .then((resp) => {
+                    console.log(">>> Data mapper create converted variable response", resp);
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.subMappingName
+                    )
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
+        });
     }
 }
