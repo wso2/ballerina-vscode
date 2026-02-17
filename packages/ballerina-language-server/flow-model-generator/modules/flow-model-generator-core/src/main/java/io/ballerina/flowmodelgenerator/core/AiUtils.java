@@ -243,6 +243,50 @@ public class AiUtils {
     }
 
     /**
+     * Creates a copy of a property with updated metadata label while preserving all other fields.
+     *
+     * @param original the property to copy from
+     * @param newLabel the new label to set in metadata
+     * @return the new property with updated metadata label
+     */
+    public static Property createPropertyWithUpdatedLabel(Property original, String newLabel) {
+        if (original == null) {
+            throw new IllegalArgumentException("Original property cannot be null");
+        }
+        if (original.metadata() == null) {
+            throw new IllegalArgumentException("Original property metadata cannot be null");
+        }
+
+        Metadata updatedMetadata = new Metadata(
+                newLabel,
+                original.metadata().description(),
+                original.metadata().keywords(),
+                original.metadata().icon(),
+                original.metadata().functionKind(),
+                original.metadata().data()
+        );
+
+        return new Property(
+                updatedMetadata,
+                original.types(),
+                original.value(),
+                original.oldValue(),
+                original.placeholder(),
+                original.optional(),
+                original.editable(),
+                original.advanced(),
+                original.hidden(),
+                original.modified(),
+                original.diagnostics(),
+                original.codedata(),
+                original.advancedValue(),
+                original.imports(),
+                original.defaultValue(),
+                original.comment()
+        );
+    }
+
+    /**
      * Adds a property to a NodeBuilder by copying all attributes from an existing property with an optional custom
      * value.
      *
@@ -265,26 +309,25 @@ public class AiUtils {
         Object valueToUse = customValue != null ? customValue : property.value();
         boolean hidden = isHidden || property.hidden();
 
-        nodeBuilder.properties().custom()
-                .metadata()
-                    .label(property.metadata().label())
-                    .description(property.metadata().description())
-                    .stepOut()
-                .types(property.types())
-                .placeholder(property.placeholder())
-                .value(valueToUse)
-                .defaultValue(property.defaultValue())
-                .imports(property.imports() != null ? property.imports().toString() : null)
-                .optional(property.optional())
-                .editable(property.editable())
-                .advanced(property.advanced())
-                .hidden(hidden)
-                .modified(property.modified())
-                .codedata()
-                    .kind(property.codedata() != null ? property.codedata().kind() : "")
-                    .stepOut()
-                .stepOut()
-                .addProperty(key);
+        Property copied = new Property(
+                property.metadata(),
+                property.types(),
+                valueToUse,
+                property.oldValue(),
+                property.placeholder(),
+                property.optional(),
+                property.editable(),
+                property.advanced(),
+                hidden,
+                property.modified(),
+                property.diagnostics(),
+                property.codedata(),
+                property.advancedValue(),
+                property.imports(),
+                property.defaultValue(),
+                property.comment()
+        );
+        nodeBuilder.properties().build().put(key, copied);
     }
 
     /**

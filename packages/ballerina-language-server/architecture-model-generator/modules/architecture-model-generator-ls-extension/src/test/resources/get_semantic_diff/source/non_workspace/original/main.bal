@@ -35,4 +35,8 @@ service /api/v1/petsstore on httpDefaultListener {
         }
     }
 
+    resource function get .() returns string {
+        return "Hello, World!";
+    }
+
 }
