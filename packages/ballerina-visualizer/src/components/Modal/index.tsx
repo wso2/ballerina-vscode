@@ -19,7 +19,7 @@
 import React, { cloneElement, isValidElement, ReactNode, ReactElement, useEffect } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
-import { Icon, Divider, ThemeColors, Typography, Tooltip } from "@wso2/ui-toolkit";
+import { Icon, Divider, ThemeColors, Typography, Tooltip, Button } from "@wso2/ui-toolkit";
 import { useVisualizerContext } from "../../Context";
 
 export type DynamicModalProps = {
@@ -89,6 +89,10 @@ const ModalHeaderSection = styled.header`
     justify-content: space-between;
 `;
 
+export const CloseButton = styled(Button)`
+    border-radius: 5px;
+`;
+
 type TriggerProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode };
 const Trigger: React.FC<TriggerProps> = (props) => <InvisibleButton {...props}>{props.children}</InvisibleButton>;
 
@@ -145,7 +149,7 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
     const targetEl = document.getElementById("visualizer-container");
 
     // Map closeButtonIcon prop to actual icon names and tooltip text
-    const iconName = closeButtonIcon === "minimize" ? "bi-plus" : "bi-close";
+    const iconName = closeButtonIcon === "minimize" ? "bi-minimize-modal" : "bi-close";
     const tooltipText = closeButtonIcon === "minimize" 
         ? "Minimize to return to the form" 
         : "Close";
@@ -166,7 +170,9 @@ const DynamicModal: React.FC<DynamicModalProps> & { Trigger: typeof Trigger } = 
                                 {title}
                             </Typography>
                             <Tooltip content={tooltipText} position="bottom">
-                                <Icon name={iconName} onClick={handleClose} />
+                                <CloseButton appearance="icon" onClick={handleClose}>
+                                    <Icon name={iconName} sx={{fontSize: "16px", width: "16px"}}/>
+                                </CloseButton>
                             </Tooltip>
                         </ModalHeaderSection>
                         <Divider />
