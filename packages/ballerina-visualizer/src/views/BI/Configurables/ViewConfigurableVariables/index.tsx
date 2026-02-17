@@ -139,17 +139,17 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     }, [props.projectPath]);
 
     useEffect(() => {
-        if (categoriesWithModules.length > 0 && !selectedModule) {
+        if (categoriesWithModules.length > 0 && !selectedModule && !isTestsContext) {
             const initialCategory = categoriesWithModules[0];
             const initialModule = initialCategory.modules[0];
 
-            // Only set initial module if none is selected
+            // Only set initial module if none is selected and not in tests context
             setSelectedModule({
                 category: initialCategory.name,
                 module: initialModule
             });
         }
-    }, [categoriesWithModules, selectedModule]);
+    }, [categoriesWithModules, selectedModule, isTestsContext]);
 
     const getFilteredConfigVariables = useCallback(() => {
         if (!searchValue || searchValue.trim() === '') {
@@ -224,6 +224,31 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
             return total + moduleWarningCount(category, module);
         }, 0);
     }, [configVariables, moduleWarningCount]);
+
+    const [expandedTestLibraries, setExpandedTestLibraries] = React.useState<Set<string>>(new Set());
+
+    const toggleTestLibrary = (name: string) => {
+        setExpandedTestLibraries(prev => {
+            const next = new Set(prev);
+            if (next.has(name)) { next.delete(name); } else { next.add(name); }
+            return next;
+        });
+    };
+
+    const makeTestDeleteHandler = (category: string, module: string) => async (index: number) => {
+        const variables = testConfigVariables[category]?.[module];
+        const variable = variables?.[index];
+        if (!variable) return;
+        await rpcClient.getBIDiagramRpcClient().deleteConfigVariableV2({
+            configFilePath: props.testsFileName,
+            configVariable: variable,
+            packageName: category,
+            moduleName: module
+        }).then(response => {
+            if (!response.textEdits) console.error(">>> Error deleting test config variable", response);
+        });
+        getTestConfigVariables();
+    };
 
     const handleSearch = (e: string) => {
         setSearchValue(e);
@@ -338,19 +363,14 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                 configTomlPath: props.testsConfigTomlPath
             });
         const data = (variables as any).configVariables as ConfigVariablesState;
-
         setTestConfigVariables(data || {});
         const categories = Object.keys(data || {}).map(category => ({
             name: category,
             modules: Object.keys(data[category])
         }));
         setTestCategoriesWithModules(categories);
-
-        if (categories.length > 0 && categories[0].modules.length > 0) {
-            setSelectedModule({ category: categories[0].name, module: categories[0].modules[0] });
-        } else {
-            setSelectedModule(null);
-        }
+        // Start with all imported libraries collapsed
+        setExpandedTestLibraries(new Set());
         setIsLoading(false);
     };
 
@@ -358,12 +378,18 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         setErrorMessage(message);
     };
 
-    const categoryDisplay = isTestsContext ? 'Tests'
-        : selectedModule?.category === integrationCategory.current ? 'Integration'
-        : selectedModule?.category;
-    const title = isTestsContext
-        ? (selectedModule?.module ? `Tests : ${selectedModule?.module}` : 'Tests')
-        : (selectedModule?.module ? `${categoryDisplay} : ${selectedModule?.module}` : categoryDisplay);
+    const isTestsIntegrationModule = isTestsContext && selectedModule?.category === integrationCategory.current;
+    const isTestsImportedLib = isTestsContext && selectedModule?.category && selectedModule.category !== integrationCategory.current;
+
+    const categoryDisplay = !isTestsContext
+        ? (selectedModule?.category === integrationCategory.current ? 'Integration' : selectedModule?.category)
+        : isTestsIntegrationModule ? 'Tests : Integration'
+        : isTestsImportedLib ? `Tests : ${selectedModule?.category}`
+        : 'Tests';
+
+    const title = selectedModule?.module
+        ? `${categoryDisplay} : ${selectedModule.module}`
+        : categoryDisplay;
 
     let renderVariables: ConfigVariablesState = isTestsContext ? testConfigVariables : configVariables;
     if (!isTestsContext && searchValue) {
@@ -523,7 +549,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                     </div>
                                                 </TreeViewItem>
                                             ))}
-                                            {/* Tests sublevel — only show if testsFileName is provided */}
+                                            {/* Tests leaf item — shows all test configurables (including imported libraries) in the right panel */}
                                             {props.testsFileName && (
                                                 <TreeViewItem
                                                     key="tests-sublevel"
@@ -593,7 +619,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                             backgroundColor: 'transparent',
                                                             paddingLeft: '35px',
                                                             height: '25px',
-                                                            border: selectedModule?.category === category.name
+                                                            border: !isTestsContext && selectedModule?.category === category.name
                                                                 ? '1px solid var(--vscode-focusBorder)'
                                                                 : 'none',
                                                             overflow: 'hidden',
@@ -618,7 +644,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                             <Typography
                                                                 variant="body3"
                                                                 sx={{
-                                                                    fontWeight: selectedModule?.category === category.name && selectedModule?.module === ""
+                                                                    fontWeight: !isTestsContext && selectedModule?.category === category.name && selectedModule?.module === ""
                                                                         ? 'bold' : 'normal'
                                                                 }}
                                                             >
@@ -691,7 +717,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                         {/* Only show Add Config button at the top when the module has configurations */}
                                                         {selectedModule &&
                                                             renderVariables[selectedModule?.category]?.[selectedModule?.module]?.length > 0 &&
-                                                            (isTestsContext || selectedModule.category === integrationCategory.current) && (
+                                                            (selectedModule.category === integrationCategory.current) && (
                                                                 <Button
                                                                     sx={{ display: 'flex', justifySelf: 'flex-end' }}
                                                                     appearance="primary"
@@ -704,6 +730,84 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                     <TitleBoxShadow />
                                                 </div>
                                                 <Container>
+                                                    {/* Tests full view — integration vars + imported libraries as collapsible sections */}
+                                                    {isTestsContext && !selectedModule && (
+                                                        <>
+                                                            {/* Integration test configurables */}
+                                                            {testConfigVariables[integrationCategory.current] &&
+                                                                Object.keys(testConfigVariables[integrationCategory.current]).map(moduleName =>
+                                                                    (testConfigVariables[integrationCategory.current][moduleName] || []).map((variable, index) => (
+                                                                        <ConfigurableItem
+                                                                            key={`tests-integration-${moduleName}-${index}`}
+                                                                            variable={variable}
+                                                                            integrationCategory={integrationCategory.current}
+                                                                            packageName={integrationCategory.current}
+                                                                            moduleName={moduleName}
+                                                                            index={index}
+                                                                            fileName={props.testsFileName}
+                                                                            configTomlPath={props.testsConfigTomlPath}
+                                                                            onDeleteConfigVariable={makeTestDeleteHandler(integrationCategory.current, moduleName)}
+                                                                            onFormSubmit={getTestConfigVariables}
+                                                                            updateErrorMessage={updateErrorMessage}
+                                                                        />
+                                                                    ))
+                                                                )
+                                                            }
+                                                            {/* Imported libraries collapsible sections */}
+                                                            {testCategoriesWithModules.filter(cat => cat.name !== integrationCategory.current).length > 0 && (
+                                                                <div style={{ marginTop: '20px' }}>
+                                                                    <Typography
+                                                                        variant="h3"
+                                                                        sx={{ padding: '0 0 8px 0', color: 'var(--vscode-foreground)', borderBottom: '1px solid var(--vscode-panel-border)' }}
+                                                                    >
+                                                                        Imported libraries
+                                                                    </Typography>
+                                                                    {testCategoriesWithModules
+                                                                        .filter(cat => cat.name !== integrationCategory.current)
+                                                                        .map(cat => (
+                                                                            <div key={cat.name} style={{ marginTop: '12px' }}>
+                                                                                {/* Collapsible library header */}
+                                                                                <div
+                                                                                    style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '4px 0', userSelect: 'none' }}
+                                                                                    onClick={() => toggleTestLibrary(cat.name)}
+                                                                                >
+                                                                                    <Codicon
+                                                                                        name={expandedTestLibraries.has(cat.name) ? "chevron-down" : "chevron-right"}
+                                                                                        sx={{ marginRight: 6, fontSize: '0.85em' }}
+                                                                                    />
+                                                                                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                                                                        {cat.name}
+                                                                                    </Typography>
+                                                                                </div>
+                                                                                {/* Library config variables */}
+                                                                                {expandedTestLibraries.has(cat.name) && (
+                                                                                    <div style={{ paddingLeft: '16px' }}>
+                                                                                        {cat.modules.flatMap(moduleName =>
+                                                                                            (testConfigVariables[cat.name]?.[moduleName] || []).map((variable, index) => (
+                                                                                                <ConfigurableItem
+                                                                                                    key={`tests-lib-${cat.name}-${moduleName}-${index}`}
+                                                                                                    variable={variable}
+                                                                                                    integrationCategory={integrationCategory.current}
+                                                                                                    packageName={cat.name}
+                                                                                                    moduleName={moduleName}
+                                                                                                    index={index}
+                                                                                                    fileName={props.testsFileName}
+                                                                                                    configTomlPath={props.testsConfigTomlPath}
+                                                                                                    onDeleteConfigVariable={makeTestDeleteHandler(cat.name, moduleName)}
+                                                                                                    onFormSubmit={getTestConfigVariables}
+                                                                                                    updateErrorMessage={updateErrorMessage}
+                                                                                                />
+                                                                                            ))
+                                                                                        )}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        ))
+                                                                    }
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    )}
                                                     {selectedModule && (
                                                         <>
                                                             {/* Check if the selected module exists in the variables */}
@@ -733,12 +837,14 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                                 <Description variant="body2">
                                                                                     No configurable variables found in this module
                                                                                 </Description>
-                                                                                <Button
-                                                                                    appearance="primary"
-                                                                                    onClick={handleAddConfigVariableFormOpen}>
-                                                                                    <Codicon name="add" sx={{ marginRight: 5 }} />
-                                                                                    Add Config
-                                                                                </Button>
+                                                                                {selectedModule.category === integrationCategory.current && (
+                                                                                    <Button
+                                                                                        appearance="primary"
+                                                                                        onClick={handleAddConfigVariableFormOpen}>
+                                                                                        <Codicon name="add" sx={{ marginRight: 5 }} />
+                                                                                        Add Config
+                                                                                    </Button>
+                                                                                )}
                                                                             </EmptyReadmeContainer>
                                                                         )}
                                                                     </div>
