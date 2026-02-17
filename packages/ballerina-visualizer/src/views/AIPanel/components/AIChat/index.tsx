@@ -71,6 +71,7 @@ import { SYSTEM_ERROR_SECRET } from "../AIChatInput/constants";
 import { CodeSegment } from "../CodeSegment";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
 import Footer from "./Footer";
+import { AgentMode } from "../AIChatInput/ModeToggle";
 import ApprovalFooter from "./Footer/ApprovalFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
@@ -144,7 +145,7 @@ const AIChat: React.FC = () => {
 
     const [showSettings, setShowSettings] = useState(false);
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
-    const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(false);
+    const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Edit);
     const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
     const [showReviewActions, setShowReviewActions] = useState(false);
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
@@ -202,7 +203,7 @@ const AIChat: React.FC = () => {
 
                         // Handle plan mode for text-type prompts
                         if (defaultPrompt.type === 'text') {
-                            setIsPlanModeEnabled(defaultPrompt.planMode);
+                            setAgentMode(defaultPrompt.planMode ? AgentMode.Plan : AgentMode.Edit);
                         }
                     }
                 });
@@ -1207,9 +1208,9 @@ const AIChat: React.FC = () => {
             content: file.content,
         }));
 
-        console.log("Submitting agent prompt:", { useCase, isPlanModeEnabled, codeContext, operationType, fileAttatchments });
+        console.log("Submitting agent prompt:", { useCase, agentMode, codeContext, operationType, fileAttatchments });
         rpcClient.getAiPanelRpcClient().generateAgent({
-            usecase: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachmentContents: fileAttatchments
+            usecase: useCase, isPlanMode: agentMode === AgentMode.Plan, codeContext: codeContext, operationType, fileAttachmentContents: fileAttatchments
         })
     }
 
@@ -1238,9 +1239,8 @@ const AIChat: React.FC = () => {
         setIsAutoApproveEnabled(newValue);
     };
 
-    const handleTogglePlanMode = () => {
-        const newValue = !isPlanModeEnabled;
-        setIsPlanModeEnabled(newValue);
+    const handleChangeAgentMode = (mode: AgentMode) => {
+        setAgentMode(mode);
     };
 
     const questionMessages = messages.filter((message) => message.type === "question");
@@ -1767,8 +1767,8 @@ const AIChat: React.FC = () => {
                             showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
                             codeContext={codeContext}
                             onRemoveCodeContext={() => setCodeContext(undefined)}
-                            isPlanModeEnabled={isPlanModeEnabled}
-                            onTogglePlanMode={isPlanModeFeatureEnabled ? handleTogglePlanMode : undefined}
+                            agentMode={agentMode}
+                            onChangeAgentMode={isPlanModeFeatureEnabled ? handleChangeAgentMode : undefined}
                             isAutoApproveEnabled={isAutoApproveEnabled}
                             onDisableAutoApprove={handleToggleAutoApprove}
                         />

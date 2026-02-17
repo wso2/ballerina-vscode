@@ -27,7 +27,7 @@ import { Suggestion, SuggestionType, useCommands } from "./hooks/useCommands";
 import { ChatBadgeType } from "../ChatBadge";
 import { Input } from "./utils/inputUtils";
 import SuggestionsList from "./SuggestionsList";
-import ModeDropdown from "./ModeDropdown";
+import ModeToggle, { AgentMode } from "./ModeToggle";
 import AutoApproveChip from "./AutoApproveChip";
 import { CommandTemplates } from "../../commandTemplates/data/commandTemplates.const";
 import { Tag } from "../../commandTemplates/models/tag.model";
@@ -128,15 +128,15 @@ interface AIChatInputProps {
     onSend: (content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) => Promise<void>;
     onStop: () => void;
     isLoading: boolean;
-    isPlanModeEnabled?: boolean;
-    onTogglePlanMode?: (value: boolean) => void;
+    agentMode?: AgentMode;
+    onChangeAgentMode?: (mode: AgentMode) => void;
     isAutoApproveEnabled?: boolean;
     onDisableAutoApprove?: () => void;
 }
 
 const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
     ({ initialCommandTemplate, tagOptions, attachmentOptions, placeholder, onSend, onStop, isLoading,
-       isPlanModeEnabled = false, onTogglePlanMode, isAutoApproveEnabled = false, onDisableAutoApprove }, ref) => {
+       agentMode = AgentMode.Edit, onChangeAgentMode, isAutoApproveEnabled = false, onDisableAutoApprove }, ref) => {
         const [inputValue, setInputValue] = useState<{
             text: string;
             [key: string]: any;
@@ -560,10 +560,11 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
 
                         <ActionRow>
                             <div style={{ display: "flex", alignItems: "center" }}>
-                                {onTogglePlanMode && (
-                                    <ModeDropdown
-                                        isPlanModeEnabled={isPlanModeEnabled}
-                                        onTogglePlanMode={onTogglePlanMode}
+                                {onChangeAgentMode && (
+                                    <ModeToggle
+                                        mode={agentMode}
+                                        onChange={onChangeAgentMode}
+                                        disabled={isLoading}
                                     />
                                 )}
                                 {isAutoApproveEnabled && onDisableAutoApprove && (
