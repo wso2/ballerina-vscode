@@ -506,6 +506,13 @@ export interface ConvertExpressionResponse {
     convertedExpression: string;
 }
 
+export interface CreateConvertedVariableRequest {
+    filePath: string;
+    codedata: CodeData;
+    typeName: string;
+    variableName: string;
+}
+
 export interface GraphqlDesignServiceParams {
     filePath: string;
     startLine: LinePosition;
