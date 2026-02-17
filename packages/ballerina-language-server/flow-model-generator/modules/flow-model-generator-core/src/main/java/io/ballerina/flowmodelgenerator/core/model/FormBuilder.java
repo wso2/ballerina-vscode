@@ -128,7 +128,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     public FormBuilder<T> data(String typeSignature, Set<String> names, String label) {
         String varName = typeSignature.contains(RemoteActionCallBuilder.TARGET_TYPE_KEY)
                 ? NameUtil.generateTypeName("var", names)
-                : NameUtil.generateVariableName(typeSignature, names);
+                : NameUtil.generateTypeName(NameUtil.toCamelCase(typeSignature), names);
         propertyBuilder
                 .metadata()
                     .label(label)
@@ -147,7 +147,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     public FormBuilder<T> data(String typeSignature, Set<String> names, String label, String doc) {
         String varName = typeSignature.contains(RemoteActionCallBuilder.TARGET_TYPE_KEY)
                 ? NameUtil.generateTypeName("var", names)
-                : NameUtil.generateVariableName(typeSignature, names);
+                : NameUtil.generateTypeName(NameUtil.toCamelCase(typeSignature), names);
         propertyBuilder
                 .metadata()
                 .label(label)

@@ -347,7 +347,47 @@ public final class NameUtil {
             }
             // Lower first letter
             newName = newName.substring(0, 1).toLowerCase(Locale.getDefault()) + newName.substring(1);
-            newName = generateTypeName(newName, names);
+            // if already available, try appending 'Result', 'Out', 'Value'
+            boolean alreadyExists = false;
+            String[] specialSuffixes = new String[]{"Result", "Out", "Value"};
+            boolean[] flagSpecialSuffixes = new boolean[specialSuffixes.length];
+            boolean addNoSpecialSuffix = false;
+            // If any of special suffix already found in new-name, don't use any special suffix
+            for (String currentSuffix : specialSuffixes) {
+                if (newName.endsWith(currentSuffix)) {
+                    addNoSpecialSuffix = true;
+                    break;
+                }
+            }
+            for (String nextName : names) {
+                if (nextName.equals(newName)) {
+                    // If new-name already exists
+                    alreadyExists = true;
+                } else if (!addNoSpecialSuffix) {
+                    // Check a particular special suffix and new-name combination already exists
+                    for (int i = 0; i < specialSuffixes.length; i++) {
+                        String currentSuffix = specialSuffixes[i];
+                        if (nextName.equals(newName + currentSuffix)) {
+                            flagSpecialSuffixes[i] = true;
+                        }
+                    }
+                }
+            }
+            // if already available, try appending 'Result' or 'Out'
+            if (alreadyExists) {
+                if (!addNoSpecialSuffix) {
+                    for (int i = 0; i < flagSpecialSuffixes.length; i++) {
+                        if (!flagSpecialSuffixes[i]) {
+                            newName = newName + specialSuffixes[i];
+                            break;
+                        }
+                    }
+                } else {
+                    return generateVariableName(++suffix, newName, names);
+                }
+            }
+        } else {
+            newName = newName + suffix;
         }
         // if still already available, try a random letter
         while (names.contains(newName)) {
