@@ -35,7 +35,7 @@ export interface IDataMapperContext {
     enrichChildFields: (parentField: IOType) => Promise<void>;
     genUniqueName: (name: string, viewId: string) => Promise<string>;
     getConvertedExpression: (expression: string, expressionType: TypeKind, outputType: TypeKind) => Promise<string>;
-    createConvertedVariable: (variableName: string) => Promise<void>;
+    createConvertedVariable: (variableName: string, isNew: boolean) => Promise<void>;
 }
 
 export class DataMapperContext implements IDataMapperContext {
@@ -57,6 +57,6 @@ export class DataMapperContext implements IDataMapperContext {
         public enrichChildFields: (parentField: IOType) => Promise<void>,
         public genUniqueName: (name: string, viewId: string) => Promise<string>,
         public getConvertedExpression: (expression: string, expressionType: TypeKind, outputType: TypeKind) => Promise<string>,
-        public createConvertedVariable: (variableName: string) => Promise<void>
+        public createConvertedVariable: (variableName: string, isNew: boolean) => Promise<void>
     ){}
 }
