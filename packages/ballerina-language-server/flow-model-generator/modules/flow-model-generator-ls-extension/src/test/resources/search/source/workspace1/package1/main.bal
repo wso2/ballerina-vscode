@@ -53,3 +53,14 @@ public function isEven(int num) returns boolean {
 function helperFunction() {
     // Internal helper
 }
+
+# Represents an employee record
+public type Employee record {|
+    string name;
+    int age;
+|};
+
+type InternalConfig record {|
+    string key;
+    string value;
+|};

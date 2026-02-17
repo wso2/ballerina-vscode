@@ -37,3 +37,9 @@ public function reverseString(string text) returns string {
     }
     return reversed;
 }
+
+# Represents a physical address
+public type Address record {|
+    string street;
+    string city;
+|};
