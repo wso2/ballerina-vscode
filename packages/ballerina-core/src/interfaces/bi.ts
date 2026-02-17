@@ -20,6 +20,7 @@ import { NodePosition } from "@wso2/syntax-tree";
 import { LinePosition } from "./common";
 import { Diagnostic as VSCodeDiagnostic } from "vscode-languageserver-types";
 import { ValueTypeConstraint } from "../rpc-types/ai-agent/interfaces";
+import { Type } from "./extended-lang-client";
 
 export type { NodePosition };
 
@@ -154,6 +155,7 @@ export type FormFieldInputType = "TEXT" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
     "PROMPT" |
+    "RECORD_FIELD_SELECTOR" |
     "SQL_QUERY";
 
 export interface BaseType {
@@ -186,11 +188,23 @@ export interface IdentifierType extends BaseType {
     scope: FieldScope;
 }
 
+export interface RecordFieldSelectorType extends BaseType {
+    fieldType: "RECORD_FIELD_SELECTOR";
+    recordSelectorType: RecordSelectorType;
+}
+
+export interface RecordSelectorType {
+    rootType: Type;
+    referencedTypes: Type[];
+}
+
+
 export type InputType =
     | BaseType
     | DropdownType
     | TemplateType
-    | IdentifierType;
+    | IdentifierType
+    | RecordFieldSelectorType;
 
 export type Property = {
     metadata: Metadata;
