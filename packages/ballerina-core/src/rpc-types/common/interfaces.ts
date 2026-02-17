@@ -118,3 +118,7 @@ export interface WorkspaceTypeResponse {
 export interface SampleDownloadRequest {
     zipFileName: string;
 }
+
+export interface DefaultOrgNameResponse {
+    orgName: string;
+}

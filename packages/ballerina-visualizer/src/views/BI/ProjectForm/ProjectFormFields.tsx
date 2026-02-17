@@ -28,7 +28,7 @@ import {
 } from "./styles";
 import { CollapsibleSection, ProjectTypeSelector, PackageInfoSection } from "./components";
 import { ProjectFormData } from "./types";
-import { sanitizePackageName, validatePackageName } from "./utils";
+import { sanitizePackageName, validatePackageName, validateOrgName } from "./utils";
 
 // Re-export for backwards compatibility
 export type { ProjectFormData } from "./types";
@@ -45,6 +45,7 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
     const { rpcClient } = useRpcContext();
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
+    const [orgNameError, setOrgNameError] = useState<string | null>(null);
     const [isWorkspaceSupported, setIsWorkspaceSupported] = useState(false);
     const [isProjectStructureExpanded, setIsProjectStructureExpanded] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
@@ -75,10 +76,24 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
 
     useEffect(() => {
         (async () => {
+            const commonRpcClient = rpcClient.getCommonRpcClient();
+
+            // Set default path if not already set
             if (!formData.path) {
-                const currentDir = await rpcClient.getCommonRpcClient().getWorkspaceRoot();
+                const currentDir = await commonRpcClient.getWorkspaceRoot();
                 onFormDataChange({ path: currentDir.path });
             }
+
+            // Set default org name if not already set
+            if (!formData.orgName) {
+                try {
+                    const { orgName } = await commonRpcClient.getDefaultOrgName();
+                    onFormDataChange({ orgName });
+                } catch (error) {
+                    console.error("Failed to fetch default org name:", error);
+                }
+            }
+
             const isWorkspaceSupported = await rpcClient
                 .getLangClientRpcClient()
                 .isSupportedSLVersion({ major: 2201, minor: 13, patch: 0 })
@@ -89,6 +104,12 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
             setIsWorkspaceSupported(isWorkspaceSupported);
         })();
     }, []);
+
+    // Validation effect for org name
+    useEffect(() => {
+        const orgError = validateOrgName(formData.orgName);
+        setOrgNameError(orgError);
+    }, [formData.orgName]);
 
     return (
         <>
@@ -185,6 +206,7 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
                 onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
                 data={{ orgName: formData.orgName, version: formData.version }}
                 onChange={(data) => onFormDataChange(data)}
+                orgNameError={orgNameError}
             />
         </>
     );
