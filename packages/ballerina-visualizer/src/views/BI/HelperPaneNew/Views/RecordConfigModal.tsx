@@ -17,7 +17,7 @@
  */
 
 import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField, RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse, ExpressionProperty, NodeKind, getPrimaryInputType, InputType } from "@wso2/ballerina-core";
-import { Dropdown, HelperPane, Typography, Button, HelperPaneHeight, FormExpressionEditorRef, ErrorBanner, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
+import { Dropdown, HelperPane, Typography, HelperPaneHeight, FormExpressionEditorRef, ErrorBanner, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useEffect, useRef, useState, RefObject } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -132,13 +132,6 @@ export const ExpressionEditorDocumentation = styled.div({
     }
 });
 
-export const ButtonContainer = styled.div({
-    display: 'flex',
-    gap: '8px',
-    justifyContent: 'flex-end',
-    marginTop: '16px'
-});
-
 export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const { fileName, onChange, currentValue, recordTypeField, onClose, targetLineRange, getHelperPane, field, triggerCharacters, formContext } = props;
     const { rpcClient } = useRpcContext();
@@ -222,6 +215,14 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             onClose();
         }
     }, [currentValue]);
+
+    // Auto-propagate localExpressionValue changes to parent form (remove need for Save button)
+    useEffect(() => {
+        // Skip the first render to avoid calling onChange with initial value
+        if (!firstRender.current) {
+            onChange(localExpressionValue, true);
+        }
+    }, [localExpressionValue, onChange]);
 
     const fetchRecordModelFromSource = async (currentValue: string) => {
         setIsLoading(true);
@@ -415,12 +416,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             // Fetch diagnostics for the updated expression
             fetchDiagnostics(content);
         }
-    }
-
-    const handleSave = () => {
-        // Update the form with the current local expression value
-        onChange(localExpressionValue, true);
-        onClose();
     }
 
     // Debounced function to fetch diagnostics
@@ -714,11 +709,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                 </FieldProvider>
                             </FormContext.Provider>
                         </ExpressionEditorContainer>
-                        <ButtonContainer>
-                            <Button appearance="primary" onClick={handleSave}>
-                                Save
-                            </Button>
-                        </ButtonContainer>
                     </RightColumn>
                 </TwoColumnLayout>
 
