@@ -98,6 +98,7 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -186,7 +187,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 Package rootPackage = project.currentPackage();
 
                 // Parse Config.toml if it exists.
-                Toml configTomlValues = parseConfigToml(project);
+                Toml configTomlValues = parseConfigToml(project, request.configTomlPath());
                 handleConfigTomlErrors(configTomlValues, response);
 
                 configVarMap.putAll(extractVariablesFromProject(rootPackage, configTomlValues));
@@ -218,16 +219,22 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 Path configFilePath = Path.of(request.configFilePath());
                 Project rootProject = workspaceManager.loadProject(configFilePath);
 
+                boolean hasConfigTomlOverride = request.configTomlPath() != null
+                        && !request.configTomlPath().isBlank();
                 Map<Path, List<TextEdit>> allTextEdits = new HashMap<>();
-                // Text edits for Ballerina source files.
-                if (requireSourceEdits(configVariable) && isPackageInRootProject(request.packageName(), rootProject)) {
+                // Text edits for Ballerina source files — skipped when a custom Config.toml path is provided
+                // (e.g. tests/Config.toml has no corresponding config.bal).
+                if (!hasConfigTomlOverride && requireSourceEdits(configVariable)
+                        && isPackageInRootProject(request.packageName(), rootProject)) {
                     allTextEdits.putAll(constructSourceTextEdits(rootProject, configFilePath, configVariable, false));
                 }
                 // Text edits for Config.toml.
                 if (requireConfigTomlEdits(configVariable)) {
-                    Toml existingConfigToml = parseConfigToml(rootProject);
+                    Toml existingConfigToml = parseConfigToml(rootProject, request.configTomlPath());
                     handleConfigTomlErrors(existingConfigToml, response);
-                    Path configTomlPath = rootProject.sourceRoot().resolve(CONFIG_TOML_FILENAME);
+                    Path configTomlPath = hasConfigTomlOverride
+                            ? Path.of(request.configTomlPath())
+                            : rootProject.sourceRoot().resolve(CONFIG_TOML_FILENAME);
                     allTextEdits.putAll(constructConfigTomlTextEdits(rootProject, request.packageName(),
                             request.moduleName(), configVariable, configTomlPath, existingConfigToml, false));
                 }
@@ -424,13 +431,19 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      * or the file doesn't exist.
      */
     private Toml parseConfigToml(Project project) {
+        return parseConfigToml(project, null);
+    }
+
+    private Toml parseConfigToml(Project project, String configTomlPathOverride) {
         try {
-            Path configTomlPath = project.sourceRoot().resolve(CONFIG_TOML_FILENAME);
+            Path configTomlPath = (configTomlPathOverride != null && !configTomlPathOverride.isBlank())
+                    ? Path.of(configTomlPathOverride)
+                    : project.sourceRoot().resolve(CONFIG_TOML_FILENAME);
             if (!Files.exists(configTomlPath)) {
                 return null;
             }
             return Toml.read(configTomlPath);
-        } catch (Exception ignored) {
+        } catch (IOException ignored) {
             return null;
         }
     }

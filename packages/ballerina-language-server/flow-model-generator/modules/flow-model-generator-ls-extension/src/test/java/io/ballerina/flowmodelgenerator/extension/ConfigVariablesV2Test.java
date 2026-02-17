@@ -51,9 +51,12 @@ public class ConfigVariablesV2Test extends AbstractLSTest {
                 ConfigVariablesTestConfig.class);
 
         String projectPath = sourceDir.resolve(testConfig.project()).toAbsolutePath().toString();
+        String configTomlPath = testConfig.configTomlPath() != null
+                ? sourceDir.resolve(testConfig.configTomlPath()).toAbsolutePath().toString()
+                : null;
 
         boolean includeImports = !projectPath.endsWith("simple_type_configs_exclude_imports");
-        ConfigVariableGetRequest request = new ConfigVariableGetRequest(projectPath, includeImports);
+        ConfigVariableGetRequest request = new ConfigVariableGetRequest(projectPath, includeImports, configTomlPath);
         ConfigVariableResponse actualResponse = gson.fromJson(getResponse(request), ConfigVariableResponse.class);
 
         JsonElement actualResponseJson = gson.toJsonTree(actualResponse.configVariables());
@@ -62,6 +65,7 @@ public class ConfigVariablesV2Test extends AbstractLSTest {
                 || !Objects.equals(actualResponse.errorMsg(), testConfig.errorMsg())) {
 //            updateConfig(configJsonPath, new ConfigVariablesTestConfig(
 //                    testConfig.project(),
+//                    testConfig.configTomlPath(),
 //                    actualResponse.configVariables(),
 //                    actualResponse.errorMsg(),
 //                    actualResponse.stacktrace()));
@@ -98,6 +102,7 @@ public class ConfigVariablesV2Test extends AbstractLSTest {
     }
 
     private record ConfigVariablesTestConfig(String project,
+                                             String configTomlPath,
                                              Map<String, Map<String, List<FlowNode>>> configVariables,
                                              String errorMsg,
                                              String stacktrace) {
