@@ -1,50 +1,43 @@
 {
   "source": "data_mapper/data_mappings.bal",
-  "description": "Public data mapper with parameters",
+  "description": "Sample diagram node",
   "diagram": {
-    "id": "62575",
+    "id": "99294",
     "metadata": {
       "label": "Data Mapper",
       "description": "Define a data mapper"
     },
     "codedata": {
       "node": "DATA_MAPPER_DEFINITION",
-      "lineRange": {
-        "fileName": "data_mappings.bal",
-        "startLine": {
-          "line": 24,
-          "offset": 0
-        },
-        "endLine": {
-          "line": 24,
-          "offset": 61
-        }
-      }
+      "isNew": true
     },
     "returning": false,
     "properties": {
       "functionName": {
         "metadata": {
-          "label": "Function Name",
+          "label": "Name",
           "description": "Name of the function"
         },
         "valueType": "IDENTIFIER",
-        "value": "mapPersonToEmployee",
+        "valueTypeConstraint": "Global",
+        "value": "transformNat",
         "optional": false,
-        "editable": true,
-        "advanced": false
-      },
-      "type": {
-        "metadata": {
-          "label": "Return Type",
-          "description": "Type of the return value"
-        },
-        "valueType": "TYPE",
-        "valueTypeConstraint": "record",
-        "value": "Employee",
-        "optional": true,
-        "editable": true,
-        "advanced": false
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "data_mappings.bal",
+            "startLine": {
+              "line": 68,
+              "offset": 9
+            },
+            "endLine": {
+              "line": 68,
+              "offset": 21
+            }
+          }
+        }
       },
       "isPublic": {
         "metadata": {
@@ -56,6 +49,22 @@
         "optional": false,
         "editable": true,
         "advanced": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "valueType": "TYPE",
+        "valueTypeConstraint": "json",
+        "value": "nats:AnydataMessage",
+        "imports": {
+          "nats": "ballerinax/nats:3.2.0"
+        },
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
       },
       "parameters": {
         "metadata": {
@@ -72,34 +81,37 @@
           "value": {
             "type": {
               "metadata": {
-                "label": "Variable Type",
-                "description": "Type of the variable"
+                "label": "Type",
+                "description": "Type of the parameter"
               },
               "valueType": "TYPE",
-              "valueTypeConstraint": "anydata",
+              "valueTypeConstraint": "json",
               "value": "",
               "optional": false,
               "editable": true,
-              "advanced": false
+              "advanced": false,
+              "hidden": false
             },
             "variable": {
               "metadata": {
-                "label": "Variable Name",
-                "description": "Name of the variable"
+                "label": "Name",
+                "description": "Name of the parameter"
               },
               "valueType": "IDENTIFIER",
               "value": "",
               "optional": false,
               "editable": true,
-              "advanced": false
+              "advanced": false,
+              "hidden": false
             }
           },
           "optional": false,
           "editable": false,
-          "advanced": false
+          "advanced": false,
+          "hidden": false
         },
         "value": {
-          "person": {
+          "bytesMsg": {
             "metadata": {
               "label": "Parameter",
               "description": "Function parameter"
@@ -108,36 +120,107 @@
             "value": {
               "type": {
                 "metadata": {
-                  "label": "Variable Type",
-                  "description": "Type of the variable"
+                  "label": "Type",
+                  "description": "Type of the parameter"
                 },
                 "valueType": "TYPE",
-                "valueTypeConstraint": "anydata",
-                "value": "Person",
+                "valueTypeConstraint": "json",
+                "value": "nats:BytesMessage",
+                "imports": {
+                  "nats": "ballerinax/nats:3.2.0"
+                },
                 "optional": false,
                 "editable": true,
-                "advanced": false
+                "advanced": false,
+                "hidden": false
               },
               "variable": {
                 "metadata": {
-                  "label": "Variable Name",
-                  "description": "Name of the variable"
+                  "label": "Name",
+                  "description": "Name of the parameter"
                 },
                 "valueType": "IDENTIFIER",
-                "value": "person",
+                "value": "bytesMsg",
                 "optional": false,
                 "editable": true,
-                "advanced": false
+                "advanced": false,
+                "hidden": false,
+                "codedata": {
+                  "lineRange": {
+                    "fileName": "data_mappings.bal",
+                    "startLine": {
+                      "line": 68,
+                      "offset": 40
+                    },
+                    "endLine": {
+                      "line": 68,
+                      "offset": 48
+                    }
+                  }
+                }
               }
             },
             "optional": false,
             "editable": false,
-            "advanced": false
+            "advanced": false,
+            "hidden": false
+          },
+          "subject": {
+            "metadata": {
+              "label": "Parameter",
+              "description": "Function parameter"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "type": {
+                "metadata": {
+                  "label": "Type",
+                  "description": "Type of the parameter"
+                },
+                "valueType": "TYPE",
+                "valueTypeConstraint": "json",
+                "value": "string",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "variable": {
+                "metadata": {
+                  "label": "Name",
+                  "description": "Name of the parameter"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "subject",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false,
+                "codedata": {
+                  "lineRange": {
+                    "fileName": "data_mappings.bal",
+                    "startLine": {
+                      "line": 68,
+                      "offset": 57
+                    },
+                    "endLine": {
+                      "line": 68,
+                      "offset": 64
+                    }
+                  }
+                }
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
           }
         },
         "optional": false,
         "editable": false,
-        "advanced": false
+        "advanced": false,
+        "hidden": false
       }
     },
     "flags": 0
@@ -147,15 +230,28 @@
       {
         "range": {
           "start": {
-            "line": 24,
+            "line": 1,
             "character": 0
           },
           "end": {
-            "line": 24,
-            "character": 61
+            "line": 1,
+            "character": 0
           }
         },
-        "newText": "public function mapPersonToEmployee( Person person) returns Employee"
+        "newText": "\nimport ballerinax/nats;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 17,
+            "character": 0
+          },
+          "end": {
+            "line": 17,
+            "character": 0
+          }
+        },
+        "newText": "public function transformNat(nats:BytesMessage bytesMsg, string subject) returns nats:AnydataMessage => {\n    subject: \"\",\n    content:\n};"
       }
     ]
   }
