@@ -155,20 +155,20 @@ export async function readOrWriteReadmeContent(params: ReadmeContentRequest): Pr
     const canonicalPath = path.join(projectPath, README_FILE);
     const existingReadmePath = resolveReadmePath(projectPath);
     const readmePath = existingReadmePath ?? canonicalPath;
+
     if (params.read) {
         if (!existingReadmePath) {
             return { content: "" };
         }
         const content = fs.readFileSync(readmePath, "utf8");
-        console.log(">>> Read content:", content);
         return { content };
     }
+
+    const contentToWrite = params.content ?? "";
     if (!existingReadmePath) {
-        fs.writeFileSync(canonicalPath, params.content);
-        console.log(">>> Created and saved readme.md with content:", params.content);
+        fs.writeFileSync(canonicalPath, contentToWrite);
     } else {
-        fs.writeFileSync(readmePath, params.content);
-        console.log(">>> Updated readme.md with content:", params.content);
+        fs.writeFileSync(readmePath, contentToWrite);
     }
-    return { content: params.content };
+    return { content: contentToWrite };
 }

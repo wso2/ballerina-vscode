@@ -75,8 +75,11 @@ export function PublishToCentralButton({
 
     const handlePublishToCentral = async () => {
         setIsPublishing(true);
-        await rpcClient.getCommonRpcClient().publishToCentral();
-        setIsPublishing(false);
+        try {
+            await rpcClient.getCommonRpcClient().publishToCentral();
+        } finally {
+            setIsPublishing(false);
+        }
     };
 
     const handlePublishLearnMore = (e: React.MouseEvent) => {
