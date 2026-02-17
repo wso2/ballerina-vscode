@@ -29,13 +29,9 @@
       "items": [
         {
           "metadata": {
-            "label": "Current Integration",
-            "description": "Functions defined within the current integration",
-            "keywords": [
-              "Project",
-              "Local",
-              "Function"
-            ]
+            "label": "package2 (current)",
+            "description": "",
+            "keywords": []
           },
           "items": []
         },
@@ -62,13 +58,9 @@
       "items": [
         {
           "metadata": {
-            "label": "Current Integration",
-            "description": "Functions defined within the current integration",
-            "keywords": [
-              "Project",
-              "Local",
-              "Function"
-            ]
+            "label": "package2 (current)",
+            "description": "",
+            "keywords": []
           },
           "items": [
             {
