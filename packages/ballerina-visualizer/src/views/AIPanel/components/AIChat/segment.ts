@@ -138,22 +138,26 @@ export function splitContent(content: string): Segment[] {
         } else if (match[6]) {
             // <toolcall> block matched
             const toolcallText = match[6];
+            const toolName = match[0].match(/tool="([^"]+)"/)?.[1];
 
             updateLastProgressSegmentLoading();
             segments.push({
                 type: SegmentType.ToolCall,
                 loading: true,
                 text: toolcallText,
+                toolName,
             });
         } else if (match[7]) {
             // <toolresult> block matched
             const toolresultText = match[7];
+            const toolName = match[0].match(/tool="([^"]+)"/)?.[1];
 
             updateLastProgressSegmentLoading();
             segments.push({
                 type: SegmentType.ToolCall,
                 loading: false,
                 text: toolresultText,
+                toolName,
             });
         } else if (match[8]) {
             // <todo> block matched
