@@ -87,7 +87,8 @@ export const EXPANDABLE_MODES = [
     InputMode.TEXT,
     InputMode.PROMPT,
     InputMode.EXP,
-    InputMode.TEMPLATE
+    InputMode.TEMPLATE,
+    InputMode.SIMPLE_TEXT
 ] as const;
 
 export type EditorMode = typeof EXPANDABLE_MODES[number];
