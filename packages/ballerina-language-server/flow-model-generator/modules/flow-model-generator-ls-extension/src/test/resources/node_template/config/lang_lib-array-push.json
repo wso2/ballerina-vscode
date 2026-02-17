@@ -39,12 +39,12 @@
         "types": [
           {
             "fieldType": "REPEATABLE_LIST",
-            "ballerinaType": "array:Type[]",
+            "ballerinaType": "(any|error)[]",
             "template": {
               "types": [
                 {
                   "fieldType": "EXPRESSION",
-                  "ballerinaType": "array:Type",
+                  "ballerinaType": "(any|error)",
                   "selected": false
                 }
               ],
@@ -57,7 +57,7 @@
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "array:Type[]",
+            "ballerinaType": "(any|error)[]",
             "selected": false
           }
         ],
@@ -79,12 +79,12 @@
         "types": [
           {
             "fieldType": "REPEATABLE_LIST",
-            "ballerinaType": "array:Type",
+            "ballerinaType": "(any|error)",
             "template": {
               "types": [
                 {
                   "fieldType": "EXPRESSION",
-                  "ballerinaType": "array:Type",
+                  "ballerinaType": "(any|error)",
                   "selected": false
                 }
               ],

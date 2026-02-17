@@ -39,12 +39,12 @@
         "types": [
           {
             "fieldType": "REPEATABLE_LIST",
-            "ballerinaType": "array:AnydataType[]",
+            "ballerinaType": "(anydata|error)[]",
             "template": {
               "types": [
                 {
                   "fieldType": "EXPRESSION",
-                  "ballerinaType": "array:AnydataType",
+                  "ballerinaType": "(anydata|error)",
                   "selected": false
                 }
               ],
