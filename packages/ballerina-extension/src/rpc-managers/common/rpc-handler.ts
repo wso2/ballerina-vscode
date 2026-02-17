@@ -36,6 +36,7 @@ import {
     experimentalEnabled,
     getBallerinaDiagnostics,
     getCurrentProjectTomlValues,
+    getDefaultOrgName,
     getTypeCompletions,
     getWorkspaceFiles,
     getWorkspaceRoot,
@@ -78,4 +79,5 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onRequest(RestoreWebviewCache, (params: string) => rpcManger.restoreWebviewCache(params));
     messenger.onRequest(ClearWebviewCache, (params: string) => rpcManger.clearWebviewCache(params));
     messenger.onRequest(downloadSelectedSampleFromGithub, (args: SampleDownloadRequest) => rpcManger.downloadSelectedSampleFromGithub(args));
+    messenger.onRequest(getDefaultOrgName, () => rpcManger.getDefaultOrgName());
 }

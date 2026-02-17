@@ -37,7 +37,8 @@ import {
     SetWebviewCacheRequestParam,
     ShowInfoModalRequest,
     SampleDownloadRequest,
-    ShowQuickPickRequest
+    ShowQuickPickRequest,
+    DefaultOrgNameResponse
 } from "./interfaces";
 
 export interface CommonRPCAPI {
@@ -62,4 +63,5 @@ export interface CommonRPCAPI {
     restoreWebviewCache: (params: IDBValidKey) => unknown;
     clearWebviewCache: (params: IDBValidKey) => void;
     downloadSelectedSampleFromGithub: (params: SampleDownloadRequest) => Promise<boolean>;
+    getDefaultOrgName: () => Promise<DefaultOrgNameResponse>;
 }

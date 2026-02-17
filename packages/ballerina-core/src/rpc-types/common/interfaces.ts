@@ -140,3 +140,7 @@ export interface SetWebviewCacheRequestParam {
 export interface SampleDownloadRequest {
     zipFileName: string;
 }
+
+export interface DefaultOrgNameResponse {
+    orgName: string;
+}
