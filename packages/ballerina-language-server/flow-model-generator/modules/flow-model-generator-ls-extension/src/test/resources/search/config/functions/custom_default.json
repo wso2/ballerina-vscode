@@ -33,7 +33,7 @@
             "data": {
               "isDataMappedFunction": true,
               "isAgentTool": false,
-              "isIsolatedFunction": false
+              "isIsolatedFunction": true
             }
           },
           "codedata": {
@@ -52,7 +52,7 @@
             "data": {
               "isDataMappedFunction": false,
               "isAgentTool": false,
-              "isIsolatedFunction": false
+              "isIsolatedFunction": true
             }
           },
           "codedata": {
@@ -70,7 +70,7 @@
             "data": {
               "isDataMappedFunction": false,
               "isAgentTool": false,
-              "isIsolatedFunction": false
+              "isIsolatedFunction": true
             }
           },
           "codedata": {
@@ -89,7 +89,7 @@
             "data": {
               "isDataMappedFunction": false,
               "isAgentTool": false,
-              "isIsolatedFunction": false
+              "isIsolatedFunction": true
             }
           },
           "codedata": {
@@ -126,7 +126,7 @@
             "data": {
               "isDataMappedFunction": false,
               "isAgentTool": false,
-              "isIsolatedFunction": false
+              "isIsolatedFunction": true
             }
           },
           "codedata": {
@@ -144,7 +144,7 @@
             "data": {
               "isDataMappedFunction": false,
               "isAgentTool": false,
-              "isIsolatedFunction": false
+              "isIsolatedFunction": true
             }
           },
           "codedata": {
@@ -181,6 +181,223 @@
         ]
       },
       "items": [
+        {
+          "metadata": {
+            "label": "ai",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "getTools",
+                "description": "Get the tools registered with the agent.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "getTools",
+                "version": "1.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "chunkDocumentRecursively",
+                "description": "Provides functionality to recursively chunk a text document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to\nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content\nbetween chunks can be controlled using `maxOverlapSize`.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "chunkDocumentRecursively",
+                "version": "1.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "chunkMarkdownDocument",
+                "description": "Provides functionality to recursively chunk a markdown document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to\nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content\nbetween chunks can be controlled using `maxOverlapSize`.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "chunkMarkdownDocument",
+                "version": "1.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "chunkHtmlDocument",
+                "description": "Provides functionality to recursively chunk a HTML document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to\nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content\nbetween chunks can be controlled using `maxOverlapSize`.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "chunkHtmlDocument",
+                "version": "1.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "extractToolsFromOpenApiSpecFile",
+                "description": "Extracts the Http tools from the given OpenAPI specification file.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "extractToolsFromOpenApiSpecFile",
+                "version": "1.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "extractToolsFromOpenApiJsonSpec",
+                "description": "Extracts the Http tools from the given OpenAPI specification as a JSON \n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "extractToolsFromOpenApiJsonSpec",
+                "version": "1.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "parseOpenApiSpec",
+                "description": "Parses the given OpenAPI specification as a JSON to a OpenApiSpec object.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "parseOpenApiSpec",
+                "version": "1.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getDefaultModelProvider",
+                "description": "Creates a default model provider based on the provided `wso2ProviderConfig`.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "getDefaultModelProvider",
+                "version": "1.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getDefaultEmbeddingProvider",
+                "description": "Creates a default embedding provider based on the provided `wso2ProviderConfig`.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "getDefaultEmbeddingProvider",
+                "version": "1.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "augmentUserQuery",
+                "description": "Augments the user's query with relevant context.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "augmentUserQuery",
+                "version": "1.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "executeTool",
+                "description": "Executes an AgentTool.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "executeTool",
+                "version": "1.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getToolConfigs",
+                "description": "Generates a array of `ToolConfig` from the given list of function pointers.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "getToolConfigs",
+                "version": "1.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getPermittedMcpToolConfigs",
+                "description": "Constructs the list of permitted MCP tool configurations by querying the MCP server.\n\nThis function initializes the MCP client using the provided implementation information\nand retrieves the list of tools permitted for use. Each permitted tool is then associated\nwith a corresponding MCP function tool dispatcher.\n\nA tool dispatcher is a function with the following signature:\n```ballerina\n@ai:AgentTool\nisolated function (mcp:CallToolParams) returns mcp:CallToolResult|error;\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "getPermittedMcpToolConfigs",
+                "version": "1.9.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
         {
           "metadata": {
             "label": "data.jsondata",
@@ -304,255 +521,6 @@
         },
         {
           "metadata": {
-            "label": "time",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "utcNow",
-                "description": "Returns the UTC representing the current time (current instant of the system clock in seconds from the epoch of `1970-01-01T00:00:00`).\n```ballerina\ntime:Utc utc = time:utcNow();\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "utcNow",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "monotonicNow",
-                "description": "Returns no of seconds from unspecified epoch.\nThis API guarantees consistent value increase in subsequent calls with nanoseconds precision.\n```ballerina\ndecimal seconds = time:monotonicNow();\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "monotonicNow",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "utcFromString",
-                "description": "Converts from RFC 3339 timestamp (e.g., `2007-12-03T10:15:30.00Z`) to Utc.\n```ballerina\ntime:Utc|time:Error utc = time:utcFromString(\"2007-12-03T10:15:30.00Z\");\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "utcFromString",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "utcToString",
-                "description": "Converts a given `time:Utc` time to a RFC 3339 timestamp (e.g., `2007-12-03T10:15:30.00Z`).\n```ballerina\nstring utcString = time:utcToString(time:utcNow());\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "utcToString",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "utcAddSeconds",
-                "description": "Returns UTC time that occurs seconds after `utc`. This assumes that all days have 86400 seconds except when utc\nrepresents a time during a positive leap second, in which case the corresponding day will be assumed to have 86401 seconds.\n```ballerina\ntime:Utc utc = time:utcAddSeconds(time:utcNow(), 20.900);\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "utcAddSeconds",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "utcDiffSeconds",
-                "description": "Returns difference in seconds between two UTC times.\nThis will be positive if `utc1` occurs after `utc2`\n```ballerina\ntime:Utc utc1 = time:utcNow();\ntime:Utc utc2 = check time:utcFromString(\"2021-04-12T23:20:50.520Z\");\ntime:Seconds seconds = time:utcDiffSeconds(utc1, utc2);\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "utcDiffSeconds",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "dateValidate",
-                "description": "Check that days and months are within range as per Gregorian calendar rules.\n```ballerina\ntime:Date date = {year: 1994, month: 11, day: 7};\ntime:Error? isValid = time:dateValidate(date);\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "dateValidate",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "dayOfWeek",
-                "description": "Get the day of week for a specified date.\n```ballerina\ntime:Date date = {year: 1994, month: 11, day: 7};\ntime:DayOfWeek day = time:dayOfWeek(date);\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "dayOfWeek",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "utcToCivil",
-                "description": "Converts a given `time:Utc` timestamp to a `time:Civil` value.\n```ballerina\ntime:Utc utc = time:utcNow();\ntime:Civil civil = time:utcToCivil(utc);\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "utcToCivil",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "utcFromCivil",
-                "description": "Converts a given `time:Civil` value to an `time:Utc` timestamp.\n```ballerina\ntime:Civil civil = time:utcToCivil(time:utcNow());\ntime:Utc utc = time:utcFromCivil(civil);\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "utcFromCivil",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "civilFromString",
-                "description": "Converts a given RFC 3339 timestamp(e.g., `2007-12-03T10:15:30.00Z`) to `time:Civil`.\n```ballerina\ntime:Civil|time:Error civil1 = time:civilFromString(\"2021-04-12T23:20:50.520+05:30[Asia/Colombo]\");\ntime:Civil|time:Error civil2 = time:civilFromString(\"2007-12-03T10:15:30.00Z\");\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "civilFromString",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "civilToString",
-                "description": "Obtain a RFC 3339 timestamp (e.g., `2021-03-05T00:33:28.839564+05:30`) from a given `time:Civil`.\n```ballerina\ntime:Civil civil = check time:civilFromString(\"2007-12-03T10:15:30.00Z\");\nstring|time:Error civilString = time:civilToString(civil);\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "civilToString",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "utcToEmailString",
-                "description": "Converts a given UTC to an email formatted string (e.g `Mon, 3 Dec 2007 10:15:30 GMT`).\n```ballerina\ntime:Utc utc = time:utcNow();\nstring emailFormattedString = time:utcToEmailString(utc);\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "utcToEmailString",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "utcFromString",
-                "description": "Converts from RFC 3339 timestamp (e.g., `2007-12-03T10:15:30.00Z`) to Utc.\n```ballerina\ntime:Utc|time:Error utc = time:utcFromString(\"2007-12-03T10:15:30.00Z\");\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "utcFromString",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "utcNow",
-                "description": "Returns the UTC representing the current time (current instant of the system clock in seconds from the epoch of `1970-01-01T00:00:00`).\n```ballerina\ntime:Utc utc = time:utcNow();\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "time",
-                "packageName": "time",
-                "symbol": "utcNow",
-                "version": "2.8.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "io",
             "description": "",
             "keywords": []
@@ -651,6 +619,47 @@
                 "packageName": "io",
                 "symbol": "println",
                 "version": "1.8.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "time",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "utcFromString",
+                "description": "Converts from RFC 3339 timestamp (e.g., `2007-12-03T10:15:30.00Z`) to Utc.\n```ballerina\ntime:Utc|time:Error utc = time:utcFromString(\"2007-12-03T10:15:30.00Z\");\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "utcFromString",
+                "version": "2.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "utcNow",
+                "description": "Returns the UTC representing the current time (current instant of the system clock in seconds from the epoch of `1970-01-01T00:00:00`).\n```ballerina\ntime:Utc utc = time:utcNow();\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "utcNow",
+                "version": "2.8.0"
               },
               "enabled": true
             }
