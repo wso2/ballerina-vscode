@@ -111,10 +111,21 @@ export interface PackageTomlValues {
     package: TomlPackage;
 }
 
+export interface SettingsTomlValues {
+    central: {
+        accesstoken: string;
+    };
+}
+
 export interface WorkspaceTypeResponse {
     type: "SINGLE_PROJECT" | "MULTIPLE_PROJECTS" | "BALLERINA_WORKSPACE" | "VSCODE_WORKSPACE" | "UNKNOWN"
 }
 
 export interface SampleDownloadRequest {
     zipFileName: string;
+}
+
+export interface PublishToCentralResponse {
+    success: boolean;
+    message?: string;
 }
