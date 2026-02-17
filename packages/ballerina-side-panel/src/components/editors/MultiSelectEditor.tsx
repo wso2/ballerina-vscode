@@ -22,7 +22,7 @@ import { Button, Codicon, Dropdown, OptionProps, ThemeColors } from "@wso2/ui-to
 import styled from "@emotion/styled";
 
 import { FormField } from "../Form/types";
-import { getValueForDropdown } from "./utils";
+import { buildRequiredRule, getValueForDropdown } from "./utils";
 import { useFormContext } from "../../context";
 import { SubPanel, SubPanelView } from "@wso2/ballerina-core";
 
@@ -183,7 +183,10 @@ export function MultiSelectEditor(props: MultiSelectEditorProps) {
                         <Dropdown
                             id={`${field.key}-${index}`}
                             {...register(`${field.key}-${index}`, {
-                                required: !field.optional && index === 0,
+                                required: buildRequiredRule({
+                                    isRequired: !field.optional && index === 0,
+                                    label: field.label
+                                }),
                                 value: getValueForDropdown(field, index)
                             })}
                             value={currentValue}
