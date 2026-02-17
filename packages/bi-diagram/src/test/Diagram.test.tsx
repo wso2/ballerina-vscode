@@ -100,7 +100,7 @@ function applyHashMap(content: string, hashMap: Map<string, string>): string {
     return content.replace(pattern, (m) => hashMap.get(m) ?? m);
 }
 
-async function renderAndCheckSnapshot(model: Flow, testName: string) {
+async function renderAndCheckSnapshot(model: Flow, testName: string, overrides?: Partial<React.ComponentProps<typeof Diagram>>) {
     const mockProps = {
         onAddNode: jest.fn(),
         onAddNodePrompt: jest.fn(),
@@ -115,7 +115,7 @@ async function renderAndCheckSnapshot(model: Flow, testName: string) {
         openView: jest.fn(),
     };
 
-    const dom = render(<Diagram model={model} {...mockProps} />);
+    const dom = render(<Diagram model={model} {...mockProps} {...overrides} />);
 
     // Wait for diagram to render
     await waitFor(
@@ -187,6 +187,8 @@ describe("BI Diagram - Snapshot Tests", () => {
     }, 15000);
 
     test("renders all nodes flow correctly", async () => {
-        await renderAndCheckSnapshot(model7 as unknown as Flow, "all-nodes-flow");
+        await renderAndCheckSnapshot(model7 as unknown as Flow, "all-nodes-flow", {
+            project: { org: "gayanka", path: "/tmp" },
+        });
     }, 15000);
 });
