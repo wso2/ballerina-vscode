@@ -196,6 +196,15 @@ public class SourceBuilder {
         return this;
     }
 
+    public SourceBuilder newVariableWithType(String resolvedType) {
+        Optional<Property> variable = getProperty(Property.VARIABLE_KEY);
+        if (variable.isEmpty()) {
+            return this;
+        }
+        tokenBuilder.expressionWithType(resolvedType, variable.get()).keyword(SyntaxKind.EQUAL_TOKEN);
+        return this;
+    }
+
     public SourceBuilder newVariable(String typeKey) {
         Optional<Property> type = getProperty(typeKey);
         Optional<Property> variable = getProperty(Property.VARIABLE_KEY);
