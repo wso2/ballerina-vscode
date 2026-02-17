@@ -41,6 +41,7 @@ import { getIntegrationTypes } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
+import { PublishToCentralButton } from "./PublishToCentralButton";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -837,6 +838,9 @@ export function PackageOverview(props: PackageOverviewProps) {
                         <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
                     </Button>
                 </>
+            )}
+            {isLibrary && (
+                <PublishToCentralButton />
             )}
         </>
     );

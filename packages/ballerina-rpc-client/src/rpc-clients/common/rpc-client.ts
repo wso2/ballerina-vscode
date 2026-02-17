@@ -28,6 +28,7 @@ import {
     GoToSourceRequest,
     OpenExternalUrlRequest,
     PackageTomlValues,
+    PublishToCentralResponse,
     RunExternalCommandRequest,
     RunExternalCommandResponse,
     SampleDownloadRequest,
@@ -47,8 +48,10 @@ import {
     getWorkspaceRoot,
     getWorkspaceType,
     goToSource,
+    hasCentralPATConfigured,
     isNPSupported,
     openExternalUrl,
+    publishToCentral,
     runBackgroundTerminalCommand,
     selectFileOrDirPath,
     selectFileOrFolderPath,
@@ -126,5 +129,13 @@ export class CommonRpcClient implements CommonRPCAPI {
 
     downloadSelectedSampleFromGithub(params: SampleDownloadRequest): Promise<boolean> {
         return this._messenger.sendRequest(downloadSelectedSampleFromGithub, HOST_EXTENSION, params);
+    }
+
+    publishToCentral(): Promise<PublishToCentralResponse> {
+        return this._messenger.sendRequest(publishToCentral, HOST_EXTENSION);
+    }
+
+    hasCentralPATConfigured(): Promise<boolean> {
+        return this._messenger.sendRequest(hasCentralPATConfigured, HOST_EXTENSION);
     }
 }
