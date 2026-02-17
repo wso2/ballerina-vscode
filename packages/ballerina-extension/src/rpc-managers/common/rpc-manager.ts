@@ -462,7 +462,7 @@ export class CommonRpcManager implements CommonRPCAPI {
             {
                 location: ProgressLocation.Notification,
                 title: 'Publishing project to Ballerina Central',
-                cancellable: true
+                cancellable: false
             },
             async (progress) => {
                 try {
@@ -496,11 +496,11 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     private async runPackCommand(projectPath: string): Promise<RunExternalCommandResponse> {
-        return this.runBackgroundTerminalCommand({ command: `bal pack ${projectPath}` });
+        return this.runBackgroundTerminalCommand({ command: `bal pack "${projectPath}"` });
     }
 
     private async runPushCommand(balaFilePath: string): Promise<RunExternalCommandResponse> {
-        return this.runBackgroundTerminalCommand({ command: `bal push ${balaFilePath}` });
+        return this.runBackgroundTerminalCommand({ command: `bal push "${balaFilePath}"` });
     }
 
     private showPublishResult(result: PublishToCentralResponse): void {
