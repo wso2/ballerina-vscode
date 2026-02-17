@@ -13,8 +13,8 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
-    "@emotion/react": "11.9.3",
-    "@emotion/styled": "11.10.5",
+    "@emotion/react": "11.14.0",
+    "@emotion/styled": "11.14.0",
     "@vscode/webview-ui-toolkit": "1.2.0",
     "@wso2/ballerina-core": "workspace:*",
     "@wso2/ballerina-rpc-client": "workspace:*",

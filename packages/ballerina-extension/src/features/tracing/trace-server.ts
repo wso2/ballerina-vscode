@@ -70,6 +70,8 @@ export interface TraceServer {
     getTraceByLastSeen(lastSeen: Date): Trace;
     onTracesUpdated(callback: () => void): () => void;
     onTracesCleared(callback: () => void): () => void;
+    getTracesBySessionId(sessionId: string): Trace[];
+    getSessionIds(): string[];
 }
 
 
@@ -339,7 +341,7 @@ app.post('/v1/traces', async (req, res) => {
             const extractResourceName = (resource: any): string => {
                 if (resource.name) { return resource.name; }
                 if (resource.attributes) {
-                    const serviceNameAttr = resource.attributes.find((attr: any) => 
+                    const serviceNameAttr = resource.attributes.find((attr: any) =>
                         attr.key === 'service.name' || attr.key === 'service_name'
                     );
                     if (serviceNameAttr) {
@@ -350,7 +352,7 @@ app.post('/v1/traces', async (req, res) => {
             };
 
             // Helper function to process resource attributes
-            const processAttributes = (attributes: any[]): Array<{key: string; value: string}> => {
+            const processAttributes = (attributes: any[]): Array<{ key: string; value: string }> => {
                 if (!attributes || !Array.isArray(attributes)) { return []; }
                 return attributes.map((attr: any) => ({
                     key: attr.key || '',
@@ -369,7 +371,7 @@ app.post('/v1/traces', async (req, res) => {
                                     // Process resource and scope
                                     const resourceName = extractResourceName(resourceSpan.resource);
                                     const scopeName = scopeSpan.scope?.name || 'Unknown Scope';
-                                    
+
                                     traceMap.set(traceId, {
                                         spans: [],
                                         resource: {
@@ -465,7 +467,7 @@ export const TraceServer: TraceServer = {
             resolve();
             return;
         }
-        
+
         server = app.listen(port, () => {
             resolve();
         });
@@ -522,5 +524,29 @@ export const TraceServer: TraceServer = {
     onTracesCleared: (callback: () => void) => {
         traceEvents.on('tracesCleared', callback);
         return () => traceEvents.off('tracesCleared', callback);
+    },
+    getTracesBySessionId: (sessionId: string) => {
+        return Array.from(traceStore.values()).filter(trace =>
+            trace.spans.some(span => {
+                const conversationId = span.attributes?.find(
+                    attr => attr.key === 'gen_ai.conversation.id'
+                )?.value;
+                return conversationId === sessionId;
+            })
+        );
+    },
+    getSessionIds: () => {
+        const sessionIds = new Set<string>();
+        for (const trace of traceStore.values()) {
+            for (const span of trace.spans) {
+                const conversationId = span.attributes?.find(
+                    attr => attr.key === 'gen_ai.conversation.id'
+                )?.value;
+                if (conversationId) {
+                    sessionIds.add(conversationId);
+                }
+            }
+        }
+        return Array.from(sessionIds);
     }
 };
