@@ -90,7 +90,7 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
     if (functionType === FUNCTION_TYPE.REGULAR && (node.metadata.data as NodeMetadata)?.isDataMappedFunction) {
         return undefined;
     }
-    if (functionType === FUNCTION_TYPE.EXPRESSION_BODIED && !(node.metadata.data as NodeMetadata).isDataMappedFunction) {
+    if (functionType === FUNCTION_TYPE.EXPRESSION_BODIED && !(node.metadata.data as NodeMetadata)?.isDataMappedFunction) {
         return undefined;
     }
 
@@ -111,19 +111,23 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
 }
 
 function convertDiagramCategoryToSidePanelCategory(category: Category, functionType?: FUNCTION_TYPE): PanelCategory {
-    if (category.metadata.label !== "Current Integration" && functionType === FUNCTION_TYPE.EXPRESSION_BODIED) {
-        // Skip out of scope data mapping functions
-        return;
-    }
     const items: PanelItem[] = category.items
         ?.map((item) => {
             if ("codedata" in item) {
                 return convertAvailableNodeToPanelNode(item as AvailableNode, functionType);
             } else {
-                return convertDiagramCategoryToSidePanelCategory(item as Category);
+                return convertDiagramCategoryToSidePanelCategory(item as Category, functionType);
             }
         })
-        .filter((item) => item !== undefined);
+        .filter((item) => {
+            if (item === undefined) {
+                return false;
+            }
+            if ((item as PanelCategory).items !== undefined) {
+                return (item as PanelCategory).items.length > 0;
+            }
+            return true;
+        });
 
     // HACK: use the icon of the first item in the category
     const icon = category.items.at(0)?.metadata.icon;
