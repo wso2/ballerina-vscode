@@ -834,7 +834,7 @@ export function FTPForm(props: FTPFormProps) {
                             {shouldShowAdvancedConfigsDivider && <Divider />}
                             <AdvancedConfigsHeader onClick={() => setIsAdvancedConfigsExpanded(!isAdvancedConfigsExpanded)}>
                                 <Codicon name={isAdvancedConfigsExpanded ? "chevron-down" : "chevron-right"} sx={{ marginRight: 4 }} />
-                                <Typography variant="body2">Advanced Configs</Typography>
+                                <Typography variant="body2">Advanced Parameters</Typography>
                             </AdvancedConfigsHeader>
                             <AdvancedConfigsContent isExpanded={isAdvancedConfigsExpanded}>
                                 {/* File Metadata Section */}
