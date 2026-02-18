@@ -198,15 +198,17 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         boolean useExistingListener = ListenerUtil.shouldUseExistingListener(properties);
         String listenerVarName;
         String listenerDeclaration = "";
-        // path is now a service-level property (in @ftp:ServiceConfig annotation)
-        String folderPath = getPropertyValueLiteralValue(properties, "path", "/");
+        // path is now a service-level property (in @ftp:ServiceConfig annotation).
+        // Keep backward compatibility with legacy payloads that still send `folderPath`.
+        String folderPath = getPropertyValueLiteralValue(properties, "path",
+                getPropertyValueLiteralValue(properties, "folderPath", "\"/\""));
 
         if (useExistingListener) {
             listenerVarName = ListenerUtil.getExistingListenerName(properties).orElse("");
         } else {
             // After applyEnabledChoiceProperty, all properties are flattened into the main properties map
             listenerVarName = properties.get("listenerVarName").getValue();
-            String host = getPropertyValueLiteralValue(properties, "host", "127.0.0.1");
+            String host = getPropertyValueLiteralValue(properties, "host", "\"127.0.0.1\"");
             String port = getPropertyValue(properties, "portNumber", "21");
 
             applyEnabledChoiceProperty(serviceInitModel, "authentication");
