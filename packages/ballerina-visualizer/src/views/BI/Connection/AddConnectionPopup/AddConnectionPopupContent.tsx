@@ -30,7 +30,7 @@ import { AddConnectionPopupProps } from "./index";
 interface Props extends AddConnectionPopupProps {
     handleDatabaseConnection?: () => void;
     handleApiSpecConnection?: () => void;
-    handleSelectConnector?: (connector: AvailableNode, filteredCategories: Category[]) => void;
+    handleSelectConnector: (connector: AvailableNode, filteredCategories: Category[]) => void;
 }
 
 export function AddConnectionPopupContent(props: Props) {

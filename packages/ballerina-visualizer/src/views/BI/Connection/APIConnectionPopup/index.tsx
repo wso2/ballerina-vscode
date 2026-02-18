@@ -246,7 +246,7 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
                     if (response.artifacts.length > 0) {
                         setIsSavingConnection(false);
                         const newConnection = response.artifacts.find((artifact) => artifact.isNew);
-                        onClose?.({ recentIdentifier: newConnection.name, artifactType: DIRECTORY_MAP.CONNECTION });
+                        onClose?.({ recentIdentifier: newConnection?.name, artifactType: DIRECTORY_MAP.CONNECTION });
                     } else {
                         console.error(">>> Error updating source code", response);
                         setIsSavingConnection(false);
