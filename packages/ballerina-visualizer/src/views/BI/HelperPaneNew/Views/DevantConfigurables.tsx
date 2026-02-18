@@ -57,30 +57,16 @@ export const DevantConfigurables = (props: DevantConfigurablesProps) => {
         queryKey: ["config-variables"],
     });
 
-    const { mutate, isPending } = useMutation({
-        mutationFn: (data: {
-            name: string;
-            value: string;
-            isSecret: boolean;
-            refreshConfigVariables: () => Promise<void>;
-        }) => {
-            if (devantExpressionEditor?.onAddDevantConfig) {
-                return devantExpressionEditor.onAddDevantConfig(data.name, data.value, data.isSecret);
-            }
-        },
-        onSuccess: (_, input) => {
-            props.onChange(input.name, false);
-            closeModal(POPUP_IDS.CONFIGURABLES);
-            input.refreshConfigVariables();
-        },
-    });
-
     const onAddNewConfigurable = (refreshConfigVariables: () => Promise<void>) => {
         addModal(
             <DevantNewConfigurableForm
-                onSave={(data) => mutate({ ...data, refreshConfigVariables })}
+                onAddDevantConfig={devantExpressionEditor?.onAddDevantConfig}
+                onSuccess={(name) => {
+                    props.onChange(name, false);
+                    closeModal(POPUP_IDS.CONFIGURABLES);
+                    refreshConfigVariables();
+                }}
                 existingNames={[...existingConfigVariables, ...(devantExpressionEditor?.devantConfigs || [])]}
-                isSaving={isPending}
             />,
             POPUP_IDS.CONFIGURABLES,
             "New Devant Configurable",
@@ -111,20 +97,32 @@ interface DevantNewConfigurableData {
 }
 
 interface DevantNewConfigurableFormProps {
-    onSave: (data: DevantNewConfigurableData) => void;
+    onAddDevantConfig?: (name: string, value: string, isSecret: boolean) => Promise<void>;
+    onSuccess: (name: string) => void;
     existingNames?: string[];
-    isSaving?: boolean;
 }
 
 const DevantNewConfigurableForm: React.FC<DevantNewConfigurableFormProps> = ({
-    onSave,
+    onAddDevantConfig,
+    onSuccess,
     existingNames = [],
-    isSaving = false,
 }) => {
     const [name, setName] = useState("");
     const [value, setValue] = useState("");
     const [isSecret, setIsSecret] = useState(false);
     const [errors, setErrors] = useState<{ name?: string; value?: string }>({});
+
+    const { mutate, isPending } = useMutation({
+        mutationFn: (data: DevantNewConfigurableData) => {
+            if (onAddDevantConfig) {
+                return onAddDevantConfig(data.name, data.value, data.isSecret);
+            }
+            return Promise.resolve();
+        },
+        onSuccess: () => {
+            onSuccess(name);
+        },
+    });
 
     const validateName = (nameValue: string): string | undefined => {
         if (!nameValue.trim()) {
@@ -172,7 +170,7 @@ const DevantNewConfigurableForm: React.FC<DevantNewConfigurableFormProps> = ({
             return;
         }
 
-        onSave({
+        mutate({
             name: name.trim(),
             value: value.trim(),
             isSecret,
@@ -212,8 +210,8 @@ const DevantNewConfigurableForm: React.FC<DevantNewConfigurableFormProps> = ({
             </FormStyles.Row>
 
             <FooterContainer style={{ flex: 1, display: "flex", alignItems: "end", alignSelf: "end" }}>
-                <Button appearance="primary" onClick={handleSave} disabled={isSaving}>
-                    {isSaving ? "Saving..." : "Save"}
+                <Button appearance="primary" onClick={handleSave} disabled={isPending}>
+                    {isPending ? "Saving..." : "Save"}
                 </Button>
             </FooterContainer>
         </FormStyles.Container>
