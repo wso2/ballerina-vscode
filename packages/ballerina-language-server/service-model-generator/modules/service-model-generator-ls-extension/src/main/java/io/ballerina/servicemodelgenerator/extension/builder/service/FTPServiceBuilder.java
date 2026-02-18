@@ -21,6 +21,7 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -34,6 +35,7 @@ import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
@@ -356,7 +358,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                         updateDatabindingParameter(sourceFunc, modelFunc);
                         FunctionDefinitionNode functionNode = functionNodes.get(sourceFuncName);
                         if (functionNode != null) {
-                            updatePostProcessActionsFromAnnotation(functionNode, modelFunc);
+                            updatePostProcessActionsFromAnnotation(functionNode, modelFunc, semanticModel);
                         }
 
                         if (modelFunc.getProperties().containsKey(STREAM)) {
@@ -523,7 +525,8 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         }
     }
 
-    private void updatePostProcessActionsFromAnnotation(FunctionDefinitionNode functionNode, Function modelFunc) {
+    private void updatePostProcessActionsFromAnnotation(FunctionDefinitionNode functionNode, Function modelFunc,
+                                                        SemanticModel semanticModel) {
         Value postProcessAction = modelFunc.getProperties().get(POST_PROCESS_ACTION);
         if (postProcessAction == null || postProcessAction.getProperties() == null) {
             return;
@@ -537,8 +540,8 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             return;
         }
 
-        Optional<AnnotationNode> functionConfig = findAnnotationBySuffix(
-                functionNode.metadata().get().annotations(), FUNCTION_CONFIG);
+        Optional<AnnotationNode> functionConfig = findFtpAnnotation(
+                functionNode.metadata().get().annotations(), FUNCTION_CONFIG, semanticModel);
         if (functionConfig.isEmpty()) {
             disablePostProcessActions(postProcessAction, successProperty, errorProperty);
             return;
@@ -633,14 +636,37 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         }
     }
 
-    private Optional<AnnotationNode> findAnnotationBySuffix(NodeList<AnnotationNode> annotations, String suffix) {
+    private Optional<AnnotationNode> findFtpAnnotation(NodeList<AnnotationNode> annotations, String annotationName,
+                                                        SemanticModel semanticModel) {
         for (AnnotationNode annotation : annotations) {
-            String annotationText = annotation.annotReference().toString().trim();
-            if (annotationText.endsWith(suffix)) {
+            if (isMatchingFtpAnnotation(annotation, annotationName, semanticModel)) {
                 return Optional.of(annotation);
             }
         }
         return Optional.empty();
+    }
+
+    private boolean isMatchingFtpAnnotation(AnnotationNode annotation, String annotationName,
+                                            SemanticModel semanticModel) {
+        Optional<Symbol> symbol = semanticModel.symbol(annotation);
+        if (symbol.orElse(null) instanceof AnnotationSymbol annotationSymbol) {
+            Optional<ModuleSymbol> module = annotationSymbol.getModule();
+            if (module.isEmpty() || annotationSymbol.getName().isEmpty()
+                    || !annotationName.equals(annotationSymbol.getName().get())) {
+                return false;
+            }
+            String orgName = module.get().id().orgName();
+            String packageName = module.get().id().packageName();
+            String moduleName = module.get().id().moduleName();
+            return BALLERINA.equals(orgName) && (FTP.equals(packageName) || FTP.equals(moduleName));
+        }
+
+        // Fallback when symbol resolution is unavailable (e.g., temporary semantic model issues).
+        if (annotation.annotReference() instanceof QualifiedNameReferenceNode qualifiedName) {
+            return FTP.equals(qualifiedName.modulePrefix().text())
+                    && annotationName.equals(qualifiedName.identifier().text().trim());
+        }
+        return false;
     }
 
     /**
@@ -698,7 +724,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                 ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) member;
                 if (isServiceAttachedToListener(serviceNode, listenerName)) {
                     // Check if this service uses the new pattern (has @ftp:ServiceConfig annotation)
-                    if (!hasServiceConfigAnnotation(serviceNode)) {
+                    if (!hasServiceConfigAnnotation(serviceNode, semanticModel)) {
                         return false; // Legacy service found
                     }
                 }
@@ -745,20 +771,10 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     /**
      * Checks if a service has the @ftp:ServiceConfig annotation.
      */
-    private boolean hasServiceConfigAnnotation(ServiceDeclarationNode serviceNode) {
+    private boolean hasServiceConfigAnnotation(ServiceDeclarationNode serviceNode, SemanticModel semanticModel) {
         if (serviceNode.metadata().isEmpty()) {
             return false;
         }
-
-        NodeList<AnnotationNode> annotations = serviceNode.metadata().get().annotations();
-        for (AnnotationNode annotation : annotations) {
-            Node annotationRef = annotation.annotReference();
-            String annotationText = annotationRef.toSourceCode().trim();
-            // Check for @ftp:ServiceConfig annotation (allow alias prefixes)
-            if (annotationText.endsWith("ServiceConfig")) {
-                return true;
-            }
-        }
-        return false;
+        return findFtpAnnotation(serviceNode.metadata().get().annotations(), SERVICE_CONFIG, semanticModel).isPresent();
     }
 }
