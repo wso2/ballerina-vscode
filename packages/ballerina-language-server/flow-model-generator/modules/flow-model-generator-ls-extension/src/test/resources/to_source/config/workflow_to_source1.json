@@ -180,6 +180,21 @@
     "flags": 0
   },
   "output": {
+    "workflow_function/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 1,
+            "character": 0
+          }
+        },
+        "newText": "\n\n\n# Events record for workflow process function\ntype OrderWorkflowEvents record {|\n|};"
+      }
+    ],
     "workflow_function/functions.bal": [
       {
         "range": {
@@ -205,7 +220,7 @@
             "character": 1
           }
         },
-        "newText": "# Process an order workflow\n@workflow:Process\nfunction orderWorkflow(workflow:Context ctx, OrderInput input) returns error? {\n}"
+        "newText": "# Process an order workflow\n@workflow:Process\nfunction orderWorkflow(workflow:Context ctx, OrderInput input, OrderWorkflowEvents events) returns error? {\n}"
       }
     ]
   }

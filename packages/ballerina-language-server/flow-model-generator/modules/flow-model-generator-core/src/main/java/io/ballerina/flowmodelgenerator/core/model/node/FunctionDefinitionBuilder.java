@@ -162,7 +162,7 @@ public class FunctionDefinitionBuilder extends NodeBuilder {
 
         Optional<Property> annotationsProperty = sourceBuilder.getProperty(Property.ANNOTATIONS_KEY);
         if (annotationsProperty.isPresent()) {
-            sourceBuilder.token().name(annotationsProperty.get().toSourceCode());
+            sourceBuilder.token().name(annotationsProperty.get().toSourceCode()).name(System.lineSeparator());
         }
         Optional<Property> isolatedProperty = sourceBuilder.getProperty(Property.IS_ISOLATED_KEY);
         if (isolatedProperty.isPresent()) {

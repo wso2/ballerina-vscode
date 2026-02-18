@@ -40,7 +40,7 @@ public class ActivityBuilder extends FunctionDefinitionBuilder {
     public static final String ANYDATA_TYPE = "anydata";
     public static final String ACTIVITY_LABEL = "Activity Name";
     public static final String ACTIVITY_DESCRIPTION = "Name of the activity function";
-    public static final String ACTIVITY_ANNOTATION = "\"@workflow:Activity\"";
+    public static final String ACTIVITY_ANNOTATION = "@workflow:Activity";
 
     public Property getParamSchema() {
         return ActivityBuilder.ParameterSchemaHolder.PARAMETER_SCHEMA;

@@ -180,6 +180,34 @@
     "flags": 0
   },
   "output": {
+    "workflow_function/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 1,
+            "character": 0
+          }
+        },
+        "newText": "\n\n\n# Record with readonly field\ntype OrderInput1 record {|\n\treadonly string orderId;\n\treadonly string customerName;\n|};"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 1,
+            "character": 0
+          }
+        },
+        "newText": "\n\n# Events record for workflow process function\ntype SimpleWorkflowEvents record {|\n|};"
+      }
+    ],
     "workflow_function/functions.bal": [
       {
         "range": {
@@ -205,20 +233,7 @@
             "character": 1
           }
         },
-        "newText": "@workflow:Process\nfunction simpleWorkflow(workflow:Context ctx, OrderInput1 input) returns error? {\n}"
-      },
-      {
-        "range": {
-          "start": {
-            "line": 31,
-            "character": 1
-          },
-          "end": {
-            "line": 31,
-            "character": 1
-          }
-        },
-        "newText": "\n\n# Record with readonly field\ntype OrderInput1 record {|\n\treadonly string orderId;\n\treadonly string customerName;\n|};"
+        "newText": "@workflow:Process\nfunction simpleWorkflow(workflow:Context ctx, OrderInput1 input, SimpleWorkflowEvents events) returns error? {\n}"
       }
     ]
   }

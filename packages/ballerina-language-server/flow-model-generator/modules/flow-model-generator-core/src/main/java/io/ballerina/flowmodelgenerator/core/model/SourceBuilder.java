@@ -92,6 +92,7 @@ public class SourceBuilder {
     private static final String DATA_MAPPINGS_BAL = "data_mappings.bal";
     private static final String FUNCTIONS_BAL = "functions.bal";
     private static final String BALLERINA_FILE_SUFFIX = ".bal";
+    private static final String TYPES_BAL = "types.bal";
 
     public SourceBuilder(FlowNode flowNode, WorkspaceManager workspaceManager, Path filePath,
                          LSClientLogger lsClientLogger) {
@@ -875,7 +876,7 @@ public class SourceBuilder {
         } catch (WorkspaceDocumentException | EventSyncException e) {
             return;
         }
-
+        Path filePath = this.filePath.getParent().resolve(TYPES_BAL);
         Document document = FileSystemUtils.getDocument(workspaceManager, filePath);
         SyntaxTree syntaxTree = document.syntaxTree();
         ModulePartNode rootNode = syntaxTree.rootNode();

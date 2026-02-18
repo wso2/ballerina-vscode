@@ -33,7 +33,7 @@
           "description": "Annotations of the function"
         },
         "valueType": "IDENTIFIER",
-        "value": "\"@workflow:Activity\"",
+        "value": "@workflow:Activity",
         "optional": false,
         "editable": false,
         "advanced": false,
@@ -200,28 +200,28 @@
       {
         "range": {
           "start": {
-            "line": 0,
+            "line": 1,
             "character": 0
           },
           "end": {
-            "line": 0,
+            "line": 1,
             "character": 0
           }
         },
-        "newText": "import ballerina/workflow;"
+        "newText": "\nimport ballerina/workflow;"
       },
       {
         "range": {
           "start": {
-            "line": 0,
-            "character": 0
+            "line": 31,
+            "character": 1
           },
           "end": {
-            "line": 0,
-            "character": 0
+            "line": 31,
+            "character": 1
           }
         },
-        "newText": "# Activity that sends an email\n# + return - Result of the activity\n\"@workflow:Activity\" function sendEmailActivity( int a, int b) returns string{\n}"
+        "newText": "# Activity that sends an email\n# + return - Result of the activity\n@workflow:Activity\nfunction sendEmailActivity(int a, int b) returns string {\n}"
       }
     ]
   }

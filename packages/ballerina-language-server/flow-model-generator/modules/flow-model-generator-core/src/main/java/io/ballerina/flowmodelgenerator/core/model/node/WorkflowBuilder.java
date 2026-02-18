@@ -105,7 +105,7 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
         }
 
         // Add @workflow:Process annotation with newline
-        sourceBuilder.token().name("@workflow:Process").name(System.lineSeparator());;
+        sourceBuilder.token().name("@workflow:Process").name(System.lineSeparator());
 
         // Function keyword
         sourceBuilder.token().keyword(SyntaxKind.FUNCTION_KEYWORD);
@@ -181,8 +181,8 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                 new Metadata(eventsTypeName, "Events record for workflow process function",
                         null, null, null, null),
                 new Codedata.Builder<>(null).node(NodeKind.RECORD).build(),
-                null,
-                null,
+                Map.of(),
+                List.of(),
                 null,
                 null,
                 null,
