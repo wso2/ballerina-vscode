@@ -70,7 +70,7 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
             DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS,
         ].includes(selectedFlow)
     ) {
-        initialNameCandidate = `${props.selectedConnector?.codedata?.module}Connection`;
+        initialNameCandidate = props.selectedConnector?.codedata?.module;
     }
     if (importedConnection) {
         initialNameCandidate = importedConnection?.name?.replaceAll(" ", "_")?.replaceAll("-", "_") || "my_connection";
@@ -157,8 +157,8 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
                 });
 
                 await platformRpcClient.createConnectionConfig({
-                    marketplaceItem: selectedMarketplaceItem,
-                    name: importedConnection.name,
+                    marketplaceItem: marketplaceService,
+                    name: recentIdentifier,
                     visibility: "PUBLIC",
                     componentDir: projectPath,
                 });
@@ -191,7 +191,7 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
 
                 await platformRpcClient.createConnectionConfig({
                     marketplaceItem: selectedMarketplaceItem,
-                    name: importedConnection.name,
+                    name: recentIdentifier,
                     visibility: "PUBLIC",
                     componentDir: projectPath,
                 });
@@ -229,7 +229,7 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
 
                 await platformRpcClient.createConnectionConfig({
                     marketplaceItem: selectedMarketplaceItem,
-                    name: importedConnection.name,
+                    name: recentIdentifier,
                     visibility: getInitialVisibility(selectedMarketplaceItem, visibilities),
                     componentDir: projectPath,
                 });
