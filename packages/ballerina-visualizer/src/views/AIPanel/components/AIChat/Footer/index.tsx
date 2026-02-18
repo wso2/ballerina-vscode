@@ -134,6 +134,7 @@ type FooterProps = {
     onChangeAgentMode?: (mode: AgentMode) => void;
     isAutoApproveEnabled?: boolean;
     onDisableAutoApprove?: () => void;
+    disabled?: boolean;
 };
 
 const Footer: React.FC<FooterProps> = ({
@@ -151,6 +152,7 @@ const Footer: React.FC<FooterProps> = ({
     onChangeAgentMode,
     isAutoApproveEnabled,
     onDisableAutoApprove,
+    disabled,
 }) => {
     const [generatingText, setGeneratingText] = useState("Generating.");
 
@@ -200,6 +202,7 @@ const Footer: React.FC<FooterProps> = ({
                 onChangeAgentMode={onChangeAgentMode}
                 isAutoApproveEnabled={isAutoApproveEnabled}
                 onDisableAutoApprove={onDisableAutoApprove}
+                disabled={disabled}
             />
         </FooterContainer>
     );

@@ -486,3 +486,8 @@ export interface AbortAIGenerationRequest {
     /** Thread identifier (defaults to 'default') */
     threadId?: string;
 }
+
+export interface UsageResponse {
+    remainingUsagePercentage: number;
+    resetsIn: number; // in seconds
+}

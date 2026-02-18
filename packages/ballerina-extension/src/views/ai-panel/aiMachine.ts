@@ -33,8 +33,6 @@ import {
 import * as vscode from 'vscode';
 import { notifyAiPromptUpdated } from '../../RPCLayer';
 
-export const USER_CHECK_BACKEND_URL = '/user/usage';
-
 export const openAIWebview = (defaultprompt?: AIPanelPrompt) => {
     extension.aiChatDefaultPrompt = defaultprompt;
     if (!AiPanelWebview.currentPanel) {
