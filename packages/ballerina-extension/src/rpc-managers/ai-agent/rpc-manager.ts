@@ -451,6 +451,8 @@ export class AiAgentRpcManager implements AIAgentAPI {
             } else {
                 toolsValue = `[${mcpToolKitVarName}]`;
             }
+        } else {
+            toolsValue = `[${mcpToolKitVarName}]`;
         }
 
         // Set the updated tools value
