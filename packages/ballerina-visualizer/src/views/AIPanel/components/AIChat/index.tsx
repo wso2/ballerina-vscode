@@ -422,6 +422,11 @@ const AIChat: React.FC = () => {
                     }
                     return newMessages;
                 });
+            } else if (response.toolName === "runTests") {
+                const toolCallId = response?.toolCallId;
+                updateLastMessage((content) =>
+                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`
+                );
             }
         } else if (type === "tool_result") {
             if (response.toolName === "LibrarySearchTool") {
@@ -581,6 +586,13 @@ const AIChat: React.FC = () => {
                     }
                     return newMessages;
                 });
+            } else if (response.toolName === "runTests") {
+                const toolCallId = response.toolCallId;
+                if (toolCallId) {
+                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`;
+                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">Tests completed</toolresult>`;
+                    updateLastMessage((content) => content.replace(searchPattern, replacement));
+                }
             }
         } else if (type === "task_approval_request") {
             if (response.approvalType === "plan") {
