@@ -203,7 +203,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 				<>
 					<ArrowWidget direction="up" />
 					<NodeActionWidget
-						onClick={async () => await context.createConvertedVariable(undefined, true)}
+						onClick={async () => await context.createConvertedVariable(valueLabel, "OUTPUT", true)}
 						iconName="convert"
 						tooltip={`Create type defined variable to access fields in ${valueLabel}`}
 						label="Create type defined variable"
