@@ -742,6 +742,11 @@ function processConvertedVariable(
 ): IOType {
     const fieldId = convertedVariable.name;
     const isFocused = true;
+
+    if (model.traversingRoot) {
+        model.focusInputRootMap[fieldId] = model.traversingRoot;
+    }
+    
     return {
         id: fieldId,
         name: fieldId,
