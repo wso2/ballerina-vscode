@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
     ProjectStructure,
     EVENT_TYPE,
@@ -42,6 +42,7 @@ import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
 import { PublishToCentralButton } from "./PublishToCentralButton";
+import { LibraryOverview } from "./LibraryOverview";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -154,12 +155,58 @@ const EmptyReadmeContainer = styled.div`
     height: 100%;
 `;
 
-const DiagramHeaderContainer = styled.div<{ withPadding?: boolean }>`
+const DiagramHeaderContainer = styled.div<{ withPadding?: boolean, isLibrary?: boolean }>`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: ${(props: { isLibrary?: boolean }) => props.isLibrary ? "0" : "16px"};
     padding: ${(props: { withPadding: boolean; }) => (props.withPadding ? "16px 16px 0 16px" : "0")};
+`;
+
+const LibrarySearchBar = styled.div`
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: clamp(160px, 35vw, 400px);
+`;
+
+const LibrarySearchInput = styled.input`
+    width: 100%;
+    padding: 6px 24px 6px 28px;
+    background: var(--vscode-input-background);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 4px;
+    color: var(--vscode-input-foreground);
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+    &:focus {
+        outline: none;
+        border-color: var(--vscode-focusBorder);
+    }
+    &::placeholder {
+        color: var(--vscode-input-placeholderForeground);
+    }
+`;
+
+const LibrarySearchIcon = styled.div`
+    position: absolute;
+    left: 8px;
+    color: var(--vscode-input-placeholderForeground);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+`;
+
+const LibrarySearchClearButton = styled.div`
+    position: absolute;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--vscode-input-placeholderForeground);
+    &:hover {
+        color: var(--vscode-input-foreground);
+    }
 `;
 
 const DiagramContent = styled.div`
@@ -627,6 +674,8 @@ export function PackageOverview(props: PackageOverviewProps) {
         refetchInterval: 5000
     });
     const [showAlert, setShowAlert] = useState(false);
+    const [librarySearchQuery, setLibrarySearchQuery] = useState("");
+    const librarySearchRef = useRef<HTMLInputElement>(null);
 
     const fetchContext = () => {
         rpcClient
@@ -889,9 +938,9 @@ export function PackageOverview(props: PackageOverviewProps) {
                                     btn2Id="Close"
                                 />
                             )}
-                            <DiagramHeaderContainer withPadding={true}>
-                                <Title variant="h2">Design</Title>
-                                {!isEmptyProject() && (<ActionContainer>
+                            <DiagramHeaderContainer withPadding={true} isLibrary={isLibrary}>
+                                <Title variant="h2">{isLibrary ? "Artifacts" : "Design"}</Title>
+                                {!isEmptyProject() && !isLibrary && (<ActionContainer>
                                     <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
                                         <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate
                                     </Button>
@@ -899,32 +948,61 @@ export function PackageOverview(props: PackageOverviewProps) {
                                         <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
                                     </Button>
                                 </ActionContainer>)}
-                            </DiagramHeaderContainer>
-                            <DiagramContent>
-                                {isEmptyProject() ? (
-                                    <EmptyStateContainer>
-                                        <Typography variant="h3" sx={{ marginBottom: "16px" }}>
-                                            {isLibrary ? "Your library is empty" : "Your integration is empty"}
-                                        </Typography>
-                                        <Typography
-                                            variant="body1"
-                                            sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
-                                        >
-                                            Start by adding artifacts or use AI to generate your {isLibrary ? "shared logic and utilities" : "integration structure"}
-                                        </Typography>
-                                        <ButtonContainer>
-                                            <Button appearance="primary" onClick={handleAddConstruct}>
-                                                <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
-                                            </Button>
-                                            <Button appearance="secondary" onClick={handleGenerate}>
-                                                <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
-                                            </Button>
-                                        </ButtonContainer>
-                                    </EmptyStateContainer>
-                                ) : (
-                                    <ComponentDiagram projectStructure={projectStructure} />
+                                {isLibrary && (
+                                    <ActionContainer>
+                                        <LibrarySearchBar>
+                                            <LibrarySearchIcon>
+                                                <Codicon name="search" iconSx={{ fontSize: 12 }} />
+                                            </LibrarySearchIcon>
+                                            <LibrarySearchInput
+                                                ref={librarySearchRef}
+                                                type="text"
+                                                placeholder="Search Artifacts"
+                                                value={librarySearchQuery}
+                                                onChange={(e) => setLibrarySearchQuery(e.target.value)}
+                                            />
+                                            {librarySearchQuery.trim().length > 0 && (
+                                                <LibrarySearchClearButton
+                                                    onClick={() => {
+                                                        setLibrarySearchQuery("");
+                                                        librarySearchRef.current?.focus();
+                                                    }}
+                                                >
+                                                    <Codicon name="close" iconSx={{ fontSize: 12 }} />
+                                                </LibrarySearchClearButton>
+                                            )}
+                                        </LibrarySearchBar>
+                                    </ActionContainer>
                                 )}
-                            </DiagramContent>
+                            </DiagramHeaderContainer>
+                            {isLibrary && <LibraryOverview projectStructure={projectStructure} searchQuery={librarySearchQuery} />}
+                            {!isLibrary && (
+                                <DiagramContent>
+                                    {isEmptyProject() ? (
+                                        <EmptyStateContainer>
+                                            <Typography variant="h3" sx={{ marginBottom: "16px" }}>
+                                                Your integration is empty
+                                            </Typography>
+                                            <Typography
+                                                variant="body1"
+                                                sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
+                                            >
+                                                Start by adding artifacts or use AI to generate your integration structure
+                                            </Typography>
+                                            <ButtonContainer>
+                                                <Button appearance="primary" onClick={handleAddConstruct}>
+                                                    <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
+                                                </Button>
+                                                <Button appearance="secondary" onClick={handleGenerate}>
+                                                    <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
+                                                </Button>
+                                            </ButtonContainer>
+                                        </EmptyStateContainer>
+                                    ) : (
+                                        <ComponentDiagram projectStructure={projectStructure} />
+                                    )}
+                                </DiagramContent>
+                            )}
                         </DiagramPanel>
                         <FooterPanel>
                             <ReadmeHeaderContainer>
