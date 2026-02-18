@@ -33,7 +33,6 @@ import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
