@@ -563,6 +563,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const handleNewFunctionClose = () => {
         setShowForm(false);
+        setSelectedFTPHandler(undefined);
         // If a handler was selected, also close the FunctionConfigForm
         if (selectedHandler) {
             setShowFunctionConfigForm(false);
@@ -573,6 +574,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const handleFunctionEdit = (value: FunctionModel) => {
         setFunctionModel(value);
         setIsNew(false);
+        setSelectedFTPHandler(undefined);
         setShowForm(true);
     };
 
@@ -777,7 +779,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             if (!value) return undefined;
             const match = value.match(/path\s*:\s*([^,\n}]+)/);
             if (!match) return undefined;
-            let raw = match[1].trim().replace(/,$/, "");
+            let raw = match[1].trim();
             raw = raw.replace(/^"(.*)"$/, "$1");
             return raw;
         };
@@ -854,7 +856,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 serviceModel && (
                     <>
                         <TitleBar
-                            title={serviceModel.name}
+                            title={isFtpService ? getFtpServiceTitle() : serviceModel.name}
                             subtitle={"Implement and configure your service"}
                             actions={
                                 <>

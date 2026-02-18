@@ -18,7 +18,7 @@
 
 import { useCallback, useEffect, useState, useRef } from "react";
 import styled from "@emotion/styled";
-import { ConfigProperties, ConfigVariable, DIRECTORY_MAP, EVENT_TYPE, getPrimaryInputType, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, PropertyModel, ServiceModel } from "@wso2/ballerina-core";
+import { ConfigProperties, ConfigVariable, DIRECTORY_MAP, getPrimaryInputType, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, PropertyModel, ServiceModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Icon, LinkButton, ProgressRing, SidePanelBody, SplitView, TabPanel, ThemeColors, TreeView, TreeViewItem, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -600,15 +600,12 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             service: updatedService
         });
         const updatedArtifact = res.artifacts.at(0);
+        if (!updatedArtifact) {
+            console.error("No artifact returned after attaching listener");
+            return;
+        }
         setCurrentIdentifier(updatedArtifact.name);
-        await rpcClient.getVisualizerRpcClient().openView({
-            type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
-            location: {
-                documentUri: updatedArtifact.path,
-                position: updatedArtifact.position,
-                identifier: updatedArtifact.name
-            }
-        });
+        await fetchService(updatedArtifact.position);
         closeModal(POPUP_IDS.ATTACH_LISTENER);
         setChangeMap({});
         setDirtyFormMap({});
@@ -644,15 +641,12 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             service: updatedService
         });
         const updatedArtifact = res.artifacts.at(0);
+        if (!updatedArtifact) {
+            console.error("No artifact returned after detaching listener");
+            return;
+        }
         setCurrentIdentifier(updatedArtifact.name);
-        await rpcClient.getVisualizerRpcClient().openView({
-            type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
-            location: {
-                documentUri: updatedArtifact.path,
-                position: updatedArtifact.position,
-                identifier: updatedArtifact.name
-            }
-        });
+        await fetchService(updatedArtifact.position);
         setChangeMap({});
         setDirtyFormMap({});
     }
@@ -698,15 +692,12 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         for (const change of serviceChanges) {
             const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: change.filePath, service: change.data as ServiceModel });
             const updatedArtifact = res.artifacts.at(0);
+            if (!updatedArtifact) {
+                console.error("No artifact returned after saving service changes");
+                continue;
+            }
             setCurrentIdentifier(updatedArtifact.name);
-            // Update the visualizer location
-            await rpcClient.getVisualizerRpcClient().openView({
-                type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
-                location: {
-                    documentUri: updatedArtifact.path,
-                    position: updatedArtifact.position
-                }
-            });
+            await fetchService(updatedArtifact.position);
         }
         setChangeMap({});
         setDirtyFormMap({});
@@ -1122,7 +1113,6 @@ function AttachListenerModal(props: AttachListenerModalProps) {
     useEffect(() => {
         setIsLoading(true);
         rpcClient.getServiceDesignerRpcClient().getListeners({ filePath: props.filePath, moduleName: props.moduleName }).then(res => {
-            console.log("Existing listeners: ", res.listeners);
             setExistingListeners(res.listeners.filter(listener => !props.attachedListeners.includes(listener)).filter(listener => !listener.includes("+")));
         }).finally(() => {
             setIsLoading(false);
@@ -1147,7 +1137,6 @@ function AttachListenerModal(props: AttachListenerModalProps) {
             setIsLoading(true);
             setListenerModel(undefined);
             rpcClient.getServiceDesignerRpcClient().getListenerModel(payload).then(res => {
-                console.log("New listener model: ", res.listener)
                 setListenerModel(res.listener);
             }).finally(() => {
                 setIsLoading(false);
@@ -1156,17 +1145,29 @@ function AttachListenerModal(props: AttachListenerModalProps) {
     }
 
     const handleListenerSelect = async (listenerName: string) => {
-        console.log("Listener selected: ", listenerName);
         setAttachingListener(listenerName);
-        await props.onAttachListener(listenerName);
+        try {
+            await props.onAttachListener(listenerName);
+        } catch (error) {
+            console.error("Failed to attach listener", error);
+        } finally {
+            setAttachingListener(undefined);
+        }
     }
 
     const onCreateNewListener = async (value?: ListenerModel) => {
-        if (value) {
-            const listenerName = value.properties['variableNameKey'].value;
-            setAttachingListener(listenerName);
+        if (!value) {
+            return;
+        }
+        const listenerName = value.properties['variableNameKey'].value;
+        setAttachingListener(listenerName);
+        try {
             await rpcClient.getServiceDesignerRpcClient().addListenerSourceCode({ filePath: "", listener: value });
-            await handleListenerSelect(listenerName);
+            await props.onAttachListener(listenerName);
+        } catch (error) {
+            console.error("Failed to create and attach listener", error);
+        } finally {
+            setAttachingListener(undefined);
         }
     };
 
@@ -1223,8 +1224,11 @@ function AttachListenerModal(props: AttachListenerModalProps) {
                             {existingListeners.map((listener) => (
                                 <S.Component
                                     key={listener}
-                                    enabled={attachingListener !== listener}
+                                    enabled={!attachingListener}
                                     onClick={() => {
+                                        if (attachingListener) {
+                                            return;
+                                        }
                                         void handleListenerSelect(listener);
                                     }}
                                 >

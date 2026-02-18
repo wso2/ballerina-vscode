@@ -119,10 +119,10 @@ export function Parameters(props: ParametersProps) {
     };
 
     const onSaveParam = (param: ParameterModel) => {
-        param.enabled = true;
+        const updatedParam = { ...param, enabled: true };
         if (editingIndex >= 0) {
             const updatedParameters = [...parameters];
-            updatedParameters[editingIndex] = param;
+            updatedParameters[editingIndex] = updatedParam;
             onChange(updatedParameters);
         }
         setEditModel(undefined);

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com)
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -30,7 +30,6 @@ export interface ParamEditorProps {
     onChange: (param: ParameterModel) => void;
     onSave?: (param: ParameterModel) => void;
     onCancel?: (param?: ParameterModel) => void;
-    isNew?: boolean;
 }
 
 export function ParamEditor(props: ParamEditorProps) {
@@ -42,7 +41,7 @@ export function ParamEditor(props: ParamEditorProps) {
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
 
     const handleOnCancel = () => {
-        onCancel(param);
+        onCancel?.(param);
     };
 
     useEffect(() => {
@@ -54,32 +53,34 @@ export function ParamEditor(props: ParamEditorProps) {
 
     const updateFormFields = () => {
         const fields: FormField[] = [];
+        const nameFieldType = getPrimaryInputType(param.name?.types)?.fieldType || "TEXT";
+        const typeFieldType = getPrimaryInputType(param.type?.types)?.fieldType || "TEXT";
 
         // Add name field
         fields.push({
             key: `name`,
             label: 'Name',
-            type: getPrimaryInputType(param.name.types)?.fieldType,
+            type: nameFieldType,
             optional: false,
             editable: true,
             documentation: '',
-            enabled: param.name?.enabled,
-            value: param.name.value,
-            types: [{ fieldType: getPrimaryInputType(param.name.types)?.fieldType, selected: false }]
+            enabled: param.name?.enabled ?? true,
+            value: param.name?.value ?? '',
+            types: [{ fieldType: nameFieldType, selected: false }]
         });
 
         // Add type field
         fields.push({
             key: `type`,
             label: 'Type',
-            type: getPrimaryInputType(param.type.types)?.fieldType,
+            type: typeFieldType,
             optional: false,
             editable: true,
             documentation: param?.type?.metadata?.description || '',
-            enabled: param.type?.enabled,
-            value: param.type.value || "json",
+            enabled: param.type?.enabled ?? true,
+            value: param.type?.value || "json",
             defaultValue: "json",
-            types: [{ fieldType: getPrimaryInputType(param.type.types)?.fieldType, selected: false }]
+            types: [{ fieldType: typeFieldType, selected: false }]
         });
 
         setCurrentFields(fields);
@@ -94,10 +95,10 @@ export function ParamEditor(props: ParamEditorProps) {
             ...param,
             type: {
                 ...param.type,
-                value: dataValues['type'] ?? param.type.value,
+                value: dataValues['type'] ?? param.type?.value ?? "json",
                 imports: getImportsForProperty('type', formImports)
             },
-            name: { ...param.name, value: dataValues['name'] ?? param.name.value }
+            name: { ...param.name, value: dataValues['name'] ?? param.name?.value ?? "" }
         };
 
         // Update the parent component's state first
