@@ -2,12 +2,12 @@
   "filePath": "sample14/main.bal",
   "description": "Test the generation of service model for an FTP service",
   "start": {
-    "line": 17,
+    "line": 15,
     "offset": 0
   },
   "end": {
-    "line": 33,
-    "offset": 0
+    "line": 31,
+    "offset": 1
   },
   "response": {
     "id": "0",
@@ -15,9 +15,9 @@
     "type": "ftp",
     "moduleName": "ftp",
     "orgName": "ballerina",
-    "version": "2.15.1",
+    "version": "2.17.0",
     "packageName": "ftp",
-    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.15.1.png",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.17.0.png",
     "properties": {
       "listener": {
         "metadata": {
@@ -84,7 +84,7 @@
             "typeMembers": [
               {
                 "type": "ServiceConfig",
-                "packageInfo": "ballerina:ftp:2.15.1",
+                "packageInfo": "ballerina:ftp:2.17.0",
                 "packageName": "ftp",
                 "kind": "RECORD_TYPE",
                 "selected": true
@@ -108,7 +108,9 @@
         },
         "placeholder": "false",
         "value": {
-          "Protocol": []
+          "Protocol": [
+            "ftp:FTP"
+          ]
         },
         "types": [
           {

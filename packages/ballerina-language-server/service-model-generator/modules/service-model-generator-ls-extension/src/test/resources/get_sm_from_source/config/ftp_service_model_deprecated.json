@@ -15,9 +15,9 @@
     "type": "ftp",
     "moduleName": "ftp",
     "orgName": "ballerina",
-    "version": "2.15.1",
+    "version": "2.17.0",
     "packageName": "ftp",
-    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.15.1.png",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.17.0.png",
     "properties": {
       "listener": {
         "metadata": {
@@ -74,7 +74,9 @@
         },
         "placeholder": "false",
         "value": {
-          "Protocol": []
+          "Protocol": [
+            "ftp:FTP"
+          ]
         },
         "types": [
           {
