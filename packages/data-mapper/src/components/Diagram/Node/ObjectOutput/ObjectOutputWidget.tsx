@@ -43,7 +43,7 @@ export interface ObjectOutputWidgetProps {
 	getPort: (portId: string) => InputOutputPortModel;
 	context: IDataMapperContext;
 	mappings?: Mapping[];
-	valueLabel?: string;
+	valueLabel: string;
 	originalTypeName?: string;
 }
 
