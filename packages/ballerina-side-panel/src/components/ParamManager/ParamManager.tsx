@@ -27,7 +27,7 @@ import { Controller } from 'react-hook-form';
 import { useFormContext } from '../../context';
 import { Imports, NodeKind } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { EditorFactory } from '../editors/EditorFactory';
+import { FieldFactory } from '../editors/FieldFactory';
 import { buildRequiredRule, getFieldKeyForAdvanceProp } from '../editors/utils';
 
 export interface Parameter {
@@ -199,7 +199,7 @@ export function ParamManagerEditor(props: ParamManagerEditorProps) {
                         if (getValues(advanceProp.key) === undefined) {
                             setValue(advanceProp.key, advanceProp.value);
                         }
-                        return <EditorFactory field={advanceProp} />
+                        return <FieldFactory field={advanceProp} />
                     })}
                 </EditorContainer>
             )}
