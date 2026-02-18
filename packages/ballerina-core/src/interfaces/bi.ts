@@ -472,6 +472,8 @@ export type FieldScope = "Global" | "Local" | "Object";
 
 export type NodeKind =
     | "ACTION_OR_EXPRESSION"
+    | "ACTIVITY"
+    | "ACTIVITY_CALL"
     | "AGENTS"
     | "AGENT"
     | "AGENT_CALL"

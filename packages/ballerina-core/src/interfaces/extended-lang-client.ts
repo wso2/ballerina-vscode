@@ -927,6 +927,7 @@ export type SearchKind =
     | "CONNECTOR"
     | "TYPE"
     | "WORKFLOW_START"
+    | "ACTIVITY_CALL"
     | "NP_FUNCTION"
     | "MODEL_PROVIDER"
     | "VECTOR_STORE"
