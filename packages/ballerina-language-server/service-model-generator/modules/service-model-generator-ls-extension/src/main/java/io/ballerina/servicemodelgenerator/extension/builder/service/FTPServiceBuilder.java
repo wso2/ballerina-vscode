@@ -88,6 +88,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPER
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_READONLY_METADATA_KEY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractFunctionNodesFromSource;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractFunctionsFromSource;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getReadonlyMetadata;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
@@ -322,11 +323,8 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
         SemanticModel semanticModel = context.semanticModel();
         Map<String, FunctionDefinitionNode> functionNodes = new HashMap<>();
-        for (Node member : serviceNode.members()) {
-            if (member.kind() == SyntaxKind.FUNCTION_DEFINITION) {
-                FunctionDefinitionNode functionNode = (FunctionDefinitionNode) member;
-                functionNodes.put(functionNode.functionName().text().trim(), functionNode);
-            }
+        for (FunctionDefinitionNode functionNode : extractFunctionNodesFromSource(serviceNode)) {
+            functionNodes.put(functionNode.functionName().text().trim(), functionNode);
         }
         Codedata codedata = new Codedata.Builder()
                 .setLineRange(serviceNode.lineRange())
