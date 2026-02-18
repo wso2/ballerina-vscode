@@ -108,7 +108,7 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
             <CardGrid>
                 <ButtonCard
                     id="workflow"
-                    icon={<Icon name="bi-function" />}
+                    icon={<Icon name="bi-workflow" />}
                     title="Workflow"
                     onClick={() => handleClick(DIRECTORY_MAP.WORKFLOW)}
                 />
