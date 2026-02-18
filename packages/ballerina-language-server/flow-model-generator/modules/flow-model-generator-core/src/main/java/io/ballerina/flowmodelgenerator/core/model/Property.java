@@ -647,7 +647,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
                 // If all the member types are singletons, treat it as a single-select option
                 if (allSingletons) {
-                    builder.type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
                     // Reorder options so that the default value appears first
                     if (defaultValue != null && !defaultValue.isEmpty()) {
                         options = reorderOptionsByDefaultValue(options, defaultValue);
