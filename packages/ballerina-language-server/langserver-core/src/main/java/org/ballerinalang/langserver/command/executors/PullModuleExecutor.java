@@ -145,6 +145,10 @@ public class PullModuleExecutor implements LSCommandExecutor {
                     CompilationOptions.CompilationOptionsBuilder optionsBuilder = CompilationOptions.builder();
                     optionsBuilder.setOffline(false).setSticky(sticky);
                     project.currentPackage().getResolution(optionsBuilder.build());
+                    // BIR issues are not captured during resolution, causing the pull module executor to incorrectly
+                    // report that modules were pulled successfully. To remedy this, we now include the compilation
+                    // step so that the executor accounts for BIR errors when generating the final status.
+                    project.currentPackage().getCompilation();
                 })
                 .thenRunAsync(() -> {
                     try {

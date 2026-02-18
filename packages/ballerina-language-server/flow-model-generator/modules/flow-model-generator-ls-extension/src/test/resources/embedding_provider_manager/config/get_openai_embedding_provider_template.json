@@ -161,7 +161,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "serviceUrl"
           },
-          "defaultValue": "\"\""
+          "defaultValue": "https://api.openai.com/v1"
         },
         "httpVersion": {
           "metadata": {
@@ -205,7 +205,7 @@
           "imports": {
             "http": "ballerina/http"
           },
-          "defaultValue": "\"2.0\""
+          "defaultValue": "http:HTTP_2_0"
         },
         "http1Settings": {
           "metadata": {
@@ -313,7 +313,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "timeout"
           },
-          "defaultValue": "0.0d"
+          "defaultValue": "60"
         },
         "forwarded": {
           "metadata": {
@@ -341,7 +341,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "forwarded"
           },
-          "defaultValue": "\"\""
+          "defaultValue": "\"disable\""
         },
         "poolConfig": {
           "metadata": {
@@ -465,7 +465,7 @@
           "imports": {
             "http": "ballerina/http"
           },
-          "defaultValue": "\"AUTO\""
+          "defaultValue": "AUTO"
         },
         "circuitBreaker": {
           "metadata": {
@@ -693,7 +693,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "validation"
           },
-          "defaultValue": "false"
+          "defaultValue": "true"
         },
         "scope": {
           "metadata": {

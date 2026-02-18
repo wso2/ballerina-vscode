@@ -27,6 +27,7 @@ import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.modelgenerator.commons.FunctionData;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -60,7 +61,8 @@ public class FunctionCall extends CallBuilder {
             sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
         }
 
-        if (isLocalFunction(sourceBuilder.workspaceManager, sourceBuilder.filePath, codedata)) {
+        if (PackageUtil.isLocalFunction(sourceBuilder.workspaceManager, sourceBuilder.filePath,
+                codedata.org(), codedata.module())) {
             return sourceBuilder.token()
                     .name(codedata.symbol())
                     .stepOut()

@@ -95,7 +95,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "maxChunkSize"
           },
-          "defaultValue": "0"
+          "defaultValue": "200"
         },
         "maxOverlapSize": {
           "metadata": {
@@ -123,7 +123,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "maxOverlapSize"
           },
-          "defaultValue": "0"
+          "defaultValue": "40"
         },
         "strategy": {
           "metadata": {
@@ -172,7 +172,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "strategy"
           },
-          "defaultValue": "\"PARAGRAPH\""
+          "defaultValue": "PARAGRAPH"
         },
         "scope": {
           "metadata": {

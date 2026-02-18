@@ -44,8 +44,6 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.PackageDescriptor;
-import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.tools.text.LinePosition;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
@@ -78,30 +76,21 @@ public abstract class CallBuilder extends NodeBuilder {
     public void setConcreteTemplateData(TemplateContext context) {
         Codedata codedata = context.codedata();
 
+        ModuleInfo targetModuleInfo = new ModuleInfo(codedata.org(), codedata.packageName(), codedata.module(),
+                codedata.version());
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(codedata.symbol())
-                .moduleInfo(new ModuleInfo(codedata.org(), codedata.packageName(), codedata.module(),
-                        codedata.version()))
+                .moduleInfo(targetModuleInfo)
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(getFunctionResultKind())
                 .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
-                .userModuleInfo(moduleInfo);
+                .userModuleInfo(moduleInfo)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath());
 
         NodeKind functionNodeKind = getFunctionNodeKind();
         if (functionNodeKind != NodeKind.FUNCTION_CALL) {
             functionDataBuilder.parentSymbolType(codedata.object());
-        }
-
-        // Set the semantic model if the function is local
-        boolean isLocalFunction = isLocalFunction(context.workspaceManager(), context.filePath(), codedata);
-        if (isLocalFunction) {
-            WorkspaceManager workspaceManager = context.workspaceManager();
-            PackageUtil.loadProject(context.workspaceManager(), context.filePath());
-            context.workspaceManager().module(context.filePath())
-                    .map(module -> ModuleInfo.from(module.descriptor()))
-                    .ifPresent(functionDataBuilder::userModuleInfo);
-            SemanticModel semanticModel = workspaceManager.semanticModel(context.filePath()).orElseThrow();
-            functionDataBuilder.semanticModel(semanticModel);
         }
         FunctionData functionData = functionDataBuilder.build();
 
@@ -129,7 +118,8 @@ public abstract class CallBuilder extends NodeBuilder {
                     .label(Property.CONNECTION_LABEL)
                     .description(Property.CONNECTION_DOC)
                     .stepOut()
-                    .type(Property.ValueType.EXPRESSION, isLocalFunction ? codedata.object() :
+                    .type(Property.ValueType.EXPRESSION, PackageUtil.isLocalFunction(context.workspaceManager(),
+                            context.filePath(), codedata.org(), codedata.module()) ? codedata.object() :
                             CommonUtils.getClassType(codedata.module(), codedata.object()))
                     .value(codedata.parentSymbol())
                     .hidden()
@@ -234,7 +224,8 @@ public abstract class CallBuilder extends NodeBuilder {
                                 .selected(true)
                                 .stepOut();
                     }
-                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
+                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo,
+                            paramResult.defaultValue());
                 }
             }
 
@@ -380,20 +371,4 @@ public abstract class CallBuilder extends NodeBuilder {
         }
     }
 
-    protected static boolean isLocalFunction(WorkspaceManager workspaceManager, Path filePath, Codedata codedata) {
-        if (codedata.org() == null || codedata.module() == null) {
-            return false;
-        }
-        try {
-            Project project = workspaceManager.loadProject(filePath);
-            PackageDescriptor descriptor = project.currentPackage().descriptor();
-            String packageOrg = descriptor.org().value();
-            String packageName = descriptor.name().value();
-
-            return packageOrg.equals(codedata.org())
-                    && packageName.equals(codedata.module());
-        } catch (WorkspaceDocumentException | EventSyncException e) {
-            return false;
-        }
-    }
 }

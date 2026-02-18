@@ -228,7 +228,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "agentType"
             },
-            "defaultValue": "\"FUNCTION_CALL_AGENT\""
+            "defaultValue": "FUNCTION_CALL_AGENT"
           },
           "maxIter": {
             "metadata": {
@@ -256,7 +256,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "maxIter"
             },
-            "defaultValue": "0"
+            "defaultValue": "5"
           },
           "verbose": {
             "metadata": {
@@ -307,7 +307,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "memory"
             },
-            "defaultValue": "()"
+            "defaultValue": "new MessageWindowChatMemory()"
           },
           "type": {
             "metadata": {
@@ -519,7 +519,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "sessionId"
             },
-            "defaultValue": "\"\""
+            "defaultValue": "DEFAULT_SESSION_ID"
           }
         },
         "flags": 1
@@ -652,7 +652,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "agentType"
             },
-            "defaultValue": "\"FUNCTION_CALL_AGENT\""
+            "defaultValue": "FUNCTION_CALL_AGENT"
           },
           "tools": {
             "metadata": {
@@ -704,7 +704,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "maxIter"
             },
-            "defaultValue": "0"
+            "defaultValue": "5"
           },
           "verbose": {
             "metadata": {
@@ -755,7 +755,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "memory"
             },
-            "defaultValue": "()"
+            "defaultValue": "new MessageWindowChatMemory()"
           },
           "checkError": {
             "metadata": {
@@ -2736,7 +2736,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "maxTokens"
             },
-            "defaultValue": "0"
+            "defaultValue": "DEFAULT_MAX_TOKEN_COUNT"
           },
           "temperature": {
             "metadata": {
@@ -2764,7 +2764,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "temperature"
             },
-            "defaultValue": "0.0d"
+            "defaultValue": "DEFAULT_TEMPERATURE"
           },
           "httpVersion": {
             "metadata": {
@@ -2808,7 +2808,7 @@
             "imports": {
               "http": "ballerina/http"
             },
-            "defaultValue": "\"2.0\""
+            "defaultValue": "http:HTTP_2_0"
           },
           "http1Settings": {
             "metadata": {
@@ -2916,7 +2916,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "timeout"
             },
-            "defaultValue": "0.0d"
+            "defaultValue": "60"
           },
           "forwarded": {
             "metadata": {
@@ -2944,7 +2944,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "forwarded"
             },
-            "defaultValue": "\"\""
+            "defaultValue": "\"disable\""
           },
           "poolConfig": {
             "metadata": {
@@ -3068,7 +3068,7 @@
             "imports": {
               "http": "ballerina/http"
             },
-            "defaultValue": "\"AUTO\""
+            "defaultValue": "http:COMPRESSION_AUTO"
           },
           "circuitBreaker": {
             "metadata": {
@@ -3296,7 +3296,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "validation"
             },
-            "defaultValue": "false"
+            "defaultValue": "true"
           },
           "checkError": {
             "metadata": {

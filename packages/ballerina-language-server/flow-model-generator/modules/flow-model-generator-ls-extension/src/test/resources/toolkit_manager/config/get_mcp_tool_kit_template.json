@@ -93,7 +93,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "info"
           },
-          "defaultValue": "{name: \"\", version: \"\"}"
+          "defaultValue": "{name: \"MCP Client\", version: \"1.0.0\"}"
         },
         "httpVersion": {
           "metadata": {
