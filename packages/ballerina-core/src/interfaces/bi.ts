@@ -149,14 +149,28 @@ export type FormFieldInputType = "TEXT" |
     "ai:Prompt" |
     "FIXED_PROPERTY" |
     "REPEATABLE_PROPERTY" |
-    "MAPPING_EXPRESSION_SET" |
-    "MAPPING_EXPRESSION" |
     "ENUM" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
+    "REPEATABLE_MAP" |
     "PROMPT" |
     "RECORD_FIELD_SELECTOR" |
-    "SQL_QUERY";
+    "SQL_QUERY" |
+    "CLAUSE_EXPRESSION" |
+    "SLIDER" |
+    "HEADER_SET" |
+    "DROPDOWN_CHOICE" |
+    "CUSTOM_DROPDOWN" |
+    "ACTION_TYPE" |
+    "ACTION_EXPRESSION" |
+    "VIEW" |
+    "SERVICE_PATH" |
+    "ACTION_PATH" |
+    "NUMBER" |
+    "REPEATABLE_LIST" |
+    "CONDITIONAL_FIELDS" |
+    "DOC_TEXT"
+    ;
 
 export interface BaseType {
     fieldType: FormFieldInputType;
@@ -363,6 +377,7 @@ export interface ProjectStructure {
     projectName: string;
     projectPath?: string;
     projectTitle?: string;
+    isLibrary?: boolean;
     directoryMap: ProjectDirectoryMap;
 }
 
@@ -479,8 +494,10 @@ export type FieldScope = "Global" | "Local" | "Object";
 
 export type NodeKind =
     | "ACTION_OR_EXPRESSION"
+    | "AGENTS"
     | "AGENT"
     | "AGENT_CALL"
+    | "AGENT_RUN"
     | "ASSIGN"
     | "AUTOMATION"
     | "BODY"
@@ -494,6 +511,7 @@ export type NodeKind =
     | "CONTINUE"
     | "DATA_MAPPER_CALL"
     | "DATA_MAPPER_DEFINITION"
+    | "DATA_MAPPER_CREATION"
     | "DRAFT"
     | "ELSE"
     | "EMPTY"
@@ -506,6 +524,7 @@ export type NodeKind =
     | "FUNCTION"
     | "FUNCTION_CALL"
     | "FUNCTION_DEFINITION"
+    | "FUNCTION_CREATION"
     | "IF"
     | "INCLUDED_FIELD"
     | "LOCK"

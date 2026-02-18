@@ -15,7 +15,8 @@
 // under the License.
 
 import { generateObject, ModelMessage, tool } from "ai";
-import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../../utils/libs/libraries";
+import { GenerationType, getAllLibraries } from "../../utils/libs/libraries";
+import { LIBRARY_GET_TOOL } from "./library-get";
 import { jsonSchema } from "ai";
 import { Library } from "../../utils/libs/library-types";
 import { selectRequiredFunctions } from "../../utils/libs/function-registry";
@@ -95,14 +96,13 @@ export async function HealthcareLibraryProviderTool(
 
 //TODO: Improve this description
 export function getHealthcareLibraryProviderTool(
-    _libraryDescriptions: string,
     eventHandler: CopilotEventHandler
 ) {
     return tool({
         description: `Fetches detailed information about healthcare-specific Ballerina libraries along with their API documentation, including services, clients, functions, and filtered type definitions.
 
 ** NOTE:
-1. This Tool only has knowledge on healthcare libraries, you want general libraries, use ${LIBRARY_PROVIDER_TOOL} to retrieve those.
+1. This Tool only has knowledge on healthcare libraries, you want general libraries, use ${LIBRARY_GET_TOOL} to retrieve those.
 
 This tool is specifically designed for healthcare integration use cases (FHIR, HL7v2, etc.) and provides:
 1. **Automatically includes mandatory healthcare libraries** (FHIR R4, HL7v2 commons, etc.) even if not explicitly requested
@@ -163,8 +163,8 @@ export async function getRelevantLibrariesAndFunctions(
     return relevantTrimmedFuncs;
 }
 
-export async function getSelectedLibraries(prompt: string, generationType: GenerationType): Promise<string[]> {
-    const allLibraries = await getAllLibraries(generationType);
+export async function getSelectedLibraries(prompt: string, libraryType: GenerationType): Promise<string[]> {
+    const allLibraries = await getAllLibraries(libraryType);
     if (allLibraries.length === 0) {
         return [];
     }

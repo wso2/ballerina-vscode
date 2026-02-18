@@ -100,6 +100,7 @@ export interface TomlPackage {
     name: string;
     version: string;
     title: string;
+    library?: boolean;
 }
 
 export interface WorkspaceTomlValues {
@@ -116,4 +117,8 @@ export interface WorkspaceTypeResponse {
 
 export interface SampleDownloadRequest {
     zipFileName: string;
+}
+
+export interface DefaultOrgNameResponse {
+    orgName: string;
 }

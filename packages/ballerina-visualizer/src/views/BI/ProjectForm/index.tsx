@@ -17,67 +17,19 @@
  */
 
 import { useState } from "react";
-import {
-    Button,
-    Icon,
-    Typography,
-} from "@wso2/ui-toolkit";
-import styled from "@emotion/styled";
+import { Button, Icon, Typography } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { EVENT_TYPE, MACHINE_VIEW, ValidateProjectFormErrorField } from "@wso2/ballerina-core";
-import { ProjectFormFields, ProjectFormData } from "./ProjectFormFields";
-import { validatePackageName } from "./utils";
-
-const PageWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    max-height: 100vh;
-    padding: 40px 120px;
-    box-sizing: border-box;
-    overflow: hidden;
-`;
-
-const FormContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    max-width: 600px;
-    overflow: hidden;
-`;
-
-const TitleContainer = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 32px;
-    flex-shrink: 0;
-`;
-
-const ScrollableContent = styled.div`
-    flex: 1;
-    overflow-y: auto;
-    padding-right: 8px;
-    min-height: 0;
-`;
-
-const ButtonWrapper = styled.div`
-    margin-top: 20px;
-    margin-right: 8px;
-    padding-top: 16px;
-    display: flex;
-    justify-content: flex-end;
-    flex-shrink: 0;
-`;
-
-const IconButton = styled.div`
-    cursor: pointer;
-    border-radius: 4px;
-    width: 20px;
-    height: 20px;
-    font-size: 20px;
-    &:hover {
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
-`;
+import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import {
+    PageWrapper,
+    FormContainer,
+    TitleContainer,
+    ScrollableContent,
+    ButtonWrapper,
+    IconButton,
+} from "./styles";
+import { ProjectFormFields } from "./ProjectFormFields";
+import { ProjectFormData } from "./types";
 
 export function ProjectForm() {
     const { rpcClient } = useRpcContext();
@@ -90,6 +42,7 @@ export function ProjectForm() {
         workspaceName: "",
         orgName: "",
         version: "",
+        isLibrary: false,
     });
     const [isValidating, setIsValidating] = useState(false);
     const [integrationNameError, setIntegrationNameError] = useState<string | null>(null);
@@ -110,75 +63,18 @@ export function ProjectForm() {
         }
     };
 
-    const handleCreateProject = async () => {
-        setIsValidating(true);
-        setIntegrationNameError(null);
-        setPathError(null);
-        setPackageNameValidationError(null);
-
-        // Validate required fields first
-        let hasError = false;
-
-        if (formData.integrationName.length < 2) {
-            setIntegrationNameError("Integration name must be at least 2 characters");
-            hasError = true;
-        }
-
-        if (formData.packageName.length < 2) {
-            setPackageNameValidationError("Package name must be at least 2 characters");
-            hasError = true;
-        } else {
-            const packageNameError = validatePackageName(formData.packageName, formData.integrationName);
-            if (packageNameError) {
-                setPackageNameValidationError(packageNameError);
-                hasError = true;
-            }
-        }
-
-        if (formData.path.length < 2) {
-            setPathError("Please select a path for your project");
-            hasError = true;
-        }
-
-        if (hasError) {
-            setIsValidating(false);
-            return;
-        }
-
-        try {
-            // Validate the project path
-            const validationResult = await rpcClient.getBIDiagramRpcClient().validateProjectPath({
-                projectPath: formData.path,
-                projectName: formData.createAsWorkspace ? formData.workspaceName : formData.packageName,
-                createDirectory: formData.createDirectory,
-            });
-
-            if (!validationResult.isValid) {
-                // Show error on the appropriate field
-                if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
-                    setPathError(validationResult.errorMessage || "Invalid project path");
-                } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
-                    setPackageNameValidationError(validationResult.errorMessage || "Invalid project name");
-                }
-                setIsValidating(false);
-                return;
-            }
-
-            // If validation passes, create the project
-            rpcClient.getBIDiagramRpcClient().createProject({
-                projectName: formData.integrationName,
-                packageName: formData.packageName,
-                projectPath: formData.path,
-                createDirectory: formData.createDirectory,
-                createAsWorkspace: formData.createAsWorkspace,
-                workspaceName: formData.workspaceName,
-                orgName: formData.orgName || undefined,
-                version: formData.version || undefined,
-            });
-        } catch (error) {
-            setPathError("An error occurred during validation");
-            setIsValidating(false);
-        }
+    const handleCreateProject = () => {
+        rpcClient.getBIDiagramRpcClient().createProject({
+            projectName: formData.integrationName,
+            packageName: formData.packageName,
+            projectPath: formData.path,
+            createDirectory: formData.createDirectory,
+            createAsWorkspace: formData.createAsWorkspace,
+            workspaceName: formData.workspaceName,
+            orgName: formData.orgName || undefined,
+            version: formData.version || undefined,
+            isLibrary: formData.isLibrary,
+        });
     };
 
     const gotToWelcome = () => {

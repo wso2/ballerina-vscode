@@ -60,7 +60,7 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             },
             {
                 type: 'function',
-                tooltip: "Create Natural Function", 
+                tooltip: "Create Natural Function",
                 emptyStateLabel: "Create Natural Function",
                 handlerKey: 'onAddFunction',
                 condition: (title) => title === "Natural Functions"
@@ -77,11 +77,17 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
         useConnectionContainer: false,
         fixed: true
     },
-    "Agents": {
-        title: "Agents", 
-        actions: [],
+    "Agent": {
+        title: "Agents",
+        actions: [{
+            type: 'add',
+            tooltip: "Add Agent", // Will use addButtonLabel from props
+            emptyStateLabel: "", // Will use addButtonLabel from props
+            handlerKey: 'onAdd'
+        }],
         showWhenEmpty: true,
-        useConnectionContainer: false
+        useConnectionContainer: true,
+        fixed: true
     },
     "Model Providers": {
         title: "Model Providers",
@@ -162,7 +168,11 @@ export const getCategoryConfig = (title: string): CategoryConfig | undefined => 
     return CATEGORY_CONFIGS[title];
 };
 
-export const shouldShowEmptyCategory = (title: string): boolean => {
+export const shouldShowEmptyCategory = (title: string, isSubCategory: boolean): boolean => {
+    if (isSubCategory) {
+        // For subcategories, only show if it's "Current Integration"
+        return title === "Current Integration";
+    }
     const config = getCategoryConfig(title);
     return config?.showWhenEmpty ?? false;
 };
