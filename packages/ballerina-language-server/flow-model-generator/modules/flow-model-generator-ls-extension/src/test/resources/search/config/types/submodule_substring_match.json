@@ -9,6 +9,20 @@
   "categories": [
     {
       "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
         "label": "Imported Types",
         "description": "Types imported from other integrations",
         "keywords": [
@@ -377,6 +391,22 @@
                 "version": "2.0.1"
               },
               "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "trial_settings_config",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "trial_settings_config",
+                "version": "2.0.1"
+              },
+              "enabled": true
             }
           ]
         },
@@ -455,6 +485,31 @@
         },
         {
           "metadata": {
+            "label": "beezup.merchant",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConfigureAutomaticTransitionRequest",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_beezup.merchant_1.6.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "beezup.merchant",
+                "packageName": "beezup.merchant",
+                "symbol": "ConfigureAutomaticTransitionRequest",
+                "version": "1.6.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
             "label": "paypal.invoices",
             "description": "",
             "keywords": []
@@ -514,47 +569,6 @@
                 "packageName": "github",
                 "symbol": "Hook_config",
                 "version": "5.1.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Hook_config_body",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "github",
-                "packageName": "github",
-                "symbol": "Hook_config_body",
-                "version": "5.1.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "beezup.merchant",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConfigureAutomaticTransitionRequest",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_beezup.merchant_1.6.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "beezup.merchant",
-                "packageName": "beezup.merchant",
-                "symbol": "ConfigureAutomaticTransitionRequest",
-                "version": "1.6.0"
               },
               "enabled": true
             }

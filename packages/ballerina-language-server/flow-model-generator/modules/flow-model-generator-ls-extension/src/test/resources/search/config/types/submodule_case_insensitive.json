@@ -9,6 +9,20 @@
   "categories": [
     {
       "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
         "label": "Imported Types",
         "description": "Types imported from other integrations",
         "keywords": [
@@ -69,56 +83,6 @@
       "items": [
         {
           "metadata": {
-            "label": "sql",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionPool",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_sql_1.17.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "sql",
-                "packageName": "sql",
-                "symbol": "ConnectionPool",
-                "version": "1.17.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "optitune",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionStatusInfo",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_optitune_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "optitune",
-                "packageName": "optitune",
-                "symbol": "ConnectionStatusInfo",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "soundcloud",
             "description": "",
             "keywords": []
@@ -152,6 +116,81 @@
                 "module": "soundcloud",
                 "packageName": "soundcloud",
                 "symbol": "Connections",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "optitune",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionStatusInfo",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_optitune_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "optitune",
+                "packageName": "optitune",
+                "symbol": "ConnectionStatusInfo",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "sql",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionPool",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_sql_1.17.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "sql",
+                "packageName": "sql",
+                "symbol": "ConnectionPool",
+                "version": "1.17.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "googleapis.bigquery",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionProperty",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.bigquery_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "googleapis.bigquery",
+                "packageName": "googleapis.bigquery",
+                "symbol": "ConnectionProperty",
                 "version": "1.5.1"
               },
               "enabled": true
@@ -388,28 +427,44 @@
                 "version": "2.0.1"
               },
               "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Bank_connections_resource_ownership_refresh",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Bank_connections_resource_ownership_refresh",
+                "version": "2.0.1"
+              },
+              "enabled": true
             }
           ]
         },
         {
           "metadata": {
-            "label": "googleapis.bigquery",
+            "label": "power.bi",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "ConnectionProperty",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.bigquery_1.5.1.png"
+                "label": "ConnectionDetails",
+                "description": "Connection string wrapper.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_power.bi_1.5.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "googleapis.bigquery",
-                "packageName": "googleapis.bigquery",
-                "symbol": "ConnectionProperty",
+                "module": "power.bi",
+                "packageName": "power.bi",
+                "symbol": "ConnectionDetails",
                 "version": "1.5.1"
               },
               "enabled": true
@@ -443,31 +498,6 @@
         },
         {
           "metadata": {
-            "label": "power.bi",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionDetails",
-                "description": "Connection string wrapper.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_power.bi_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "power.bi",
-                "packageName": "power.bi",
-                "symbol": "ConnectionDetails",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "peoplehr",
             "description": "",
             "keywords": []
@@ -486,31 +516,6 @@
                 "packageName": "peoplehr",
                 "symbol": "ConnectionConfig",
                 "version": "2.2.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "redis",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionParams",
-                "description": "The connection parameters based configurations.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "redis",
-                "packageName": "redis",
-                "symbol": "ConnectionParams",
-                "version": "3.1.0"
               },
               "enabled": true
             }
@@ -543,7 +548,32 @@
         },
         {
           "metadata": {
-            "label": "googleapis.sheets",
+            "label": "redis",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionParams",
+                "description": "The connection parameters based configurations.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "redis",
+                "packageName": "redis",
+                "symbol": "ConnectionParams",
+                "version": "3.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "microsoft.teams",
             "description": "",
             "keywords": []
           },
@@ -552,15 +582,15 @@
               "metadata": {
                 "label": "ConnectionConfig",
                 "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.sheets_3.5.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.teams_2.4.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "googleapis.sheets",
-                "packageName": "googleapis.sheets",
+                "module": "microsoft.teams",
+                "packageName": "microsoft.teams",
                 "symbol": "ConnectionConfig",
-                "version": "3.5.1"
+                "version": "2.4.0"
               },
               "enabled": true
             }
@@ -568,7 +598,7 @@
         },
         {
           "metadata": {
-            "label": "client.config",
+            "label": "googleapis.people",
             "description": "",
             "keywords": []
           },
@@ -577,15 +607,15 @@
               "metadata": {
                 "label": "ConnectionConfig",
                 "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_client.config_1.0.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.people_2.4.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "client.config",
-                "packageName": "client.config",
+                "module": "googleapis.people",
+                "packageName": "googleapis.people",
                 "symbol": "ConnectionConfig",
-                "version": "1.0.1"
+                "version": "2.4.0"
               },
               "enabled": true
             }
@@ -593,7 +623,7 @@
         },
         {
           "metadata": {
-            "label": "salesforce.bulk",
+            "label": "microsoft.excel",
             "description": "",
             "keywords": []
           },
@@ -601,41 +631,16 @@
             {
               "metadata": {
                 "label": "ConnectionConfig",
-                "description": "Salesforce client configuration.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png"
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.excel_2.4.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "salesforce.bulk",
-                "packageName": "salesforce",
+                "module": "microsoft.excel",
+                "packageName": "microsoft.excel",
                 "symbol": "ConnectionConfig",
-                "version": "8.2.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "salesforce.soap",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Salesforce client configuration.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "salesforce.soap",
-                "packageName": "salesforce",
-                "symbol": "ConnectionConfig",
-                "version": "8.2.0"
+                "version": "2.4.0"
               },
               "enabled": true
             }

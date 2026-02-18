@@ -8,6 +8,27 @@
   "categories": [
     {
       "metadata": {
+        "label": "Solace Caller",
+        "description": "Represents a Solace caller, which can be used to mark Solace message as received.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_solace_0.3.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "solace",
+        "packageName": "solace",
+        "object": "Caller",
+        "symbol": "init",
+        "version": "0.3.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
         "label": "SQS Caller",
         "description": "Provides control over message deletion from the queue after processing.",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.sqs_4.0.1.png",
@@ -65,6 +86,27 @@
         "object": "Caller",
         "symbol": "init",
         "version": "0.1.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Smb Caller",
+        "description": "SMB caller for interacting with SMB servers from within file handlers.\nProvides a convenience wrapper around the Client class with simplified method signatures.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_smb_1.0.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "smb",
+        "packageName": "smb",
+        "object": "Caller",
+        "symbol": "init",
+        "version": "1.0.0",
         "isGenerated": false
       },
       "enabled": true

@@ -336,7 +336,7 @@
           "metadata": {
             "label": "S3",
             "description": "Ballerina Amazon S3 connector provides the capability to access AWS S3 API.\nThis connector lets you to get authorized access to AWS S3 buckets and objects.\n",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.s3_3.5.0.png",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.s3_3.5.1.png",
             "data": {
               "isAgentSupport": false
             }
@@ -348,7 +348,7 @@
             "packageName": "aws.s3",
             "object": "Client",
             "symbol": "init",
-            "version": "3.5.0",
+            "version": "3.5.1",
             "isGenerated": false
           },
           "enabled": true

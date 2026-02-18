@@ -9,6 +9,20 @@
   "categories": [
     {
       "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
         "label": "Imported Types",
         "description": "Types imported from other integrations",
         "keywords": [
@@ -181,56 +195,6 @@
       "items": [
         {
           "metadata": {
-            "label": "formstack",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "Operation",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_formstack_1.3.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "formstack",
-                "packageName": "formstack",
-                "symbol": "Operation",
-                "version": "1.3.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "jira",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "OperationMessage",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_jira_2.0.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "jira",
-                "packageName": "jira",
-                "symbol": "OperationMessage",
-                "version": "2.0.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "scim",
             "description": "",
             "keywords": []
@@ -304,24 +268,49 @@
         },
         {
           "metadata": {
-            "label": "mailchimp.marketing",
+            "label": "formstack",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "Operations",
+                "label": "Operation",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mailchimp.marketing_1.0.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_formstack_1.3.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "mailchimp.marketing",
-                "packageName": "mailchimp.marketing",
-                "symbol": "Operations",
-                "version": "1.0.1"
+                "module": "formstack",
+                "packageName": "formstack",
+                "symbol": "Operation",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "jira",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "OperationMessage",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_jira_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "jira",
+                "packageName": "jira",
+                "symbol": "OperationMessage",
+                "version": "2.0.1"
               },
               "enabled": true
             }
@@ -427,6 +416,31 @@
         },
         {
           "metadata": {
+            "label": "mailchimp.marketing",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Operations",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mailchimp.marketing_1.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "mailchimp.marketing",
+                "packageName": "mailchimp.marketing",
+                "symbol": "Operations",
+                "version": "1.0.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
             "label": "file360",
             "description": "",
             "keywords": []
@@ -452,40 +466,40 @@
         },
         {
           "metadata": {
-            "label": "health.fhir.r4",
+            "label": "candid.premier",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "OperationConfig",
-                "description": "Operation configuration.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.2.3.png"
+                "label": "Operations1",
+                "description": "Organization operations information",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_candid_0.2.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "health.fhir.r4",
-                "packageName": "health.fhir.r4",
-                "symbol": "OperationConfig",
-                "version": "6.2.3"
+                "module": "candid.premier",
+                "packageName": "candid",
+                "symbol": "Operations1",
+                "version": "0.2.0"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "OperationOutcomeIssueSeverity",
-                "description": "OperationOutcomeIssueSeverity enum",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.2.3.png"
+                "label": "Operations2",
+                "description": "Organization operations information",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_candid_0.2.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "health.fhir.r4",
-                "packageName": "health.fhir.r4",
-                "symbol": "OperationOutcomeIssueSeverity",
-                "version": "6.2.3"
+                "module": "candid.premier",
+                "packageName": "candid",
+                "symbol": "Operations2",
+                "version": "0.2.0"
               },
               "enabled": true
             }
@@ -534,40 +548,65 @@
         },
         {
           "metadata": {
-            "label": "candid.premier",
+            "label": "health.fhir.r4",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "Operations1",
-                "description": "Organization operations information",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_candid_0.2.0.png"
+                "label": "OperationConfig",
+                "description": "Operation configuration.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.2.4.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "candid.premier",
-                "packageName": "candid",
-                "symbol": "Operations1",
-                "version": "0.2.0"
+                "module": "health.fhir.r4",
+                "packageName": "health.fhir.r4",
+                "symbol": "OperationConfig",
+                "version": "6.2.4"
               },
               "enabled": true
             },
             {
               "metadata": {
-                "label": "Operations2",
-                "description": "Organization operations information",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_candid_0.2.0.png"
+                "label": "OperationOutcomeIssueSeverity",
+                "description": "OperationOutcomeIssueSeverity enum",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.2.4.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "candid.premier",
-                "packageName": "candid",
-                "symbol": "Operations2",
-                "version": "0.2.0"
+                "module": "health.fhir.r4",
+                "packageName": "health.fhir.r4",
+                "symbol": "OperationOutcomeIssueSeverity",
+                "version": "6.2.4"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "azure.iothub",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "OperationInputs",
+                "description": "Input values.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.iothub_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "azure.iothub",
+                "packageName": "azure.iothub",
+                "symbol": "OperationInputs",
+                "version": "1.5.1"
               },
               "enabled": true
             }
@@ -736,22 +775,6 @@
                 "module": "health.fhir.r4.international401",
                 "packageName": "health.fhir.r4.international401",
                 "symbol": "OperationoutcomeIssueSource",
-                "version": "4.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "OperationoutcomeMessageId",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4.international401_4.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "health.fhir.r4.international401",
-                "packageName": "health.fhir.r4.international401",
-                "symbol": "OperationoutcomeMessageId",
                 "version": "4.0.0"
               },
               "enabled": true

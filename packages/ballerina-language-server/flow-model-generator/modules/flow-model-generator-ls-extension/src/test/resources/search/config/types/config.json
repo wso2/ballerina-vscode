@@ -9,6 +9,20 @@
   "categories": [
     {
       "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
         "label": "Imported Types",
         "description": "Types imported from other integrations",
         "keywords": [
@@ -17,33 +31,7 @@
           "Library"
         ]
       },
-      "items": [
-        {
-          "metadata": {
-            "label": "http",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "CookieConfig",
-                "description": "Client configuration for cookies.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "http",
-                "packageName": "http",
-                "symbol": "CookieConfig",
-                "version": "2.15.4"
-              },
-              "enabled": true
-            }
-          ]
-        }
-      ]
+      "items": []
     },
     {
       "metadata": {
@@ -276,31 +264,6 @@
         },
         {
           "metadata": {
-            "label": "soap",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ClientConfig",
-                "description": "SOAP client configurations.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_soap_2.3.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "soap",
-                "packageName": "soap",
-                "symbol": "ClientConfig",
-                "version": "2.3.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "peoplehr",
             "description": "",
             "keywords": []
@@ -326,40 +289,24 @@
         },
         {
           "metadata": {
-            "label": "graphql",
+            "label": "soap",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "Graphiql",
-                "description": "Represent GraphiQL client configurations\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.17.0.png"
+                "label": "ClientConfig",
+                "description": "SOAP client configurations.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_soap_2.3.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerina",
-                "module": "graphql",
-                "packageName": "graphql",
-                "symbol": "Graphiql",
-                "version": "1.17.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "CookieConfig",
-                "description": "Client configuration for cookies.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.17.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "graphql",
-                "packageName": "graphql",
-                "symbol": "CookieConfig",
-                "version": "1.17.0"
+                "module": "soap",
+                "packageName": "soap",
+                "symbol": "ClientConfig",
+                "version": "2.3.1"
               },
               "enabled": true
             }
@@ -367,24 +314,174 @@
         },
         {
           "metadata": {
-            "label": "ftp",
+            "label": "microsoft.teams",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "ClientConfiguration",
-                "description": "Configuration for FTP client.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.16.0.png"
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.teams_2.4.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "ftp",
-                "packageName": "ftp",
-                "symbol": "ClientConfiguration",
-                "version": "2.16.0"
+                "org": "ballerinax",
+                "module": "microsoft.teams",
+                "packageName": "microsoft.teams",
+                "symbol": "ConnectionConfig",
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "googleapis.people",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.people_2.4.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "googleapis.people",
+                "packageName": "googleapis.people",
+                "symbol": "ConnectionConfig",
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "microsoft.excel",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.excel_2.4.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "microsoft.excel",
+                "packageName": "microsoft.excel",
+                "symbol": "ConnectionConfig",
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "azure.ad",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.ad_2.5.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "azure.ad",
+                "packageName": "azure.ad",
+                "symbol": "ConnectionConfig",
+                "version": "2.5.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "googleapis.calendar",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.calendar_3.2.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "googleapis.calendar",
+                "packageName": "googleapis.calendar",
+                "symbol": "ConnectionConfig",
+                "version": "3.2.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "microsoft.onenote",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.onenote_2.4.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "microsoft.onenote",
+                "packageName": "microsoft.onenote",
+                "symbol": "ConnectionConfig",
+                "version": "2.4.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "googleapis.drive",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionConfig",
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.drive_3.4.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "googleapis.drive",
+                "packageName": "googleapis.drive",
+                "symbol": "ConnectionConfig",
+                "version": "3.4.1"
               },
               "enabled": true
             }
@@ -467,99 +564,24 @@
         },
         {
           "metadata": {
-            "label": "azure.ad",
+            "label": "ftp",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.ad_2.5.0.png"
+                "label": "ClientConfiguration",
+                "description": "Configuration for FTP client.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.16.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "azure.ad",
-                "packageName": "azure.ad",
-                "symbol": "ConnectionConfig",
-                "version": "2.5.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "googleapis.calendar",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.calendar_3.2.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "googleapis.calendar",
-                "packageName": "googleapis.calendar",
-                "symbol": "ConnectionConfig",
-                "version": "3.2.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "googleapis.drive",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.drive_3.4.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "googleapis.drive",
-                "packageName": "googleapis.drive",
-                "symbol": "ConnectionConfig",
-                "version": "3.4.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "googleapis.people",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.people_2.4.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "googleapis.people",
-                "packageName": "googleapis.people",
-                "symbol": "ConnectionConfig",
-                "version": "2.4.0"
+                "org": "ballerina",
+                "module": "ftp",
+                "packageName": "ftp",
+                "symbol": "ClientConfiguration",
+                "version": "2.16.0"
               },
               "enabled": true
             }
