@@ -51,7 +51,8 @@ export enum InputCategory {
     Enum = "enum",
     Parameter = "parameter",
     Variable = "variable",
-    LocalVariable = "local-variable"
+    LocalVariable = "local-variable",
+    ConvertedVariable = "converted-variable"
 }
 
 export enum IntermediateClauseType {
@@ -174,7 +175,7 @@ export interface IOTypeField {
     isIterationVariable?: boolean;
     isGroupingKey?: boolean;
     typeInfo?: TypeInfo;
-    convertedVariable?: IOTypeField;
+    convertedVariable?: IORoot;
 }
 
 export interface EnumMember {
