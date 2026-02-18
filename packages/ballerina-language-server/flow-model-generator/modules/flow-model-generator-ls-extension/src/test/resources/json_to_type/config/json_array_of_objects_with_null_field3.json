@@ -6,5 +6,5 @@
   "prefix": "",
   "allowAdditionalFields": false,
   "asInline": false,
-  "expectedTypes": "\ntype PersonsItem record {|\n\tint id;\n\t(int|string)? school;\n|};\n\ntype Persons PersonsItem[];\n"
+  "expectedTypes": "\npublic type PersonsItem record {|\n\tint id;\n\t(int|string)? school;\n|};\n\npublic type Persons PersonsItem[];\n"
 }

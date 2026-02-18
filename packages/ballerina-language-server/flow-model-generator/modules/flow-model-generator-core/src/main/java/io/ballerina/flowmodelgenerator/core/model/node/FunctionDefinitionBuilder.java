@@ -82,6 +82,7 @@ public class FunctionDefinitionBuilder extends NodeBuilder {
                 .functionDescription(description)
                 .returnType(returnType, null, true)
                 .returnDescription(returnDescription)
+                .isPublic(false, false, true, false)
                 .nestedProperty();
     }
 
@@ -164,6 +165,12 @@ public class FunctionDefinitionBuilder extends NodeBuilder {
         if (annotationsProperty.isPresent()) {
             sourceBuilder.token().name(annotationsProperty.get().toSourceCode());
         }
+
+        Optional<Property> visibilityProperty = sourceBuilder.getProperty(Property.IS_PUBLIC_KEY);
+        if (visibilityProperty.isPresent() && Boolean.parseBoolean(visibilityProperty.get().value().toString())) {
+            sourceBuilder.token().keyword(SyntaxKind.PUBLIC_KEYWORD);
+        }
+
         Optional<Property> isolatedProperty = sourceBuilder.getProperty(Property.IS_ISOLATED_KEY);
         if (isolatedProperty.isPresent()) {
             sourceBuilder.token().keyword(SyntaxKind.ISOLATED_KEYWORD);

@@ -5,7 +5,7 @@ type User record {
     string name;
     # Age of the employee
     int age;
-    # Union of of type-refs and a built-in type
+    # Union of type-refs and a built-in type
     xml|City|UserAddress address;
     # Anonymous nested record type
     record {|int iA; record {|int iiA;|} iB;|} field1;

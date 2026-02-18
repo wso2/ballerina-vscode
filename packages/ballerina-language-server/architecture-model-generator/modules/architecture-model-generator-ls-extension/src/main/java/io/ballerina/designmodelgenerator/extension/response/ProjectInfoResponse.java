@@ -34,6 +34,7 @@ public class ProjectInfoResponse extends AbstractResponse {
     private String org;            // Package organization
     private String version;        // Package version
     private List<ProjectInfoResponse> children;  // Only populated for workspace projects (recursive)
+    private Boolean isLibrary;                     // Whether the project is a library project
 
     public String getProjectKind() {
         return projectKind;
@@ -89,5 +90,13 @@ public class ProjectInfoResponse extends AbstractResponse {
 
     public void setChildren(List<ProjectInfoResponse> children) {
         this.children = children;
+    }
+
+    public Boolean getIsLibrary() {
+        return isLibrary;
+    }
+
+    public void setIsLibrary(Boolean isLibrary) {
+        this.isLibrary = isLibrary;
     }
 }

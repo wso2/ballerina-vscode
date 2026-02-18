@@ -9,6 +9,126 @@
   "categories": [
     {
       "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Location",
+            "description": ""
+          },
+          "codedata": {
+            "node": "TYPEDESC",
+            "org": "nipunaf",
+            "module": "proj",
+            "packageName": "proj",
+            "symbol": "Location",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Address",
+            "description": ""
+          },
+          "codedata": {
+            "node": "TYPEDESC",
+            "org": "nipunaf",
+            "module": "proj",
+            "packageName": "proj",
+            "symbol": "Address",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Employee",
+            "description": ""
+          },
+          "codedata": {
+            "node": "TYPEDESC",
+            "org": "nipunaf",
+            "module": "proj",
+            "packageName": "proj",
+            "symbol": "Employee",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Person",
+            "description": ""
+          },
+          "codedata": {
+            "node": "TYPEDESC",
+            "org": "nipunaf",
+            "module": "proj",
+            "packageName": "proj",
+            "symbol": "Person",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Admission",
+            "description": ""
+          },
+          "codedata": {
+            "node": "TYPEDESC",
+            "org": "nipunaf",
+            "module": "proj",
+            "packageName": "proj",
+            "symbol": "Admission",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Event",
+            "description": ""
+          },
+          "codedata": {
+            "node": "TYPEDESC",
+            "org": "nipunaf",
+            "module": "proj",
+            "packageName": "proj",
+            "symbol": "Event",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "MyAcceptRec",
+            "description": ""
+          },
+          "codedata": {
+            "node": "TYPEDESC",
+            "org": "nipunaf",
+            "module": "proj",
+            "packageName": "proj",
+            "symbol": "MyAcceptRec",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
         "label": "Imported Types",
         "description": "Types imported from other integrations",
         "keywords": [

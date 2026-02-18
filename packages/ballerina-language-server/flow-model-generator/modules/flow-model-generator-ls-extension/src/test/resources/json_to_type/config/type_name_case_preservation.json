@@ -7,5 +7,5 @@
   "isNullAsOptional": false,
   "allowAdditionalFields": false,
   "asInline": false,
-  "expectedTypes": "\ntype newType record {|\n\tint age;\n|};\n"
+  "expectedTypes": "\npublic type newType record {|\n\tint age;\n|};\n"
 }

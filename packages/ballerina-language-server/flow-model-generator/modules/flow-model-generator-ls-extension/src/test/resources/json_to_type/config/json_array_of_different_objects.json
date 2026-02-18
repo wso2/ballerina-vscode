@@ -6,5 +6,5 @@
   "prefix": "",
   "allowAdditionalFields": false,
   "asInline": false,
-  "expectedTypes": "\ntype TaskListItem record {|\n\tint id?;\n\tstring name?;\n\tstring status?;\n\tboolean completed?;\n\tstring uuid?;\n\tstring taskName?;\n\tboolean isCompleted?;\n|};\n\ntype TaskList TaskListItem[];\n"
+  "expectedTypes": "\npublic type TaskListItem record {|\n\tint id?;\n\tstring name?;\n\tstring status?;\n\tboolean completed?;\n\tstring uuid?;\n\tstring taskName?;\n\tboolean isCompleted?;\n|};\n\npublic type TaskList TaskListItem[];\n"
 }
