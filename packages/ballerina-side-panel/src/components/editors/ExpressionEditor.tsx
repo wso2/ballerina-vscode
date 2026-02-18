@@ -427,6 +427,14 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const exprRef = useRef<FormExpressionEditorRef>(null);
     const anchorRef = useRef<HTMLDivElement>(null);
 
+    // This guard is here because the IF form and Match forms
+    //  does not populate the context value since they use expressionEditor 
+    // component directly instead of going through the FieldFactory. 
+    // This should ideally be handled as followes.
+    //  1.) Refactor IF and Match forms to use FieldFactory component
+    //  and LS property models
+    //  2.) Remove this guard and make sure all the usages of ExpressionEditor 
+    // are wrapped with ModeSwitcherContext provider
     const modeSwitcherContext = useModeSwitcherContext() ?? {
         inputMode: InputMode.EXP,
         isModeSwitcherEnabled: false,
