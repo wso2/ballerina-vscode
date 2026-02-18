@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
     DIRECTORY_MAP,
     EVENT_TYPE,
@@ -27,64 +27,6 @@ import {
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Icon, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
-
-// ── Toolbar: search + summary ──────────────────────────────────────────
-
-const Toolbar = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 24px;
-`;
-
-const SearchBar = styled.div`
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 80%;
-    max-width: 600px;
-    min-width: 400px;
-`;
-
-const SearchInput = styled.input`
-    width: 100%;
-    padding: 8px 28px 8px 32px;
-    background: var(--vscode-input-background);
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    color: var(--vscode-input-foreground);
-    font-size: 13px;
-    font-family: var(--vscode-font-family);
-    &:focus {
-        outline: none;
-        border-color: var(--vscode-focusBorder);
-    }
-    &::placeholder {
-        color: var(--vscode-input-placeholderForeground);
-    }
-`;
-
-const SearchIcon = styled.div`
-    position: absolute;
-    left: 10px;
-    color: var(--vscode-input-placeholderForeground);
-    pointer-events: none;
-    display: flex;
-    align-items: center;
-`;
-
-const ClearButton = styled.div`
-    position: absolute;
-    right: 6px;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    color: var(--vscode-input-placeholderForeground);
-    &:hover {
-        color: var(--vscode-input-foreground);
-    }
-`;
 
 // ── Layout ──────────────────────────────────────────────────────────────
 
@@ -335,13 +277,12 @@ function highlightName(name: string, query: string) {
 
 interface LibraryOverviewProps {
     projectStructure: ProjectStructure;
+    searchQuery: string;
 }
 
 export function LibraryOverview(props: LibraryOverviewProps) {
-    const { projectStructure } = props;
+    const { projectStructure, searchQuery } = props;
     const { rpcClient } = useRpcContext();
-    const [searchQuery, setSearchQuery] = useState("");
-    const searchRef = useRef<HTMLInputElement>(null);
 
     const isSearching = searchQuery.trim().length > 0;
 
@@ -517,26 +458,6 @@ export function LibraryOverview(props: LibraryOverviewProps) {
 
     return (
         <SectionsContainer>
-            <Toolbar>
-                <SearchBar>
-                    <SearchIcon>
-                        <Codicon name="search" iconSx={{ fontSize: 14 }} />
-                    </SearchIcon>
-                    <SearchInput
-                        ref={searchRef}
-                        type="text"
-                        placeholder="Search artifacts..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    {isSearching && (
-                        <ClearButton onClick={() => { setSearchQuery(""); searchRef.current?.focus(); }}>
-                            <Codicon name="close" iconSx={{ fontSize: 14 }} />
-                        </ClearButton>
-                    )}
-                </SearchBar>
-            </Toolbar>
-
             <ColumnsLayout>
                 <PrimaryColumn>
                     <PrimaryColumnInner>
