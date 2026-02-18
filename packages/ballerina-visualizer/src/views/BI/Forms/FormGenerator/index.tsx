@@ -423,6 +423,35 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         });
     };
 
+    const normalizeTextFields = (fields: FormField[]): FormField[] => {
+        return fields.map((field) => {
+            const primaryInputType = getPrimaryInputType(field.types);
+            const isTextField = field.type === "TEXT" || primaryInputType?.fieldType === "TEXT";
+            const normalizedLabel = `${field.metadata?.label ?? field.label ?? ""}`.toLowerCase();
+            const isDescriptionField = normalizedLabel.includes("description") || normalizedLabel.includes("discription");
+
+            if (isTextField && isDescriptionField) {
+                return {
+                    ...field,
+                    type: "TEXTAREA",
+                };
+            }
+            return field;
+        });
+    };
+
+    const hideTypeDescriptionField = (fields: FormField[]): FormField[] => {
+        return fields.map((field) => {
+            if (field.key === "typeDescription") {
+                return {
+                    ...field,
+                    hidden: true,
+                };
+            }
+            return field;
+        });
+    };
+
     const initForm = (node: FlowNode) => {
         const formProperties = getFormProperties(node);
         let enrichedNodeProperties;
@@ -493,6 +522,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 };
             });
         }
+
+        fields = normalizeTextFields(fields);
+        fields = hideTypeDescriptionField(fields);
 
         const sortedFields = sortFieldsByPriority(fields);
         setBaseFields(sortedFields);

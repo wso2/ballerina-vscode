@@ -83,6 +83,13 @@ export function FunctionFormStatic(props: FunctionFormProps) {
     const fileName = filePath.split(/[\\/]/).pop();
     const formType = useRef("Function");
 
+    const hideTypeDescriptionField = (flowNode: FunctionNode): FunctionNode => {
+        if (flowNode?.properties?.typeDescription) {
+            flowNode.properties.typeDescription.hidden = true;
+        }
+        return flowNode;
+    };
+
     useEffect(() => {
         let nodeKind: NodeKind;
         if (isAutomation || functionName === "main") {
@@ -141,7 +148,7 @@ export function FunctionFormStatic(props: FunctionFormProps) {
                 filePath: Utils.joinPath(URI.file(projectPath), fileName).fsPath,
                 id: { node: kind },
             });
-        let flowNode = res.flowNode;
+        let flowNode = hideTypeDescriptionField(res.flowNode);
 
         let properties = flowNode.properties as NodeProperties;
 
@@ -195,7 +202,7 @@ export function FunctionFormStatic(props: FunctionFormProps) {
                 fileName,
                 projectPath
             });
-        let flowNode = res.functionDefinition;
+        let flowNode = hideTypeDescriptionField(res.functionDefinition);
         if (isNpFunction) {
             /* 
             * TODO: Remove this once the LS is updated
