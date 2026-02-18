@@ -24,6 +24,7 @@ import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
@@ -86,7 +87,7 @@ public class WorkflowStartBuilder extends NodeBuilder {
         }
 
         // Get the input parameter type from the workflow function's second parameter
-        String inputType = getWorkflowInputType(context, codedata);
+        TypeReferenceTypeSymbol inputType = getWorkflowInputType(context, codedata);
 
         // Input property with the actual type from the workflow function
         properties().custom()
@@ -94,7 +95,7 @@ public class WorkflowStartBuilder extends NodeBuilder {
                     .label(INPUT_LABEL)
                     .description(INPUT_DOC)
                     .stepOut()
-                .type(Property.ValueType.EXPRESSION, inputType)
+                .typeWithExpression(inputType, moduleInfo)
                 .placeholder("")
                 .value("")
                 .editable(true)
@@ -190,16 +191,12 @@ public class WorkflowStartBuilder extends NodeBuilder {
      * @param codedata The codedata containing the workflow function symbol
      * @return The type of the input parameter, or "anydata" if not found
      */
-    private String getWorkflowInputType(TemplateContext context, Codedata codedata) {
+    private TypeReferenceTypeSymbol getWorkflowInputType(TemplateContext context, Codedata codedata) {
         if (codedata == null || codedata.symbol() == null) {
-            return DEFAULT_INPUT_TYPE;
+            return null;
         }
 
-        // Load the project and get semantic model
         Project project = PackageUtil.loadProject(context.workspaceManager(), context.filePath());
-        if (project == null) {
-            return DEFAULT_INPUT_TYPE;
-        }
 
         // Search for the workflow function in the project modules
         for (io.ballerina.projects.Module module : project.currentPackage().modules()) {
@@ -218,12 +215,11 @@ public class WorkflowStartBuilder extends NodeBuilder {
                 if (params.isPresent() && params.get().size() >= 2) {
                     // Get the second parameter (index 1) - this is the input parameter
                     ParameterSymbol inputParam = params.get().get(1);
-                    // ToDo: signature() can cause issues, improve
-                    return inputParam.typeDescriptor().signature();
+                    return (TypeReferenceTypeSymbol) inputParam.typeDescriptor();
                 }
             }
         }
 
-        return DEFAULT_INPUT_TYPE;
+        return null;
     }
 }

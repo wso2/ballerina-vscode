@@ -15,13 +15,13 @@
   "output": {
     "id": "31",
     "metadata": {
-      "label": "orderWorkflow",
+      "label": "Start Workflow",
       "description": "Start a workflow process instance"
     },
     "codedata": {
       "node": "WORKFLOW_START",
-      "org": "test",
-      "module": "workflow_function",
+      "org": "ballerina",
+      "module": "workflow",
       "symbol": "orderWorkflow",
       "version": "0.1.0",
       "isNew": true
@@ -34,6 +34,20 @@
           "description": "Input data for the workflow"
         },
         "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "OrderInput",
+            "typeMembers": [
+              {
+                "type": "OrderInput",
+                "packageInfo": "test:workflow_function:0.1.0",
+                "packageName": "workflow_function",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "OrderInput",
