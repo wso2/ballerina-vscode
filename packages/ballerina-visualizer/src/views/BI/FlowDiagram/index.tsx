@@ -51,6 +51,7 @@ import {
     AIPanelPrompt,
     LinePosition,
     EditorDisplayMode,
+    getPrimaryInputType,
 } from "@wso2/ballerina-core";
 
 import {
@@ -886,20 +887,22 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleSearch = async (searchText: string, functionType: FUNCTION_TYPE, searchKind: SearchKind) => {
+        const queryMap = searchText.trim()
+            ? {
+                q: searchText,
+                limit: 12,
+                offset: 0,
+                ...(searchKind === "FUNCTION" ? { includeAvailableFunctions: "true" } : {})
+            }
+            : undefined;
+
         const request: BISearchRequest = {
             position: {
                 startLine: targetRef.current.startLine,
                 endLine: targetRef.current.endLine,
             },
             filePath: model.fileName,
-            queryMap: searchText.trim()
-                ? {
-                    q: searchText,
-                    limit: 12,
-                    offset: 0,
-                    includeAvailableFunctions: "true",
-                }
-                : undefined,
+            queryMap,
             searchKind,
         };
         console.log(`>>> Search ${searchKind.toLowerCase()} request`, request);
@@ -921,6 +924,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             functionType === FUNCTION_TYPE.REGULAR
                                 ? SidePanelView.FUNCTION_LIST
                                 : SidePanelView.DATA_MAPPER_LIST;
+                        break;
+                    case "WORKFLOW_START":
+                        panelView = SidePanelView.WORKFLOW_LIST;
                         break;
                     case "NP_FUNCTION":
                         panelView = SidePanelView.NP_FUNCTION_LIST;
@@ -961,6 +967,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleSearchFunction = async (searchText: string, functionType: FUNCTION_TYPE) => {
         await handleSearch(searchText, functionType, "FUNCTION");
+    };
+
+    const handleSearchWorkflow = async (searchText: string, functionType: FUNCTION_TYPE) => {
+        await handleSearch(searchText, functionType, "WORKFLOW_START");
     };
 
     const handleSearchModelProvider = async (searchText: string, functionType: FUNCTION_TYPE) => {
@@ -1099,6 +1109,56 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             )
                         );
                         setSidePanelView(SidePanelView.NP_FUNCTION_LIST);
+                        setShowSidePanel(true);
+                    })
+                    .finally(() => {
+                        setShowProgressIndicator(false);
+                    });
+                break;
+
+            case "WORKFLOW_START":
+                // First click from node list should open searchable workflow list.
+                if (sidePanelView === SidePanelView.NODE_LIST) {
+                    setShowProgressIndicator(true);
+                    rpcClient
+                        .getBIDiagramRpcClient()
+                        .search({
+                            position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                            filePath: model?.fileName || fileName,
+                            queryMap: undefined,
+                            searchKind: "WORKFLOW_START",
+                        })
+                        .then((response) => {
+                            setCategories(
+                                convertFunctionCategoriesToSidePanelCategories(
+                                    response.categories as Category[],
+                                    FUNCTION_TYPE.REGULAR
+                                )
+                            );
+                            setSidePanelView(SidePanelView.WORKFLOW_LIST);
+                            setShowSidePanel(true);
+                        })
+                        .finally(() => {
+                            setShowProgressIndicator(false);
+                        });
+                    break;
+                }
+
+                // Selecting an item from workflow list should open the node template form.
+                selectedClientName.current = category;
+                setShowProgressIndicator(true);
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .getNodeTemplate({
+                        position: targetRef.current.startLine,
+                        filePath: model?.fileName || fileName,
+                        id: node.codedata,
+                    })
+                    .then((response) => {
+                        selectedNodeRef.current = response.flowNode;
+                        nodeTemplateRef.current = response.flowNode;
+                        showEditForm.current = false;
+                        setSidePanelView(SidePanelView.FORM);
                         setShowSidePanel(true);
                     })
                     .finally(() => {
@@ -1305,7 +1365,117 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
-    const handleOnFormSubmit = (
+    const enrichWorkflowInputTypeModel = async (flowNode: FlowNode) => {
+        if (!model?.fileName || flowNode?.codedata?.node !== "WORKFLOW") {
+            return;
+        }
+
+        const properties = flowNode.properties as any;
+        const inputTypeProperty = properties?.inputType;
+        const primaryInputType = getPrimaryInputType(inputTypeProperty?.types);
+        if (!inputTypeProperty || primaryInputType?.fieldType !== "WORKFLOW_INPUT_TYPE") {
+            return;
+        }
+
+        const workflowInputType = `${inputTypeProperty.value ?? ""}`.trim();
+        if (!workflowInputType) {
+            return;
+        }
+
+        const existingTypeModel = (primaryInputType as any)?.typeModel;
+        if (existingTypeModel?.name === workflowInputType) {
+            return;
+        }
+
+        const resolveTypeByLinePosition = async (targetFilePath: string, linePosition: { line: number; offset: number }) => {
+            const typeResponse = await rpcClient.getBIDiagramRpcClient().getType({
+                filePath: targetFilePath,
+                linePosition
+            });
+            if (typeResponse?.type) {
+                (primaryInputType as any).typeModel = typeResponse.type;
+                return true;
+            }
+            return false;
+        };
+
+        try {
+            const typesResponse = await rpcClient.getBIDiagramRpcClient().getTypes({ filePath: model.fileName });
+            const matchingType = typesResponse?.types?.find((type) =>
+                type?.name === workflowInputType || workflowInputType.endsWith(`:${type?.name}`)
+            );
+            const typeLineRange = matchingType?.codedata?.lineRange;
+
+            if (typeLineRange?.startLine) {
+                const resolved = await resolveTypeByLinePosition(
+                    typeLineRange.fileName || model.fileName,
+                    typeLineRange.startLine
+                );
+                if (resolved) {
+                    return;
+                }
+            }
+
+            const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                filePath: model.fileName,
+                queryMap: {
+                    q: workflowInputType,
+                    offset: 0,
+                    limit: 1000
+                },
+                searchKind: "TYPE"
+            });
+
+            const findTypeItem = (items: any[]): any => {
+                for (const item of items || []) {
+                    if ((item as any)?.codedata) {
+                        const itemLabel = item?.metadata?.label;
+                        const isMatchingType = itemLabel === workflowInputType || workflowInputType.endsWith(`:${itemLabel}`);
+                        if (isMatchingType) {
+                            return item;
+                        }
+                        continue;
+                    }
+                    const nestedItem = findTypeItem(item?.items || []);
+                    if (nestedItem) {
+                        return nestedItem;
+                    }
+                }
+                return undefined;
+            };
+
+            const matchedTypeFromSearch = findTypeItem(searchResponse?.categories || []);
+            const matchedLineRange = matchedTypeFromSearch?.codedata?.lineRange;
+            if (matchedLineRange?.startLine) {
+                const resolved = await resolveTypeByLinePosition(
+                    matchedLineRange.fileName || model.fileName,
+                    matchedLineRange.startLine
+                );
+                if (resolved) {
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error("Error resolving workflow input type model: ", error);
+        }
+
+        (primaryInputType as any).typeModel = {
+            name: workflowInputType,
+            editable: false,
+            metadata: {
+                label: workflowInputType,
+                description: ""
+            },
+            codedata: {
+                node: "RECORD"
+            },
+            properties: {},
+            members: [],
+            includes: []
+        };
+    };
+
+    const handleOnFormSubmit = async (
         updatedNode?: FlowNode,
         editorConfig?: EditorConfig,
         options?: FormSubmitOptions
@@ -1344,6 +1514,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             updatedNode.codedata.lineRange.endLine = targetLine;
         }
 
+        const nodeToSubmit = cloneDeep(updatedNode);
+        await enrichWorkflowInputTypeModel(nodeToSubmit);
+
         if (
             editorConfig &&
             editorConfig.view === MACHINE_VIEW.InlineDataMapper &&
@@ -1353,7 +1526,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 .getDataMapperRpcClient()
                 .getInitialIDMSource({
                     filePath: model.fileName,
-                    flowNode: updatedNode,
+                    flowNode: nodeToSubmit,
                 })
                 .then((response) => {
                     if (response.codedata) {
@@ -1361,7 +1534,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             options.postUpdateCallBack();
                         }
                         shouldUpdateLineRangeRef.current = options?.isChangeFromHelperPane;
-                        updatedNodeRef.current = updatedNode;
+                        updatedNodeRef.current = nodeToSubmit;
                         rpcClient.getVisualizerRpcClient().openView({
                             type: EVENT_TYPE.OPEN_VIEW,
                             location: {
@@ -1374,7 +1547,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                     endColumn: response.codedata.lineRange.endLine.offset,
                                 },
                                 dataMapperMetadata: {
-                                    name: updatedNode.properties?.variable?.value as string,
+                                    name: nodeToSubmit.properties?.variable?.value as string,
                                     codeData: response.codedata,
                                 }
                             },
@@ -1396,7 +1569,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .getBIDiagramRpcClient()
             .getSourceCode({
                 filePath: model.fileName,
-                flowNode: updatedNode,
+                flowNode: nodeToSubmit,
                 isFunctionNodeUpdate: editorConfig?.displayMode !== EditorDisplayMode.NONE,
                 isHelperPaneChange: options?.isChangeFromHelperPane,
                 artifactData: editorConfig &&
@@ -1415,8 +1588,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         }
                     }
                 
-                    if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER
-                        || (updatedNode?.codedata?.node === "AGENT_CALL" && updatedNode?.properties?.model?.value === "")) {
+                    if (nodeToSubmit?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER
+                        || (nodeToSubmit?.codedata?.node === "AGENT_CALL" && nodeToSubmit?.properties?.model?.value === "")) {
                         await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
                     }
                     if (noFormSubmitOptions) {
@@ -1457,7 +1630,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         } else {
                             const newNode = searchNodesByName(
                                 updatedModel.flowModel.nodes,
-                                updatedNode.properties?.variable?.value as string
+                                nodeToSubmit.properties?.variable?.value as string
                             );
                             if (!newNode || !newTargetLineRange) {
                                 console.error(">>> New node or targetLineRange missing after helper-pane update");
@@ -1472,7 +1645,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         }
                         shouldUpdateLineRangeRef.current = false;
                     }
-                    updatedNodeRef.current = updatedNode;
+                    updatedNodeRef.current = nodeToSubmit;
                 } else {
                     console.error(">>> Error updating source code", response);
                 }
@@ -1652,6 +1825,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setSidePanelView(SidePanelView.KNOWLEDGE_BASE_LIST);
             } else if (
                 sidePanelView === SidePanelView.FUNCTION_LIST ||
+                sidePanelView === SidePanelView.WORKFLOW_LIST ||
                 sidePanelView === SidePanelView.DATA_MAPPER_LIST ||
                 sidePanelView === SidePanelView.NP_FUNCTION_LIST ||
                 sidePanelView === SidePanelView.MODEL_PROVIDER_LIST ||
@@ -1708,6 +1882,29 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 position: targetRef.current.startLine,
                 filePath: model?.fileName,
                 id: { node: "FUNCTION_CREATION" },
+            })
+            .then((response) => {
+                selectedNodeRef.current = response.flowNode;
+                nodeTemplateRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
+    const handleOnAddWorkflow = () => {
+        setShowProgressIndicator(true);
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: targetRef.current.startLine,
+                filePath: model?.fileName,
+                id: { node: "WORKFLOW" },
             })
             .then((response) => {
                 selectedNodeRef.current = response.flowNode;
@@ -2538,6 +2735,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 // Add node callbacks
                 onAddConnection={handleOnAddConnection}
                 onAddFunction={handleOnAddFunction}
+                onAddWorkflow={handleOnAddWorkflow}
                 onAddNPFunction={handleOnAddNPFunction}
                 onAddDataMapper={handleOnAddDataMapper}
                 onAddModelProvider={handleOnAddNewModelProvider}
@@ -2553,6 +2751,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onUpdateExpressionField={handleUpdateExpressionField}
                 onResetUpdatedExpressionField={handleResetUpdatedExpressionField}
                 onSearchFunction={handleSearchFunction}
+                onSearchWorkflow={handleSearchWorkflow}
                 onSearchNpFunction={handleSearchNpFunction}
                 onSearchModelProvider={handleSearchModelProvider}
                 onSearchVectorStore={handleSearchVectorStore}

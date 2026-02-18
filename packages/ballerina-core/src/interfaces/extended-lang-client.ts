@@ -926,6 +926,7 @@ export type SearchKind =
     | "FUNCTION"
     | "CONNECTOR"
     | "TYPE"
+    | "WORKFLOW_START"
     | "NP_FUNCTION"
     | "MODEL_PROVIDER"
     | "VECTOR_STORE"
