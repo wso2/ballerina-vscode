@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -97,12 +97,9 @@ export class EvaluationReportWebview {
         const fileName = path.basename(reportPath);
         const reportDir = Uri.file(path.dirname(reportPath));
 
-        // If panel exists, reveal and update content
+        // Dispose existing panel so the new one can be created with the correct localResourceRoots
         if (EvaluationReportWebview.currentPanel) {
-            EvaluationReportWebview.currentPanel._panel.reveal(ViewColumn.Active);
-            EvaluationReportWebview.currentPanel._panel.title = `Evaluation Report - ${fileName}`;
-            EvaluationReportWebview.currentPanel.updateContent(reportContent, reportDir);
-            return;
+            EvaluationReportWebview.currentPanel.dispose();
         }
 
         // Create new panel
