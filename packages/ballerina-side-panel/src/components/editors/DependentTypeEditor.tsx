@@ -21,17 +21,12 @@ import styled from "@emotion/styled";
 import { SearchBox, CheckBox, Codicon, RequiredFormInput } from "@wso2/ui-toolkit";
 import { FormField } from "../Form/types";
 import { useFormContext } from "../../context";
-import type { Type, Member } from "@wso2/ballerina-core";
+import type { Type, Member, RecordSelectorType } from "@wso2/ballerina-core";
 
 // ─── Types ──────────────────────────────────────────────────────
 
 interface DependentTypeEditorProps {
     field: FormField;
-}
-
-interface RecordSelectorType {
-    rootType: Type;
-    referencedTypes: Type[];
 }
 
 // ─── Utilities ──────────────────────────────────────────────────
@@ -110,27 +105,34 @@ function areAllSelected(members: Member[], referencedTypes: Type[], visited: Set
 
 /**
  * Checks if a field has partial selection (some but not all children selected).
- * Returns true when:
- * - The field itself is not selected, AND
- * - At least one descendant is selected
+ * Returns true when a parent has some (but not all) descendants selected.
  */
 function hasPartialSelection(member: Member, referencedTypes: Type[], visited: Set<string> = new Set()): boolean {
-    // If already selected, it's not partial (it's fully selected)
-    if (member.selected) return false;
-
     const newVisited = new Set(visited);
     if (member.refs?.length) newVisited.add(member.refs[0]);
 
     const children = resolveChildren(member, referencedTypes, visited);
     if (!children.length) return false;
 
-    // Check if any child (or descendant) is selected
+    let anySelected = false;
+    let allSelected = true;
+
     for (const child of children) {
-        if (child.selected) return true;
-        if (hasPartialSelection(child, referencedTypes, newVisited)) return true;
+        const childIsSelected = child.selected;
+        const childHasPartial = hasPartialSelection(child, referencedTypes, newVisited);
+
+        // If any child has partial selection, parent is partial
+        if (childHasPartial) return true;
+
+        if (childIsSelected) {
+            anySelected = true;
+        } else {
+            allSelected = false;
+        }
     }
 
-    return false;
+    // Partial if some (but not all) children are selected
+    return anySelected && !allSelected;
 }
 
 // ─── Styled Components ──────────────────────────────────────────
@@ -301,7 +303,7 @@ export function DependentTypeEditor(props: DependentTypeEditorProps) {
             }
             return t;
         });
-        field.types = updatedTypes;
+        // field.types = updatedTypes;
         setValue(field.key, updatedTypes);
     }, [data, field, setValue]);
 
