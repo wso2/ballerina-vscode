@@ -76,7 +76,7 @@ interface ConfigurationVariable {
 
 export interface ConfigurationCollectionData {
     requestId: string;
-    stage: "creating_file" | "collecting" | "done" | "skipped" | "error";
+    stage: "collecting" | "done" | "skipped" | "error";
     variables?: ConfigurationVariable[];
     existingValues?: Record<string, string>;
     message: string;
@@ -112,17 +112,6 @@ export const ConfigurationCollectorSegment: React.FC<ConfigurationCollectorSegme
             console.error('[ConfigurationCollectorSegment] Error canceling configuration:', error);
         }
     }, [rpcClient, data.requestId]);
-
-    if (currentStage === "creating_file") {
-        return (
-            <Container>
-                <Header>
-                    <Codicon name="file" />
-                    <Title>{data.message}</Title>
-                </Header>
-            </Container>
-        );
-    }
 
     if (currentStage === "collecting") {
         return (
