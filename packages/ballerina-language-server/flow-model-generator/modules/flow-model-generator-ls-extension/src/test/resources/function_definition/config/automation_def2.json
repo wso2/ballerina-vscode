@@ -325,6 +325,23 @@
         "editable": true,
         "advanced": true,
         "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Make visible across the workspace"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
       }
     },
     "flags": 0

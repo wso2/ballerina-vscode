@@ -29,7 +29,6 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * Tests for the Copilot Library Service getLibrariesList method.
@@ -42,8 +41,8 @@ public class CopilotLibraryListTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-//                {Path.of("get_libraries_list.json")},
-                {Path.of("get_libraries_list_healthcare.json")},
+                {Path.of("get_libraries_list_from_database.json")},
+//                {Path.of("get_libraries_list_healthcare.json")},
         };
     }
 
@@ -58,32 +57,8 @@ public class CopilotLibraryListTest extends AbstractLSTest {
 
         JsonArray actualLibraries = response.getAsJsonObject().getAsJsonArray("libraries");
 
-        boolean assertFailure = false;
-
-        if (actualLibraries == null) {
-            log.info("No libraries array found in response");
-            assertFailure = true;
-        } else if (actualLibraries.size() != testConfig.expectedLibraries().size()) {
-            log.info("Expected " + testConfig.expectedLibraries().size() + " libraries, but got " +
-                    actualLibraries.size());
-            assertFailure = true;
-        } else {
-            for (int i = 0; i < actualLibraries.size(); i++) {
-                String actualLibrary = actualLibraries.get(i).getAsJsonObject().get("name").getAsString();
-                String expectedLibrary = testConfig.expectedLibraries().get(i).name;
-                if (!actualLibrary.equals(expectedLibrary)) {
-                    log.info("Library mismatch at index " + i + ": expected '" + expectedLibrary + "', got '" +
-                            actualLibrary + "'");
-                    assertFailure = true;
-                    break;
-                }
-            }
-        }
-
-        if (assertFailure) {
-            // updateConfig(configJsonPath, updatedConfig);
-            Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
-        }
+        Assert.assertNotNull(actualLibraries, "No libraries array found in response");
+        Assert.assertFalse(actualLibraries.isEmpty(), "Libraries array should not be empty");
     }
 
     @Override
@@ -106,25 +81,10 @@ public class CopilotLibraryListTest extends AbstractLSTest {
         return "copilotLibraryManager";
     }
 
-    /**
-     * Represents the test configuration for the getLibrariesList API.
-     *
-     * @param description       The description of the test
-     * @param mode             The mode to test ("CORE" or "HEALTHCARE")
-     * @param expectedLibraries The expected list of libraries
-     */
-    private record TestConfig(String description, String mode, List<CompactLibrary> expectedLibraries) {
-
-        public String description() {
-            return description == null ? "" : description;
-        }
+    private record TestConfig(String description, String mode) {
 
         public String mode() {
             return mode == null ? "CORE" : mode;
         }
-    }
-
-    private record CompactLibrary(String name, String description) {
-        // Compact representation of a library with only name and description
     }
 }

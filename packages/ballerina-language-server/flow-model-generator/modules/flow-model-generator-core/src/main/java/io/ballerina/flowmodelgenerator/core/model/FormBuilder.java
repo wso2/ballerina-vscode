@@ -1089,7 +1089,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .editable(editable)
                 .optional(optional)
                 .advanced(advanced)
-                .value(String.valueOf(value))
+                .value(value)
                 .type()
                     .fieldType(Property.ValueType.FLAG)
                     .selected(true)
@@ -1214,6 +1214,38 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                                     List<Option> options) {
         propertyBuilder.typeWithOptions(valueType, options);
         return parameter(type, name, token);
+    }
+
+    public FormBuilder<T> dataMapperParameter(String type, String name, Property.ValueType valueType,
+                                              String fieldType) {
+        nestedProperty();
+        propertyBuilder
+                .metadata()
+                    .label(Property.IMPLICIT_TYPE_LABEL)
+                    .description(Property.PARAMETER_TYPE_DOC)
+                    .stepOut()
+                .type(valueType, fieldType)
+                .value(type)
+                .hidden()
+                .editable();
+        addProperty(Property.TYPE_KEY);
+
+        // Build the parameter name property
+        propertyBuilder
+                .metadata()
+                    .label(Property.VARIABLE_KEY)
+                    .description(Property.VARIABLE_DOC)
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.LV_EXPRESSION)
+                    .selected(true)
+                    .stepOut()
+                .editable()
+                .value(name);
+        addProperty(Property.VARIABLE_KEY);
+
+        return endNestedProperty(Property.ValueType.FIXED_PROPERTY, name, Property.PARAMETER_LABEL,
+                Property.PARAMETER_DOC);
     }
 
     public FormBuilder<T> parameter(String type, String name, Token token, Property.ValueType valueType,

@@ -10,7 +10,7 @@
       "metadata": {
         "label": "FHIR FHIRConnector",
         "description": "This connector allows you to connect and interact with any FHIR server",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir_3.0.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir_3.0.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -22,7 +22,28 @@
         "packageName": "health.clients.fhir",
         "object": "FHIRConnector",
         "symbol": "init",
-        "version": "3.0.0",
+        "version": "3.0.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Epic FHIRClientConnector",
+        "description": "This connector allows you to connect and interact with any FHIR server",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir.epic_1.0.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "health.clients.fhir.epic",
+        "packageName": "health.clients.fhir.epic",
+        "object": "FHIRClientConnector",
+        "symbol": "init",
+        "version": "1.0.0",
         "isGenerated": false
       },
       "enabled": true

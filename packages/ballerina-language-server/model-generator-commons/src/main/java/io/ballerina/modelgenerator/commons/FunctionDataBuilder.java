@@ -492,7 +492,17 @@ public class FunctionDataBuilder {
                         }
                         ClassSymbol classSymbol = (ClassSymbol) parentSymbol;
                         Optional<MethodSymbol> initMethod = classSymbol.initMethod();
-                        initMethod.ifPresent(methodSymbol -> functionSymbol = methodSymbol);
+                        if (initMethod.isPresent()) {
+                            functionSymbol = initMethod.get();
+                        } else {
+                            String clientName = getFunctionName();
+                            FunctionData functionData = new FunctionData(0, clientName, getDescription(classSymbol),
+                                    getTypeSignature(clientName), moduleInfo.packageName(), moduleInfo.moduleName(),
+                                    moduleInfo.org(), moduleInfo.version(), "", functionKind,
+                                    false, false, null);
+                            functionData.setParameters(Map.of());
+                            return functionData;
+                        }
                     } else {
                         // Fetch the respective method using the function name
                         // TODO: We are special-casing the scenario where the index is not used. We should generalize
@@ -530,6 +540,9 @@ public class FunctionDataBuilder {
                 moduleInfo.packageName(), moduleInfo.moduleName(), moduleInfo.org(), moduleInfo.version(),
                 resourcePath, functionKind, returnData.returnError(),
                 paramForTypeInfer != null, returnData.importStatements());
+
+        // Populate ReturnTypeData with links
+        populateReturnTypeLinks(functionData, functionTypeSymbol, returnData.returnType());
 
         Types types = semanticModel.types();
         TypeBuilder builder = semanticModel.types().builder();
@@ -741,6 +754,32 @@ public class FunctionDataBuilder {
                     returnData.returnError(),
                     returnData.paramForTypeInfer() != null,
                     returnData.importStatements());
+
+            // Populate ReturnTypeData with links
+            FunctionTypeSymbol methodTypeSymbol = methodSymbol.typeDescriptor();
+            populateReturnTypeLinks(functionData, methodTypeSymbol, returnData.returnType());
+
+            // Populate method parameters
+            Map<String, ParameterData> methodParameters = new LinkedHashMap<>();
+            if (methodKind == FunctionData.Kind.RESOURCE) {
+                ResourcePathTemplate resourcePathTemplate = buildResourcePathTemplate(methodSymbol);
+                resourcePathTemplate.pathParams().forEach(param -> methodParameters.put(param.name(), param));
+            }
+
+            ParamForTypeInfer paramForTypeInfer = returnData.paramForTypeInfer();
+            Types types = semanticModel.types();
+            TypeBuilder builder = semanticModel.types().builder();
+            UnionTypeSymbol union = builder.UNION_TYPE.withMemberTypes(types.BOOLEAN, types.NIL, types.STRING,
+                    types.INT, types.FLOAT, types.DECIMAL, types.BYTE, types.REGEX, types.XML).build();
+
+            Map<String, String> documentationMap =
+                    methodSymbol.documentation().map(Documentation::parameterMap).orElse(Map.of());
+            methodTypeSymbol.params().ifPresent(paramList -> paramList.forEach(paramSymbol -> methodParameters.putAll(
+                    getParameters(paramSymbol, documentationMap, paramForTypeInfer, union))));
+            methodTypeSymbol.restParam().ifPresent(paramSymbol -> methodParameters.putAll(
+                    getParameters(paramSymbol, documentationMap, paramForTypeInfer, union)));
+            functionData.setParameters(methodParameters);
+
             functionDataList.add(functionData);
         }
         return functionDataList;
@@ -925,6 +964,15 @@ public class FunctionDataBuilder {
 
         parameterData.typeMembers().add(new ParameterMemberTypeData(type, kind, packageIdentifier,
                 moduleInfo == null ? "" : moduleInfo.packageName()));
+    }
+
+    private void populateReturnTypeLinks(FunctionData functionData, FunctionTypeSymbol functionTypeSymbol,
+                                         String returnTypeString) {
+        Optional<TypeSymbol> returnTypeSymbol = functionTypeSymbol.returnTypeDescriptor();
+        if (returnTypeSymbol.isPresent()) {
+            ReturnTypeData returnTypeData = new ReturnTypeData(returnTypeString, returnTypeSymbol.get());
+            functionData.setReturnTypeData(returnTypeData);
+        }
     }
 
     private Map<String, ParameterData> getIncludedRecordParams(RecordTypeSymbol recordTypeSymbol,

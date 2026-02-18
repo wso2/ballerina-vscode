@@ -7,5 +7,5 @@
   "isNullAsOptional": true,
   "allowAdditionalFields": false,
   "asInline": false,
-  "expectedTypes": "\ntype Parent record {|\n\tint id;\n\tstring name;\n\t() email?;\n\tParent parent?;\n|};\n\ntype Person record {|\n\tint id;\n\tstring name;\n\tstring email;\n\tParent parent;\n|};\n"
+  "expectedTypes": "\npublic type Parent record {|\n\tint id;\n\tstring name;\n\t() email?;\n\tParent parent?;\n|};\n\npublic type Person record {|\n\tint id;\n\tstring name;\n\tstring email;\n\tParent parent;\n|};\n"
 }

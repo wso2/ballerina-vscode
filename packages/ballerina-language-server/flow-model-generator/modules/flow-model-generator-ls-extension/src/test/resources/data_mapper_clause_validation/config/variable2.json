@@ -1,0 +1,37 @@
+{
+  "source": "variable1.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1.bal",
+      "startLine": {
+        "line": 25,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 29,
+        "offset": 6
+      }
+    },
+    "sourceCode": "",
+    "isNew": false
+  },
+  "index": 0,
+  "clause": {
+    "type": "where",
+    "properties": {
+      "expression": "quantity"
+    }
+  },
+  "targetField": "groupedItems.items",
+  "diagnostics": {
+    "hasDiagnostics": true,
+    "diagnostics": [
+      {
+        "severity": "ERROR",
+        "message": "undefined symbol 'quantity'"
+      }
+    ]
+  }
+}

@@ -22,6 +22,7 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.flowmodelgenerator.core.DataMapManager;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddClausesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperClauseDiagnosticsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperClausePositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperConvertRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperCustomFunctionRequest;
@@ -39,6 +40,7 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperTransformFunc
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperTypesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperVisualizeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMappingDeleteRequest;
+import io.ballerina.flowmodelgenerator.extension.response.DataMapperClauseDiagnosticsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperClausePositionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperClearCacheResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperConvertResponse;
@@ -50,7 +52,9 @@ import io.ballerina.flowmodelgenerator.extension.response.DataMapperSubMappingRe
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperTypesResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMapperVisualizeResponse;
 import io.ballerina.flowmodelgenerator.extension.response.DataMappingDeleteResponse;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Project;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.diagramutil.connector.models.connector.ReferenceType;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
@@ -195,6 +199,31 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 DataMapManager dataMapManager = new DataMapManager(document.get());
                 response.setTextEdits(dataMapManager.addClause(filePath, request.codedata(), request.clause(),
                         request.index(), request.targetField()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<DataMapperClauseDiagnosticsResponse> clauseDiagnostics(
+            DataMapperClauseDiagnosticsRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMapperClauseDiagnosticsResponse response = new DataMapperClauseDiagnosticsResponse();
+            try {
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get(
+                        CommonUtils.getExprUri(request.filePath()));
+                Path filePath = Path.of(request.filePath());
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
+                if (document.isEmpty()) {
+                    return response;
+                }
+
+                DataMapManager dataMapManager = new DataMapManager(document.get());
+                response.setDiagnostics(dataMapManager.getClauseDiagnostics(project, request.codedata(),
+                        request.clause(), request.index(), request.targetField()));
             } catch (Throwable e) {
                 response.setError(e);
             }

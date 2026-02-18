@@ -140,7 +140,8 @@
             "advanced": false,
             "hidden": true,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "systemPrompt"
             },
             "defaultValue": "{role: \"\", instructions: \"\"}"
           },
@@ -162,7 +163,8 @@
             "advanced": false,
             "hidden": true,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "model"
             },
             "defaultValue": "object {}"
           },
@@ -216,7 +218,8 @@
             "advanced": true,
             "hidden": true,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "tools"
             },
             "defaultValue": "[]"
           },
@@ -243,7 +246,8 @@
             "advanced": true,
             "hidden": false,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "maxIter"
             },
             "defaultValue": "INFER_TOOL_COUNT"
           },
@@ -270,7 +274,8 @@
             "advanced": true,
             "hidden": false,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "verbose"
             },
             "defaultValue": "false"
           },
@@ -292,7 +297,8 @@
             "advanced": true,
             "hidden": true,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "memory"
             },
             "defaultValue": "()"
           },
@@ -328,7 +334,8 @@
             "advanced": true,
             "hidden": false,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "toolLoadingStrategy"
             },
             "defaultValue": "NO_FILTER"
           },
@@ -413,10 +420,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": true,
-            "codedata": {
-              "kind": ""
-            }
+            "hidden": true
           },
           "role": {
             "metadata": {

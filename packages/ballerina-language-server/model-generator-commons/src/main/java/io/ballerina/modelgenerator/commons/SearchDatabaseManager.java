@@ -48,6 +48,15 @@ public class SearchDatabaseManager {
     private static final Logger LOGGER = Logger.getLogger(SearchDatabaseManager.class.getName());
     private final String dbPath;
 
+    /**
+     * Returns the JDBC database path for the search-index.sqlite file.
+     *
+     * @return the JDBC connection string
+     */
+    public String getDbPath() {
+        return dbPath;
+    }
+
     private static class Holder {
 
         private static final SearchDatabaseManager INSTANCE = new SearchDatabaseManager();

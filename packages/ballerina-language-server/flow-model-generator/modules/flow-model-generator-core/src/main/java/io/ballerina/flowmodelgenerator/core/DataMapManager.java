@@ -94,6 +94,8 @@ import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.WhereClauseNode;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.Diagnostics;
+import io.ballerina.flowmodelgenerator.core.model.Diagnostics.Info;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
@@ -105,9 +107,12 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.ModuleDescriptor;
+import io.ballerina.projects.Project;
+import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
+import io.ballerina.tools.text.TextDocumentChange;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.diagramutil.connector.models.connector.ReferenceType;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
@@ -674,6 +679,8 @@ public class DataMapManager {
         } else if (targetExpr.kind() == SyntaxKind.LET_EXPRESSION) {
             if (fieldSplits.length == 1) {
                 return new MatchingNode(((LetExpressionNode) targetExpr).expression(), null, (LetExpressionNode) expr);
+            } else {
+                targetExpr = ((LetExpressionNode) targetExpr).expression();
             }
         }
 
@@ -1878,6 +1885,96 @@ public class DataMapManager {
         return gson.toJsonTree(textEditsMap);
     }
 
+    public JsonElement getClauseDiagnostics(Project project, JsonElement cd, JsonElement cl, int index,
+                                            String targetField) {
+        Clause clause = gson.fromJson(cl, Clause.class);
+        Codedata codedata = gson.fromJson(cd, Codedata.class);
+        NonTerminalNode node = getNode(codedata.lineRange());
+
+        List<Diagnostics.Info> diagnosticsInfoList = new ArrayList<>();
+
+        ExpressionNode expr = getMappingExpr(node);
+        if (expr == null) {
+            return gson.toJsonTree(new Diagnostics(false, diagnosticsInfoList));
+        }
+        MatchingNode matchingNode = getTargetMappingExpr(expr, targetField);
+        if (matchingNode == null) {
+            return gson.toJsonTree(new Diagnostics(false, diagnosticsInfoList));
+        }
+        QueryExpressionNode queryExpr = matchingNode.queryExpr();
+        if (queryExpr == null) {
+            return gson.toJsonTree(new Diagnostics(false, diagnosticsInfoList));
+        }
+
+        TextDocument textDocument = document.textDocument();
+        String clauseStr = genClause(clause);
+        NodeList<IntermediateClauseNode> intermediateClauseNodes = queryExpr.queryPipeline().intermediateClauses();
+        TextRange textRange;
+        boolean isNewClause = codedata.isNew() != null && codedata.isNew();
+        if (isNewClause) {
+            LinePosition insertPosition;
+            clauseStr = System.lineSeparator() + clauseStr;
+            if (index == -1) {
+                insertPosition = queryExpr.queryPipeline().fromClause().lineRange().endLine();
+            } else {
+                if (index >= intermediateClauseNodes.size()) {
+                    return gson.toJsonTree(new Diagnostics(false, diagnosticsInfoList));
+                }
+                insertPosition = intermediateClauseNodes.get(index).lineRange().endLine();
+            }
+            textRange = TextRange.from(textDocument.textPositionFrom(insertPosition), 0);
+        } else {
+            if (index >= intermediateClauseNodes.size()) {
+                return gson.toJsonTree(new Diagnostics(false, diagnosticsInfoList));
+            }
+            LineRange lineRange = intermediateClauseNodes.get(index).lineRange();
+            int start = textDocument.textPositionFrom(lineRange.startLine());
+            int end = textDocument.textPositionFrom(lineRange.endLine());
+            textRange = TextRange.from(start, end - start);
+        }
+
+        TextDocument newTextDocument = textDocument.apply(
+                TextDocumentChange.from(List.of(io.ballerina.tools.text.TextEdit.from(textRange, clauseStr))
+                        .toArray(new io.ballerina.tools.text.TextEdit[0])));
+        Document updatedDoc = document
+                .modify()
+                .withContent(String.join(System.lineSeparator(), newTextDocument.textLines()))
+                .apply();
+
+        SemanticModel semanticModel = project.currentPackage().getCompilation()
+                .getSemanticModel(project.currentPackage().getDefaultModule().moduleId());
+        LineRange lineRange = queryExpr.lineRange();
+        Node newNode = getQueryNode(updatedDoc, lineRange, isNewClause);
+        if (newNode.kind() != SyntaxKind.QUERY_EXPRESSION) {
+            return gson.toJsonTree(new Diagnostics(false, diagnosticsInfoList));
+        }
+
+        QueryExpressionNode newQuery = (QueryExpressionNode) newNode;
+        int clauseIndex = isNewClause ? index + 1 : index;
+        List<Diagnostic> diagnostics = semanticModel.diagnostics(
+                newQuery.queryPipeline().intermediateClauses().get(clauseIndex).lineRange());
+
+        for (Diagnostic diagnostic : diagnostics) {
+            Info diagInfo = new Info(diagnostic.diagnosticInfo().severity(), diagnostic.message());
+            diagnosticsInfoList.add(diagInfo);
+        }
+
+        return gson.toJsonTree(new Diagnostics(!diagnostics.isEmpty(), diagnosticsInfoList));
+    }
+
+    private Node getQueryNode(Document document, LineRange lineRange, boolean isNew) {
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode modulePartNode = syntaxTree.rootNode();
+        TextDocument textDocument = syntaxTree.textDocument();
+
+        LinePosition startPos = lineRange.startLine();
+        LinePosition endPos = lineRange.endLine();
+        int start = textDocument.textPositionFrom(startPos);
+        LinePosition endLine = LinePosition.from(isNew ? endPos.line() + 1 : endPos.line(), endPos.offset());
+        int end = textDocument.textPositionFrom(endLine);
+        return modulePartNode.findNode(TextRange.from(start, end - start), true);
+    }
+
     public JsonElement deleteClause(Path filePath, JsonElement cd, int index, String targetField) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode node = getNode(codedata.lineRange());
@@ -2764,7 +2861,7 @@ public class DataMapManager {
             return "[]";
         }
 
-        return  switch (returnType) {
+        return switch (returnType) {
             case INT -> "0";
             case FLOAT -> "0.0";
             case DECIMAL -> "0.0d";

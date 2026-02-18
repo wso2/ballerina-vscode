@@ -19,6 +19,8 @@
 package io.ballerina.copilotagent.core;
 
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.copilotagent.core.models.ServiceMemberMap;
@@ -43,7 +45,12 @@ public class ServiceMethodExtractor extends NodeVisitor {
 
     @Override
     public void visit(FunctionDefinitionNode functionDefinitionNode) {
-        String key =  functionDefinitionNode.functionName().toSourceCode().trim();
-        this.serviceMemberMap.putObjectMethod(key, functionDefinitionNode);
+        String functionName = functionDefinitionNode.functionName().toSourceCode().trim();
+        NodeList<Node> resourcePath = functionDefinitionNode.relativeResourcePath();
+        StringBuilder keyBuilder = new StringBuilder(functionName);
+        for (Node path : resourcePath) {
+            keyBuilder.append(" ").append(path.toSourceCode().trim());
+        }
+        this.serviceMemberMap.putObjectMethod(keyBuilder.toString(), functionDefinitionNode);
     }
 }

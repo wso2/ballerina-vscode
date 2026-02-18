@@ -19,7 +19,6 @@
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.projects.SemanticVersion;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
@@ -27,7 +26,6 @@ import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContex
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.eclipse.lsp4j.TextEdit;
-import org.wso2.ballerinalang.util.RepoUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -55,35 +53,15 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
 
     private static final String AGENT_NAME_PROPERTY = "agentName";
     private static final String AGENT = "Agent";
-    private static final String MODEL = "Model";
     private static final String DEFAULT_AGENT_NAME = "chat";
-    private static final String MIN_BALLERINA_VERSION = "2201.13.0";
 
-    private static String getServiceFields(String agentVarName) {
-        return "    private final ai:Agent " + agentVarName + ";";
-    }
-
-    private static String getServiceInitFunction(String agentVarName, String modelVarName) {
-        return String.format(
-                "    function init() returns error? { %s" +
-                        "        self.%s = check new (%s" +
-                        "            systemPrompt = {role: string ``, instructions: string ``}, model = %s" +
-                        ", tools = []%s" +
-                        "        );%s" +
-                        "    }",
-                NEW_LINE, agentVarName, NEW_LINE, modelVarName, NEW_LINE, NEW_LINE
-        );
-    }
-
-    private String buildAgentMethodCall(String agentVarName, String orgName, boolean useSelfReference) {
-        String prefix = useSelfReference ? "self." : "";
+    private String buildAgentMethodCall(String agentVarName, String orgName) {
         String operator = BALLERINA.equals(orgName) ? "." : "->";
-        return String.format("%s%s%srun(request.message, request.sessionId)", prefix, agentVarName, operator);
+        return String.format("%s%srun(request.message, request.sessionId)", agentVarName, operator);
     }
 
     private String getAgentChatFunction(String agentVarName, String orgName) {
-        boolean useSelfReference = isBallerinaVersionAtLeast(MIN_BALLERINA_VERSION);
-        String methodCall = buildAgentMethodCall(agentVarName, orgName, useSelfReference);
+        String methodCall = buildAgentMethodCall(agentVarName, orgName);
 
         return String.format(
                 "    resource function post chat(@http:Payload ai:ChatReqMessage request) " +
@@ -115,7 +93,6 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
 
         String agentName = getAgentNameFromService(service);
         String agentVarName = agentName + AGENT;
-        String modelVarName = agentName + MODEL;
 
         addDefaultListenerEdit(context, edits);
 
@@ -124,7 +101,7 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
 
         StringBuilder serviceBuilder = new StringBuilder(NEW_LINE);
         buildServiceNodeStr(service, serviceBuilder);
-        buildServiceNodeBody(getServiceMembers(agentVarName, modelVarName, service.getOrgName()), serviceBuilder);
+        buildServiceNodeBody(getServiceMembers(agentVarName, service.getOrgName()), serviceBuilder);
 
         ModulePartNode rootNode = context.document().syntaxTree().rootNode();
         edits.add(new TextEdit(Utils.toRange(rootNode.lineRange().endLine()), serviceBuilder.toString()));
@@ -171,37 +148,10 @@ public final class AiChatServiceBuilder extends AbstractServiceBuilder {
         }
     }
 
-    private List<String> getServiceMembers(String agentVarName, String modelVarName, String orgName) {
+    private List<String> getServiceMembers(String agentVarName, String orgName) {
         List<String> members = new ArrayList<>();
-
-        // Check Ballerina version - only include fields and init function for 2201.13.0+
-        if (isBallerinaVersionAtLeast(MIN_BALLERINA_VERSION)) {
-            members.add(getServiceFields(agentVarName));
-            members.add(getServiceInitFunction(agentVarName, modelVarName));
-        }
-
         members.add(getAgentChatFunction(agentVarName, orgName));
         return members;
-    }
-
-    private boolean isBallerinaVersionAtLeast(String minVersion) {
-        try {
-            String ballerinaVersion = RepoUtils.getBallerinaPackVersion();
-            if (ballerinaVersion == null || ballerinaVersion.isEmpty()) {
-                return false;
-            }
-            String[] versionParts = ballerinaVersion.split("-");
-            if (versionParts.length == 0 || versionParts[0].isEmpty()) {
-                return false;
-            }
-            String coreVersion = versionParts[0];
-            SemanticVersion current = SemanticVersion.from(coreVersion);
-            SemanticVersion minimum = SemanticVersion.from(minVersion);
-            return current.greaterThanOrEqualTo(minimum);
-        } catch (RuntimeException e) {
-            // If version check fails, default to generating agent at module level
-            return false;
-        }
     }
 
     private void addRequiredImports(Service service, ModulePartNode rootNode, List<TextEdit> edits) {
