@@ -60,3 +60,11 @@ compileJava {
         classpath = files()
     }
 }
+
+task runSearchListGenerator(type: JavaExec) {
+    group = 'application'
+    description = 'Run SearchListGenerator to generate search_list.json'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'io.ballerina.indexgenerator.SearchListGenerator'
+    workingDir = rootProject.projectDir
+}
