@@ -36,11 +36,11 @@
               "lineRange": {
                 "fileName": "main.bal",
                 "startLine": {
-                  "line": 17,
+                  "line": 15,
                   "offset": 11
                 },
                 "endLine": {
-                  "line": 17,
+                  "line": 15,
                   "offset": 22
                 }
               }
@@ -73,14 +73,17 @@
           "label": "Service Configuration",
           "description": "Define service-level configuration such as monitoring path"
         },
-        "enabled": true,
-        "editable": true,
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ServiceConfig",
+          "moduleName": "ftp"
+        },
+        "placeholder": "{}",
         "value": "{\n    path: \"/\"\n}",
         "types": [
           {
             "fieldType": "RECORD_MAP_EXPRESSION",
             "ballerinaType": "ftp:ServiceConfig",
-            "selected": true,
             "typeMembers": [
               {
                 "type": "ServiceConfig",
@@ -89,18 +92,14 @@
                 "kind": "RECORD_TYPE",
                 "selected": true
               }
-            ]
+            ],
+            "selected": true
           }
         ],
-        "isType": false,
-        "placeholder": "{}",
+        "enabled": true,
+        "editable": true,
         "optional": false,
-        "advanced": false,
-        "codedata": {
-          "type": "ANNOTATION_ATTACHMENT",
-          "originalName": "ServiceConfig",
-          "moduleName": "ftp"
-        }
+        "advanced": false
       },
       "readOnlyMetadata": {
         "codedata": {
@@ -108,9 +107,7 @@
         },
         "placeholder": "false",
         "value": {
-          "Protocol": [
-            "ftp:FTP"
-          ]
+          "Protocol": []
         },
         "types": [
           {
@@ -128,11 +125,11 @@
       "lineRange": {
         "fileName": "main.bal",
         "startLine": {
-          "line": 17,
+          "line": 15,
           "offset": 0
         },
         "endLine": {
-          "line": 33,
+          "line": 31,
           "offset": 1
         }
       },
@@ -240,7 +237,7 @@
               "optional": false,
               "advanced": false
             },
-            "enabled": true,
+            "enabled": false,
             "editable": true,
             "optional": true,
             "advanced": true,
@@ -289,54 +286,27 @@
               "label": "After File Processing",
               "description": "Configure actions after file processing"
             },
-            "enabled": true,
-            "editable": true,
             "value": "",
-            "types": [
-              {
-                "fieldType": "OPTIONAL_CHOICE_GROUP",
-                "selected": true
-              }
-            ],
-            "optional": false,
-            "advanced": false,
             "properties": {
               "onSuccess": {
                 "metadata": {
                   "label": "If Handler Succeeds",
                   "description": "Action when handler completes without returning an error"
                 },
-                "enabled": false,
-                "editable": true,
                 "value": "",
-                "types": [
-                  {
-                    "fieldType": "CHOICE",
-                    "selected": true
-                  }
-                ],
-                "optional": false,
-                "advanced": false,
                 "choices": [
                   {
                     "metadata": {
                       "label": "Move",
                       "description": "Move the file to a different location after successful processing"
                     },
-                    "enabled": true,
-                    "editable": false,
                     "value": "MOVE",
-                    "valueType": "FORM",
-                    "optional": false,
-                    "advanced": false,
                     "properties": {
                       "moveTo": {
                         "metadata": {
                           "label": "Move To",
                           "description": "Destination path to move the file"
                         },
-                        "enabled": true,
-                        "editable": true,
                         "value": "",
                         "types": [
                           {
@@ -350,63 +320,59 @@
                             "selected": false
                           }
                         ],
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "string",
+                        "enabled": true,
+                        "editable": true,
                         "optional": false,
                         "advanced": false
                       }
-                    }
+                    },
+                    "enabled": true,
+                    "editable": false,
+                    "optional": false,
+                    "advanced": false
                   },
                   {
                     "metadata": {
                       "label": "Delete",
                       "description": "Delete the file after successful processing"
                     },
+                    "value": "DELETE",
                     "enabled": false,
                     "editable": false,
-                    "value": "DELETE",
-                    "valueType": "FORM",
                     "optional": false,
                     "advanced": false
                   }
-                ]
-              },
-              "onError": {
-                "metadata": {
-                  "label": "If Handler Fails",
-                  "description": "Action when handler returns an error"
-                },
-                "enabled": false,
-                "editable": true,
-                "value": "",
+                ],
                 "types": [
                   {
                     "fieldType": "CHOICE",
                     "selected": true
                   }
                 ],
+                "enabled": true,
+                "editable": true,
                 "optional": false,
-                "advanced": false,
+                "advanced": false
+              },
+              "onError": {
+                "metadata": {
+                  "label": "If Handler Fails",
+                  "description": "Action when handler returns an error"
+                },
+                "value": "",
                 "choices": [
                   {
                     "metadata": {
                       "label": "Move",
                       "description": "Move the file to a different location after error"
                     },
-                    "enabled": true,
-                    "editable": false,
                     "value": "MOVE",
-                    "valueType": "FORM",
-                    "optional": false,
-                    "advanced": false,
                     "properties": {
                       "moveTo": {
                         "metadata": {
                           "label": "Move To",
                           "description": "Destination path to move the file"
                         },
-                        "enabled": true,
-                        "editable": true,
                         "value": "",
                         "types": [
                           {
@@ -420,28 +386,50 @@
                             "selected": false
                           }
                         ],
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "string",
+                        "enabled": true,
+                        "editable": true,
                         "optional": false,
                         "advanced": false
                       }
-                    }
+                    },
+                    "enabled": true,
+                    "editable": false,
+                    "optional": false,
+                    "advanced": false
                   },
                   {
                     "metadata": {
                       "label": "Delete",
                       "description": "Delete the file after error"
                     },
+                    "value": "DELETE",
                     "enabled": false,
                     "editable": false,
-                    "value": "DELETE",
-                    "valueType": "FORM",
                     "optional": false,
                     "advanced": false
                   }
-                ]
+                ],
+                "types": [
+                  {
+                    "fieldType": "CHOICE",
+                    "selected": true
+                  }
+                ],
+                "enabled": true,
+                "editable": true,
+                "optional": false,
+                "advanced": false
               }
-            }
+            },
+            "types": [
+              {
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
           }
         }
       },
@@ -574,11 +562,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 18,
+              "line": 16,
               "offset": 4
             },
             "endLine": {
-              "line": 24,
+              "line": 22,
               "offset": 5
             }
           },
@@ -597,54 +585,27 @@
               "label": "After File Processing",
               "description": "Configure actions after file processing"
             },
-            "enabled": true,
-            "editable": true,
             "value": "",
-            "types": [
-              {
-                "fieldType": "OPTIONAL_CHOICE_GROUP",
-                "selected": true
-              }
-            ],
-            "optional": false,
-            "advanced": false,
             "properties": {
               "onSuccess": {
                 "metadata": {
                   "label": "If Handler Succeeds",
                   "description": "Action when handler completes without returning an error"
                 },
-                "enabled": false,
-                "editable": true,
                 "value": "",
-                "types": [
-                  {
-                    "fieldType": "CHOICE",
-                    "selected": true
-                  }
-                ],
-                "optional": false,
-                "advanced": false,
                 "choices": [
                   {
                     "metadata": {
                       "label": "Move",
                       "description": "Move the file to a different location after successful processing"
                     },
-                    "enabled": true,
-                    "editable": false,
                     "value": "MOVE",
-                    "valueType": "FORM",
-                    "optional": false,
-                    "advanced": false,
                     "properties": {
                       "moveTo": {
                         "metadata": {
                           "label": "Move To",
                           "description": "Destination path to move the file"
                         },
-                        "enabled": true,
-                        "editable": true,
                         "value": "",
                         "types": [
                           {
@@ -658,63 +619,59 @@
                             "selected": false
                           }
                         ],
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "string",
+                        "enabled": true,
+                        "editable": true,
                         "optional": false,
                         "advanced": false
                       }
-                    }
+                    },
+                    "enabled": true,
+                    "editable": false,
+                    "optional": false,
+                    "advanced": false
                   },
                   {
                     "metadata": {
                       "label": "Delete",
                       "description": "Delete the file after successful processing"
                     },
+                    "value": "DELETE",
                     "enabled": false,
                     "editable": false,
-                    "value": "DELETE",
-                    "valueType": "FORM",
                     "optional": false,
                     "advanced": false
                   }
-                ]
-              },
-              "onError": {
-                "metadata": {
-                  "label": "If Handler Fails",
-                  "description": "Action when handler returns an error"
-                },
-                "enabled": false,
-                "editable": true,
-                "value": "",
+                ],
                 "types": [
                   {
                     "fieldType": "CHOICE",
                     "selected": true
                   }
                 ],
+                "enabled": false,
+                "editable": true,
                 "optional": false,
-                "advanced": false,
+                "advanced": false
+              },
+              "onError": {
+                "metadata": {
+                  "label": "If Handler Fails",
+                  "description": "Action when handler returns an error"
+                },
+                "value": "",
                 "choices": [
                   {
                     "metadata": {
                       "label": "Move",
                       "description": "Move the file to a different location after error"
                     },
-                    "enabled": true,
-                    "editable": false,
                     "value": "MOVE",
-                    "valueType": "FORM",
-                    "optional": false,
-                    "advanced": false,
                     "properties": {
                       "moveTo": {
                         "metadata": {
                           "label": "Move To",
                           "description": "Destination path to move the file"
                         },
-                        "enabled": true,
-                        "editable": true,
                         "value": "",
                         "types": [
                           {
@@ -728,28 +685,50 @@
                             "selected": false
                           }
                         ],
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "string",
+                        "enabled": true,
+                        "editable": true,
                         "optional": false,
                         "advanced": false
                       }
-                    }
+                    },
+                    "enabled": true,
+                    "editable": false,
+                    "optional": false,
+                    "advanced": false
                   },
                   {
                     "metadata": {
                       "label": "Delete",
                       "description": "Delete the file after error"
                     },
+                    "value": "DELETE",
                     "enabled": false,
                     "editable": false,
-                    "value": "DELETE",
-                    "valueType": "FORM",
                     "optional": false,
                     "advanced": false
                   }
-                ]
+                ],
+                "types": [
+                  {
+                    "fieldType": "CHOICE",
+                    "selected": true
+                  }
+                ],
+                "enabled": false,
+                "editable": true,
+                "optional": false,
+                "advanced": false
               }
-            }
+            },
+            "types": [
+              {
+                "selected": true
+              }
+            ],
+            "enabled": false,
+            "editable": true,
+            "optional": false,
+            "advanced": false
           }
         }
       },
@@ -882,11 +861,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 26,
+              "line": 24,
               "offset": 4
             },
             "endLine": {
-              "line": 32,
+              "line": 30,
               "offset": 5
             }
           },
@@ -905,54 +884,27 @@
               "label": "After File Processing",
               "description": "Configure actions after file processing"
             },
-            "enabled": true,
-            "editable": true,
             "value": "",
-            "types": [
-              {
-                "fieldType": "OPTIONAL_CHOICE_GROUP",
-                "selected": true
-              }
-            ],
-            "optional": false,
-            "advanced": false,
             "properties": {
               "onSuccess": {
                 "metadata": {
                   "label": "If Handler Succeeds",
                   "description": "Action when handler completes without returning an error"
                 },
-                "enabled": false,
-                "editable": true,
                 "value": "",
-                "types": [
-                  {
-                    "fieldType": "CHOICE",
-                    "selected": true
-                  }
-                ],
-                "optional": false,
-                "advanced": false,
                 "choices": [
                   {
                     "metadata": {
                       "label": "Move",
                       "description": "Move the file to a different location after successful processing"
                     },
-                    "enabled": true,
-                    "editable": false,
                     "value": "MOVE",
-                    "valueType": "FORM",
-                    "optional": false,
-                    "advanced": false,
                     "properties": {
                       "moveTo": {
                         "metadata": {
                           "label": "Move To",
                           "description": "Destination path to move the file"
                         },
-                        "enabled": true,
-                        "editable": true,
                         "value": "",
                         "types": [
                           {
@@ -966,63 +918,59 @@
                             "selected": false
                           }
                         ],
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "string",
+                        "enabled": true,
+                        "editable": true,
                         "optional": false,
                         "advanced": false
                       }
-                    }
+                    },
+                    "enabled": true,
+                    "editable": false,
+                    "optional": false,
+                    "advanced": false
                   },
                   {
                     "metadata": {
                       "label": "Delete",
                       "description": "Delete the file after successful processing"
                     },
+                    "value": "DELETE",
                     "enabled": false,
                     "editable": false,
-                    "value": "DELETE",
-                    "valueType": "FORM",
                     "optional": false,
                     "advanced": false
                   }
-                ]
-              },
-              "onError": {
-                "metadata": {
-                  "label": "If Handler Fails",
-                  "description": "Action when handler returns an error"
-                },
-                "enabled": false,
-                "editable": true,
-                "value": "",
+                ],
                 "types": [
                   {
                     "fieldType": "CHOICE",
                     "selected": true
                   }
                 ],
+                "enabled": false,
+                "editable": true,
                 "optional": false,
-                "advanced": false,
+                "advanced": false
+              },
+              "onError": {
+                "metadata": {
+                  "label": "If Handler Fails",
+                  "description": "Action when handler returns an error"
+                },
+                "value": "",
                 "choices": [
                   {
                     "metadata": {
                       "label": "Move",
                       "description": "Move the file to a different location after error"
                     },
-                    "enabled": true,
-                    "editable": false,
                     "value": "MOVE",
-                    "valueType": "FORM",
-                    "optional": false,
-                    "advanced": false,
                     "properties": {
                       "moveTo": {
                         "metadata": {
                           "label": "Move To",
                           "description": "Destination path to move the file"
                         },
-                        "enabled": true,
-                        "editable": true,
                         "value": "",
                         "types": [
                           {
@@ -1036,28 +984,50 @@
                             "selected": false
                           }
                         ],
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "string",
+                        "enabled": true,
+                        "editable": true,
                         "optional": false,
                         "advanced": false
                       }
-                    }
+                    },
+                    "enabled": true,
+                    "editable": false,
+                    "optional": false,
+                    "advanced": false
                   },
                   {
                     "metadata": {
                       "label": "Delete",
                       "description": "Delete the file after error"
                     },
+                    "value": "DELETE",
                     "enabled": false,
                     "editable": false,
-                    "value": "DELETE",
-                    "valueType": "FORM",
                     "optional": false,
                     "advanced": false
                   }
-                ]
+                ],
+                "types": [
+                  {
+                    "fieldType": "CHOICE",
+                    "selected": true
+                  }
+                ],
+                "enabled": false,
+                "editable": true,
+                "optional": false,
+                "advanced": false
               }
-            }
+            },
+            "types": [
+              {
+                "selected": true
+              }
+            ],
+            "enabled": false,
+            "editable": true,
+            "optional": false,
+            "advanced": false
           }
         }
       },
@@ -1160,7 +1130,7 @@
               "optional": false,
               "advanced": false
             },
-            "enabled": true,
+            "enabled": false,
             "editable": true,
             "optional": true,
             "advanced": true,
@@ -1195,54 +1165,27 @@
               "label": "After File Processing",
               "description": "Configure actions after file processing"
             },
-            "enabled": true,
-            "editable": true,
             "value": "",
-            "types": [
-              {
-                "fieldType": "OPTIONAL_CHOICE_GROUP",
-                "selected": true
-              }
-            ],
-            "optional": false,
-            "advanced": false,
             "properties": {
               "onSuccess": {
                 "metadata": {
                   "label": "If Handler Succeeds",
                   "description": "Action when handler completes without returning an error"
                 },
-                "enabled": false,
-                "editable": true,
                 "value": "",
-                "types": [
-                  {
-                    "fieldType": "CHOICE",
-                    "selected": true
-                  }
-                ],
-                "optional": false,
-                "advanced": false,
                 "choices": [
                   {
                     "metadata": {
                       "label": "Move",
                       "description": "Move the file to a different location after successful processing"
                     },
-                    "enabled": true,
-                    "editable": false,
                     "value": "MOVE",
-                    "valueType": "FORM",
-                    "optional": false,
-                    "advanced": false,
                     "properties": {
                       "moveTo": {
                         "metadata": {
                           "label": "Move To",
                           "description": "Destination path to move the file"
                         },
-                        "enabled": true,
-                        "editable": true,
                         "value": "",
                         "types": [
                           {
@@ -1256,63 +1199,59 @@
                             "selected": false
                           }
                         ],
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "string",
+                        "enabled": true,
+                        "editable": true,
                         "optional": false,
                         "advanced": false
                       }
-                    }
+                    },
+                    "enabled": true,
+                    "editable": false,
+                    "optional": false,
+                    "advanced": false
                   },
                   {
                     "metadata": {
                       "label": "Delete",
                       "description": "Delete the file after successful processing"
                     },
+                    "value": "DELETE",
                     "enabled": false,
                     "editable": false,
-                    "value": "DELETE",
-                    "valueType": "FORM",
                     "optional": false,
                     "advanced": false
                   }
-                ]
-              },
-              "onError": {
-                "metadata": {
-                  "label": "If Handler Fails",
-                  "description": "Action when handler returns an error"
-                },
-                "enabled": false,
-                "editable": true,
-                "value": "",
+                ],
                 "types": [
                   {
                     "fieldType": "CHOICE",
                     "selected": true
                   }
                 ],
+                "enabled": true,
+                "editable": true,
                 "optional": false,
-                "advanced": false,
+                "advanced": false
+              },
+              "onError": {
+                "metadata": {
+                  "label": "If Handler Fails",
+                  "description": "Action when handler returns an error"
+                },
+                "value": "",
                 "choices": [
                   {
                     "metadata": {
                       "label": "Move",
                       "description": "Move the file to a different location after error"
                     },
-                    "enabled": true,
-                    "editable": false,
                     "value": "MOVE",
-                    "valueType": "FORM",
-                    "optional": false,
-                    "advanced": false,
                     "properties": {
                       "moveTo": {
                         "metadata": {
                           "label": "Move To",
                           "description": "Destination path to move the file"
                         },
-                        "enabled": true,
-                        "editable": true,
                         "value": "",
                         "types": [
                           {
@@ -1326,28 +1265,50 @@
                             "selected": false
                           }
                         ],
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "string",
+                        "enabled": true,
+                        "editable": true,
                         "optional": false,
                         "advanced": false
                       }
-                    }
+                    },
+                    "enabled": true,
+                    "editable": false,
+                    "optional": false,
+                    "advanced": false
                   },
                   {
                     "metadata": {
                       "label": "Delete",
                       "description": "Delete the file after error"
                     },
+                    "value": "DELETE",
                     "enabled": false,
                     "editable": false,
-                    "value": "DELETE",
-                    "valueType": "FORM",
                     "optional": false,
                     "advanced": false
                   }
-                ]
+                ],
+                "types": [
+                  {
+                    "fieldType": "CHOICE",
+                    "selected": true
+                  }
+                ],
+                "enabled": true,
+                "editable": true,
+                "optional": false,
+                "advanced": false
               }
-            }
+            },
+            "types": [
+              {
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
           }
         }
       },
@@ -1450,7 +1411,7 @@
               "optional": false,
               "advanced": false
             },
-            "enabled": true,
+            "enabled": false,
             "editable": true,
             "optional": true,
             "advanced": true,
@@ -1492,54 +1453,27 @@
               "label": "After File Processing",
               "description": "Configure actions after file processing"
             },
-            "enabled": true,
-            "editable": true,
             "value": "",
-            "types": [
-              {
-                "fieldType": "OPTIONAL_CHOICE_GROUP",
-                "selected": true
-              }
-            ],
-            "optional": false,
-            "advanced": false,
             "properties": {
               "onSuccess": {
                 "metadata": {
                   "label": "If Handler Succeeds",
                   "description": "Action when handler completes without returning an error"
                 },
-                "enabled": false,
-                "editable": true,
                 "value": "",
-                "types": [
-                  {
-                    "fieldType": "CHOICE",
-                    "selected": true
-                  }
-                ],
-                "optional": false,
-                "advanced": false,
                 "choices": [
                   {
                     "metadata": {
                       "label": "Move",
                       "description": "Move the file to a different location after successful processing"
                     },
-                    "enabled": true,
-                    "editable": false,
                     "value": "MOVE",
-                    "valueType": "FORM",
-                    "optional": false,
-                    "advanced": false,
                     "properties": {
                       "moveTo": {
                         "metadata": {
                           "label": "Move To",
                           "description": "Destination path to move the file"
                         },
-                        "enabled": true,
-                        "editable": true,
                         "value": "",
                         "types": [
                           {
@@ -1553,63 +1487,59 @@
                             "selected": false
                           }
                         ],
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "string",
+                        "enabled": true,
+                        "editable": true,
                         "optional": false,
                         "advanced": false
                       }
-                    }
+                    },
+                    "enabled": true,
+                    "editable": false,
+                    "optional": false,
+                    "advanced": false
                   },
                   {
                     "metadata": {
                       "label": "Delete",
                       "description": "Delete the file after successful processing"
                     },
+                    "value": "DELETE",
                     "enabled": false,
                     "editable": false,
-                    "value": "DELETE",
-                    "valueType": "FORM",
                     "optional": false,
                     "advanced": false
                   }
-                ]
-              },
-              "onError": {
-                "metadata": {
-                  "label": "If Handler Fails",
-                  "description": "Action when handler returns an error"
-                },
-                "enabled": false,
-                "editable": true,
-                "value": "",
+                ],
                 "types": [
                   {
                     "fieldType": "CHOICE",
                     "selected": true
                   }
                 ],
+                "enabled": true,
+                "editable": true,
                 "optional": false,
-                "advanced": false,
+                "advanced": false
+              },
+              "onError": {
+                "metadata": {
+                  "label": "If Handler Fails",
+                  "description": "Action when handler returns an error"
+                },
+                "value": "",
                 "choices": [
                   {
                     "metadata": {
                       "label": "Move",
                       "description": "Move the file to a different location after error"
                     },
-                    "enabled": true,
-                    "editable": false,
                     "value": "MOVE",
-                    "valueType": "FORM",
-                    "optional": false,
-                    "advanced": false,
                     "properties": {
                       "moveTo": {
                         "metadata": {
                           "label": "Move To",
                           "description": "Destination path to move the file"
                         },
-                        "enabled": true,
-                        "editable": true,
                         "value": "",
                         "types": [
                           {
@@ -1623,28 +1553,50 @@
                             "selected": false
                           }
                         ],
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "string",
+                        "enabled": true,
+                        "editable": true,
                         "optional": false,
                         "advanced": false
                       }
-                    }
+                    },
+                    "enabled": true,
+                    "editable": false,
+                    "optional": false,
+                    "advanced": false
                   },
                   {
                     "metadata": {
                       "label": "Delete",
                       "description": "Delete the file after error"
                     },
+                    "value": "DELETE",
                     "enabled": false,
                     "editable": false,
-                    "value": "DELETE",
-                    "valueType": "FORM",
                     "optional": false,
                     "advanced": false
                   }
-                ]
+                ],
+                "types": [
+                  {
+                    "fieldType": "CHOICE",
+                    "selected": true
+                  }
+                ],
+                "enabled": true,
+                "editable": true,
+                "optional": false,
+                "advanced": false
               }
-            }
+            },
+            "types": [
+              {
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
           }
         }
       },
@@ -1718,7 +1670,7 @@
               "optional": false,
               "advanced": false
             },
-            "enabled": true,
+            "enabled": false,
             "editable": true,
             "optional": true,
             "advanced": true,
@@ -1783,8 +1735,8 @@
               "advanced": false
             },
             "name": {
-              "placeholder": "ftpError",
-              "value": "ftpError",
+              "placeholder": "err",
+              "value": "err",
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -1793,35 +1745,6 @@
             "enabled": true,
             "editable": false,
             "optional": false,
-            "advanced": false,
-            "hidden": false,
-            "isGraphqlId": false
-          },
-          {
-            "metadata": {
-              "label": "File Metadata (fileInfo)",
-              "description": "Information about the file that caused the error"
-            },
-            "kind": "REQUIRED",
-            "type": {
-              "placeholder": "ftp:FileInfo",
-              "value": "ftp:FileInfo",
-              "enabled": true,
-              "editable": false,
-              "optional": false,
-              "advanced": false
-            },
-            "name": {
-              "placeholder": "fileInfo",
-              "value": "fileInfo",
-              "enabled": true,
-              "editable": true,
-              "optional": false,
-              "advanced": false
-            },
-            "enabled": true,
-            "editable": true,
-            "optional": true,
             "advanced": false,
             "hidden": false,
             "isGraphqlId": false
@@ -1848,7 +1771,7 @@
               "optional": false,
               "advanced": false
             },
-            "enabled": true,
+            "enabled": false,
             "editable": true,
             "optional": true,
             "advanced": true,
@@ -1883,54 +1806,27 @@
               "label": "After File Processing",
               "description": "Configure actions after file processing"
             },
-            "enabled": true,
-            "editable": true,
             "value": "",
-            "types": [
-              {
-                "fieldType": "OPTIONAL_CHOICE_GROUP",
-                "selected": true
-              }
-            ],
-            "optional": false,
-            "advanced": false,
             "properties": {
               "onSuccess": {
                 "metadata": {
                   "label": "If Handler Succeeds",
                   "description": "Action when handler completes without returning an error"
                 },
-                "enabled": false,
-                "editable": true,
                 "value": "",
-                "types": [
-                  {
-                    "fieldType": "CHOICE",
-                    "selected": true
-                  }
-                ],
-                "optional": false,
-                "advanced": false,
                 "choices": [
                   {
                     "metadata": {
                       "label": "Move",
                       "description": "Move the file to a different location after successful error handling"
                     },
-                    "enabled": true,
-                    "editable": false,
                     "value": "MOVE",
-                    "valueType": "FORM",
-                    "optional": false,
-                    "advanced": false,
                     "properties": {
                       "moveTo": {
                         "metadata": {
                           "label": "Move To",
                           "description": "Destination path to move the file"
                         },
-                        "enabled": true,
-                        "editable": true,
                         "value": "",
                         "types": [
                           {
@@ -1944,63 +1840,59 @@
                             "selected": false
                           }
                         ],
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "string",
+                        "enabled": true,
+                        "editable": true,
                         "optional": false,
                         "advanced": false
                       }
-                    }
+                    },
+                    "enabled": true,
+                    "editable": false,
+                    "optional": false,
+                    "advanced": false
                   },
                   {
                     "metadata": {
                       "label": "Delete",
                       "description": "Delete the file after successful error handling"
                     },
+                    "value": "DELETE",
                     "enabled": false,
                     "editable": false,
-                    "value": "DELETE",
-                    "valueType": "FORM",
                     "optional": false,
                     "advanced": false
                   }
-                ]
-              },
-              "onError": {
-                "metadata": {
-                  "label": "If Handler Fails",
-                  "description": "Action when handler returns an error"
-                },
-                "enabled": false,
-                "editable": true,
-                "value": "",
+                ],
                 "types": [
                   {
                     "fieldType": "CHOICE",
                     "selected": true
                   }
                 ],
+                "enabled": true,
+                "editable": true,
                 "optional": false,
-                "advanced": false,
+                "advanced": false
+              },
+              "onError": {
+                "metadata": {
+                  "label": "If Handler Fails",
+                  "description": "Action when handler returns an error"
+                },
+                "value": "",
                 "choices": [
                   {
                     "metadata": {
                       "label": "Move",
                       "description": "Move the file to a different location after error handling failure"
                     },
-                    "enabled": true,
-                    "editable": false,
                     "value": "MOVE",
-                    "valueType": "FORM",
-                    "optional": false,
-                    "advanced": false,
                     "properties": {
                       "moveTo": {
                         "metadata": {
                           "label": "Move To",
                           "description": "Destination path to move the file"
                         },
-                        "enabled": true,
-                        "editable": true,
                         "value": "",
                         "types": [
                           {
@@ -2014,28 +1906,50 @@
                             "selected": false
                           }
                         ],
-                        "valueType": "EXPRESSION",
-                        "valueTypeConstraint": "string",
+                        "enabled": true,
+                        "editable": true,
                         "optional": false,
                         "advanced": false
                       }
-                    }
+                    },
+                    "enabled": true,
+                    "editable": false,
+                    "optional": false,
+                    "advanced": false
                   },
                   {
                     "metadata": {
                       "label": "Delete",
                       "description": "Delete the file after error handling failure"
                     },
+                    "value": "DELETE",
                     "enabled": false,
                     "editable": false,
-                    "value": "DELETE",
-                    "valueType": "FORM",
                     "optional": false,
                     "advanced": false
                   }
-                ]
+                ],
+                "types": [
+                  {
+                    "fieldType": "CHOICE",
+                    "selected": true
+                  }
+                ],
+                "enabled": true,
+                "editable": true,
+                "optional": false,
+                "advanced": false
               }
-            }
+            },
+            "types": [
+              {
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
           }
         }
       }
