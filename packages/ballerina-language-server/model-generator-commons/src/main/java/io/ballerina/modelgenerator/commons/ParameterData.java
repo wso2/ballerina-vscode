@@ -90,7 +90,8 @@ public record ParameterData(
         PARAM_FOR_TYPE_INFER,
         INCLUDED_RECORD_REST,
         PATH_PARAM,
-        PATH_REST_PARAM;
+        PATH_REST_PARAM,
+        RECORD_TYPE_INFER;
 
         public static Kind fromKind(ParameterKind parameterKind) {
             String value = parameterKind.name();

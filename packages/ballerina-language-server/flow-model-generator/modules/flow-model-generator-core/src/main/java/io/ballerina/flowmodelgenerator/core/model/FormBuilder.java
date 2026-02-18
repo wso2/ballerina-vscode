@@ -1392,6 +1392,13 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
+    public final FormBuilder<T> addProperties(Map<String, Property> properties) {
+        if (properties != null) {
+            this.nodeProperties.putAll(properties);
+        }
+        return this;
+    }
+
     public Map<String, Property> build() {
         return this.nodeProperties;
     }

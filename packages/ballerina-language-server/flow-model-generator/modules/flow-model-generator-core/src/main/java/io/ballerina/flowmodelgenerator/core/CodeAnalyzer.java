@@ -162,6 +162,7 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Location;
@@ -2000,6 +2001,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
             // Derive the value of the inferred type name
             String inferredTypeName;
+            TypeSymbol targetVarType = null;
             // Check if the value exists in the named arg map
             Node node = namedArgValueMap.get(key);
             if (node != null) {
@@ -2013,6 +2015,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 if (symbol.isEmpty() || symbol.get().kind() != SymbolKind.VARIABLE) {
                     return;
                 }
+                targetVarType = ((VariableSymbol) symbol.get()).typeDescriptor();
                 String variableType =
                         CommonUtils.getTypeSignature(((VariableSymbol) symbol.get()).typeDescriptor(), moduleInfo);
 
@@ -2021,7 +2024,8 @@ public class CodeAnalyzer extends NodeVisitor {
 
             // Generate the property of the inferred type param
             nodeBuilder.codedata().inferredReturnType(functionData.returnError() ? returnType : null);
-            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName);
+            Module module = this.project.currentPackage().getDefaultModule();
+            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType);
         });
     }
 

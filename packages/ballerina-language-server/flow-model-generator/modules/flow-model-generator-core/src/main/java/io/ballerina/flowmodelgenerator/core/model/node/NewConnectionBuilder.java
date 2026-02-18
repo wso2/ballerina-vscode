@@ -176,7 +176,8 @@ public class NewConnectionBuilder extends CallBuilder {
                 .symbol(INIT_SYMBOL)
                 .isGenerated(codedata.isGenerated());
 
-        setParameterProperties(functionData);
+        Module module = context.workspaceManager().module(context.filePath()).orElse(null);
+        setParameterProperties(functionData, module);
 
         if (CommonUtils.hasReturn(functionData.returnType())) {
             setReturnTypeProperties(functionData, context, CONNECTION_NAME_LABEL, CONNECTION_NAME_DOC, true);
@@ -187,12 +188,12 @@ public class NewConnectionBuilder extends CallBuilder {
                 .checkError(true, CHECK_ERROR_DOC, false);
     }
 
-    protected void setParameterProperties(FunctionData function) {
+    protected void setParameterProperties(FunctionData function, Module module) {
         boolean hasOnlyRestParams = function.parameters().size() == 1;
 
         for (ParameterData paramResult : function.parameters().values()) {
             if (paramResult.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER) {
-                buildInferredTypeProperty(this, paramResult, null);
+                buildInferredTypeProperty(this, paramResult, null, module);
                 continue;
             }
 

@@ -52,6 +52,36 @@ public record TypeData(
         boolean allowAdditionalFields
 ) {
 
+    public TypeDataBuilder toBuilder() {
+        TypeDataBuilder builder = (TypeDataBuilder) new TypeDataBuilder()
+                .name(name)
+                .members(members)
+                .restMember(restMember)
+                .includes(includes)
+                .functions(functions)
+                .allowAdditionalFields(allowAdditionalFields)
+                .annotationAttachments(annotationAttachments);
+        if (editable) {
+            builder.editable();
+        }
+        if (metadata != null) {
+            builder.metadata()
+                    .label(metadata.label())
+                    .description(metadata.description())
+                    .keywords(metadata.keywords())
+                    .icon(metadata.icon())
+                    .functionKind(metadata.functionKind())
+                    .data(metadata.data());
+        }
+        if (codedata != null) {
+            builder.codedata().from(codedata);
+        }
+        if (properties != null) {
+            builder.properties().addProperties(properties);
+        }
+        return builder;
+    }
+
     public static class TypeDataBuilder extends AbstractBuilder {
 
         private String name;

@@ -32,6 +32,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.flowmodelgenerator.core.TypesManager;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
@@ -68,6 +69,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static io.ballerina.flowmodelgenerator.core.model.Property.LIST_PROPERTY_TYPE_TYPE_TOKEN;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 
 public class SourceBuilder {
 
@@ -179,21 +183,57 @@ public class SourceBuilder {
         Property type = optionalType.get();
         String typeName = type.value().toString();
         if (flowNode.codedata().inferredReturnType() != null) {
-            Optional<Property> inferredParam = flowNode.properties().values().stream()
-                    .filter(property -> property.codedata() != null && property.codedata().kind() != null &&
-                            property.codedata().kind().equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER.name()))
-                    .findFirst();
-            if (inferredParam.isPresent()) {
-                String returnType = flowNode.codedata().inferredReturnType();
-                String inferredType = inferredParam.get().value().toString();
-                String inferredTypeDef = inferredParam.get()
-                        .codedata().originalName();
-                typeName = returnType.replace(inferredTypeDef, inferredType);
-            }
+            typeName = getTypeNameForInferredParam(variable.get(), typeName);
         }
 
         tokenBuilder.expressionWithType(typeName, variable.get()).keyword(SyntaxKind.EQUAL_TOKEN);
         return this;
+    }
+
+    private String getTypeNameForInferredParam(Property variable, String typeName) {
+        Optional<Property> inferredParam = flowNode.properties().values().stream()
+                .filter(property -> property.codedata() != null && property.codedata().kind() != null &&
+                        property.codedata().kind().equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER.name()))
+                .findFirst();
+        if (inferredParam.isEmpty()) {
+            return typeName;
+        }
+        String inferredType = inferredParam.get().value().toString();
+        String inferredTypeDef = inferredParam.get().codedata().originalName();
+
+        Property inferredProperty = inferredParam.get();
+        if (inferredProperty.types() != null && !inferredProperty.types().isEmpty() &&
+                inferredProperty.types().getFirst().recordSelectorType() != null) {
+            List<PropertyType> propertyTypes = inferredProperty.valueAsType(LIST_PROPERTY_TYPE_TYPE_TOKEN);
+            if (propertyTypes == null || propertyTypes.isEmpty()) {
+                return typeName;
+            }
+            RecordSelectorType recordSelectorType = propertyTypes.getFirst().recordSelectorType();
+            Path typesFilePath = filePath.resolveSibling("types.bal");
+            Document document = FileSystemUtils.getDocument(workspaceManager, typesFilePath);
+            if (document != null) {
+                TypesManager typesManager = new TypesManager(document);
+                String typeNamePrefix = capitalize(variable.toSourceCode());
+                List<TextEdit> typeEdits = typesManager.getTextEditsForRecordSelectorTypes(recordSelectorType,
+                        typeNamePrefix, isUpdateRequest());
+                if (!typeEdits.isEmpty()) {
+                    if (textEditsMap.containsKey(typesFilePath)) {
+                        textEditsMap.get(typesFilePath).addAll(typeEdits);
+                    } else {
+                        textEditsMap.put(typesFilePath, new ArrayList<>(typeEdits));
+                    }
+                    inferredType = String.format("%sType", typeNamePrefix);
+                }
+            }
+        }
+
+        String returnType = flowNode.codedata().inferredReturnType();
+        return returnType.replace(inferredTypeDef, inferredType);
+    }
+
+    private boolean isUpdateRequest() {
+        return flowNode.codedata() != null &&
+                (flowNode.codedata().isNew() == null || !flowNode.codedata().isNew());
     }
 
     public SourceBuilder newVariableWithType(String resolvedType) {

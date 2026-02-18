@@ -18,6 +18,9 @@
 
 package io.ballerina.flowmodelgenerator.core.model;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +31,7 @@ import java.util.Map;
  * @param kind                  Kind of the member.
  * @param refs                  References to the type descriptor.
  * @param type                  Display name for the type.
+ * @param typeName              Type name of the member.
  * @param name                  Name of the member.
  * @param defaultValue          Default value of the member.
  * @param optional              Whether the member is optional.
@@ -36,12 +40,14 @@ import java.util.Map;
  * @param docs                  Documentation of the member
  * @param annotationAttachments Annotations of the member.
  * @param imports               Imports of the member.
+ * @param selected              Member is selected or not.
  * @since 1.0.0
  */
 public record Member(
         MemberKind kind,
         List<String> refs,
         Object type,
+        String typeName,
         String name,
         String defaultValue,
         boolean optional,
@@ -49,18 +55,48 @@ public record Member(
         boolean isGraphqlId,
         String docs,
         List<AnnotationAttachment> annotationAttachments,
-        Map<String, String> imports
+        Map<String, String> imports,
+        boolean selected
 ) {
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+
+    public MemberBuilder toBuilder() {
+        return (MemberBuilder) new MemberBuilder()
+                .kind(kind)
+                .refs(refs)
+                .type(type)
+                .typeName(typeName)
+                .name(name)
+                .defaultValue(defaultValue)
+                .optional(optional)
+                .readonly(readonly)
+                .isGraphqlId(isGraphqlId)
+                .docs(docs)
+                .selected(selected)
+                .annotationAttachments(annotationAttachments)
+                .imports(imports);
+    }
+
+    public TypeData getTypeAsTypeData() {
+        try {
+            return GSON.fromJson(GSON.toJson(type), TypeData.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public static class MemberBuilder extends AbstractBuilder {
         private Member.MemberKind kind;
         private List<String> refs;
         private Object type;
+        private String typeName;
         private String name;
         private String defaultValue;
         private boolean optional = false;
         private boolean readonly = false;
         private boolean isGraphqlId = false;
         private String docs;
+        private boolean selected = false;
 
         public MemberBuilder() {
         }
@@ -77,6 +113,11 @@ public record Member(
 
         public MemberBuilder type(Object type) {
             this.type = type;
+            return this;
+        }
+
+        public MemberBuilder typeName(String typeName) {
+            this.typeName = typeName;
             return this;
         }
 
@@ -110,22 +151,31 @@ public record Member(
             return this;
         }
 
+        public MemberBuilder selected(boolean selected) {
+            this.selected = selected;
+            return this;
+        }
+
         public Member build() {
             Member member = new Member(
                     kind, refs != null ? List.copyOf(refs) : null,
-                    type, name, defaultValue, optional, readonly, isGraphqlId, docs,
+                    type, typeName != null ? typeName : (type instanceof String ? (String) type : null), name,
+                    defaultValue, optional, readonly, isGraphqlId, docs,
                     annotationAttachments != null ? List.copyOf(annotationAttachments) : null,
-                    imports != null ? Map.copyOf(imports) : null
+                    imports != null ? Map.copyOf(imports) : null,
+                    selected
             );
             this.kind = null;
             this.refs = null;
             this.type = null;
+            this.typeName = null;
             this.name = null;
             this.defaultValue = null;
             this.optional = false;
             this.readonly = false;
             this.isGraphqlId = false;
             this.docs = null;
+            this.selected = false;
             this.annotationAttachments = null;
             this.imports = null;
             return member;

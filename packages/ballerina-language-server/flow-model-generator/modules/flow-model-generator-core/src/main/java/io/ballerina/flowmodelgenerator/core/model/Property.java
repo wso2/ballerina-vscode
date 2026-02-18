@@ -69,7 +69,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    public static final TypeToken<List<Property>> LIST_PROPERTY_TYPE_TOKEN = new TypeToken<List<Property>>() {
+    public static final TypeToken<List<Property>> LIST_PROPERTY_TYPE_TOKEN = new TypeToken<>() {
+    };
+    public static final TypeToken<List<PropertyType>> LIST_PROPERTY_TYPE_TYPE_TOKEN = new TypeToken<>() {
     };
     public static final String SQL_PARAMETERIZED_QUERY = "sql:ParameterizedQuery";
     public static final String SQL_CALL_QUERY = "sql:ParameterizedCallQuery";
@@ -77,7 +79,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
     @SuppressWarnings("unchecked")
     public <T> T valueAsType(TypeToken<T> typeToken) {
         if (value instanceof List) {
-            return (T) gson.fromJson(gson.toJson(value), typeToken.getType());
+            return gson.fromJson(gson.toJson(value), typeToken.getType());
         }
         return (T) value;
     }
@@ -289,7 +291,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         RECORD_MAP_EXPRESSION,
         PROMPT,
         CLAUSE_EXPRESSION,
-        SQL_QUERY
+        SQL_QUERY,
+        RECORD_FIELD_SELECTOR
     }
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {
@@ -446,7 +449,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             private List<Option> options;
             private Property template;
             private List<PropertyTypeMemberInfo> typeMembers;
+            private RecordSelectorType recordSelectorType;
             private boolean selected = false;
+
+            public record TypeModel(TypeData root, List<TypeData> references) {
+            }
 
             private TypeBuilder() {
             }
@@ -503,10 +510,15 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 return this;
             }
 
+            public TypeBuilder recordSelectorType(RecordSelectorType recordSelectorType) {
+                this.recordSelectorType = recordSelectorType;
+                return this;
+            }
+
             public Builder<T> stepOut() {
                 if (fieldType != null) {
                     Builder.this.types.add(new PropertyType(fieldType, ballerinaType, scope, options, template,
-                            typeMembers, selected));
+                            typeMembers, recordSelectorType, selected));
                 }
                 reset();
                 return Builder.this;
@@ -519,6 +531,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 options = null;
                 template = null;
                 typeMembers = null;
+                recordSelectorType = null;
                 selected = false;
             }
         }
@@ -637,7 +650,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
                                     // add the merged type
                                     this.types.add(new PropertyType(fieldType, mergedBallerinaType, null,
-                                            null, null, distinctMembers, false));
+                                            null, null, distinctMembers, null, false));
                                 }
                             });
                 }

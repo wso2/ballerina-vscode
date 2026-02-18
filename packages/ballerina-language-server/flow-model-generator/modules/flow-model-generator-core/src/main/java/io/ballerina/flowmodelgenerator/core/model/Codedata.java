@@ -23,6 +23,7 @@ import io.ballerina.tools.text.LineRange;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents the properties that uniquely identifies a node in the diagram.
@@ -194,6 +195,26 @@ public record Codedata(NodeKind node, String org, String module, String packageN
 
         public Builder<T> data(Map<String, Object> data) {
             this.data = data;
+            return this;
+        }
+
+        public Builder<T> from(Codedata source) {
+            this.node = source.node();
+            this.org = source.org();
+            this.module = source.module();
+            this.packageName = source.packageName();
+            this.object = source.object();
+            this.symbol = source.symbol();
+            this.version = source.version();
+            this.lineRange = source.lineRange();
+            this.sourceCode = source.sourceCode();
+            this.parentSymbol = source.parentSymbol();
+            this.resourcePath = source.resourcePath();
+            this.id = Objects.requireNonNullElse(source.id(), 0);;
+            this.isNew = source.isNew() != null && source.isNew();
+            this.isGenerated = source.isGenerated();
+            this.inferredReturnType = source.inferredReturnType();
+            this.data = source.data();
             return this;
         }
 

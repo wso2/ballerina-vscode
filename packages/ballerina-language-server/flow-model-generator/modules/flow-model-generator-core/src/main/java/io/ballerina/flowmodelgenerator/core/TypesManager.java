@@ -48,6 +48,9 @@ import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.Member;
+import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.RecordSelectorType;
 import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.flowmodelgenerator.core.utils.SourceCodeGenerator;
 import io.ballerina.flowmodelgenerator.core.utils.TypeTransformer;
@@ -71,6 +74,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.utils.TypeTransformer.BUILT_IN_ERROR;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 
 /**
  * Manage creation, retrieving and updating operations related to types.
@@ -189,11 +193,304 @@ public class TypesManager {
         return genTypeDataRefWithoutPosition(type, refs.values().stream().toList());
     }
 
-    public JsonElement updateType(Path filePath, TypeData typeData) {
-        List<TextEdit> textEdits = new ArrayList<>();
-        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-        textEditsMap.put(filePath, textEdits);
+    /**
+     * Get the record selector type for a given type symbol. This is used to populate the record selector
+     * in the property view when the type of a property is a record
+     *
+     * @param typeSymbol the type symbol to get the record selector type for
+     * @param module the module to resolve the type symbol in
+     * @return the record selector type for the given type symbol, or null if the type
+     * symbol is not a record or if the record selector type cannot be generated
+     */
+    public RecordSelectorType getRecordSelectorType(TypeSymbol typeSymbol, Module module) {
+        TypeTransformer typeTransformer = new TypeTransformer(module);
+        TypeData.TypeDataBuilder typeDataBuilder = new TypeData.TypeDataBuilder();
+        Object transformedType = typeTransformer.transform(typeSymbol, typeDataBuilder);
 
+        if (transformedType instanceof String typeName) {
+            Map<String, Object> refs = new HashMap<>();
+            addDependencyTypes(typeSymbol, refs, false);
+            if (refs.isEmpty() || !refs.containsKey(typeName)) {
+                return null;
+            }
+            transformedType = refs.get(typeName);
+            typeSymbol = CommonUtil.getRawType(typeSymbol);
+        }
+
+        if (!(transformedType instanceof TypeData typeData)) {
+            return null;
+        }
+
+        typeData = typeData.toBuilder()
+                .name(null)
+                .build();
+
+        // Collect referenced types
+        Map<String, Object> refs = new HashMap<>();
+        addDependencyTypes(typeSymbol, refs, false);
+
+        List<TypeData> result = new ArrayList<>();
+        // Add referenced types
+        for (Object ref : refs.values()) {
+            if (ref instanceof TypeData refTypeData) {
+                result.add(refTypeData);
+            }
+        }
+
+        return new RecordSelectorType(typeData, result);
+    }
+
+    record ReferenceTypeInfo(String typeName, Codedata codedata) {
+    }
+
+    public static RecordSelectorType mergeWithTargetVarRecordSelectorType(RecordSelectorType source,
+                                                                          RecordSelectorType target) {
+        TypeData sourceRoot = source.rootType();
+        TypeData targetRoot = target.rootType();
+
+        List<Member> mergedMembers = new ArrayList<>();
+        Map<String, ReferenceTypeInfo> updatedTypeNames = new HashMap<>();
+        for (Member targetMember : targetRoot.members()) {
+            Optional<Member> sourceMember = sourceRoot.members().stream()
+                    .filter(member -> member.name().equals(targetMember.name()))
+                    .findFirst();
+            if (sourceMember.isPresent() && isMemberSelected(sourceMember.get(), source.referencedTypes())) {
+                Member.MemberBuilder memberBuilder = targetMember.toBuilder();
+                if (sourceMember.get().type() instanceof String) {
+                    memberBuilder.selected(!sourceMember.get().optional() ||
+                            sourceMember.get().defaultValue() != null);
+                }
+                String sourceMemberTypeName = typeNameFromMember(sourceMember.get());
+                String targetMemberTypeName = typeNameFromMember(targetMember);
+                Codedata sourceMemberCodedata = source.referencedTypes().stream()
+                        .filter(typeData -> typeData.name().equals(sourceMemberTypeName))
+                        .findFirst()
+                        .map(TypeData::codedata)
+                        .orElse(null);
+                if (sourceMemberTypeName != null && !sourceMemberTypeName.equals(targetMemberTypeName)) {
+                    updatedTypeNames.put(targetMemberTypeName,
+                            new ReferenceTypeInfo(sourceMemberTypeName, sourceMemberCodedata));
+                    memberBuilder.typeName(sourceMemberTypeName)
+                            .type(sourceMember.get().type());
+                }
+                mergedMembers.add(memberBuilder
+                        .build());
+            } else {
+                mergedMembers.add(targetMember);
+            }
+        }
+
+        Codedata sourceCodedata = sourceRoot.codedata();
+
+        TypeData mergedRoot = targetRoot.toBuilder()
+                .members(mergedMembers)
+                .codedata()
+                    .from(sourceCodedata)
+                .stepOut()
+                .build();
+
+        List<TypeData> referencedTypes = new ArrayList<>();
+        for (TypeData targetRefType : target.referencedTypes()) {
+            if (updatedTypeNames.containsKey(targetRefType.name())) {
+                ReferenceTypeInfo referenceTypeInfo = updatedTypeNames.get(targetRefType.name());
+                String typeName = referenceTypeInfo.typeName();
+                Codedata codedata = referenceTypeInfo.codedata();
+                TypeData.TypeDataBuilder typeDataBuilder = targetRefType.toBuilder()
+                        .name(typeName)
+                        .codedata()
+                            .from(codedata)
+                        .stepOut();
+                Optional<TypeData> sourceRefType = source.referencedTypes().stream()
+                        .filter(typeData -> typeData.name().equals(typeName))
+                        .findFirst();
+                if (sourceRefType.isPresent()) {
+                    List<Member> mergedRefMembers = new ArrayList<>();
+                    for (Member targetMember : targetRefType.members()) {
+                        Optional<Member> sourceMember = sourceRefType.get().members().stream()
+                                .filter(member -> member.name().equals(targetMember.name()))
+                                .findFirst();
+                        if (sourceMember.isPresent() &&
+                                isMemberSelected(sourceMember.get(), source.referencedTypes())) {
+                            mergedRefMembers.add(targetMember.toBuilder()
+                                    .selected(!sourceMember.get().optional() ||
+                                            sourceMember.get().defaultValue() != null)
+                                    .build());
+                        } else {
+                            mergedRefMembers.add(targetMember);
+                        }
+                    }
+                    typeDataBuilder.members(mergedRefMembers);
+                }
+                TypeData updatedReferencedType = typeDataBuilder.build();
+                referencedTypes.add(updatedReferencedType);
+            } else {
+                referencedTypes.add(targetRefType);
+            }
+        }
+
+        return new RecordSelectorType(mergedRoot, referencedTypes);
+    }
+
+    public List<TextEdit> getTextEditsForRecordSelectorTypes(RecordSelectorType recordSelectorType,
+                                                             String typePrefix, boolean updateExisting) {
+        TypeData rootTypeData = recordSelectorType.rootType();
+        List<TypeData> referencedTypes = recordSelectorType.referencedTypes();
+        if (referencedTypes == null) {
+            referencedTypes = List.of();
+        }
+
+        List<TypeData> finalReferencedTypes = referencedTypes.stream().toList();
+        if (rootTypeData.members() == null ||
+                rootTypeData.members()
+                        .stream()
+                        .noneMatch(member -> isMemberSelected(member, finalReferencedTypes))) {
+            return List.of();
+        }
+
+        if (rootTypeData.name() == null) {
+            rootTypeData = rootTypeData.toBuilder()
+                    .name(typePrefix + "Type")
+                    .build();
+        }
+
+        rootTypeData = updateWithSelectedFields(rootTypeData, finalReferencedTypes);
+
+        List<TypeData> updatedReferencedTypes = new ArrayList<>();
+        List<Member> updatedMembers = new ArrayList<>(rootTypeData.members());
+
+        for (TypeData referencedType : referencedTypes) {
+            String referencedTypeName = referencedType.name();
+            if (referencedTypeName == null ||
+                    referencedType.members() != null &&
+                            referencedType.members().stream()
+                                    .allMatch(member -> isMemberSelected(member, finalReferencedTypes))) {
+
+                continue;
+            }
+
+            Optional<Member> field = rootTypeData.members().stream()
+                    .filter(member -> matchingType(member, referencedTypeName) &&
+                            isMemberSelected(member, finalReferencedTypes))
+                    .findFirst();
+            if (field.isPresent()) {
+                String newTypeName = typePrefix + capitalize(referencedTypeName) + "Type";
+                TypeData updatedRefType = referencedType.toBuilder()
+                        .name(newTypeName)
+                        .build();
+                updatedReferencedTypes.add(updatedRefType);
+                TypeData typeData = field.get().getTypeAsTypeData();
+                Member member;
+                if (typeData == null) {
+                    member = field.get().toBuilder()
+                            .type(newTypeName)
+                            .build();
+                } else {
+                    Member arrayMember = typeData.members().getFirst();
+                    Member updatedArrayMember = arrayMember.toBuilder()
+                            .type(newTypeName)
+                            .build();
+                    TypeData updatedTypeData = typeData.toBuilder()
+                            .members(List.of(updatedArrayMember))
+                            .build();
+                    member = field.get().toBuilder()
+                            .type(updatedTypeData)
+                            .build();
+                }
+                updatedMembers.remove(field.get());
+                updatedMembers.add(member);
+            }
+        }
+
+        rootTypeData = rootTypeData.toBuilder()
+                .members(updatedMembers)
+                .build();
+
+        referencedTypes = updatedReferencedTypes;
+
+        referencedTypes = referencedTypes.stream()
+                .map(typeData -> updateWithSelectedFields(typeData, finalReferencedTypes))
+                .toList();
+
+        List<TypeData> allTypes = new ArrayList<>();
+        allTypes.add(rootTypeData);
+        allTypes.addAll(referencedTypes);
+
+        if (updateExisting) {
+            List<TextEdit> textEdits = new ArrayList<>();
+            for (TypeData typeData : allTypes) {
+                textEdits.addAll(updateType(typeData));
+            }
+            return textEdits;
+        }
+        return createMultipleTypes(allTypes);
+    }
+
+    private static boolean isMemberSelected(Member member, List<TypeData> referencedTypes) {
+        if (member.selected() || !member.optional() || member.defaultValue() != null) {
+            return true;
+        }
+
+        String memberTypeName = typeNameFromMember(member);
+        if (memberTypeName == null) {
+            return false;
+        }
+
+        Optional<TypeData> referencedType = referencedTypes.stream()
+                .filter(typeData -> memberTypeName.equals(typeData.name()))
+                .findFirst();
+        return referencedType.isPresent() && referencedType.get().members() != null &&
+                referencedType.get().members().stream().anyMatch(m -> isMemberSelected(m, referencedTypes));
+    }
+
+    private static boolean matchingType(Member member, String typeName) {
+        String memberTypeName = typeNameFromMember(member);
+        return memberTypeName != null && memberTypeName.equals(typeName);
+    }
+
+    private static String typeNameFromMember(Member member) {
+        Object type = member.type();
+        if (type instanceof String) {
+            return (String) type;
+        }
+        TypeData memberTypeData = member.getTypeAsTypeData();
+        if (memberTypeData == null || memberTypeData.members().isEmpty()) {
+            return null;
+        }
+        Property property = memberTypeData.properties().get(Property.IS_ARRAY_KEY);
+        if (property == null || property.value() == null || !property.value().equals("true")) {
+            return null;
+        }
+        Member arrayElement = memberTypeData.members().getFirst();
+        return typeNameFromMember(arrayElement);
+    }
+
+    private TypeData updateWithSelectedFields(TypeData typeData, List<TypeData> referencedTypes) {
+        List<Member> members = typeData.members();
+        if (members == null || members.isEmpty()) {
+            return typeData;
+        }
+        List<Member> updatedMembers = new ArrayList<>();
+        for (Member member : members) {
+            if (isMemberSelected(member, referencedTypes)) {
+                updatedMembers.add(member.toBuilder()
+                        .optional(false)
+                        .build());
+            }
+        }
+        return typeData.toBuilder()
+                .members(updatedMembers)
+                .includes(List.of())
+                .build();
+    }
+
+    public JsonElement updateType(Path filePath, TypeData typeData) {
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        textEditsMap.put(filePath, updateType(typeData));
+        return gson.toJsonTree(textEditsMap);
+    }
+
+    private List<TextEdit> updateType(TypeData typeData) {
+        List<TextEdit> textEdits = new ArrayList<>();
         // Regenerate code snippet for the type
         SourceCodeGenerator sourceCodeGenerator = new SourceCodeGenerator();
         String codeSnippet = sourceCodeGenerator.generateCodeSnippetForType(typeData);
@@ -207,17 +504,19 @@ public class TypesManager {
             NonTerminalNode node = CommonUtil.findNode(CommonUtils.toRange(lineRange), syntaxTree);
             textEdits.add(new TextEdit(CommonUtils.toRange(node.lineRange()), codeSnippet));
         }
-
         addImportsToTextEdits(sourceCodeGenerator.getImports(), rootNode, textEdits);
-
-        return gson.toJsonTree(textEditsMap);
+        return textEdits;
     }
 
     public JsonElement createMultipleTypes(Path filePath, List<TypeData> typeDataList) {
+        List<TextEdit> textEdits = createMultipleTypes(typeDataList);
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-        List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
+        return gson.toJsonTree(textEditsMap);
+    }
 
+    private List<TextEdit> createMultipleTypes(List<TypeData> typeDataList) {
+        List<TextEdit> textEdits = new ArrayList<>();
         SyntaxTree syntaxTree = this.typeDocument.syntaxTree();
         ModulePartNode rootNode = syntaxTree.rootNode();
 
@@ -231,8 +530,7 @@ public class TypesManager {
 
         textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().endLine()),
                 String.join(System.lineSeparator(), codeSnippets)));
-
-        return gson.toJsonTree(textEditsMap);
+        return textEdits;
     }
 
     public JsonElement createGraphqlClassType(Path filePath, TypeData typeData) {
