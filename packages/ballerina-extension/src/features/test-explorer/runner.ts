@@ -326,8 +326,6 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 }).catch(() => {
                     endGroup(test, false, run);
                 });
-            }).finally(() => {
-                run.end();
             });
         }
     });
