@@ -289,20 +289,24 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
 
     // Calculate actions based on conditions
     const getActions = () => {
+        const tracingButton = (
+            <ActionButton
+                appearance={isTracingEnabled ? "primary" : "secondary"}
+                onClick={handleToggleTracing}
+            >
+                <Icon
+                    name={isTracingEnabled ? "telescope" : "circle-slash"}
+                    isCodicon={true}
+                    sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
+                />
+                {isTracingEnabled ? "Tracing: On" : "Tracing: Off"}
+            </ActionButton>
+        );
+
         if (isAgent) {
             return (
                 <>
-                    <ActionButton
-                        appearance={isTracingEnabled ? "primary" : "secondary"}
-                        onClick={handleToggleTracing}
-                    >
-                        <Icon
-                            name={isTracingEnabled ? "telescope" : "circle-slash"}
-                            isCodicon={true}
-                            sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
-                        />
-                        {isTracingEnabled ? "Tracing: On" : "Tracing: Off"}
-                    </ActionButton>
+                    {tracingButton}
                     <ActionButton
                         appearance="secondary"
                         onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
@@ -321,17 +325,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         if (isResource && serviceType === "http") {
             return (
                 <>
-                    <ActionButton
-                        appearance={isTracingEnabled ? "primary" : "secondary"}
-                        onClick={handleToggleTracing}
-                    >
-                        <Icon
-                            name={isTracingEnabled ? "telescope" : "circle-slash"}
-                            isCodicon={true}
-                            sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
-                        />
-                        {isTracingEnabled ? "Tracing: On" : "Tracing: Off"}
-                    </ActionButton>
+                    {tracingButton}
                     <ActionButton id="bi-edit" appearance="secondary" onClick={() => getFunctionModel()}>
                         <Icon
                             name="bi-settings"
