@@ -182,7 +182,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "maxIter"
           },
-          "defaultValue": "\"INFER_TOOL_COUNT\""
+          "defaultValue": "INFER_TOOL_COUNT"
         },
         "verbose": {
           "metadata": {
@@ -270,7 +270,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "toolLoadingStrategy"
           },
-          "defaultValue": "\"LLM_FILTER\""
+          "defaultValue": "NO_FILTER"
         },
         "checkError": {
           "metadata": {

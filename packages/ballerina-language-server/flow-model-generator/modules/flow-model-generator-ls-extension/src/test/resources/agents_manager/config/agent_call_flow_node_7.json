@@ -648,7 +648,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "sessionId"
             },
-            "defaultValue": "\"\""
+            "defaultValue": "DEFAULT_SESSION_ID"
           },
           "context": {
             "metadata": {
@@ -671,7 +671,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "context"
             },
-            "defaultValue": "new ()"
+            "defaultValue": "new"
           },
           "td": {
             "metadata": {
@@ -971,7 +971,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "maxIter"
             },
-            "defaultValue": "\"INFER_TOOL_COUNT\""
+            "defaultValue": "INFER_TOOL_COUNT"
           },
           "verbose": {
             "metadata": {
@@ -1059,7 +1059,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "toolLoadingStrategy"
             },
-            "defaultValue": "\"LLM_FILTER\""
+            "defaultValue": "NO_FILTER"
           },
           "checkError": {
             "metadata": {

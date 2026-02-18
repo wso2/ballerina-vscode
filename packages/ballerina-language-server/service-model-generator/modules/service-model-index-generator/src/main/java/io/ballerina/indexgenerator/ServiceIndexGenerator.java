@@ -744,7 +744,7 @@ class ServiceIndexGenerator {
 
     record Template(
             List<PropertyType> types
-    ){
+    ) {
     }
 
 }
