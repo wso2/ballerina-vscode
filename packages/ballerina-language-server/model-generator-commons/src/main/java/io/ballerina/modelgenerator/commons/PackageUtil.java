@@ -34,6 +34,8 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.bala.BalaProject;
 import io.ballerina.projects.directory.BuildProject;
+import io.ballerina.projects.environment.Environment;
+import io.ballerina.projects.environment.EnvironmentBuilder;
 import io.ballerina.projects.environment.PackageMetadataResponse;
 import io.ballerina.projects.environment.PackageResolver;
 import io.ballerina.projects.environment.ResolutionOptions;
@@ -114,7 +116,7 @@ public class PackageUtil {
      * @return An Optional containing the semantic model.
      */
     public static Optional<SemanticModel> getSemanticModel(ModuleInfo moduleInfo) {
-        Optional<Package> modulePackage = getModulePackage(getSampleProject(), moduleInfo.org(),
+        Optional<Package> modulePackage = getModulePackage(moduleInfo.org(),
                 moduleInfo.packageName(), moduleInfo.version());
         if (modulePackage.isEmpty()) {
             return Optional.empty();
@@ -129,7 +131,7 @@ public class PackageUtil {
     }
 
     public static Optional<SemanticModel> getSemanticModel(String org, String name) {
-        return getModulePackage(getSampleProject(), org, name).map(
+        return getModulePackage(org, name).map(
                 pkg -> getCompilation(pkg).getSemanticModel(pkg.getDefaultModule().moduleId()));
     }
 
@@ -137,21 +139,21 @@ public class PackageUtil {
      * Retrieves a package matching the specified organization, name, and version. If the package is not found in the
      * local cache, it attempts to fetch it from the remote repository.
      *
-     * @param buildProject The build project context
      * @param org          The organization name of the package
      * @param name         The name of the package
      * @param version      The version of the package
      * @return An Optional containing the matching Package if found, empty Optional otherwise
      */
-    public static Optional<Package> getModulePackage(BuildProject buildProject, String org, String name,
+    public static Optional<Package> getModulePackage(String org, String name,
                                                      String version) {
         ResolutionRequest resolutionRequest = ResolutionRequest.from(
                 PackageDescriptor.from(PackageOrg.from(org), PackageName.from(name), PackageVersion.from(version)));
 
-        Collection<ResolutionResponse> resolutionResponses =
-                buildProject.projectEnvironmentContext().getService(PackageResolver.class)
-                        .resolvePackages(Collections.singletonList(resolutionRequest),
-                                ResolutionOptions.builder().setOffline(false).setSticky(false).build());
+        Environment env = EnvironmentBuilder.buildDefault();
+        PackageResolver packageResolver = env.getService(PackageResolver.class);
+        Collection<ResolutionResponse> resolutionResponses = packageResolver.resolvePackages(
+                Collections.singletonList(resolutionRequest),
+                ResolutionOptions.builder().setOffline(false).setSticky(false).build());
         Optional<ResolutionResponse> resolutionResponse = resolutionResponses.stream().findFirst();
         if (resolutionResponse.isEmpty()) {
             return Optional.empty();
@@ -164,11 +166,14 @@ public class PackageUtil {
         return Optional.ofNullable(balaProject.currentPackage());
     }
 
-    public static Optional<Package> getModulePackage(BuildProject buildProject, String org, String name) {
+    public static Optional<Package> getModulePackage(String org, String name) {
         ResolutionRequest resolutionRequest = ResolutionRequest.from(
                 PackageDescriptor.from(PackageOrg.from(org), PackageName.from(name)));
-        PackageResolver packageResolver = buildProject.projectEnvironmentContext().getService(PackageResolver.class);
-        Collection<PackageMetadataResponse> packageMetadataResponses = packageResolver.resolvePackageMetadata(
+
+        Environment env = EnvironmentBuilder.buildDefault();
+        PackageResolver packageResolver = env.getService(PackageResolver.class);
+        Collection<PackageMetadataResponse> packageMetadataResponses =
+                packageResolver.resolvePackageMetadata(
                 Collections.singletonList(resolutionRequest),
                 ResolutionOptions.builder().setOffline(true).build());
         Optional<PackageMetadataResponse> pkgMetadata = packageMetadataResponses.stream().findFirst();
@@ -296,7 +301,7 @@ public class PackageUtil {
         if (PackageUtil.isModuleUnresolved(completeModuleInfo.org(), completeModuleInfo.packageName(),
                 completeModuleInfo.version())) {
             notifyClient(lsClientLogger, completeModuleInfo, MessageType.Info, PULLING_THE_MODULE_MESSAGE);
-            modulePackage = getModulePackage(SAMPLE_PROJECT, completeModuleInfo.org(), completeModuleInfo.packageName(),
+            modulePackage = getModulePackage(completeModuleInfo.org(), completeModuleInfo.packageName(),
                     completeModuleInfo.version());
             if (modulePackage.isEmpty()) {
                 notifyClient(lsClientLogger, completeModuleInfo, MessageType.Error, MODULE_PULLING_FAILED_MESSAGE);
@@ -304,7 +309,7 @@ public class PackageUtil {
                 notifyClient(lsClientLogger, completeModuleInfo, MessageType.Info, MODULE_PULLING_SUCCESS_MESSAGE);
             }
         } else {
-            modulePackage = getModulePackage(SAMPLE_PROJECT, completeModuleInfo.org(), completeModuleInfo.packageName(),
+            modulePackage = getModulePackage(completeModuleInfo.org(), completeModuleInfo.packageName(),
                     completeModuleInfo.version());
         }
         return modulePackage;
@@ -338,5 +343,54 @@ public class PackageUtil {
 
     public static PackageCompilation getCompilation(Project project) {
         return getCompilation(project.currentPackage());
+    }
+
+    /**
+     * Safely resolves a module package with error handling for cases where packages don't exist in Central.
+     * This utility method encapsulates the common pattern of trying to resolve a package and falling back
+     * to an empty Optional if resolution fails.
+     *
+     * @param org         The organization name of the package
+     * @param packageName The name of the package
+     * @return An Optional containing the resolved Package if successful, empty Optional if resolution fails
+     */
+    public static Optional<Package> resolveModulePackage(String org, String packageName, String version) {
+        try {
+            if (version == null) {
+                return getModulePackage(org, packageName);
+            } else {
+                return getModulePackage(org, packageName, version);
+            }
+        } catch (Exception e) {
+            // If package resolution fails (e.g., package doesn't exist in Central),
+            // treat it as a generated/test package and continue with empty resolved package
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Determines if a function is local to the current workspace project.
+     *
+     * @param workspaceManager The workspace manager
+     * @param filePath         The path to the current file
+     * @param org              The organization name
+     * @param moduleName       The module name
+     * @return true if the function is local to the current project, false otherwise
+     */
+    public static boolean isLocalFunction(WorkspaceManager workspaceManager, Path filePath, String org,
+                                          String moduleName) {
+        if (org == null || moduleName == null) {
+            return false;
+        }
+        try {
+            Project project = workspaceManager.loadProject(filePath);
+            PackageDescriptor descriptor = project.currentPackage().descriptor();
+            String packageOrg = descriptor.org().value();
+            String packageName = descriptor.name().value();
+
+            return packageOrg.equals(org) && packageName.equals(moduleName);
+        } catch (WorkspaceDocumentException | EventSyncException e) {
+            return false;
+        }
     }
 }

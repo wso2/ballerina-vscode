@@ -42,8 +42,14 @@ public class MethodCall extends CallBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        sourceBuilder.newVariableWithInferredType();
         FlowNode flowNode = sourceBuilder.flowNode;
+        String resolvedReturnType = resolveLangLibReturnType(sourceBuilder.workspaceManager,
+                sourceBuilder.filePath, flowNode);
+        if (resolvedReturnType != null) {
+            sourceBuilder.newVariableWithType(resolvedReturnType);
+        } else {
+            sourceBuilder.newVariableWithInferredType();
+        }
 
         if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
             sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);

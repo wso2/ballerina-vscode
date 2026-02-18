@@ -85,6 +85,8 @@ public class ChunkerBuilder extends CallBuilder {
 
         FunctionData functionData = new FunctionDataBuilder().parentSymbolType(codedata.object())
                 .name(codedata.symbol()).moduleInfo(codedataModuleInfo).userModuleInfo(moduleInfo)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath())
                 .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.CHUNKER)
                 .build();
 

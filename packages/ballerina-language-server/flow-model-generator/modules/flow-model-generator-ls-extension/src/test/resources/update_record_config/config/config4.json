@@ -580,14 +580,14 @@
               {
                 "members": [
                   {
-                    "typeName": "HTTP_2",
+                    "typeName": "HTTP_1_1",
                     "optional": false,
                     "defaultable": false,
                     "isRestType": false,
                     "selected": false
                   },
                   {
-                    "typeName": "HTTP_1_1",
+                    "typeName": "HTTP_2",
                     "optional": false,
                     "defaultable": false,
                     "isRestType": false,
@@ -736,14 +736,14 @@
                       {
                         "members": [
                           {
-                            "typeName": "POST_BODY_BEARER",
+                            "typeName": "AUTH_HEADER_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
                             "selected": false
                           },
                           {
-                            "typeName": "AUTH_HEADER_BEARER",
+                            "typeName": "POST_BODY_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
@@ -936,14 +936,14 @@
                               {
                                 "members": [
                                   {
-                                    "typeName": "POST_BODY_BEARER",
+                                    "typeName": "AUTH_HEADER_BEARER",
                                     "optional": false,
                                     "defaultable": false,
                                     "isRestType": false,
                                     "selected": false
                                   },
                                   {
-                                    "typeName": "AUTH_HEADER_BEARER",
+                                    "typeName": "POST_BODY_BEARER",
                                     "optional": false,
                                     "defaultable": false,
                                     "isRestType": false,
@@ -1046,14 +1046,14 @@
                       {
                         "members": [
                           {
-                            "typeName": "POST_BODY_BEARER",
+                            "typeName": "AUTH_HEADER_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
                             "selected": false
                           },
                           {
-                            "typeName": "AUTH_HEADER_BEARER",
+                            "typeName": "POST_BODY_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
@@ -1210,14 +1210,14 @@
                       {
                         "members": [
                           {
-                            "typeName": "POST_BODY_BEARER",
+                            "typeName": "AUTH_HEADER_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
                             "selected": false
                           },
                           {
-                            "typeName": "AUTH_HEADER_BEARER",
+                            "typeName": "POST_BODY_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
@@ -1638,14 +1638,14 @@
                   {
                     "members": [
                       {
-                        "typeName": "POST_BODY_BEARER",
+                        "typeName": "AUTH_HEADER_BEARER",
                         "optional": false,
                         "defaultable": false,
                         "isRestType": false,
                         "selected": false
                       },
                       {
-                        "typeName": "AUTH_HEADER_BEARER",
+                        "typeName": "POST_BODY_BEARER",
                         "optional": false,
                         "defaultable": false,
                         "isRestType": false,
@@ -1786,14 +1786,14 @@
               {
                 "members": [
                   {
-                    "typeName": "HTTP_2",
+                    "typeName": "HTTP_1_1",
                     "optional": false,
                     "defaultable": false,
                     "isRestType": false,
                     "selected": false
                   },
                   {
-                    "typeName": "HTTP_1_1",
+                    "typeName": "HTTP_2",
                     "optional": false,
                     "defaultable": false,
                     "isRestType": false,
@@ -1942,14 +1942,14 @@
                       {
                         "members": [
                           {
-                            "typeName": "POST_BODY_BEARER",
+                            "typeName": "AUTH_HEADER_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
                             "selected": false
                           },
                           {
-                            "typeName": "AUTH_HEADER_BEARER",
+                            "typeName": "POST_BODY_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
@@ -2142,14 +2142,14 @@
                               {
                                 "members": [
                                   {
-                                    "typeName": "POST_BODY_BEARER",
+                                    "typeName": "AUTH_HEADER_BEARER",
                                     "optional": false,
                                     "defaultable": false,
                                     "isRestType": false,
                                     "selected": false
                                   },
                                   {
-                                    "typeName": "AUTH_HEADER_BEARER",
+                                    "typeName": "POST_BODY_BEARER",
                                     "optional": false,
                                     "defaultable": false,
                                     "isRestType": false,
@@ -2252,14 +2252,14 @@
                       {
                         "members": [
                           {
-                            "typeName": "POST_BODY_BEARER",
+                            "typeName": "AUTH_HEADER_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
                             "selected": false
                           },
                           {
-                            "typeName": "AUTH_HEADER_BEARER",
+                            "typeName": "POST_BODY_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
@@ -2416,14 +2416,14 @@
                       {
                         "members": [
                           {
-                            "typeName": "POST_BODY_BEARER",
+                            "typeName": "AUTH_HEADER_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
                             "selected": false
                           },
                           {
-                            "typeName": "AUTH_HEADER_BEARER",
+                            "typeName": "POST_BODY_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
@@ -2846,14 +2846,14 @@
               {
                 "members": [
                   {
-                    "typeName": "HTTP_2",
+                    "typeName": "HTTP_1_1",
                     "optional": false,
                     "defaultable": false,
                     "isRestType": false,
                     "selected": false
                   },
                   {
-                    "typeName": "HTTP_1_1",
+                    "typeName": "HTTP_2",
                     "optional": false,
                     "defaultable": false,
                     "isRestType": false,
@@ -3002,14 +3002,14 @@
                       {
                         "members": [
                           {
-                            "typeName": "POST_BODY_BEARER",
+                            "typeName": "AUTH_HEADER_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
                             "selected": false
                           },
                           {
-                            "typeName": "AUTH_HEADER_BEARER",
+                            "typeName": "POST_BODY_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
@@ -3202,14 +3202,14 @@
                               {
                                 "members": [
                                   {
-                                    "typeName": "POST_BODY_BEARER",
+                                    "typeName": "AUTH_HEADER_BEARER",
                                     "optional": false,
                                     "defaultable": false,
                                     "isRestType": false,
                                     "selected": false
                                   },
                                   {
-                                    "typeName": "AUTH_HEADER_BEARER",
+                                    "typeName": "POST_BODY_BEARER",
                                     "optional": false,
                                     "defaultable": false,
                                     "isRestType": false,
@@ -3312,14 +3312,14 @@
                       {
                         "members": [
                           {
-                            "typeName": "POST_BODY_BEARER",
+                            "typeName": "AUTH_HEADER_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
                             "selected": false
                           },
                           {
-                            "typeName": "AUTH_HEADER_BEARER",
+                            "typeName": "POST_BODY_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
@@ -3476,14 +3476,14 @@
                       {
                         "members": [
                           {
-                            "typeName": "POST_BODY_BEARER",
+                            "typeName": "AUTH_HEADER_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
                             "selected": false
                           },
                           {
-                            "typeName": "AUTH_HEADER_BEARER",
+                            "typeName": "POST_BODY_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
@@ -3906,14 +3906,14 @@
               {
                 "members": [
                   {
-                    "typeName": "HTTP_2",
+                    "typeName": "HTTP_1_1",
                     "optional": false,
                     "defaultable": false,
                     "isRestType": false,
                     "selected": false
                   },
                   {
-                    "typeName": "HTTP_1_1",
+                    "typeName": "HTTP_2",
                     "optional": false,
                     "defaultable": false,
                     "isRestType": false,
@@ -4062,14 +4062,14 @@
                       {
                         "members": [
                           {
-                            "typeName": "POST_BODY_BEARER",
+                            "typeName": "AUTH_HEADER_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
                             "selected": false
                           },
                           {
-                            "typeName": "AUTH_HEADER_BEARER",
+                            "typeName": "POST_BODY_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
@@ -4262,14 +4262,14 @@
                               {
                                 "members": [
                                   {
-                                    "typeName": "POST_BODY_BEARER",
+                                    "typeName": "AUTH_HEADER_BEARER",
                                     "optional": false,
                                     "defaultable": false,
                                     "isRestType": false,
                                     "selected": false
                                   },
                                   {
-                                    "typeName": "AUTH_HEADER_BEARER",
+                                    "typeName": "POST_BODY_BEARER",
                                     "optional": false,
                                     "defaultable": false,
                                     "isRestType": false,
@@ -4372,14 +4372,14 @@
                       {
                         "members": [
                           {
-                            "typeName": "POST_BODY_BEARER",
+                            "typeName": "AUTH_HEADER_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
                             "selected": false
                           },
                           {
-                            "typeName": "AUTH_HEADER_BEARER",
+                            "typeName": "POST_BODY_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
@@ -4536,14 +4536,14 @@
                       {
                         "members": [
                           {
-                            "typeName": "POST_BODY_BEARER",
+                            "typeName": "AUTH_HEADER_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,
                             "selected": false
                           },
                           {
-                            "typeName": "AUTH_HEADER_BEARER",
+                            "typeName": "POST_BODY_BEARER",
                             "optional": false,
                             "defaultable": false,
                             "isRestType": false,

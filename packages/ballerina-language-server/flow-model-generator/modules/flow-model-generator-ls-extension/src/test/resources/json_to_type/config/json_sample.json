@@ -7,5 +7,5 @@
   "isNullAsOptional": false,
   "allowAdditionalFields": false,
   "asInline": false,
-  "expectedTypes": "\ntype OrdersItem record {|\n\tstring orderId;\n|};\n\ntype Orders OrdersItem[];\n\ntype Orders_01 record {|\n\tOrders orders;\n|};\n"
+  "expectedTypes": "\npublic type OrdersItem record {|\n\tstring orderId;\n|};\n\npublic type Orders OrdersItem[];\n\npublic type Orders_01 record {|\n\tOrders orders;\n|};\n"
 }

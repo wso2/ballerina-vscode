@@ -734,10 +734,16 @@ public class AgentsGenerator {
         }
         String parentSymbolName = variableSymbol.getName().orElseThrow();
         String className = classSymbol.getName().orElseThrow();
+        ModuleInfo moduleInfo = classSymbol.getModule()
+                .map(moduleSymbol -> ModuleInfo.from(moduleSymbol.id()))
+                .orElse(null);
 
         // Obtain methods of the connector
         List<FunctionData> methodFunctionsData = new FunctionDataBuilder()
                 .parentSymbol(classSymbol)
+                .moduleInfo(moduleInfo)
+                .workspaceManager(workspaceManager)
+                .filePath(filePath)
                 .buildChildNodes();
 
         for (FunctionData methodFunction : methodFunctionsData) {

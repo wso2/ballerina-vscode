@@ -1,0 +1,81 @@
+{
+  "source": "data_mapper/data_mappings.bal",
+  "description": "Public new data mapper with no parameters",
+  "diagram": {
+    "id": "62576",
+    "metadata": {
+      "label": "Data Mapper",
+      "description": "Define a data mapper"
+    },
+    "codedata": {
+      "node": "DATA_MAPPER_DEFINITION",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Function Name",
+          "description": "Name of the function"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "transformPublic",
+        "optional": false,
+        "editable": true,
+        "advanced": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "valueType": "TYPE",
+        "valueTypeConstraint": "record",
+        "value": "Employee",
+        "optional": true,
+        "editable": true,
+        "advanced": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Make visible across the workspace"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": false
+      },
+      "parameters": {
+        "metadata": {
+          "label": "Inputs",
+          "description": "Input variables of the data mapper function"
+        },
+        "valueType": "REPEATABLE_PROPERTY",
+        "value": {},
+        "optional": false,
+        "editable": false,
+        "advanced": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "data_mapper/data_mappings.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 17,
+            "character": 0
+          },
+          "end": {
+            "line": 17,
+            "character": 0
+          }
+        },
+        "newText": "\npublic function transformPublic() returns Employee => {\n    empId: \"\",\n    name: \"\",\n    location: {city: \"\", country: \"\"},\n    email: \"\"\n};"
+      }
+    ]
+  }
+}

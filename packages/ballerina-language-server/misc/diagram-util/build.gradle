@@ -38,6 +38,7 @@ dependencies {
     implementation "org.ballerinalang:central-client:${ballerinaLangVersion}"
     implementation "org.ballerinalang:docerina:${ballerinaLangVersion}"
 
+    implementation project(':model-generator-commons')
     implementation "org.apache.commons:commons-lang3:${apacheCommonsLang3Version}"
     implementation "com.google.code.gson:gson:${gsonVersion}"
     testImplementation "org.testng:testng:${testngVersion}"

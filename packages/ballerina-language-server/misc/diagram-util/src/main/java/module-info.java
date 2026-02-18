@@ -7,6 +7,7 @@ module io.ballerina.diagram.util {
     requires org.apache.commons.lang3;
     requires io.ballerina.docerina;
     requires io.ballerina.central.client;
+    requires io.ballerina.model.generator.commons;
 
     exports org.ballerinalang.diagramutil;
     exports org.ballerinalang.diagramutil.connector.models;

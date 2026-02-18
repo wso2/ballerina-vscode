@@ -95,7 +95,7 @@
           "kind": "DEFAULTABLE",
           "originalName": "serviceUrl"
         },
-        "defaultValue": "\"\""
+        "defaultValue": "\"https://disease.sh\""
       },
       "type": {
         "metadata": {

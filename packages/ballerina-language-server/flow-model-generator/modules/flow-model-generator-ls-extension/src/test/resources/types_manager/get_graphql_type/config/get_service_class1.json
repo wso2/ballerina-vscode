@@ -101,7 +101,7 @@
       "isPublic": {
         "metadata": {
           "label": "public",
-          "description": "Is this public"
+          "description": "Make visible across the workspace"
         },
         "types": [
           {
@@ -109,7 +109,7 @@
             "selected": true
           }
         ],
-        "value": "false",
+        "value": false,
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -253,7 +253,7 @@
           "isPublic": {
             "metadata": {
               "label": "public",
-              "description": "Is this public"
+              "description": "Make visible across the workspace"
             },
             "types": [
               {
@@ -261,7 +261,7 @@
                 "selected": true
               }
             ],
-            "value": "false",
+            "value": false,
             "optional": true,
             "editable": true,
             "advanced": false,
@@ -319,7 +319,7 @@
           "isPublic": {
             "metadata": {
               "label": "public",
-              "description": "Is this public"
+              "description": "Make visible across the workspace"
             },
             "types": [
               {
@@ -327,7 +327,7 @@
                 "selected": true
               }
             ],
-            "value": "false",
+            "value": false,
             "optional": true,
             "editable": true,
             "advanced": false,
@@ -387,7 +387,7 @@
           "isPublic": {
             "metadata": {
               "label": "public",
-              "description": "Is this public"
+              "description": "Make visible across the workspace"
             },
             "types": [
               {
@@ -395,7 +395,7 @@
                 "selected": true
               }
             ],
-            "value": "false",
+            "value": false,
             "optional": true,
             "editable": true,
             "advanced": false,
@@ -466,7 +466,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Is this public"
+            "description": "Make visible across the workspace"
           },
           "types": [
             {
@@ -474,7 +474,7 @@
               "selected": true
             }
           ],
-          "value": "false",
+          "value": false,
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -578,7 +578,7 @@
             "isPublic": {
               "metadata": {
                 "label": "public",
-                "description": "Is this public"
+                "description": "Make visible across the workspace"
               },
               "types": [
                 {
@@ -586,7 +586,7 @@
                   "selected": true
                 }
               ],
-              "value": "false",
+              "value": false,
               "optional": true,
               "editable": true,
               "advanced": false,

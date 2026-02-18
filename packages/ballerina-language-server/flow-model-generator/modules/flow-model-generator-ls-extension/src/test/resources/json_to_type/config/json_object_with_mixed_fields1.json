@@ -6,5 +6,5 @@
   "prefix": "",
   "allowAdditionalFields": false,
   "asInline": false,
-  "expectedTypes": "\ntype Categories string[];\n\ntype Specs record {|\n\tstring processor?;\n\tstring ram?;\n\tstring storage?;\n\tboolean wireless?;\n\tint dpi?;\n|};\n\ntype ProductsItem record {|\n\tstring id;\n\tstring name;\n\tdecimal price;\n\tboolean inStock;\n\tSpecs specs;\n|};\n\ntype Products ProductsItem[];\n\ntype Catalog record {|\n\tstring name;\n\tdecimal version;\n\tstring lastUpdated;\n\tCategories categories;\n\tProducts products;\n|};\n"
+  "expectedTypes": "\npublic type Categories string[];\n\npublic type Specs record {|\n\tstring processor?;\n\tstring ram?;\n\tstring storage?;\n\tboolean wireless?;\n\tint dpi?;\n|};\n\npublic type ProductsItem record {|\n\tstring id;\n\tstring name;\n\tdecimal price;\n\tboolean inStock;\n\tSpecs specs;\n|};\n\npublic type Products ProductsItem[];\n\npublic type Catalog record {|\n\tstring name;\n\tdecimal version;\n\tstring lastUpdated;\n\tCategories categories;\n\tProducts products;\n|};\n"
 }

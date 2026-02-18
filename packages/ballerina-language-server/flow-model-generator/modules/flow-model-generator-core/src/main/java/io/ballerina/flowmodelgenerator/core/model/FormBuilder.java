@@ -33,6 +33,7 @@ import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.flowmodelgenerator.core.Constants;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
+import io.ballerina.flowmodelgenerator.core.TypeParameterReplacer;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ExpressionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionDefinitionBuilder;
@@ -216,6 +217,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
 
     public FormBuilder<T> type(String typeName, String label, boolean editable, Boolean modified, LineRange lineRange,
                                String importStatements, boolean hidden) {
+        String replacedTypeName = TypeParameterReplacer.replaceTypeParameters(typeName);
         propertyBuilder
                 .metadata()
                     .label(label)
@@ -224,9 +226,9 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .codedata()
                     .stepOut()
                 .placeholder("var")
-                .value(typeName)
+                .value(replacedTypeName)
                 .imports(importStatements)
-                .hidden(hidden)
+                .hidden(hidden || !replacedTypeName.equals(typeName))
                 .type()
                     .fieldType(Property.ValueType.TYPE)
                     .selected(true)
@@ -244,7 +246,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .label(Property.RETURN_TYPE_LABEL)
                     .description(Property.RETURN_TYPE_DOC)
                     .stepOut()
-                .value(value == null ? "" : value)
+                .value(TypeParameterReplacer.replaceTypeParameters(value == null ? "" : value))
                 .type()
                     .fieldType(Property.ValueType.TYPE)
                     .ballerinaType(typeConstraint)
@@ -1087,7 +1089,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .editable(editable)
                 .optional(optional)
                 .advanced(advanced)
-                .value(String.valueOf(value))
+                .value(value)
                 .type()
                     .fieldType(Property.ValueType.FLAG)
                     .selected(true)

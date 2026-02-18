@@ -1,0 +1,502 @@
+{
+  "description": "Search for workspace functions from package2 - search for 'format'",
+  "kind": "FUNCTION",
+  "source": "workspace1/package2/main.bal",
+  "position": {
+    "startLine": {
+      "line": 4,
+      "offset": 0
+    },
+    "endLine": {
+      "line": 4,
+      "offset": 1
+    }
+  },
+  "queryMap": {
+    "q": "format"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Agent Tools",
+        "description": "Functions used as agent tools",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "package2 (current)",
+            "description": "",
+            "keywords": []
+          },
+          "items": []
+        },
+        {
+          "metadata": {
+            "label": "package1",
+            "description": "",
+            "keywords": []
+          },
+          "items": []
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Current Workspace",
+        "description": "Components available in the current workspace",
+        "keywords": [
+          "Workspace",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "package2 (current)",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "formatMessage",
+                "description": "Formats a message with two parts\n",
+                "data": {
+                  "isDataMappedFunction": false,
+                  "isAgentTool": false,
+                  "isIsolatedFunction": false
+                }
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "testorg",
+                "module": "package2",
+                "symbol": "formatMessage",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "package1",
+            "description": "",
+            "keywords": []
+          },
+          "items": []
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Imported Functions",
+        "description": "Functions imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "health.hl7v2",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "encode",
+                "description": "Encodes HL7 message model to encoded wire format.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.hl7v2_3.0.5.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "health.hl7v2",
+                "packageName": "health.hl7v2",
+                "symbol": "encode",
+                "version": "3.0.5"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "graphql",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "getSdlString",
+                "description": "Obtains the schema representation of a federated subgraph, expressed in the SDL format.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "graphql",
+                "packageName": "graphql",
+                "symbol": "getSdlString",
+                "version": "1.16.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "financial.swiftmtToIso20022",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "toIso20022Xml",
+                "description": "Converts a SWIFT message in string format to its corresponding ISO 20022 XML format.\n\nThe function uses a map of transformation functions corresponding to different SWIFT MT message types \nand applies the appropriate transformation based on the parsed message type.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_financial.swiftmtToIso20022_1.0.4.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "financial.swiftmtToIso20022",
+                "packageName": "financial.swiftmtToIso20022",
+                "symbol": "toIso20022Xml",
+                "version": "1.0.4"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "confluent.cavroserdes",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "serialize",
+                "description": "Serializes the given data according to the Avro format and registers the schema into the schema registry.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_confluent.cavroserdes_1.0.2.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "confluent.cavroserdes",
+                "packageName": "confluent.cavroserdes",
+                "symbol": "serialize",
+                "version": "1.0.2"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "financial.iso20022",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "toXml",
+                "description": "Converts the given ISO 20022 record into XML format.\n\nThis function takes a Ballerina record representing an ISO 20022 message and converts it\ninto the corresponding XML format. It leverages the structure of the provided record\nto generate a valid XML representation that complies with the ISO 20022 standard.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_financial.iso20022_2.0.2.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "financial.iso20022",
+                "packageName": "financial.iso20022",
+                "symbol": "toXml",
+                "version": "2.0.2"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "lang.float",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "toBitsInt",
+                "description": "Returns IEEE 64-bit binary floating point format representation of a float value as an int.\n\n```ballerina\nfloat f = 4.16;\nf.toBitsInt() ⇒ 4616369762039853220\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.float_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.float",
+                "packageName": "lang.float",
+                "symbol": "toBitsInt",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "toFixedString",
+                "description": "Returns a string that represents `x` using fixed-point notation.\nThe returned string will be in the same format used by `value:toString`,\nexcept that it will not include an exponent.\nIf `x` is NaN or infinite, the result will be the same as `value:toString`.\nThis will panic if `fractionDigits` is less than 0.\nIf `fractionDigits` is zero, there will be no decimal point.\nAny necessary rounding will use the roundTiesToEven rounding direction.\n\n```ballerina\nfloat f = 12.456;\nf.toFixedString(2) ⇒ 12.46\nfloat g = 12.456;\ng.toFixedString(0) ⇒ 12\nfloat h = 12.456;\nh.toFixedString(-3) ⇒ panic\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.float_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.float",
+                "packageName": "lang.float",
+                "symbol": "toFixedString",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "toExpString",
+                "description": "Returns a string that represents `x` using scientific notation.\nThe returned string will be in the same format used by `value:toString`,\nexcept that it will always include an exponent and there will be exactly\none digit before the decimal point.\nBut if `x` is NaN or infinite, the result will be the same as `value:toString`.\nThe digit before the decimal point will be zero only if all other digits\nare zero.\nThis will panic if `fractionDigits` is less than 0.\nIf `fractionDigits` is zero, there will be no decimal point.\nAny necessary rounding will use the roundTiesToEven rounding direction.\nThe exponent in the result uses lower-case `e`, followed by a `+` or `-` sign,\nfollowed by at least two digits, and only as many more digits as are needed\nto represent the result. If `x` is zero, the exponent is zero. A zero exponent\nis represented with a `+` sign.\n\n```ballerina\nfloat f = 12.456;\nf.toExpString(2) ⇒ 1.25e+1\nfloat g = 12.456;\ng.toExpString(()) ⇒ 1.2456e+1\nfloat h = 12.456;\nh.toExpString(-2) ⇒ panic\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.float_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.float",
+                "packageName": "lang.float",
+                "symbol": "toExpString",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "time",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "utcToEmailString",
+                "description": "Converts a given UTC to an email formatted string (e.g `Mon, 3 Dec 2007 10:15:30 GMT`).\n```ballerina\ntime:Utc utc = time:utcNow();\nstring emailFormattedString = time:utcToEmailString(utc);\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.7.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "utcToEmailString",
+                "version": "2.7.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "civilFromEmailString",
+                "description": "Converts a given RFC 5322 formatted (e.g `Wed, 10 Mar 2021 19:51:55 -0800 (PST)`) string to a civil record.\n```ballerina\ntime:Civil|time:Error emailDateTime = time:civilFromEmailString(\"Wed, 10 Mar 2021 19:51:55 -0820\");\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.7.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "civilFromEmailString",
+                "version": "2.7.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "civilToEmailString",
+                "description": "Converts a given Civil record to RFC 5322 format (e.g `Wed, 10 Mar 2021 19:51:55 -0800 (PST)`).\n```ballerina\ntime:Civil civil = check time:civilFromString(\"2021-04-12T23:20:50.520+05:30[Asia/Colombo]\");\nstring|time:Error emailDateTime = time:civilToEmailString(civil, time:PREFER_ZONE_OFFSET);\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.7.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "time",
+                "packageName": "time",
+                "symbol": "civilToEmailString",
+                "version": "2.7.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "lang.value",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "fromJsonFloatString",
+                "description": "Parses a string in JSON format, using float to represent numbers.\n\nReturns an error if the string cannot be parsed.\n\n```ballerina\n\"[12, true, 123.4, \\\"hello\\\"]\".fromJsonFloatString() ⇒ [12.0,true,123.4,\"hello\"]\n\"[12, true, 12.5, !]\".fromJsonFloatString() ⇒ error\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.value_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.value",
+                "packageName": "lang.value",
+                "symbol": "fromJsonFloatString",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fromJsonDecimalString",
+                "description": "Parses a string in JSON format, using decimal to represent numbers.\n\nReturns an error if the string cannot be parsed.\n\n```ballerina\n\"[12, true, 123.4, \\\"hello\\\"]\".fromJsonDecimalString() ⇒ [12.0,true,123.4,\"hello\"]\n\"[12, true, 12.5, !]\".fromJsonDecimalString() ⇒ error\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.value_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.value",
+                "packageName": "lang.value",
+                "symbol": "fromJsonDecimalString",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "toJsonString",
+                "description": "Returns the string that represents a anydata value in JSON format.\n\nparameter `v` is first converted to `json` as if by the function `toJson`.\n\n```ballerina\nanydata marks = {\"Alice\": 90, \"Bob\": 85, \"Jo\": 91};\nmarks.toJsonString() ⇒ {\"Alice\":90, \"Bob\":85, \"Jo\":91}\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.value_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.value",
+                "packageName": "lang.value",
+                "symbol": "toJsonString",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fromJsonStringWithType",
+                "description": "Converts a string in JSON format to a user-specified type.\n\nThis is a combination of function `fromJsonString` followed by function `fromJsonWithType`.\n\n```ballerina\nint[] intArray = check \"[1, 2, 3, 4]\".fromJsonStringWithType(); \nintArray ⇒ [1,2,3,4]\n\"2022\".fromJsonStringWithType(int) ⇒ 2022\n\"2022\".fromJsonStringWithType(boolean) ⇒ error\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.value_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.value",
+                "packageName": "lang.value",
+                "symbol": "fromJsonStringWithType",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fromJsonString",
+                "description": "Parses a string in JSON format and returns the value that it represents.\n\nNumbers in the JSON string are converted into Ballerina values of type\ndecimal except in the following two cases:\nif the JSON number starts with `-` and is numerically equal to zero, then it is\nconverted into float value of `-0.0`;\notherwise, if the JSON number is syntactically an integer and is in the range representable\nby a Ballerina int, then it is converted into a Ballerina int.\nA JSON number is considered syntactically an integer if it contains neither\na decimal point nor an exponent.\n\nReturns an error if the string cannot be parsed.\n\n```ballerina\n\"{\\\"id\\\": 12, \\\"name\\\": \\\"John\\\"}\".fromJsonString() ⇒ {\"id\":12,\"name\":\"John\"}\n\"{12: 12}\".fromJsonString() ⇒ error\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.value_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.value",
+                "packageName": "lang.value",
+                "symbol": "fromJsonString",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "financial.iso20022ToSwiftmt",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "toSwiftMtMessage",
+                "description": "Converts an ISO 20022 XML message to its corresponding SWIFT MT message format.\n\nThe function uses a map of transformation functions for different ISO 20022 message types\nand applies the appropriate transformation based on the provided XML content and target SWIFT MT message type.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_financial.iso20022ToSwiftmt_1.0.3.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "financial.iso20022ToSwiftmt",
+                "packageName": "financial.iso20022ToSwiftmt",
+                "symbol": "toSwiftMtMessage",
+                "version": "1.0.3"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "lang.int",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "fromHexString",
+                "description": "Returns the integer that a string value represents in hexadecimal.\n\nBoth uppercase A-F and lowercase a-f are allowed.\nIt may start with an optional `+` or `-` sign.\nNo `0x` or `0X` prefix is allowed.\nReturns an error if the parameter `s` is not in an allowed format.\n\n```ballerina\nint:fromHexString(\"1A5F\") ⇒ 6751\nint:fromHexString(\"-2b4a\") ⇒ -11082\nint:fromHexString(\"1Y4K\") ⇒ error\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.int_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.int",
+                "packageName": "lang.int",
+                "symbol": "fromHexString",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
