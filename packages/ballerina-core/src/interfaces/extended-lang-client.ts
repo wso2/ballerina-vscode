@@ -1068,6 +1068,11 @@ export interface OpenConfigTomlRequest {
     filePath: string
 }
 
+export interface CopyConfigTomlRequest {
+    sourceFilePath: string;
+    destFilePath: string;
+}
+
 export interface BICopilotContextRequest {
     position: LinePosition;
     filePath: string;

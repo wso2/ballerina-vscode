@@ -104,6 +104,7 @@ import {
     OpenAPIGeneratedModulesRequest,
     OpenAPIGeneratedModulesResponse,
     OpenConfigTomlRequest,
+    CopyConfigTomlRequest,
     OpenReadmeRequest,
     ProjectComponentsResponse,
     ProjectRequest,
@@ -1072,6 +1073,21 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     }
 
+
+    async copyConfigToml(params: CopyConfigTomlRequest): Promise<void> {
+        const { sourceFilePath, destFilePath } = params;
+        const sourceConfigToml = path.join(sourceFilePath, "Config.toml");
+        if (!fs.existsSync(sourceConfigToml)) {
+            window.showErrorMessage(`Source Config.toml not found at: ${sourceConfigToml}`);
+            return;
+        }
+        try {
+            const content = fs.readFileSync(sourceConfigToml, 'utf8');
+            fs.writeFileSync(destFilePath, content, 'utf8');
+        } catch (error) {
+            window.showErrorMessage(`Failed to copy Config.toml: ${error}`);
+        }
+    }
 
     async getReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
         return new Promise((resolve) => {

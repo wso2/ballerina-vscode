@@ -285,7 +285,6 @@ const MainPanel = () => {
         setNavActive(true);
         rpcClient.getVisualizerLocation().then(async (value) => {
             const configFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['config.bal'] })).filePath;
-            const testsConfigFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['tests', 'config.bal'] })).filePath;
             const testsConfigTomlPath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['tests', 'Config.toml'] })).filePath;
             let defaultFunctionsFile = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] })).filePath;
             if (value.documentUri) {
@@ -620,7 +619,6 @@ const MainPanel = () => {
                             <ViewConfigurableVariables
                                 projectPath={value?.projectPath}
                                 fileName={configFilePath}
-                                testsFileName={testsConfigFilePath}
                                 testsConfigTomlPath={testsConfigTomlPath}
                                 org={value?.org}
                             />
@@ -631,7 +629,6 @@ const MainPanel = () => {
                             <ViewConfigurableVariables
                                 projectPath={value?.projectPath}
                                 fileName={configFilePath}
-                                testsFileName={testsConfigFilePath}
                                 testsConfigTomlPath={testsConfigTomlPath}
                                 org={value?.org}
                                 addNew={true}
