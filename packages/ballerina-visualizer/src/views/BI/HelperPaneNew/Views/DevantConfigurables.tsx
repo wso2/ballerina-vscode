@@ -49,7 +49,7 @@ export const DevantConfigurables = (props: DevantConfigurablesProps) => {
             const configVars = (data.configVariables as any)?.[
                 `${projectToml?.package?.org}/${projectToml?.package?.name}`
             ]?.[""] as ConfigVariable[];
-            configVars.forEach((configVar) =>
+            configVars?.forEach((configVar) =>
                 configNames.push(configVar?.properties?.variable?.value?.toString() || ""),
             );
             return configNames;
