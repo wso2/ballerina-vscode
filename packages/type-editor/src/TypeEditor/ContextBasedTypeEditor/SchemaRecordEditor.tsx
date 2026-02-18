@@ -130,6 +130,7 @@ export const SchemaRecordEditor = forwardRef<{ addMember: () => void }, SchemaRe
                 <>
                     <FieldEditor
                         key={index}
+                        index={index}
                         member={member}
                         onChange={handleMemberChange(index)}
                         onDelete={handleDeleteMember(index)}

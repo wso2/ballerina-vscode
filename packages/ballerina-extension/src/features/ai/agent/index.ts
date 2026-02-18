@@ -21,6 +21,14 @@ import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
 import { AICommandConfig } from "../executors/base/AICommandExecutor";
 import { createWebviewEventHandler } from "../utils/events";
 import { AgentExecutor } from './AgentExecutor';
+import {
+    sendTelemetryEvent,
+    TM_EVENT_BALLERINA_AI_GENERATION_SUBMITTED,
+    CMP_BALLERINA_AI_GENERATION
+} from "../../telemetry";
+import { extension } from "../../../BalExtensionContext";
+import { getProjectMetrics } from "../../telemetry/common/project-metrics";
+import { getHashedProjectId } from "../../telemetry/common/project-id";
 
 // ==================================
 // Agent Generation Functions
@@ -82,6 +90,29 @@ export async function generateAgent(params: GenerateAgentCodeRequest): Promise<b
             cleanupStrategy: 'review', // Review mode - temp persists until user accepts/declines
             existingTempPath: pendingReview?.reviewState.tempProjectPath
         });
+
+        // Get project metrics, project ID, and chat history for telemetry
+        const projectMetrics = await getProjectMetrics(workspaceId);
+        const projectId = await getHashedProjectId(workspaceId);
+        const chatHistory = chatStateStorage.getChatHistoryForLLM(workspaceId, threadId);
+
+        // Send telemetry event for query submission
+        sendTelemetryEvent(
+            extension.ballerinaExtInstance,
+            TM_EVENT_BALLERINA_AI_GENERATION_SUBMITTED,
+            CMP_BALLERINA_AI_GENERATION,
+            {
+                'message.id': config.generationId,
+                'command': Command.Agent,
+                'project.id': projectId,
+                'plan_mode': (params.isPlanMode ?? false).toString(),
+                'project.files_before': projectMetrics.fileCount.toString(),
+                'project.lines_before': projectMetrics.lineCount.toString(),
+                'file_attachments': (params.fileAttachmentContents?.length > 0).toString(),
+                'chat.has_history': (chatHistory.length > 0).toString(),
+                'chat.history_length': chatHistory.length.toString(),
+            }
+        );
 
         await new AgentExecutor(config).run();
 

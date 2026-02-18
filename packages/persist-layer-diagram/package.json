@@ -15,8 +15,8 @@
 	},
 	"keywords": [],
 	"dependencies": {
-		"@emotion/react": "11.9.3",
-		"@emotion/styled": "11.10.5",
+		"@emotion/react": "11.14.0",
+		"@emotion/styled": "11.14.0",
 		"@projectstorm/geometry": "7.0.3",
 		"@projectstorm/react-canvas-core": "7.0.3",
 		"@projectstorm/react-diagrams": "7.0.4",

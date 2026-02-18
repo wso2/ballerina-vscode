@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { LocationSelector, TextField, CheckBox } from "@wso2/ui-toolkit";
+import { LocationSelector, TextField, CheckBox, DirectorySelector } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import {
     FieldGroup,
@@ -28,7 +28,7 @@ import {
 } from "./styles";
 import { CollapsibleSection, ProjectTypeSelector, PackageInfoSection } from "./components";
 import { ProjectFormData } from "./types";
-import { sanitizePackageName, validatePackageName } from "./utils";
+import { sanitizePackageName, validatePackageName, validateOrgName } from "./utils";
 
 // Re-export for backwards compatibility
 export type { ProjectFormData } from "./types";
@@ -36,13 +36,16 @@ export type { ProjectFormData } from "./types";
 export interface ProjectFormFieldsProps {
     formData: ProjectFormData;
     onFormDataChange: (data: Partial<ProjectFormData>) => void;
-    onValidationChange?: (isValid: boolean) => void;
+    integrationNameError?: string;
+    pathError?: string;
+    packageNameValidationError?: string;
 }
 
-export function ProjectFormFields({ formData, onFormDataChange, onValidationChange }: ProjectFormFieldsProps) {
+export function ProjectFormFields({ formData, onFormDataChange, integrationNameError, pathError, packageNameValidationError }: ProjectFormFieldsProps) {
     const { rpcClient } = useRpcContext();
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
+    const [orgNameError, setOrgNameError] = useState<string | null>(null);
     const [isWorkspaceSupported, setIsWorkspaceSupported] = useState(false);
     const [isProjectStructureExpanded, setIsProjectStructureExpanded] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
@@ -60,10 +63,6 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
         const sanitized = sanitizePackageName(value);
         onFormDataChange({ packageName: sanitized });
         setPackageNameTouched(value.length > 0);
-        // Clear error while typing
-        if (packageNameError) {
-            setPackageNameError(null);
-        }
     };
 
     const handleProjectDirSelection = async () => {
@@ -77,10 +76,24 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
 
     useEffect(() => {
         (async () => {
+            const commonRpcClient = rpcClient.getCommonRpcClient();
+
+            // Set default path if not already set
             if (!formData.path) {
-                const currentDir = await rpcClient.getCommonRpcClient().getWorkspaceRoot();
+                const currentDir = await commonRpcClient.getWorkspaceRoot();
                 onFormDataChange({ path: currentDir.path });
             }
+
+            // Set default org name if not already set
+            if (!formData.orgName) {
+                try {
+                    const { orgName } = await commonRpcClient.getDefaultOrgName();
+                    onFormDataChange({ orgName });
+                } catch (error) {
+                    console.error("Failed to fetch default org name:", error);
+                }
+            }
+
             const isWorkspaceSupported = await rpcClient
                 .getLangClientRpcClient()
                 .isSupportedSLVersion({ major: 2201, minor: 13, patch: 0 })
@@ -92,12 +105,11 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
         })();
     }, []);
 
-    // Effect to trigger validation when requested by parent
+    // Validation effect for org name
     useEffect(() => {
-        const error = validatePackageName(formData.packageName, formData.integrationName);
-        setPackageNameError(error);
-        onValidationChange?.(error === null);
-    }, [formData.packageName, onValidationChange]);
+        const orgError = validateOrgName(formData.orgName);
+        setOrgNameError(orgError);
+    }, [formData.orgName]);
 
     return (
         <>
@@ -110,6 +122,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                     placeholder="Enter an integration name"
                     autoFocus={true}
                     required={true}
+                    errorMsg={integrationNameError || ""}
                 />
             </FieldGroup>
 
@@ -119,21 +132,25 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                     value={formData.packageName}
                     label="Package Name"
                     description="This will be used as the Ballerina package name for the integration."
-                    errorMsg={packageNameError || ""}
+                    errorMsg={packageNameValidationError || ""}
                 />
             </FieldGroup>
 
             <FieldGroup>
-                <LocationSelector
+                <DirectorySelector
+                    id="project-folder-selector"
                     label="Select Path"
-                    selectedFile={formData.path}
-                    btnText="Select Path"
+                    placeholder="Enter path or browse to select a folder..."
+                    selectedPath={formData.path}
+                    required={true}
                     onSelect={handleProjectDirSelection}
+                    onChange={(value) => onFormDataChange({ path: value })}
+                    errorMsg={pathError || undefined}
                 />
 
                 <CheckboxContainer>
                     <CheckBox
-                        label={`Create a new directory using the ${formData.createAsWorkspace ? "workspace name" : "package name"}`}
+                        label={`Create a new folder using the ${formData.createAsWorkspace ? "workspace name" : "package name"}`}
                         checked={formData.createDirectory}
                         onChange={(checked) => onFormDataChange({ createDirectory: checked })}
                     />
@@ -189,6 +206,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                 onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
                 data={{ orgName: formData.orgName, version: formData.version }}
                 onChange={(data) => onFormDataChange(data)}
+                orgNameError={orgNameError}
             />
         </>
     );

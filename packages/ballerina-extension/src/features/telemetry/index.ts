@@ -18,16 +18,29 @@
 
 import TelemetryReporter from "vscode-extension-telemetry";
 import { BallerinaExtension } from "../../core";
+import { getLoginMethod, getBiIntelId } from "../../utils/ai/auth";
 
-//Ballerina-VSCode-Extention repo key as default
-const DEFAULT_KEY = "3a82b093-5b7b-440c-9aa2-3b8e8e5704e7";
-const INSTRUMENTATION_KEY = process.env.CODE_SERVER_ENV && process.env.VSCODE_CHOREO_INSTRUMENTATION_KEY ? process.env.VSCODE_CHOREO_INSTRUMENTATION_KEY : DEFAULT_KEY;
+const INSTRUMENTATION_KEY = process.env.CODE_SERVER_ENV && process.env.VSCODE_CHOREO_INSTRUMENTATION_KEY ? process.env.VSCODE_CHOREO_INSTRUMENTATION_KEY : process.env.APPINSIGHTS_INSTRUMENTATION_KEY;
 const isWSO2User = process.env.VSCODE_CHOREO_USER_EMAIL ? process.env.VSCODE_CHOREO_USER_EMAIL.endsWith('@wso2.com') : false;
 const isAnonymous = process.env.VSCODE_CHOREO_USER_EMAIL ? process.env.VSCODE_CHOREO_USER_EMAIL.endsWith('@choreo.dev') : false;
 const CORRELATION_ID = process.env.VSCODE_CHOREO_CORRELATION_ID ? process.env.VSCODE_CHOREO_CORRELATION_ID : '';
 const CHOREO_COMPONENT_ID = process.env.VSCODE_CHOREO_COMPONENT_ID ? process.env.VSCODE_CHOREO_COMPONENT_ID : '';
 const CHOREO_PROJECT_ID = process.env.VSCODE_CHOREO_PROJECT_ID ? process.env.VSCODE_CHOREO_PROJECT_ID : '';
 const CHOREO_ORG_ID = process.env.VSCODE_CHOREO_ORG_ID ? process.env.VSCODE_CHOREO_ORG_ID : '';
+
+// Whitelist of component names
+const WHITELISTED_COMPONENTS = new Set([
+    'ballerina.ai.generation',
+]);
+
+// Whitelist of specific event names
+const WHITELISTED_EVENTS = new Set([
+    'editor-workspace-ballerina-extension-activate',
+]);
+
+export function shouldSendToAppInsights(eventName: string, componentName: string): boolean {
+    return WHITELISTED_EVENTS.has(eventName) || WHITELISTED_COMPONENTS.has(componentName);
+}
 
 export function createTelemetryReporter(ext: BallerinaExtension): TelemetryReporter {
     const reporter = new TelemetryReporter(ext.getID(), ext.getVersion(), INSTRUMENTATION_KEY);
@@ -37,26 +50,36 @@ export function createTelemetryReporter(ext: BallerinaExtension): TelemetryRepor
     return reporter;
 }
 
-export function sendTelemetryEvent(extension: BallerinaExtension, eventName: string, componentName: string,
+export async function sendTelemetryEvent(extension: BallerinaExtension, eventName: string, componentName: string,
     customDimensions: { [key: string]: string; } = {}, measurements: { [key: string]: number; } = {}) {
     // temporarily disabled in codeserver due to GDPR issue
     if (extension.isTelemetryEnabled() && !extension.getCodeServerContext().codeServerEnv) {
-        extension.telemetryReporter.sendTelemetryEvent(eventName, getTelemetryProperties(extension, componentName,
-            customDimensions), measurements);
+        // Only send whitelisted AI telemetry events to Application Insights
+        if (shouldSendToAppInsights(eventName, componentName)) {
+            extension.telemetryReporter.sendTelemetryEvent(eventName, await getTelemetryProperties(extension, componentName,
+                customDimensions), measurements);
+        }
     }
 }
 
-export function sendTelemetryException(extension: BallerinaExtension, error: Error, componentName: string,
+export async function sendTelemetryException(extension: BallerinaExtension, error: Error, componentName: string,
     params: { [key: string]: string } = {}) {
     // temporarily disabled in codeserver due to GDPR issue
     if (extension.isTelemetryEnabled() && !extension.getCodeServerContext().codeServerEnv) {
-        extension.telemetryReporter.sendTelemetryException(error, getTelemetryProperties(extension, componentName,
-            params));
+        // Only send whitelisted AI telemetry exceptions to Application Insights
+        if (shouldSendToAppInsights('', componentName)) {
+            extension.telemetryReporter.sendTelemetryException(error, await getTelemetryProperties(extension, componentName,
+                params));
+        }
     }
 }
 
-export function getTelemetryProperties(extension: BallerinaExtension, component: string, params: { [key: string]: string; } = {})
-    : { [key: string]: string; } {
+export async function getTelemetryProperties(extension: BallerinaExtension, component: string, params: { [key: string]: string; } = {})
+    : Promise<{ [key: string]: string; }> {
+
+    const userType = await getLoginMethod();
+    const biIntelId = await getBiIntelId();
+
     return {
         ...params,
         'ballerina.version': extension ? extension.ballerinaVersion : '',
@@ -69,6 +92,8 @@ export function getTelemetryProperties(extension: BallerinaExtension, component:
         'component': CHOREO_COMPONENT_ID,
         'project': CHOREO_PROJECT_ID,
         'org': CHOREO_ORG_ID,
+        'user.login_method': userType ?? '',
+        'user.bi_intel_id': biIntelId ?? '',
     };
 }
 

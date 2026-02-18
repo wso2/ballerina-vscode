@@ -384,8 +384,9 @@ export interface SemanticDiffRequest {
 // Numeric enum values from the API
 export enum ChangeTypeEnum {
     ADDITION = 0,
-    MODIFICATION = 1,
-    DELETION = 2
+    DELETION = 1,
+    MODIFICATION = 2,
+
 }
 
 export type ChangeType = "ADDITION" | "MODIFICATION" | "DELETION";
@@ -432,6 +433,16 @@ export interface ConnectorSpecRequest {
 }
 
 export interface ConnectorSpecCancelRequest {
+    requestId: string;
+    comment?: string;
+}
+
+export interface ConfigurationProvideRequest {
+    requestId: string;
+    configValues: Record<string, string>;
+}
+
+export interface ConfigurationCancelRequest {
     requestId: string;
     comment?: string;
 }
