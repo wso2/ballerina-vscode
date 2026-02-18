@@ -20,7 +20,7 @@ import React, { useState } from 'react';
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { Button, Codicon, Icon, TruncatedLabel, TruncatedLabelGroup } from '@wso2/ui-toolkit';
-import { IOType, Mapping, TypeKind } from '@wso2/ballerina-core';
+import { InputCategory, IOType, Mapping, TypeKind } from '@wso2/ballerina-core';
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
@@ -33,6 +33,7 @@ import { useShallow } from 'zustand/react/shallow';
 import ArrowWidget from '../commons/ArrowWidget';
 import { OBJECT_OUTPUT_TARGET_PORT_PREFIX } from '../../utils/constants';
 import { NodeActionWidget } from '../commons/NodeActionWidget';
+import { FieldActionButton } from '../commons/FieldActionButton';
 
 export interface ObjectOutputWidgetProps {
 	id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -112,7 +113,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 	};
 
 	const label = (
-		<TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline" }}>
+		<TruncatedLabelGroup style={{ alignItems: "baseline" }}>
 			{valueLabel && (
 				<TruncatedLabel className={classes.valueLabelHeader}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
@@ -161,6 +162,14 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 							{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
 						</Button>
 						{label}
+						{outputType.category === InputCategory.ConvertedVariable && (
+							<FieldActionButton
+								id={"field-action-edit-" + id}
+								tooltip="Edit"
+								iconName="settings-gear"
+								onClick={async () => await context.createConvertedVariable(outputType.name, true, outputType.typeName)}
+							/>
+						)}
 					</span>
 				</TreeHeader>
 				{(expanded && hasFields) && (
