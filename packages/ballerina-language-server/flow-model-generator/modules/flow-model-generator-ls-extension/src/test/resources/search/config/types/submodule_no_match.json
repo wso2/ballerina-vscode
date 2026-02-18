@@ -9,6 +9,20 @@
   "categories": [
     {
       "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
         "label": "Imported Types",
         "description": "Types imported from other integrations",
         "keywords": [

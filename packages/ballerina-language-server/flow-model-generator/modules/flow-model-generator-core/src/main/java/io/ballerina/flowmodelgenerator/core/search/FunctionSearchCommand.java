@@ -28,7 +28,6 @@ import io.ballerina.compiler.api.symbols.Documentation;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
-import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
@@ -42,7 +41,10 @@ import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Package;
+import io.ballerina.projects.PackageName;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.directory.BuildProject;
+import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
@@ -84,6 +86,7 @@ class FunctionSearchCommand extends SearchCommand {
             "io", List.of("print", "println", "fileWriteString", "fileWriteJson", "fileReadString", "fileReadJson")
     );
     private static final String FETCH_KEY = "functions";
+    public static final String CURRENT_INTEGRATION_INDICATOR = " (current)";
     private final List<String> moduleNames;
     private final Document functionsDoc;
 
@@ -107,7 +110,7 @@ class FunctionSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> defaultView() {
-        buildProjectNodes();
+        buildWorkspaceNodes();
         List<SearchResult> searchResults = new ArrayList<>();
         if (!moduleNames.isEmpty()) {
             searchResults.addAll(dbManager.searchFunctionsByPackages(moduleNames, List.of(), limit, offset));
@@ -120,7 +123,7 @@ class FunctionSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> search() {
-        buildProjectNodes();
+        buildWorkspaceNodes();
         List<SearchResult> functionSearchList = dbManager.searchFunctions(query, limit, offset);
         buildLibraryNodes(functionSearchList);
         return rootBuilder.build().items();
@@ -180,76 +183,105 @@ class FunctionSearchCommand extends SearchCommand {
         return Map.of(FETCH_KEY, dbManager.searchFunctionsByPackages(packageNames, functionNames, limit, offset));
     }
 
-    private void buildProjectNodes() {
+    private List<FunctionSymbol> getFunctions(Project project) {
         Package currentPackage = project.currentPackage();
-        List<Symbol> functionSymbols = PackageUtil.getCompilation(currentPackage)
+
+        return PackageUtil.getCompilation(currentPackage)
                 .getSemanticModel(currentPackage.getDefaultModule().moduleId())
                 .moduleSymbols().stream()
                 .filter(symbol -> symbol.kind().equals(SymbolKind.FUNCTION) &&
                         !symbol.nameEquals(AutomationBuilder.MAIN_FUNCTION_NAME))
+                .map(symbol -> (FunctionSymbol) symbol)
                 .toList();
-        Category.Builder projectBuilder = rootBuilder.stepIn(Category.Name.CURRENT_INTEGRATION);
+    }
+
+    private void buildWorkspaceNodes() {
         Category.Builder agentToolsBuilder = rootBuilder.stepIn(Category.Name.AGENT_TOOLS);
 
-        List<Item> availableNodes = new ArrayList<>();
-        List<Item> availableTools = new ArrayList<>();
-        for (Symbol symbol : functionSymbols) {
-            FunctionSymbol functionSymbol = (FunctionSymbol) symbol;
-            if (functionsDoc != null
-                    && CommonUtils.isNaturalExpressionBodiedFunction(functionsDoc.syntaxTree(), functionSymbol)) {
-                // Skip NP functions
+        Optional<WorkspaceProject> workspaceProject = project.workspaceProject();
+        if (workspaceProject.isEmpty()) {
+            Category.Builder projectBuilder = rootBuilder.stepIn(Category.Name.CURRENT_INTEGRATION);
+            buildProjectNodes(project, projectBuilder, agentToolsBuilder);
+            return;
+        }
+
+        PackageName currProjPackageName = this.project.currentPackage().packageName();
+        
+        Category.Builder workspaceBuilder = rootBuilder.stepIn(Category.Name.CURRENT_WORKSPACE);
+
+        // Build current integration first to ensure it appears at the top
+        Category.Builder currIntProjBuilder = workspaceBuilder.stepIn(
+                currProjPackageName.value() + CURRENT_INTEGRATION_INDICATOR, "", List.of());
+        Category.Builder currIntAgtToolsBuilder = agentToolsBuilder.stepIn(
+                currProjPackageName.value() + CURRENT_INTEGRATION_INDICATOR, "", List.of());
+        buildProjectNodes(this.project, currIntProjBuilder, currIntAgtToolsBuilder);
+
+        List<BuildProject> projects = workspaceProject.get().projects();
+        for (BuildProject project : projects) {
+            PackageName packageName = project.currentPackage().packageName();
+            if (packageName.equals(currProjPackageName)) {
                 continue;
             }
 
-            boolean isDataMappedFunction = false;
-            Optional<Location> location = symbol.getLocation();
-            if (location.isPresent()) {
-                isDataMappedFunction = location.get().lineRange().fileName().equals(DATA_MAPPER_FILE_NAME);
-                LineRange fnLineRange = location.get().lineRange();
+            Category.Builder projectBuilder = workspaceBuilder.stepIn(packageName.value(), "", List.of());
+            Category.Builder projectAgentToolsBuilder = agentToolsBuilder.stepIn(packageName.value(), "", List.of());
+            buildProjectNodes(project, projectBuilder, projectAgentToolsBuilder);
+        }
+    }
+
+    private void buildProjectNodes(Project project,
+                                   Category.Builder projectBuilder,
+                                   Category.Builder projectAgentToolsBuilder) {
+        List<FunctionSymbol> functions = getFunctions(project);
+
+        boolean isCurrIntProject = this.project.currentPackage().packageName()
+                .equals(project.currentPackage().packageName());
+
+        List<FunctionSymbol> filteredFunctions;
+        if (!isCurrIntProject) {
+            filteredFunctions = functions.stream()
+                    .filter(func -> func.qualifiers().contains(Qualifier.PUBLIC))
+                    .toList();
+        } else {
+            filteredFunctions = functions;
+        }
+
+        List<Item> availableNodes = new ArrayList<>();
+        List<Item> availableTools = new ArrayList<>();
+
+        for (FunctionSymbol func : filteredFunctions) {
+            if (isNaturalExprBodiedFunction(func)) {
+                continue;
+            }
+
+            boolean isDataMappedFunction = isDataMappedFunction(func);
+            if (isDataMappedFunction && isCurrIntProject) {
+                LineRange fnLineRange = func.getLocation().get().lineRange();
                 if (fnLineRange.fileName().equals(position.fileName()) &&
                         PositionUtil.isWithinLineRange(fnLineRange, position)) {
                     continue;
                 }
             }
 
-            if (symbol.getName().isEmpty() ||
-                    (!query.isEmpty() && !symbol.getName().get().toLowerCase(Locale.ROOT)
-                            .contains(query.toLowerCase(Locale.ROOT)))) {
+            if (!isValidFunctionForSearchQuery(func)) {
                 continue;
             }
 
-            boolean isAgentTool = isAgentTool(functionSymbol);
-            boolean isIsolatedFunction = functionSymbol.qualifiers().contains(Qualifier.ISOLATED);
-            Metadata metadata = new Metadata.Builder<>(null)
-                    .label(symbol.getName().get())
-                    .description(functionSymbol.documentation()
-                            .flatMap(Documentation::description)
-                            .orElse(null))
-                    .addData("isDataMappedFunction", isDataMappedFunction)
-                    .addData("isAgentTool", isAgentTool)
-                    .addData("isIsolatedFunction", isIsolatedFunction)
-                    .build();
+            boolean isAgentTool = isAgentTool(func);
+            boolean isIsolatedFunction = func.qualifiers().contains(Qualifier.ISOLATED);
 
-            Codedata.Builder<Object> codedataBuilder = new Codedata.Builder<>(null)
-                    .node(NodeKind.FUNCTION_CALL)
-                    .symbol(symbol.getName().get());
-            Optional<ModuleSymbol> moduleSymbol = functionSymbol.getModule();
-            if (moduleSymbol.isPresent()) {
-                ModuleID id = moduleSymbol.get().id();
-                codedataBuilder
-                        .org(id.orgName())
-                        .module(id.packageName())
-                        .version(id.version());
-            }
+            AvailableNode availableNode = createAvailableNode(func, isDataMappedFunction, isAgentTool,
+                    isIsolatedFunction);
 
             if (isAgentTool) {
-                availableTools.add(new AvailableNode(metadata, codedataBuilder.build(), true));
+                availableTools.add(availableNode);
             } else {
-                availableNodes.add(new AvailableNode(metadata, codedataBuilder.build(), true));
+                availableNodes.add(availableNode);
             }
         }
+
         projectBuilder.items(availableNodes);
-        agentToolsBuilder.items(availableTools);
+        projectAgentToolsBuilder.items(availableTools);
     }
 
     private void buildLibraryNodes(List<SearchResult> functionSearchList) {
@@ -309,5 +341,52 @@ class FunctionSearchCommand extends SearchCommand {
             }
         }
         return false;
+    }
+
+    private boolean isNaturalExprBodiedFunction(FunctionSymbol functionSymbol) {
+        return functionsDoc != null
+                && CommonUtils.isNaturalExpressionBodiedFunction(functionsDoc.syntaxTree(), functionSymbol);
+    }
+
+    private boolean isValidFunctionForSearchQuery(FunctionSymbol functionSymbol) {
+        if (functionSymbol.getName().isEmpty()) {
+            return false;
+        }
+        String functionName = functionSymbol.getName().get().toLowerCase(Locale.ROOT);
+        return query.isEmpty() || functionName.contains(query.toLowerCase(Locale.ROOT));
+    }
+
+    private boolean isDataMappedFunction(FunctionSymbol functionSymbol) {
+        Optional<Location> location = functionSymbol.getLocation();
+        return location.isPresent() && location.get().lineRange().fileName().equals(DATA_MAPPER_FILE_NAME);
+    }
+
+    private AvailableNode createAvailableNode(FunctionSymbol functionSymbol,
+                                              boolean isDataMappedFunction,
+                                              boolean isAgentTool,
+                                              boolean isIsolatedFunction) {
+        Metadata metadata = new Metadata.Builder<>(null)
+                .label(functionSymbol.getName().get())
+                .description(functionSymbol.documentation()
+                        .flatMap(Documentation::description)
+                        .orElse(null))
+                .addData("isDataMappedFunction", isDataMappedFunction)
+                .addData("isAgentTool", isAgentTool)
+                .addData("isIsolatedFunction", isIsolatedFunction)
+                .build();
+
+        Codedata.Builder<Object> codedataBuilder = new Codedata.Builder<>(null)
+                .node(NodeKind.FUNCTION_CALL)
+                .symbol(functionSymbol.getName().get());
+        Optional<ModuleSymbol> moduleSymbol = functionSymbol.getModule();
+        if (moduleSymbol.isPresent()) {
+            ModuleID id = moduleSymbol.get().id();
+            codedataBuilder
+                    .org(id.orgName())
+                    .module(id.packageName())
+                    .version(id.version());
+        }
+
+        return new AvailableNode(metadata, codedataBuilder.build(), true);
     }
 }
