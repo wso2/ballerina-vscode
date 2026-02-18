@@ -122,6 +122,8 @@ import {
     OpenAPIGeneratedModulesRequest,
     openConfigToml,
     OpenConfigTomlRequest,
+    copyConfigToml,
+    CopyConfigTomlRequest,
     openReadme,
     OpenReadmeRequest,
     ProjectRequest,
@@ -190,6 +192,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(deleteConfigVariableV2, (args: DeleteConfigVariableRequestV2) => rpcManger.deleteConfigVariableV2(args));
     messenger.onRequest(getConfigVariableNodeTemplate, (args: GetConfigVariableNodeTemplateRequest) => rpcManger.getConfigVariableNodeTemplate(args));
     messenger.onRequest(openConfigToml, (args: OpenConfigTomlRequest) => rpcManger.openConfigToml(args));
+    messenger.onRequest(copyConfigToml, (args: CopyConfigTomlRequest) => rpcManger.copyConfigToml(args));
     messenger.onRequest(getModuleNodes, () => rpcManger.getModuleNodes());
     messenger.onRequest(getReadmeContent, (args: ReadmeContentRequest) => rpcManger.getReadmeContent(args));
     messenger.onNotification(openReadme, (args: OpenReadmeRequest) => rpcManger.openReadme(args));

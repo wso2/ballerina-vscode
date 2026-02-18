@@ -80,7 +80,6 @@ const searchIcon = (<Codicon name="search" sx={{ cursor: "auto" }} />);
 export interface ConfigProps {
     projectPath: string;
     fileName: string;
-    testsFileName?: string;
     testsConfigTomlPath?: string;
     org: string;
     addNew?: boolean;
@@ -240,13 +239,24 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         const variable = variables?.[index];
         if (!variable) return;
         await rpcClient.getBIDiagramRpcClient().deleteConfigVariableV2({
-            configFilePath: props.testsFileName,
+            configFilePath: props.fileName,
             configVariable: variable,
             packageName: category,
             moduleName: module
         }).then(response => {
             if (!response.textEdits) console.error(">>> Error deleting test config variable", response);
         });
+        getTestConfigVariables();
+    };
+
+    const [showCopyConfirm, setShowCopyConfirm] = useState<boolean>(false);
+
+    const handleCopyAllFromIntegration = async () => {
+        await rpcClient.getBIDiagramRpcClient().copyConfigToml({
+            sourceFilePath: props.projectPath,
+            destFilePath: props.testsConfigTomlPath,
+        });
+        setShowCopyConfirm(false);
         getTestConfigVariables();
     };
 
@@ -258,7 +268,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         setSelectedModule({ category, module });
     };
 
-    const activeFileName = isTestsContext ? props.testsFileName : props.fileName;
+    const activeFileName = isTestsContext ? props.fileName : props.fileName;
 
     const handleOpenConfigFile = () => {
         rpcClient
@@ -384,8 +394,8 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     const categoryDisplay = !isTestsContext
         ? (selectedModule?.category === integrationCategory.current ? 'Integration' : selectedModule?.category)
         : isTestsIntegrationModule ? 'Tests : Integration'
-        : isTestsImportedLib ? `Tests : ${selectedModule?.category}`
-        : 'Tests';
+            : isTestsImportedLib ? `Tests : ${selectedModule?.category}`
+                : 'Tests';
 
     const title = selectedModule?.module
         ? `${categoryDisplay} : ${selectedModule.module}`
@@ -550,7 +560,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                 </TreeViewItem>
                                             ))}
                                             {/* Tests leaf item — shows all test configurables (including imported libraries) in the right panel */}
-                                            {props.testsFileName && (
+                                            {props.fileName && (
                                                 <TreeViewItem
                                                     key="tests-sublevel"
                                                     id="tests-sublevel"
@@ -726,10 +736,37 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                     <Codicon name="add" sx={{ marginRight: 5 }} />Add Config
                                                                 </Button>
                                                             )}
+                                                        {isTestsContext && !selectedModule && (
+                                                            <Button appearance="secondary" onClick={() => setShowCopyConfirm(true)}>
+                                                                <Codicon name="copy" sx={{ marginRight: 5 }} />Copy from Integration
+                                                            </Button>
+                                                        )}
                                                     </TitleContent>
                                                     <TitleBoxShadow />
                                                 </div>
                                                 <Container>
+                                                    {/* Copy-from-integration confirmation warning */}
+                                                    {showCopyConfirm && (
+                                                        <div style={{
+                                                            margin: '0 0 16px 0',
+                                                            padding: '12px 16px',
+                                                            background: 'var(--vscode-inputValidation-warningBackground)',
+                                                            border: '1px solid var(--vscode-inputValidation-warningBorder)',
+                                                            borderRadius: '4px',
+                                                        }}>
+                                                            <Typography variant="body2" sx={{ marginBottom: '10px' }}>
+                                                                This will overwrite the entire <strong>tests/Config.toml</strong> with the contents of the root <strong>Config.toml</strong>. Any existing test configuration values will be lost. Continue?
+                                                            </Typography>
+                                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                                <Button appearance="primary" onClick={handleCopyAllFromIntegration}>
+                                                                    Continue
+                                                                </Button>
+                                                                <Button appearance="secondary" onClick={() => setShowCopyConfirm(false)}>
+                                                                    Cancel
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                     {/* Tests full view — integration vars + imported libraries as collapsible sections */}
                                                     {isTestsContext && !selectedModule && (
                                                         <>
@@ -744,7 +781,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                             packageName={integrationCategory.current}
                                                                             moduleName={moduleName}
                                                                             index={index}
-                                                                            fileName={props.testsFileName}
+                                                                            fileName={props.fileName}
                                                                             configTomlPath={props.testsConfigTomlPath}
                                                                             onDeleteConfigVariable={makeTestDeleteHandler(integrationCategory.current, moduleName)}
                                                                             onFormSubmit={getTestConfigVariables}
@@ -791,7 +828,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                                                     packageName={cat.name}
                                                                                                     moduleName={moduleName}
                                                                                                     index={index}
-                                                                                                    fileName={props.testsFileName}
+                                                                                                    fileName={props.fileName}
                                                                                                     configTomlPath={props.testsConfigTomlPath}
                                                                                                     onDeleteConfigVariable={makeTestDeleteHandler(cat.name, moduleName)}
                                                                                                     onFormSubmit={getTestConfigVariables}

@@ -78,6 +78,7 @@ import {
     OpenAPIClientDeleteRequest,
     OpenAPIClientDeleteResponse,
     OpenConfigTomlRequest,
+    CopyConfigTomlRequest,
     UpdateConfigVariableRequestV2,
     GetConfigVariableNodeTemplateRequest,
     UpdateConfigVariableResponseV2,
@@ -200,4 +201,5 @@ export interface BIDiagramAPI {
     getOpenApiGeneratedModules: (params: OpenAPIGeneratedModulesRequest) => Promise<OpenAPIGeneratedModulesResponse>;
     deleteOpenApiGeneratedModules: (params: OpenAPIClientDeleteRequest) => Promise<OpenAPIClientDeleteResponse>;
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
+    copyConfigToml: (params: CopyConfigTomlRequest) => Promise<void>;
 }
