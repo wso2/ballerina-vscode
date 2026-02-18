@@ -41,33 +41,49 @@ const AddButtonWrapper = styled.div`
 `;
 
 const PostProcessSection = styled.div`
+    margin: 0;
+`;
+
+const SectionHeader = styled.div`
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+`;
+
+const SectionContent = styled.div`
+    padding-left: 8px;
     margin-top: 8px;
-    margin-bottom: 8px;
+`;
+
+const PostProcessContent = styled(SectionContent)`
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+`;
+
+const PostProcessChoiceContainer = styled.div`
+    margin-top: 4px;
+    margin-left: 16px;
 `;
 
 const NestedFields = styled.div`
     margin-left: 24px;
-    margin-top: 12px;
+    margin-top: 8px;
     display: flex;
     flex-direction: column;
     gap: 12px;
 `;
 
-const AdvancedConfigsHeader = styled.div`
-    display: flex;
-    align-items: center;
+const AdvancedConfigsHeader = styled(SectionHeader)`
     cursor: pointer;
-    padding: 8px 0;
     user-select: none;
     &:hover {
         opacity: 0.8;
     }
 `;
 
-const AdvancedConfigsContent = styled.div<{ isExpanded: boolean }>`
+const AdvancedConfigsContent = styled(SectionContent)<{ isExpanded: boolean }>`
     display: ${({ isExpanded }: { isExpanded: boolean }) => (isExpanded ? 'block' : 'none')};
-    padding-left: 8px;
-    margin-top: 8px;
 `;
 
 const InfoBanner = styled.div`
@@ -79,6 +95,17 @@ const InfoBanner = styled.div`
     border-radius: 4px;
     align-items: flex-start;
 `;
+
+const POST_PROCESS_RADIO_GROUP_SX = {
+    "& vscode-radio-group": {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px"
+    },
+    "& vscode-radio": {
+        margin: 0
+    }
+};
 /**
  * Converts a PascalCase or camelCase type name to a camelCase parameter name.
  * For CSV format, pluralizes the name since it represents an array of rows.
@@ -622,37 +649,34 @@ export function FTPForm(props: FTPFormProps) {
 
         return (
             <PostProcessSection>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <CheckBoxGroup direction="vertical">
                     <CheckBox
-                        label=""
+                        label={subtitle}
                         checked={isActionEnabled}
                         onChange={(checked) => handleActionToggle(propertyKey, action, checked, selectedValue)}
-                        sx={{ marginTop: 0 }}
-                    />
-                    <Typography variant="body2">{subtitle}</Typography>
-                </div>
-                {action.metadata?.description && (
-                    <Typography
-                        variant="body3"
-                        sx={{ marginBottom: 8, color: 'var(--vscode-descriptionForeground)' }}
-                    >
-                        {action.metadata.description}
-                    </Typography>
-                )}
-                {isActionEnabled && (
-                    <RadioButtonGroup
-                        id={`post-process-action-${propertyKey}`}
-                        label=""
-                        value={selectedValue}
-                        options={action.choices?.map((choice: PropertyModel, index: number) => ({
-                            id: `${propertyKey}-${index}`,
-                            value: choice.value,
-                            content: choice.metadata?.label || choice.value
-                        })) || []}
-                        onChange={(e) => {
-                            handleActionChange(propertyKey, action, e.target.value);
+                        sx={{
+                            marginTop: 0,
+                            description: action.metadata?.description || ''
                         }}
                     />
+                </CheckBoxGroup>
+                {isActionEnabled && (
+                    <PostProcessChoiceContainer>
+                        <RadioButtonGroup
+                            id={`post-process-action-${propertyKey}`}
+                            label=""
+                            value={selectedValue}
+                            sx={POST_PROCESS_RADIO_GROUP_SX}
+                            options={action.choices?.map((choice: PropertyModel, index: number) => ({
+                                id: `${propertyKey}-${index}`,
+                                value: choice.value,
+                                content: choice.metadata?.label || choice.value
+                            })) || []}
+                            onChange={(e) => {
+                                handleActionChange(propertyKey, action, e.target.value);
+                            }}
+                        />
+                    </PostProcessChoiceContainer>
                 )}
 
                 {/* Show nested fields for MOVE action */}
@@ -810,21 +834,23 @@ export function FTPForm(props: FTPFormProps) {
                     {(hasSuccessAction || hasErrorAction) && (
                         <>
                             {isOnCreateHandler && <Divider />}
-                            <Typography variant="body2" sx={{ marginBottom: 8 }}>
-                                After File Processing
-                            </Typography>
-                            {hasSuccessAction && renderPostProcessActionSection(
-                                "Success",
-                                "onSuccess",
-                                postProcessActionOnSuccess,
-                                selectedSuccessAction
-                            )}
-                            {hasErrorAction && renderPostProcessActionSection(
-                                "Error",
-                                "onError",
-                                postProcessActionOnError,
-                                selectedErrorAction
-                            )}
+                            <SectionHeader>
+                                <Typography variant="body2">After File Processing</Typography>
+                            </SectionHeader>
+                            <PostProcessContent>
+                                {hasSuccessAction && renderPostProcessActionSection(
+                                    "Success",
+                                    "onSuccess",
+                                    postProcessActionOnSuccess,
+                                    selectedSuccessAction
+                                )}
+                                {hasErrorAction && renderPostProcessActionSection(
+                                    "Error",
+                                    "onError",
+                                    postProcessActionOnError,
+                                    selectedErrorAction
+                                )}
+                            </PostProcessContent>
                         </>
                     )}
 
