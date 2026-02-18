@@ -133,38 +133,38 @@ function hasPartialSelection(member: Member, referencedTypes: Type[], visited: S
     return false;
 }
 
-/**
- * Collects explicitly selected FIELD members with their dot-path (e.g., "parent.child").
- * Does NOT include required fields - this is only for display in the summary.
- */
-function collectSelected(
-    members: Member[],
-    referencedTypes: Type[],
-    parentPath: string,
-    visited: Set<string> = new Set()
-): Array<{ member: Member; path: string }> {
-    const result: Array<{ member: Member; path: string }> = [];
+// /**
+//  * Collects explicitly selected FIELD members with their dot-path (e.g., "parent.child").
+//  * Does NOT include required fields - this is only for display in the summary.
+//  */
+// function collectSelected(
+//     members: Member[],
+//     referencedTypes: Type[],
+//     parentPath: string,
+//     visited: Set<string> = new Set()
+// ): Array<{ member: Member; path: string }> {
+//     const result: Array<{ member: Member; path: string }> = [];
 
-    for (const m of members) {
-        if (m.kind !== "FIELD" || !m.name) continue;
+//     for (const m of members) {
+//         if (m.kind !== "FIELD" || !m.name) continue;
 
-        const path = parentPath ? `${parentPath}.${m.name}` : m.name;
-        // Only include explicitly selected fields (not required fields)
-        if (m.selected) {
-            result.push({ member: m, path });
-        }
+//         const path = parentPath ? `${parentPath}.${m.name}` : m.name;
+//         // Only include explicitly selected fields (not required fields)
+//         if (m.selected) {
+//             result.push({ member: m, path });
+//         }
 
-        const newVisited = new Set(visited);
-        if (m.refs?.length) newVisited.add(m.refs[0]);
+//         const newVisited = new Set(visited);
+//         if (m.refs?.length) newVisited.add(m.refs[0]);
 
-        const children = resolveChildren(m, referencedTypes, newVisited);
-        if (children.length) {
-            result.push(...collectSelected(children, referencedTypes, path, newVisited));
-        }
-    }
+//         const children = resolveChildren(m, referencedTypes, newVisited);
+//         if (children.length) {
+//             result.push(...collectSelected(children, referencedTypes, path, newVisited));
+//         }
+//     }
 
-    return result;
-}
+//     return result;
+// }
 
 // ─── Styled Components ──────────────────────────────────────────
 
@@ -195,11 +195,10 @@ const Description = styled.div`
     margin-bottom: 8px;
 `;
 
-const Wrapper = styled.div<{ focused: boolean }>`
-    border: 1px solid ${p => p.focused ? "var(--vscode-focusBorder)" : "var(--vscode-dropdown-border)"};
+const Wrapper = styled.div`
+    border: 1px solid var(--vscode-dropdown-border);
     border-radius: 4px;
     background: var(--vscode-input-background);
-    transition: border-color 0.2s;
 `;
 
 const SearchArea = styled.div`
@@ -367,7 +366,6 @@ export function DependentTypeEditor(props: DependentTypeEditorProps) {
     const { form } = useFormContext();
     const { setValue, register } = form;
 
-    const [focused, setFocused] = useState(false);
     const [search, setSearch] = useState("");
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -464,11 +462,6 @@ export function DependentTypeEditor(props: DependentTypeEditorProps) {
         });
     };
 
-    const handleClickAway = () => {
-        setFocused(false);
-        setSearch("");
-    };
-
     // Recursive tree renderer
     const renderTree = (
         members: Member[],
@@ -519,9 +512,6 @@ export function DependentTypeEditor(props: DependentTypeEditorProps) {
             });
     };
 
-    // Collect selected for summary
-    const selectedItems = rootType?.members ? collectSelected(rootType.members, referencedTypes, "") : [];
-
     if (!rootType) {
         return (
             <Container>
@@ -537,69 +527,39 @@ export function DependentTypeEditor(props: DependentTypeEditorProps) {
     }
 
     return (
-        <ClickAwayListener onClickAway={handleClickAway} sx={{ width: "100%" }}>
-            <Container>
-                <LabelContainer>
-                    <Label>{field.label}</Label>
-                    {!field.optional && <RequiredFormInput />}
-                </LabelContainer>
-                {field.documentation && <Description>{field.documentation}</Description>}
+        <Container>
+            <LabelContainer>
+                <Label>{field.label}</Label>
+                {!field.optional && <RequiredFormInput />}
+            </LabelContainer>
+            {field.documentation && <Description>{field.documentation}</Description>}
 
-                <Wrapper focused={focused}>
-                    <SearchArea onMouseDown={() => setFocused(true)} onClick={() => setFocused(true)}>
-                        <SearchBox
-                            value={search}
-                            placeholder="Search and select fields..."
-                            onChange={setSearch}
-                            autoFocus={focused}
-                            sx={{ width: "100%" }}
+            <Wrapper>
+                <SearchArea>
+                    <SearchBox
+                        value={search}
+                        placeholder="Search and select fields..."
+                        onChange={setSearch}
+                        autoFocus={true}
+                        sx={{ width: "100%" }}
+                    />
+                </SearchArea>
+
+                <Dropdown>
+                    <SelectAllRow>
+                        <CheckBox
+                            label=""
+                            checked={areAllSelected(rootType.members, referencedTypes)}
+                            onChange={handleSelectAll}
                         />
-                    </SearchArea>
+                        <SelectAllText>Select All Fields</SelectAllText>
+                    </SelectAllRow>
 
-                    {focused && (
-                        <Dropdown onMouseDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
-                            <SelectAllRow>
-                                <CheckBox
-                                    label=""
-                                    checked={areAllSelected(rootType.members, referencedTypes)}
-                                    onChange={handleSelectAll}
-                                />
-                                <SelectAllText>Select All Fields</SelectAllText>
-                            </SelectAllRow>
-
-                            <TreeContainer>
-                                {renderTree(rootType.members, "", 0)}
-                            </TreeContainer>
-                        </Dropdown>
-                    )}
-
-                    {!focused && selectedItems.length > 0 && (
-                        <SummaryContainer>
-                            <SummaryHeader>
-                                <SummaryTitle>Selected Fields</SummaryTitle>
-                                <ClearButton onClick={e => { e.stopPropagation(); handleClearAll(); }}>
-                                    Clear all
-                                </ClearButton>
-                            </SummaryHeader>
-                            <SummaryList>
-                                {selectedItems.map(({ member, path }) => (
-                                    <SummaryItem key={path}>
-                                        <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
-                                            <FieldLabel as="span" style={{ cursor: "default" }}>
-                                                {path}
-                                            </FieldLabel>
-                                            <TypeTag>{member?.typeName}</TypeTag>
-                                        </div>
-                                        <RemoveButton onClick={e => { e.stopPropagation(); handleRemove(member); }}>
-                                            <Codicon name="trash" />
-                                        </RemoveButton>
-                                    </SummaryItem>
-                                ))}
-                            </SummaryList>
-                        </SummaryContainer>
-                    )}
-                </Wrapper>
-            </Container>
-        </ClickAwayListener>
+                    <TreeContainer>
+                        {renderTree(rootType.members, "", 0)}
+                    </TreeContainer>
+                </Dropdown>
+            </Wrapper>
+        </Container>
     );
 }
