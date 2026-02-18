@@ -20,7 +20,7 @@ import React, { useState } from "react";
 
 import { Button, Codicon, Icon, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
 import { DiagramEngine } from '@projectstorm/react-diagrams';
-import { IOType, TypeKind } from "@wso2/ballerina-core";
+import { InputCategory, IOType, TypeKind } from "@wso2/ballerina-core";
 
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
 import { InputSearchHighlight } from '../commons/Search';
@@ -160,7 +160,19 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                             </Button>
                         )}
                         {label}
-                        <InputCategoryIcon category={dmType.category} />
+                        {dmType.category !== InputCategory.ConvertedVariable ? (
+                            <InputCategoryIcon category={dmType.category} />
+                        ) : (
+                            <Button
+                                id={"edit-" + id}
+                                appearance="icon"
+                                tooltip="Edit"
+                                onClick={async () => await context.createConvertedVariable(dmType.name, true, dmType.typeName)}
+                                data-testid={`${id}-edit-icon`}
+                            >
+                                <Codicon name="settings-gear" />
+                            </Button>
+                        )}
                     </span>
                     <span className={classes.outPort}>
                         {portOut && (isNotGroupHeaderPort || !expanded && portOut.linkedPorts.length > 0) &&
@@ -207,7 +219,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                 <>
                     <ArrowWidget direction="down" />
                     <NodeActionWidget
-                        onClick={async () => await context.createConvertedVariable(headerLabel, true, true)}
+                        onClick={async () => await context.createConvertedVariable(headerLabel, true)}
                         iconName="convert"
                         tooltip={`Create type defined variable to access fields in ${headerLabel}`}
                         label="Create type defined variable"

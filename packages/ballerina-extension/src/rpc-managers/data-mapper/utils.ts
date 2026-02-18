@@ -736,12 +736,11 @@ function processUnion(
  * Processes a converted variable for JSON/XML types
  */
 function processConvertedVariable(
-    convertedVariable: IOTypeField,
+    convertedVariable: IORoot,
     model: DMModel,
     visitedRefs: Set<string>
 ): IOType {
     const fieldId = convertedVariable.name;
-    const isFocused = true;
 
     if (model.traversingRoot) {
         model.focusInputRootMap[fieldId] = model.traversingRoot;
@@ -753,7 +752,8 @@ function processConvertedVariable(
         displayName: convertedVariable.displayName,
         typeName: convertedVariable.typeName,
         kind: convertedVariable.kind,
-        ...(isFocused && { isFocused }),
+        category: convertedVariable.category,
+        isFocused: true,
         ...(convertedVariable.optional && { optional: convertedVariable.optional }),
         ...(convertedVariable.typeInfo && { typeInfo: convertedVariable.typeInfo }),
         ...processTypeKind(convertedVariable, fieldId, model, visitedRefs)

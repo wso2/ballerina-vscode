@@ -624,24 +624,24 @@ export function DataMapperView(props: DataMapperViewProps) {
         }
     };
 
-    const createConvertedVariable = async (variableName: string, isInput: boolean, isNew: boolean) => {
-        const initialTypeName = variableName.charAt(0).toUpperCase() + variableName.slice(1);
+    const createConvertedVariable = async (variableName: string, isInput: boolean, typeName?: string) => {
+        const initialTypeName = typeName || variableName.charAt(0).toUpperCase() + variableName.slice(1);
         initialTypeNameRef.current = await genUniqueName(initialTypeName, viewState.viewId);
 
         onTypeCreateRef.current = (type: Type | string, imports?: Imports) => {
-            const typeName = typeof type === 'string' ? type : (type as Type).name
+            const newTypeName = typeof type === 'string' ? type : (type as Type).name
             rpcClient
                 .getDataMapperRpcClient()
                 .createConvertedVariable({
                     filePath,
                     codedata: {
                         ...viewState.codedata,
-                        isNew
+                        isNew: !typeName
                     },
                     varName: name,
                     targetField: viewState.viewId,
                     subMappingName: viewState.subMappingName,
-                    typeName,
+                    typeName: newTypeName,
                     variableName,
                     isInput
                 }).then(res => {
