@@ -50,15 +50,11 @@ public class ConfigVariablesV2UpdateTest extends AbstractLSTest {
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
         String projectPath = sourceDir.resolve(testConfig.project()).toAbsolutePath().toString();
 
-        String configTomlPath = testConfig.request().configTomlPath() != null
-                ? sourceDir.resolve(testConfig.request().configTomlPath()).toAbsolutePath().toString()
-                : null;
         ConfigVariableUpdateRequest request = new ConfigVariableUpdateRequest(
                 testConfig.request().packageName(),
                 testConfig.request().moduleName(),
                 Paths.get(projectPath, testConfig.request().configFilePath()).toAbsolutePath().toString(),
-                testConfig.request().configVariable(),
-                configTomlPath
+                testConfig.request().configVariable()
         );
         ConfigVariableUpdateResponse actualResponse = gson.fromJson(getResponse(request),
                 ConfigVariableUpdateResponse.class);
@@ -133,8 +129,7 @@ public class ConfigVariablesV2UpdateTest extends AbstractLSTest {
 
     }
 
-    private record Request(String packageName, String moduleName, String configFilePath, JsonElement configVariable,
-                           String configTomlPath) {
+    private record Request(String packageName, String moduleName, String configFilePath, JsonElement configVariable) {
 
     }
 

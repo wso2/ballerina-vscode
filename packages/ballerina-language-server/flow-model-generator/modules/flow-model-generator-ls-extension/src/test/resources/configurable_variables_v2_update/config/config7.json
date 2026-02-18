@@ -99,7 +99,7 @@
   },
   "response": {
     "textEdits": {
-      "Config.toml": [
+      "/Users/danniles/Documents/Projects/WSO2/ballerina-language-server/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/configurable_variables_v2_update/source/config_update_test_project/Config.toml": [
         {
           "range": {
             "start": {
@@ -107,8 +107,8 @@
               "character": 0
             },
             "end": {
-              "line": 2,
-              "character": 19
+              "line": 3,
+              "character": 0
             }
           },
           "newText": ""

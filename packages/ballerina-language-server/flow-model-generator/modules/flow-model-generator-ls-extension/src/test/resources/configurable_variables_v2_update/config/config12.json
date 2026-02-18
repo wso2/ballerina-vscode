@@ -5,7 +5,6 @@
     "packageName": "config_tests/config_update_test_project",
     "moduleName": "",
     "configFilePath": "config.bal",
-    "configTomlPath": "config_update_test_project/tests/Config.toml",
     "configVariable": {
       "id": "32789",
       "metadata": {
@@ -102,15 +101,15 @@
   },
   "response": {
     "textEdits": {
-      "tests/Config.toml": [
+      "/Users/danniles/Documents/Projects/WSO2/ballerina-language-server/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/configurable_variables_v2_update/source/config_update_test_project/Config.toml": [
         {
           "range": {
             "start": {
-              "line": 1,
+              "line": 2,
               "character": 0
             },
             "end": {
-              "line": 1,
+              "line": 2,
               "character": 19
             }
           },

@@ -27,10 +27,9 @@ import com.google.gson.JsonElement;
  * @param moduleName     name of the module
  * @param configFilePath path of the config file
  * @param configVariable config variable to be updated
- * @param configTomlPath optional path to a Config.toml file; if not provided, defaults to the project root
  * @since 1.0.0
  */
 public record ConfigVariableUpdateRequest(String packageName, String moduleName, String configFilePath,
-                                          JsonElement configVariable, String configTomlPath) {
+                                          JsonElement configVariable) {
 
 }

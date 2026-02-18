@@ -1,6 +1,5 @@
 {
   "project": "default_module_projects/simple_type_configs",
-  "configTomlPath": "default_module_projects/simple_type_configs/tests/Config.toml",
   "configVariables": {
     "config_tests/simpleconfigs": {
       "": [
@@ -93,6 +92,24 @@
               "metadata": {
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "100",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
               },
               "types": [
                 {
@@ -231,6 +248,24 @@
               "hidden": true,
               "modified": false
             },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
             "documentation": {
               "metadata": {
                 "label": "Documentation",
@@ -341,6 +376,24 @@
               "metadata": {
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "\"test string\"",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
               },
               "types": [
                 {
@@ -479,6 +532,24 @@
               "hidden": true,
               "modified": false
             },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
             "documentation": {
               "metadata": {
                 "label": "Documentation",
@@ -581,6 +652,24 @@
               "metadata": {
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "[\"apple\", \"banana\", \"cherry\"]",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
               },
               "types": [
                 {
@@ -712,6 +801,24 @@
                   "selected": true
                 }
               ],
+              "value": "{name: \"Jane Smith\", age: 22, grade: \"A\"}",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "value": "",
               "optional": true,
               "editable": true,
@@ -829,6 +936,24 @@
               "metadata": {
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "{name: \"John Doe\", age: 30, grade: \"B\"}",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
               },
               "types": [
                 {

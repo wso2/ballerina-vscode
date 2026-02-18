@@ -98,6 +98,24 @@
               "hidden": true,
               "modified": false
             },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
             "documentation": {
               "metadata": {
                 "label": "Documentation",
@@ -200,6 +218,24 @@
               "metadata": {
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
               },
               "types": [
                 {
@@ -338,6 +374,24 @@
               "hidden": true,
               "modified": false
             },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
             "documentation": {
               "metadata": {
                 "label": "Documentation",
@@ -448,6 +502,24 @@
               "metadata": {
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
               },
               "types": [
                 {
@@ -578,6 +650,24 @@
               "hidden": true,
               "modified": false
             },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
             "documentation": {
               "metadata": {
                 "label": "Documentation",
@@ -680,6 +770,24 @@
               "metadata": {
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
               },
               "types": [
                 {
@@ -810,6 +918,24 @@
               "hidden": true,
               "modified": false
             },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
             "documentation": {
               "metadata": {
                 "label": "Documentation",
@@ -912,6 +1038,24 @@
               "metadata": {
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
               },
               "types": [
                 {
@@ -1042,6 +1186,24 @@
               "hidden": true,
               "modified": false
             },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
             "documentation": {
               "metadata": {
                 "label": "Documentation",
@@ -1152,6 +1314,24 @@
               "metadata": {
                 "label": "Config Value",
                 "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "testConfigValue": {
+              "metadata": {
+                "label": "Test Config Value",
+                "description": "Config value of the variable for tests, to be used in tests/Config.toml"
               },
               "types": [
                 {

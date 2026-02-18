@@ -23,10 +23,9 @@ package io.ballerina.flowmodelgenerator.extension.request;
  *
  * @param projectPath      path of the config file
  * @param includeLibraries whether to include library variables in the response
- * @param configTomlPath   optional path to a Config.toml file; if not provided, defaults to the project root
  *
  * @since 1.0.0
  */
-public record ConfigVariableGetRequest(String projectPath, boolean includeLibraries, String configTomlPath) {
+public record ConfigVariableGetRequest(String projectPath, boolean includeLibraries) {
 
 }
