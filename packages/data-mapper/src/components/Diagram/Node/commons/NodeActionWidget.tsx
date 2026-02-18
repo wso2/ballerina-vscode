@@ -48,6 +48,7 @@ export function NodeActionWidget(props: NodeActionWidgetProps) {
             className={classes.nodeActionButton} 
             onClick={handleOnClick}
             disabled={inProgress}
+            tooltip={tooltip}
         >
             {inProgress ? (
                 <ProgressRing sx={{ height: '16px', width: '16px' }} />

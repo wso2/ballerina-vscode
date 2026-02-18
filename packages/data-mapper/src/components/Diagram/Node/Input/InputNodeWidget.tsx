@@ -74,7 +74,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
 
     let fields: IOType[];
 
-    if (typeKind === TypeKind.Record) {
+    if (typeKind === TypeKind.Record || typeKind === TypeKind.Json || typeKind === TypeKind.Xml) {
         fields = dmType.fields;
     } else if (typeKind === TypeKind.Array) {
         fields = [ dmType.member ];
