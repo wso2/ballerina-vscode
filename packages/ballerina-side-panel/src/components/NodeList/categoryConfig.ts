@@ -188,7 +188,11 @@ export const getCategoryConfig = (title: string): CategoryConfig | undefined => 
     return CATEGORY_CONFIGS[title];
 };
 
-export const shouldShowEmptyCategory = (title: string): boolean => {
+export const shouldShowEmptyCategory = (title: string, isSubCategory: boolean): boolean => {
+    if (isSubCategory) {
+        // For subcategories, only show if it's "Current Integration"
+        return title === "Current Integration";
+    }
     const config = getCategoryConfig(title);
     return config?.showWhenEmpty ?? false;
 };

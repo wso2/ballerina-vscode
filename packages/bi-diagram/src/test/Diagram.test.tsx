@@ -30,6 +30,7 @@ import model3 from "../stories/3-suggestions.json";
 import model4 from "../stories/4-with-diagnostics.json";
 import model5 from "../stories/5-complex-1.json";
 import model6 from "../stories/6-ai-agent.json";
+import model7 from "../stories/7-all-nodes.json";
 
 // --- Emotion Style Snapshot Helpers ---
 
@@ -99,7 +100,7 @@ function applyHashMap(content: string, hashMap: Map<string, string>): string {
     return content.replace(pattern, (m) => hashMap.get(m) ?? m);
 }
 
-async function renderAndCheckSnapshot(model: Flow, testName: string) {
+async function renderAndCheckSnapshot(model: Flow, testName: string, overrides?: Partial<React.ComponentProps<typeof Diagram>>) {
     const mockProps = {
         onAddNode: jest.fn(),
         onAddNodePrompt: jest.fn(),
@@ -114,7 +115,7 @@ async function renderAndCheckSnapshot(model: Flow, testName: string) {
         openView: jest.fn(),
     };
 
-    const dom = render(<Diagram model={model} {...mockProps} />);
+    const dom = render(<Diagram model={model} {...mockProps} {...overrides} />);
 
     // Wait for diagram to render
     await waitFor(
@@ -183,5 +184,11 @@ describe("BI Diagram - Snapshot Tests", () => {
 
     test("renders AI agent flow correctly", async () => {
         await renderAndCheckSnapshot(model6 as unknown as Flow, "ai-agent-flow");
+    }, 15000);
+
+    test("renders all nodes flow correctly", async () => {
+        await renderAndCheckSnapshot(model7 as unknown as Flow, "all-nodes-flow", {
+            project: { org: "gayanka", path: "/tmp" },
+        });
     }, 15000);
 });

@@ -62,7 +62,7 @@ export const CreateConnectorOptions = styled.div`
     gap: 12px;
 `;
 
-export const ConnectorOptionCard = styled.div<{ disabled?: boolean }>`
+export const ConnectorOptionCard = styled.div`
     position: relative;
     display: flex;
     align-items: center;
@@ -71,29 +71,13 @@ export const ConnectorOptionCard = styled.div<{ disabled?: boolean }>`
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 8px;
     background-color: ${ThemeColors.SURFACE_DIM};
-    cursor: ${(props: { disabled?: boolean }) => (props.disabled ? "not-allowed" : "pointer")};
+    cursor: pointer;
     transition: all 0.2s ease;
-    opacity: ${(props: { disabled?: boolean }) => (props.disabled ? 0.5 : 1)};
 
     &:hover {
-        background-color: ${(props: { disabled?: boolean }) =>
-            props.disabled ? ThemeColors.SURFACE_DIM : ThemeColors.PRIMARY_CONTAINER};
-        border-color: ${(props: { disabled?: boolean }) =>
-            props.disabled ? ThemeColors.OUTLINE_VARIANT : ThemeColors.PRIMARY};
+        background-color: ${ThemeColors.PRIMARY_CONTAINER};
+        border-color: ${ThemeColors.PRIMARY};
     }
-`;
-
-export const ConnectorDetailCard = styled.div`
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    border-radius: 8px;
-    background-color: ${ThemeColors.SURFACE_DIM};
-    transition: all 0.2s ease;
-    opacity: ${(props: { disabled?: boolean }) => (props.disabled ? 0.5 : 1)};
 `;
 
 export const ConnectorOptionIcon = styled.div`
@@ -188,14 +172,17 @@ export const FilterButton = styled.button<{ active?: boolean }>`
     border: none;
     cursor: pointer;
     font-weight: ${(props: { active?: boolean }) => (props.active ? 600 : 400)};
-    background-color: ${(props: { active?: boolean }) => (props.active ? ThemeColors.PRIMARY : "transparent")};
-    color: ${(props: { active?: boolean }) => (props.active ? ThemeColors.ON_PRIMARY : ThemeColors.ON_SURFACE_VARIANT)};
+    background-color: ${(props: { active?: boolean }) =>
+        props.active ? ThemeColors.PRIMARY : "transparent"};
+    color: ${(props: { active?: boolean }) =>
+        props.active ? ThemeColors.ON_PRIMARY : ThemeColors.ON_SURFACE_VARIANT};
     transition: all 0.2s ease;
 
     &:hover {
         background-color: ${(props: { active?: boolean }) =>
-            props.active ? ThemeColors.PRIMARY : ThemeColors.SURFACE_CONTAINER};
-        color: ${(props: { active?: boolean }) => (props.active ? ThemeColors.ON_PRIMARY : ThemeColors.ON_SURFACE)};
+        props.active ? ThemeColors.PRIMARY : ThemeColors.SURFACE_CONTAINER};
+        color: ${(props: { active?: boolean }) =>
+        props.active ? ThemeColors.ON_PRIMARY : ThemeColors.ON_SURFACE};
     }
 `;
 
@@ -214,4 +201,17 @@ export const BackButton = styled(Button)`
 export const StepperContainer = styled.div`
     padding: 24px 32px;
     border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+`;
+
+export const ConnectorDetailCard = styled.div`
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    border-radius: 8px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    transition: all 0.2s ease;
+    opacity: ${(props: { disabled?: boolean }) => (props.disabled ? 0.5 : 1)};
 `;

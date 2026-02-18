@@ -19,7 +19,10 @@
 import React, { useEffect, useState } from "react";
 import { AvailableNode, Category, LinePosition, MACHINE_VIEW, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Codicon, ThemeColors } from "@wso2/ui-toolkit";
+import { Codicon, Icon, SearchBox, ThemeColors, Typography, ProgressRing } from "@wso2/ui-toolkit";
+import { cloneDeep, debounce } from "lodash";
+import ButtonCard from "../../../../components/ButtonCard";
+import { ConnectorIcon } from "@wso2/bi-diagram";
 import APIConnectionPopup from "../APIConnectionPopup";
 import ConnectionConfigurationPopup from "../ConnectionConfigurationPopup";
 import DatabaseConnectionPopup from "../DatabaseConnectionPopup";
@@ -28,7 +31,6 @@ import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-pr
 import { DevantConnectorPopup } from "../DevantConnections/DevantConnectorPopup";
 import { PopupContent } from "./styles";
 import { AddConnectionPopupContent } from "./AddConnectionPopupContent";
-
 
 export interface AddConnectionPopupProps {
     projectPath: string;
