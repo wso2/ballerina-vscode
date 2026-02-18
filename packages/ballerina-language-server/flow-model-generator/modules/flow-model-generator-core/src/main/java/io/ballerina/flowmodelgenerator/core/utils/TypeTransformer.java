@@ -879,7 +879,8 @@ public class TypeTransformer {
      *   <li>External package: stored as {@code org/packageName}.</li>
      * </ul>
      * Composite types ({@code ARRAY}, {@code MAP}, {@code STREAM}, {@code FUTURE}, {@code UNION},
-     * {@code INTERSECTION}) are handled by recursing into their constituent type parameters.
+     * {@code INTERSECTION}, {@code TABLE}, {@code TUPLE}, {@code ERROR}, {@code TYPEDESC}) are handled
+     * by recursing into their constituent type parameters.
      *
      * @param typeSymbol the type symbol to inspect
      * @param builder    the builder on which to register discovered import statements
@@ -912,6 +913,16 @@ public class TypeTransformer {
                     .forEach(t -> addRequiredImports(t, builder));
             case INTERSECTION -> ((IntersectionTypeSymbol) typeSymbol).memberTypeDescriptors()
                     .forEach(t -> addRequiredImports(t, builder));
+            case TABLE -> {
+                addRequiredImports(((TableTypeSymbol) typeSymbol).rowTypeParameter(), builder);
+                ((TableTypeSymbol) typeSymbol).keyConstraintTypeParameter()
+                        .ifPresent(t -> addRequiredImports(t, builder));
+            }
+            case TUPLE -> ((TupleTypeSymbol) typeSymbol).memberTypeDescriptors()
+                    .forEach(t -> addRequiredImports(t, builder));
+            case ERROR -> addRequiredImports(((ErrorTypeSymbol) typeSymbol).detailTypeDescriptor(), builder);
+            case TYPEDESC -> ((TypeDescTypeSymbol) typeSymbol).typeParameter()
+                    .ifPresent(t -> addRequiredImports(t, builder));
             default -> { }
         }
     }
