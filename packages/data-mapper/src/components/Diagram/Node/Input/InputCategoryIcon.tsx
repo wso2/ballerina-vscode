@@ -39,7 +39,7 @@ const categoryIconMap: Record<InputCategory, string> = {
 export function InputCategoryIcon({ category }: InputCategoryIconProps) {
     return category && (
         <span title={category} style={{ padding: "3px" }}>
-            <Codicon name={categoryIconMap[category]} />
+            <Codicon name={categoryIconMap[category]} tooltip={category}/>
         </span>
     );
 }

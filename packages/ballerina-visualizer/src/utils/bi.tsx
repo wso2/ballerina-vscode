@@ -90,7 +90,7 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
     if (functionType === FUNCTION_TYPE.REGULAR && (node.metadata.data as NodeMetadata)?.isDataMappedFunction) {
         return undefined;
     }
-    if (functionType === FUNCTION_TYPE.EXPRESSION_BODIED && !(node.metadata.data as NodeMetadata).isDataMappedFunction) {
+    if (functionType === FUNCTION_TYPE.EXPRESSION_BODIED && !(node.metadata.data as NodeMetadata)?.isDataMappedFunction) {
         return undefined;
     }
 
@@ -111,19 +111,23 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
 }
 
 function convertDiagramCategoryToSidePanelCategory(category: Category, functionType?: FUNCTION_TYPE): PanelCategory {
-    if (category.metadata.label !== "Current Integration" && functionType === FUNCTION_TYPE.EXPRESSION_BODIED) {
-        // Skip out of scope data mapping functions
-        return;
-    }
     const items: PanelItem[] = category.items
         ?.map((item) => {
             if ("codedata" in item) {
                 return convertAvailableNodeToPanelNode(item as AvailableNode, functionType);
             } else {
-                return convertDiagramCategoryToSidePanelCategory(item as Category);
+                return convertDiagramCategoryToSidePanelCategory(item as Category, functionType);
             }
         })
-        .filter((item) => item !== undefined);
+        .filter((item) => {
+            if (item === undefined) {
+                return false;
+            }
+            if ((item as PanelCategory).items !== undefined) {
+                return (item as PanelCategory).items.length > 0;
+            }
+            return true;
+        });
 
     // HACK: use the icon of the first item in the category
     const icon = category.items.at(0)?.metadata.icon;
@@ -247,6 +251,11 @@ export function convertNodePropertiesToFormFields(
             const expression = nodeProperties[key as NodePropertyKey];
             if (expression) {
                 const formField: FormField = convertNodePropertyToFormField(key, expression, connections, clientName);
+
+                if (getPrimaryInputType(expression.types)?.fieldType === "REPEATABLE_PROPERTY") {
+                    handleRepeatableProperty(expression, formField);
+                }
+
                 formFields.push(formField);
             }
         }
@@ -353,9 +362,28 @@ export function updateNodeProperties(
         if (values.hasOwnProperty(key) && updatedNodeProperties.hasOwnProperty(key)) {
             const expression = updatedNodeProperties[key as NodePropertyKey];
             if (expression) {
-                expression.value = values[key];
-                expression.imports = formImports[key];
+                expression.imports = formImports?.[key];
                 expression.modified = dirtyFields?.hasOwnProperty(key);
+
+                const dataValue = values[key];
+                const primaryType = getPrimaryInputType(expression.types);
+                if (primaryType?.fieldType === "REPEATABLE_PROPERTY" && isTemplateType(primaryType)) {
+                    const template = primaryType?.template;
+                    expression.value = {};
+                    // Go through the parameters array
+                    for (const [repeatKey, repeatValue] of Object.entries(dataValue)) {
+                        // Create a deep copy for each iteration
+                        const valueConstraint = JSON.parse(JSON.stringify(template));
+                        // Fill the values of the parameter constraint
+                        for (const [paramKey, param] of Object.entries((valueConstraint as any).value as NodeProperties)) {
+                            param.value = (repeatValue as any).formValues[paramKey] || "";
+                        }
+                        (expression.value as any)[(repeatValue as any).key] = valueConstraint;
+                    }
+                } else {
+                    expression.value = dataValue;
+                }
+
             }
         }
     }
@@ -403,7 +431,7 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             if (!activeNode) {
                 return "";
             }
-            if (activeNode.codedata?.node === "AGENT_CALL") {
+            if (activeNode.codedata?.node === "AGENT_CALL" || activeNode.codedata?.node === "AGENT_RUN") {
                 return `AI Agent`;
             }
             if (activeNode.codedata?.node === "KNOWLEDGE_BASE" && activeNode.codedata?.object === "VectorKnowledgeBase") {
@@ -751,6 +779,17 @@ export function convertToVisibleTypes(types: VisibleTypeItem[], isFetchingTypesF
     }));
 }
 
+export function convertItemsToCompletionItems(items: Item[]): CompletionItem[] {
+    items = items.filter(item => item !== null) as Item[];
+    //TODO: Need labelDetails from the LS for proper conversion
+    return items.map((item) => ({
+        label: item.metadata.label,
+        value: item.metadata.label,
+        kind: COMPLETION_ITEM_KIND.TypeParameter,
+        insertText: item.metadata.label
+    }));
+}
+
 export function convertRecordTypeToCompletionItem(type: Type): CompletionItem {
     const label = type?.name ?? "";
     const value = label;
@@ -832,9 +871,9 @@ const isCategoryType = (item: Item): item is Category => {
 };
 
 export const getFunctionItemKind = (category: string): FunctionKind => {
-    if (category.includes("Current")) {
+    if (category.toLocaleLowerCase().includes("current")) {
         return functionKinds.CURRENT;
-    } else if (category.includes("Imported")) {
+    } else if (category.toLocaleLowerCase().includes("imported")) {
         return functionKinds.IMPORTED;
     } else {
         return functionKinds.AVAILABLE;

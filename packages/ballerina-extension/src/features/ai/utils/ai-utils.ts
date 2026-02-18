@@ -233,20 +233,22 @@ export function sendIntermidateStateNotification(intermediaryState: Documentatio
     sendAIPanelNotification(msg);
 }
 
-export function sendToolCallNotification(toolName: string, toolInput?: any): void {
+export function sendToolCallNotification(toolName: string, toolInput?: any, toolCallId?: string): void {
     const msg: ToolCall = {
         type: "tool_call",
         toolName: toolName,
         toolInput: toolInput,
+        toolCallId: toolCallId,
     };
     sendAIPanelNotification(msg);
 }
 
-export function sendToolResultNotification(toolName: string, toolOutput?: any): void {
+export function sendToolResultNotification(toolName: string, toolOutput?: any, toolCallId?: string): void {
     const msg: ToolResult = {
         type: "tool_result",
         toolName: toolName,
         toolOutput: toolOutput,
+        toolCallId: toolCallId,
     };
     sendAIPanelNotification(msg);
 }
@@ -289,6 +291,10 @@ export function sendGeneratedSourcesNotification(fileArray: SourceFile[]): void 
 }
 
 export function sendConnectorGenerationNotification(event: ChatNotify & { type: "connector_generation_notification" }): void {
+    sendAIPanelNotification(event);
+}
+
+export function sendConfigurationCollectionNotification(event: ChatNotify & { type: "configuration_collection_event" }): void {
     sendAIPanelNotification(event);
 }
 

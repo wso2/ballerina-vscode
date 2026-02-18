@@ -55,3 +55,4 @@ export const showErrorMessage: NotificationType<ShowErrorMessageRequest> = { met
 export const getCurrentProjectTomlValues: RequestType<void, void> = { method: `${_preFix}/getCurrentProjectTomlValues` };
 export const getWorkspaceType: RequestType<void, WorkspaceTypeResponse> = { method: `${_preFix}/getWorkspaceType` };
 export const downloadSelectedSampleFromGithub: RequestType<SampleDownloadRequest, boolean> = { method: `${_preFix}/downloadSelectedSampleFromGithub` };
+export const getDefaultOrgName: RequestType<void, { orgName: string }> = { method: `${_preFix}/getDefaultOrgName` };

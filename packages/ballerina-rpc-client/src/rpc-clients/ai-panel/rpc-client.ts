@@ -27,6 +27,8 @@ import {
     CheckpointInfo,
     ConnectorSpecCancelRequest,
     ConnectorSpecRequest,
+    ConfigurationCancelRequest,
+    ConfigurationProvideRequest,
     DocGenerationRequest,
     GenerateAgentCodeRequest,
     GenerateOpenAPIRequest,
@@ -51,6 +53,7 @@ import {
     approvePlan,
     approveTask,
     cancelConnectorSpec,
+    cancelConfiguration,
     clearChat,
     clearInitialPrompt,
     createTestDirecoryIfNotExists,
@@ -64,6 +67,7 @@ import {
     generateOpenAPI,
     getAIMachineSnapshot,
     getActiveTempDir,
+    getAffectedPackages,
     getChatMessages,
     getCheckpoints,
     getDefaultPrompt,
@@ -72,17 +76,18 @@ import {
     getGeneratedDocumentation,
     getLoginMethod,
     getSemanticDiff,
-    getAffectedPackages,
-    isWorkspaceProject,
     getServiceNames,
     isCopilotSignedIn,
     isPlanModeFeatureEnabled,
+    isPlatformExtensionAvailable,
     isUserAuthenticated,
+    isWorkspaceProject,
     markAlertShown,
     openAIPanel,
     openChatWindowWithCommand,
     promptGithubAuthorize,
     provideConnectorSpec,
+    provideConfiguration,
     restoreCheckpoint,
     showSignInAlert,
     submitFeedback,
@@ -101,6 +106,10 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getLoginMethod(): Promise<LoginMethod> {
         return this._messenger.sendRequest(getLoginMethod, HOST_EXTENSION);
+    }
+
+    isPlatformExtensionAvailable(): Promise<boolean> {
+        return this._messenger.sendRequest(isPlatformExtensionAvailable, HOST_EXTENSION);
     }
 
     getDefaultPrompt(): Promise<AIPanelPrompt> {
@@ -245,6 +254,14 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     cancelConnectorSpec(params: ConnectorSpecCancelRequest): Promise<void> {
         return this._messenger.sendRequest(cancelConnectorSpec, HOST_EXTENSION, params);
+    }
+
+    provideConfiguration(params: ConfigurationProvideRequest): Promise<void> {
+        return this._messenger.sendRequest(provideConfiguration, HOST_EXTENSION, params);
+    }
+
+    cancelConfiguration(params: ConfigurationCancelRequest): Promise<void> {
+        return this._messenger.sendRequest(cancelConfiguration, HOST_EXTENSION, params);
     }
 
     getChatMessages(): Promise<UIChatMessage[]> {
