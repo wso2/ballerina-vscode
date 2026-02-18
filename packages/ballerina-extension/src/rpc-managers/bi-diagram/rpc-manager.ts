@@ -657,10 +657,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async createProject(params: ProjectRequest): Promise<void> {
         if (params.createAsWorkspace) {
-            const workspaceRoot = createBIWorkspace(params);
+            const workspaceRoot = await createBIWorkspace(params);
             openInVSCode(workspaceRoot);
         } else {
-            const projectRoot = createBIProjectPure(params);
+            const projectRoot = await createBIProjectPure(params);
             openInVSCode(projectRoot);
         }
     }
