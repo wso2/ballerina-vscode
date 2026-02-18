@@ -268,12 +268,10 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         setSelectedModule({ category, module });
     };
 
-    const activeFileName = isTestsContext ? props.fileName : props.fileName;
-
     const handleOpenConfigFile = () => {
         rpcClient
             .getBIDiagramRpcClient()
-            .OpenConfigTomlRequest({ filePath: activeFileName });
+            .OpenConfigTomlRequest({ filePath: props.fileName });
     }
 
     const handleAddConfigVariableFormOpen = () => {
@@ -306,7 +304,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         rpcClient
             .getBIDiagramRpcClient()
             .deleteConfigVariableV2({
-                configFilePath: activeFileName,
+                configFilePath: props.fileName,
                 configVariable: variable,
                 packageName: selectedModule.category,
                 moduleName: selectedModule.module
@@ -861,7 +859,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                                     packageName={selectedModule.category}
                                                                                     moduleName={selectedModule.module}
                                                                                     index={index}
-                                                                                    fileName={activeFileName}
+                                                                                    fileName={props.fileName}
                                                                                     configTomlPath={isTestsContext ? props.testsConfigTomlPath : undefined}
                                                                                     onDeleteConfigVariable={handleOnDeleteConfigVariable}
                                                                                     onFormSubmit={handleFormSubmit}
@@ -895,7 +893,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                             onClose={handleFormClose}
                                                             onSubmit={handleFormSubmit}
                                                             title={`Add Configurable Variable`}
-                                                            filename={activeFileName}
+                                                            filename={props.fileName}
                                                             configTomlPath={isTestsContext ? props.testsConfigTomlPath : undefined}
                                                             packageName={selectedModule.category}
                                                             moduleName={selectedModule.module}
