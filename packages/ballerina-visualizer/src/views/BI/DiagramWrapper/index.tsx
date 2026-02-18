@@ -112,6 +112,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [servicePosition, setServicePosition] = useState<NodePosition>();
     const [isSaving, setIsSaving] = useState(false);
     const [isTracingEnabled, setIsTracingEnabled] = useState(false);
+    const [isToggling, setIsToggling] = useState(false);
 
     useEffect(() => {
         rpcClient.getVisualizerLocation().then((location) => {
@@ -179,9 +180,21 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     };
 
     const handleToggleTracing = async () => {
-        const command = isTracingEnabled ? "ballerina.disableTracing" : "ballerina.enableTracing";
-        await rpcClient.getCommonRpcClient().executeCommand({ commands: [command] });
-        setTimeout(checkTracingStatus, 1000);
+        if (isToggling) {
+            return;
+        }
+
+        setIsToggling(true);
+        try {
+            const command = isTracingEnabled ? "ballerina.disableTracing" : "ballerina.enableTracing";
+            await rpcClient.getCommonRpcClient().executeCommand({ commands: [command] });
+            await checkTracingStatus();
+        } catch (error) {
+            console.error("Failed to toggle tracing:", error);
+            throw error;
+        } finally {
+            setIsToggling(false);
+        }
     };
 
     const handleFunctionClose = () => {
@@ -293,6 +306,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             <ActionButton
                 appearance={isTracingEnabled ? "primary" : "secondary"}
                 onClick={handleToggleTracing}
+                disabled={isToggling}
             >
                 <Icon
                     name={isTracingEnabled ? "telescope" : "circle-slash"}
