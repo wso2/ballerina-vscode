@@ -297,7 +297,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                         onClick={handleToggleTracing}
                     >
                         <Icon
-                            name={isTracingEnabled ? "eye" : "eye-closed"}
+                            name={isTracingEnabled ? "telescope" : "circle-slash"}
                             isCodicon={true}
                             sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
                         />
@@ -326,7 +326,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                         onClick={handleToggleTracing}
                     >
                         <Icon
-                            name={isTracingEnabled ? "eye" : "eye-closed"}
+                            name={isTracingEnabled ? "telescope" : "circle-slash"}
                             isCodicon={true}
                             sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
                         />
