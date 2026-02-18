@@ -26,7 +26,7 @@ import {
 } from "./styles";
 import { ProjectTypeSelector, PackageInfoSection } from "./components";
 import { AddProjectFormData } from "./types";
-import { sanitizePackageName, validatePackageName } from "./utils";
+import { sanitizePackageName, validatePackageName, validateOrgName } from "./utils";
 
 // Re-export for backwards compatibility
 export type { AddProjectFormData } from "./types";
@@ -35,16 +35,19 @@ export interface AddProjectFormFieldsProps {
     formData: AddProjectFormData;
     onFormDataChange: (data: Partial<AddProjectFormData>) => void;
     isInWorkspace: boolean; // true if already in a workspace, false if in a package
+    packageNameValidationError?: string;
 }
 
 export function AddProjectFormFields({ 
     formData, 
     onFormDataChange,
-    isInWorkspace 
+    isInWorkspace,
+    packageNameValidationError
 }: AddProjectFormFieldsProps) {
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
+    const [orgNameError, setOrgNameError] = useState<string | null>(null);
 
     const handleIntegrationName = (value: string) => {
         onFormDataChange({ integrationName: value });
@@ -69,6 +72,12 @@ export function AddProjectFormFields({
         const error = validatePackageName(formData.packageName, formData.integrationName);
         setPackageNameError(error);
     }, [formData.packageName]);
+
+    // Real-time validation for organization name
+    useEffect(() => {
+        const error = validateOrgName(formData.orgName);
+        setOrgNameError(error);
+    }, [formData.orgName]);
 
     return (
         <>
@@ -102,7 +111,7 @@ export function AddProjectFormFields({
                     value={formData.packageName}
                     label="Package Name"
                     description="This will be used as the Ballerina package name for the integration."
-                    errorMsg={packageNameError || ""}
+                    errorMsg={packageNameValidationError || packageNameError || ""}
                 />
             </FieldGroup>
 
@@ -119,6 +128,7 @@ export function AddProjectFormFields({
                 onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
                 data={{ orgName: formData.orgName, version: formData.version }}
                 onChange={(data) => onFormDataChange(data)}
+                orgNameError={orgNameError}
             />
         </>
     );

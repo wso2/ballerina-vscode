@@ -221,6 +221,7 @@ export function UnionEditor({ type, onChange, rpcClient, onValidationError }: Un
             {type.members.map((member, index) => (
                 <S.MemberRow key={index}>
                     <TypeField
+                        fieldIndex={index}
                         type={member.type}
                         memberName={typeof member.type === 'string' ? member.type : member.name}
                         onChange={(newType) => updateMember(index, newType)}

@@ -17,6 +17,7 @@
  */
 
 import React, { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import {
     Button,
     Codicon,
@@ -37,6 +38,7 @@ import GroupList from "../GroupList";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { getExpandedCategories, setExpandedCategories, getDefaultExpandedState } from "../../utils/localStorage";
 import { shouldShowEmptyCategory, shouldUseConnectionContainer, getCategoryActions, isCategoryFixed } from "./categoryConfig";
+import { stripHtmlTags } from "../Form/utils";
 
 namespace S {
     export const Container = styled.div<{}>`
@@ -114,6 +116,38 @@ namespace S {
     export const BodyText = styled.div<{}>`
         font-size: 11px;
         opacity: 0.5;
+    `;
+
+    export const TooltipMarkdown = styled.div`
+        font-size: 12px;
+        line-height: 1.4;
+        font-family: var(--vscode-font-family);
+
+        p {
+            margin: 0 0 6px 0;
+        }
+
+        p:last-of-type {
+            margin-bottom: 0;
+        }
+
+        pre {
+            display: none;
+        }
+
+        code {
+            display: inline;
+        }
+
+        ul,
+        ol {
+            margin: 6px 0;
+            padding-left: 18px;
+        }
+
+        li {
+            margin: 2px 0;
+        }
     `;
 
     export const Component = styled.div<{ enabled?: boolean }>`
@@ -434,6 +468,19 @@ export function NodeList(props: NodeListProps) {
         }
     };
 
+    const renderTooltipContent = (description?: string): React.ReactNode | undefined => {
+        const cleaned = stripHtmlTags(description || "").trim();
+        if (!cleaned) {
+            return undefined;
+        }
+
+        return (
+            <S.TooltipMarkdown>
+                <ReactMarkdown>{cleaned}</ReactMarkdown>
+            </S.TooltipMarkdown>
+        );
+    };
+
     const getNodesContainer = (items: (Node | Category)[], parentCategoryTitle?: string) => {
         const safeItems = items.filter((item) => item != null);
         const nodes = safeItems.filter((item): item is Node => "id" in item && !("title" in item));
@@ -450,7 +497,7 @@ export function NodeList(props: NodeListProps) {
                         return (
                             <Tooltip 
                                 key={node.id + index}
-                                content={node.description} 
+                                content={renderTooltipContent(node.description)}
                                 sx={{ 
                                     maxWidth: "280px",
                                     whiteSpace: "normal",
@@ -524,7 +571,7 @@ export function NodeList(props: NodeListProps) {
         );
     };
 
-    const getConnectionContainer = (categories: Category[]) => (
+    const getConnectionContainer = (categories: Category[], enableSingleNodeDirectNav?: boolean) => (
         <S.Grid columns={1}>
             {categories.map((category, index) =>
                 category.isLoading ? (
@@ -535,6 +582,7 @@ export function NodeList(props: NodeListProps) {
                         category={category}
                         expand={searchText?.length > 0}
                         onSelect={handleAddNode}
+                        enableSingleNodeDirectNav={enableSingleNodeDirectNav}
                     />
                 ))
             }
@@ -577,7 +625,7 @@ export function NodeList(props: NodeListProps) {
                     // Hide categories that don't have items, except for special categories that can add items
                     if (!group || !group.items || group.items.length === 0) {
                         // Only show empty categories if they have add functionality
-                        if (!shouldShowEmptyCategory(group.title)) {
+                        if (!shouldShowEmptyCategory(group.title, isSubCategory) && categoryActions.length === 0) {
                             return null;
                         }
                     }
@@ -657,9 +705,9 @@ export function NodeList(props: NodeListProps) {
                                             </Tooltip>
                                         </S.Row>
                                     )}
-                                    {(isCategoryExpanded || isCategoryFixed(group.title)) && (
+                                    {(isSubCategory || isCategoryExpanded || isCategoryFixed(group.title)) && (
                                         <>
-                                            {(!group.items || group.items.length === 0) &&
+                                            {(isSubCategory || (!group.items || group.items.length === 0)) &&
                                                 !searchText &&
                                                 !isSearching &&
                                                 categoryActions.map((action, actionIndex) => {
@@ -680,6 +728,7 @@ export function NodeList(props: NodeListProps) {
                                                     return (
                                                         <S.HighlightedButton 
                                                             key={`empty-${group.title}-${actionIndex}`}
+                                                            style={{padding: '5px 10px', width: isSubCategory ? '160px' : '100%'}}
                                                             onClick={handler}
                                                         >
                                                             <Codicon name="add" iconSx={{ fontSize: 12 }} />
@@ -692,7 +741,7 @@ export function NodeList(props: NodeListProps) {
                                             // 1. If parent group uses connection container and ALL items don't have id, use getConnectionContainer
                                             shouldUseConnectionContainer(group.title) &&
                                             group.items.filter((item) => item != null).every((item) => !("id" in item))
-                                                ? getConnectionContainer(group.items as Category[])
+                                                ? getConnectionContainer(group.items as Category[], group.title === "Agent")
                                                 : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
                                                 group.items.filter((item) => item != null).every((item) => !("id" in item))
                                                 ? getCategoryContainer(

@@ -25,7 +25,7 @@ import { capitalize, getValueForDropdown } from "./utils";
 import { useFormContext } from "../../context";
 import styled from "@emotion/styled";
 import { getPrimaryInputType, PropertyModel, RecordTypeField } from "@wso2/ballerina-core";
-import { EditorFactory } from "./EditorFactory";
+import { FieldFactory } from "./FieldFactory";
 
 interface ChoiceFormProps {
     field: FormField;
@@ -139,7 +139,7 @@ export function ChoiceForm(props: ChoiceFormProps) {
             <FormSection>
                 {dynamicFields.filter(dfield => (field.advanced  || !dfield.advanced)).map((dfield, index) => {
                     return (
-                        <EditorFactory
+                        <FieldFactory
                             key={dfield.key}
                             field={dfield}
                             autoFocus={index === 0 ? true : false}

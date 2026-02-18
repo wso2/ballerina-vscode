@@ -30,6 +30,7 @@ import {
     sendAbortNotification,
     sendSaveChatNotification,
     sendConnectorGenerationNotification,
+    sendConfigurationCollectionNotification,
     sendReviewActionsNotification,
 } from "./ai-utils";
 
@@ -102,6 +103,9 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 break;
             case "connector_generation_notification":
                 sendConnectorGenerationNotification(event);
+                break;
+            case "configuration_collection_event":
+                sendConfigurationCollectionNotification(event);
                 break;
             default:
                 console.warn(`Unhandled event type: ${event}`);
