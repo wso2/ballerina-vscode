@@ -109,6 +109,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
             ]);
             if (!isModeSelectionDirty.current) {
                 setInputMode(InputMode.RECORD);
+                updateFieldTypesSelection(InputMode.RECORD);
             }
             return;
         }
@@ -124,6 +125,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
             );
             const initialInputMode = getInputModeFromTypes(selectedInputType) || InputMode.EXP;
             setInputMode(initialInputMode);
+            updateFieldTypesSelection(initialInputMode);
         }
     }, [props.field, props.recordTypeFields]);
 
@@ -135,9 +137,16 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         return !!props.recordTypeFields?.find(recordField => recordField.key === props.field.key);
     }, [props.recordTypeFields, props.field.key]);
 
+    const updateFieldTypesSelection = (targetMode: InputMode) => {
+        props.field.types?.forEach(type => {
+            type.selected = getInputModeFromTypes(type) === targetMode;
+        });
+    };
+
     const handleModeChange = useCallback((mode: InputMode) => {
         setInputMode(mode);
         isModeSelectionDirty.current = true;
+        updateFieldTypesSelection(mode);
     }, []);
 
     const editorElements = useMemo(() => {
