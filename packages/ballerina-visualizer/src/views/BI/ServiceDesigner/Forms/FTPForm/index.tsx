@@ -694,9 +694,6 @@ export function FTPForm(props: FTPFormProps) {
                                 onChange={(value) => handleMoveToChangeGeneric(propertyKey, action, value)}
                                 onSave={() => {}}
                                 onCancel={() => {}}
-                                onCompletionSelect={() => {}}
-                                onManualCompletionRequest={() => {}}
-                                onFunctionEdit={() => {}}
                             />
                             <Typography variant="body3" sx={{ marginTop: 4, color: 'var(--vscode-descriptionForeground)' }}>
                                 Destination path expression to move the file
