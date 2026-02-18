@@ -129,7 +129,7 @@
               "metadata": {
                 "label": "encode",
                 "description": "Encodes HL7 message model to encoded wire format.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.hl7v2_3.0.5.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.hl7v2_3.0.8.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -137,7 +137,7 @@
                 "module": "health.hl7v2",
                 "packageName": "health.hl7v2",
                 "symbol": "encode",
-                "version": "3.0.5"
+                "version": "3.0.8"
               },
               "enabled": true
             }
@@ -154,7 +154,7 @@
               "metadata": {
                 "label": "getSdlString",
                 "description": "Obtains the schema representation of a federated subgraph, expressed in the SDL format.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.17.0.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -162,7 +162,7 @@
                 "module": "graphql",
                 "packageName": "graphql",
                 "symbol": "getSdlString",
-                "version": "1.16.1"
+                "version": "1.17.0"
               },
               "enabled": true
             }
@@ -179,7 +179,7 @@
               "metadata": {
                 "label": "toIso20022Xml",
                 "description": "Converts a SWIFT message in string format to its corresponding ISO 20022 XML format.\n\nThe function uses a map of transformation functions corresponding to different SWIFT MT message types \nand applies the appropriate transformation based on the parsed message type.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_financial.swiftmtToIso20022_1.0.4.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_financial.swiftmtToIso20022_2.0.3.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -187,7 +187,7 @@
                 "module": "financial.swiftmtToIso20022",
                 "packageName": "financial.swiftmtToIso20022",
                 "symbol": "toIso20022Xml",
-                "version": "1.0.4"
+                "version": "2.0.3"
               },
               "enabled": true
             }
@@ -311,7 +311,7 @@
               "metadata": {
                 "label": "utcToEmailString",
                 "description": "Converts a given UTC to an email formatted string (e.g `Mon, 3 Dec 2007 10:15:30 GMT`).\n```ballerina\ntime:Utc utc = time:utcNow();\nstring emailFormattedString = time:utcToEmailString(utc);\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.7.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -319,7 +319,7 @@
                 "module": "time",
                 "packageName": "time",
                 "symbol": "utcToEmailString",
-                "version": "2.7.0"
+                "version": "2.8.0"
               },
               "enabled": true
             },
@@ -327,7 +327,7 @@
               "metadata": {
                 "label": "civilFromEmailString",
                 "description": "Converts a given RFC 5322 formatted (e.g `Wed, 10 Mar 2021 19:51:55 -0800 (PST)`) string to a civil record.\n```ballerina\ntime:Civil|time:Error emailDateTime = time:civilFromEmailString(\"Wed, 10 Mar 2021 19:51:55 -0820\");\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.7.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -335,15 +335,15 @@
                 "module": "time",
                 "packageName": "time",
                 "symbol": "civilFromEmailString",
-                "version": "2.7.0"
+                "version": "2.8.0"
               },
               "enabled": true
             },
             {
               "metadata": {
                 "label": "civilToEmailString",
-                "description": "Converts a given Civil record to RFC 5322 format (e.g `Wed, 10 Mar 2021 19:51:55 -0800 (PST)`).\n```ballerina\ntime:Civil civil = check time:civilFromString(\"2021-04-12T23:20:50.520+05:30[Asia/Colombo]\");\nstring|time:Error emailDateTime = time:civilToEmailString(civil, time:PREFER_ZONE_OFFSET);\n```",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.7.0.png"
+                "description": "Converts a given `time:Civil` record to RFC 5322 format (e.g `Wed, 10 Mar 2021 19:51:55 -0800 (PST)`).\n```ballerina\ntime:Civil civil = check time:civilFromString(\"2021-04-12T23:20:50.520+05:30[Asia/Colombo]\");\nstring|time:Error emailDateTime = time:civilToEmailString(civil, time:PREFER_ZONE_OFFSET);\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_time_2.8.0.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -351,7 +351,7 @@
                 "module": "time",
                 "packageName": "time",
                 "symbol": "civilToEmailString",
-                "version": "2.7.0"
+                "version": "2.8.0"
               },
               "enabled": true
             }
@@ -457,7 +457,7 @@
               "metadata": {
                 "label": "toSwiftMtMessage",
                 "description": "Converts an ISO 20022 XML message to its corresponding SWIFT MT message format.\n\nThe function uses a map of transformation functions for different ISO 20022 message types\nand applies the appropriate transformation based on the provided XML content and target SWIFT MT message type.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_financial.iso20022ToSwiftmt_1.0.3.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_financial.iso20022ToSwiftmt_1.0.4.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -465,7 +465,7 @@
                 "module": "financial.iso20022ToSwiftmt",
                 "packageName": "financial.iso20022ToSwiftmt",
                 "symbol": "toSwiftMtMessage",
-                "version": "1.0.3"
+                "version": "1.0.4"
               },
               "enabled": true
             }

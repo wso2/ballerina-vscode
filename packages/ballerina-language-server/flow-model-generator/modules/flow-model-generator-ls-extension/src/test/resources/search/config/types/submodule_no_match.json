@@ -78,7 +78,7 @@
               "metadata": {
                 "label": "DatabaseConnection",
                 "description": "Represents the base configuration for a database connection.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_cdc_1.0.3.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_cdc_1.1.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
@@ -86,7 +86,7 @@
                 "module": "cdc",
                 "packageName": "cdc",
                 "symbol": "DatabaseConnection",
-                "version": "1.0.3"
+                "version": "1.1.0"
               },
               "enabled": true
             }

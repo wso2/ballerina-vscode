@@ -1,0 +1,55 @@
+{
+  "services": [
+    {
+      "libraryName": "ballerina/graphql",
+      "type": "generic",
+      "instructions": "",
+      "listener": {
+        "name": "Listener",
+        "parameters": [
+          {
+            "name": "listenTo",
+            "description": "Port number to listen to the GraphQL service endpoint.",
+            "type": {
+              "name": "int"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "libraryName": "ballerina/http",
+      "type": "generic",
+      "instructions": "",
+      "listener": {
+        "name": "Listener",
+        "parameters": [
+          {
+            "name": "port",
+            "description": "Listening port of the HTTP service listener",
+            "type": {
+              "name": "int"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "libraryName": "ballerina/ai",
+      "type": "generic",
+      "instructions": "",
+      "listener": {
+        "name": "Listener",
+        "parameters": [
+          {
+            "name": "listenOn",
+            "description": "Listening port of the HTTP service listener",
+            "type": {
+              "name": "int"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
