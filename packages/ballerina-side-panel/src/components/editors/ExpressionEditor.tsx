@@ -427,9 +427,15 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const exprRef = useRef<FormExpressionEditorRef>(null);
     const anchorRef = useRef<HTMLDivElement>(null);
 
-    const modeSwitcherContext = useModeSwitcherContext();
+    const modeSwitcherContext = useModeSwitcherContext() ?? {
+        inputMode: InputMode.EXP,
+        isModeSwitcherEnabled: false,
+        isRecordTypeField: false,
+        onModeChange: () => { },
+        types: undefined
+    };
 
-    const { inputMode } = modeSwitcherContext
+    const { inputMode } = modeSwitcherContext;
 
     // Use to fetch initial diagnostics
     const previousDiagnosticsFetchContext = useRef<diagnosticsFetchContext>({
