@@ -184,6 +184,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
             if (
                 parent.artifactType === DIRECTORY_MAP.FUNCTION ||
+                parent.artifactType === DIRECTORY_MAP.WORKFLOW ||
                 parent.artifactType === DIRECTORY_MAP.NP_FUNCTION ||
                 parent.artifactType === DIRECTORY_MAP.DATA_MAPPER
             ) {

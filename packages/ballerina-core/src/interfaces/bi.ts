@@ -156,6 +156,7 @@ export type FormFieldInputType = "TEXT" |
     "PROMPT" |
     "SQL_QUERY" |
     "CLAUSE_EXPRESSION" |
+    "WORKFLOW_INPUT_TYPE" |
     "SLIDER";
 
 export interface BaseType {
@@ -319,6 +320,7 @@ export enum DIRECTORY_MAP {
     SERVICE = "SERVICE",
     TYPE = "TYPE",
     VARIABLE = "VARIABLE",
+    WORKFLOW = "WORKFLOW",
 }
 
 export enum FUNCTION_TYPE {
@@ -425,6 +427,8 @@ export type NodePropertyKey =
     | "functionName"
     | "functionNameDescription"
     | "instructions"
+    | "input"
+    | "inputType"
     | "isIsolated"
     | "maxIter"
     | "memory"
@@ -542,6 +546,8 @@ export type NodeKind =
     | "UPDATE_DATA"
     | "WAIT"
     | "WHILE"
+    | "WORKFLOW"
+    | "WORKFLOW_START"
     | "WORKER"
     | "VARIABLE";
 

@@ -71,6 +71,7 @@ import { getTypeHelper } from "../../TypeHelper";
 import { EXPRESSION_EXTRACTION_REGEX, TypeHelperContext } from "../../../../constants";
 import { getHelperPaneNew } from "../../HelperPaneNew";
 import { ConfigureRecordPage } from "../../HelperPaneNew/Views/RecordConfigModal";
+import { EntryPointTypeCreator } from "../../../../components/EntryPointTypeCreator";
 import React from "react";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
@@ -201,7 +202,17 @@ export function FormGeneratorNew(props: FormProps) {
     const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
     const [editingTypeName, setEditingTypeName] = useState<string>("");
 
-    const handleOpenFormTypeEditor = (open: boolean, typeName?: string) => {
+    const handleOpenFormTypeEditor = (open: boolean, typeName?: string, editingField?: FormField) => {
+        setTypeEditorState((prevState) => ({
+            ...prevState,
+            field: editingField,
+        }));
+        const isWorkflowInputType = getPrimaryInputType(editingField?.types)?.fieldType === "WORKFLOW_INPUT_TYPE";
+        if (isWorkflowInputType) {
+            setIsTypeEditorOpen(open);
+            setEditingTypeName(typeName || "");
+            return;
+        }
         setIsTypeEditorOpen(open);
         if (typeName) {
             setEditingTypeName(typeName);
@@ -212,19 +223,25 @@ export function FormGeneratorNew(props: FormProps) {
 
     const handleTypeEditorClose = () => {
         setIsTypeEditorOpen(false);
+        setEditingTypeName("");
+        setTypeEditorState((prevState) => ({ ...prevState, field: undefined }));
     };
 
-    const handleTypeCreated = (type: Type | string) => {
+    const handleTypeCreated = (type: Type | string, imports?: Imports) => {
         setIsTypeEditorOpen(false);
         setEditingTypeName("");
         if (type) {
             const typeName = typeof type === 'string' ? type : (type as Type).name;
-            setFields(fields.map((field) => {
-                if (field.key === 'type') {
+            const targetFieldKey = typeEditorState.field?.key || "type";
+            setFields((prevFields) => prevFields.map((field) => {
+                if (field.key === targetFieldKey) {
                     return { ...field, value: typeName };
                 }
                 return field;
             }));
+            if (imports) {
+                handleUpdateImports(targetFieldKey, imports);
+            }
         }
     };
 
@@ -752,7 +769,9 @@ export function FormGeneratorNew(props: FormProps) {
         const typeHelperContext = isGraphqlEditor ?
             (fieldKey === 'returnType' ? TypeHelperContext.GRAPHQL_FIELD_TYPE
                 : TypeHelperContext.GRAPHQL_INPUT_TYPE)
-            : TypeHelperContext.HTTP_STATUS_CODE;
+            : (getPrimaryInputType(formField?.types)?.fieldType === "WORKFLOW_INPUT_TYPE"
+                ? TypeHelperContext.WORKFLOW_INPUT_TYPE
+                : TypeHelperContext.HTTP_STATUS_CODE);
 
         return getTypeHelper({
             fieldKey: fieldKey,
@@ -1056,6 +1075,15 @@ export function FormGeneratorNew(props: FormProps) {
                     </div>
                 </DynamicModal>)
             }
+            <EntryPointTypeCreator
+                isOpen={isTypeEditorOpen}
+                onClose={handleTypeEditorClose}
+                onTypeCreate={handleTypeCreated}
+                initialTypeName={editingTypeName || "WorkflowInput"}
+                modalTitle="Define Workflow Input Type"
+                modalWidth={650}
+                modalHeight={600}
+            />
             {recordConfigPageState.isOpen &&
                 recordConfigPageState.fieldKey &&
                 recordConfigPageState.recordTypeField &&

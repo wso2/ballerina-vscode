@@ -1903,6 +1903,7 @@ export interface BaseArtifact<T = any> {
 // Artifact Types
 export enum ARTIFACT_TYPE {
     Functions = "Functions",
+    Workflows = "Workflows",
     Connections = "Connections",
     Listeners = "Listeners",
     EntryPoints = "Entry Points",
@@ -1920,6 +1921,7 @@ export enum PROJECT_KIND {
 
 export interface Artifacts {
     [ARTIFACT_TYPE.Functions]: Record<string, BaseArtifact>;
+    [ARTIFACT_TYPE.Workflows]?: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.Connections]: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.Listeners]: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.EntryPoints]: Record<string, BaseArtifact>;

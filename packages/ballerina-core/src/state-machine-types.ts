@@ -88,6 +88,7 @@ export enum MACHINE_VIEW {
     EditConnectionWizard = "Edit Connection Wizard",
     BIMainFunctionForm = "Add Automation SKIP",
     BIFunctionForm = "Add Function SKIP",
+    BIWorkflowForm = "Add Workflow SKIP",
     BINPFunctionForm = "Add Natural Function SKIP",
     BITestFunctionForm = "Add Test Function SKIP",
     BIAIEvaluationForm = "AI Evaluation SKIP",
