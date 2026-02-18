@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
     ProjectStructure,
     EVENT_TYPE,
@@ -161,6 +161,52 @@ const DiagramHeaderContainer = styled.div<{ withPadding?: boolean, isLibrary?: b
     align-items: center;
     margin-bottom: ${(props: { isLibrary?: boolean }) => props.isLibrary ? "0" : "16px"};
     padding: ${(props: { withPadding: boolean; }) => (props.withPadding ? "16px 16px 0 16px" : "0")};
+`;
+
+const LibrarySearchBar = styled.div`
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: clamp(160px, 35vw, 400px);
+`;
+
+const LibrarySearchInput = styled.input`
+    width: 100%;
+    padding: 6px 24px 6px 28px;
+    background: var(--vscode-input-background);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 4px;
+    color: var(--vscode-input-foreground);
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+    &:focus {
+        outline: none;
+        border-color: var(--vscode-focusBorder);
+    }
+    &::placeholder {
+        color: var(--vscode-input-placeholderForeground);
+    }
+`;
+
+const LibrarySearchIcon = styled.div`
+    position: absolute;
+    left: 8px;
+    color: var(--vscode-input-placeholderForeground);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+`;
+
+const LibrarySearchClearButton = styled.div`
+    position: absolute;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--vscode-input-placeholderForeground);
+    &:hover {
+        color: var(--vscode-input-foreground);
+    }
 `;
 
 const DiagramContent = styled.div`
@@ -628,6 +674,8 @@ export function PackageOverview(props: PackageOverviewProps) {
         refetchInterval: 5000
     });
     const [showAlert, setShowAlert] = useState(false);
+    const [librarySearchQuery, setLibrarySearchQuery] = useState("");
+    const librarySearchRef = useRef<HTMLInputElement>(null);
 
     const fetchContext = () => {
         rpcClient
@@ -900,8 +948,34 @@ export function PackageOverview(props: PackageOverviewProps) {
                                         <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
                                     </Button>
                                 </ActionContainer>)}
+                                {isLibrary && (
+                                    <ActionContainer>
+                                        <LibrarySearchBar>
+                                            <LibrarySearchIcon>
+                                                <Codicon name="search" iconSx={{ fontSize: 12 }} />
+                                            </LibrarySearchIcon>
+                                            <LibrarySearchInput
+                                                ref={librarySearchRef}
+                                                type="text"
+                                                placeholder="Search Artifacts"
+                                                value={librarySearchQuery}
+                                                onChange={(e) => setLibrarySearchQuery(e.target.value)}
+                                            />
+                                            {librarySearchQuery.trim().length > 0 && (
+                                                <LibrarySearchClearButton
+                                                    onClick={() => {
+                                                        setLibrarySearchQuery("");
+                                                        librarySearchRef.current?.focus();
+                                                    }}
+                                                >
+                                                    <Codicon name="close" iconSx={{ fontSize: 12 }} />
+                                                </LibrarySearchClearButton>
+                                            )}
+                                        </LibrarySearchBar>
+                                    </ActionContainer>
+                                )}
                             </DiagramHeaderContainer>
-                            {isLibrary && <LibraryOverview projectStructure={projectStructure} />}
+                            {isLibrary && <LibraryOverview projectStructure={projectStructure} searchQuery={librarySearchQuery} />}
                             {!isLibrary && (
                                 <DiagramContent>
                                     {isEmptyProject() ? (
