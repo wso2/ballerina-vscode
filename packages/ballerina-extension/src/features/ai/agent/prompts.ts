@@ -15,10 +15,12 @@
 // under the License.
 
 import { DIAGNOSTICS_TOOL_NAME } from "./tools/diagnostics";
-import { LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
+import { LIBRARY_GET_TOOL } from "./tools/library-get";
+import { LIBRARY_SEARCH_TOOL } from "./tools/library-search";
 import { TASK_WRITE_TOOL_NAME } from "./tools/task-writer";
 import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "./tools/text-editor";
 import { CONNECTOR_GENERATOR_TOOL } from "./tools/connector-generator";
+import { CONFIG_COLLECTOR_TOOL } from "./tools/config-collector";
 import { getLanglibInstructions } from "../utils/libs/langlibs";
 import { formatCodebaseStructure, formatCodeContext } from "./utils";
 import { GenerateAgentCodeRequest, OperationType, ProjectSource } from "@wso2/ballerina-core";
@@ -92,8 +94,9 @@ This plan will be visible to the user and the execution will be guided on the ta
    - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} and immediately start implementation in parallel (single message with multiple tool calls)
    - Implement the task completely (write the Ballerina code)
    - When implementing external API integrations:
-     - First check ${LIBRARY_PROVIDER_TOOL} for known services (Stripe, GitHub, etc.)
-     - If NOT available, call ${CONNECTOR_GENERATOR_TOOL} to generate connector from OpenAPI spec
+     - First use ${LIBRARY_SEARCH_TOOL} with relevant keywords to discover available libraries
+     - Then use ${LIBRARY_GET_TOOL} to fetch full details for the discovered libraries
+     - If NO suitable library is found, call ${CONNECTOR_GENERATOR_TOOL} to generate connector from OpenAPI spec
    - Before marking the task as completed, use the ${DIAGNOSTICS_TOOL_NAME} tool to check for compilation errors and fix them. Introduce a a new subtask if needed to fix errors.
    - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
    - The tool will wait for TASK COMPLETION APPROVAL from the user
@@ -111,10 +114,10 @@ This plan will be visible to the user and the execution will be guided on the ta
 In the <system-reminder> tags, you will see if Edit mode is enabled. When its enabled, you must follow the below instructions strictly.
 
 ### Step 1: Create High-Level Design
-Create a very high-level and concise design plan for the given user requirement. Avoid using ${TASK_WRITE_TOOL_NAME} tool in this mode.
+Silently plan the implementation approach in your reasoning. Do NOT output any design explanation to the user. Avoid using ${TASK_WRITE_TOOL_NAME} tool in this mode.
 
-### Step 2: Identify nescessary libraries
-Identify the libraries required to implement the user requirement. Use the ${LIBRARY_PROVIDER_TOOL} tool to get the information about the libraries.
+### Step 2: Identify necessary libraries
+Identify the libraries required to implement the user requirement. Use ${LIBRARY_SEARCH_TOOL} to discover relevant libraries, then use ${LIBRARY_GET_TOOL} to fetch their full details.
 
 ### Step 3: Write the code
 Write/modify the Ballerina code to implement the user requirement. Use the ${FILE_BATCH_EDIT_TOOL_NAME}, ${FILE_SINGLE_EDIT_TOOL_NAME}, ${FILE_WRITE_TOOL_NAME} tools to write/modify the code. 
@@ -131,8 +134,8 @@ Once the code is written and validated, provide a very concise summary of the ov
 When generating Ballerina code strictly follow these syntax and structure guidelines:
 
 ## Library Usage and Importing libraries
-- Only use the libraries received from user query or the ${LIBRARY_PROVIDER_TOOL} tool or langlibs.
-- Examine the library API documentation provided by the ${LIBRARY_PROVIDER_TOOL} carefully. Strictly follow the type definitions, function signatures, and all the other details provided when writing the code.
+- Only use the libraries received from user query or discovered via ${LIBRARY_SEARCH_TOOL} and fetched via ${LIBRARY_GET_TOOL}, or langlibs.
+- Examine the library API documentation provided by ${LIBRARY_GET_TOOL} carefully. Strictly follow the type definitions, function signatures, and all the other details provided when writing the code.
 - Each .bal file must include its own import statements for any external library references.
 - Do not import default langlibs (lang.string, lang.boolean, lang.float, lang.decimal, lang.int, lang.map).
 - For packages with dots in names, use aliases: \`import org/package.one as one;\`
@@ -150,6 +153,11 @@ ${getLanglibInstructions()}
 
 ## Code Structure
 - Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables.
+- For sensitive configuration values (API keys, tokens, passwords), use ${CONFIG_COLLECTOR_TOOL} in COLLECT mode. Variable names are converted to lowercase without underscores in Config.toml. You MUST use the exact Config.toml names in your Ballerina configurables to avoid runtime errors.
+- When generating tests that need configuration values:
+  - Use COLLECT mode with isTestConfig: true
+  - The tool will automatically read existing values from Config.toml (if exists), ask user to reuse or modify for testing, and save to tests/Config.toml
+  - Example: { mode: "collect", variables: [...], isTestConfig: true }
 - Initialize any necessary clients with the correct configuration based on the retrieved libraries at the module level (before any function or service declarations).
 - Implement the main function OR service to address the query requirements.
 
@@ -179,7 +187,7 @@ ${getLanglibInstructions()}
     )} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.
-- Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml) as you don't have access to those files.
+- Do not manually add/modify toml files (Ballerina.toml/Dependencies.toml). For Config.toml configuration management, use ${CONFIG_COLLECTOR_TOOL}.
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
 
 ${getNPSuffix(projects, op)}

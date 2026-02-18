@@ -32,24 +32,24 @@ import {
 import styled from "@emotion/styled";
 
 import { ExpressionFormField, FieldDerivation, FormExpressionEditorProps, FormField, FormImports, FormValues } from "./types";
-import { EditorFactory } from "../editors/EditorFactory";
+import { FieldFactory } from "../editors/FieldFactory";
 import { getValueForDropdown, isDropdownField } from "../editors/utils";
 import {
     Diagnostic,
     LineRange,
     NodeKind,
-    NodePosition,
     SubPanel,
     SubPanelView,
     FormDiagnostics,
     FlowNode,
     ExpressionProperty,
     RecordTypeField,
-    Type,
     VisualizableField,
     NodeProperties,
     VisualizerLocation,
     getPrimaryInputType,
+    MACHINE_VIEW,
+    EditorDisplayMode,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -501,7 +501,7 @@ export const Form = forwardRef((props: FormProps) => {
                     } else if (isDropdownField(field)) {
                         defaultValues[field.key] = getValueForDropdown(field) ?? "";
                     } else if (field.type === "FLAG" && field.types?.length > 1) {
-                        if (field.value && typeof field.value === "boolean") {
+                        if (typeof field.value === "boolean") {
                             defaultValues[field.key] = String(field.value);
                         }
                         else {
@@ -517,7 +517,7 @@ export const Form = forwardRef((props: FormProps) => {
                     if (field.key === "variable") {
                         defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
                     }
-                    if (field.key === "parameters" && field.value.length === 0) {
+                    if (field.key === "parameters" && field.value?.length && field.value.length === 0) {
                         defaultValues[field.key] = formValues[field.key] ?? [];
                     }
 
@@ -729,9 +729,13 @@ export const Form = forwardRef((props: FormProps) => {
     const expressionField = formFields.find((field) => field.key === "expression");
     const targetTypeField = formFields.find((field) => field.codedata?.kind === "PARAM_FOR_TYPE_INFER");
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);
-    const canOpenInDataMapper = selectedNode === "VARIABLE" &&
+
+    const canOpenInDataMapper = (selectedNode === "VARIABLE" &&
         expressionField &&
-        visualizableField?.isDataMapped;
+        visualizableField?.isDataMapped) || 
+        selectedNode === "DATA_MAPPER_CREATION";
+
+    const canOpenInFunctionEditor = selectedNode === "FUNCTION_CREATION";
 
     const contextValue: FormContext = {
         form: {
@@ -905,7 +909,26 @@ export const Form = forwardRef((props: FormProps) => {
             if (data.expression === '' && visualizableField?.defaultValue) {
                 data.expression = visualizableField.defaultValue;
             }
-            return handleOnSave({ ...data, openInDataMapper: true });
+            return handleOnSave({ 
+                ...data, 
+                editorConfig: {
+                    view: selectedNode === "VARIABLE" ? MACHINE_VIEW.InlineDataMapper : MACHINE_VIEW.DataMapper,
+                    displayMode: EditorDisplayMode.VIEW,
+                },
+            });
+        })();
+    };
+
+    const handleOnOpenInFunctionEditor = () => {
+        setSavingButton('functionEditor');
+        handleSubmit((data) => {
+            return handleOnSave({ 
+                ...data, 
+                editorConfig: {
+                    view: MACHINE_VIEW.BIDiagram,
+                    displayMode: EditorDisplayMode.VIEW,
+                },
+            });
         })();
     };
 
@@ -1003,7 +1026,7 @@ export const Form = forwardRef((props: FormProps) => {
                         const updatedField = updateFormFieldWithImports(field, formImports);
                         renderedComponents.push(
                             <S.Row key={updatedField.key}>
-                                <EditorFactory
+                                <FieldFactory
                                     field={updatedField}
                                     selectedNode={selectedNode}
                                     openRecordEditor={
@@ -1046,48 +1069,72 @@ export const Form = forwardRef((props: FormProps) => {
                         });
                     }
 
-                    return renderedComponents;
-                })()}
-                {hasAdvanceFields && (
-                    <S.Row>
-                        {optionalFieldsTitle}
-                        <S.ButtonContainer>
-                            {!showAdvancedOptions && (
-                                <LinkButton
-                                    onClick={handleOnShowAdvancedOptions}
-                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                >
-                                    <Codicon
-                                        name={"chevron-down"}
-                                        iconSx={{ fontSize: 12 }}
-                                        sx={{ height: 12 }}
-                                    />
-                                    Expand
-                                </LinkButton>
-                            )}
-                            {showAdvancedOptions && (
-                                <LinkButton
-                                    onClick={handleOnHideAdvancedOptions}
-                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                >
-                                    <Codicon
-                                        name={"chevron-up"}
-                                        iconSx={{ fontSize: 12 }}
-                                        sx={{ height: 12 }}
-                                    />Collapsed
-                                </LinkButton>
-                            )}
-                        </S.ButtonContainer>
-                    </S.Row>
-                )}
-                {hasAdvanceFields &&
-                    showAdvancedOptions &&
-                    formFields.map((field) => {
-                        if (field.advanced && !field.hidden) {
+                        return renderedComponents;
+                    })()}
+                    {hasAdvanceFields && (
+                        <S.Row>
+                            {optionalFieldsTitle}
+                            <S.ButtonContainer>
+                                {!showAdvancedOptions && (
+                                    <LinkButton
+                                        onClick={handleOnShowAdvancedOptions}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon
+                                            name={"chevron-down"}
+                                            iconSx={{ fontSize: 12 }}
+                                            sx={{ height: 12 }}
+                                        />
+                                        Expand
+                                    </LinkButton>
+                                )}
+                                {showAdvancedOptions && (
+                                    <LinkButton
+                                        onClick={handleOnHideAdvancedOptions}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon
+                                            name={"chevron-up"}
+                                            iconSx={{ fontSize: 12 }}
+                                            sx={{ height: 12 }}
+                                        />Collapse
+                                    </LinkButton>
+                                )}
+                            </S.ButtonContainer>
+                        </S.Row>
+                    )}
+                    {hasAdvanceFields &&
+                        showAdvancedOptions &&
+                        formFields.map((field) => {
+                            if (field.advanced && !field.hidden) {
+                                const updatedField = updateFormFieldWithImports(field, formImports);
+                                return (
+                                    <S.Row key={updatedField.key}>
+                                        <FieldFactory
+                                            field={updatedField}
+                                            openRecordEditor={
+                                                openRecordEditor &&
+                                                ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                                            }
+                                            subPanelView={subPanelView}
+                                            handleOnFieldFocus={handleOnFieldFocus}
+                                            recordTypeFields={recordTypeFields}
+                                            onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                            handleOnTypeChange={handleOnTypeChange}
+                                            onBlur={handleOnBlur}
+                                        />
+                                    </S.Row>
+                                );
+                            }
+                            return null;
+                        })}
+                    {hasAdvanceFields &&
+                        showAdvancedOptions &&
+                        advancedChoiceFields.map((field) => {
                             const updatedField = updateFormFieldWithImports(field, formImports);
                             return (
                                 <S.Row key={updatedField.key}>
-                                    <EditorFactory
+                                    <FieldFactory
                                         field={updatedField}
                                         openRecordEditor={
                                             openRecordEditor &&
@@ -1102,37 +1149,13 @@ export const Form = forwardRef((props: FormProps) => {
                                     />
                                 </S.Row>
                             );
-                        }
-                        return null;
-                    })}
-                {hasAdvanceFields &&
-                    showAdvancedOptions &&
-                    advancedChoiceFields.map((field) => {
-                        const updatedField = updateFormFieldWithImports(field, formImports);
-                        return (
-                            <S.Row key={updatedField.key}>
-                                <EditorFactory
-                                    field={updatedField}
-                                    openRecordEditor={
-                                        openRecordEditor &&
-                                        ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
-                                    }
-                                    subPanelView={subPanelView}
-                                    handleOnFieldFocus={handleOnFieldFocus}
-                                    recordTypeFields={recordTypeFields}
-                                    onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                    handleOnTypeChange={handleOnTypeChange}
-                                    onBlur={handleOnBlur}
-                                />
-                            </S.Row>
-                        );
-                    })}
-            </S.CategoryRow>
+                        })}
+                </S.CategoryRow>
 
             {!preserveOrder && (variableField || typeField || targetTypeField) && (
                 <S.CategoryRow topBorder={!compact && hasParameters}>
                     {variableField && (
-                        <EditorFactory
+                        <FieldFactory
                             field={variableField}
                             handleOnFieldFocus={handleOnFieldFocus}
                             recordTypeFields={recordTypeFields}
@@ -1141,7 +1164,7 @@ export const Form = forwardRef((props: FormProps) => {
                         />
                     )}
                     {typeField && !isInferredReturnType && (
-                        <EditorFactory
+                        <FieldFactory
                             field={typeField}
                             openRecordEditor={
                                 openRecordEditor &&
@@ -1158,7 +1181,7 @@ export const Form = forwardRef((props: FormProps) => {
                     )}
                     {targetTypeField && !targetTypeField.advanced && (
                         <>
-                            <EditorFactory
+                            <FieldFactory
                                 field={targetTypeField}
                                 handleOnFieldFocus={handleOnFieldFocus}
                                 recordTypeFields={recordTypeFields}
@@ -1215,6 +1238,17 @@ export const Form = forwardRef((props: FormProps) => {
                                 ) : submitText || "Open in Data Mapper"}
                             </Button>
                         }
+                        {canOpenInFunctionEditor && (
+                            <Button
+                                appearance="secondary"
+                                onClick={handleOnOpenInFunctionEditor}
+                                disabled={isSaving}
+                            >
+                                {isSaving && savingButton === 'functionEditor' ? (
+                                    <Typography variant="progress">{submitText || "Opening in Function Editor..."}</Typography>
+                                ) : submitText || "Open in Function Editor"}
+                            </Button>
+                        )}
                         <Button
                             appearance="primary"
                             onClick={handleOnSaveClick}

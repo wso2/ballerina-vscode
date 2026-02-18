@@ -521,6 +521,7 @@ export function MatchForm(props: MatchFormProps) {
                 <ExpressionEditor
                     {...expressionEditor}
                     control={control}
+                    fieldInputType={{ fieldType: "EXPRESSION", selected: false }}
                     field={targetField}
                     setValue={setValue}
                     watch={watch}
@@ -550,6 +551,7 @@ export function MatchForm(props: MatchFormProps) {
                             <ExpressionEditor
                                 {...expressionEditor}
                                 control={control}
+                                fieldInputType={{ fieldType: "EXPRESSION", selected: false }}
                                 field={field}
                                 setValue={setValue}
                                 watch={watch}

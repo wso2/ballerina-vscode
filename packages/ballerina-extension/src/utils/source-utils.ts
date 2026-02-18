@@ -41,7 +41,7 @@ export interface UpdateSourceCodeRequest {
     skipUpdateViewOnTomlUpdate?: boolean; // This is used to skip updating the view on toml updates in certain scenarios.
 }
 
-export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, isChangeFromHelperPane?: boolean): Promise<ProjectStructureArtifactResponse[]> {
+export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, isChangeFromHelperPane?: boolean, skipFormatting?: boolean): Promise<ProjectStructureArtifactResponse[]> {
     try {
         let tomlFilesUpdated = false;
         StateMachine.setEditMode();
@@ -107,6 +107,10 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     modificationRequests[fileUriString] = { filePath: fileUri.fsPath, modifications: modificationList };
                 }
             }
+            if (edits.length === 0) {
+                StateMachine.setReadyMode();
+                return [];
+            }
         }
 
         // Iterate through modificationRequests and apply modifications
@@ -154,10 +158,13 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     undoRedoManager?.addFileToBatch(fileUri.fsPath, formattedSource.newText, formattedSource.newText);
                 }
             }
+
             undoRedoManager?.commitBatchOperation(updateSourceCodeRequest.description ? updateSourceCodeRequest.description : (updateSourceCodeRequest.artifactData ? `Change in ${updateSourceCodeRequest.artifactData?.artifactType} ${updateSourceCodeRequest.artifactData?.identifier}` : "Update Source Code"));
 
-            // Apply all formatted changes at once
-            await workspace.applyEdit(formattedWorkspaceEdit);
+            if (!skipFormatting) { //TODO: Remove the skipFormatting flag once LS APIs are updated to give already formatted text edits
+                // Apply all formatted changes at once
+                await workspace.applyEdit(formattedWorkspaceEdit);
+            }
 
             // Handle missing dependencies after all changes are applied
             if (updateSourceCodeRequest.resolveMissingDependencies) {
@@ -222,7 +229,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
 // Notify webview unless a new TYPE artifact is created outside the type diagram view
 // */
 function checkAndNotifyWebview(
-    response: ProjectStructureArtifactResponse[], 
+    response: ProjectStructureArtifactResponse[],
     request: UpdateSourceCodeRequest,
     isChangeFromHelperPane?: boolean
 ) {

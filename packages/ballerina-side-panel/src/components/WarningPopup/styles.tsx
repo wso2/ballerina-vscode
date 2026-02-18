@@ -51,7 +51,7 @@ export const ModalBackdrop = styled.div({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000
+    zIndex: 2000
 });
 
 export const ModalContent = styled.div<{ maxWidth: string }>(({ maxWidth }) => ({
@@ -62,5 +62,6 @@ export const ModalContent = styled.div<{ maxWidth: string }>(({ maxWidth }) => (
     borderRadius: '4px',
     boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4)',
     width: maxWidth,
-    textAlign: 'center'
+    textAlign: 'center',
+    zIndex: 2001
 }));
