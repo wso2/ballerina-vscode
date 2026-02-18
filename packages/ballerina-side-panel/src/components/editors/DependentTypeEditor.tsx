@@ -18,7 +18,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import styled from "@emotion/styled";
-import { SearchBox, CheckBox, Codicon, ClickAwayListener, RequiredFormInput } from "@wso2/ui-toolkit";
+import { SearchBox, CheckBox, Codicon, RequiredFormInput } from "@wso2/ui-toolkit";
 import { FormField } from "../Form/types";
 import { useFormContext } from "../../context";
 import type { Type, Member } from "@wso2/ballerina-core";
@@ -132,39 +132,6 @@ function hasPartialSelection(member: Member, referencedTypes: Type[], visited: S
 
     return false;
 }
-
-// /**
-//  * Collects explicitly selected FIELD members with their dot-path (e.g., "parent.child").
-//  * Does NOT include required fields - this is only for display in the summary.
-//  */
-// function collectSelected(
-//     members: Member[],
-//     referencedTypes: Type[],
-//     parentPath: string,
-//     visited: Set<string> = new Set()
-// ): Array<{ member: Member; path: string }> {
-//     const result: Array<{ member: Member; path: string }> = [];
-
-//     for (const m of members) {
-//         if (m.kind !== "FIELD" || !m.name) continue;
-
-//         const path = parentPath ? `${parentPath}.${m.name}` : m.name;
-//         // Only include explicitly selected fields (not required fields)
-//         if (m.selected) {
-//             result.push({ member: m, path });
-//         }
-
-//         const newVisited = new Set(visited);
-//         if (m.refs?.length) newVisited.add(m.refs[0]);
-
-//         const children = resolveChildren(m, referencedTypes, newVisited);
-//         if (children.length) {
-//             result.push(...collectSelected(children, referencedTypes, path, newVisited));
-//         }
-//     }
-
-//     return result;
-// }
 
 // ─── Styled Components ──────────────────────────────────────────
 
@@ -290,74 +257,6 @@ const TypeTag = styled.span`
     color: var(--vscode-badge-foreground);
 `;
 
-const ChildrenInfo = styled.span`
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-    margin-left: 8px;
-`;
-
-const SummaryContainer = styled.div`
-    padding: 12px;
-    background: var(--vscode-editor-background);
-    border-top: 1px solid var(--vscode-dropdown-border);
-`;
-
-const SummaryHeader = styled.div`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-`;
-
-const SummaryTitle = styled.div`
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--vscode-foreground);
-`;
-
-const ClearButton = styled.button`
-    background: transparent;
-    border: none;
-    color: var(--vscode-textLink-foreground);
-    cursor: pointer;
-    font-size: 13px;
-    padding: 4px 8px;
-
-    &:hover {
-        text-decoration: underline;
-    }
-`;
-
-const SummaryList = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-`;
-
-const SummaryItem = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
-    background: var(--vscode-input-background);
-    border: 1px solid var(--vscode-dropdown-border);
-    border-radius: 4px;
-    gap: 5px;
-`;
-
-const RemoveButton = styled.button`
-    background: transparent;
-    border: none;
-    color: var(--vscode-foreground);
-    cursor: pointer;
-    padding: 2px;
-    display: flex;
-    opacity: 0.7;
-
-    &:hover {
-        opacity: 1;
-    }
-`;
 
 // ─── Component ──────────────────────────────────────────────────
 
@@ -435,21 +334,6 @@ export function DependentTypeEditor(props: DependentTypeEditorProps) {
                 toggleSelection(m, !allChecked, referencedTypes);
             }
         }
-        triggerUpdate();
-    };
-
-    const handleClearAll = () => {
-        if (!rootType?.members) return;
-        for (const m of rootType.members) {
-            if (m.kind === "FIELD") {
-                toggleSelection(m, false, referencedTypes);
-            }
-        }
-        triggerUpdate();
-    };
-
-    const handleRemove = (member: Member) => {
-        toggleSelection(member, false, referencedTypes);
         triggerUpdate();
     };
 
