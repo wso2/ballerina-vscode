@@ -517,6 +517,7 @@ export interface CreateConvertedVariableRequest {
     // Converting variable related
     typeName: string;
     variableName: string;
+    isInput: boolean;
 }
 
 export interface GraphqlDesignServiceParams {
