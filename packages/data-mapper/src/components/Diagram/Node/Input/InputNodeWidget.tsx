@@ -165,7 +165,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                             <InputCategoryIcon category={dmType.category} />
                         ) : (
                             <FieldActionButton
-                                id={"edit-" + id}
+                                id={"field-action-edit-" + id}
                                 tooltip="Edit"
                                 iconName="settings-gear"
                                 onClick={async () => await context.createConvertedVariable(dmType.name, true, dmType.typeName)}
