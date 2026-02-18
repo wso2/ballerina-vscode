@@ -1546,9 +1546,10 @@ public class CodeAnalyzer extends NodeVisitor {
             }
         }
 
-        Optional<ClassSymbol> clientClassSymbolOpt = getClientClassSymbol(semanticModel, functionData, name);
-        if (clientClassSymbolOpt.isPresent() && isPersistClient(clientClassSymbolOpt.get(), semanticModel)) {
-            updatePersistRelatedMetadata(functionData, packageName, clientClassSymbolOpt.get());
+        ClassSymbol clientClassSymbol = getClientClassSymbol(semanticModel, functionData, name)
+                .orElse(classSymbol);
+        if (isPersistClient(clientClassSymbol, semanticModel)) {
+            updatePersistRelatedMetadata(functionData, packageName, clientClassSymbol);
         }
 
         nodeBuilder.codedata()

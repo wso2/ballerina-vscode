@@ -91,6 +91,11 @@ public record ParameterData(
         INCLUDED_RECORD_REST,
         PATH_PARAM,
         PATH_REST_PARAM,
+        /**
+         * A parameter whose type represents a record used for inferred typing in data-mapping contexts.
+         * Unlike {@link #PARAM_FOR_TYPE_INFER}, this kind is used when the record type itself (rather than
+         * a type parameter inside it) should drive the field selector UI.
+         */
         RECORD_TYPE_INFER;
 
         public static Kind fromKind(ParameterKind parameterKind) {

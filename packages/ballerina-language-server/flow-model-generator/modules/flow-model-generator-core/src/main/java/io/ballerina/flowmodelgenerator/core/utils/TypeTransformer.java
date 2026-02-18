@@ -532,7 +532,6 @@ public class TypeTransformer {
             case OBJECT -> transform((ObjectTypeSymbol) typeSymbol, typeDataBuilder);
             case TABLE -> transform((TableTypeSymbol) typeSymbol, typeDataBuilder);
             case TUPLE -> transform((TupleTypeSymbol) typeSymbol, typeDataBuilder);
-//            default -> generateReferencedTypeId(typeSymbol, this.moduleInfo);
             default -> CommonUtils.isWithinPackageModule(typeSymbol, moduleInfo) && typeSymbol.getName().isPresent()
                     ? typeSymbol.getName().get()
                     : getTypeSignature(typeSymbol, this.moduleInfo);
@@ -845,19 +844,23 @@ public class TypeTransformer {
 
     private String getTypeName(Symbol symbol) {
         Optional<ModuleSymbol> moduleSymbol = symbol.getModule();
-        if (symbol.getName().isEmpty() || moduleSymbol.isEmpty()) {
-            return symbol.getName().get();
+        String symbolName = symbol.getName().orElse(symbol instanceof TypeSymbol ?
+                ((TypeSymbol) symbol).signature() : symbol.toString());
+        if (moduleSymbol.isEmpty()) {
+            // No module context — return the simple name, falling back to the full signature
+            // for anonymous or module-less symbols where getName() is absent.
+            return symbolName;
         }
 
         ModuleID moduleId = moduleSymbol.get().id();
         if (CommonUtils.isWithinPackage(symbol, moduleInfo)) {
             String moduleName = moduleId.moduleName();
             if (moduleName.equals(moduleInfo.moduleName())) {
-                return symbol.getName().get();
+                return symbolName;
             }
-            return String.format("%s:%s", moduleId.modulePrefix(), symbol.getName().get());
+            return String.format("%s:%s", moduleId.modulePrefix(), symbolName);
         } else {
-            return String.format("%s/%s:%s", moduleId.orgName(), moduleId.packageName(), symbol.getName().get());
+            return String.format("%s/%s:%s", moduleId.orgName(), moduleId.packageName(), symbolName);
         }
     }
 
@@ -865,6 +868,22 @@ public class TypeTransformer {
         return type instanceof String ? TypeUtils.getTypeRefIds(typeDescriptor, moduleInfo) : List.of();
     }
 
+    /**
+     * Recursively resolves the import statements required to reference the given {@link TypeSymbol} in the
+     * generated source and registers them on the provided {@link AbstractBuilder}.
+     *
+     * <p>For {@code TYPE_REFERENCE} kinds the import format depends on the symbol's origin:
+     * <ul>
+     *   <li>Same-package, same-module: no import needed.</li>
+     *   <li>Same-package, different sub-module: stored as the full module name (e.g. {@code mypackage.submodule}).</li>
+     *   <li>External package: stored as {@code org/packageName}.</li>
+     * </ul>
+     * Composite types ({@code ARRAY}, {@code MAP}, {@code STREAM}, {@code FUTURE}, {@code UNION},
+     * {@code INTERSECTION}) are handled by recursing into their constituent type parameters.
+     *
+     * @param typeSymbol the type symbol to inspect
+     * @param builder    the builder on which to register discovered import statements
+     */
     private void addRequiredImports(TypeSymbol typeSymbol, AbstractBuilder builder) {
         switch (typeSymbol.typeKind()) {
             case TYPE_REFERENCE -> {

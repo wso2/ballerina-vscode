@@ -1392,6 +1392,13 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
+    /**
+     * Bulk-adds all entries from the given map into the node properties, skipping the operation silently
+     * if the map is {@code null}. Existing properties with the same key will be overwritten.
+     *
+     * @param properties the map of property key to {@link Property} to merge in; may be {@code null}
+     * @return this builder for fluent chaining
+     */
     public final FormBuilder<T> addProperties(Map<String, Property> properties) {
         if (properties != null) {
             this.nodeProperties.putAll(properties);

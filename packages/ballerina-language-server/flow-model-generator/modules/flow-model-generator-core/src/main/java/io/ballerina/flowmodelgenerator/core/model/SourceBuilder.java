@@ -204,25 +204,27 @@ public class SourceBuilder {
         Property inferredProperty = inferredParam.get();
         if (inferredProperty.types() != null && !inferredProperty.types().isEmpty() &&
                 inferredProperty.types().getFirst().recordSelectorType() != null) {
+            // Always compute and apply the generated type name so the variable declaration uses
+            // "<Prefix>Type" even when no text-edits are produced (e.g. the type already exists).
+            String typeNamePrefix = capitalize(variable.toSourceCode());
+            inferredType = String.format("%sType", typeNamePrefix);
+
             List<PropertyType> propertyTypes = inferredProperty.valueAsType(LIST_PROPERTY_TYPE_TYPE_TOKEN);
-            if (propertyTypes == null || propertyTypes.isEmpty()) {
-                return typeName;
-            }
-            RecordSelectorType recordSelectorType = propertyTypes.getFirst().recordSelectorType();
-            Path typesFilePath = filePath.resolveSibling("types.bal");
-            Document document = FileSystemUtils.getDocument(workspaceManager, typesFilePath);
-            if (document != null) {
-                TypesManager typesManager = new TypesManager(document);
-                String typeNamePrefix = capitalize(variable.toSourceCode());
-                List<TextEdit> typeEdits = typesManager.getTextEditsForRecordSelectorTypes(recordSelectorType,
-                        typeNamePrefix, isUpdateRequest());
-                if (!typeEdits.isEmpty()) {
-                    if (textEditsMap.containsKey(typesFilePath)) {
-                        textEditsMap.get(typesFilePath).addAll(typeEdits);
-                    } else {
-                        textEditsMap.put(typesFilePath, new ArrayList<>(typeEdits));
+            if (propertyTypes != null && !propertyTypes.isEmpty()) {
+                RecordSelectorType recordSelectorType = propertyTypes.getFirst().recordSelectorType();
+                Path typesFilePath = filePath.resolveSibling("types.bal");
+                Document document = FileSystemUtils.getDocument(workspaceManager, typesFilePath);
+                if (document != null) {
+                    TypesManager typesManager = new TypesManager(document);
+                    List<TextEdit> typeEdits = typesManager.getTextEditsForRecordSelectorTypes(recordSelectorType,
+                            typeNamePrefix, isUpdateRequest());
+                    if (!typeEdits.isEmpty()) {
+                        if (textEditsMap.containsKey(typesFilePath)) {
+                            textEditsMap.get(typesFilePath).addAll(typeEdits);
+                        } else {
+                            textEditsMap.put(typesFilePath, new ArrayList<>(typeEdits));
+                        }
                     }
-                    inferredType = String.format("%sType", typeNamePrefix);
                 }
             }
         }

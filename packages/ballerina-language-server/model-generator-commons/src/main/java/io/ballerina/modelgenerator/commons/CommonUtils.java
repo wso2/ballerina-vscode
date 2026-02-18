@@ -1125,6 +1125,16 @@ public class CommonUtils {
         return isPersistClient(classSymbol, semanticModel);
     }
 
+    /**
+     * Looks up a {@link ClassSymbol} by name within the module described by the given {@link FunctionData}.
+     * This is used to retrieve the client class (e.g. a persist client) associated with a function call
+     * so that additional metadata (like persist model file paths) can be derived from it.
+     *
+     * @param semanticModel the semantic model of the current compilation
+     * @param functionData  function metadata containing the org, module name, and version to look up
+     * @param name          the unqualified class name to look up within the module
+     * @return an {@link Optional} containing the {@link ClassSymbol} if found, or empty otherwise
+     */
     public static Optional<ClassSymbol> getClientClassSymbol(SemanticModel semanticModel, FunctionData functionData,
                                                              String name) {
         Optional<Map<String, Symbol>> moduleTypesOpt = semanticModel.types()

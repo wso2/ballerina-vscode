@@ -67,9 +67,11 @@ import org.eclipse.lsp4j.TextEdit;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -240,28 +242,61 @@ public class TypesManager {
         return new RecordSelectorType(typeData, result);
     }
 
+    /**
+     * Internal holder that pairs a resolved type name with its associated {@link Codedata}, used during
+     * record selector type merging when a member's type name differs between source and target.
+     *
+     * @param typeName the resolved type name from the source
+     * @param codedata the codedata associated with the source type
+     */
     record ReferenceTypeInfo(String typeName, Codedata codedata) {
     }
 
+    /**
+     * Merges a source {@link RecordSelectorType} (from the inferred parameter type) with a target
+     * {@link RecordSelectorType} (from the target variable's type) to produce a combined selector
+     * where fields that are already populated in the source are pre-selected in the target's type model.
+     *
+     * <p>The merge strategy:
+     * <ol>
+     *   <li>For each member in the target root type, if a matching member exists in the source root and is
+     *       considered "selected" (required, has a default, or its nested record is selected), the target
+     *       member is marked as selected.</li>
+     *   <li>If the source member's type name differs from the target's (e.g. due to submodule vs external
+     *       package naming), the target member is updated to use the source type name and codedata.</li>
+     *   <li>Referenced (nested) types in the target are similarly updated and their members pre-selected.</li>
+     * </ol>
+     *
+     * @param source the {@link RecordSelectorType} derived from the inferred parameter's type
+     * @param target the {@link RecordSelectorType} derived from the target variable's type
+     * @return a new {@link RecordSelectorType} with merged selection state
+     */
     public static RecordSelectorType mergeWithTargetVarRecordSelectorType(RecordSelectorType source,
                                                                           RecordSelectorType target) {
         TypeData sourceRoot = source.rootType();
         TypeData targetRoot = target.rootType();
 
+        // Normalise all four member/type lists to non-null views so every loop and stream
+        // below is safe even when TypeData was built without explicitly setting these fields.
+        List<Member> targetRootMembers = targetRoot.members() != null ? targetRoot.members() : List.of();
+        List<Member> sourceRootMembers = sourceRoot.members() != null ? sourceRoot.members() : List.of();
+        List<TypeData> sourceRefTypes = source.referencedTypes() != null ? source.referencedTypes() : List.of();
+        List<TypeData> targetRefTypes = target.referencedTypes() != null ? target.referencedTypes() : List.of();
+
         List<Member> mergedMembers = new ArrayList<>();
         Map<String, ReferenceTypeInfo> updatedTypeNames = new HashMap<>();
-        for (Member targetMember : targetRoot.members()) {
-            Optional<Member> sourceMember = sourceRoot.members().stream()
+        for (Member targetMember : targetRootMembers) {
+            Optional<Member> sourceMember = sourceRootMembers.stream()
                     .filter(member -> member.name().equals(targetMember.name()))
                     .findFirst();
-            if (sourceMember.isPresent() && isMemberSelected(sourceMember.get(), source.referencedTypes())) {
+            if (sourceMember.isPresent() && isMemberSelected(sourceMember.get(), sourceRefTypes)) {
                 Member.MemberBuilder memberBuilder = targetMember.toBuilder();
                 memberBuilder.selected(!sourceMember.get().optional() ||
                         sourceMember.get().defaultValue() != null);
                 String sourceMemberTypeName = typeNameFromMember(sourceMember.get());
                 String targetMemberTypeName = typeNameFromMember(targetMember);
                 if (sourceMemberTypeName != null && !sourceMemberTypeName.equals(targetMemberTypeName)) {
-                    Codedata sourceMemberCodedata = source.referencedTypes().stream()
+                    Codedata sourceMemberCodedata = sourceRefTypes.stream()
                             .filter(typeData -> typeData.name().equals(sourceMemberTypeName))
                             .findFirst()
                             .map(TypeData::codedata)
@@ -288,7 +323,7 @@ public class TypesManager {
                 .build();
 
         List<TypeData> referencedTypes = new ArrayList<>();
-        for (TypeData targetRefType : target.referencedTypes()) {
+        for (TypeData targetRefType : targetRefTypes) {
             if (updatedTypeNames.containsKey(targetRefType.name())) {
                 ReferenceTypeInfo referenceTypeInfo = updatedTypeNames.get(targetRefType.name());
                 String typeName = referenceTypeInfo.typeName();
@@ -298,17 +333,21 @@ public class TypesManager {
                         .codedata()
                             .from(codedata)
                         .stepOut();
-                Optional<TypeData> sourceRefType = source.referencedTypes().stream()
+                Optional<TypeData> sourceRefType = sourceRefTypes.stream()
                         .filter(typeData -> typeData.name().equals(typeName))
                         .findFirst();
                 if (sourceRefType.isPresent()) {
+                    List<Member> sourceRefMembers = sourceRefType.get().members() != null
+                            ? sourceRefType.get().members() : List.of();
+                    List<Member> targetRefMembers = targetRefType.members() != null
+                            ? targetRefType.members() : List.of();
                     List<Member> mergedRefMembers = new ArrayList<>();
-                    for (Member targetMember : targetRefType.members()) {
-                        Optional<Member> sourceMember = sourceRefType.get().members().stream()
+                    for (Member targetMember : targetRefMembers) {
+                        Optional<Member> sourceMember = sourceRefMembers.stream()
                                 .filter(member -> member.name().equals(targetMember.name()))
                                 .findFirst();
                         if (sourceMember.isPresent() &&
-                                isMemberSelected(sourceMember.get(), source.referencedTypes())) {
+                                isMemberSelected(sourceMember.get(), sourceRefTypes)) {
                             mergedRefMembers.add(targetMember.toBuilder()
                                     .selected(!sourceMember.get().optional() ||
                                             sourceMember.get().defaultValue() != null)
@@ -329,6 +368,21 @@ public class TypesManager {
         return new RecordSelectorType(mergedRoot, referencedTypes);
     }
 
+    /**
+     * Generates a list of {@link TextEdit}s that create or update Ballerina type definitions derived from
+     * a {@link RecordSelectorType}. Only the fields that are "selected" (required, defaulted, or whose
+     * nested record has a selected field) are included in the generated types.
+     *
+     * <p>If the root type has no selected fields, an empty list is returned and no edits are produced.
+     * Referenced types that match the {@code ballerina/time} package are skipped because those records
+     * cannot be extended into new types.
+     *
+     * @param recordSelectorType the record selector type describing the root and referenced type models
+     * @param typePrefix         a string prefix prepended to generated type names (e.g. the variable name)
+     * @param updateExisting     if {@code true}, existing type definitions in the types file are updated
+     *                           in-place; if {@code false}, new type definitions are appended
+     * @return an ordered list of {@link TextEdit}s to apply to the types document
+     */
     public List<TextEdit> getTextEditsForRecordSelectorTypes(RecordSelectorType recordSelectorType,
                                                              String typePrefix, boolean updateExisting) {
         TypeData rootTypeData = recordSelectorType.rootType();
@@ -433,6 +487,11 @@ public class TypesManager {
     }
 
     private static boolean isMemberSelected(Member member, List<TypeData> referencedTypes) {
+        return isMemberSelected(member, referencedTypes, new HashSet<>());
+    }
+
+    private static boolean isMemberSelected(Member member, List<TypeData> referencedTypes,
+                                            Set<String> visitedTypeNames) {
         if (member.selected() || !member.optional() || member.defaultValue() != null) {
             return true;
         }
@@ -442,11 +501,18 @@ public class TypesManager {
             return false;
         }
 
+        // Short-circuit on a cycle: if this type name is already being visited in the current
+        // traversal path, treat it as not selected to prevent infinite recursion.
+        if (!visitedTypeNames.add(memberTypeName)) {
+            return false;
+        }
+
         Optional<TypeData> referencedType = referencedTypes.stream()
                 .filter(typeData -> memberTypeName.equals(typeData.name()))
                 .findFirst();
         return referencedType.isPresent() && referencedType.get().members() != null &&
-                referencedType.get().members().stream().anyMatch(m -> isMemberSelected(m, referencedTypes));
+                referencedType.get().members().stream()
+                        .anyMatch(m -> isMemberSelected(m, referencedTypes, visitedTypeNames));
     }
 
     private static boolean matchingType(Member member, String typeName) {
@@ -460,7 +526,7 @@ public class TypesManager {
             return (String) type;
         }
         TypeData memberTypeData = member.getTypeAsTypeData();
-        if (memberTypeData == null || memberTypeData.members().isEmpty()) {
+        if (memberTypeData == null || memberTypeData.members() == null || memberTypeData.members().isEmpty()) {
             return null;
         }
         Property property = memberTypeData.properties().get(Property.IS_ARRAY_KEY);

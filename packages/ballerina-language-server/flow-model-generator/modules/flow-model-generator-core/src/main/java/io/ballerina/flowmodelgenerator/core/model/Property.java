@@ -292,6 +292,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         PROMPT,
         CLAUSE_EXPRESSION,
         SQL_QUERY,
+        /**
+         * A property type that renders a record field selector in the UI. Properties of this type carry a
+         * {@link RecordSelectorType} model so the client can display a tree of record fields for the user
+         * to choose from, generating a typed subset record on save.
+         */
         RECORD_FIELD_SELECTOR
     }
 

@@ -195,6 +195,10 @@ public class PersistClient {
             throws PersistClientException {
         validateConnectionDetails();
 
+        if (name == null || name.isEmpty()) {
+            throw new PersistClientException("Connector variable name cannot be null or empty");
+        }
+
         if (module == null || module.isEmpty()) {
             module = name;
         }

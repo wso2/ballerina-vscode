@@ -52,6 +52,12 @@ public record TypeData(
         boolean allowAdditionalFields
 ) {
 
+    /**
+     * Creates a pre-populated {@link TypeDataBuilder} from this instance, allowing selective modification
+     * of individual fields while preserving all other values.
+     *
+     * @return a new builder initialized with all fields of this {@link TypeData}
+     */
     public TypeDataBuilder toBuilder() {
         TypeDataBuilder builder = (TypeDataBuilder) new TypeDataBuilder()
                 .name(name)

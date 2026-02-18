@@ -91,7 +91,6 @@ public class TypeUtils {
         Optional<ModuleSymbol> moduleSymbol = typeSymbol.getModule();
         if (typeSymbol.getName().isEmpty() || moduleSymbol.isEmpty()) {
             return typeSymbol.signature();  // anonymous type
-//            return getTypeSignature(typeSymbol, moduleInfo);  // anonymous type
         }
 
         ModuleID moduleId = moduleSymbol.get().id();

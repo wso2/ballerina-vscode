@@ -19,5 +19,17 @@ package io.ballerina.flowmodelgenerator.core.model;
 
 import java.util.List;
 
+/**
+ * Represents the type model used to drive the record field selector UI for a {@code PARAM_FOR_TYPE_INFER}
+ * parameter whose type is a Ballerina record.
+ *
+ * <p>The {@code rootType} is the anonymous (unnamed) top-level record type that the parameter expects.
+ * {@code referencedTypes} holds any additional record types that are referenced transitively from the root
+ * (e.g. nested record fields), so the UI can render them in full.
+ *
+ * @param rootType        the root record type model (name is stripped to {@code null})
+ * @param referencedTypes additional record types referenced by the root, may be empty
+ * @since 1.0.0
+ */
 public record RecordSelectorType(TypeData rootType, List<TypeData> referencedTypes) {
 }

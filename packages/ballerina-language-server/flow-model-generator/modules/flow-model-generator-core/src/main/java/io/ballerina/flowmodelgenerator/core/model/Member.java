@@ -60,6 +60,12 @@ public record Member(
 ) {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
+    /**
+     * Creates a pre-populated {@link MemberBuilder} from this instance, allowing selective modification
+     * of individual fields while preserving all other values.
+     *
+     * @return a new builder initialized with all fields of this {@link Member}
+     */
     public MemberBuilder toBuilder() {
         return (MemberBuilder) new MemberBuilder()
                 .kind(kind)
@@ -77,10 +83,24 @@ public record Member(
                 .imports(imports);
     }
 
+    /**
+     * Attempts to interpret the {@link #type()} field as a {@link TypeData} object. The type field is
+     * polymorphic: it can be a plain {@link String} (for primitive/named types) or a structured
+     * {@link TypeData} (for array/inline record types). GSON round-trip serialization is used here
+     * because the type field may already be a deserialized {@link com.google.gson.JsonObject}.
+     *
+     * <p>Returns {@code null} when the type field is a plain string (e.g. {@code "int"} or a named
+     * type reference), because GSON cannot deserialize a JSON string primitive into a {@link TypeData}
+     * object and throws {@link com.google.gson.JsonSyntaxException} in that case. Any other unexpected
+     * runtime exception is allowed to propagate so that programming errors are not silently hidden.
+     *
+     * @return the type field interpreted as {@link TypeData}, or {@code null} when the field holds a
+     *         plain string type name
+     */
     public TypeData getTypeAsTypeData() {
         try {
             return GSON.fromJson(GSON.toJson(type), TypeData.class);
-        } catch (Exception e) {
+        } catch (com.google.gson.JsonSyntaxException e) {
             return null;
         }
     }

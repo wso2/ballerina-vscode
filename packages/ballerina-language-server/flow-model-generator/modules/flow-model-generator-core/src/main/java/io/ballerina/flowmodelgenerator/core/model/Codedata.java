@@ -198,6 +198,14 @@ public record Codedata(NodeKind node, String org, String module, String packageN
             return this;
         }
 
+        /**
+         * Populates all fields of this builder from the given {@code source} {@link Codedata}, effectively
+         * cloning it into the builder so that individual fields can be overridden before calling
+         * {@link #stepOut()}.
+         *
+         * @param source the {@link Codedata} to copy field values from; must not be {@code null}
+         * @return this builder for fluent chaining
+         */
         public Builder<T> from(Codedata source) {
             this.node = source.node();
             this.org = source.org();
@@ -210,7 +218,7 @@ public record Codedata(NodeKind node, String org, String module, String packageN
             this.sourceCode = source.sourceCode();
             this.parentSymbol = source.parentSymbol();
             this.resourcePath = source.resourcePath();
-            this.id = Objects.requireNonNullElse(source.id(), 0);;
+            this.id = Objects.requireNonNullElse(source.id(), 0);
             this.isNew = source.isNew() != null && source.isNew();
             this.isGenerated = source.isGenerated();
             this.inferredReturnType = source.inferredReturnType();
