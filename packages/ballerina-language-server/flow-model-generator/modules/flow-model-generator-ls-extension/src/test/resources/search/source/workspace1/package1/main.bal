@@ -1,9 +1,7 @@
-import ballerina/io;
-
 public function main() {
-    io:println("Testing package1 functions");
     int result = calculateTotal(10, 20, 30);
-    io:println(result);
+    int product = multiply(result, 2);
+    int[] _ = [result, product];
 }
 
 # Calculates the total sum of multiple integers

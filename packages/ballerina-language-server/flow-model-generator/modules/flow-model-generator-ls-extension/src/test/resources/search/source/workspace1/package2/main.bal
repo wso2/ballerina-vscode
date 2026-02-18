@@ -1,9 +1,7 @@
-import ballerina/io;
-
 public function main() {
-    io:println("Testing package2 functions");
     string message = formatMessage("Hello", "World");
-    io:println(message);
+    string upper = toUpperCase(message);
+    string _ = reverseString(upper);
 }
 
 # Formats a message with two parts
