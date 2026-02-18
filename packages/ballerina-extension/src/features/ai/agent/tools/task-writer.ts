@@ -36,7 +36,7 @@ export interface TaskWriteResult {
 export const TaskInputSchema = z.object({
     description: z.string().min(1).describe("Clear, actionable description of the task to be implemented"),
     status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED]).describe("Current status of the task. Use 'pending' for tasks not started, 'in_progress' when actively working on it, 'completed' when work is finished."),
-    type: z.enum([TaskTypes.SERVICE_DESIGN, TaskTypes.CONNECTIONS_INIT, TaskTypes.IMPLEMENTATION]).describe("Type of the implementation task. service_design will only generate the http service contract. not the implementation. connections_init will only generate the connection initializations. All of the other tasks will be of type implementation.")
+    type: z.enum([TaskTypes.SERVICE_DESIGN, TaskTypes.CONNECTIONS_INIT, TaskTypes.IMPLEMENTATION, TaskTypes.TESTING]).describe("Type of the implementation task. service_design: creates the HTTP service contract only (no implementation). connections_init: creates connection/client initializations only. implementation: all other implementation tasks. testing: writing test cases for the implemented logic — always the last task unless user opts out.")
 });
 
 const TaskWriteInputSchema = z.object({
@@ -92,7 +92,8 @@ Example:
 [
   {"description": "Create the HTTP service contract", "status": "pending", "type": "service_design"},
   {"description": "Create the MYSQL Connection", "status": "pending", "type": "connections_init"},
-  {"description": "Implement the resource functions", "status": "pending", "type": "implementation"}
+  {"description": "Implement the resource functions", "status": "pending", "type": "implementation"},
+  {"description": "Write test cases", "status": "pending", "type": "testing"}
 ]
 
 ## UPDATING TASKS (Every Other Call):
