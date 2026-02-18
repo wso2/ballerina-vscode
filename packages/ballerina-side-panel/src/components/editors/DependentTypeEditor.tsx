@@ -25,7 +25,7 @@ import type { Type, Member } from "@wso2/ballerina-core";
 
 // ─── Types ──────────────────────────────────────────────────────
 
-interface DependantEditorProps {
+interface DependentTypeEditorProps {
     field: FormField;
 }
 
@@ -362,7 +362,7 @@ const RemoveButton = styled.button`
 
 // ─── Component ──────────────────────────────────────────────────
 
-export function DependantEditor(props: DependantEditorProps) {
+export function DependentTypeEditor(props: DependentTypeEditorProps) {
     const { field } = props;
     const { form } = useFormContext();
     const { setValue, register } = form;
