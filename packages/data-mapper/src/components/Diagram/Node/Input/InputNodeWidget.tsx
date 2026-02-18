@@ -26,6 +26,7 @@ import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Por
 import { InputSearchHighlight } from '../commons/Search';
 import { TreeBody, TreeContainer, TreeHeader } from '../commons/Tree/Tree';
 import { NodeActionWidget } from '../commons/NodeActionWidget';
+import { FieldActionButton } from '../commons/FieldActionButton';
 import { InputNodeTreeItemWidget } from "./InputNodeTreeItemWidget";
 import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
@@ -163,15 +164,12 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                         {dmType.category !== InputCategory.ConvertedVariable ? (
                             <InputCategoryIcon category={dmType.category} />
                         ) : (
-                            <Button
+                            <FieldActionButton
                                 id={"edit-" + id}
-                                appearance="icon"
                                 tooltip="Edit"
+                                iconName="settings-gear"
                                 onClick={async () => await context.createConvertedVariable(dmType.name, true, dmType.typeName)}
-                                data-testid={`${id}-edit-icon`}
-                            >
-                                <Codicon name="settings-gear" />
-                            </Button>
+                            />
                         )}
                     </span>
                     <span className={classes.outPort}>
