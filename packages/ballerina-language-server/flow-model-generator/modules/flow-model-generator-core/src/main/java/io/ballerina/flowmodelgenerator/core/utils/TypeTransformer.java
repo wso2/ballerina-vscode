@@ -53,6 +53,7 @@ import io.ballerina.compiler.api.symbols.TypeDescTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.values.ConstantValue;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
@@ -872,13 +873,14 @@ public class TypeTransformer {
      * Recursively resolves the import statements required to reference the given {@link TypeSymbol} in the
      * generated source and registers them on the provided {@link AbstractBuilder}.
      *
-     * <p>For {@code TYPE_REFERENCE} kinds the import format depends on the symbol's origin:
-     * <ul>
-     *   <li>Same-package, same-module: no import needed.</li>
-     *   <li>Same-package, different sub-module: stored as the full module name (e.g. {@code mypackage.submodule}).</li>
-     *   <li>External package: stored as {@code org/packageName}.</li>
-     * </ul>
-     * Composite types ({@code ARRAY}, {@code MAP}, {@code STREAM}, {@code FUTURE}, {@code UNION},
+     * <p>For {@code TYPE_REFERENCE} kinds every encountered type is stored unconditionally using the
+     * canonical format {@code orgName/packageName:version} (e.g. {@code ballerina/http:2.10.0}).
+     * {@link io.ballerina.flowmodelgenerator.core.TypesManager#addImportsToTextEdits(Map, ModulePartNode,
+     * List, Module)} is responsible
+     * for filtering out same-package references and validating the format before emitting actual
+     * {@code import} declarations.
+     *
+     * <p>Composite types ({@code ARRAY}, {@code MAP}, {@code STREAM}, {@code FUTURE}, {@code UNION},
      * {@code INTERSECTION}, {@code TABLE}, {@code TUPLE}, {@code ERROR}, {@code TYPEDESC}) are handled
      * by recursing into their constituent type parameters.
      *
@@ -893,16 +895,8 @@ public class TypeTransformer {
                     return;  // anonymous type
                 }
                 ModuleID moduleId = moduleSymbol.get().id();
-                if (CommonUtils.isWithinPackage(typeSymbol, moduleInfo)) {
-                    if (moduleInfo.moduleName().equals(moduleId.moduleName())) {
-                        return;
-                    }
-                    // Same package, different module: store as the full module name (e.g. mypackage.submodule)
-                    builder.addImport(moduleId.modulePrefix(), moduleId.moduleName());
-                }
-                if (!CommonUtils.isWithinPackage(typeSymbol, moduleInfo)) {
-                    builder.addImport(moduleId.modulePrefix(), moduleId.orgName() + "/" + moduleId.packageName());
-                }
+                builder.addImport(moduleId.modulePrefix(),
+                        String.format("%s/%s:%s", moduleId.orgName(), moduleId.packageName(), moduleId.version()));
             }
             case ARRAY -> addRequiredImports(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor(), builder);
             case MAP -> addRequiredImports(((MapTypeSymbol) typeSymbol).typeParam(), builder);

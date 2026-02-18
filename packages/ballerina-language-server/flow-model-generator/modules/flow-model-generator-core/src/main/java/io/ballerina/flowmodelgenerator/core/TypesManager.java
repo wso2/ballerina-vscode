@@ -73,6 +73,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.utils.TypeTransformer.BUILT_IN_ERROR;
@@ -92,6 +94,8 @@ public class TypesManager {
             SymbolKind.CLASS, SymbolKind.TYPE);
     private static final List<SymbolKind> supportedGraphqlSymbolKinds = List.of(SymbolKind.TYPE_DEFINITION,
             SymbolKind.ENUM, SymbolKind.SERVICE_DECLARATION, SymbolKind.CLASS, SymbolKind.TYPE);
+    /** Matches the canonical import value format produced by {@code TypeTransformer.addRequiredImports}. */
+    private static final Pattern IMPORT_PATTERN = Pattern.compile("^([^/]+)/([^:]+):(.+)$");
 
     public TypesManager(Document typeDocument) {
         this.typeDocument = typeDocument;
@@ -577,7 +581,7 @@ public class TypesManager {
             NonTerminalNode node = CommonUtil.findNode(CommonUtils.toRange(lineRange), syntaxTree);
             textEdits.add(new TextEdit(CommonUtils.toRange(node.lineRange()), codeSnippet));
         }
-        addImportsToTextEdits(sourceCodeGenerator.getImports(), rootNode, textEdits);
+        addImportsToTextEdits(sourceCodeGenerator.getImports(), rootNode, textEdits, this.module);
         return textEdits;
     }
 
@@ -594,12 +598,12 @@ public class TypesManager {
         ModulePartNode rootNode = syntaxTree.rootNode();
 
         List<String> codeSnippets = new ArrayList<>();
+        SourceCodeGenerator sourceCodeGenerator = new SourceCodeGenerator();
         for (TypeData typeData : typeDataList) {
-            SourceCodeGenerator sourceCodeGenerator = new SourceCodeGenerator();
             String codeSnippet = sourceCodeGenerator.generateCodeSnippetForType(typeData);
             codeSnippets.add(codeSnippet);
-            addImportsToTextEdits(sourceCodeGenerator.getImports(), rootNode, textEdits);
         }
+        addImportsToTextEdits(sourceCodeGenerator.getImports(), rootNode, textEdits, this.module);
 
         textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().endLine()),
                 String.join(System.lineSeparator(), codeSnippets)));
@@ -619,7 +623,7 @@ public class TypesManager {
         ModulePartNode rootNode = syntaxTree.rootNode();
         textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().endLine()), codeSnippet));
 
-        addImportsToTextEdits(sourceCodeGenerator.getImports(), rootNode, textEdits);
+        addImportsToTextEdits(sourceCodeGenerator.getImports(), rootNode, textEdits, this.module);
 
         return gson.toJsonTree(textEditsMap);
     }
@@ -926,24 +930,66 @@ public class TypesManager {
         );
     }
 
-    private static void addImportsToTextEdits(Map<String, String> imports,
-                                              ModulePartNode rootNode,
-                                              List<TextEdit> textEdits) {
+    /**
+     * Converts the collected import map entries into LSP {@link TextEdit}s that prepend missing
+     * {@code import} declarations to the target document.
+     *
+     * <p>Each value in {@code imports} must conform to the canonical format produced by
+     * {@code TypeTransformer.addRequiredImports}: {@code orgName/packageName:version} for root-module
+     * types and {@code orgName/packageName.moduleName:version} for sub-module types. Values that do
+     * not match this pattern are silently skipped.
+     *
+     * <p>Import resolution rules (evaluated in order):
+     * <ol>
+     *   <li>Same module (full dotted module path matches the current document's module) — no import.</li>
+     *   <li>Same package, different module (same org + same root package name, different sub-module)
+     *       — emit {@code import packageName.moduleName;} without an org prefix.</li>
+     *   <li>External package — emit {@code import orgName/packageName[.moduleName];} with the org
+     *       prefix.</li>
+     * </ol>
+     *
+     * @param imports   map from import alias to import-value strings
+     * @param rootNode  the root {@link ModulePartNode} of the document being modified
+     * @param textEdits mutable list to which the generated {@link TextEdit}s are appended
+     * @param module    the {@link Module} that owns the document, used to classify import origins
+     */
+    private static void addImportsToTextEdits(Map<String, String> imports, ModulePartNode rootNode,
+                                              List<TextEdit> textEdits, Module module) {
+        ModuleInfo currentModuleInfo = ModuleInfo.from(module.descriptor());
+        String currentOrg = currentModuleInfo.org();
+        // packageName() is the root-only name; moduleName() is the full dotted path (root or root.sub)
+        String currentPackageName = currentModuleInfo.packageName();
+        String currentModuleName = currentModuleInfo.moduleName();
+
         TreeSet<String> importStmts = new TreeSet<>();
-        imports.values().forEach(moduleId -> {
-            if (moduleId.contains("/")) {
-                // External package: value is org/packageName
-                String[] importParts = moduleId.split("/");
-                String orgName = importParts[0];
-                String moduleName = importParts[1];
-                if (!CommonUtils.importExists(rootNode, orgName, moduleName)) {
-                    importStmts.add(getImportStmt(orgName, moduleName));
+        imports.values().forEach(importValue -> {
+            Matcher matcher = IMPORT_PATTERN.matcher(importValue);
+            if (!matcher.matches()) {
+                // Not a valid orgName/packageName[.moduleName]:version string — skip
+                return;
+            }
+            String orgName = matcher.group(1);
+            String fullModulePart = matcher.group(2); // packageName or packageName.moduleName
+
+            if (orgName.equals(currentOrg)) {
+                // Same module — type is directly accessible, no import needed
+                if (fullModulePart.equals(currentModuleName)) {
+                    return;
                 }
-            } else {
-                // Same-package module: value is the full module name (e.g. mypackage.submodule)
-                if (!CommonUtils.importExists(rootNode, moduleId)) {
-                    importStmts.add(getImportStmt(moduleId));
+                // Same package, different module — import without org prefix
+                String importRootPackage = fullModulePart.contains(".")
+                        ? fullModulePart.substring(0, fullModulePart.indexOf('.'))
+                        : fullModulePart;
+                if (importRootPackage.equals(currentPackageName)) {
+                    if (!CommonUtils.importExists(rootNode, fullModulePart)) {
+                        importStmts.add(getImportStmt(fullModulePart));
+                    }
+                    return;
                 }
+            }
+            // External package — import with org prefix
+            if (!CommonUtils.importExists(rootNode, orgName, fullModulePart)) {
+                importStmts.add(getImportStmt(orgName, fullModulePart));
             }
         });
 
