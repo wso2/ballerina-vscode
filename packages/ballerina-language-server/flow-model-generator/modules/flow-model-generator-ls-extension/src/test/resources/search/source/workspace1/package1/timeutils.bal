@@ -1,10 +1,8 @@
-import ballerina/time;
-
 # Gets the current timestamp
 #
-# + return - Current UTC timestamp
-public function getCurrentTimestamp() returns time:Utc {
-    return time:utcNow();
+# + return - Current timestamp in milliseconds
+public function getCurrentTimestamp() returns int {
+    return 0;
 }
 
 # Converts seconds to milliseconds
