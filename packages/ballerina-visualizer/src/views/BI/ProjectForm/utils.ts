@@ -16,9 +16,7 @@
  * under the License.
  */
 
-// Import from the component file since types.ts was removed
-import { AddProjectFormData } from "./AddProjectFormFields";
-import { ProjectFormData } from "./ProjectFormFields";
+import { AddProjectFormData, ProjectFormData } from "./types";
 
 export const isValidPackageName = (name: string): boolean => {
     return /^[a-z0-9_.]+$/.test(name);
@@ -68,8 +66,9 @@ export const isFormValidAddProject = (formData: AddProjectFormData, isInWorkspac
     return (
         formData.integrationName.length >= 2 &&
         formData.packageName.length >= 2 &&
-        (isInWorkspace || (!isInWorkspace && formData.workspaceName?.length >= 1)) &&
-        validatePackageName(formData.packageName, formData.integrationName) === null
+        (isInWorkspace || (formData.workspaceName?.length ?? 0) >= 1) &&
+        validatePackageName(formData.packageName, formData.integrationName) === null &&
+        validateOrgName(formData.orgName) === null
     );
 };
 
@@ -80,4 +79,45 @@ export const sanitizePackageName = (name: string): string => {
         .toLowerCase()
         .replace(/\.{2,}/g, ".") // Convert multiple consecutive dots to single dot
         .replace(/_{2,}/g, "_"); // Convert multiple consecutive underscores to single underscore
+};
+
+// Reserved organization names
+const RESERVED_ORG_NAMES = ["ballerina", "ballerinax", "wso2"];
+
+// Org name pattern (based on Ballerina language specification for RestrictedIdentifier)
+// RestrictedIdentifier := AsciiLetter RestrictedFollowingChar* RestrictedIdentifierWord*
+// RestrictedIdentifierWord := _ RestrictedFollowingChar+
+// RestrictedFollowingChar := AsciiLetter | Digit
+// AsciiLetter := A .. Z | a .. z
+const RESTRICTED_IDENTIFIER_REGEX = /^[a-zA-Z][a-zA-Z0-9]*(_[a-zA-Z0-9]+)*$/;
+
+export const validateOrgName = (orgName: string): string | null => {
+    // Empty org name is allowed (optional field)
+    if (!orgName || orgName.length === 0) {
+        return null;
+    }
+
+    // Check for reserved org names (case-insensitive)
+    if (RESERVED_ORG_NAMES.includes(orgName.toLowerCase())) {
+        return `"${orgName}" is a reserved organization name`;
+    }
+
+    // Validate against RestrictedIdentifier pattern
+    if (!RESTRICTED_IDENTIFIER_REGEX.test(orgName)) {
+        if (!/^[a-zA-Z]/.test(orgName)) {
+            return "Organization name must start with a letter (a-z, A-Z)";
+        }
+        if (orgName.includes("__")) {
+            return "Organization name cannot have consecutive underscores";
+        }
+        if (orgName.endsWith("_")) {
+            return "Organization name cannot end with an underscore";
+        }
+        if (/_[^a-zA-Z0-9]/.test(orgName)) {
+            return "Underscore must be followed by at least one letter or digit";
+        }
+        return "Organization name can only contain letters (a-z, A-Z), digits (0-9), and underscores";
+    }
+
+    return null;
 };

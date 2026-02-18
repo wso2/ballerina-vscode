@@ -24,7 +24,7 @@ import { FormField } from "../Form/types";
 import { buildRequiredRule, capitalize, getValueForDropdown } from "./utils";
 import { useFormContext } from "../../context";
 import styled from "@emotion/styled";
-import { EditorFactory } from "./EditorFactory";
+import { FieldFactory } from "./FieldFactory";
 
 interface DropdownChoiceFormProps {
     field: FormField;
@@ -95,7 +95,7 @@ export function DropdownChoiceForm(props: DropdownChoiceFormProps) {
                 {dynamicFields.map((dfield, index) => {
                     if (!dfield.advanced && !dfield.optional) {
                         return (
-                            <EditorFactory
+                            <FieldFactory
                                 key={dfield.key}
                                 field={dfield}
                                 autoFocus={index === 0 ? true : false}

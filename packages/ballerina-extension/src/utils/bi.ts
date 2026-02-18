@@ -333,6 +333,7 @@ export function createBIProjectPure(projectRequest: ProjectRequest): string {
     // Build the distribution line if version is available
     const distributionLine = distribution ? `distribution = "${distribution}"\n` : '';
 
+    const libraryLine = projectRequest.isLibrary ? '\nlibrary = true' : '';
     const ballerinaTomlContent = `
 [package]
 org = "${finalOrgName}"
@@ -543,7 +544,8 @@ function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, workspac
         projectPath: workspacePath,
         createDirectory: true,
         orgName: params.orgName,
-        version: params.version
+        version: params.version,
+        isLibrary: params.isLibrary
     };
 
     return createBIProjectPure(projectRequest);

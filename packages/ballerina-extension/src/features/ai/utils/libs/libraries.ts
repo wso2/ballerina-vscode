@@ -14,13 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { MinifiedLibrary } from "@wso2/ballerina-core";
+import { LibraryMode, MinifiedLibrary } from "@wso2/ballerina-core";
 import { langClient } from "../../activator";
 import { getGenerationMode } from "../ai-utils";
 
-
-
-export const LIBRARY_PROVIDER_TOOL = "LibraryProviderTool";
 
 // export async function getRelevantLibs(params: GenerateCodeParams): Promise<Library[]> {
 //     // const prompt = getReadmeQuery(params);
@@ -31,11 +28,24 @@ export const LIBRARY_PROVIDER_TOOL = "LibraryProviderTool";
 export enum GenerationType {
     CODE_GENERATION = "CODE_GENERATION",
     HEALTHCARE_GENERATION = "HEALTHCARE_GENERATION",
+    ALL = "ALL"
+}
+
+export function getLibraryModeFromGenerationType(generationType: GenerationType): LibraryMode {
+    switch (generationType) {
+        case GenerationType.CODE_GENERATION:
+            return "CORE";
+        case GenerationType.HEALTHCARE_GENERATION:
+            return "HEALTHCARE";
+        case GenerationType.ALL:
+        default:
+            return "ALL";
+    }
 }
 
 export async function getAllLibraries(generationType: GenerationType): Promise<MinifiedLibrary[]> {
     const result = (await langClient.getCopilotCompactLibraries({
-        mode: getGenerationMode(generationType),
+        mode: getLibraryModeFromGenerationType(generationType),
     })) as { libraries: MinifiedLibrary[] };
     return result.libraries as MinifiedLibrary[];
 }

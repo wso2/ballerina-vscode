@@ -634,7 +634,7 @@ export function FormGeneratorNew(props: FormProps) {
                 shouldUpdateNode?: boolean,
                 variableType?: string
             ) => {
-                if (!showDiagnostics || isDataMapperEditor) {
+                if (!showDiagnostics) {
                     setDiagnosticsInfo({ key, diagnostics: [] });
                     return;
                 }
@@ -1071,6 +1071,8 @@ export function FormGeneratorNew(props: FormProps) {
                                 closeRecordConfigPage();
                             }
                         }}
+                        closeOnBackdropClick={true}
+                        closeButtonIcon="minimize"
                     >
                         <ConfigureRecordPage
                             fileName={fileName}

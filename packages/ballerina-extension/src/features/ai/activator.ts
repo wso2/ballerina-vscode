@@ -29,7 +29,7 @@ import {
     SIGN_IN_BI_COPILOT
 } from './constants';
 import {
-    REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE,
+    TOKEN_NOT_AVAILABLE_ERROR_MESSAGE,
     TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL
 } from '../..//utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
@@ -116,12 +116,12 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
             getSelectedLibraries,
             getRelevantLibrariesAndFunctions,
             GenerationType
-        } = require('./utils/libraries');
+        } = require('./utils/libs/libraries');
         const {
             selectRequiredFunctions,
             getMaximizedSelectedLibs,
             toMaximizedLibrariesFromLibJson
-        } = require('./utils/function-registry');
+        } = require('./utils/libs/function-registry');
 
         commands.registerCommand('ballerina.test.ai.getAllLibraries', async (generationType: typeof GenerationType) => {
             return await getAllLibraries(generationType);
@@ -163,7 +163,7 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
                     window.showInformationMessage(DEFAULT_PROVIDER_ADDED);
                 }
             } catch (error) {
-                if ((error as Error).message === REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE || (error as Error).message === TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL) {
+                if ((error as Error).message === TOKEN_NOT_AVAILABLE_ERROR_MESSAGE || (error as Error).message === TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL) {
                     window.showWarningMessage(LOGIN_REQUIRED_WARNING_FOR_DEFAULT_MODEL, SIGN_IN_BI_COPILOT).then(selection => {
                         if (selection === SIGN_IN_BI_COPILOT) {
                             AIStateMachine.service().send(AIMachineEventType.LOGIN);
