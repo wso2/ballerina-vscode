@@ -66,5 +66,5 @@ task runSearchListGenerator(type: JavaExec) {
     description = 'Run SearchListGenerator to generate search_list.json'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'io.ballerina.indexgenerator.SearchListGenerator'
-
+    workingDir = rootProject.projectDir
 }

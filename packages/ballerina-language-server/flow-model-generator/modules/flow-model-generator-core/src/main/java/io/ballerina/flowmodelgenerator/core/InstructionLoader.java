@@ -118,16 +118,4 @@ public final class InstructionLoader {
         // Resource path: /copilot/instructions/org/module/filename.md
         return INSTRUCTIONS_BASE_PATH + "/" + packageName + "/" + fileName;
     }
-
-    /**
-     * Checks if any instruction exists for a given package.
-     *
-     * @param packageName the full package name
-     * @return true if at least one instruction file exists
-     */
-    public static boolean hasAnyInstruction(String packageName) {
-        return loadLibraryInstruction(packageName).isPresent() ||
-                loadServiceInstruction(packageName).isPresent() ||
-                loadTestInstruction(packageName).isPresent();
-    }
 }

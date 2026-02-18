@@ -75,7 +75,7 @@ public class CopilotLibraryManager {
                 Library library = new Library(entry.getKey(), entry.getValue());
                 libraries.add(library);
             }
-        } catch (IOException | SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException("Failed to load libraries from database: " + e.getMessage(), e);
         }
 
@@ -166,7 +166,7 @@ public class CopilotLibraryManager {
                 Library library = new Library(entry.getKey(), entry.getValue());
                 libraries.add(library);
             }
-        } catch (IOException | SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException("Failed to search libraries by keywords: " + e.getMessage(), e);
         }
 

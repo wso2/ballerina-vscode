@@ -18,10 +18,8 @@
 
 package io.ballerina.flowmodelgenerator.core.copilot.database;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import io.ballerina.modelgenerator.commons.SearchDatabaseManager;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -41,7 +39,6 @@ import java.util.Optional;
  */
 public class LibraryDatabaseAccessor {
 
-    private static final String INDEX_FILE_NAME = "search-index.sqlite";
     private static final String MODE_CORE = "CORE";
     private static final String MODE_HEALTHCARE = "HEALTHCARE";
 
@@ -57,10 +54,9 @@ public class LibraryDatabaseAccessor {
      *             "Healthcare" (packages starting with 'health' + ballerina/http),
      *             "ALL" (all packages)
      * @return map of package names to descriptions
-     * @throws IOException  if database file access fails
      * @throws SQLException if database query fails
      */
-    public static Map<String, String> loadAllPackages(String mode) throws IOException, SQLException {
+    public static Map<String, String> loadAllPackages(String mode) throws SQLException {
         Map<String, String> packageToDescriptionMap = new LinkedHashMap<>();
 
         String dbPath = getDatabasePath();
@@ -120,7 +116,7 @@ public class LibraryDatabaseAccessor {
                     }
                 }
             }
-        } catch (IOException | SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException("Error retrieving package description for " + org + "/" + packageName + ": " +
                     e.getMessage(), e);
         }
@@ -133,14 +129,13 @@ public class LibraryDatabaseAccessor {
      * Searches in PackageFTS (package_name, description, keywords),
      * TypeFTS (description), ConnectorFTS (description), and FunctionFTS (description).
      * Returns a map with package name (org/package_name) as key and description as value,
-     * ordered by relevance score (best matches first). Limited to 20 results.
+     * ordered by relevance score (best matches first).
      *
      * @param keywords Array of search keywords
-     * @return map of matching package names to descriptions, ordered by BM25 relevance score (max 20 results)
-     * @throws IOException  if database file access fails
+     * @return map of matching package names to descriptions, ordered by BM25 relevance score
      * @throws SQLException if database query fails
      */
-    public static Map<String, String> searchLibrariesByKeywords(String[] keywords) throws IOException, SQLException {
+    public static Map<String, String> searchLibrariesByKeywords(String[] keywords) throws SQLException {
         Map<String, String> packageToDescriptionMap = new LinkedHashMap<>();
 
         if (keywords == null || keywords.length == 0) {
@@ -297,27 +292,7 @@ public class LibraryDatabaseAccessor {
         return String.join(" OR ", tokens);
     }
 
-    /**
-     * Gets the JDBC database path for the search-index.sqlite file.
-     *
-     * @return the JDBC database path
-     * @throws IOException if database file cannot be accessed
-     */
-    public static String getDatabasePath() throws IOException {
-        java.net.URL dbUrl = LibraryDatabaseAccessor.class.getClassLoader().getResource(INDEX_FILE_NAME);
-
-        if (dbUrl == null) {
-            throw new IOException("Database resource not found: " + INDEX_FILE_NAME);
-        }
-
-        // Copy database to temp directory
-        Path tempDir = Files.createTempDirectory("search-index");
-        Path tempFile = tempDir.resolve(INDEX_FILE_NAME);
-
-        try (InputStream inputStream = dbUrl.openStream()) {
-            Files.copy(inputStream, tempFile);
-        }
-
-        return "jdbc:sqlite:" + tempFile;
+    private static String getDatabasePath() {
+        return SearchDatabaseManager.getInstance().getDbPath();
     }
 }

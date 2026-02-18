@@ -80,17 +80,6 @@ public class InstructionLoaderTest {
     }
 
     @Test
-    public void testHasAnyInstruction() {
-        // Test package with instructions
-        Assert.assertTrue(InstructionLoader.hasAnyInstruction("ballerina/http"),
-                "ballerina/http should have at least one instruction file");
-
-        // Test package without instructions
-        Assert.assertFalse(InstructionLoader.hasAnyInstruction("non/existent"),
-                "non/existent should not have any instruction files");
-    }
-
-    @Test
     public void testLoadTestInstructionForBallerina() {
         // Test loading test instruction for ballerina/test (library.md)
         Optional<String> instruction = InstructionLoader.loadLibraryInstruction("ballerina/test");
