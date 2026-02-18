@@ -37,46 +37,6 @@ interface RecordSelectorType {
 // ─── Utilities ──────────────────────────────────────────────────
 
 /**
- * Formats a type for display (handles primitives, arrays, unions, records, etc.)
- */
-// function formatTypeDisplay(member: Member): string {
-//     if (typeof member.type === "string") {
-//         return member.type;
-//     }
-
-//     const typeObj = member.type as Type;
-//     const node = typeObj.codedata?.node;
-
-//     if (!typeObj.members?.length) {
-//         return typeObj.name || node?.toLowerCase() || "unknown";
-//     }
-
-//     switch (node) {
-//         case "ARRAY": {
-//             const elem = typeObj.members[0];
-//             if (!elem) return "array";
-//             const elemType = typeof elem.type === "string" ? elem.type : formatTypeDisplay(elem);
-//             const isUnion = typeof elem.type !== "string" && (elem.type as Type).codedata?.node === "UNION";
-//             return isUnion ? `(${elemType})[]` : `${elemType}[]`;
-//         }
-//         case "UNION":
-//             return typeObj.members.map(m => typeof m.type === "string" ? m.type : formatTypeDisplay(m)).join("|");
-//         case "MAP": {
-//             const val = typeObj.members[0];
-//             if (!val) return "map";
-//             const valType = typeof val.type === "string" ? val.type : formatTypeDisplay(val);
-//             return `map<${valType}>`;
-//         }
-//         case "RECORD":
-//             return typeObj.name || "record";
-//         case "TUPLE":
-//             return typeObj.name || "tuple";
-//         default:
-//             return typeObj.name || node?.toLowerCase() || "object";
-//     }
-// }
-
-/**
  * Resolves child FIELD members for a given member by following refs or inline types.
  */
 function resolveChildren(member: Member, referencedTypes: Type[], visited: Set<string>): Member[] {
@@ -116,13 +76,13 @@ function resolveChildren(member: Member, referencedTypes: Type[], visited: Set<s
  */
 function toggleSelection(member: Member, selected: boolean, referencedTypes: Type[], visited: Set<string> = new Set()): void {
     member.selected = selected;
-    
+
     // Track this member's ref to prevent cycles
     const newVisited = new Set(visited);
     if (member.refs?.length) {
         newVisited.add(member.refs[0]);
     }
-    
+
     const children = resolveChildren(member, referencedTypes, newVisited);
     for (const child of children) {
         toggleSelection(child, selected, referencedTypes, newVisited);
@@ -136,10 +96,10 @@ function areAllSelected(members: Member[], referencedTypes: Type[], visited: Set
     for (const m of members) {
         if (m.kind !== "FIELD") continue;
         if (!m.selected) return false;
-        
+
         const newVisited = new Set(visited);
         if (m.refs?.length) newVisited.add(m.refs[0]);
-        
+
         const children = resolveChildren(m, referencedTypes, newVisited);
         if (children.length && !areAllSelected(children, referencedTypes, newVisited)) {
             return false;
@@ -157,19 +117,19 @@ function areAllSelected(members: Member[], referencedTypes: Type[], visited: Set
 function hasPartialSelection(member: Member, referencedTypes: Type[], visited: Set<string> = new Set()): boolean {
     // If already selected, it's not partial (it's fully selected)
     if (member.selected) return false;
-    
+
     const newVisited = new Set(visited);
     if (member.refs?.length) newVisited.add(member.refs[0]);
-    
+
     const children = resolveChildren(member, referencedTypes, visited);
     if (!children.length) return false;
-    
+
     // Check if any child (or descendant) is selected
     for (const child of children) {
         if (child.selected) return true;
         if (hasPartialSelection(child, referencedTypes, newVisited)) return true;
     }
-    
+
     return false;
 }
 
@@ -184,59 +144,25 @@ function collectSelected(
     visited: Set<string> = new Set()
 ): Array<{ member: Member; path: string }> {
     const result: Array<{ member: Member; path: string }> = [];
-    
+
     for (const m of members) {
         if (m.kind !== "FIELD" || !m.name) continue;
-        
+
         const path = parentPath ? `${parentPath}.${m.name}` : m.name;
         // Only include explicitly selected fields (not required fields)
         if (m.selected) {
             result.push({ member: m, path });
         }
-        
+
         const newVisited = new Set(visited);
         if (m.refs?.length) newVisited.add(m.refs[0]);
-        
+
         const children = resolveChildren(m, referencedTypes, newVisited);
         if (children.length) {
             result.push(...collectSelected(children, referencedTypes, path, newVisited));
         }
     }
-    
-    return result;
-}
 
-/**
- * Collects all fields that should be included in form output:
- * - Explicitly selected fields (m.selected === true)
- * - Required fields (m.optional === false)
- */
-function collectAllForOutput(
-    members: Member[],
-    referencedTypes: Type[],
-    parentPath: string,
-    visited: Set<string> = new Set()
-): Array<{ member: Member; path: string }> {
-    const result: Array<{ member: Member; path: string }> = [];
-    
-    for (const m of members) {
-        if (m.kind !== "FIELD" || !m.name) continue;
-        
-        const path = parentPath ? `${parentPath}.${m.name}` : m.name;
-        // Include if explicitly selected OR if required
-        if (m.selected || m.optional === false) {
-            result.push({ member: m, path });
-        }
-        
-        const newVisited = new Set(visited);
-        if (m.refs?.length) newVisited.add(m.refs[0]);
-        
-        const children = resolveChildren(m, referencedTypes, newVisited);
-        if (children.length) {
-            result.push(...collectAllForOutput(children, referencedTypes, path, newVisited));
-        }
-    }
-    
     return result;
 }
 
@@ -417,6 +343,7 @@ const SummaryItem = styled.div`
     background: var(--vscode-input-background);
     border: 1px solid var(--vscode-dropdown-border);
     border-radius: 4px;
+    gap: 5px;
 `;
 
 const RemoveButton = styled.button`
@@ -492,7 +419,7 @@ export function DependantEditor(props: DependantEditorProps) {
     const handleToggleField = (member: Member) => {
         // Skip if field is required (cannot be unchecked)
         if (member.optional === false) return;
-        
+
         // If partial selection, clicking should select all (complete the selection)
         // If selected, clicking should deselect all
         // If unselected (and no partial), clicking should select all
@@ -554,10 +481,10 @@ export function DependantEditor(props: DependantEditorProps) {
             .filter(m => !search || m.name!.toLowerCase().includes(search.toLowerCase()))
             .map(m => {
                 const path = parentPath ? `${parentPath}.${m.name}` : m.name!;
-                
+
                 const newVisited = new Set(visited);
                 if (m.refs?.length) newVisited.add(m.refs[0]);
-                
+
                 const children = resolveChildren(m, referencedTypes, visited);
                 const isExpanded = expanded.has(path);
                 const isPartial = hasPartialSelection(m, referencedTypes, visited);
@@ -584,11 +511,6 @@ export function DependantEditor(props: DependantEditorProps) {
 
                             <FieldLabel onClick={() => handleToggleField(m)}>{m.name}</FieldLabel>
                             <TypeTag>{m?.typeName}</TypeTag>
-                            {/* {children.length > 0 && (
-                                <ChildrenInfo>
-                                    {children.length} field{children.length > 1 ? "s" : ""}
-                                </ChildrenInfo>
-                            )} */}
                         </TreeItem>
 
                         {isExpanded && children.length > 0 && renderTree(children, path, depth + 1, newVisited)}
@@ -669,7 +591,7 @@ export function DependantEditor(props: DependantEditorProps) {
                                             <TypeTag>{member?.typeName}</TypeTag>
                                         </div>
                                         <RemoveButton onClick={e => { e.stopPropagation(); handleRemove(member); }}>
-                                            <Codicon name="close" />
+                                            <Codicon name="trash" />
                                         </RemoveButton>
                                     </SummaryItem>
                                 ))}
