@@ -256,18 +256,16 @@ public class TypesManager {
                     .findFirst();
             if (sourceMember.isPresent() && isMemberSelected(sourceMember.get(), source.referencedTypes())) {
                 Member.MemberBuilder memberBuilder = targetMember.toBuilder();
-                if (sourceMember.get().type() instanceof String) {
-                    memberBuilder.selected(!sourceMember.get().optional() ||
-                            sourceMember.get().defaultValue() != null);
-                }
+                memberBuilder.selected(!sourceMember.get().optional() ||
+                        sourceMember.get().defaultValue() != null);
                 String sourceMemberTypeName = typeNameFromMember(sourceMember.get());
                 String targetMemberTypeName = typeNameFromMember(targetMember);
-                Codedata sourceMemberCodedata = source.referencedTypes().stream()
-                        .filter(typeData -> typeData.name().equals(sourceMemberTypeName))
-                        .findFirst()
-                        .map(TypeData::codedata)
-                        .orElse(null);
                 if (sourceMemberTypeName != null && !sourceMemberTypeName.equals(targetMemberTypeName)) {
+                    Codedata sourceMemberCodedata = source.referencedTypes().stream()
+                            .filter(typeData -> typeData.name().equals(sourceMemberTypeName))
+                            .findFirst()
+                            .map(TypeData::codedata)
+                            .orElse(null);
                     updatedTypeNames.put(targetMemberTypeName,
                             new ReferenceTypeInfo(sourceMemberTypeName, sourceMemberCodedata));
                     memberBuilder.typeName(sourceMemberTypeName)
@@ -360,11 +358,9 @@ public class TypesManager {
 
         for (TypeData referencedType : referencedTypes) {
             String referencedTypeName = referencedType.name();
-            if (referencedTypeName == null ||
-                    referencedType.members() != null &&
-                            referencedType.members().stream()
-                                    .allMatch(member -> isMemberSelected(member, finalReferencedTypes))) {
-
+            // TODO: Special casing time package records for now since they don't support creating new types from
+            // extending them. Need a better solution to handle such cases in the future.
+            if (referencedTypeName == null || referencedTypeName.startsWith("ballerina/time")) {
                 continue;
             }
 
@@ -373,31 +369,35 @@ public class TypesManager {
                             isMemberSelected(member, finalReferencedTypes))
                     .findFirst();
             if (field.isPresent()) {
-                String newTypeName = typePrefix + capitalize(referencedTypeName) + "Type";
-                TypeData updatedRefType = referencedType.toBuilder()
-                        .name(newTypeName)
-                        .build();
-                updatedReferencedTypes.add(updatedRefType);
-                TypeData typeData = field.get().getTypeAsTypeData();
-                Member member;
-                if (typeData == null) {
-                    member = field.get().toBuilder()
-                            .type(newTypeName)
+                if (referencedTypeName.equals(referencedType.metadata().label())) {
+                    String newTypeName = typePrefix + capitalize(getTypeName(referencedTypeName)) + "Type";
+                    TypeData updatedRefType = referencedType.toBuilder()
+                            .name(newTypeName)
                             .build();
+                    updatedReferencedTypes.add(updatedRefType);
+                    TypeData typeData = field.get().getTypeAsTypeData();
+                    Member member;
+                    if (typeData == null) {
+                        member = field.get().toBuilder()
+                                .type(newTypeName)
+                                .build();
+                    } else {
+                        Member arrayMember = typeData.members().getFirst();
+                        Member updatedArrayMember = arrayMember.toBuilder()
+                                .type(newTypeName)
+                                .build();
+                        TypeData updatedTypeData = typeData.toBuilder()
+                                .members(List.of(updatedArrayMember))
+                                .build();
+                        member = field.get().toBuilder()
+                                .type(updatedTypeData)
+                                .build();
+                    }
+                    updatedMembers.remove(field.get());
+                    updatedMembers.add(member);
                 } else {
-                    Member arrayMember = typeData.members().getFirst();
-                    Member updatedArrayMember = arrayMember.toBuilder()
-                            .type(newTypeName)
-                            .build();
-                    TypeData updatedTypeData = typeData.toBuilder()
-                            .members(List.of(updatedArrayMember))
-                            .build();
-                    member = field.get().toBuilder()
-                            .type(updatedTypeData)
-                            .build();
+                    updatedReferencedTypes.add(referencedType);
                 }
-                updatedMembers.remove(field.get());
-                updatedMembers.add(member);
             }
         }
 
@@ -423,6 +423,13 @@ public class TypesManager {
             return textEdits;
         }
         return createMultipleTypes(allTypes);
+    }
+
+    private String getTypeName(String typeName) {
+        if (typeName.contains(":")) {
+            return typeName.substring(typeName.lastIndexOf(":") + 1);
+        }
+        return typeName;
     }
 
     private static boolean isMemberSelected(Member member, List<TypeData> referencedTypes) {
@@ -858,11 +865,19 @@ public class TypesManager {
                                               List<TextEdit> textEdits) {
         TreeSet<String> importStmts = new TreeSet<>();
         imports.values().forEach(moduleId -> {
-            String[] importParts = moduleId.split("/");
-            String orgName = importParts[0];
-            String moduleName = importParts[1].split(":")[0];
-            if (!CommonUtils.importExists(rootNode, orgName, moduleName)) {
-                importStmts.add(getImportStmt(orgName, moduleName));
+            if (moduleId.contains("/")) {
+                // External package: value is org/packageName
+                String[] importParts = moduleId.split("/");
+                String orgName = importParts[0];
+                String moduleName = importParts[1];
+                if (!CommonUtils.importExists(rootNode, orgName, moduleName)) {
+                    importStmts.add(getImportStmt(orgName, moduleName));
+                }
+            } else {
+                // Same-package module: value is the full module name (e.g. mypackage.submodule)
+                if (!CommonUtils.importExists(rootNode, moduleId)) {
+                    importStmts.add(getImportStmt(moduleId));
+                }
             }
         });
 
@@ -874,6 +889,10 @@ public class TypesManager {
 
     private static String getImportStmt(String org, String module) {
         return String.format("%nimport %s/%s;%n", org, module);
+    }
+
+    private static String getImportStmt(String module) {
+        return String.format("%nimport %s;%n", module);
     }
 
     public record TypeDataWithRefs(Object type, List<Object> refs) {

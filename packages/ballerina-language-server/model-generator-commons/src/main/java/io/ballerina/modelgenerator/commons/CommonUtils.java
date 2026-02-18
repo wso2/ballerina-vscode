@@ -828,6 +828,23 @@ public class CommonUtils {
     }
 
     /**
+     * Checks if the given symbol is within the given package module.
+     *
+     * @param symbol     the symbol to check
+     * @param moduleInfo the module descriptor of the current module
+     * @return true if the symbol is within the given package module, false otherwise
+     */
+    public static boolean isWithinPackageModule(Symbol symbol, ModuleInfo moduleInfo) {
+        if (symbol.getModule().isEmpty()) {
+            return false;
+        }
+        ModuleID moduleID = symbol.getModule().get().id();
+        return moduleID.orgName().equals(moduleInfo.org()) &&
+                moduleID.packageName().equals(moduleInfo.packageName()) &&
+                moduleID.moduleName().equals(moduleInfo.moduleName());
+    }
+
+    /**
      * Converts a multi-line string into a formatted Ballerina documentation. Each line starts with a "#".
      *
      * @param text The input string.
@@ -981,6 +998,23 @@ public class CommonUtils {
             return importDeclarationNode.orgName().isPresent() &&
                     org.equals(importDeclarationNode.orgName().get().orgName().text()) &&
                     module.equals(moduleName);
+        });
+    }
+
+    /**
+     * Checks whether the given same-package module import exists in the given module part node.
+     * This handles imports of the form {@code import mypackage.submodule;} which have no org name.
+     *
+     * @param node   module part node
+     * @param module full module name (e.g. {@code mypackage.submodule})
+     * @return true if the import exists, false otherwise
+     */
+    public static boolean importExists(ModulePartNode node, String module) {
+        return node.imports().stream().anyMatch(importDeclarationNode -> {
+            String moduleName = importDeclarationNode.moduleName().stream()
+                    .map(IdentifierToken::text)
+                    .collect(Collectors.joining("."));
+            return importDeclarationNode.orgName().isEmpty() && module.equals(moduleName);
         });
     }
 
