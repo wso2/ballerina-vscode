@@ -604,16 +604,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo) {
-            return typeWithExpression(typeSymbol, moduleInfo, null, null);
+            return typeWithExpression(typeSymbol, moduleInfo, null);
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo, String defaultValue) {
-            return typeWithExpression(typeSymbol, moduleInfo, null, null, defaultValue, null);
-        }
-
-        public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
-                                             Node value, SemanticModel semanticModel) {
-            return typeWithExpression(typeSymbol, moduleInfo, value, semanticModel, null, null);
+            return typeWithExpression(typeSymbol, moduleInfo, null, null, defaultValue, this);
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
