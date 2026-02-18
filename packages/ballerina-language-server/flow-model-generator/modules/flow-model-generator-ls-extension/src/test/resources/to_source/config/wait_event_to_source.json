@@ -1,0 +1,99 @@
+{
+  "source": "workflow_events/functions.bal",
+  "description": "Wait for event - modifies existing events type to add new field right after {|",
+  "diagram": {
+    "id": "1",
+    "metadata": {
+      "label": "Wait for Event",
+      "description": "Wait for a workflow event to be received"
+    },
+    "codedata": {
+      "node": "WAIT_EVENT",
+      "isNew": true,
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 5,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 5,
+          "offset": 0
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "variable": {
+        "metadata": {
+          "label": "Event Receive Variable Name",
+          "description": "Variable name to receive the event data"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "paymentConfirm",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "eventType": {
+        "metadata": {
+          "label": "Event Data Type",
+          "description": "Type of the event data"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "anydata",
+        "value": "PaymentConfirmation",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "eventName": {
+        "metadata": {
+          "label": "Event Name",
+          "description": "Name of the event to wait for"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "paymentConfirmed",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "workflow_events/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 7,
+            "character": 0
+          },
+          "end": {
+            "line": 7,
+            "character": 0
+          }
+        },
+        "newText": "\n\tfuture<PaymentConfirmation> paymentConfirmed;\n"
+      }
+    ],
+    "workflow_events/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 0
+          },
+          "end": {
+            "line": 5,
+            "character": 0
+          }
+        },
+        "newText": "\nPaymentConfirmation paymentConfirm = check wait events.paymentConfirmed;"
+      }
+    ]
+  }
+}

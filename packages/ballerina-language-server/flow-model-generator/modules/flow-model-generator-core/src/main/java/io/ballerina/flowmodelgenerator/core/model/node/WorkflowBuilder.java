@@ -19,6 +19,8 @@
 package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.PropertyType;
@@ -32,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_PARAM_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_SUFFIX;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
@@ -133,6 +137,9 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
 
             paramsBuilder.append(", ").append(inputType).append(" input");
         }
+        String eventsTypeName = funcName.substring(0, 1).toUpperCase() + funcName.substring(1)
+                + EVENTS_SUFFIX;
+        paramsBuilder.append(", ").append(eventsTypeName).append(" ").append(EVENTS_PARAM_NAME);
 
         sourceBuilder.token().name(paramsBuilder.toString());
 
@@ -162,6 +169,26 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                     .token().skipFormatting().stepOut()
                     .textEdit();
         }
+
+        createNewEventsType(sourceBuilder, eventsTypeName);
         return sourceBuilder.build();
+    }
+
+    private void createNewEventsType(SourceBuilder sourceBuilder, String eventsTypeName) {
+        TypeData eventsTypeData = new TypeData(
+                eventsTypeName,
+                true,
+                new Metadata(eventsTypeName, "Events record for workflow process function",
+                        null, null, null, null),
+                new Codedata.Builder<>(null).node(NodeKind.RECORD).build(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false
+        );
+        sourceBuilder.acceptTypeGeneration(eventsTypeData);
     }
 }

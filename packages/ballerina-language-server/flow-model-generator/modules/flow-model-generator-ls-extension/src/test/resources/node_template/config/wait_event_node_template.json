@@ -1,0 +1,75 @@
+{
+  "source": "empty.bal",
+  "description": "Wait for workflow event node template",
+  "codedata": {
+    "node": "WAIT_EVENT"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Wait for Event",
+      "description": "Wait for a workflow event to be received"
+    },
+    "codedata": {
+      "node": "WAIT_EVENT",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "variable": {
+        "metadata": {
+          "label": "Event Receive Variable Name",
+          "description": "Variable name to receive the event data"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "scope": "Local",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "eventType": {
+        "metadata": {
+          "label": "Event Data Type",
+          "description": "Type of the event data"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "anydata",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "eventName": {
+        "metadata": {
+          "label": "Event Name",
+          "description": "Name of the event to wait for"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

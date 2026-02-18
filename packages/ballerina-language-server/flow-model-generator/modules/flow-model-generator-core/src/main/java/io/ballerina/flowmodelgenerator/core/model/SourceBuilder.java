@@ -170,6 +170,10 @@ public class SourceBuilder {
         return tokenBuilder;
     }
 
+    public Map<Path, List<TextEdit>> getTextEditsMap() {
+        return textEditsMap;
+    }
+
     public SourceBuilder newVariable() {
         return newVariable(Property.TYPE_KEY);
     }
@@ -295,6 +299,8 @@ public class SourceBuilder {
      * @return The actual type name to use (original or generated)
      */
     public String acceptTypeGeneration(TypeData typeModel) {
+        // ToDo: We should not have case specific logic here. Simplify just to add to typesToGenerate and
+        //  handle the rest in the WorkflowBuilder.
         if (typeModel == null || typeModel.name() == null || typeModel.name().isEmpty()) {
             return null;
         }
@@ -345,7 +351,7 @@ public class SourceBuilder {
                 return newName;
             }
         }
-        return  null;
+        return null;
     }
 
     private String generateUniqueTypeName(String baseName, SemanticModel semanticModel) {
