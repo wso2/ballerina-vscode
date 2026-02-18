@@ -125,11 +125,6 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION",
-                "ballerinaType": "map<string|string[]>",
-                "selected": false
-              },
-              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "map<string|string[]>?",
                 "selected": false
@@ -228,7 +223,7 @@
                 "selected": true
               }
             ],
-            "value": "json",
+            "value": "var",
             "placeholder": "var",
             "optional": false,
             "editable": false,
@@ -321,11 +316,6 @@
               "description": "The entity headers"
             },
             "types": [
-              {
-                "fieldType": "MAPPING_EXPRESSION",
-                "ballerinaType": "map<string|string[]>",
-                "selected": false
-              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "map<string|string[]>?",
@@ -469,11 +459,6 @@
               "description": "The entity headers"
             },
             "types": [
-              {
-                "fieldType": "MAPPING_EXPRESSION",
-                "ballerinaType": "map<string|string[]>",
-                "selected": false
-              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "map<string|string[]>?",

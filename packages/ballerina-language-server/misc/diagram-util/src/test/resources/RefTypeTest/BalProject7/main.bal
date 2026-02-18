@@ -11,3 +11,19 @@ public type RecordWithStream record {|
     string id;
     SimpleStream data;
 |};
+
+enum Color {
+    RED,
+    GREEN,
+    BLUE
+}
+
+public type Person2 record {
+    string name;
+    int age;
+    Color favoriteColor;
+};
+
+// Union of singleton string values (not a named enum)
+type Status "active"|"inactive"|"pending";
+

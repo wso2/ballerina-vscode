@@ -281,7 +281,8 @@ public class DataMapManager {
             symbols = symbols.stream()
                     .filter(symbol -> !symbol.getName().orElse("").equals(getVariableName(node)))
                     .collect(Collectors.toList());
-            inputPorts = getQueryInputPorts(symbols, enumPorts, references, typeDefSymbols);
+            List<Symbol> moduleSymbols = semanticModel.moduleSymbols();
+            inputPorts = getQueryInputPorts(symbols, enumPorts, references, typeDefSymbols, moduleSymbols);
             inputPorts.sort(Comparator.comparing(mt -> mt.name));
 
             List<String> inputs = new ArrayList<>();
@@ -383,8 +384,11 @@ public class DataMapManager {
                 if (optSymbol.isEmpty()) {
                     continue;
                 }
-                String text =
-                        ((CaptureBindingPatternNode) typedBindingPatternNode.bindingPattern()).variableName().text();
+                BindingPatternNode bindingPattern = typedBindingPatternNode.bindingPattern();
+                if (bindingPattern.kind() != SyntaxKind.CAPTURE_BINDING_PATTERN) {
+                    continue;
+                }
+                String text = ((CaptureBindingPatternNode) bindingPattern).variableName().text();
                 MappingPort port = getRefMappingPort(text, text, ReferenceType.fromSemanticSymbol(optSymbol.get(),
                                 typeDefSymbols), new HashMap<>(), references);
                 inputPorts.add(port);
@@ -873,9 +877,6 @@ public class DataMapManager {
                               ConvertedVariables convertedVariables) {
     }
 
-    private record ParentNode(String name, TypeSymbol type, LetExpressionNode letExpr) {
-    }
-
     private Map<String, SpecificFieldNode> convertMappingFieldsToMap(MappingConstructorExpressionNode mappingCtrExpr) {
         Map<String, SpecificFieldNode> mappingFieldNodeMap = new HashMap<>();
         mappingCtrExpr.fields().forEach(mappingFieldNode -> {
@@ -1208,7 +1209,8 @@ public class DataMapManager {
     }
 
     private List<MappingPort> getQueryInputPorts(List<Symbol> visibleSymbols, List<MappingPort> enumPorts,
-                                                 Map<String, MappingPort> references, List<Symbol> typeDefSymbols) {
+                                                 Map<String, MappingPort> references, List<Symbol> typeDefSymbols,
+                                                    List<Symbol> moduleSymbols) {
         List<MappingPort> mappingPorts = new ArrayList<>();
         for (Symbol symbol : visibleSymbols) {
             SymbolKind kind = symbol.kind();
@@ -1233,7 +1235,7 @@ public class DataMapManager {
                 if (varSymbol.qualifiers().contains(Qualifier.CONFIGURABLE)) {
                     refMappingPort.category = "configurable";
                 } else {
-                    refMappingPort.category = "variable";
+                    refMappingPort.category = moduleSymbols.contains(varSymbol) ? "module-variable" : "local-variable";
                 }
                 mappingPorts.add(refMappingPort);
             } else if (kind == SymbolKind.PARAMETER) {
@@ -1301,6 +1303,7 @@ public class DataMapManager {
         if (parentRefType == null) {
             return mappingPort;
         }
+        mappingPort.category = "converted-variable";
         MappingPort parentMappingPort = getRefMappingPort(parentName, parentName, parentRefType, visitedTypes,
                 references);
         parentMappingPort.convertedVariable = mappingPort;
@@ -3915,7 +3918,7 @@ public class DataMapManager {
             }
         } else {
             textEdits.add(new TextEdit(
-                    CommonUtils.toRange(funcDefNode.functionSignature().lineRange().endLine()), " error?"));
+                    CommonUtils.toRange(funcDefNode.functionSignature().lineRange().endLine()), " returns error?"));
         }
     }
 }

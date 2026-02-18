@@ -95,7 +95,13 @@
             },
             "types": [
               {
-                "fieldType": "RAW_TEMPLATE",
+                "fieldType": "SQL_QUERY",
+                "ballerinaType": "sql:ParameterizedQuery",
+                "selected": true
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "sql:ParameterizedQuery",
                 "selected": false
               }
             ],
@@ -243,7 +249,13 @@
             },
             "types": [
               {
-                "fieldType": "RAW_TEMPLATE",
+                "fieldType": "SQL_QUERY",
+                "ballerinaType": "sql:ParameterizedQuery",
+                "selected": true
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "sql:ParameterizedQuery",
                 "selected": false
               }
             ],
@@ -393,7 +405,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "host"
             },
-            "defaultValue": "\"\""
+            "defaultValue": "\"localhost\""
           },
           "user": {
             "metadata": {
@@ -421,7 +433,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "user"
             },
-            "defaultValue": "()"
+            "defaultValue": "\"root\""
           },
           "password": {
             "metadata": {
@@ -505,7 +517,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "port"
             },
-            "defaultValue": "0"
+            "defaultValue": "3306"
           },
           "options": {
             "metadata": {

@@ -931,11 +931,6 @@
                             },
                             "types": [
                               {
-                                "fieldType": "MAPPING_EXPRESSION",
-                                "ballerinaType": "map<string|string[]>",
-                                "selected": false
-                              },
-                              {
                                 "fieldType": "EXPRESSION",
                                 "ballerinaType": "map<string|string[]>?",
                                 "selected": false
@@ -2001,11 +1996,6 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION_SET",
-                        "ballerinaType": "error:StackFrame[]",
-                        "selected": false
-                      },
-                      {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "error:StackFrame[]?",
                         "selected": false
@@ -3068,7 +3058,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "connection"
             },
-            "defaultValue": "\"\""
+            "defaultValue": "\"redis://localhost:6379\""
           },
           "connectionPooling": {
             "metadata": {

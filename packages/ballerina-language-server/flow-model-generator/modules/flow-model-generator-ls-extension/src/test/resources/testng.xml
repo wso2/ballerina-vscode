@@ -112,6 +112,11 @@ under the License.
 
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryListTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryFilterTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.GetFilteredLibrariesFromSemanticModel"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.GetLibrariesListFromSearchIndex"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.InstructionLoaderTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.CopilotInstructionAugmentationTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryExclusionTest"/>
         </classes>
 
         <packages>

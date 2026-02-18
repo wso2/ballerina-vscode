@@ -47,7 +47,7 @@
       "isPublic": {
         "metadata": {
           "label": "public",
-          "description": "Is this public"
+          "description": "Make visible across the workspace"
         },
         "types": [
           {
@@ -55,7 +55,7 @@
             "selected": true
           }
         ],
-        "value": "false",
+        "value": false,
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -219,7 +219,7 @@
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": "Union of of type-refs and a built-in type",
+        "docs": "Union of type-refs and a built-in type",
         "annotationAttachments": []
       },
       {
@@ -404,7 +404,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Is this public"
+            "description": "Make visible across the workspace"
           },
           "types": [
             {
@@ -412,7 +412,7 @@
               "selected": true
             }
           ],
-          "value": "false",
+          "value": false,
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -634,7 +634,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Is this public"
+            "description": "Make visible across the workspace"
           },
           "types": [
             {
@@ -642,7 +642,7 @@
               "selected": true
             }
           ],
-          "value": "false",
+          "value": false,
           "optional": true,
           "editable": true,
           "advanced": false,

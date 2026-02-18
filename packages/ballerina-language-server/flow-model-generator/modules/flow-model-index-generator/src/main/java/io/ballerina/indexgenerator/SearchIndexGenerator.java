@@ -33,7 +33,6 @@ import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.projects.Package;
-import io.ballerina.projects.directory.BuildProject;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -69,7 +68,6 @@ public class SearchIndexGenerator {
 
     public static void main(String[] args) {
         SearchDatabaseManager.createDatabase();
-        BuildProject buildProject = PackageUtil.getSampleProject();
 
         Gson gson = new Gson();
         URL resource = IndexGenerator.class.getClassLoader().getResource(SearchListGenerator.PACKAGE_JSON_FILE);
@@ -84,7 +82,7 @@ public class SearchIndexGenerator {
                             // Create separate thread with timeout for each package
                             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                                 try {
-                                    resolvePackage(buildProject, key, packageMetadataInfo, logger);
+                                    resolvePackage(key, packageMetadataInfo, logger);
                                 } catch (Throwable e) {
                                     logger.error("Error processing package: " + packageMetadataInfo.name() + " " +
                                             e.getMessage());
@@ -119,12 +117,12 @@ public class SearchIndexGenerator {
         }
     }
 
-    private static void resolvePackage(BuildProject buildProject, String org,
+    private static void resolvePackage(String org,
                                        SearchListGenerator.PackageMetadataInfo packageMetadataInfo,
                                        SearchIndexLogger logger) throws Exception {
         Package resolvedPackage;
         try {
-            resolvedPackage = Objects.requireNonNull(PackageUtil.getModulePackage(buildProject, org,
+            resolvedPackage = Objects.requireNonNull(PackageUtil.getModulePackage(org,
                     packageMetadataInfo.name(), packageMetadataInfo.version())).orElseThrow();
         } catch (Throwable e) {
             logger.error("Error resolving package: " + packageMetadataInfo.name() + " " + e.getMessage());
@@ -147,7 +145,8 @@ public class SearchIndexGenerator {
         String moduleName = module.moduleName().toString();
         int packageId = SearchDatabaseManager.insertPackage(descriptor.org().value(), moduleName,
                 module.packageInstance().packageName().value(), descriptor.version().value().toString(),
-                packageMetadataInfo.pullCount(), resolvedPackage.manifest().keywords());
+                packageMetadataInfo.description(), packageMetadataInfo.pullCount(),
+                resolvedPackage.manifest().keywords());
 
         if (packageId == -1) {
             throw new Exception("Error inserting package to database: " + module);

@@ -309,7 +309,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "validation"
         },
-        "defaultValue": "false"
+        "defaultValue": "true"
       },
       "secureSocket": {
         "metadata": {

@@ -93,7 +93,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "topK"
           },
-          "defaultValue": "0"
+          "defaultValue": "3"
         },
         "similarityMetric": {
           "metadata": {
@@ -134,7 +134,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "similarityMetric"
           },
-          "defaultValue": "\"DOT_PRODUCT\""
+          "defaultValue": "COSINE"
         },
         "scope": {
           "metadata": {

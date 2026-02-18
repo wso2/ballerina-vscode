@@ -1,0 +1,38 @@
+{
+  "description": "Class variable",
+  "filePath": "proj/main.bal",
+  "context": {
+    "expression": "new",
+    "startLine": {
+      "line": 0,
+      "offset": 24
+    },
+    "offset": 0,
+    "lineOffset": 0,
+    "codedata": {
+      "node": "VARIABLE",
+      "isNew": true
+    },
+    "property": {
+      "metadata": {
+        "label": "Expression",
+        "description": "Initialize with value"
+      },
+      "value": "",
+      "optional": true,
+      "editable": true,
+      "advanced": false,
+      "types": [
+        {
+          "fieldType": "ACTION_OR_EXPRESSION",
+          "selected": true
+        }
+      ],
+      "diagnostics": {
+        "hasDiagnostics": false,
+        "diagnostics": []
+      }
+    }
+  },
+  "diagnostics": []
+}

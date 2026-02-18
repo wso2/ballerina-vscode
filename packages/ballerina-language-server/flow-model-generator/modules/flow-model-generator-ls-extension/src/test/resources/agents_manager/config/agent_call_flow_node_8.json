@@ -140,7 +140,8 @@
             "advanced": false,
             "hidden": true,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "systemPrompt"
             },
             "defaultValue": "{role: \"\", instructions: \"\"}"
           },
@@ -162,7 +163,8 @@
             "advanced": false,
             "hidden": true,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "model"
             },
             "defaultValue": "object {}"
           },
@@ -172,11 +174,6 @@
               "description": "The tools available for the agent"
             },
             "types": [
-              {
-                "fieldType": "EXPRESSION_SET",
-                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
-                "selected": false
-              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
@@ -189,7 +186,8 @@
             "advanced": true,
             "hidden": true,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "tools"
             },
             "defaultValue": "[]"
           },
@@ -216,9 +214,10 @@
             "advanced": true,
             "hidden": false,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "maxIter"
             },
-            "defaultValue": "\"INFER_TOOL_COUNT\""
+            "defaultValue": "INFER_TOOL_COUNT"
           },
           "verbose": {
             "metadata": {
@@ -243,7 +242,8 @@
             "advanced": true,
             "hidden": false,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "verbose"
             },
             "defaultValue": "false"
           },
@@ -265,7 +265,8 @@
             "advanced": true,
             "hidden": true,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "memory"
             },
             "defaultValue": "()"
           },
@@ -279,12 +280,12 @@
                 "fieldType": "SINGLE_SELECT",
                 "options": [
                   {
-                    "label": "LLM_FILTER",
-                    "value": "\"LLM_FILTER\""
-                  },
-                  {
                     "label": "NO_FILTER",
                     "value": "\"NO_FILTER\""
+                  },
+                  {
+                    "label": "LLM_FILTER",
+                    "value": "\"LLM_FILTER\""
                   }
                 ],
                 "selected": false
@@ -301,9 +302,10 @@
             "advanced": true,
             "hidden": false,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "toolLoadingStrategy"
             },
-            "defaultValue": "\"LLM_FILTER\""
+            "defaultValue": "NO_FILTER"
           },
           "type": {
             "metadata": {
@@ -386,10 +388,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": true,
-            "codedata": {
-              "kind": ""
-            }
+            "hidden": true
           },
           "role": {
             "metadata": {
@@ -518,7 +517,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "sessionId"
             },
-            "defaultValue": "\"\""
+            "defaultValue": "DEFAULT_SESSION_ID"
           },
           "context": {
             "metadata": {
@@ -541,7 +540,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "context"
             },
-            "defaultValue": "new ()"
+            "defaultValue": "new"
           },
           "td": {
             "metadata": {
@@ -668,11 +667,6 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET",
-                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
-                "selected": false
-              },
-              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
                 "selected": false
@@ -715,7 +709,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "maxIter"
             },
-            "defaultValue": "\"INFER_TOOL_COUNT\""
+            "defaultValue": "INFER_TOOL_COUNT"
           },
           "verbose": {
             "metadata": {
@@ -803,7 +797,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "toolLoadingStrategy"
             },
-            "defaultValue": "\"LLM_FILTER\""
+            "defaultValue": "NO_FILTER"
           },
           "checkError": {
             "metadata": {

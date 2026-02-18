@@ -40,7 +40,7 @@ import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
-import io.ballerina.flowmodelgenerator.core.model.node.AgentBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.AgentRunBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ChunkerBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataLoaderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
@@ -52,6 +52,7 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Package;
 import io.ballerina.tools.text.LinePosition;
@@ -73,9 +74,10 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
 
 /**
@@ -124,6 +126,10 @@ public class AvailableNodesGenerator {
 
     public JsonArray getAvailableNodes(LinePosition position) {
         return getAvailableNodes(true, position);
+    }
+
+    public JsonArray getAvailableAgents(LinePosition position) {
+        return this.getAvailableItemsByCategory(position, Category.Name.AGENT, this::getAgent);
     }
 
     public JsonArray getAvailableModelProviders(LinePosition position) {
@@ -320,16 +326,13 @@ public class AvailableNodesGenerator {
                 .items(List.of(knowledgeBase, dataLoaders, recursiveDocumentChunker, chunkers, augmentUserQuery,
                         vectorStore, embeddingProvider)).build();
 
-        AvailableNode agentCall = new AvailableNode(
-                new Metadata.Builder<>(null).label(AgentBuilder.LABEL)
-                        .description(AgentBuilder.DESCRIPTION).build(),
-                new Codedata.Builder<>(null).node(NodeKind.AGENT_CALL).
-                        org(disableBallerinaAiNodes ? BALLERINAX : BALLERINA).module(Ai.AI_PACKAGE)
-                        .packageName(Ai.AI_PACKAGE).symbol(Ai.AGENT_RUN_METHOD_NAME)
-                        .object(Ai.AGENT_TYPE_NAME).build(), true);
+        AvailableNode agent = new AvailableNode(
+                new Metadata.Builder<>(null).label(AgentRunBuilder.LABEL)
+                        .description(AgentRunBuilder.DESCRIPTION).build(),
+                new Codedata.Builder<>(null).node(NodeKind.AGENTS).build(), true);
 
         Category agentCategory = new Category.Builder(null).name(Category.Name.AGENT)
-                .items(List.of(agentCall)).build();
+                .items(List.of(agent)).build();
 
         return List.of(directLlmCategory, ragCategory, agentCategory);
     }
@@ -385,11 +388,17 @@ public class AvailableNodesGenerator {
                     .map(moduleSymbol -> ModuleInfo.from(moduleSymbol.id()))
                     .orElse(null);
 
+            // Create and set the resolved package for the function
+            Optional<Package> resolvedPackage = moduleInfo != null ?
+                    PackageUtil.resolveModulePackage(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version()) :
+                    Optional.empty();
+
             FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                     .parentSymbol(classSymbol)
                     .parentSymbolType(className)
                     .project(pkg.project())
                     .moduleInfo(moduleInfo)
+                    .resolvedPackage(resolvedPackage.orElse(null))
                     .enableIndex();
 
             // Obtain methods of the classes
@@ -416,6 +425,8 @@ public class AvailableNodesGenerator {
                     FunctionData.Kind kind = methodFunction.kind();
                     if (kind == FunctionData.Kind.REMOTE) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.REMOTE_ACTION_CALL);
+                    } else if (isAgentClass(classSymbol) && label.equals(Ai.AGENT_RUN_METHOD_NAME)) {
+                        nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.AGENT_RUN);
                     } else if (kind == FunctionData.Kind.FUNCTION && isAiKnowledgeBase(classSymbol)) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.KNOWLEDGE_BASE_CALL);
                     } else if (kind == FunctionData.Kind.FUNCTION) {
@@ -458,6 +469,16 @@ public class AvailableNodesGenerator {
         } catch (RuntimeException ignored) {
             return Optional.empty();
         }
+    }
+
+    private Optional<Category> getAgent(Symbol symbol) {
+        return getCategory(symbol, classSymbol -> {
+            try {
+                return isAgentClass(classSymbol);
+            } catch (Exception e) {
+                return false;
+            }
+        });
     }
 
     private Optional<Category> getModelProvider(Symbol symbol) {

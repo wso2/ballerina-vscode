@@ -1,4 +1,4 @@
-import ballerina/http;
+import ballerina/http as _;
 
 type UserInfo record {|
    string username;

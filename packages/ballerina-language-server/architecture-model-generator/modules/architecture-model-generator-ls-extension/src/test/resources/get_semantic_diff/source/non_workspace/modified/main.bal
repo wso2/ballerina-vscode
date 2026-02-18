@@ -83,4 +83,12 @@ service /api/v1/petsstore on httpDefaultListener {
             return errorResponse;
         }
     }
+
+    resource function get .() returns string {
+        return "Hello, World!";
+    }
+
+    resource function get echo(string message) returns string {
+        return message;
+    }
 }

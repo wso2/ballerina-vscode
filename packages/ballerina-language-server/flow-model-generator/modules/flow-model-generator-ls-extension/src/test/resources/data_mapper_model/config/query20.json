@@ -30,7 +30,7 @@
         "displayName": "u",
         "typeName": "User_New",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "1890602232"
       },
       {

@@ -46,7 +46,7 @@
         "displayName": "subMapping",
         "typeName": "InArrType",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "996977642"
       },
       {

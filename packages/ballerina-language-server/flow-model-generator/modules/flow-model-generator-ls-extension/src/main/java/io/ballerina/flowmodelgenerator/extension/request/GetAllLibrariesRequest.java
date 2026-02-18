@@ -21,16 +21,16 @@ package io.ballerina.flowmodelgenerator.extension.request;
 /**
  * A request to retrieve all available libraries.
  *
- * @param mode The mode to determine which context file to read ("CORE" or "HEALTHCARE")
+ * @param mode The mode to determine which context file to read ("CORE" or "HEALTHCARE" or "ALL")
  *
  * @since 1.0.1
  */
 public record GetAllLibrariesRequest(String mode) {
 
     /**
-     * Default constructor with CORE mode.
+     * Default constructor with ALL mode.
      */
     public GetAllLibrariesRequest() {
-        this("CORE");
+        this("ALL");
     }
 }

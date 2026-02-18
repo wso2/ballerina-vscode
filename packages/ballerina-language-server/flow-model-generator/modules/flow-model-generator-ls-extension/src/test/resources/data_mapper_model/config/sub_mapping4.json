@@ -44,7 +44,7 @@
         "displayName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-1418772512"
       },
       {

@@ -92,7 +92,9 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                         null))
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(FunctionData.Kind.FUNCTION)
-                .userModuleInfo(moduleInfo);
+                .userModuleInfo(moduleInfo)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath());
 
         functionDataBuilder.build();
 

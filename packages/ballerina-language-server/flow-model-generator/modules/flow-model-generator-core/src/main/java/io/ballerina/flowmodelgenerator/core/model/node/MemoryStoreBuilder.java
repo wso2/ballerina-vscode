@@ -73,6 +73,8 @@ public class MemoryStoreBuilder extends CallBuilder {
         FunctionData functionData = new FunctionDataBuilder().moduleInfo(codedataModuleInfo).userModuleInfo(moduleInfo)
                 .parentSymbolType(codedata.object()).name(codedata.symbol())
                 .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.MEMORY_STORE)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath())
                 .build();
 
         metadata().label(functionData.packageName()).description(functionData.description())

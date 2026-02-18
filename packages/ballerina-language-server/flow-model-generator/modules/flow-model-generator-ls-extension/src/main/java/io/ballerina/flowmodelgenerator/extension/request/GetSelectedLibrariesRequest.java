@@ -22,16 +22,6 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * A request to retrieve selected libraries.
  *
  * @param libNames Array of library names to filter
- * @param mode The mode to determine which context file to read ("CORE" or "HEALTHCARE")
  */
-public record GetSelectedLibrariesRequest(String[] libNames, String mode) {
-
-    /**
-     * Constructor with default CORE mode.
-     *
-     * @param libNames Array of library names to filter
-     */
-    public GetSelectedLibrariesRequest(String[] libNames) {
-        this(libNames, "CORE");
-    }
+public record GetSelectedLibrariesRequest(String[] libNames) {
 }

@@ -45,7 +45,8 @@ class PackageListGenerator {
                 "limit", String.valueOf(LIMIT)
         ));
         List<PackageMetadataInfo> packagesList = packages.packages().stream()
-                .map(packageData -> new PackageMetadataInfo(packageData.name(), packageData.version()))
+                .map(packageData -> new PackageMetadataInfo(packageData.name(), packageData.version(),
+                        packageData.summary()))
                 .collect(Collectors.toList());
         int totalCount = packages.count();
         int totalCalls = (int) Math.ceil((double) totalCount / LIMIT);
@@ -57,10 +58,11 @@ class PackageListGenerator {
                     "offset", String.valueOf(i * LIMIT)
             ));
             packagesList.addAll(packages.packages().stream()
-                    .map(packageData -> new PackageMetadataInfo(packageData.name(), packageData.version())).toList());
+                    .map(packageData -> new PackageMetadataInfo(packageData.name(), packageData.version(),
+                            packageData.summary())).toList());
         }
         return packagesList;
     }
 
-    record PackageMetadataInfo(String name, String version) { }
+    record PackageMetadataInfo(String name, String version, String description) { }
 }

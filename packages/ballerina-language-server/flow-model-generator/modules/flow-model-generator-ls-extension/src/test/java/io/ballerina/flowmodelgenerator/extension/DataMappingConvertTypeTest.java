@@ -120,7 +120,7 @@ public class DataMappingConvertTypeTest extends AbstractLSTest {
 
     @Override
     protected Class<? extends AbstractLSTest> clazz() {
-        return DataMappingTypesTest.class;
+        return DataMappingConvertTypeTest.class;
     }
 
     @Override
@@ -140,8 +140,8 @@ public class DataMappingConvertTypeTest extends AbstractLSTest {
      * @param description  The description of the test
      * @param codedata     The Details of the node
      * @param typeName     The name of the converted type
-     * @param isInput      Whether the variable is an input variable or not
      * @param variableName The name of the converting variable
+     * @param isInput      Whether the variable is an input variable or not
      * @param output       Generated source expression
      */
     private record TestConfig(String source, String description, JsonElement codedata,

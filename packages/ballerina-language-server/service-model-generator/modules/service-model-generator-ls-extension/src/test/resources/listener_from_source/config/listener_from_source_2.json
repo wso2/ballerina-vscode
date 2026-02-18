@@ -7,7 +7,7 @@
   },
   "end": {
     "line": 3,
-    "offset": 45
+    "offset": 67
   },
   "response": {
     "listener": {
@@ -52,6 +52,23 @@
           "optional": false,
           "advanced": false
         },
+        "listenerType": {
+          "metadata": {
+            "label": "Listener Type",
+            "description": "The type of the listener"
+          },
+          "value": "Listener",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
         "port": {
           "metadata": {
             "label": "Port",
@@ -90,7 +107,7 @@
             "originalName": "host"
           },
           "placeholder": "\"\"",
-          "value": "",
+          "value": "\"\"0.0.0.0\"\"",
           "types": [
             {
               "fieldType": "TEXT",
@@ -127,6 +144,7 @@
                 {
                   "type": "ListenerHttp1Settings",
                   "packageInfo": "ballerina:http:2.15.4",
+                  "packageName": "http",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
@@ -163,6 +181,7 @@
                 {
                   "type": "ListenerSecureSocket",
                   "packageInfo": "ballerina:http:2.15.4",
+                  "packageName": "http",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
@@ -297,6 +316,7 @@
                 {
                   "type": "RequestLimitConfigs",
                   "packageInfo": "ballerina:http:2.15.4",
+                  "packageName": "http",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
@@ -361,6 +381,7 @@
                 {
                   "type": "ServerSocketConfig",
                   "packageInfo": "ballerina:http:2.15.4",
+                  "packageName": "http",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
@@ -472,7 +493,7 @@
           },
           "endLine": {
             "line": 3,
-            "offset": 46
+            "offset": 68
           }
         }
       }

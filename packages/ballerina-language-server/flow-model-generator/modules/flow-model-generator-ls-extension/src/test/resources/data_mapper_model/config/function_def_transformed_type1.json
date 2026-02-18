@@ -69,6 +69,7 @@
         "displayName": "secondaryPhones",
         "typeName": "SecondaryPhones",
         "kind": "record",
+        "category": "converted-variable",
         "ref": "-782972947"
       }
     },

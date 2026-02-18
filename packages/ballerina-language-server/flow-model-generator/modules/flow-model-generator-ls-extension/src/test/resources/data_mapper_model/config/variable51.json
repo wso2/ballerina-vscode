@@ -30,7 +30,7 @@
         "displayName": "arr1",
         "typeName": "simpleTypeArr",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-1661226903"
       },
       {
@@ -46,7 +46,7 @@
         "displayName": "m2Item",
         "typeName": "MyType2[]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "focusExpression": "arr1.m2",
         "ref": "802102543"
       },

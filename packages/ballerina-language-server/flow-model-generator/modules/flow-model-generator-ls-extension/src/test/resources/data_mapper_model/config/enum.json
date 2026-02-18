@@ -94,28 +94,28 @@
           {
             "members": [
               {
-                "name": "code",
-                "displayName": "code",
+                "name": "DepartmentCode.FINANCE",
+                "displayName": "FINANCE",
                 "typeName": "FINANCE",
                 "kind": "FINANCE"
               },
               {
-                "name": "code",
-                "displayName": "code",
+                "name": "DepartmentCode.IT",
+                "displayName": "IT",
                 "typeName": "IT",
                 "kind": "IT"
               },
               {
-                "name": "code",
-                "displayName": "code",
+                "name": "DepartmentCode.HR",
+                "displayName": "HR",
                 "typeName": "HR",
                 "kind": "HR"
               }
             ],
             "name": "code",
-            "displayName": "code",
-            "typeName": "FINANCE|IT|HR",
-            "kind": "union",
+            "displayName": "DepartmentCode",
+            "typeName": "DepartmentCode",
+            "kind": "enum",
             "optional": false,
             "ref": "-1735710389"
           }

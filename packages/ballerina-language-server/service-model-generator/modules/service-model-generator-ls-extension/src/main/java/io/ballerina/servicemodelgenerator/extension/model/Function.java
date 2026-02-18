@@ -144,7 +144,7 @@ public class Function {
                 "Resource Configuration",
                 "Configuration related to the resource function.",
                 "ResourceConfig",
-                null, null, null
+                null, null, null, null
         );
 
         Value annotationValue = createAnnotation(annotation);
@@ -216,7 +216,7 @@ public class Function {
                 .fieldType(Value.FieldType.RECORD_MAP_EXPRESSION)
                 .ballerinaType(annotation.typeConstrain())
                 .setMembers((List.of(new PropertyTypeMemberInfo(type, annotation.packageIdentifier(),
-                                "RECORD_TYPE", false))))
+                        annotation.packageName(), "RECORD_TYPE", false))))
                 .build();
 
         return new Value.ValueBuilder()

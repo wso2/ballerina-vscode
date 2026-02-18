@@ -393,7 +393,8 @@ public class ServiceDatabaseManager {
                 "a.display_name, " +
                 "a.description, " +
                 "a.type_constraint, " +
-                "a.package " +
+                "a.packageInfo, " +
+                "p.name AS package_name " +
                 "FROM Annotation a " +
                 "JOIN Package p ON a.package_id = p.package_id " +
                 "WHERE a.package_id = ?";
@@ -412,7 +413,8 @@ public class ServiceDatabaseManager {
                         rs.getString("display_name"),
                         rs.getString("description"),
                         rs.getString("type_constraint"),
-                        rs.getString("package")
+                        rs.getString("packageInfo"),
+                        rs.getString("package_name")
                 ));
             }
             conn.close();
@@ -583,7 +585,7 @@ public class ServiceDatabaseManager {
                 "a.display_name, " +
                 "a.description, " +
                 "a.type_constraint, " +
-                "a.package " +
+                "a.packageInfo " +
                 "FROM Annotation a " +
                 "JOIN Package p ON a.package_id = p.package_id " +
                 "WHERE p.name = ? AND p.org = ? AND a.attachment_points LIKE ?";
@@ -601,8 +603,9 @@ public class ServiceDatabaseManager {
                         rs.getString("display_name"),
                         rs.getString("description"),
                         rs.getString("type_constraint"),
-                        rs.getString("package"),
+                        rs.getString("packageInfo"),
                         org,
+                        packageName,
                         packageName
                 ));
             }

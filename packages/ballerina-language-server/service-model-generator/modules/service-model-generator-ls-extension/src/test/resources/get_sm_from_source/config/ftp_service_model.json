@@ -284,7 +284,7 @@
               "advanced": false
             },
             "name": {
-              "placeholder": "content",
+              "placeholder": "request",
               "value": "content",
               "enabled": true,
               "editable": true,
@@ -433,7 +433,7 @@
               "advanced": false
             },
             "name": {
-              "placeholder": "content",
+              "placeholder": "request",
               "value": "content",
               "enabled": true,
               "editable": true,
