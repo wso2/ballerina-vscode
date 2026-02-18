@@ -313,6 +313,7 @@ export function ForkForm(props: ForkFormProps) {
                             <ExpressionEditor
                                 {...expressionEditor}
                                 // ref={exprRef}
+                                fieldInputType={{fieldType: "EXPRESSION", selected: false}}
                                 control={control}
                                 field={field}
                                 watch={watch}
