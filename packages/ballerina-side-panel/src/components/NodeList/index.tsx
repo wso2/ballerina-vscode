@@ -625,7 +625,7 @@ export function NodeList(props: NodeListProps) {
                     // Hide categories that don't have items, except for special categories that can add items
                     if (!group || !group.items || group.items.length === 0) {
                         // Only show empty categories if they have add functionality
-                        if (!shouldShowEmptyCategory(group.title)) {
+                        if (!shouldShowEmptyCategory(group.title, isSubCategory) && categoryActions.length === 0) {
                             return null;
                         }
                     }
@@ -705,9 +705,9 @@ export function NodeList(props: NodeListProps) {
                                             </Tooltip>
                                         </S.Row>
                                     )}
-                                    {(isCategoryExpanded || isCategoryFixed(group.title)) && (
+                                    {(isSubCategory || isCategoryExpanded || isCategoryFixed(group.title)) && (
                                         <>
-                                            {(!group.items || group.items.length === 0) &&
+                                            {(isSubCategory || (!group.items || group.items.length === 0)) &&
                                                 !searchText &&
                                                 !isSearching &&
                                                 categoryActions.map((action, actionIndex) => {
@@ -728,6 +728,7 @@ export function NodeList(props: NodeListProps) {
                                                     return (
                                                         <S.HighlightedButton 
                                                             key={`empty-${group.title}-${actionIndex}`}
+                                                            style={{padding: '5px 10px', width: isSubCategory ? '160px' : '100%'}}
                                                             onClick={handler}
                                                         >
                                                             <Codicon name="add" iconSx={{ fontSize: 12 }} />

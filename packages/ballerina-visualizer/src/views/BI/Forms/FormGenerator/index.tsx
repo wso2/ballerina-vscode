@@ -41,7 +41,8 @@ import {
     NodeKind,
     EditorConfig,
     InputType,
-    getPrimaryInputType
+    getPrimaryInputType,
+    functionKinds
 } from "@wso2/ballerina-core";
 import {
     FieldDerivation,
@@ -79,6 +80,7 @@ import {
     removeDuplicateDiagnostics,
     updateLineRange,
     convertRecordTypeToCompletionItem,
+    convertItemsToCompletionItems,
 } from "../../../../utils/bi";
 import IfForm from "../IfForm";
 import { cloneDeep, debounce } from "lodash";
@@ -103,7 +105,7 @@ import DynamicModal from "../../../../components/Modal";
 import React from "react";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
-import { getImportedTypes } from "../../TypeEditor/utils";
+import { getFilteredTypesByKind } from "../../TypeEditor/utils";
 import { useModalStack } from "../../../../Context";
 
 interface TypeEditorState {
@@ -681,14 +683,38 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             ) => {
                 let visibleTypes: CompletionItem[] = types;
                 if (!types.length) {
-                    const types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+                    const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                        filePath: fileName,
+                        position: targetLineRange,
+                        queryMap: {
+                            q: '',
+                            offset: 0,
+                            limit: 1000
+                        },
+                        searchKind: 'TYPE'
+                    });
+
+                    const allItems = searchResponse.categories.flatMap(category => 
+                        category.items.flatMap(item => {
+                            if ('codedata' in item) {
+                                return [item];
+                            } else if ('items' in item) {
+                                return item.items;
+                            }
+                            return [];
+                        })
+                    );
+
+                    const basicTypes = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
                         filePath: fileName,
                         position: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
                         ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
                     });
 
                     const isFetchingTypesForDM = valueTypeConstraint === "json";
-                    visibleTypes = convertToVisibleTypes(types, isFetchingTypesForDM);
+                    const visibleSearchTypes = convertItemsToCompletionItems(allItems);
+                    const visibleBasicTypes = convertToVisibleTypes(basicTypes, isFetchingTypesForDM);
+                    visibleTypes = [...visibleSearchTypes, ...visibleBasicTypes];
                     setTypes(visibleTypes);
                 }
 
@@ -1237,13 +1263,16 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 searchKind: 'TYPE'
             })
             .then((response) => {
-                return getImportedTypes(response.categories);
+                return getFilteredTypesByKind(response.categories, functionKinds.IMPORTED);
             })
             .finally(() => {
 
             });
 
         let type: TypeHelperItem | undefined;
+        if (!newTypes.length || !newTypes[0].subCategory) {
+            return undefined;
+        }
         for (const category of newTypes[0].subCategory) {
             const matchedType = findMatchedType(category.items, typeName);
             if (matchedType) {
