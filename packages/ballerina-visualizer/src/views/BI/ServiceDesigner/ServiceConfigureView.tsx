@@ -442,6 +442,9 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                     setServiceListeners(res.service);
                     // Find the listener type
                     findListenerType(res.service);
+                    // Reset change state on load - Save button should be disabled until user makes changes
+                    setHasChanges(false);
+                    setChangeMap({});
                 });
         } catch (error) {
             console.log("Error fetching service model: ", error);
