@@ -20,7 +20,7 @@ import { BI_COMMANDS, DIRECTORY_MAP, EVENT_TYPE, MACHINE_VIEW, SCOPE, findScopeB
 import {
     CommandIds as PlatformCommandIds,
     IWso2PlatformExtensionAPI,
-    ICommitAndPuhCmdParams,
+    ICommitAndPushCmdParams,
     ICreateComponentCmdParams,
 } from "@wso2/wso2-platform-core";
 import { BallerinaExtension } from "../../core";
@@ -58,7 +58,7 @@ const handleComponentPushToDevant = async () => {
         // push changes to repo if component for the directory already exists
         await commands.executeCommand(PlatformCommandIds.CommitAndPushToGit, {
             componentPath: projectRoot,
-        } as ICommitAndPuhCmdParams);
+        } as ICommitAndPushCmdParams);
     } else if (platformExtAPI.getDirectoryComponents(projectRoot)?.length) {
         debug(`project url: ${projectRoot}`);
         // push changes to repo if component for the directory already exists
@@ -69,7 +69,7 @@ const handleComponentPushToDevant = async () => {
         }
         await commands.executeCommand(PlatformCommandIds.CommitAndPushToGit, {
             componentPath: projectRoot,
-        } as ICommitAndPuhCmdParams);
+        } as ICommitAndPushCmdParams);
     } else {
         // create a new component if it doesn't exist for the directory
         if (!StateMachine.context().projectStructure) {

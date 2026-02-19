@@ -860,6 +860,9 @@ export function openView(type: EVENT_TYPE, viewLocation: VisualizerLocation, res
 }
 
 export function updateView(refreshTreeView?: boolean) {
+    if (StateMachinePopup.isActive()) {
+        return;
+    }
     let lastView = getLastHistory();
     // Step over to the next location if the last view is skippable
     if (!refreshTreeView && lastView?.location.view.includes("SKIP")) {
