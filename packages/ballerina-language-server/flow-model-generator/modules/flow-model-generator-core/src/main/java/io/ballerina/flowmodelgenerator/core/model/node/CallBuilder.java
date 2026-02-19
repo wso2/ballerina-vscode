@@ -218,7 +218,8 @@ public abstract class CallBuilder extends NodeBuilder {
         if (recordSelectorType != null && targetVarType != null) {
             TypeSymbol recordTargetVarType = targetVarType;
             if (CommonUtil.getRawType(targetVarType).typeKind().equals(TypeDescKind.ARRAY)) {
-                recordTargetVarType = ((ArrayTypeSymbol) recordTargetVarType).memberTypeDescriptor();
+                recordTargetVarType = ((ArrayTypeSymbol) CommonUtil.getRawType(recordTargetVarType))
+                        .memberTypeDescriptor();
             }
             if (CommonUtil.getRawType(recordTargetVarType).typeKind().equals(TypeDescKind.RECORD)) {
                 RecordSelectorType targetVarRecordSelectorType = typesManager.getRecordSelectorType(
