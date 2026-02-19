@@ -29,6 +29,9 @@ public class NPFunctionCall extends FunctionCall {
         return super.getFunctionResultKind();
     }
 
+    // module is intentionally unused: PARAM_FOR_TYPE_INFER and INCLUDED_RECORD parameters are skipped
+    // for NP functions, so the record-field-selector logic that requires a Module is never reached here.
+    // The parameter is kept to match the parent-class API.
     @Override
     protected void setParameterProperties(FunctionData function, Module module) {
         boolean hasOnlyRestParams = function.parameters().size() == 1;
