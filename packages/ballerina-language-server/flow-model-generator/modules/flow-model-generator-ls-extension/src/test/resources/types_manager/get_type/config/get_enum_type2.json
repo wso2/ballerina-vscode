@@ -101,21 +101,25 @@
         "kind": "NAME",
         "refs": [],
         "type": "\"male\"",
+        "typeName": "\"male\"",
         "name": "MALE",
         "defaultValue": "\"male\"",
         "optional": false,
         "readonly": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "selected": false
       },
       {
         "kind": "NAME",
         "refs": [],
         "type": "\"female\"",
+        "typeName": "\"female\"",
         "name": "FEMALE",
         "defaultValue": "\"female\"",
         "optional": false,
         "readonly": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "selected": false
       }
     ],
     "allowAdditionalFields": false

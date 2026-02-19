@@ -118,12 +118,14 @@
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "'order",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       }
     ],
     "includes": [],

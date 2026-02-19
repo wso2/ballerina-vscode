@@ -118,23 +118,27 @@
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "name",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "Name of the employee",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       },
       {
         "kind": "FIELD",
         "refs": [],
         "type": "int",
+        "typeName": "int",
         "name": "age",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "Age of the employee",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       },
       {
         "kind": "FIELD",
@@ -185,10 +189,12 @@
               "kind": "TYPE",
               "refs": [],
               "type": "xml",
+              "typeName": "xml",
               "name": "xml",
               "optional": false,
               "readonly": false,
-              "isGraphqlId": false
+              "isGraphqlId": false,
+              "selected": false
             },
             {
               "kind": "TYPE",
@@ -196,10 +202,15 @@
                 "City"
               ],
               "type": "City",
+              "typeName": "City",
               "name": "City",
               "optional": false,
               "readonly": false,
-              "isGraphqlId": false
+              "isGraphqlId": false,
+              "imports": {
+                "test_pack2": "testorg/test_pack2:0.1.0"
+              },
+              "selected": false
             },
             {
               "kind": "TYPE",
@@ -207,20 +218,30 @@
                 "UserAddress"
               ],
               "type": "UserAddress",
+              "typeName": "UserAddress",
               "name": "UserAddress",
               "optional": false,
               "readonly": false,
-              "isGraphqlId": false
+              "isGraphqlId": false,
+              "imports": {
+                "test_pack2": "testorg/test_pack2:0.1.0"
+              },
+              "selected": false
             }
           ],
           "allowAdditionalFields": false
         },
+        "typeName": "xml|City|UserAddress",
         "name": "address",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "Union of type-refs and a built-in type",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "imports": {
+          "test_pack2": "testorg/test_pack2:0.1.0"
+        },
+        "selected": false
       },
       {
         "kind": "FIELD",
@@ -271,12 +292,14 @@
               "kind": "FIELD",
               "refs": [],
               "type": "int",
+              "typeName": "int",
               "name": "iA",
               "optional": false,
               "readonly": false,
               "isGraphqlId": false,
               "docs": "",
-              "annotationAttachments": []
+              "annotationAttachments": [],
+              "selected": false
             },
             {
               "kind": "FIELD",
@@ -327,34 +350,40 @@
                     "kind": "FIELD",
                     "refs": [],
                     "type": "int",
+                    "typeName": "int",
                     "name": "iiA",
                     "optional": false,
                     "readonly": false,
                     "isGraphqlId": false,
                     "docs": "",
-                    "annotationAttachments": []
+                    "annotationAttachments": [],
+                    "selected": false
                   }
                 ],
                 "includes": [],
                 "allowAdditionalFields": false
               },
+              "typeName": "record {|int iiA;|}",
               "name": "iB",
               "optional": false,
               "readonly": false,
               "isGraphqlId": false,
               "docs": "",
-              "annotationAttachments": []
+              "annotationAttachments": [],
+              "selected": false
             }
           ],
           "includes": [],
           "allowAdditionalFields": false
         },
+        "typeName": "record {|int iA; record {|int iiA;|} iB;|}",
         "name": "field1",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "Anonymous nested record type",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       }
     ],
     "includes": [],
@@ -520,71 +549,85 @@
                 "kind": "TYPE",
                 "refs": [],
                 "type": "string",
+                "typeName": "string",
                 "name": "string",
                 "optional": false,
                 "readonly": false,
-                "isGraphqlId": false
+                "isGraphqlId": false,
+                "selected": false
               },
               {
                 "kind": "TYPE",
                 "refs": [],
                 "type": "int",
+                "typeName": "int",
                 "name": "int",
                 "optional": false,
                 "readonly": false,
-                "isGraphqlId": false
+                "isGraphqlId": false,
+                "selected": false
               }
             ],
             "allowAdditionalFields": false
           },
+          "typeName": "string|int",
           "name": "no",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "Union of built-in types",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "street",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "city",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "country",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         }
       ],
       "restMember": {
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "optional": false,
         "readonly": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "selected": false
       },
       "includes": [
         "City"
@@ -705,23 +748,27 @@
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "city",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "country",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         }
       ],
       "includes": [],

@@ -94,8 +94,10 @@ public class TypesManager {
             SymbolKind.CLASS, SymbolKind.TYPE);
     private static final List<SymbolKind> supportedGraphqlSymbolKinds = List.of(SymbolKind.TYPE_DEFINITION,
             SymbolKind.ENUM, SymbolKind.SERVICE_DECLARATION, SymbolKind.CLASS, SymbolKind.TYPE);
-    /** Matches the canonical import value format produced by {@code TypeTransformer.addRequiredImports}. */
-    private static final Pattern IMPORT_PATTERN = Pattern.compile("^([^/]+)/([^:]+):(.+)$");
+    /** Matches the canonical import value format produced by {@code TypeTransformer.addRequiredImports}.
+     * The version suffix ({@code :version}) is optional to accommodate imports registered without a version
+     * (e.g. annotation-derived imports added via {@code moduleId.orgName() + "/" + moduleId.packageName()}). */
+    private static final Pattern IMPORT_PATTERN = Pattern.compile("^([^/]+)/([^:]+)(?::.+)?$");
 
     public TypesManager(Document typeDocument) {
         this.typeDocument = typeDocument;

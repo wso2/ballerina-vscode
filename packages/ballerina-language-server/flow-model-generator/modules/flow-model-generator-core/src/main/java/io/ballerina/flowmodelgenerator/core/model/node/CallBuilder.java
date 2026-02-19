@@ -230,7 +230,7 @@ public abstract class CallBuilder extends NodeBuilder {
             }
         }
 
-        if (recordSelectorType != null) {
+        if (recordSelectorType != null && !recordSelectorType.rootType().members().isEmpty()) {
             customPropBuilder.type()
                     .fieldType(Property.ValueType.RECORD_FIELD_SELECTOR)
                     .ballerinaType(paramData.type())

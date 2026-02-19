@@ -126,10 +126,12 @@
             "kind": "FIELD",
             "refs": [],
             "type": "string",
+            "typeName": "string",
             "name": "name",
             "optional": false,
             "readonly": false,
-            "isGraphqlId": false
+            "isGraphqlId": false,
+            "selected": false
           }
         ],
         "kind": "RESOURCE",
