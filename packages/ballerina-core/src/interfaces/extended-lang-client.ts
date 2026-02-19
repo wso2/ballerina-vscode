@@ -1318,6 +1318,7 @@ export interface ListenersRequest {
     orgName?: string;
     pkgName?: string;
     listenerTypeName?: string;
+    removeDeprecated?: boolean;
 }
 export interface ListenersResponse {
     hasListeners: boolean;
@@ -1332,6 +1333,7 @@ export interface ListenerModelRequest {
         type?: string;
     };
     filePath: string;
+    removeDeprecated?: boolean;
 }
 export interface ListenerModelResponse {
     listener: ListenerModel;
