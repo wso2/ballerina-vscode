@@ -210,6 +210,8 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                         engine={engine}
                         getPort={getPort}
                         context={context}
+                        valueLabel={dmType.convertedField.name}
+                        focusedInputs={focusedInputs}
                     />
                 </>
             }
