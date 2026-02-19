@@ -220,7 +220,12 @@ public class AvailableNodesGenerator {
     }
 
     public static boolean isInsideTestFunction(Document document, LinePosition cursorPosition) {
-        int txtPos = document.textDocument().textPositionFrom(cursorPosition);
+        int txtPos;
+        try {
+            txtPos = document.textDocument().textPositionFrom(cursorPosition);
+        } catch (Exception e) {
+            return false;
+        }
         TextRange range = TextRange.from(txtPos, 0);
         NonTerminalNode node = ((ModulePartNode) document.syntaxTree().rootNode()).findNode(range);
         while (node != null) {
