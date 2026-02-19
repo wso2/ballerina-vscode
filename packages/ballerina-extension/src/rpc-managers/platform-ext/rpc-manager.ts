@@ -960,52 +960,57 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
     }
 
     async replaceDevantTempConfigValues(params: ReplaceDevantTempConfigValuesReq): Promise<void> {
-        const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
-            documentIdentifier: { uri: getConfigFileUri().toString() },
-        })) as SyntaxTree;
+        try {
+            const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
+                documentIdentifier: { uri: getConfigFileUri().toString() },
+            })) as SyntaxTree;
 
-        const envIds = Object.keys(params.createdConnection.configurations || {});
-        const firstEnvConfig = envIds.length > 0 ? params.createdConnection.configurations[envIds[0]] : undefined;
-        const connectionKeys = firstEnvConfig?.entries ?? {};
+            const envIds = Object.keys(params.createdConnection.configurations || {});
+            const firstEnvConfig = envIds.length > 0 ? params.createdConnection.configurations[envIds[0]] : undefined;
+            const connectionKeys = firstEnvConfig?.entries ?? {};
 
-        let hasUpdatedConfig = false;
-        const configBalEdits = new WorkspaceEdit();
+            let hasUpdatedConfig = false;
+            const configBalEdits = new WorkspaceEdit();
 
-        for (const config of params.configs) {
-            const matchingConfigEntry = Object.values(connectionKeys).find((item) => item.key === config.id);
-            if (matchingConfigEntry && config.node) {
-                hasUpdatedConfig = true;
-                configBalEdits.replace(
-                    getConfigFileUri(),
-                    new vscode.Range(
-                        new vscode.Position(
-                            config.node.initializer.position.startLine,
-                            config.node.initializer.position.startColumn,
+            for (const config of params.configs) {
+                const matchingConfigEntry = Object.values(connectionKeys).find((item) => item.key === config.id);
+                if (matchingConfigEntry && config.node) {
+                    hasUpdatedConfig = true;
+                    configBalEdits.replace(
+                        getConfigFileUri(),
+                        new vscode.Range(
+                            new vscode.Position(
+                                config.node.initializer.position.startLine,
+                                config.node.initializer.position.startColumn,
+                            ),
+                            new vscode.Position(
+                                config.node.initializer.position.endLine,
+                                config.node.initializer.position.endColumn,
+                            ),
                         ),
-                        new vscode.Position(
-                            config.node.initializer.position.endLine,
-                            config.node.initializer.position.endColumn,
-                        ),
-                    ),
-                    `os:getEnv("${matchingConfigEntry.envVariableName}")`,
-                );
-            }
-        }
-
-        if (hasUpdatedConfig) {
-            if (
-                !(syntaxTree?.syntaxTree as ModulePart)?.imports?.some((item) =>
-                    item.source?.includes("import ballerina/os"),
-                )
-            ) {
-                const balOsImportTemplate = Templates.importBalOs();
-                configBalEdits.insert(getConfigFileUri(), new vscode.Position(0, 0), balOsImportTemplate);
+                        `os:getEnv("${matchingConfigEntry.envVariableName}")`,
+                    );
+                }
             }
 
-            await updateSourceCode({
-                textEdits: { [getConfigFileUri().toString()]: configBalEdits.get(getConfigFileUri()) || [] },
-                skipPayloadCheck: true,
-            });
+            if (hasUpdatedConfig) {
+                if (
+                    !(syntaxTree?.syntaxTree as ModulePart)?.imports?.some((item) =>
+                        item.source?.includes("import ballerina/os"),
+                    )
+                ) {
+                    const balOsImportTemplate = Templates.importBalOs();
+                    configBalEdits.insert(getConfigFileUri(), new vscode.Position(0, 0), balOsImportTemplate);
+                }
+
+                await updateSourceCode({
+                    textEdits: { [getConfigFileUri().toString()]: configBalEdits.get(getConfigFileUri()) || [] },
+                    skipPayloadCheck: true,
+                });
+            }
+        } catch (err) {
+            window.showErrorMessage(`Failed to invoke replaceDevantTempConfigValues: ${(err as Error).message}`);
+            log(`Failed to invoke replaceDevantTempConfigValues: ${err}`);
         }
     }
 

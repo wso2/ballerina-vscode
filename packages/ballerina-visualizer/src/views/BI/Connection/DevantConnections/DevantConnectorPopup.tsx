@@ -165,7 +165,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
             const configVars = (configResp.configVariables as any)?.[
                 `${projectToml?.package?.org}/${projectToml?.package?.name}`
             ]?.[""] as ConfigVariable[];
-            configVars.forEach((configVar) =>
+            configVars?.forEach((configVar) =>
                 existingConfigs.add(configVar?.properties?.variable?.value?.toString() || ""),
             );
 
@@ -348,7 +348,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
             }
         },
         onSuccess: (data) => {
-            setAvailableNode(data.connectionNode);
+            setAvailableNode(data?.connectionNode);
             goToNextStep();
         },
     });
