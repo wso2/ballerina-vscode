@@ -53,7 +53,7 @@ export function PayloadWidget(props: PayloadWidgetProps) {
                 ) : (
                     <Codicon name="add"/>
                 )}
-                <p className={classes.payloadWidgetActionLabel}>{`Add Sample ${typeName}`}</p>
+                <p className={classes.payloadWidgetActionLabel}>{`Add sample ${typeName}`}</p>
             </div>
         </div>
     );
