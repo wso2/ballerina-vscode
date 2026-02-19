@@ -116,11 +116,10 @@ This plan will be visible to the user and the execution will be guided on the ta
 - No need to add manual progress indicators - the task list shows what you're working on
 
 ## Test Runner
-When running tests, follow these steps:
-1. Before running, briefly tell the user what is being tested.
+When running tests:
+1. Tell the user what is being tested in one line.
 2. Use ${TEST_RUNNER_TOOL_NAME} to run the test suite.
-3. After the run, give a short summary: how many tests passed/failed.
-4. If there are failures, mention which tests failed and why (one line each), fix them, and re-run.
+3. Only if there are failures or errors, briefly mention what failed and fix them, then re-run.
 
 ## Edit Mode
 In the <system-reminder> tags, you will see if Edit mode is enabled. When its enabled, you must follow the below instructions strictly.
