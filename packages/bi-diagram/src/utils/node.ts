@@ -85,10 +85,54 @@ export function nodeHasError(node: FlowNode) {
 }
 
 export function getNodeTitle(node: FlowNode) {
+    const getPropertyString = (key: string): string | undefined => {
+        const value = (node.properties as any)?.[key]?.value;
+        return typeof value === "string" ? value.trim() : undefined;
+    };
+
+    const isWorkflowInitCall =
+        node.codedata?.node === "FUNCTION_CALL" &&
+        node.codedata?.org === "ballerina" &&
+        node.codedata?.module === "workflow" &&
+        node.codedata?.symbol === "createInstance";
+    if (isWorkflowInitCall) {
+        const processFunction = getPropertyString("processFunction");
+        return processFunction ? `workflow : ${processFunction}` : "workflow";
+    }
+
+    const isWorkflowActivityCall =
+        node.codedata?.node === "REMOTE_ACTION_CALL" &&
+        node.codedata?.org === "ballerina" &&
+        node.codedata?.module === "workflow" &&
+        node.codedata?.object === "Context" &&
+        node.codedata?.symbol === "callActivity";
+    if (isWorkflowActivityCall) {
+        const activityFunction = getPropertyString("activityFunction");
+        return activityFunction ? `callActivity : ${activityFunction}` : "callActivity";
+    }
+
+    if (node.codedata?.node === "WAIT") {
+        const directExpression = getPropertyString("expression");
+        if (directExpression) {
+            return `wait : ${directExpression}`;
+        }
+
+        const futuresValue = (node.properties as any)?.["futures"]?.value;
+        if (futuresValue && typeof futuresValue === "object") {
+            for (const future of Object.values(futuresValue as Record<string, any>)) {
+                const expression = future?.value?.expression?.value;
+                if (typeof expression === "string" && expression.trim()) {
+                    return `wait : ${expression.trim()}`;
+                }
+            }
+        }
+        return "wait";
+    }
+
     const label = node.metadata.label.includes(".") ? node.metadata.label.split(".").pop() : node.metadata.label;
 
     if (node.codedata?.org === "ballerina" || node.codedata?.org === "ballerinax") {
-        const module = node.codedata.module.includes(".")
+        const module = node.codedata.module?.includes(".")
             ? node.codedata.module.split(".").pop()
             : node.codedata.module;
         return `${module} : ${label}`;

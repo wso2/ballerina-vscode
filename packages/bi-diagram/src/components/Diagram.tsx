@@ -87,6 +87,7 @@ export interface DiagramProps {
         org: string;
         path: string;
         getProjectPath?: (props: JoinProjectPathRequest) => Promise<JoinProjectPathResponse>;
+        getFunctionLocation?: (functionName: string) => Promise<VisualizerLocation | undefined>;
     };
     breakpointInfo?: BreakpointInfo;
     readOnly?: boolean;

@@ -548,6 +548,7 @@ export type NodeKind =
     | "TRANSACTION"
     | "UPDATE_DATA"
     | "WAIT"
+    | "WAIT_EVENT"
     | "WHILE"
     | "WORKFLOW"
     | "WORKFLOW_START"

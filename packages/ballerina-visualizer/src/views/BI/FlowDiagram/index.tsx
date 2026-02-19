@@ -2778,6 +2778,46 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         return rpcClient.getVisualizerRpcClient().joinProjectPath(props);
     };
 
+    const handleGetFunctionLocation = async (functionName: string): Promise<VisualizerLocation | undefined> => {
+        const projectComponents = await rpcClient.getBIDiagramRpcClient().getProjectComponents();
+        if (!projectComponents?.components) {
+            return undefined;
+        }
+
+        const functionInfo: any = findFunctionByName(projectComponents.components, functionName);
+        if (!functionInfo) {
+            return undefined;
+        }
+
+        const position =
+            (typeof functionInfo.startLine === "number" && typeof functionInfo.startColumn === "number"
+                ? {
+                    startLine: functionInfo.startLine,
+                    startColumn: functionInfo.startColumn,
+                    endLine: functionInfo.endLine,
+                    endColumn: functionInfo.endColumn,
+                }
+                : functionInfo.position) ||
+            (functionInfo.lineRange
+                ? {
+                    startLine: functionInfo.lineRange.startLine.line,
+                    startColumn: functionInfo.lineRange.startLine.offset,
+                    endLine: functionInfo.lineRange.endLine.line,
+                    endColumn: functionInfo.lineRange.endLine.offset,
+                }
+                : undefined);
+
+        if (!functionInfo.filePath || !position) {
+            return undefined;
+        }
+
+        return {
+            documentUri: functionInfo.filePath,
+            position,
+            projectPath,
+        };
+    };
+
     const flowModel = originalModel && suggestedModel ? suggestedModel : model;
     const memoizedDiagramProps = useMemo(
         () => ({
@@ -2818,6 +2858,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 org: projectOrg,
                 path: projectPath,
                 getProjectPath: handleGetProjectPath,
+                getFunctionLocation: handleGetFunctionLocation,
             },
             breakpointInfo,
             readOnly: showProgressSpinner || showProgressIndicator || hasDraft || selectedNodeId !== undefined,
