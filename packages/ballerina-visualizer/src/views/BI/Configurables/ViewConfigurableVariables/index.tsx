@@ -155,23 +155,20 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         }
     }, [categoriesWithModules, selectedModule, isTestsContext]);
 
-    const getFilteredConfigVariables = useCallback(() => {
+    const getFilteredVariables = useCallback((variables: ConfigVariablesState) => {
         if (!searchValue || searchValue.trim() === '') {
-            return configVariables;
+            return variables;
         }
 
         const searchLower = searchValue.toLowerCase();
         const filteredData: ConfigVariablesState = {};
 
-        // Filter through all categories and modules
-        Object.keys(configVariables).forEach(category => {
+        Object.keys(variables).forEach(category => {
             const categoryModules: { [module: string]: ConfigVariable[] } = {};
 
-            Object.keys(configVariables[category]).forEach(module => {
-                // Filter variables that match the search term
-                const filteredVariables = configVariables[category][module].filter(variable =>
-                    // Match by variable name
-                    (variable.properties.variable.value?.toString().toLowerCase().includes(searchLower))
+            Object.keys(variables[category]).forEach(module => {
+                const filteredVariables = variables[category][module].filter(variable =>
+                    variable.properties.variable.value?.toString().toLowerCase().includes(searchLower)
                 );
 
                 if (filteredVariables.length > 0) {
@@ -185,9 +182,10 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         });
 
         return filteredData;
-    }, [configVariables, searchValue]);
+    }, [searchValue]);
 
-    const filteredConfigVariables = useMemo(() => getFilteredConfigVariables(), [getFilteredConfigVariables]);
+    const filteredConfigVariables = useMemo(() => getFilteredVariables(configVariables), [getFilteredVariables, configVariables]);
+    const filteredTestConfigVariables = useMemo(() => getFilteredVariables(testConfigVariables), [getFilteredVariables, testConfigVariables]);
 
     const filteredCategoriesWithModules = useMemo(() => {
         return Object.keys(filteredConfigVariables).map(category => ({
@@ -196,17 +194,25 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         }));
     }, [filteredConfigVariables]);
 
+    const filteredTestCategoriesWithModules = useMemo(() => {
+        return Object.keys(filteredTestConfigVariables).map(category => ({
+            name: category,
+            modules: Object.keys(filteredTestConfigVariables[category])
+        }));
+    }, [filteredTestConfigVariables]);
+
     // Set selected module to first module in filtered results when search changes
     useEffect(() => {
-        if (searchValue && filteredCategoriesWithModules.length > 0 && filteredCategoriesWithModules[0].modules.length > 0) {
-            const firstCategory = filteredCategoriesWithModules[0];
+        const filtered = isTestsContext ? filteredTestCategoriesWithModules : filteredCategoriesWithModules;
+        if (searchValue && filtered.length > 0 && filtered[0].modules.length > 0) {
+            const firstCategory = filtered[0];
             const firstModule = firstCategory.modules[0];
             setSelectedModule({
                 category: firstCategory.name,
                 module: firstModule
             });
         }
-    }, [filteredCategoriesWithModules, searchValue]);
+    }, [filteredCategoriesWithModules, filteredTestCategoriesWithModules, searchValue, isTestsContext]);
 
     const moduleWarningCount = useCallback((category: string, module: string) => {
         if (!configVariables?.[category]?.[module]) {
@@ -282,8 +288,9 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         if (!selectedModule) return;
 
         const activeVariables = isTestsContext ? testConfigVariables : configVariables;
+        const activeFiltered = isTestsContext ? filteredTestConfigVariables : filteredConfigVariables;
         const variables = searchValue ?
-            filteredConfigVariables[selectedModule.category]?.[selectedModule.module] :
+            activeFiltered[selectedModule.category]?.[selectedModule.module] :
             activeVariables[selectedModule.category]?.[selectedModule.module];
 
         const variable = variables?.[index];
@@ -406,12 +413,12 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         : categoryDisplay;
 
     let renderVariables: ConfigVariablesState = isTestsContext ? testConfigVariables : configVariables;
-    if (!isTestsContext && searchValue) {
-        renderVariables = getFilteredConfigVariables();
+    if (searchValue) {
+        renderVariables = isTestsContext ? filteredTestConfigVariables : filteredConfigVariables;
     }
 
     const activeCategories = isTestsContext
-        ? testCategoriesWithModules
+        ? (searchValue ? filteredTestCategoriesWithModules : testCategoriesWithModules)
         : (searchValue ? filteredCategoriesWithModules : categoriesWithModules);
 
     return (
@@ -459,7 +466,6 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                 position: 'start',
                             }}
                             autoFocus={true}
-                            disabled={isTestsContext}
                         />
                     </SearchContainer>
                     <div style={{ width: "auto" }}>
@@ -673,7 +679,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                 <>
                                     {!renderVariables ?
                                         <ErrorBanner errorMsg={"Error fetching config variables"} />
-                                        : searchValue && filteredCategoriesWithModules.length === 0 ?
+                                        : searchValue && activeCategories.length === 0 ?
                                             <EmptyReadmeContainer>
                                                 <Icon
                                                     name="searchIcon"
