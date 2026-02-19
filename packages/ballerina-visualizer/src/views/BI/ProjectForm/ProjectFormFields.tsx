@@ -175,7 +175,7 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
                             onChange={(checked) => onFormDataChange({ createAsWorkspace: checked })}
                         />
                         <Description>
-                            Turn on workspace to manage multiple integrations in a single repository/workspace.
+                            Enable Workspace mode to manage multiple integrations within a single repository with shared dependencies.
                         </Description>
                     </CheckboxContainer>
                     {formData.createAsWorkspace && (
