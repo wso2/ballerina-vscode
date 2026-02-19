@@ -50,6 +50,7 @@ import { FormArrayEditorWrapper } from "./FormArrayEditorWrapper";
 import { FormMapEditorWrapper } from "./FormMapEditorNewWrapper";
 import { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";
 import { ArgManagerEditor } from "../ParamManager/ArgManager";
+import { DependentTypeEditor } from "./DependentTypeEditor";
 
 export interface FormFieldEditorProps {
     field: FormField;
@@ -100,12 +101,15 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         fieldInputType.fieldType === "TEXT_SET" ||
         (fieldInputType.fieldType === "SINGLE_SELECT" && isDropDownType(fieldInputType)) ||
         fieldInputType.fieldType === "RECORD_MAP_EXPRESSION" ||
+        fieldInputType.fieldType === "SQL_QUERY" ||
         fieldInputType.fieldType === "NUMBER" ||
         (fieldInputType.fieldType === "FLAG" && field.types?.length > 1)
     )
 
     if (!field.enabled || field.hidden) {
         return <></>;
+    } else if (fieldInputType.fieldType === "RECORD_FIELD_SELECTOR" && field.codedata?.kind === "PARAM_FOR_TYPE_INFER") {
+        return <DependentTypeEditor field={field} />;
     } else if (fieldInputType.fieldType === "SLIDER") {
         return <SliderEditor field={field} />;
     } else if (fieldInputType.fieldType === "MULTIPLE_SELECT") {

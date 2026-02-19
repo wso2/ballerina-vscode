@@ -56,6 +56,7 @@ import {
     FormImports,
     HelperpaneOnChangeOptions,
     InputMode,
+    ExpressionEditorDevantProps,
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import {
@@ -151,6 +152,8 @@ interface FormProps {
     fieldOverrides?: Record<string, Partial<FormField>>;
     footerActionButton?: boolean; // Render save button as footer action button
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
+    devantExpressionEditor?: ExpressionEditorDevantProps;
+    customValidator?: (fieldKey: string, value: any, allValues: FormValues) => string | undefined; // Custom validation function for form fields
 }
 
 // Styled component for the action button description
@@ -226,6 +229,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         injectedComponents,
         fieldPriority,
         footerActionButton,
+        customValidator,
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -490,6 +494,15 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 updatedField.diagnostics = propertyDiagnostics;
             } else {
                 updatedField.diagnostics = [];
+            }
+            if (customValidator) {
+                const customValidationMessage = customValidator(field.key, data[field.key], data);
+                if (customValidationMessage) {
+                    updatedField.diagnostics = [...updatedField.diagnostics, {
+                        message: customValidationMessage,
+                        severity: "ERROR"
+                    }]
+                }
             }
             return updatedField;
         });
@@ -977,6 +990,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             forcedValueTypeConstraint: valueTypeConstraints,
             handleValueTypeConstChange: handleValueTypeConstChange,
             inputMode: inputMode,
+            devantExpressionEditor: props.devantExpressionEditor,
         });
     };
 
