@@ -22,6 +22,7 @@ export interface ConfigVariable {
     name: string;
     description: string;
     type?: "string" | "int";
+    secret?: boolean;
 }
 
 // Cache regex for performance
