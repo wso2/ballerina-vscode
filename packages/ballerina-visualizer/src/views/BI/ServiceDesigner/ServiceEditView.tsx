@@ -85,11 +85,12 @@ export interface ServiceEditViewProps {
     filePath: string;
     position: NodePosition;
     onChange?: (data: ServiceModel, filePath: string, position: NodePosition) => void;
+    onDirtyChange?: (isDirty: boolean, filePath: string, position: NodePosition) => void;
     onValidityChange?: (isValid: boolean) => void;
 }
 
 export function ServiceEditView(props: ServiceEditViewProps) {
-    const { filePath, position, onChange, onValidityChange } = props;
+    const { filePath, position, onChange, onDirtyChange, onValidityChange } = props;
     const { rpcClient } = useRpcContext();
     const [serviceModel, setServiceModel] = useState<ServiceModel>(undefined);
 
@@ -120,6 +121,10 @@ export function ServiceEditView(props: ServiceEditViewProps) {
         }
     }
 
+    const handleServiceDirtyChange = (isDirty: boolean) => {
+        onDirtyChange?.(isDirty, filePath, position);
+    }
+
     const handleListenerSubmit = async (value?: ListenerModel) => {
         setSaving(true);
         let listenerName;
@@ -146,7 +151,7 @@ export function ServiceEditView(props: ServiceEditViewProps) {
 
     return (
         <>
-            {serviceModel && <ServiceConfigForm serviceModel={serviceModel} onSubmit={onSubmit} formSubmitText={saving ? "Saving..." : "Save"} isSaving={saving} onChange={handleServiceChange} onValidityChange={onValidityChange} />}
+            {serviceModel && <ServiceConfigForm serviceModel={serviceModel} onSubmit={onSubmit} formSubmitText={saving ? "Saving..." : "Save"} isSaving={saving} onChange={handleServiceChange} onDirtyChange={handleServiceDirtyChange} onValidityChange={onValidityChange} />}
         </>
     );
 };

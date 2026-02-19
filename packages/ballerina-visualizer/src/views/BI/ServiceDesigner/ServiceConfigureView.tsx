@@ -203,23 +203,35 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     const [currentIdentifier, setCurrentIdentifier] = useState<string | null>(null);
 
     const [isSaving, setIsSaving] = useState<boolean>(false);
-    const [hasChanges, setHasChanges] = useState<boolean>(false);
     const [existingListenerType, setExistingListenerType] = useState<string>(""); // Example: "Listener", "CdcListener"
 
     const [selectedListener, setSelectedListener] = useState<string | null>(null);
 
     const [changeMap, setChangeMap] = useState<{ [key: string]: ChangeMap }>({});
+    const [dirtyFormMap, setDirtyFormMap] = useState<{ [key: string]: boolean }>({});
 
     const { addModal, closeModal } = useModalStack()
 
     // Helper function to create key from filePath and position
-    const getChangeKey = (filePath: string, position: NodePosition) => {
-        return `${filePath}:${position.startLine}:${position.startColumn}:${position.endLine}:${position.endColumn}`;
+    const getChangeKey = (filePath: string, position: NodePosition, isService: boolean) => {
+        const modelType = isService ? "service" : "listener";
+        return `${modelType}:${filePath}:${position.startLine}:${position.startColumn}:${position.endLine}:${position.endColumn}`;
     };
     // Helper function to add a change to the map
     const addChangeToMap = (filePath: string, position: NodePosition, data: ServiceModel | ListenerModel, isService: boolean) => {
-        const key = getChangeKey(filePath, position);
+        const key = getChangeKey(filePath, position, isService);
         setChangeMap(prev => ({ ...prev, [key]: { data, isService, filePath } }));
+    };
+    const removeChangeFromMap = (filePath: string, position: NodePosition, isService: boolean) => {
+        const key = getChangeKey(filePath, position, isService);
+        setChangeMap(prev => {
+            if (!prev[key]) {
+                return prev;
+            }
+            const next = { ...prev };
+            delete next[key];
+            return next;
+        });
     };
 
 
@@ -250,12 +262,26 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     // Track validity of each form (service form + listener forms) to disable Save when diagnostics exist
     const [formValidityMap, setFormValidityMap] = useState<{ [key: string]: boolean }>({});
     const hasDiagnostics = Object.values(formValidityMap).some(isValid => !isValid);
+    const hasDirtyChanges = Object.values(dirtyFormMap).some(isDirty => isDirty);
 
     const handleFormValidityChange = useCallback((formKey: string, isValid: boolean) => {
         setFormValidityMap(prev => {
             if (prev[formKey] === isValid) return prev;
             return { ...prev, [formKey]: isValid };
         });
+    }, []);
+
+    const handleFormDirtyChange = useCallback((filePath: string, position: NodePosition, isService: boolean, isDirty: boolean) => {
+        const key = getChangeKey(filePath, position, isService);
+        setDirtyFormMap(prev => {
+            if (prev[key] === isDirty) {
+                return prev;
+            }
+            return { ...prev, [key]: isDirty };
+        });
+        if (!isDirty) {
+            removeChangeFromMap(filePath, position, isService);
+        }
     }, []);
 
     useEffect(() => {
@@ -443,8 +469,8 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                     // Find the listener type
                     findListenerType(res.service);
                     // Reset change state on load - Save button should be disabled until user makes changes
-                    setHasChanges(false);
                     setChangeMap({});
+                    setDirtyFormMap({});
                 });
         } catch (error) {
             console.log("Error fetching service model: ", error);
@@ -525,6 +551,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         });
         closeModal(POPUP_IDS.ATTACH_LISTENER);
         setChangeMap({});
+        setDirtyFormMap({});
     }
 
     const handleOnDetachListener = async (listenerName: string) => {
@@ -541,6 +568,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             }
         });
         setChangeMap({});
+        setDirtyFormMap({});
     }
 
     const handleOnListenerClick = (listenerId: string) => {
@@ -564,13 +592,11 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     const handleListenerChange = async (data: ListenerModel, filePath: string, position: NodePosition) => {
         addChangeToMap(filePath, position, data, false);
-        setHasChanges(true);
         setIsSaving(false);
     }
 
     const handleServiceChange = async (data: ServiceModel, filePath: string, position: NodePosition) => {
         addChangeToMap(filePath, position, data, true);
-        setHasChanges(true);
         setIsSaving(false);
     }
 
@@ -596,7 +622,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             }
         }
         setChangeMap({});
-        setHasChanges(false);
+        setDirtyFormMap({});
         setIsSaving(false);
     }
 
@@ -739,7 +765,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                             {configTitle}
                                                         </Typography>
 
-                                                        <Button appearance="primary" onClick={handleSave} disabled={isSaving || !hasChanges || hasDiagnostics} id="save-changes-btn">
+                                                        <Button appearance="primary" onClick={handleSave} disabled={isSaving || !hasDirtyChanges || hasDiagnostics} id="save-changes-btn">
                                                             {isSaving ? <Typography variant="progress">Saving...</Typography> : <>Save Changes</>}
                                                         </Button>
                                                     </TitleContent>
@@ -756,7 +782,13 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                             <div>
                                                                 {haveServiceConfigs && (
                                                                     <div ref={serviceRef} data-section-id="service">
-                                                                        <ServiceEditView filePath={props.filePath} position={props.position} onChange={handleServiceChange} onValidityChange={(isValid) => handleFormValidityChange('service', isValid)} />
+                                                                        <ServiceEditView
+                                                                            filePath={props.filePath}
+                                                                            position={props.position}
+                                                                            onChange={handleServiceChange}
+                                                                            onDirtyChange={(isDirty, filePath, position) => handleFormDirtyChange(filePath, position, true, isDirty)}
+                                                                            onValidityChange={(isValid) => handleFormValidityChange('service', isValid)}
+                                                                        />
                                                                     </div>
                                                                 )}
                                                                 {listeners.map((listener) => (
@@ -785,6 +817,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                                 filePath={listener.path}
                                                                                 position={listener.position}
                                                                                 onChange={handleListenerChange}
+                                                                                onDirtyChange={(isDirty, filePath, position) => handleFormDirtyChange(filePath, position, false, isDirty)}
                                                                                 setListenerType={handleSetListenerType}
                                                                                 onValidityChange={(isValid) => handleFormValidityChange(listener.id, isValid)}
                                                                             />
@@ -831,12 +864,13 @@ interface ServiceConfigureListenerEditViewProps {
     filePath: string;
     position: NodePosition;
     onChange?: (data: ListenerModel, filePath: string, position: NodePosition) => void;
+    onDirtyChange?: (isDirty: boolean, filePath: string, position: NodePosition) => void;
     setListenerType?: (type: string) => void;
     onValidityChange?: (isValid: boolean) => void;
 }
 
 function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditViewProps) {
-    const { filePath, position, onChange, setListenerType, onValidityChange } = props;
+    const { filePath, position, onChange, onDirtyChange, setListenerType, onValidityChange } = props;
     const { rpcClient } = useRpcContext();
     const [listenerModel, setListenerModel] = useState<ListenerModel>(undefined);
 
@@ -881,6 +915,10 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
         onChange(data, filePath, position);
     }
 
+    const handleListenerDirtyChange = (isDirty: boolean) => {
+        onDirtyChange?.(isDirty, filePath, position);
+    }
+
     return (
         <ServiceConfigureListenerEditViewContainer>
             {!listenerModel &&
@@ -890,7 +928,15 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
                 </LoadingContainer>
             }
             {listenerModel &&
-                <ListenerConfigForm listenerModel={listenerModel} onSubmit={onSubmit} formSubmitText={saving ? savingText : "Save"} isSaving={saving} onChange={handleListenerChange} onValidityChange={onValidityChange} />
+                <ListenerConfigForm
+                    listenerModel={listenerModel}
+                    onSubmit={onSubmit}
+                    formSubmitText={saving ? savingText : "Save"}
+                    isSaving={saving}
+                    onChange={handleListenerChange}
+                    onDirtyChange={handleListenerDirtyChange}
+                    onValidityChange={onValidityChange}
+                />
             }
         </ServiceConfigureListenerEditViewContainer>
     );
