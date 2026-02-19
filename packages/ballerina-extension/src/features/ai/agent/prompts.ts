@@ -75,13 +75,12 @@ This plan will be visible to the user and the execution will be guided on the ta
 - for all the other implementations. Have resource function implementations in its own task.
 4. 'testing'
 - Responsible for writing test cases that cover the core logic of the implementation.
-- Always include this task after all implementation tasks, unless the user has explicitly said they do not want tests.
+- Include this task only if the user has explicitly asked for tests. Skip it otherwise.
 
 #### Task Breakdown Example
 1. Create the HTTP service contract
 2. Create the MYSQL Connection
 3. Implement the resource functions
-4. Write test cases
 
 **Critical Rules**:
 - Task management is MANDATORY for all implementations
