@@ -2,7 +2,7 @@
   "source": "empty.bal",
   "description": "Sample diagram node",
   "codedata": {
-    "node": "WAIT_ALL"
+    "node": "WAIT"
   },
   "output": {
     "id": "31",
@@ -11,7 +11,7 @@
       "description": "Wait for a set of futures to complete"
     },
     "codedata": {
-      "node": "WAIT_ALL",
+      "node": "WAIT",
       "isNew": true
     },
     "returning": false,

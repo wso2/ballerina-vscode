@@ -71,7 +71,7 @@ public class WaitBuilder extends NodeBuilder {
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
-        codedata().node(NodeKind.WAIT_ALL);
+        codedata().node(NodeKind.WAIT);
     }
 
     @Override
@@ -137,7 +137,7 @@ public class WaitBuilder extends NodeBuilder {
                     .map(symbol -> {
                         if (symbol instanceof WorkerSymbol workerSymbol) {
                             return workerSymbol.returnType();
-                        } else if (symbol instanceof VariableSymbol variableSymbol){
+                        } else if (symbol instanceof VariableSymbol variableSymbol) {
                             return variableSymbol.typeDescriptor();
                         }
                         return null;

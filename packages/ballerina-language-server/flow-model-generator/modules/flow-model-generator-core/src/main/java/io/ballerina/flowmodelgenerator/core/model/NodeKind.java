@@ -51,8 +51,7 @@ public enum NodeKind {
     FUNCTION,
     FORK,
     PARALLEL_FLOW,
-    WAIT_ALL,
-    WAIT_ANY,
+    WAIT,
     DATA_MAPPER_CALL,
 
     // Branches

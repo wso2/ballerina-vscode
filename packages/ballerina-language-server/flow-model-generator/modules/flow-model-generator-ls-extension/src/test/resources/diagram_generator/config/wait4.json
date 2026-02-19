@@ -411,11 +411,11 @@
       {
         "id": "94405",
         "metadata": {
-          "label": "Wait",
-          "description": "Wait for a set of futures to complete"
+          "label": "Custom Expression",
+          "description": "Represents a custom Ballerina expression"
         },
         "codedata": {
-          "node": "WAIT",
+          "node": "EXPRESSION",
           "lineRange": {
             "fileName": "wait.bal",
             "startLine": {
@@ -431,203 +431,20 @@
         },
         "returning": false,
         "properties": {
-          "waitAll": {
+          "statement": {
             "metadata": {
-              "label": "Wait All",
-              "description": "Wait for all tasks to complete"
+              "label": "Statement",
+              "description": "Ballerina statement"
             },
             "types": [
               {
-                "fieldType": "FLAG",
+                "fieldType": "TEXT",
                 "selected": true
               }
             ],
-            "value": false,
+            "value": "wait A | B | C",
             "optional": false,
             "editable": true,
-            "advanced": false,
-            "hidden": false
-          },
-          "futures": {
-            "metadata": {
-              "label": "Futures",
-              "description": "The futures to wait for"
-            },
-            "types": [
-              {
-                "fieldType": "REPEATABLE_PROPERTY",
-                "selected": false
-              }
-            ],
-            "value": {
-              "future1": {
-                "metadata": {
-                  "label": "Future",
-                  "description": "The worker/async function to wait for"
-                },
-                "types": [
-                  {
-                    "fieldType": "FIXED_PROPERTY",
-                    "selected": false
-                  }
-                ],
-                "value": {
-                  "variable": {
-                    "metadata": {
-                      "label": "Variable Name",
-                      "description": "Name of the variable"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "selected": true
-                      }
-                    ],
-                    "value": "",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false,
-                    "codedata": {
-                      "dependentProperty": "waitAll"
-                    }
-                  },
-                  "expression": {
-                    "metadata": {
-                      "label": "Expression",
-                      "description": "Expression"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "EXPRESSION",
-                        "selected": true
-                      }
-                    ],
-                    "value": "A ",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
-                  }
-                },
-                "optional": false,
-                "editable": false,
-                "advanced": false,
-                "hidden": false
-              },
-              "future2": {
-                "metadata": {
-                  "label": "Future",
-                  "description": "The worker/async function to wait for"
-                },
-                "types": [
-                  {
-                    "fieldType": "FIXED_PROPERTY",
-                    "selected": false
-                  }
-                ],
-                "value": {
-                  "variable": {
-                    "metadata": {
-                      "label": "Variable Name",
-                      "description": "Name of the variable"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "selected": true
-                      }
-                    ],
-                    "value": "",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false,
-                    "codedata": {
-                      "dependentProperty": "waitAll"
-                    }
-                  },
-                  "expression": {
-                    "metadata": {
-                      "label": "Expression",
-                      "description": "Expression"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "EXPRESSION",
-                        "selected": true
-                      }
-                    ],
-                    "value": "B ",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
-                  }
-                },
-                "optional": false,
-                "editable": false,
-                "advanced": false,
-                "hidden": false
-              },
-              "future3": {
-                "metadata": {
-                  "label": "Future",
-                  "description": "The worker/async function to wait for"
-                },
-                "types": [
-                  {
-                    "fieldType": "FIXED_PROPERTY",
-                    "selected": false
-                  }
-                ],
-                "value": {
-                  "variable": {
-                    "metadata": {
-                      "label": "Variable Name",
-                      "description": "Name of the variable"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "selected": true
-                      }
-                    ],
-                    "value": "",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false,
-                    "codedata": {
-                      "dependentProperty": "waitAll"
-                    }
-                  },
-                  "expression": {
-                    "metadata": {
-                      "label": "Expression",
-                      "description": "Expression"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "EXPRESSION",
-                        "selected": true
-                      }
-                    ],
-                    "value": "C",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
-                  }
-                },
-                "optional": false,
-                "editable": false,
-                "advanced": false,
-                "hidden": false
-              }
-            },
-            "optional": false,
-            "editable": false,
             "advanced": false,
             "hidden": false
           },
