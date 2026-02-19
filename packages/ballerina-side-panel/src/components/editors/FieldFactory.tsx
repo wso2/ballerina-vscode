@@ -95,6 +95,20 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         expressionEditor: updatedExpressionEditor
     }), [formContext, updatedExpressionEditor]);
 
+    const getInitialSelectedInputType = (): InputType => {
+        if (!props.field.types || props.field.types.length === 0) {
+            throw new Error("Field types are not defined");
+        }
+        const selectedType = props.field.types.find(type => type.selected);
+        if (selectedType) {
+            return selectedType;
+        }
+        if (!props.field.value) {
+            return props.field.types[0];
+        }
+        return props.field.types[props.field.types.length - 1];
+    }
+
     useEffect(() => {
         if (!props.field.types || props.field.types.length === 0) {
             throw new Error("Field types are not defined");
@@ -120,9 +134,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         setRenderingEditors(newRenderingTypes);
 
         if (!isModeSelectionDirty.current) {
-            const selectedInputType = props.field.types.find(type => type.selected) || (
-                props.field.types[props.field.types.length - 1]
-            );
+            const selectedInputType = getInitialSelectedInputType();
             const initialInputMode = getInputModeFromTypes(selectedInputType) || InputMode.EXP;
             setInputMode(initialInputMode);
             updateFieldTypesSelection(initialInputMode);
