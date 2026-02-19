@@ -70,7 +70,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.ballerina.flowmodelgenerator.core.model.Property.LIST_PROPERTY_TYPE_TYPE_TOKEN;
+import static io.ballerina.flowmodelgenerator.core.model.Property.PROPERTY_TYPE_LIST_TYPE_TOKEN;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
 public class SourceBuilder {
@@ -209,7 +209,7 @@ public class SourceBuilder {
             String typeNamePrefix = capitalize(variable.toSourceCode());
             inferredType = String.format("%sType", typeNamePrefix);
 
-            List<PropertyType> propertyTypes = inferredProperty.valueAsType(LIST_PROPERTY_TYPE_TYPE_TOKEN);
+            List<PropertyType> propertyTypes = inferredProperty.valueAsType(PROPERTY_TYPE_LIST_TYPE_TOKEN);
             if (propertyTypes != null && !propertyTypes.isEmpty()) {
                 RecordSelectorType recordSelectorType = propertyTypes.getFirst().recordSelectorType();
                 Path typesFilePath = filePath.resolveSibling("types.bal");

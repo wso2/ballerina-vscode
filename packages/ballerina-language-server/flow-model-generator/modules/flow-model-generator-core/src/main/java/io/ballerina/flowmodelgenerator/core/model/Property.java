@@ -69,9 +69,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    public static final TypeToken<List<Property>> LIST_PROPERTY_TYPE_TOKEN = new TypeToken<>() {
+    public static final TypeToken<List<Property>> PROPERTY_LIST_TYPE_TOKEN = new TypeToken<>() {
     };
-    public static final TypeToken<List<PropertyType>> LIST_PROPERTY_TYPE_TYPE_TOKEN = new TypeToken<>() {
+    public static final TypeToken<List<PropertyType>> PROPERTY_TYPE_LIST_TYPE_TOKEN = new TypeToken<>() {
     };
     public static final String SQL_PARAMETERIZED_QUERY = "sql:ParameterizedQuery";
     public static final String SQL_CALL_QUERY = "sql:ParameterizedCallQuery";

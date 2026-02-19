@@ -83,7 +83,7 @@ public class MatchBuilder extends NodeBuilder {
                 continue;
             }
 
-            List<Property> patternsList = patterns.get().valueAsType(Property.LIST_PROPERTY_TYPE_TOKEN);
+            List<Property> patternsList = patterns.get().valueAsType(Property.PROPERTY_LIST_TYPE_TOKEN);
             String joinedPatterns = "";
             if (!patternsList.isEmpty()) {
                 CommentProperty comment = patternsList.getFirst().comment();
