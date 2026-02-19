@@ -1,0 +1,75 @@
+{
+  "source": "function_def_transformed_type1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_DEFINITION",
+    "lineRange": {
+      "fileName": "function_def_transformed_type1.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 106
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 19,
+    "offset": 48
+  },
+  "propertyKey": "expression",
+  "targetField": "secondaryPhones",
+  "model": {
+    "inputs": [
+      {
+        "name": "varXml",
+        "displayName": "varXml",
+        "typeName": "xml",
+        "kind": "xml",
+        "category": "parameter",
+        "convertedVariable": {
+          "fields": [],
+          "name": "varXmlConverted",
+          "displayName": "varXmlConverted",
+          "typeName": "Foo",
+          "kind": "record",
+          "category": "converted-variable",
+          "ref": "44280666"
+        }
+      }
+    ],
+    "output": {
+      "name": "secondaryPhones",
+      "displayName": "secondaryPhones",
+      "typeName": "json",
+      "kind": "json"
+    },
+    "subMappings": [],
+    "mappings": [],
+    "refs": {
+      "44280666": {
+        "fields": [
+          {
+            "name": "code",
+            "displayName": "code",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "number",
+            "displayName": "number",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Foo",
+        "kind": "record"
+      }
+    }
+  }
+}

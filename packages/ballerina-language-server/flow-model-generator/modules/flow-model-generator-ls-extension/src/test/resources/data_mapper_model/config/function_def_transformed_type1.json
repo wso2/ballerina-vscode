@@ -21,7 +21,7 @@
     "offset": 4
   },
   "propertyKey": "expression",
-  "targetField": "secondaryPhones ",
+  "targetField": "secondaryPhones",
   "model": {
     "inputs": [
       {
@@ -48,14 +48,6 @@
         "kind": "record",
         "category": "parameter",
         "ref": "1373151159"
-      },
-      {
-        "fields": [],
-        "name": "user",
-        "displayName": "user",
-        "typeName": "User",
-        "kind": "record",
-        "ref": "1373151159"
       }
     ],
     "output": {
@@ -73,6 +65,16 @@
         "ref": "-782972947"
       }
     },
+    "subMappings": [
+      {
+        "fields": [],
+        "name": "user",
+        "displayName": "user",
+        "typeName": "User",
+        "kind": "record",
+        "ref": "1373151159"
+      }
+    ],
     "mappings": [],
     "refs": {
       "44280666": {

@@ -248,19 +248,25 @@ public class DataMapManager {
             RefType refType = ReferenceType.fromSemanticSymbol(targetTypeSymbol, typeDefSymbols);
 
             if (convertedVariables != null && convertedVariables.output() != null) {
-                RefType parentRefType = ReferenceType.fromSemanticSymbol(convertedVariables.output().parentType(),
-                        typeDefSymbols);
-                refOutputPort = getRefOutputMappingPort(name, name, convertedVariables.output().paramName(),
-                        parentRefType, refType, new HashMap<>(), references);
+                TypeSymbol parentTypeSymbol = convertedVariables.output().parentType();
+                RefType parentRefType = ReferenceType.fromSemanticSymbol(parentTypeSymbol, typeDefSymbols);
+                String parentName = convertedVariables.output().paramName();
+                refOutputPort = getRefMappingPort(parentName, parentName, parentRefType, new HashMap<>(), references);
+                setModuleInfo(parentTypeSymbol, refOutputPort);
+
+                MappingPort convertedVariablePort = getRefMappingPort(name, name, refType, new HashMap<>(), references);
+                convertedVariablePort.category = "converted-variable";
+                refOutputPort.convertedVariable = convertedVariablePort;
+                setModuleInfo(targetTypeSymbol, convertedVariablePort);
             } else {
                 refOutputPort = getRefMappingPort(name, name, refType, new HashMap<>(), references);
+                setModuleInfo(targetNode.typeSymbol(), refOutputPort);
             }
         } catch (UnsupportedOperationException e) {
             return null;
         }
 
 
-        setModuleInfo(targetNode.typeSymbol(), refOutputPort);
         MatchingNode matchingNode = targetNode.matchingNode();
         Query query = null;
         List<MappingPort> inputPorts;
@@ -365,6 +371,9 @@ public class DataMapManager {
                 }
                 Symbol symbol = optSymbol.get();
                 String letVarName = symbol.getName().orElseThrow();
+                if (isConvertedVariable(convertedVariables, letVarName, semanticModel)) {
+                    continue;
+                }
                 subMappingPorts.add(getRefMappingPort(letVarName, letVarName,
                         Objects.requireNonNull(ReferenceType.fromSemanticSymbol(symbol, typeDefSymbols)),
                         new HashMap<>(), references));
@@ -377,6 +386,9 @@ public class DataMapManager {
 
         if (convertedVariables != null && convertedVariables.output() != null &&
                 convertedVariables.subMappings() != null) {
+            if (subMappingPorts == null) {
+                subMappingPorts = new ArrayList<>();
+            }
             for (ConvertedVariable convertedVariable : convertedVariables.subMappings()) {
                 TypedBindingPatternNode typedBindingPatternNode =
                         convertedVariable.letVarDeclaration().typedBindingPattern();
@@ -391,7 +403,7 @@ public class DataMapManager {
                 String text = ((CaptureBindingPatternNode) bindingPattern).variableName().text();
                 MappingPort port = getRefMappingPort(text, text, ReferenceType.fromSemanticSymbol(optSymbol.get(),
                                 typeDefSymbols), new HashMap<>(), references);
-                inputPorts.add(port);
+                subMappingPorts.add(port);
             }
         }
 
@@ -410,6 +422,33 @@ public class DataMapManager {
         }
 
         return gson.toJsonTree(new Model(inputPorts, refOutputPort, subMappingPorts, mappings, query, references));
+    }
+
+    private boolean isConvertedVariable(ConvertedVariables convertedVariables, String name,
+                                        SemanticModel semanticModel) {
+        if (convertedVariables == null) {
+            return false;
+        }
+
+        List<ConvertedVariable> inputs = convertedVariables.inputs();
+        if (inputs == null || inputs.isEmpty()) {
+            return false;
+        }
+
+        for (ConvertedVariable convertedVariable : inputs) {
+            LetVariableDeclarationNode letVarDeclaration = convertedVariable.letVarDeclaration();
+            Optional<Symbol> optSymbol = semanticModel.symbol(letVarDeclaration);
+            if (optSymbol.isEmpty()) {
+                continue;
+            }
+            Symbol symbol = optSymbol.get();
+            String letVarName = symbol.getName().orElseThrow();
+            if (letVarName.equals(name)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void addIntermediateClauseVariables(QueryExpressionNode queryExpressionNode, List<MappingPort> inputPorts,
@@ -1294,20 +1333,6 @@ public class DataMapManager {
             }
         }
         return mappingPorts;
-    }
-
-    private MappingPort getRefOutputMappingPort(String id, String name, String parentName, RefType parentRefType,
-                                                RefType type, Map<String, Type> visitedTypes,
-                                                Map<String, MappingPort> references) {
-        MappingPort mappingPort = getRefMappingPort(id, name, type, visitedTypes, references);
-        if (parentRefType == null) {
-            return mappingPort;
-        }
-        mappingPort.category = "converted-variable";
-        MappingPort parentMappingPort = getRefMappingPort(parentName, parentName, parentRefType, visitedTypes,
-                references);
-        parentMappingPort.convertedVariable = mappingPort;
-        return parentMappingPort;
     }
 
     private MappingPort getRefMappingPort(String id, String name, RefType type, Map<String, Type> visitedTypes,
