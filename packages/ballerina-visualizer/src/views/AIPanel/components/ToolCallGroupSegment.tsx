@@ -103,6 +103,10 @@ const GroupBody = styled.div`
 `;
 
 const ToolCallItemWrapper = styled.div`
+    padding-left: 16px;
+    border-left: 2px solid var(--vscode-panel-border);
+    margin-left: 10px;
+
     & > pre {
         margin: 0;
         border: none;
