@@ -25,7 +25,6 @@ import { InputCategory, IOType, TypeKind } from "@wso2/ballerina-core";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
 import { InputSearchHighlight } from '../commons/Search';
 import { TreeBody, TreeContainer, TreeHeader } from '../commons/Tree/Tree';
-import { NodeActionWidget } from '../commons/NodeActionWidget';
 import { FieldActionButton } from '../commons/FieldActionButton';
 import { InputNodeTreeItemWidget } from "./InputNodeTreeItemWidget";
 import { useIONodesStyles } from "../../../styles";
@@ -36,6 +35,7 @@ import { InputCategoryIcon } from "./InputCategoryIcon";
 import { isGroupHeaderPort } from "../../utils/common-utils";
 import ArrowWidget from "../commons/ArrowWidget";
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
+import { PayloadWidget } from "../commons/PayloadWidget";
 
 export interface InputNodeWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -218,11 +218,9 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
             {expanded && isConvertibleType && !dmType.convertedField &&
                 <>
                     <ArrowWidget direction="down" />
-                    <NodeActionWidget
+                    <PayloadWidget
                         onClick={async () => await context.createConvertedVariable(headerLabel, true, undefined, dmType.typeName)}
-                        iconName="convert"
-                        tooltip={`Create type defined variable to access fields in ${headerLabel}`}
-                        label="Create type defined variable"
+                        typeName={dmType.typeName}
                     />
                 </>
             }

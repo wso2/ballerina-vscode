@@ -32,8 +32,8 @@ import { OutputSearchHighlight } from '../commons/Search';
 import { useShallow } from 'zustand/react/shallow';
 import ArrowWidget from '../commons/ArrowWidget';
 import { OBJECT_OUTPUT_TARGET_PORT_PREFIX } from '../../utils/constants';
-import { NodeActionWidget } from '../commons/NodeActionWidget';
 import { FieldActionButton } from '../commons/FieldActionButton';
+import { PayloadWidget } from '../commons/PayloadWidget';
 
 export interface ObjectOutputWidgetProps {
 	id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -211,11 +211,9 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 			{expanded && isConvertibleType && !outputType.convertedField &&
 				<>
 					<ArrowWidget direction="up" />
-					<NodeActionWidget
+					<PayloadWidget
 						onClick={async () => await context.createConvertedVariable(valueLabel, false, undefined, outputType.typeName)}
-						iconName="convert"
-						tooltip={`Create type defined variable to access fields in ${valueLabel}`}
-						label="Create type defined variable"
+						typeName={outputType.typeName}
 					/>
 				</>
 			}
