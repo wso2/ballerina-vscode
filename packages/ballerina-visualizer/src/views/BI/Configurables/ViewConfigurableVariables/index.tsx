@@ -20,7 +20,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from "react"
 import styled from "@emotion/styled";
 import { ConfigVariable } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, ErrorBanner, Icon, SplitView, TextField, Tooltip, TreeView, TreeViewItem, Typography, View, ViewContent } from "@wso2/ui-toolkit";
+import { Button, Codicon, Dropdown, ErrorBanner, Icon, SplitView, TextField, Tooltip, TreeView, TreeViewItem, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { AddForm } from "../AddConfigurableVariables";
 import { TopNavigationBar } from "../../../../components/TopNavigationBar";
 import { TitleBar } from "../../../../components/TitleBar";
@@ -108,6 +108,11 @@ const Overlay = styled.div`
     background: var(--vscode-settings-rowHoverBackground);
     z-index: 1000;
 `;
+
+const environmentOptions = [
+    { content: 'Application', id: 'Application', value: 'Application' },
+    { content: 'Tests', id: 'Tests', value: 'Tests' },
+];
 
 export function ViewConfigurableVariables(props?: ConfigProps) {
 
@@ -224,31 +229,6 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         }, 0);
     }, [configVariables, moduleWarningCount]);
 
-    const [expandedTestLibraries, setExpandedTestLibraries] = React.useState<Set<string>>(new Set());
-
-    const toggleTestLibrary = (name: string) => {
-        setExpandedTestLibraries(prev => {
-            const next = new Set(prev);
-            if (next.has(name)) { next.delete(name); } else { next.add(name); }
-            return next;
-        });
-    };
-
-    const makeTestDeleteHandler = (category: string, module: string) => async (index: number) => {
-        const variables = testConfigVariables[category]?.[module];
-        const variable = variables?.[index];
-        if (!variable) return;
-        await rpcClient.getBIDiagramRpcClient().deleteConfigVariableV2({
-            configFilePath: props.fileName,
-            configVariable: variable,
-            packageName: category,
-            moduleName: module
-        }).then(response => {
-            if (!response.textEdits) console.error(">>> Error deleting test config variable", response);
-        });
-        getTestConfigVariables();
-    };
-
     const handleSearch = (e: string) => {
         setSearchValue(e);
     }
@@ -257,10 +237,29 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         setSelectedModule({ category, module });
     };
 
+    const handleEnvironmentChange = (value: string) => {
+        if (value === 'Tests') {
+            setIsTestsContext(true);
+            getTestConfigVariables();
+        } else {
+            setIsTestsContext(false);
+            if (categoriesWithModules.length > 0) {
+                const firstCat = categoriesWithModules[0];
+                setSelectedModule({ category: firstCat.name, module: firstCat.modules[0] });
+            }
+        }
+    };
+
     const handleOpenConfigFile = () => {
-        rpcClient
-            .getBIDiagramRpcClient()
-            .OpenConfigTomlRequest({ filePath: props.fileName });
+        let filePath: string;
+        if (isTestsContext && props.testsConfigTomlPath) {
+            // Pass the tests/ directory (strip the trailing "/Config.toml")
+            filePath = props.testsConfigTomlPath.substring(0, props.testsConfigTomlPath.lastIndexOf('/'));
+        } else {
+            // openConfigToml expects a directory; projectPath is the project root
+            filePath = props.projectPath;
+        }
+        rpcClient.getBIDiagramRpcClient().OpenConfigTomlRequest({ filePath });
     }
 
     const handleAddConfigVariableFormOpen = () => {
@@ -382,8 +381,10 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
             modules: Object.keys(data[category])
         }));
         setTestCategoriesWithModules(categories);
-        // Start with all imported libraries collapsed
-        setExpandedTestLibraries(new Set());
+        if (categories.length > 0) {
+            const firstCat = categories[0];
+            setSelectedModule({ category: firstCat.name, module: firstCat.modules[0] });
+        }
         setIsLoading(false);
     };
 
@@ -409,11 +410,15 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         renderVariables = getFilteredConfigVariables();
     }
 
+    const activeCategories = isTestsContext
+        ? testCategoriesWithModules
+        : (searchValue ? filteredCategoriesWithModules : categoriesWithModules);
+
     return (
         <View>
             <TopNavigationBar projectPath={props.projectPath} />
             <TitleBar title="Configurable Variables" subtitle="View and manage configurable variables" actions={
-                <div style={{ display: "flex", gap: '12px', alignItems: 'center' }}>
+                <div style={{ display: "flex", gap: '8px', alignItems: 'center' }}>
                     {errorMessage &&
                         <Tooltip content={errorMessage}>
                             <Codicon name="error"
@@ -428,8 +433,15 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                         </Tooltip>
                     }
                     <Button appearance="secondary" onClick={handleOpenConfigFile}>
-                        <Icon sx={{ marginRight: 5, paddingTop: '2px' }} name="editIcon" />Edit in Config.toml
+                        <Icon sx={{ marginRight: 5, paddingTop: '2px' }} name="editIcon" />Edit {isTestsContext ? 'tests/Config.toml' : 'Config.toml'}
                     </Button>
+                    <Dropdown
+                        id="environment-selector"
+                        items={environmentOptions}
+                        value={isTestsContext ? 'Tests' : 'Application'}
+                        onValueChange={handleEnvironmentChange}
+                        sx={{ width: 130 }}
+                    />
                 </div>
             } />
             {isAddConfigVariableFormOpen && <Overlay data-testid="config-overlay" />}
@@ -447,24 +459,24 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                 position: 'start',
                             }}
                             autoFocus={true}
+                            disabled={isTestsContext}
                         />
                     </SearchContainer>
                     <div style={{ width: "auto" }}>
-                        {isLoading && <RelativeLoader message="Loading configurable variables..." />}
+                        {isLoading && <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "calc(100vh - 220px)" }}><RelativeLoader message="Loading configurable variables..." /></div>}
                         {!isLoading && <SplitView defaultWidths={[20, 80]}>
                             {/* Left side tree view */}
                             <div id={`package-treeview`} style={{ padding: "10px 0 50px 0" }}>
                                 {/* Display integration category first */}
-                                {(searchValue ? filteredCategoriesWithModules : categoriesWithModules)
+                                {activeCategories
                                     .filter(category => category.name === integrationCategory.current)
-                                    .map((category, index) => (
+                                    .map((category) => (
                                         <TreeView
                                             key={category.name}
                                             rootTreeView
                                             id={category.name}
                                             expandByDefault={true}
                                             onSelect={() => {
-                                                setIsTestsContext(false);
                                                 if (category.modules.length > 0) {
                                                     handleModuleSelect(category.name, category.modules[0]);
                                                 }
@@ -521,7 +533,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                         backgroundColor: 'transparent',
                                                         paddingLeft: '35px',
                                                         height: '25px',
-                                                        border: !isTestsContext && selectedModule?.category === category.name && selectedModule?.module === moduleName
+                                                        border: selectedModule?.category === category.name && selectedModule?.module === moduleName
                                                             ? '1px solid var(--vscode-focusBorder)'
                                                             : 'none'
                                                     }}
@@ -531,14 +543,13 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                         style={{ display: 'flex', height: '20px', alignItems: 'center' }}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            setIsTestsContext(false);
                                                             handleModuleSelect(category.name, moduleName);
                                                         }}
                                                     >
                                                         <Typography
                                                             variant="body3"
                                                             sx={{
-                                                                fontWeight: !isTestsContext && selectedModule?.category === category.name && selectedModule?.module === moduleName
+                                                                fontWeight: selectedModule?.category === category.name && selectedModule?.module === moduleName
                                                                     ? 'bold' : 'normal'
                                                             }}
                                                         >
@@ -562,42 +573,11 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                     </div>
                                                 </TreeViewItem>
                                             ))}
-                                            {/* Tests leaf item — shows all test configurables (including imported libraries) in the right panel */}
-                                            {props.fileName && (
-                                                <TreeViewItem
-                                                    key="tests-sublevel"
-                                                    id="tests-sublevel"
-                                                    sx={{
-                                                        backgroundColor: 'transparent',
-                                                        paddingLeft: '35px',
-                                                        height: '25px',
-                                                        border: isTestsContext ? '1px solid var(--vscode-focusBorder)' : 'none'
-                                                    }}
-                                                    selectedId="tests-sublevel"
-                                                >
-                                                    <div
-                                                        style={{ display: 'flex', height: '20px', alignItems: 'center' }}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setIsTestsContext(true);
-                                                            setSelectedModule(null);
-                                                            getTestConfigVariables();
-                                                        }}
-                                                    >
-                                                        <Typography
-                                                            variant="body3"
-                                                            sx={{ fontWeight: isTestsContext ? 'bold' : 'normal' }}
-                                                        >
-                                                            Tests
-                                                        </Typography>
-                                                    </div>
-                                                </TreeViewItem>
-                                            )}
                                         </TreeView>
                                     ))}
 
                                 {/* Group all other categories under "Imported libraries" */}
-                                {(searchValue ? filteredCategoriesWithModules : categoriesWithModules)
+                                {activeCategories
                                     .filter(category => category.name !== integrationCategory.current).length > 0 && (
                                         <TreeView
                                             rootTreeView
@@ -622,9 +602,9 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                             }
                                         >
                                             {/* Map all non-integration categories */}
-                                            {(searchValue ? filteredCategoriesWithModules : categoriesWithModules)
+                                            {activeCategories
                                                 .filter(category => category.name !== integrationCategory.current)
-                                                .map((category, index) => (
+                                                .map((category) => (
                                                     <TreeViewItem
                                                         key={category.name}
                                                         id={category.name}
@@ -632,7 +612,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                             backgroundColor: 'transparent',
                                                             paddingLeft: '35px',
                                                             height: '25px',
-                                                            border: !isTestsContext && selectedModule?.category === category.name
+                                                            border: selectedModule?.category === category.name
                                                                 ? '1px solid var(--vscode-focusBorder)'
                                                                 : 'none',
                                                             overflow: 'hidden',
@@ -650,14 +630,13 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                             }}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                setIsTestsContext(false);
                                                                 handleModuleSelect(category.name, "");
                                                             }}
                                                         >
                                                             <Typography
                                                                 variant="body3"
                                                                 sx={{
-                                                                    fontWeight: !isTestsContext && selectedModule?.category === category.name && selectedModule?.module === ""
+                                                                    fontWeight: selectedModule?.category === category.name && selectedModule?.module === ""
                                                                         ? 'bold' : 'normal'
                                                                 }}
                                                             >
@@ -743,84 +722,6 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                     <TitleBoxShadow />
                                                 </div>
                                                 <Container>
-                                                    {/* Tests full view — integration vars + imported libraries as collapsible sections */}
-                                                    {isTestsContext && !selectedModule && (
-                                                        <>
-                                                            {/* Integration test configurables */}
-                                                            {testConfigVariables[integrationCategory.current] &&
-                                                                Object.keys(testConfigVariables[integrationCategory.current]).map(moduleName =>
-                                                                    (testConfigVariables[integrationCategory.current][moduleName] || []).map((variable, index) => (
-                                                                        <ConfigurableItem
-                                                                            key={`tests-integration-${moduleName}-${index}`}
-                                                                            variable={variable}
-                                                                            integrationCategory={integrationCategory.current}
-                                                                            packageName={integrationCategory.current}
-                                                                            moduleName={moduleName}
-                                                                            index={index}
-                                                                            fileName={props.fileName}
-                                                                            isTestsContext={true}
-                                                                            onDeleteConfigVariable={makeTestDeleteHandler(integrationCategory.current, moduleName)}
-                                                                            onFormSubmit={getTestConfigVariables}
-                                                                            updateErrorMessage={updateErrorMessage}
-                                                                        />
-                                                                    ))
-                                                                )
-                                                            }
-                                                            {/* Imported libraries collapsible sections */}
-                                                            {testCategoriesWithModules.filter(cat => cat.name !== integrationCategory.current).length > 0 && (
-                                                                <div style={{ marginTop: '20px' }}>
-                                                                    <Typography
-                                                                        variant="h3"
-                                                                        sx={{ padding: '0 0 8px 0', color: 'var(--vscode-foreground)', borderBottom: '1px solid var(--vscode-panel-border)' }}
-                                                                    >
-                                                                        Imported libraries
-                                                                    </Typography>
-                                                                    {testCategoriesWithModules
-                                                                        .filter(cat => cat.name !== integrationCategory.current)
-                                                                        .map(cat => (
-                                                                            <div key={cat.name} style={{ marginTop: '12px' }}>
-                                                                                {/* Collapsible library header */}
-                                                                                <div
-                                                                                    style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '4px 0', userSelect: 'none' }}
-                                                                                    onClick={() => toggleTestLibrary(cat.name)}
-                                                                                >
-                                                                                    <Codicon
-                                                                                        name={expandedTestLibraries.has(cat.name) ? "chevron-down" : "chevron-right"}
-                                                                                        sx={{ marginRight: 6, fontSize: '0.85em' }}
-                                                                                    />
-                                                                                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                                                                                        {cat.name}
-                                                                                    </Typography>
-                                                                                </div>
-                                                                                {/* Library config variables */}
-                                                                                {expandedTestLibraries.has(cat.name) && (
-                                                                                    <div style={{ paddingLeft: '16px' }}>
-                                                                                        {cat.modules.flatMap(moduleName =>
-                                                                                            (testConfigVariables[cat.name]?.[moduleName] || []).map((variable, index) => (
-                                                                                                <ConfigurableItem
-                                                                                                    key={`tests-lib-${cat.name}-${moduleName}-${index}`}
-                                                                                                    variable={variable}
-                                                                                                    integrationCategory={integrationCategory.current}
-                                                                                                    packageName={cat.name}
-                                                                                                    moduleName={moduleName}
-                                                                                                    index={index}
-                                                                                                    fileName={props.fileName}
-                                                                                                    isTestsContext={true}
-                                                                                                    onDeleteConfigVariable={makeTestDeleteHandler(cat.name, moduleName)}
-                                                                                                    onFormSubmit={getTestConfigVariables}
-                                                                                                    updateErrorMessage={updateErrorMessage}
-                                                                                                />
-                                                                                            ))
-                                                                                        )}
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                        ))
-                                                                    }
-                                                                </div>
-                                                            )}
-                                                        </>
-                                                    )}
                                                     {selectedModule && (
                                                         <>
                                                             {/* Check if the selected module exists in the variables */}
