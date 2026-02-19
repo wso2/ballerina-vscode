@@ -29,7 +29,8 @@ import {
     isDevantUserLoggedIn,
     getPlatformStsToken,
     exchangeStsToCopilotToken,
-    storeAuthCredentials
+    storeAuthCredentials, 
+    NO_AUTH_CREDENTIALS_FOUND
 } from '../../utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core/lib/state-machine-types';
@@ -142,6 +143,11 @@ export async function getTokenForDefaultModel() {
     const credentials = await getAuthCredentials();
 
     if (credentials) {
+        if (!credentials) {
+            throw new Error(NO_AUTH_CREDENTIALS_FOUND);
+        }
+
+        // Check login method and handle accordingly
         if (credentials.loginMethod === LoginMethod.BI_INTEL) {
             // Re-exchange STS token to get a fresh token
             const token = await getRefreshedAccessToken();
