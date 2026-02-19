@@ -100,6 +100,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         fieldInputType.fieldType === "TEXT_SET" ||
         (fieldInputType.fieldType === "SINGLE_SELECT" && isDropDownType(fieldInputType)) ||
         fieldInputType.fieldType === "RECORD_MAP_EXPRESSION" ||
+        fieldInputType.fieldType === "SQL_QUERY" ||
         fieldInputType.fieldType === "NUMBER" ||
         (fieldInputType.fieldType === "FLAG" && field.types?.length > 1)
     )
