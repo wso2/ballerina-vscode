@@ -222,7 +222,7 @@ public record Codedata(NodeKind node, String org, String module, String packageN
             this.isNew = source.isNew() != null && source.isNew();
             this.isGenerated = source.isGenerated();
             this.inferredReturnType = source.inferredReturnType();
-            this.data = source.data();
+            this.data = source.data() == null ? new LinkedHashMap<>() : new LinkedHashMap<>(source.data());
             return this;
         }
 
