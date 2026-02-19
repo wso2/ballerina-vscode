@@ -140,6 +140,7 @@ function getGroupCategory(toolNames: (string | undefined)[]): ToolCategory {
     const hasPlanning = names.includes("task_write") || names.includes("TaskWrite");
     const hasConfig = names.includes("ConfigCollector");
     const hasConnector = names.includes("ConnectorGeneratorTool");
+    const hasTestRunner = names.includes("runTests");
 
     if (hasFile && !hasLibrary && !hasDiagnostics) {
         return { running: "Editing code...", done: "Code updated" };
@@ -158,6 +159,9 @@ function getGroupCategory(toolNames: (string | undefined)[]): ToolCategory {
     }
     if (hasConnector) {
         return { running: "Generating connector...", done: "Connector ready" };
+    }
+    if (hasTestRunner) {
+        return { running: "Running tests...", done: "Tests completed" };
     }
     return { running: "Thinking...", done: "Done" };
 }
