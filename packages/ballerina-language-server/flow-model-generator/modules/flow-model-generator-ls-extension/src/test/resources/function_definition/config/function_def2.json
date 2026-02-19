@@ -63,7 +63,7 @@
         },
         "types": [
           {
-            "fieldType": "TEXT",
+            "fieldType": "DOC_TEXT",
             "selected": true
           }
         ],
@@ -97,12 +97,29 @@
         },
         "types": [
           {
-            "fieldType": "TEXT",
+            "fieldType": "DOC_TEXT",
             "selected": true
           }
         ],
         "value": "",
         "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Make visible across the workspace"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
         "editable": true,
         "advanced": false,
         "hidden": false
@@ -168,7 +185,7 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TEXT",
+                      "fieldType": "DOC_TEXT",
                       "selected": false
                     }
                   ],
@@ -230,7 +247,7 @@
                 ],
                 "value": "a",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
@@ -254,7 +271,7 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT",
+                    "fieldType": "DOC_TEXT",
                     "selected": false
                   }
                 ],
@@ -312,7 +329,7 @@
                 ],
                 "value": "b",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
@@ -336,7 +353,7 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT",
+                    "fieldType": "DOC_TEXT",
                     "selected": false
                   }
                 ],

@@ -39,7 +39,7 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "stream<stream:Type, stream:ErrorType?>",
+            "ballerinaType": "stream<(any|error), error?>",
             "selected": false
           }
         ],
@@ -61,7 +61,7 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "function (stream:Type1 accum, stream:Type val) returns stream:Type1",
+            "ballerinaType": "function ((any|error) accum, (any|error) val) returns (any|error)",
             "selected": false
           }
         ],
@@ -83,7 +83,7 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "stream:Type1",
+            "ballerinaType": "(any|error)",
             "selected": false
           }
         ],
@@ -108,12 +108,12 @@
             "selected": true
           }
         ],
-        "value": "stream:Type1",
+        "value": "(any|error)",
         "placeholder": "var",
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {

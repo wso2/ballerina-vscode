@@ -139,7 +139,8 @@
             "advanced": false,
             "hidden": true,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "systemPrompt"
             },
             "defaultValue": "{role: \"\", instructions: \"\"}"
           },
@@ -162,7 +163,8 @@
             "advanced": false,
             "hidden": true,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "model"
             },
             "defaultValue": "object {}"
           },
@@ -172,11 +174,6 @@
               "description": "The tools available for the agent"
             },
             "types": [
-              {
-                "fieldType": "EXPRESSION_SET",
-                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
-                "selected": false
-              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
@@ -190,7 +187,8 @@
             "advanced": true,
             "hidden": true,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "tools"
             },
             "defaultValue": "[]"
           },
@@ -227,9 +225,10 @@
             "advanced": true,
             "hidden": false,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "agentType"
             },
-            "defaultValue": "\"FUNCTION_CALL_AGENT\""
+            "defaultValue": "FUNCTION_CALL_AGENT"
           },
           "maxIter": {
             "metadata": {
@@ -254,9 +253,10 @@
             "advanced": true,
             "hidden": false,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "maxIter"
             },
-            "defaultValue": "0"
+            "defaultValue": "5"
           },
           "verbose": {
             "metadata": {
@@ -281,7 +281,8 @@
             "advanced": true,
             "hidden": false,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "verbose"
             },
             "defaultValue": "false"
           },
@@ -303,9 +304,10 @@
             "advanced": true,
             "hidden": true,
             "codedata": {
-              "kind": "INCLUDED_FIELD"
+              "kind": "INCLUDED_FIELD",
+              "originalName": "memory"
             },
-            "defaultValue": "()"
+            "defaultValue": "new MessageWindowChatMemory()"
           },
           "type": {
             "metadata": {
@@ -388,10 +390,7 @@
             "optional": false,
             "editable": true,
             "advanced": true,
-            "hidden": true,
-            "codedata": {
-              "kind": ""
-            }
+            "hidden": true
           },
           "role": {
             "metadata": {
@@ -520,7 +519,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "sessionId"
             },
-            "defaultValue": "\"\""
+            "defaultValue": "DEFAULT_SESSION_ID"
           }
         },
         "flags": 1
@@ -653,7 +652,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "agentType"
             },
-            "defaultValue": "\"FUNCTION_CALL_AGENT\""
+            "defaultValue": "FUNCTION_CALL_AGENT"
           },
           "tools": {
             "metadata": {
@@ -662,14 +661,9 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET",
-                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
-                "selected": true
-              },
-              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
-                "selected": false
+                "selected": true
               }
             ],
             "value": "[set, sum, mutiply]",
@@ -710,7 +704,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "maxIter"
             },
-            "defaultValue": "0"
+            "defaultValue": "5"
           },
           "verbose": {
             "metadata": {
@@ -761,7 +755,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "memory"
             },
-            "defaultValue": "()"
+            "defaultValue": "new MessageWindowChatMemory()"
           },
           "checkError": {
             "metadata": {
@@ -2733,7 +2727,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "maxTokens"
             },
-            "defaultValue": "0"
+            "defaultValue": "DEFAULT_MAX_TOKEN_COUNT"
           },
           "temperature": {
             "metadata": {
@@ -2761,7 +2755,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "temperature"
             },
-            "defaultValue": "0.0d"
+            "defaultValue": "DEFAULT_TEMPERATURE"
           },
           "httpVersion": {
             "metadata": {
@@ -2805,7 +2799,7 @@
             "imports": {
               "http": "ballerina/http"
             },
-            "defaultValue": "\"2.0\""
+            "defaultValue": "http:HTTP_2_0"
           },
           "http1Settings": {
             "metadata": {
@@ -2913,7 +2907,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "timeout"
             },
-            "defaultValue": "0.0d"
+            "defaultValue": "60"
           },
           "forwarded": {
             "metadata": {
@@ -2941,7 +2935,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "forwarded"
             },
-            "defaultValue": "\"\""
+            "defaultValue": "\"disable\""
           },
           "poolConfig": {
             "metadata": {
@@ -3065,7 +3059,7 @@
             "imports": {
               "http": "ballerina/http"
             },
-            "defaultValue": "\"AUTO\""
+            "defaultValue": "http:COMPRESSION_AUTO"
           },
           "circuitBreaker": {
             "metadata": {
@@ -3293,7 +3287,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "validation"
             },
-            "defaultValue": "false"
+            "defaultValue": "true"
           },
           "checkError": {
             "metadata": {
@@ -3449,7 +3443,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "connection"
             },
-            "defaultValue": "\"\""
+            "defaultValue": "\"redis://localhost:6379\""
           },
           "connectionPooling": {
             "metadata": {

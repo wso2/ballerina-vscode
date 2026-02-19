@@ -25,6 +25,7 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperAddElementReq
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperClauseDiagnosticsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperClausePositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperConvertRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperConvertTypeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperCustomFunctionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteClauseRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperDeleteSubMappingRequest;
@@ -566,6 +567,29 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 );
 
                 response.setConvertedExpression((String) result.get("convertedExpression"));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<DataMapperSourceResponse> convertType(DataMapperConvertTypeRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMapperSourceResponse response = new DataMapperSourceResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                if (document.isEmpty() || semanticModel.isEmpty()) {
+                    return response;
+                }
+                DataMapManager dataMapManager = new DataMapManager(document.get());
+                response.setTextEdits(dataMapManager.convertType(filePath, semanticModel.get(), request.codedata(),
+                        request.typeName(), request.variableName(), request.parentTypeName(), request.isInput(),
+                        request.imports()));
             } catch (Throwable e) {
                 response.setError(e);
             }

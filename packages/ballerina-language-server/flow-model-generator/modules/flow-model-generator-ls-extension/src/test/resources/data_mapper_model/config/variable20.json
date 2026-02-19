@@ -37,7 +37,7 @@
         "displayName": "bank",
         "typeName": "Bank",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "focusExpression": "banks",
         "ref": "1372568104"
       },
@@ -54,7 +54,7 @@
         "displayName": "banks",
         "typeName": "Bank[]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "668760670"
       },
       {
@@ -70,7 +70,7 @@
         "displayName": "userInfo",
         "typeName": "UserInfo[]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-481592369"
       },
       {

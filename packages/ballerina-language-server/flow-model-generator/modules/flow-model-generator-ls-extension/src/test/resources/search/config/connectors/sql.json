@@ -31,7 +31,7 @@
       "metadata": {
         "label": "MS SQL",
         "description": "MSSQL (Microsoft SQL) client that enables interaction with MSSQL servers and supports standard SQL operations.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.1.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.2.png",
         "data": {
           "isAgentSupport": false
         }
@@ -43,7 +43,7 @@
         "packageName": "mssql",
         "object": "Client",
         "symbol": "init",
-        "version": "1.16.1",
+        "version": "1.16.2",
         "isGenerated": false
       },
       "enabled": true

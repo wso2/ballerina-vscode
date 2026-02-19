@@ -1,0 +1,114 @@
+{
+  "source": "function_call/main.bal",
+  "description": "Sample diagram node",
+  "diagram": {
+    "id": "31",
+    "metadata": {
+      "label": "enumerate",
+      "description": "Returns a new array consisting of index and member pairs.\n\n```ballerina\n[1, 2, 3, 4].enumerate() ⇒ [[0,1],[1,2],[2,3],[3,4]]\n```\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.array_0.0.0.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "ballerina",
+      "module": "lang.array",
+      "packageName": "lang.array",
+      "symbol": "enumerate",
+      "version": "0.0.0",
+      "isNew": true,
+      "lineRange": {
+        "startLine": {
+          "line": 14,
+          "offset": 10
+        },
+        "endLine": {
+          "line": 14,
+          "offset": 10
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "arr": {
+        "metadata": {
+          "label": "Arr",
+          "description": "the array"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "(any|error)[]",
+            "selected": false
+          }
+        ],
+        "placeholder": "[]",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "arr"
+        },
+        "value": "records",
+        "modified": true
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "[int, (any|error)][]",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {},
+        "modified": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "intArrayType",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "modified": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "function_call/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 14,
+            "character": 10
+          },
+          "end": {
+            "line": 14,
+            "character": 10
+          }
+        },
+        "newText": "\n[int, CSV][] intArrayType = array:enumerate(records);"
+      }
+    ]
+  }
+}

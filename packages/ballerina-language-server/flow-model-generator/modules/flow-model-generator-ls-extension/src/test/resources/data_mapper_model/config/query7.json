@@ -30,7 +30,7 @@
         "displayName": "info",
         "typeName": "Info",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "1372788890"
       },
       {

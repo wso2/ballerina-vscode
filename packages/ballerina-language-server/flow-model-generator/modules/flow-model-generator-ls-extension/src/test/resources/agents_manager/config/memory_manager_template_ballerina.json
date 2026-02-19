@@ -59,7 +59,7 @@
           "kind": "DEFAULTABLE",
           "originalName": "size"
         },
-        "defaultValue": "0"
+        "defaultValue": "10"
       },
       "type": {
         "metadata": {

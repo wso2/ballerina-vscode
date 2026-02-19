@@ -18,8 +18,15 @@
 
 package io.ballerina.designmodelgenerator.extension;
 
+import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.designmodelgenerator.extension.response.ProjectInfoResponse;
 import io.ballerina.projects.BallerinaToml;
+import io.ballerina.projects.Document;
+import io.ballerina.projects.DocumentId;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectKind;
@@ -105,6 +112,7 @@ public final class ProjectInfoBuilder {
             // Set org and version for build projects
             response.setOrg(currentPackage.packageOrg().value());
             response.setVersion(currentPackage.packageVersion().value().toString());
+            response.setIsLibrary(isLibraryProject(project));
         }
     }
 
@@ -139,6 +147,42 @@ public final class ProjectInfoBuilder {
             children.add(childResponse);
         }
         return children;
+    }
+
+    private static final String LIB_BAL = "lib.bal";
+    private static final String BI_VALIDATOR_ORG = "wso2";
+    private static final String BI_VALIDATOR_MODULE = "bi.validator";
+
+    /**
+     * Checks if the given project is a library project by looking for a lib.bal file containing the
+     * {@code import wso2/bi.validator as _;} import declaration.
+     *
+     * @param project The project to check
+     * @return true if the project is a library project
+     */
+    private static boolean isLibraryProject(Project project) {
+        Module defaultModule = project.currentPackage().getDefaultModule();
+        for (DocumentId documentId : defaultModule.documentIds()) {
+            Document document = defaultModule.document(documentId);
+            if (!LIB_BAL.equals(document.name())) {
+                continue;
+            }
+            SyntaxTree syntaxTree = document.syntaxTree();
+            ModulePartNode modulePartNode = syntaxTree.rootNode();
+            for (ImportDeclarationNode importDecl : modulePartNode.imports()) {
+                if (importDecl.orgName().isEmpty()) {
+                    continue;
+                }
+                String orgName = importDecl.orgName().get().orgName().text();
+                String moduleName = importDecl.moduleName().stream()
+                        .map(Token::text)
+                        .collect(Collectors.joining("."));
+                if (BI_VALIDATOR_ORG.equals(orgName) && BI_VALIDATOR_MODULE.equals(moduleName)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

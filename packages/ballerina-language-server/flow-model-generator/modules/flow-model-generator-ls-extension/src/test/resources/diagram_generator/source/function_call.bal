@@ -8,7 +8,7 @@ final http:Client foodClient = check new ("http://localhost:9090");
 service on new http:Listener(8080) {
     resource function get apples(int count) {
         if count > 20 {
-            log:printWarn("Count is greater than 20");
+            log:printWarn("\"Count is greater \\a than 20\"");
         }
         log:printInfo("Getting apples", key1="Value1", key2="Value2");
         json|error res = foodClient->get("/western/apples?count=" + count.toString());

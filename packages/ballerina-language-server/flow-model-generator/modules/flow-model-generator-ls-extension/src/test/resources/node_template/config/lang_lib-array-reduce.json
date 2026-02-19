@@ -38,13 +38,8 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "array:Type[]",
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "array:Type[]",
+            "ballerinaType": "(any|error)[]",
             "selected": false
           }
         ],
@@ -66,7 +61,7 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "function (array:Type1 accum, array:Type val) returns array:Type1",
+            "ballerinaType": "function ((any|error) accum, (any|error) val) returns (any|error)",
             "selected": false
           }
         ],
@@ -88,7 +83,7 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "array:Type1",
+            "ballerinaType": "(any|error)",
             "selected": false
           }
         ],
@@ -113,12 +108,12 @@
             "selected": true
           }
         ],
-        "value": "array:Type1",
+        "value": "(any|error)",
         "placeholder": "var",
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {

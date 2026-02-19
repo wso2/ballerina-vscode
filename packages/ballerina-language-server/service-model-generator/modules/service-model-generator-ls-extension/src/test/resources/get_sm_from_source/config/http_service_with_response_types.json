@@ -133,6 +133,7 @@
               {
                 "type": "HttpServiceConfig",
                 "packageInfo": "ballerina:http:2.14.0",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": true
               }

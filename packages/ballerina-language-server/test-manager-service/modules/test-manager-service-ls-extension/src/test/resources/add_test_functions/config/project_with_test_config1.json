@@ -141,7 +141,7 @@
             "character": 1
           }
         },
-        "newText": "@test:Config{\ngroups: [\"g1\"]\n}\nfunction testFunction1(string a, string b = \"default\") {\n\tdo {\n\t} on fail error err {\n\t}\n}"
+        "newText": "@test:Config{\ngroups: [\"g1\"]\n}\nfunction testFunction1(string a, string b = \"default\") returns error? {\n}"
       }
     ]
   }

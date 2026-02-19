@@ -36,13 +36,13 @@
         "fieldType": "SINGLE_SELECT",
         "selected": true,
         "options": [
-          "GET",
-          "POST",
-          "PUT",
-          "DELETE",
-          "PATCH",
-          "OPTIONS",
-          "HEAD"
+          {"label":  "GET", "value": "GET"},
+          {"label": "POST", "value": "POST"},
+          {"label": "PUT", "value":  "PUT"},
+          {"label": "DELETE", "value": "DELETE"},
+          {"label": "PATCH", "value": "PATCH"},
+          {"label": "OPTIONS", "value": "OPTIONS"},
+          {"label": "HEAD", "value": "HEAD"}
         ]
       }
     ],

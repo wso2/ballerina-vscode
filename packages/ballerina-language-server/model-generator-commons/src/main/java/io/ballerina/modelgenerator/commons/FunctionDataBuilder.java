@@ -60,27 +60,18 @@ import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.api.symbols.resourcepath.PathSegmentList;
 import io.ballerina.compiler.api.symbols.resourcepath.ResourcePath;
 import io.ballerina.compiler.api.values.ConstantValue;
-import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.NonTerminalNode;
-import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
-import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
 import io.ballerina.runtime.api.utils.IdentifierUtils;
-import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
-import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.MessageType;
 
 import java.io.InputStreamReader;
@@ -121,6 +112,7 @@ public class FunctionDataBuilder {
     private SemanticModel semanticModel;
     private TypeSymbol errorTypeSymbol;
     private Package resolvedPackage;
+    private Document document;
     private FunctionSymbol functionSymbol;
     private FunctionData.Kind functionKind;
     private String functionName;
@@ -134,6 +126,8 @@ public class FunctionDataBuilder {
     private Project project;
     private boolean isCurrentModule;
     private boolean enableIndex;
+    private WorkspaceManager workspaceManager;
+    private Path filePath;
 
     public static final String REST_RESOURCE_PATH = "/path/to/subdirectory";
     public static final String REST_PARAM_PATH = "/path/to/resource";
@@ -170,6 +164,9 @@ public class FunctionDataBuilder {
     }
 
     public FunctionDataBuilder resolvedPackage(Package resolvedPackage) {
+        if (resolvedPackage == null) {
+            return this;
+        }
         if (semanticModel == null) {
             semanticModel(PackageUtil.getCompilation(resolvedPackage).getSemanticModel(
                     resolvedPackage.getDefaultModule().moduleId()));
@@ -180,6 +177,11 @@ public class FunctionDataBuilder {
 
     public FunctionDataBuilder name(String name) {
         this.functionName = name;
+        return this;
+    }
+
+    public FunctionDataBuilder document(Document document) {
+        this.document = document;
         return this;
     }
 
@@ -256,6 +258,17 @@ public class FunctionDataBuilder {
         return this;
     }
 
+    public FunctionDataBuilder workspaceManager(WorkspaceManager workspaceManager) {
+        this.workspaceManager = workspaceManager;
+        return this;
+    }
+
+    public FunctionDataBuilder filePath(Path filePath) {
+        this.filePath = filePath;
+        return this;
+    }
+
+
     private void setParentSymbol(Stream<Symbol> symbolStream, String parentSymbolName) {
         this.parentSymbol = symbolStream
                 .filter(symbol -> symbol.kind() == SymbolKind.VARIABLE && symbol.nameEquals(parentSymbolName))
@@ -263,6 +276,51 @@ public class FunctionDataBuilder {
                 .filter(typeSymbol -> typeSymbol instanceof ObjectTypeSymbol)
                 .map(typeSymbol -> (ObjectTypeSymbol) typeSymbol).findFirst()
                 .orElse(null);
+    }
+
+    private void resolvePackageAndSemanticModel() {
+        if (workspaceManager != null && filePath != null) {
+            boolean isLocal = PackageUtil.isLocalFunction(workspaceManager, filePath,
+                    moduleInfo.org(), moduleInfo.moduleName());
+            if (isLocal) {
+                // For local functions: use current workspace package + document + semantic model
+                Optional<Project> optProject = workspaceManager.project(filePath);
+                if (optProject.isEmpty()) {
+                    return;
+                }
+                Package currentPackage = optProject.get().currentPackage();
+                Module defaultModule = currentPackage.getDefaultModule();
+                Document document = defaultModule.document(currentPackage.project().documentId(filePath));
+
+                this.resolvedPackage(currentPackage)
+                        .document(document)
+                        .project(currentPackage.project());
+
+                // Set semantic model automatically for local functions
+                SemanticModel semanticModel = workspaceManager.semanticModel(filePath).orElseThrow();
+                this.semanticModel(semanticModel);
+                return;
+            }
+        }
+
+        // For external functions: resolve from central repository
+        Package resolvedPackage = PackageUtil.resolveModulePackage(
+                moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version()).orElse(null);
+        this.resolvedPackage(resolvedPackage);
+    }
+
+    private void updateModuleInfo() {
+        // Update version from resolved package if available
+        if (resolvedPackage != null && moduleInfo != null) {
+            String resolvedVersion = resolvedPackage.descriptor().version().toString();
+            // Always update moduleInfo with the resolved version to ensure consistency
+            this.moduleInfo = new ModuleInfo(
+                moduleInfo.org(),
+                moduleInfo.packageName(),
+                moduleInfo.moduleName(),
+                resolvedVersion
+            );
+        }
     }
 
     public FunctionData build() {
@@ -279,6 +337,12 @@ public class FunctionDataBuilder {
         if (moduleInfo == null) {
             throw new IllegalStateException("Module information not found");
         }
+
+        // Perform automatic package resolution if workspaceManager and filePath are provided
+        resolvePackageAndSemanticModel();
+
+        // Ensure moduleInfo is updated with resolvedPackage version before any usage
+        updateModuleInfo();
 
         // Check if this is a local symbol
         isCurrentModule = userModuleInfo != null && (!moduleInfo.isComplete() || userModuleInfo.equals(moduleInfo));
@@ -428,7 +492,17 @@ public class FunctionDataBuilder {
                         }
                         ClassSymbol classSymbol = (ClassSymbol) parentSymbol;
                         Optional<MethodSymbol> initMethod = classSymbol.initMethod();
-                        initMethod.ifPresent(methodSymbol -> functionSymbol = methodSymbol);
+                        if (initMethod.isPresent()) {
+                            functionSymbol = initMethod.get();
+                        } else {
+                            String clientName = getFunctionName();
+                            FunctionData functionData = new FunctionData(0, clientName, getDescription(classSymbol),
+                                    getTypeSignature(clientName), moduleInfo.packageName(), moduleInfo.moduleName(),
+                                    moduleInfo.org(), moduleInfo.version(), "", functionKind,
+                                    false, false, null);
+                            functionData.setParameters(Map.of());
+                            return functionData;
+                        }
                     } else {
                         // Fetch the respective method using the function name
                         // TODO: We are special-casing the scenario where the index is not used. We should generalize
@@ -466,6 +540,9 @@ public class FunctionDataBuilder {
                 moduleInfo.packageName(), moduleInfo.moduleName(), moduleInfo.org(), moduleInfo.version(),
                 resourcePath, functionKind, returnData.returnError(),
                 paramForTypeInfer != null, returnData.importStatements());
+
+        // Populate ReturnTypeData with links
+        populateReturnTypeLinks(functionData, functionTypeSymbol, returnData.returnType());
 
         Types types = semanticModel.types();
         TypeBuilder builder = semanticModel.types().builder();
@@ -623,6 +700,8 @@ public class FunctionDataBuilder {
             throw new IllegalStateException("Parent symbol must be provided");
         }
 
+        // Ensure moduleInfo is updated with resolved package version before any usage
+        updateModuleInfo();
         checkLocalModule();
 
         // Derive if the semantic model is not provided
@@ -675,6 +754,32 @@ public class FunctionDataBuilder {
                     returnData.returnError(),
                     returnData.paramForTypeInfer() != null,
                     returnData.importStatements());
+
+            // Populate ReturnTypeData with links
+            FunctionTypeSymbol methodTypeSymbol = methodSymbol.typeDescriptor();
+            populateReturnTypeLinks(functionData, methodTypeSymbol, returnData.returnType());
+
+            // Populate method parameters
+            Map<String, ParameterData> methodParameters = new LinkedHashMap<>();
+            if (methodKind == FunctionData.Kind.RESOURCE) {
+                ResourcePathTemplate resourcePathTemplate = buildResourcePathTemplate(methodSymbol);
+                resourcePathTemplate.pathParams().forEach(param -> methodParameters.put(param.name(), param));
+            }
+
+            ParamForTypeInfer paramForTypeInfer = returnData.paramForTypeInfer();
+            Types types = semanticModel.types();
+            TypeBuilder builder = semanticModel.types().builder();
+            UnionTypeSymbol union = builder.UNION_TYPE.withMemberTypes(types.BOOLEAN, types.NIL, types.STRING,
+                    types.INT, types.FLOAT, types.DECIMAL, types.BYTE, types.REGEX, types.XML).build();
+
+            Map<String, String> documentationMap =
+                    methodSymbol.documentation().map(Documentation::parameterMap).orElse(Map.of());
+            methodTypeSymbol.params().ifPresent(paramList -> paramList.forEach(paramSymbol -> methodParameters.putAll(
+                    getParameters(paramSymbol, documentationMap, paramForTypeInfer, union))));
+            methodTypeSymbol.restParam().ifPresent(paramSymbol -> methodParameters.putAll(
+                    getParameters(paramSymbol, documentationMap, paramForTypeInfer, union)));
+            functionData.setParameters(methodParameters);
+
             functionDataList.add(functionData);
         }
         return functionDataList;
@@ -773,7 +878,8 @@ public class FunctionDataBuilder {
                 }
             }
             placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
-            defaultValue = getDefaultValue(paramSymbol, typeSymbol);
+            defaultValue = CommonUtils.resolveDefaultValue(paramSymbol, typeSymbol, semanticModel, resolvedPackage,
+                    document);
             paramType = getTypeSignature(typeSymbol);
         }
         ParameterData parameterData = ParameterData.from(paramName, paramDescription,
@@ -860,6 +966,15 @@ public class FunctionDataBuilder {
                 moduleInfo == null ? "" : moduleInfo.packageName()));
     }
 
+    private void populateReturnTypeLinks(FunctionData functionData, FunctionTypeSymbol functionTypeSymbol,
+                                         String returnTypeString) {
+        Optional<TypeSymbol> returnTypeSymbol = functionTypeSymbol.returnTypeDescriptor();
+        if (returnTypeSymbol.isPresent()) {
+            ReturnTypeData returnTypeData = new ReturnTypeData(returnTypeString, returnTypeSymbol.get());
+            functionData.setReturnTypeData(returnTypeData);
+        }
+    }
+
     private Map<String, ParameterData> getIncludedRecordParams(RecordTypeSymbol recordTypeSymbol,
                                                                boolean insert,
                                                                Map<String, String> documentationMap,
@@ -899,7 +1014,8 @@ public class FunctionDataBuilder {
             }
 
             String placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(fieldType);
-            String defaultValue = getDefaultValue(recordFieldSymbol, fieldType);
+            String defaultValue = CommonUtils.resolveDefaultValue(recordFieldSymbol, fieldType, semanticModel,
+                    resolvedPackage, document);
             String paramType = getTypeSignature(typeSymbol);
             boolean optional = recordFieldSymbol.isOptional() || recordFieldSymbol.hasDefaultValue();
             ParameterData parameterData = ParameterData.from(paramName, documentationMap.get(paramName),
@@ -918,58 +1034,6 @@ public class FunctionDataBuilder {
                     new ArrayList<>(), typeSymbol));
         });
         return parameters;
-    }
-
-    private String getDefaultValue(Symbol paramSymbol, TypeSymbol typeSymbol) {
-        String defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
-
-        Optional<Location> symbolLocation = paramSymbol.getLocation();
-        if (resolvedPackage == null || symbolLocation.isEmpty()) {
-            return defaultValue;
-        }
-
-        Document document = findDocument(resolvedPackage, symbolLocation.get().lineRange().fileName());
-        if (document == null) {
-            return defaultValue;
-        }
-
-        ModulePartNode rootNode = document.syntaxTree().rootNode();
-        TextRange textRange = symbolLocation.get().textRange();
-        NonTerminalNode node = rootNode.findNode(TextRange.from(textRange.startOffset(), textRange.length()));
-
-        ExpressionNode expression;
-        switch (node.kind()) {
-            case DEFAULTABLE_PARAM -> expression = (ExpressionNode) ((DefaultableParameterNode) node).expression();
-            case RECORD_FIELD_WITH_DEFAULT_VALUE -> expression = ((RecordFieldWithDefaultValueNode) node).expression();
-            default -> {
-                return defaultValue;
-            }
-        }
-
-        if (expression instanceof SimpleNameReferenceNode simpleNameReferenceNode) {
-            return resolvedPackage.packageName().value() + ":" + simpleNameReferenceNode.name().text();
-        } else if (expression instanceof QualifiedNameReferenceNode qualifiedNameReferenceNode) {
-            return qualifiedNameReferenceNode.modulePrefix().text() + ":" + qualifiedNameReferenceNode.identifier()
-                    .text();
-        } else {
-            return expression.toSourceCode();
-        }
-    }
-
-    private Document findDocument(Package pkg, String path) {
-        if (resolvedPackage == null) {
-            return null;
-        }
-        Project project = pkg.project();
-        Module defaultModule = pkg.getDefaultModule();
-        String module = pkg.packageName().value();
-        Path docPath = project.sourceRoot().resolve("modules").resolve(module).resolve(path);
-        try {
-            DocumentId documentId = project.documentId(docPath);
-            return defaultModule.document(documentId);
-        } catch (RuntimeException ex) {
-            return null;
-        }
     }
 
     public static void allMembers(Map<String, TypeSymbol> typeMap, TypeSymbol typeSymbol) {
@@ -1198,8 +1262,6 @@ public class FunctionDataBuilder {
         }
         return sb.toString();
     }
-
-
 
     private record ParamForTypeInfer(String paramName, String defaultValue, TypeSymbol typeSymbol, String type) {
     }

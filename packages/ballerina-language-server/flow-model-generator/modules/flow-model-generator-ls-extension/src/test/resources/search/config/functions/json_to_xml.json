@@ -20,8 +20,8 @@
   "categories": [
     {
       "metadata": {
-        "label": "Current Integration",
-        "description": "Functions defined within the current integration",
+        "label": "Agent Tools",
+        "description": "Functions used as agent tools",
         "keywords": [
           "Project",
           "Local",
@@ -32,12 +32,14 @@
     },
     {
       "metadata": {
-        "label": "Agent Tools",
-        "description": "Functions used as agent tools",
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
         "keywords": [
           "Project",
           "Local",
-          "Function"
+          "Function",
+          "Types",
+          "Data Mapper"
         ]
       },
       "items": []
@@ -75,7 +77,7 @@
               "metadata": {
                 "label": "fromJson",
                 "description": "Converts a JSON object to an XML representation.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.xmldata_1.5.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_data.xmldata_1.6.0.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -83,7 +85,7 @@
                 "module": "data.xmldata",
                 "packageName": "data.xmldata",
                 "symbol": "fromJson",
-                "version": "1.5.2"
+                "version": "1.6.0"
               },
               "enabled": true
             }

@@ -87,11 +87,6 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "mime:Entity[]",
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "http:RequestMessage",
             "selected": false
@@ -113,11 +108,6 @@
           "description": "The entity headers"
         },
         "types": [
-          {
-            "fieldType": "MAPPING_EXPRESSION",
-            "ballerinaType": "map<string|string[]>",
-            "selected": false
-          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "map<string|string[]>?",

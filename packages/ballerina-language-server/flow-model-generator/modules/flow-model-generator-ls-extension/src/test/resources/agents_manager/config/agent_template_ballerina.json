@@ -107,11 +107,6 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
             "selected": false
@@ -154,7 +149,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "maxIter"
         },
-        "defaultValue": "\"INFER_TOOL_COUNT\""
+        "defaultValue": "INFER_TOOL_COUNT"
       },
       "verbose": {
         "metadata": {
@@ -205,7 +200,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "memory"
         },
-        "defaultValue": "()"
+        "defaultValue": "new MessageWindowChatMemory()"
       },
       "type": {
         "metadata": {

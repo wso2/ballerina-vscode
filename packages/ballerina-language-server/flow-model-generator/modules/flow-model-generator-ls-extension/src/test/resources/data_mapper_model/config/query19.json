@@ -44,7 +44,7 @@
         "displayName": "arr3",
         "typeName": "RecType[][]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-1897494121"
       },
       {
@@ -60,7 +60,7 @@
         "displayName": "arr3Item",
         "typeName": "RecType[]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "focusExpression": "arr3",
         "ref": "-1897494121"
       },
@@ -84,7 +84,7 @@
         "displayName": "arr4",
         "typeName": "RecType[][]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-1897494121"
       },
       {

@@ -26,9 +26,9 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
-import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
+import io.ballerina.flowmodelgenerator.core.TypeParameterReplacer;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
@@ -71,6 +71,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
     public static final TypeToken<List<Property>> LIST_PROPERTY_TYPE_TOKEN = new TypeToken<List<Property>>() {
     };
+    public static final String SQL_PARAMETERIZED_QUERY = "sql:ParameterizedQuery";
+    public static final String SQL_CALL_QUERY = "sql:ParameterizedCallQuery";
 
     @SuppressWarnings("unchecked")
     public <T> T valueAsType(TypeToken<T> typeToken) {
@@ -102,7 +104,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
     public static final String IS_PUBLIC_KEY = "isPublic";
     public static final String IS_PUBLIC_LABEL = "public";
-    public static final String IS_PUBLIC_DOC = "Is this public";
+    public static final String IS_PUBLIC_DOC = "Make visible across the workspace";
 
     public static final String IS_PRIVATE_KEY = "isPrivate";
     public static final String IS_PRIVATE_LABEL = "private";
@@ -276,6 +278,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         ACTION_OR_EXPRESSION,
         IDENTIFIER,
         TEXT,
+        DOC_TEXT,
         TYPE,
         ENUM,
         VIEW,
@@ -285,7 +288,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         DATA_MAPPING_EXPRESSION,
         RECORD_MAP_EXPRESSION,
         PROMPT,
-        CLAUSE_EXPRESSION
+        CLAUSE_EXPRESSION,
+        SQL_QUERY
     }
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {
@@ -453,7 +457,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             }
 
             public TypeBuilder ballerinaType(String ballerinaType) {
-                this.ballerinaType = ballerinaType;
+                this.ballerinaType = TypeParameterReplacer.replaceTypeParameters(ballerinaType);
                 return this;
             }
 
@@ -552,8 +556,24 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return typeWithExpression(typeSymbol, moduleInfo, null, null);
         }
 
+        public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo, String defaultValue) {
+            return typeWithExpression(typeSymbol, moduleInfo, null, null, defaultValue, null);
+        }
+
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
                                              Node value, SemanticModel semanticModel) {
+            return typeWithExpression(typeSymbol, moduleInfo, value, semanticModel, null, null);
+        }
+
+        public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
+                                             Node value, SemanticModel semanticModel,
+                                             Property.Builder<?> builder) {
+            return typeWithExpression(typeSymbol, moduleInfo, value, semanticModel, null, builder);
+        }
+
+        public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
+                                             Node value, SemanticModel semanticModel, String defaultValue,
+                                             Property.Builder<?> builder) {
             if (typeSymbol == null) {
                 return this;
             }
@@ -581,6 +601,10 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
                 // If all the member types are singletons, treat it as a single-select option
                 if (allSingletons) {
+                    // Reorder options so that the default value appears first
+                    if (defaultValue != null && !defaultValue.isEmpty()) {
+                        options = reorderOptionsByDefaultValue(options, defaultValue);
+                    }
                     type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
                 } else {
                     // Handle union of primitive types by defining an input type for each primitive type
@@ -634,13 +658,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 if (matchingValueType == ValueType.MAPPING_EXPRESSION_SET) {
                     Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
                     if (paramType.isPresent()) {
-                        if (paramType.get().typeKind() == TypeDescKind.MAP) {
-                            matchingValueType = ValueType.MAPPING_EXPRESSION;
-                            // convert string to a Map<String, Object>
-                            Map<String, Object> mapValue = CommonUtils.convertMappingExprToMap(
-                                    (MappingConstructorExpressionNode) value);
-                            value(mapValue);
-                        } else if (paramType.get().typeKind() == TypeDescKind.RECORD) {
+                        if (paramType.get().typeKind() == TypeDescKind.RECORD) {
                             matchingValueType = ValueType.RECORD_MAP_EXPRESSION;
                         }
                     }
@@ -685,6 +703,12 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                             .filter(propType -> propType.fieldType() == finalMatchingValueType)
                             .findFirst()
                             .ifPresent(propType -> propType.selected(true));
+                    if (finalMatchingValueType.equals(ValueType.TEXT)) {
+                        String valueStr = value.toSourceCode().strip();
+                        if (builder != null) {
+                            builder.value(CommonUtils.unescapeContent(valueStr));
+                        }
+                    }
                 }
             }
             return this;
@@ -707,14 +731,18 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         private boolean handlePrimitiveType(TypeSymbol typeSymbol, String ballerinaType) {
+            // Check for SQL query types first
+            if (SQL_PARAMETERIZED_QUERY.equals(ballerinaType) || SQL_CALL_QUERY.equals(ballerinaType)) {
+                type().fieldType(ValueType.SQL_QUERY).ballerinaType(ballerinaType).selected(true).stepOut();
+                return true;
+            }
+
             TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
             switch (rawType.typeKind()) {
                 case INT, INT_SIGNED8, INT_UNSIGNED8, INT_SIGNED16, INT_UNSIGNED16,
                      INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> type(ValueType.NUMBER, ballerinaType);
                 case STRING, STRING_CHAR -> type(ValueType.TEXT, ballerinaType);
                 case BOOLEAN -> type(ValueType.FLAG, ballerinaType);
-                case ARRAY -> type(ValueType.EXPRESSION_SET, ballerinaType);
-                case MAP -> type(ValueType.MAPPING_EXPRESSION, ballerinaType);
                 case RECORD -> {
                     if (typeSymbol.typeKind() != TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
                         // not an anonymous record
@@ -748,10 +776,42 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 case STRING_TEMPLATE_EXPRESSION, STRING_LITERAL -> ValueType.TEXT;
                 case NUMERIC_LITERAL -> ValueType.NUMBER;
                 case TRUE_KEYWORD, FALSE_KEYWORD, BOOLEAN_LITERAL -> ValueType.FLAG;
-                case LIST_BINDING_PATTERN, LIST_CONSTRUCTOR -> ValueType.EXPRESSION_SET;
                 case MAPPING_BINDING_PATTERN, MAPPING_CONSTRUCTOR -> ValueType.MAPPING_EXPRESSION_SET;
                 default -> ValueType.EXPRESSION;
             };
+        }
+
+        /**
+         * Reorders enum options so that the option matching the defaultValue appears first in the list.
+         * This improves user experience by showing the default option at the top of dropdown lists.
+         * Returns a new list without modifying the input list.
+         *
+         * @param options      The list of Option objects to reorder
+         * @param defaultValue The default value to prioritize (may contain quotes)
+         * @return A new list with the default option first, or the original list if no match found
+         */
+        private static List<Option> reorderOptionsByDefaultValue(List<Option> options, String defaultValue) {
+            if (options == null || options.isEmpty() || defaultValue == null || defaultValue.isEmpty()) {
+                return new ArrayList<>(options != null ? options : List.of());
+            }
+
+            String cleanedDefaultValue = CommonUtils.removeQuotes(defaultValue);
+            List<Option> reorderedOptions = new ArrayList<>(options);
+
+            // Find and move matching option to front
+            for (int i = 0; i < reorderedOptions.size(); i++) {
+                Option option = reorderedOptions.get(i);
+                String cleanedOptionValue = CommonUtils.removeQuotes(option.value());
+                if (cleanedDefaultValue.equalsIgnoreCase(cleanedOptionValue) ||
+                        cleanedDefaultValue.equalsIgnoreCase(option.value())) {
+                    if (i > 0) {
+                        reorderedOptions.remove(i);
+                        reorderedOptions.addFirst(option);
+                    }
+                    break;
+                }
+            }
+            return reorderedOptions;
         }
 
         public Builder<T> types(List<PropertyType> existingTypes) {

@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class ReferenceType {
     private static final Map<String, RefType> visitedTypeMap = new ConcurrentHashMap<>();
@@ -225,6 +226,23 @@ public class ReferenceType {
                 String soleTypeName = soleTypeSymbol.getName().orElse(soleTypeSymbol.signature()) + "?";
                 return fromSemanticSymbol(soleTypeSymbol, soleTypeName, soleModuleId, typeDefSymbols);
             }
+
+            // Check if all members are singletons - if so, treat as enum
+            boolean allSingletons = !typeSymbols.isEmpty() && typeSymbols.stream()
+                    .allMatch(member -> member.typeKind() == TypeDescKind.SINGLETON);
+            if (allSingletons) {
+                List<RefType> enumMembers = typeSymbols.stream()
+                        .map(memberSymbol -> {
+                            String memberTypeName = memberSymbol.getName().orElse("");
+                            ModuleID memberModuleId = getModuleID(memberSymbol, moduleID);
+                            return fromSemanticSymbol(memberSymbol, memberTypeName, memberModuleId, typeDefSymbols);
+                        })
+                        .collect(Collectors.toList());
+                RefEnumType enumType = createEnumType(name, enumMembers, typeHash, typeKey, moduleID);
+                visitedTypeMap.put(typeKey, enumType);
+                return enumType;
+            }
+
             RefUnionType unionType = new RefUnionType(name);
             unionType.hashCode = typeHash;
             unionType.key = typeKey;
@@ -466,19 +484,24 @@ public class ReferenceType {
     }
 
     private static RefType getEnumType(EnumSymbol enumSymbol, List<Symbol> typeDefSymbols) {
-        RefType type;
-        List<RefType> fields = new ArrayList<>();
+        List<RefType> members = new ArrayList<>();
         enumSymbol.members().forEach(member -> {
             String name = member.getName().orElse("");
             ModuleID moduleId = getModuleID(member);
             RefType semanticSymbol = fromSemanticSymbol(member.typeDescriptor(), name, moduleId, typeDefSymbols);
-            fields.add(semanticSymbol);
-
+            members.add(semanticSymbol);
         });
-        type = new RefEnumType(enumSymbol.getName().orElse(""), fields);
         ModuleID moduleId = getModuleID(enumSymbol);
-        type.moduleInfo = moduleId != null ? createTypeInfo(moduleId) : null;
-        return type;
+        return createEnumType(enumSymbol.getName().orElse(""), members, null, null, moduleId);
+    }
+
+    private static RefEnumType createEnumType(String name, List<RefType> members,
+                                              String typeHash, String typeKey, ModuleID moduleID) {
+        RefEnumType enumType = new RefEnumType(name, members);
+        enumType.hashCode = typeHash;
+        enumType.key = typeKey;
+        enumType.moduleInfo = moduleID != null ? createTypeInfo(moduleID) : null;
+        return enumType;
     }
 
     private static void validateDependentTypes(RefType type, List<Symbol> typeDefSymbols) {

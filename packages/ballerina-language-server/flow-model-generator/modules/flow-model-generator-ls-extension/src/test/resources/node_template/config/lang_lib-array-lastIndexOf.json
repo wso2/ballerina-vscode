@@ -38,13 +38,8 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "array:AnydataType[]",
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "array:AnydataType[]",
+            "ballerinaType": "(anydata|error)[]",
             "selected": false
           }
         ],
@@ -66,7 +61,7 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "array:AnydataType",
+            "ballerinaType": "(anydata|error)",
             "selected": false
           }
         ],
@@ -106,7 +101,7 @@
           "kind": "DEFAULTABLE",
           "originalName": "startIndex"
         },
-        "defaultValue": "0"
+        "defaultValue": "arr.length() - 1"
       },
       "type": {
         "metadata": {
