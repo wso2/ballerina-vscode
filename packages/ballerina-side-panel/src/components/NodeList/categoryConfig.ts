@@ -20,9 +20,11 @@ export type CategoryActionType = 'connection' | 'function' | 'add';
 
 export interface CategoryAction {
     type: CategoryActionType;
+    codeIcon?: string;
+    hideOnEmptyState?: boolean;
     tooltip: string;
     emptyStateLabel: string;
-    handlerKey: 'onAddConnection' | 'onAddFunction' | 'onAdd';
+    handlerKey: 'onAddConnection' | 'onAddFunction' | 'onAdd' | 'onLinkDevantProject' | 'onRefreshDevantConnections';
     condition?: (title: string) => boolean; // For special conditions like data mapper
 }
 
@@ -38,12 +40,30 @@ export interface CategoryConfig {
 export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
     "Connections": {
         title: "Connections",
-        actions: [{
-            type: 'connection',
-            tooltip: "Add Connection",
-            emptyStateLabel: "Add Connection",
-            handlerKey: 'onAddConnection'
-        }],
+         actions: [
+            {
+                type: "connection",
+                codeIcon: "vm-connect",
+                tooltip: "Use Devant Connections",
+                emptyStateLabel: "",
+                hideOnEmptyState: true,
+                handlerKey: "onLinkDevantProject",
+            },
+            {
+                type: "connection",
+                codeIcon: "refresh",
+                tooltip: "Refresh Devant Connections",
+                emptyStateLabel: "",
+                hideOnEmptyState: true,
+                handlerKey: "onRefreshDevantConnections",
+            },
+            {
+                type: "connection",
+                tooltip: "Add Connection",
+                emptyStateLabel: "Add Connection",
+                handlerKey: "onAddConnection",
+            },
+        ],
         showWhenEmpty: true,
         useConnectionContainer: true,
         fixed: true
@@ -168,7 +188,11 @@ export const getCategoryConfig = (title: string): CategoryConfig | undefined => 
     return CATEGORY_CONFIGS[title];
 };
 
-export const shouldShowEmptyCategory = (title: string): boolean => {
+export const shouldShowEmptyCategory = (title: string, isSubCategory: boolean): boolean => {
+    if (isSubCategory) {
+        // For subcategories, only show if it's "Current Integration"
+        return title === "Current Integration";
+    }
     const config = getCategoryConfig(title);
     return config?.showWhenEmpty ?? false;
 };

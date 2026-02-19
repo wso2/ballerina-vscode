@@ -26,6 +26,7 @@ import {
     CommonRPCAPI,
     Completion,
     CompletionParams,
+    DefaultOrgNameResponse,
     DiagnosticData,
     FileOrDirRequest,
     FileOrDirResponse,
@@ -41,14 +42,17 @@ import {
     WorkspaceFileRequest,
     WorkspaceRootResponse,
     WorkspacesFileResponse,
-    WorkspaceTypeResponse
+    WorkspaceTypeResponse,
+    SetWebviewCacheRequestParam,
+    ShowInfoModalRequest,
+    ShowQuickPickRequest,
 } from "@wso2/ballerina-core";
 import child_process from 'child_process';
 import path from "path";
 import os from "os";
 import fs from "fs";
 import * as unzipper from 'unzipper';
-import { commands, env, MarkdownString, ProgressLocation, Uri, window, workspace } from "vscode";
+import { commands, env, MarkdownString, ProgressLocation, QuickPickItem, Uri, window, workspace } from "vscode";
 import { URI } from "vscode-uri";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
@@ -56,6 +60,7 @@ import {
     getProjectTomlValues,
     goToSource
 } from "../../utils";
+import { getUsername } from "../../utils/bi";
 import {
     askFileOrFolderPath,
     askFilePath,
@@ -190,6 +195,28 @@ export class CommonRpcManager implements CommonRPCAPI {
                     resolve({ path: "" });
                 } else {
                     const filePath = selectedFile[0].fsPath;
+                    const projectPath = StateMachine.context().projectPath;
+                    if (projectPath && !filePath.startsWith(projectPath)) {
+                        const resp = await window.showErrorMessage('The selected file is not within your project. Do you want to move it inside the project?', { modal: true }, 'Yes');
+                        if (resp === 'Yes') {
+                            // Move the file inside the project
+                            const fileName = path.basename(filePath);
+                            const newFilePath = path.join(projectPath, fileName);
+                            // if newFilePath already exists, append a number to the file name
+                            let counter = 1;
+                            let finalFilePath = newFilePath;
+                            while (fs.existsSync(finalFilePath)) {
+                                const parsedPath = path.parse(newFilePath);
+                                finalFilePath = path.join(parsedPath.dir, `${parsedPath.name}-${counter}${parsedPath.ext}`);
+                                counter++;
+                            }
+                            fs.copyFileSync(filePath, finalFilePath);
+                            resolve({ path: finalFilePath });
+                            return;
+                        }
+                        resolve({ path: "" });
+                        return;
+                    }
                     resolve({ path: filePath });
                 }
             } else {
@@ -258,13 +285,21 @@ export class CommonRpcManager implements CommonRPCAPI {
         window.showErrorMessage(messageWithLink.value);
     }
 
+    async showInformationModal(params: ShowInfoModalRequest): Promise<string> {
+        return window.showInformationMessage(params?.message, {modal: true}, ...(params?.items || []));
+    }
+
+    async showQuickPick(params: ShowQuickPickRequest): Promise<QuickPickItem> {
+        return window.showQuickPick(params.items, params?.options);
+    }
+
     async isNPSupported(): Promise<boolean> {
         return extension.ballerinaExtInstance.isNPSupported;
     }
 
     async getCurrentProjectTomlValues(): Promise<Partial<PackageTomlValues>> {
         const tomlValues = await getProjectTomlValues(StateMachine.context().projectPath);
-        return tomlValues ?? {};  
+        return tomlValues ?? {};
     }
 
     async getWorkspaceType(): Promise<WorkspaceTypeResponse> {
@@ -414,5 +449,21 @@ export class CommonRpcManager implements CommonRPCAPI {
             );
         }
         return isSuccess;
+    }
+
+    async setWebviewCache(params: SetWebviewCacheRequestParam): Promise<void> {
+        await extension.context.workspaceState.update(params.cacheKey, params.data);
+    }
+
+    async restoreWebviewCache(cacheKey: string): Promise<unknown> {
+        return extension.context.workspaceState.get(cacheKey);
+    }
+
+    async clearWebviewCache(cacheKey: string): Promise<void> {
+        await extension.context.workspaceState.update(cacheKey, undefined);
+    }
+    
+    async getDefaultOrgName(): Promise<DefaultOrgNameResponse> {
+        return { orgName: getUsername() };
     }
 }

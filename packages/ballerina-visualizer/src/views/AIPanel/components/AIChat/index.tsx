@@ -43,6 +43,7 @@ import { Button, Codicon } from "@wso2/ui-toolkit";
 import { AIChatInputRef } from "../AIChatInput";
 import ProgressTextSegment from "../ProgressTextSegment";
 import ToolCallSegment from "../ToolCallSegment";
+import ToolCallGroupSegment, { ToolCallItem } from "../ToolCallGroupSegment";
 import TodoSection from "../TodoSection";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
@@ -70,6 +71,7 @@ import { SYSTEM_ERROR_SECRET } from "../AIChatInput/constants";
 import { CodeSegment } from "../CodeSegment";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
 import Footer from "./Footer";
+import { AgentMode } from "../AIChatInput/ModeToggle";
 import ApprovalFooter from "./Footer/ApprovalFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
@@ -143,7 +145,7 @@ const AIChat: React.FC = () => {
 
     const [showSettings, setShowSettings] = useState(false);
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
-    const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(false);
+    const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Edit);
     const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
     const [showReviewActions, setShowReviewActions] = useState(false);
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
@@ -201,7 +203,7 @@ const AIChat: React.FC = () => {
 
                         // Handle plan mode for text-type prompts
                         if (defaultPrompt.type === 'text') {
-                            setIsPlanModeEnabled(defaultPrompt.planMode);
+                            setAgentMode(defaultPrompt.planMode ? AgentMode.Plan : AgentMode.Edit);
                         }
                     }
                 });
@@ -374,19 +376,19 @@ const AIChat: React.FC = () => {
                     : "Searching for libraries...";
 
                 updateLastMessage((content) =>
-                    content + `\n\n<toolcall id="${toolCallId}">${displayMessage}</toolcall>`
+                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">${displayMessage}</toolcall>`
                 );
             } else if (response.toolName === "LibraryGetTool") {
                 const toolCallId = response?.toolCallId;
 
                 updateLastMessage((content) =>
-                    content + `\n\n<toolcall id="${toolCallId}">Fetching library details...</toolcall>`
+                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching library details...</toolcall>`
                 );
             } else if (response.toolName == "HealthcareLibraryProviderTool") {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>Analyzing request & selecting healthcare libraries...</toolcall>`;
+                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">Analyzing request & selecting healthcare libraries...</toolcall>`;
                     }
                     return newMessages;
                 });
@@ -394,7 +396,7 @@ const AIChat: React.FC = () => {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>Planning...</toolcall>`;
+                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">Planning...</toolcall>`;
                     }
                     return newMessages;
                 });
@@ -408,7 +410,7 @@ const AIChat: React.FC = () => {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>${message}</toolcall>`;
+                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">${message}</toolcall>`;
                     }
                     return newMessages;
                 });
@@ -416,10 +418,15 @@ const AIChat: React.FC = () => {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>Checking for errors...</toolcall>`;
+                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">Checking for errors...</toolcall>`;
                     }
                     return newMessages;
                 });
+            } else if (response.toolName === "runTests") {
+                const toolCallId = response?.toolCallId;
+                updateLastMessage((content) =>
+                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`
+                );
             }
         } else if (type === "tool_result") {
             if (response.toolName === "LibrarySearchTool") {
@@ -439,29 +446,29 @@ const AIChat: React.FC = () => {
 
                 updateLastMessage((content) =>
                     content.replace(
-                        `<toolcall id="${toolCallId}">${originalMessage}</toolcall>`,
-                        `<toolresult id="${toolCallId}">${completionMessage}</toolresult>`
+                        `<toolcall id="${toolCallId}" tool="${response.toolName}">${originalMessage}</toolcall>`,
+                        `<toolresult id="${toolCallId}" tool="${response.toolName}">${completionMessage}</toolresult>`
                     )
                 );
             } else if (response.toolName === "LibraryGetTool") {
                 const toolCallId = response.toolCallId;
                 const libraryNames = response.toolOutput || [];
                 if (toolCallId) {
-                    const searchPattern = `<toolcall id="${toolCallId}">Fetching library details...</toolcall>`;
+                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching library details...</toolcall>`;
                     const resultMessage = libraryNames.length === 0
                         ? "No relevant libraries found"
                         : `Fetched libraries: [${libraryNames.join(", ")}]`;
-                    const replacement = `<toolresult id="${toolCallId}">${resultMessage}</toolresult>`;
+                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
 
                     updateLastMessage((content) => content.replace(searchPattern, replacement));
                 }
             } else if (response.toolName == "HealthcareLibraryProviderTool") {
                 const libraryNames = response.toolOutput;
-                const searchPattern = `<toolcall>Analyzing request & selecting healthcare libraries...</toolcall>`;
+                const searchPattern = `<toolcall tool="${response.toolName}">Analyzing request & selecting healthcare libraries...</toolcall>`;
                 const resultMessage = libraryNames.length === 0
                     ? "No relevant healthcare libraries found."
                     : `Fetched healthcare libraries: [${libraryNames.join(", ")}]`;
-                const replacement = `<toolresult>${resultMessage}</toolresult>`;
+                const replacement = `<toolresult tool="${response.toolName}">${resultMessage}</toolresult>`;
 
                 updateLastMessage((content) => content.replace(searchPattern, replacement));
             } else if (response.toolName == "TaskWrite") {
@@ -470,11 +477,11 @@ const AIChat: React.FC = () => {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
-                        if (!taskOutput.success || !taskOutput.allTasks || taskOutput.allTasks.length === 0) {
+                        if (!taskOutput.success || !taskOutput.tasks || taskOutput.tasks.length === 0) {
                             const isInternalError = taskOutput.message &&
                                 taskOutput.message.includes("ERROR: Missing");
 
-                            const indicatorPattern = /<toolcall>Planning\.\.\.<\/toolcall>/;
+                            const indicatorPattern = /<toolcall tool="TaskWrite">Planning\.\.\.<\/toolcall>/;
                             const todoPattern = /<todo>.*?<\/todo>/s;
 
                             if (isInternalError) {
@@ -495,13 +502,14 @@ const AIChat: React.FC = () => {
                                     }
                                 }
 
+                                // Keep tool="TaskWrite" (matching the tool_call tag written by the TaskWrite handler)
                                 newMessages[newMessages.length - 1].content = newMessages[
                                     newMessages.length - 1
-                                ].content.replace(indicatorPattern, `<toolcall>${simplifiedMessage}</toolcall>`).replace(todoPattern, "");
+                                ].content.replace(indicatorPattern, `<toolcall tool="TaskWrite">${simplifiedMessage}</toolcall>`).replace(todoPattern, "");
                             }
                         } else {
                             const todoData = {
-                                tasks: taskOutput.allTasks,
+                                tasks: taskOutput.tasks,
                                 message: taskOutput.message
                             };
                             const todoJson = JSON.stringify(todoData);
@@ -528,8 +536,8 @@ const AIChat: React.FC = () => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
                         const lastMessageContent = newMessages[newMessages.length - 1].content;
-                        const creatingPattern = /<toolcall>Creating (.+?)\.\.\.<\/toolcall>/;
-                        const updatingPattern = /<toolcall>Updating (.+?)\.\.\.<\/toolcall>/;
+                        const creatingPattern = /<toolcall tool="([^"]+)">Creating (.+?)\.\.\.<\/toolcall>/;
+                        const updatingPattern = /<toolcall tool="([^"]+)">Updating (.+?)\.\.\.<\/toolcall>/;
 
                         let updatedContent = lastMessageContent;
 
@@ -539,12 +547,12 @@ const AIChat: React.FC = () => {
                             const resultText = action === 'updated' ? 'Updated' : 'Created';
                             updatedContent = lastMessageContent.replace(
                                 creatingPattern,
-                                (_match, fileName) => `<toolresult>${resultText} ${fileName}</toolresult>`
+                                (_match, toolName, fileName) => `<toolresult tool="${toolName}">${resultText} ${fileName}</toolresult>`
                             );
                         } else if (updatingPattern.test(lastMessageContent)) {
                             updatedContent = lastMessageContent.replace(
                                 updatingPattern,
-                                (_match, fileName) => `<toolresult>Updated ${fileName}</toolresult>`
+                                (_match, toolName, fileName) => `<toolresult tool="${toolName}">Updated ${fileName}</toolresult>`
                             );
                         }
 
@@ -562,7 +570,8 @@ const AIChat: React.FC = () => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
                         const lastMessageContent = newMessages[newMessages.length - 1].content;
-                        const checkingPattern = /<toolcall>Checking for errors\.\.\.<\/toolcall>/;
+                        const toolName = response.toolName;
+                        const checkingPattern = new RegExp(`<toolcall tool="${toolName}">Checking for errors\\.\\.\\.<\\/toolcall>`);
 
                         const message = errorCount === 0
                             ? "No errors found"
@@ -570,15 +579,47 @@ const AIChat: React.FC = () => {
 
                         const updatedContent = lastMessageContent.replace(
                             checkingPattern,
-                            `<toolresult>${message}</toolresult>`
+                            `<toolresult tool="${toolName}">${message}</toolresult>`
                         );
 
                         newMessages[newMessages.length - 1].content = updatedContent;
                     }
                     return newMessages;
                 });
+            } else if (response.toolName === "runTests") {
+                const toolCallId = response.toolCallId;
+                if (toolCallId) {
+                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`;
+                    const resultMessage = response.toolOutput?.summary ?? "Tests completed";
+                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
+                    updateLastMessage((content) => content.replace(searchPattern, replacement));
+                }
             }
         } else if (type === "task_approval_request") {
+            if (response.approvalType === "plan") {
+                const todoJson = JSON.stringify({ tasks: response.tasks, message: response.message });
+                updateLastMessage((content) => {
+                    const cleaned = content
+                        .replace(/<toolcall>Planning\.\.\.<\/toolcall>/, '')
+                        .replace(/<todo>.*?<\/todo>/s, '');
+                    return cleaned + `\n\n<todo>${todoJson}</todo>`;
+                });
+            } else if (response.approvalType === "completion") {
+                const tasks = isAutoApproveEnabled
+                    ? response.tasks.map((t: { status: string }) =>
+                        t.status === "review" ? { ...t, status: "completed" } : t)
+                    : response.tasks;
+                const todoJson = JSON.stringify({ tasks, message: response.message });
+                updateLastMessage((content) =>
+                    content.replace(/<todo>.*?<\/todo>/s, `<todo>${todoJson}</todo>`)
+                );
+            }
+
+            if (isAutoApproveEnabled && response.approvalType === "completion") {
+                await rpcClient.getAiPanelRpcClient().approveTask({ requestId: response.requestId });
+                return;
+            }
+
             setApprovalRequest({
                 type: "task_approval_request",
                 requestId: response.requestId,
@@ -587,46 +628,6 @@ const AIChat: React.FC = () => {
                 taskDescription: response.taskDescription,
                 message: response.message,
             });
-            if (response.approvalType === "plan") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        const todoData = {
-                            tasks: response.tasks,
-                            message: response.message
-                        };
-                        const todoJson = JSON.stringify(todoData);
-                        let lastMessageContent = newMessages[newMessages.length - 1].content;
-
-                        const planningPattern = /<toolcall>Planning\.\.\.<\/toolcall>/;
-                        const todoPattern = /<todo>.*?<\/todo>/s;
-
-                        lastMessageContent = lastMessageContent.replace(planningPattern, '');
-                        lastMessageContent = lastMessageContent.replace(todoPattern, '');
-
-                        newMessages[newMessages.length - 1].content = lastMessageContent + `\n\n<todo>${todoJson}</todo>`;
-                    }
-                    return newMessages;
-                });
-            } else if (response.approvalType === "completion") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        const todoData = {
-                            tasks: response.tasks,
-                            message: response.message
-                        };
-                        const todoJson = JSON.stringify(todoData);
-                        let lastMessageContent = newMessages[newMessages.length - 1].content;
-
-                        const todoPattern = /<todo>.*?<\/todo>/s;
-                        lastMessageContent = lastMessageContent.replace(todoPattern, `<todo>${todoJson}</todo>`);
-
-                        newMessages[newMessages.length - 1].content = lastMessageContent;
-                    }
-                    return newMessages;
-                });
-            }
         } else if (type === "intermediary_state") {
             const state = response.state;
             // Check if it's a documentation state by looking for specific properties
@@ -1220,9 +1221,9 @@ const AIChat: React.FC = () => {
             content: file.content,
         }));
 
-        console.log("Submitting agent prompt:", { useCase, isPlanModeEnabled, codeContext, operationType, fileAttatchments });
+        console.log("Submitting agent prompt:", { useCase, agentMode, codeContext, operationType, fileAttatchments });
         rpcClient.getAiPanelRpcClient().generateAgent({
-            usecase: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachmentContents: fileAttatchments
+            usecase: useCase, isPlanMode: agentMode === AgentMode.Plan, codeContext: codeContext, operationType, fileAttachmentContents: fileAttatchments
         })
     }
 
@@ -1251,9 +1252,8 @@ const AIChat: React.FC = () => {
         setIsAutoApproveEnabled(newValue);
     };
 
-    const handleTogglePlanMode = () => {
-        const newValue = !isPlanModeEnabled;
-        setIsPlanModeEnabled(newValue);
+    const handleChangeAgentMode = (mode: AgentMode) => {
+        setAgentMode(mode);
     };
 
     const questionMessages = messages.filter((message) => message.type === "question");
@@ -1412,26 +1412,6 @@ const AIChat: React.FC = () => {
                             {/* <ResetsInBadge>{`Resets in: 30 days`}</ResetsInBadge> */}
                         </Badge>
                         <HeaderButtons>
-                            {isPlanModeFeatureEnabled && (
-                                <Button
-                                    appearance="icon"
-                                    onClick={handleTogglePlanMode}
-                                    tooltip={isPlanModeEnabled ? "Switch to Edit mode (direct edits)" : "Switch to Plan mode (review before applying)"}
-                                >
-                                    <Codicon name={isPlanModeEnabled ? "list-tree" : "edit"} />
-                                    &nbsp;&nbsp;{isPlanModeEnabled ? "Mode: Plan" : "Mode: Edit"}
-                                </Button>
-                            )}
-                            {isPlanModeFeatureEnabled && (
-                                <Button
-                                    appearance="icon"
-                                    onClick={handleToggleAutoApprove}
-                                    tooltip={isAutoApproveEnabled ? "Disable auto-approval for tasks" : "Enable auto-approval for tasks"}
-                                >
-                                    <Codicon name={isAutoApproveEnabled ? "check-all" : "inspect"} />
-                                    &nbsp;&nbsp;{isAutoApproveEnabled ? "Auto-Approve: On" : "Auto-Approve: Off"}
-                                </Button>
-                            )}
                             <Button
                                 appearance="icon"
                                 onClick={() => handleClearChat()}
@@ -1578,12 +1558,72 @@ const AIChat: React.FC = () => {
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.ToolCall) {
+                                            const currentToolName = segment.toolName;
+
+                                            // Skip if the next segment with the same tool name follows
+                                            // (skip over whitespace-only Text segments between tool calls)
+                                            let nextIdx = i + 1;
+                                            while (
+                                                nextIdx < segmentedContent.length &&
+                                                segmentedContent[nextIdx].type === SegmentType.Text &&
+                                                segmentedContent[nextIdx].text.trim() === ""
+                                            ) {
+                                                nextIdx++;
+                                            }
+                                            const nextSeg = segmentedContent[nextIdx];
+                                            if (
+                                                nextSeg &&
+                                                nextSeg.type === SegmentType.ToolCall &&
+                                                nextSeg.toolName === currentToolName
+                                            ) {
+                                                return null;
+                                            }
+
+                                            // Collect consecutive same-tool segments backward from this index,
+                                            // skipping over whitespace-only Text segments between them
+                                            const groupItems: ToolCallItem[] = [];
+                                            let j = i;
+                                            while (j >= 0) {
+                                                const seg = segmentedContent[j];
+                                                if (
+                                                    seg.type === SegmentType.ToolCall &&
+                                                    seg.toolName === currentToolName
+                                                ) {
+                                                    groupItems.unshift({
+                                                        text: seg.text,
+                                                        loading: seg.loading,
+                                                        failed: seg.failed,
+                                                        toolName: seg.toolName,
+                                                    });
+                                                } else if (
+                                                    seg.type === SegmentType.Text &&
+                                                    seg.text.trim() === ""
+                                                ) {
+                                                    j--;
+                                                    continue;
+                                                } else {
+                                                    break;
+                                                }
+                                                j--;
+                                            }
+
+                                            // Single tool call or different tool: bare ToolCallSegment
+                                            if (groupItems.length === 1) {
+                                                return (
+                                                    <ToolCallSegment
+                                                        key={`tool-call-${i}`}
+                                                        text={segment.text}
+                                                        loading={segment.loading}
+                                                        failed={segment.failed}
+                                                    />
+                                                );
+                                            }
+
+                                            // 2+ same-tool consecutive calls: use collapsible group
                                             return (
-                                                <ToolCallSegment
-                                                    key={`tool-call-${i}`}
-                                                    text={segment.text}
-                                                    loading={segment.loading}
-                                                    failed={segment.failed}
+                                                <ToolCallGroupSegment
+                                                    key={`tool-call-group-${i}`}
+                                                    segments={groupItems}
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.Todo) {
@@ -1740,6 +1780,10 @@ const AIChat: React.FC = () => {
                             showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
                             codeContext={codeContext}
                             onRemoveCodeContext={() => setCodeContext(undefined)}
+                            agentMode={agentMode}
+                            onChangeAgentMode={isPlanModeFeatureEnabled ? handleChangeAgentMode : undefined}
+                            isAutoApproveEnabled={isAutoApproveEnabled}
+                            onDisableAutoApprove={handleToggleAutoApprove}
                         />
                     )}
                 </AIChatView>

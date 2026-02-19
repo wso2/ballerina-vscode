@@ -20,6 +20,7 @@ import { NodePosition } from "@wso2/syntax-tree";
 import { LinePosition } from "./common";
 import { Diagnostic as VSCodeDiagnostic } from "vscode-languageserver-types";
 import { ValueTypeConstraint } from "../rpc-types/ai-agent/interfaces";
+import { Type } from "./extended-lang-client";
 
 export type { NodePosition };
 
@@ -148,15 +149,28 @@ export type FormFieldInputType = "TEXT" |
     "ai:Prompt" |
     "FIXED_PROPERTY" |
     "REPEATABLE_PROPERTY" |
-    "MAPPING_EXPRESSION_SET" |
-    "MAPPING_EXPRESSION" |
     "ENUM" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
+    "REPEATABLE_MAP" |
     "PROMPT" |
+    "RECORD_FIELD_SELECTOR" |
     "SQL_QUERY" |
     "CLAUSE_EXPRESSION" |
-    "SLIDER";
+    "SLIDER" |
+    "HEADER_SET" |
+    "DROPDOWN_CHOICE" |
+    "CUSTOM_DROPDOWN" |
+    "ACTION_TYPE" |
+    "ACTION_EXPRESSION" |
+    "VIEW" |
+    "SERVICE_PATH" |
+    "ACTION_PATH" |
+    "NUMBER" |
+    "REPEATABLE_LIST" |
+    "CONDITIONAL_FIELDS" |
+    "DOC_TEXT"
+    ;
 
 export interface BaseType {
     fieldType: FormFieldInputType;
@@ -188,11 +202,23 @@ export interface IdentifierType extends BaseType {
     scope: FieldScope;
 }
 
+export interface RecordFieldSelectorType extends BaseType {
+    fieldType: "RECORD_FIELD_SELECTOR";
+    recordSelectorType: RecordSelectorType;
+}
+
+export interface RecordSelectorType {
+    rootType: Type;
+    referencedTypes: Type[];
+}
+
+
 export type InputType =
     | BaseType
     | DropdownType
     | TemplateType
-    | IdentifierType;
+    | IdentifierType
+    | RecordFieldSelectorType;
 
 export type Property = {
     metadata: Metadata;

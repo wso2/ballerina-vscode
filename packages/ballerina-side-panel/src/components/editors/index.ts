@@ -17,6 +17,7 @@
  */
 
 export * from "./EditorFactory";
+export * from "./FieldFactory";
 export * from "./TypeEditor";
 export * from "./TextEditor";
 export * from "./MultiSelectEditor";
@@ -25,6 +26,7 @@ export * from "./ArrayEditor";
 export * from "./FileSelect";
 export * from "./FormMapEditor";
 export * from "./FieldContext";
+export * from "./ModeSwitcherContext";
 export * from "./SliderEditor";
 export * from "./MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
 export * from "./MultiModeExpressionEditor/Configurations";

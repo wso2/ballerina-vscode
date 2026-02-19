@@ -1076,6 +1076,8 @@ export function FormGeneratorNew(props: FormProps) {
                                 closeRecordConfigPage();
                             }
                         }}
+                        closeOnBackdropClick={true}
+                        closeButtonIcon="minimize"
                     >
                         <ConfigureRecordPage
                             fileName={fileName}
