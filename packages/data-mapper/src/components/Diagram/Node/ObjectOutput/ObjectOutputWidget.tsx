@@ -167,7 +167,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 								id={"field-action-edit-" + id}
 								tooltip="Edit"
 								iconName="settings-gear"
-								onClick={async () => await context.createConvertedVariable(outputType.name, true, outputType.typeName)}
+								onClick={async () => await context.createConvertedVariable(outputType.name, false, outputType.typeName)}
 							/>
 						)}
 					</span>
