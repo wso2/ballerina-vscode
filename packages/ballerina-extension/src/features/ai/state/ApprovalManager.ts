@@ -448,12 +448,12 @@ export class ApprovalManager {
         }
         this.connectorSpecs.clear();
 
-        // Cancel configuration requests
-        for (const [requestId, resolver] of this.configurationRequests.entries()) {
+        // Resolve configuration requests as skipped so callers handle it as a normal skip
+        for (const [, resolver] of this.configurationRequests.entries()) {
             if (resolver.timeoutId) {
                 clearTimeout(resolver.timeoutId);
             }
-            resolver.reject(error);
+            resolver.resolve({ provided: false, comment: reason });
         }
         this.configurationRequests.clear();
     }

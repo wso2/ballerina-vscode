@@ -23,7 +23,6 @@ import { CopilotEventHandler } from "../../utils/events";
 import { approvalManager } from "../../state/ApprovalManager";
 import {
     ConfigVariable,
-    createConfigWithPlaceholders,
     getAllConfigStatus,
     validateVariableName,
     writeConfigValuesToConfig,
@@ -44,7 +43,7 @@ const ConfigVariableSchema = z.object({
 });
 
 const ConfigCollectorSchema = z.object({
-    mode: z.enum(["create", "create_and_collect", "collect", "check"]).describe("Operation mode"),
+    mode: z.enum(["collect", "check"]).describe("Operation mode"),
     filePath: z.string().optional().describe("Path to config file (for check mode)"),
     variables: z.array(ConfigVariableSchema).optional().describe("Configuration variables"),
     variableNames: z.array(z.string()).optional().describe("Variable names for check mode"),
@@ -52,7 +51,7 @@ const ConfigCollectorSchema = z.object({
 });
 
 interface ConfigCollectorInput {
-    mode: "create" | "create_and_collect" | "collect" | "check";
+    mode: "collect" | "check";
     filePath?: string;
     variables?: ConfigVariable[];
     variableNames?: string[];
@@ -115,45 +114,29 @@ export function createConfigCollectorTool(
         description: `
 Manages configuration values in Config.toml for Ballerina integrations securely. Use this tool when user requirements involve API keys, passwords, database credentials, or other sensitive configuration.
 
-IMPORTANT: Before calling COLLECT or CREATE_AND_COLLECT modes, briefly tell the user what configuration values you need and why.
+IMPORTANT: Before calling COLLECT mode, briefly tell the user what configuration values you need and why.
 
 Operation Modes:
-1. CREATE: Create Config.toml with placeholder variables only
-   - If file already exists, returns current variable status (same as check mode) instead of overwriting
-   - Use when you need to set up config structure before collecting configuration values
-   - Example: { mode: "create", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }] }
-
-2. CREATE_AND_COLLECT: Create config AND immediately request configuration values (most efficient)
-   - If file already exists, skips create and goes straight to collect
-   - Use for new integrations that need configuration values right away
-   - Tell user first what you need
-   - Example: { mode: "create_and_collect", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }] }
-
-3. COLLECT: Request configuration values from user
-   - Creates Config.toml if it doesn't exist
-   - Pre-populates existing values for easy editing
-   - Use when Config.toml already exists and needs configuration values
-   - Tell user first what you need
+1. COLLECT: Request configuration values from user
+   - Shows a form to the user to fill in values; nothing is written to disk until the user confirms
+   - If user skips, no file is created or modified
+   - Pre-populates the form with existing values from Config.toml if it exists
+   - Use for all cases where configuration values are needed
    - Example: { mode: "collect", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }] }
 
-4. CHECK: Check which configuration values are filled/missing
-   - Returns status metadata only, NEVER actual configuration values
-   - Example: { mode: "check", variableNames: ["API_KEY", "DB_PASSWORD"], filePath: "Config.toml" }
-   - Returns: { success: true, status: { API_KEY: "filled", DB_PASSWORD: "missing" } }
-
-5. COLLECT with isTestConfig: Request configuration values for test Config.toml
+2. COLLECT with isTestConfig: Request configuration values for test Config.toml
    - Use when generating tests that need configuration values
    - Set isTestConfig: true
    - Tool automatically:
-     * Reads existing configuration from Config.toml (if exists)
-     * Writes to tests/Config.toml
+     * Reads existing configuration from Config.toml (if exists) to pre-populate the form
+     * Writes to tests/Config.toml only after user confirms
      * Creates tests/ directory if needed
-   - UI behavior depends on what's in main config:
-     * If placeholders found: Shows "Configuration values needed"
-     * If actual values found: Shows "Found existing values. You can reuse or update them for testing."
-     * If mixed: Shows "Complete the remaining configuration values"
-   - Works even if main Config.toml doesn't exist (shows empty form)
    - Example: { mode: "collect", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }], isTestConfig: true }
+
+3. CHECK: Check which configuration values are filled/missing
+   - Returns status metadata only, NEVER actual configuration values
+   - Example: { mode: "check", variableNames: ["API_KEY", "DB_PASSWORD"], filePath: "Config.toml" }
+   - Returns: { success: true, status: { API_KEY: "filled", DB_PASSWORD: "missing" } }
 
 IMPORTANT: When generating tests that use configurables, ALWAYS use isTestConfig: true.
 This ensures tests have their own Config.toml in the tests/ directory.
@@ -243,26 +226,6 @@ export async function ConfigCollectorTool(
 
     try {
         switch (input.mode) {
-            case "create":
-                return await handleCreateMode(
-                    input.variables,
-                    paths,
-                    eventHandler,
-                    requestId,
-                    input.isTestConfig,
-                    modifiedFiles
-                );
-
-            case "create_and_collect":
-                return await handleCreateAndCollectMode(
-                    input.variables,
-                    paths,
-                    eventHandler,
-                    requestId,
-                    input.isTestConfig,
-                    modifiedFiles
-                );
-
             case "collect":
                 return await handleCollectMode(
                     input.variables,
@@ -290,101 +253,6 @@ export async function ConfigCollectorTool(
     }
 }
 
-async function handleCreateMode(
-    variables: ConfigVariable[],
-    paths: ConfigCollectorPaths,
-    eventHandler: CopilotEventHandler,
-    requestId: string,
-    isTestConfig?: boolean,
-    modifiedFiles?: string[]
-): Promise<ConfigCollectorResult> {
-    // Validate variable names
-    const validationError = validateConfigVariables(variables);
-    if (validationError) { return validationError; }
-
-    const configPath = getConfigPath(paths.tempPath, isTestConfig);
-    const configFileName = getConfigFileName(isTestConfig);
-
-    // If file already exists, delegate to check mode to inform the agent of current status
-    if (fs.existsSync(configPath)) {
-        console.log(`[ConfigCollector] CREATE mode - ${configFileName} already exists, delegating to check mode`);
-        const variableNames = variables.map((v) => v.name);
-        const checkResult = await handleCheckMode(variableNames, undefined, paths, isTestConfig);
-        return {
-            ...checkResult,
-            message: `${configFileName} already exists. ${checkResult.message}. Use collect mode to update values.`,
-        };
-    }
-
-    console.log(`[ConfigCollector] CREATE mode - Creating ${configFileName} with placeholders`);
-
-    eventHandler({
-        type: "configuration_collection_event",
-        requestId,
-        stage: "creating_file",
-        message: isTestConfig
-            ? "Creating configuration file for tests..."
-            : "Creating configuration file...",
-        isTestConfig,
-    });
-
-    createConfigWithPlaceholders(configPath, variables, false);
-
-    if (modifiedFiles && !modifiedFiles.includes(configFileName)) {
-        modifiedFiles.push(configFileName);
-    }
-
-    eventHandler({
-        type: "configuration_collection_event",
-        requestId,
-        stage: "done",
-        message: isTestConfig
-            ? "Configuration file for tests created"
-            : "Configuration file created",
-        isTestConfig,
-    });
-
-    return {
-        success: true,
-        message: `Created ${configFileName} with ${variables.length} placeholder variable(s). Use collect mode to request configuration values from user.`,
-    };
-}
-
-async function handleCreateAndCollectMode(
-    variables: ConfigVariable[],
-    paths: ConfigCollectorPaths,
-    eventHandler: CopilotEventHandler,
-    requestId: string,
-    isTestConfig?: boolean,
-    modifiedFiles?: string[]
-): Promise<ConfigCollectorResult> {
-    const configPath = getConfigPath(paths.tempPath, isTestConfig);
-
-    // If file already exists, skip create and go straight to collect
-    if (!fs.existsSync(configPath)) {
-        const createResult = await handleCreateMode(
-            variables,
-            paths,
-            eventHandler,
-            requestId,
-            isTestConfig,
-            modifiedFiles
-        );
-        if (!createResult.success) {
-            return createResult;
-        }
-    }
-
-    return await handleCollectMode(
-        variables,
-        paths,
-        eventHandler,
-        requestId,
-        isTestConfig,
-        modifiedFiles
-    );
-}
-
 async function handleCollectMode(
     variables: ConfigVariable[],
     paths: ConfigCollectorPaths,
@@ -406,36 +274,7 @@ async function handleCollectMode(
         ? (fs.existsSync(configPath) ? configPath : mainConfigPath)
         : configPath;
 
-    // Capture whether the test config already existed
-    const testConfigPreExisted = isTestConfig && fs.existsSync(configPath);
-
-    // Create config file if it doesn't exist
-    if (!fs.existsSync(configPath)) {
-        console.log(`[ConfigCollector] Creating ${getConfigFileName(isTestConfig)}`);
-
-        // Emit creating_file stage
-        eventHandler({
-            type: "configuration_collection_event",
-            requestId,
-            stage: "creating_file",
-            message: isTestConfig
-                ? "Setting up tests/Config.toml..."
-                : "Setting up Config.toml...",
-            isTestConfig,
-        });
-
-        createConfigWithPlaceholders(configPath, variables, false);
-
-        // Track modified file
-        if (modifiedFiles) {
-            const configFileName = getConfigFileName(isTestConfig);
-            if (!modifiedFiles.includes(configFileName)) {
-                modifiedFiles.push(configFileName);
-            }
-        }
-    }
-
-    // Read existing configuration values from source config (if they exist)
+    // Read existing configuration values from source config (if they exist) for pre-populating the form
     const existingValues = readExistingConfigValues(
         sourceConfigPath,
         variables.map(v => v.name)
@@ -452,9 +291,7 @@ async function handleCollectMode(
     // Determine the message to show to user
     const userMessage = isTestConfig
         ? (analysis.hasActualValues
-            ? (testConfigPreExisted
-                ? "Found existing test values. You can update them."
-                : "Found values from main config. You can reuse or update them for testing.")
+            ? "Found values from main config. You can reuse or update them for testing."
             : "Test configuration values needed")
         : (analysis.hasActualValues
             ? "Update configuration values"
@@ -472,8 +309,6 @@ async function handleCollectMode(
     );
 
     if (!userResponse.provided) {
-        // User cancelled
-        const configFileName = getConfigFileName(isTestConfig);
         eventHandler({
             type: "configuration_collection_event",
             requestId,
@@ -484,8 +319,8 @@ async function handleCollectMode(
 
         return {
             success: false,
-            message: `User cancelled configuration collection${userResponse.comment ? ": " + userResponse.comment : ""}. ${configFileName} has placeholder values. You can ask user to provide values later using collect mode.`,
-            error: `User cancelled${userResponse.comment ? ": " + userResponse.comment : ""}`,
+            message: `User skipped configuration collection${userResponse.comment ? ": " + userResponse.comment : ""}. You can ask user to provide values later using collect mode.`,
+            error: `User skipped${userResponse.comment ? ": " + userResponse.comment : ""}`,
             errorCode: "USER_CANCELLED",
         };
     }
@@ -545,7 +380,7 @@ async function handleCheckMode(
     if (!fs.existsSync(configPath)) {
         return {
             success: false,
-            message: `${configFileName} not found. Use create or collect mode to create it.`,
+            message: `${configFileName} not found. Use collect mode to create it.`,
             error: "FILE_NOT_FOUND",
             errorCode: "FILE_NOT_FOUND",
         };
