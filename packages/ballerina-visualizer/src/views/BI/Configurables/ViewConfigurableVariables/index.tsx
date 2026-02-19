@@ -249,17 +249,6 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         getTestConfigVariables();
     };
 
-    const [showCopyConfirm, setShowCopyConfirm] = useState<boolean>(false);
-
-    const handleCopyAllFromIntegration = async () => {
-        await rpcClient.getBIDiagramRpcClient().copyConfigToml({
-            sourceFilePath: props.projectPath,
-            destFilePath: props.testsConfigTomlPath,
-        });
-        setShowCopyConfirm(false);
-        getTestConfigVariables();
-    };
-
     const handleSearch = (e: string) => {
         setSearchValue(e);
     }
@@ -750,37 +739,10 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                     <Codicon name="add" sx={{ marginRight: 5 }} />Add Config
                                                                 </Button>
                                                             )}
-                                                        {isTestsContext && !selectedModule && (
-                                                            <Button appearance="secondary" onClick={() => setShowCopyConfirm(true)}>
-                                                                <Codicon name="copy" sx={{ marginRight: 5 }} />Copy from Integration
-                                                            </Button>
-                                                        )}
                                                     </TitleContent>
                                                     <TitleBoxShadow />
                                                 </div>
                                                 <Container>
-                                                    {/* Copy-from-integration confirmation warning */}
-                                                    {showCopyConfirm && (
-                                                        <div style={{
-                                                            margin: '0 0 16px 0',
-                                                            padding: '12px 16px',
-                                                            background: 'var(--vscode-inputValidation-warningBackground)',
-                                                            border: '1px solid var(--vscode-inputValidation-warningBorder)',
-                                                            borderRadius: '4px',
-                                                        }}>
-                                                            <Typography variant="body2" sx={{ marginBottom: '10px' }}>
-                                                                This will overwrite the entire <strong>tests/Config.toml</strong> with the contents of the root <strong>Config.toml</strong>. Any existing test configuration values will be lost. Continue?
-                                                            </Typography>
-                                                            <div style={{ display: 'flex', gap: '8px' }}>
-                                                                <Button appearance="primary" onClick={handleCopyAllFromIntegration}>
-                                                                    Continue
-                                                                </Button>
-                                                                <Button appearance="secondary" onClick={() => setShowCopyConfirm(false)}>
-                                                                    Cancel
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    )}
                                                     {/* Tests full view — integration vars + imported libraries as collapsible sections */}
                                                     {isTestsContext && !selectedModule && (
                                                         <>
