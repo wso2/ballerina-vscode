@@ -1499,6 +1499,8 @@ export interface Member {
     optional?: boolean;
     imports?: Imports;
     readonly?: boolean;
+    selected?: boolean;
+    typeName?: string;
     isGraphqlId?: boolean;
 }
 
