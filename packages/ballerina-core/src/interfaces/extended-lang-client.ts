@@ -515,9 +515,11 @@ export interface CreateConvertedVariableRequest {
     subMappingName?: string;
 
     // Converting variable related
-    typeName: string;
     variableName: string;
     isInput: boolean;
+    typeName: string;
+    parentTypeName?: string;
+    imports?: Imports;
 }
 
 export interface GraphqlDesignServiceParams {

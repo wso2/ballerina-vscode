@@ -626,7 +626,7 @@ export function DataMapperView(props: DataMapperViewProps) {
         }
     };
 
-    const createConvertedVariable = async (variableName: string, isInput: boolean, typeName?: string) => {
+    const createConvertedVariable = async (variableName: string, isInput: boolean, typeName?: string, parentTypeName?: string) => {
         const initialTypeName = typeName || variableName.charAt(0).toUpperCase() + variableName.slice(1);
         initialTypeNameRef.current = await genUniqueName(initialTypeName, viewState.viewId);
 
@@ -645,8 +645,10 @@ export function DataMapperView(props: DataMapperViewProps) {
                     targetField: viewState.viewId,
                     subMappingName: viewState.subMappingName,
                     typeName: newTypeName,
+                    isInput,
                     variableName,
-                    isInput
+                    parentTypeName,
+                    imports
                 }).then(res => {
                     console.log(">>> [Data Mapper] createConvertedVariable response:", res);
                 }).catch(error => {
