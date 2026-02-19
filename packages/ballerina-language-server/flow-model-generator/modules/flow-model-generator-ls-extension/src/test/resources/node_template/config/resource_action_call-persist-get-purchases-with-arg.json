@@ -158,7 +158,8 @@
                     }
                   },
                   "id": 0,
-                  "isNew": false
+                  "isNew": false,
+                  "data": {}
                 },
                 "properties": {
                   "name": {
