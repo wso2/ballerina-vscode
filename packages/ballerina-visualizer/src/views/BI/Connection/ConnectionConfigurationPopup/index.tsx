@@ -34,7 +34,7 @@ import { Codicon, Icon, ThemeColors, Typography } from "@wso2/ui-toolkit";
 import { ConnectorIcon } from "@wso2/bi-diagram";
 import ConnectionConfigView from "../ConnectionConfigView";
 import { getFormProperties } from "../../../../utils/bi";
-import { ExpressionFormField } from "@wso2/ballerina-side-panel";
+import { ExpressionEditorDevantProps, ExpressionFormField, FormValues } from "@wso2/ballerina-side-panel";
 import { RelativeLoader } from "../../../../components/RelativeLoader";
 import { HelperView } from "../../HelperView";
 import { DownloadIcon } from "../../../../components/DownloadIcon";
@@ -48,7 +48,7 @@ const ConnectorInfoCard = styled.div`
     align-items: center;
     gap: 12px;
     padding: 12px;
-    margin: 16px 20px;
+    margin: 16px 0;
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 8px;
     background-color: ${ThemeColors.SURFACE_DIM};
@@ -143,7 +143,7 @@ const ConfigContent = styled.div<{ hasFooterButton?: boolean }>`
     display: flex;
     flex-direction: column;
     overflow: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "hidden" : "auto"};
-    padding: 0 16px ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"} 16px;
+    padding: 0 0 ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"} 0;
     min-height: 0;
 `;
 
@@ -183,6 +183,10 @@ const StatusText = styled(Typography)`
     text-align: center;
 `;
 
+const FormWrap = styled.div`
+    padding: 16px;
+`;
+
 enum PullingStatus {
     FETCHING = "fetching",
     PULLING = "pulling",
@@ -196,17 +200,54 @@ enum SavingFormStatus {
     ERROR = "error",
 }
 
-interface ConnectionConfigurationPopupProps {
+export interface ConnectionConfigurationPopupProps {
     selectedConnector: AvailableNode;
     fileName: string;
     target?: LinePosition;
     onClose: (parent?: ParentPopupData) => void;
     onBack: () => void;
     filteredCategories?: Category[];
+    customValidator?: (fieldKey: string, value: any, allValues: FormValues) => string | undefined;
+    overrideFlowNode?: (node: FlowNode) => FlowNode;
 }
 
 export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopupProps) {
-    const { selectedConnector, fileName, target, onClose, onBack, filteredCategories = [] } = props;
+    const { selectedConnector, onClose, onBack } = props;
+
+    return (
+        <>
+            <PopupOverlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }} />
+            <PopupContainer>
+                <ConfigHeader>
+                    <BackButton appearance="icon" onClick={onBack}>
+                        <Codicon name="chevron-left" />
+                    </BackButton>
+                    <ConfigTitleContainer>
+                        <PopupTitle variant="h2">Configure {selectedConnector.metadata.label}</PopupTitle>
+                        <ConfigSubtitle variant="body2">
+                            Configure connection settings for this connector
+                        </ConfigSubtitle>
+                    </ConfigTitleContainer>
+                    <CloseButton appearance="icon" onClick={() => onClose()}>
+                        <Codicon name="close" />
+                    </CloseButton>
+                </ConfigHeader>
+
+                <FormWrap>
+                    <ConnectionConfigurationForm {...props}/>
+                </FormWrap>
+            </PopupContainer>
+        </>
+    );
+}
+
+export interface ConnectionConfigurationFormProps extends Omit<ConnectionConfigurationPopupProps, 'onBack'> {
+    loading?: boolean;
+    devantExpressionEditor?: ExpressionEditorDevantProps;
+}
+
+export function ConnectionConfigurationForm(props: ConnectionConfigurationFormProps) {
+    const { selectedConnector, fileName, target, onClose, filteredCategories = [], loading, devantExpressionEditor, customValidator, overrideFlowNode } = props;
     const { rpcClient } = useRpcContext();
 
     const [pullingStatus, setPullingStatus] = useState<PullingStatus | undefined>(undefined);
@@ -247,7 +288,7 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                 });
 
                 // Wait for either the timer or the request to finish
-                const response = await Promise.race([
+                let response = await Promise.race([
                     nodeTemplatePromise.then((res) => {
                         if (timer) {
                             clearTimeout(timer);
@@ -264,6 +305,9 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                 }
 
                 console.log(">>> FlowNode template", response);
+                if (overrideFlowNode) {
+                    response.flowNode = overrideFlowNode(response.flowNode);
+                }
                 selectedNodeRef.current = response.flowNode;
                 const formProperties = getFormProperties(response.flowNode);
                 console.log(">>> Form properties", formProperties);
@@ -374,109 +418,93 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
 
     return (
         <>
-            <PopupOverlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }} />
-            <PopupContainer>
-                <ConfigHeader>
-                    <BackButton appearance="icon" onClick={onBack}>
-                        <Codicon name="chevron-left" />
-                    </BackButton>
-                    <ConfigTitleContainer>
-                        <PopupTitle variant="h2">Configure {selectedConnector.metadata.label}</PopupTitle>
-                        <ConfigSubtitle variant="body2">
-                            Configure connection settings for this connector
-                        </ConfigSubtitle>
-                    </ConfigTitleContainer>
-                    <CloseButton appearance="icon" onClick={() => onClose()}>
-                        <Codicon name="close" />
-                    </CloseButton>
-                </ConfigHeader>
+            <ConnectorInfoCard>
+                <ConnectorInfoIcon>
+                    {selectedConnector.metadata.icon ? (
+                        <StyledConnectorIcon>
+                            <ConnectorIcon url={selectedConnector.metadata.icon} />
+                        </StyledConnectorIcon>
+                    ) : (
+                        <StyledCodicon name="package" />
+                    )}
+                </ConnectorInfoIcon>
+                <ConnectorInfoContent>
+                    <ConnectorInfoName>{selectedConnector.metadata.label}</ConnectorInfoName>
+                    <ConnectorInfoDescription>
+                        {selectedConnector.metadata.description || ""}
+                    </ConnectorInfoDescription>
+                </ConnectorInfoContent>
+                <ConnectorTag>
+                    <TagText variant="caption">{getConnectorTag()}</TagText>
+                </ConnectorTag>
+            </ConnectorInfoCard>
 
-                <ConnectorInfoCard>
-                    <ConnectorInfoIcon>
-                        {selectedConnector.metadata.icon ? (
-                            <StyledConnectorIcon>
-                                <ConnectorIcon url={selectedConnector.metadata.icon} />
-                            </StyledConnectorIcon>
-                        ) : (
-                            <StyledCodicon name="package" />
+            <ConfigContent hasFooterButton={!pullingStatus && !!selectedNodeRef.current}>
+                {pullingStatus && (
+                    <StatusContainer>
+                        {pullingStatus === PullingStatus.FETCHING && (
+                            <RelativeLoader message="Loading connector package..." />
                         )}
-                    </ConnectorInfoIcon>
-                    <ConnectorInfoContent>
-                        <ConnectorInfoName>{selectedConnector.metadata.label}</ConnectorInfoName>
-                        <ConnectorInfoDescription>
-                            {selectedConnector.metadata.description || ""}
-                        </ConnectorInfoDescription>
-                    </ConnectorInfoContent>
-                    <ConnectorTag>
-                        <TagText variant="caption">{getConnectorTag()}</TagText>
-                    </ConnectorTag>
-                </ConnectorInfoCard>
-
-                <ConfigContent hasFooterButton={!pullingStatus && !!selectedNodeRef.current}>
-                    {pullingStatus && (
-                        <StatusContainer>
-                            {pullingStatus === PullingStatus.FETCHING && (
-                                <RelativeLoader message="Loading connector package..." />
-                            )}
-                            {pullingStatus === PullingStatus.PULLING && (
-                                <StatusCard>
-                                    <DownloadIcon color="var(--vscode-progressBar-background)" />
-                                    <StatusText variant="body2">
-                                        Please wait while the connector is being pulled.
-                                    </StatusText>
-                                </StatusCard>
-                            )}
-                            {pullingStatus === PullingStatus.SUCCESS && (
-                                <StatusCard>
-                                    <Icon
-                                        name="bi-success"
-                                        sx={{
-                                            color: ThemeColors.PRIMARY,
-                                            fontSize: "28px",
-                                            width: "28px",
-                                            height: "28px",
-                                        }}
-                                    />
-                                    <StatusText variant="body2">Connector pulled successfully.</StatusText>
-                                </StatusCard>
-                            )}
-                            {pullingStatus === PullingStatus.ERROR && (
-                                <StatusCard>
-                                    <Icon
-                                        name="bi-error"
-                                        sx={{
-                                            color: ThemeColors.ERROR,
-                                            fontSize: "28px",
-                                            width: "28px",
-                                            height: "28px",
-                                        }}
-                                    />
-                                    <StatusText variant="body2">
-                                        Failed to pull the connector. Please try again.
-                                    </StatusText>
-                                </StatusCard>
-                            )}
-                        </StatusContainer>
-                    )}
-                    {!pullingStatus && selectedNodeRef.current && (
-                        <>
-                            <FormContainer>
-                                <ConnectionConfigView
-                                    fileName={fileName}
-                                    submitText={savingFormStatus === SavingFormStatus.SAVING ? "Saving..." : "Save Connection"}
-                                    isSaving={savingFormStatus === SavingFormStatus.SAVING}
-                                    selectedNode={getNodeForForm(selectedNodeRef.current)}
-                                    onSubmit={handleOnFormSubmit}
-                                    updatedExpressionField={updatedExpressionField}
-                                    resetUpdatedExpressionField={handleResetUpdatedExpressionField}
-                                    isPullingConnector={savingFormStatus === SavingFormStatus.SAVING}
-                                    footerActionButton={true}
+                        {pullingStatus === PullingStatus.PULLING && (
+                            <StatusCard>
+                                <DownloadIcon color="var(--vscode-progressBar-background)" />
+                                <StatusText variant="body2">
+                                    Please wait while the connector is being pulled.
+                                </StatusText>
+                            </StatusCard>
+                        )}
+                        {pullingStatus === PullingStatus.SUCCESS && (
+                            <StatusCard>
+                                <Icon
+                                    name="bi-success"
+                                    sx={{
+                                        color: ThemeColors.PRIMARY,
+                                        fontSize: "28px",
+                                        width: "28px",
+                                        height: "28px",
+                                    }}
                                 />
-                            </FormContainer>
-                        </>
-                    )}
-                </ConfigContent>
-            </PopupContainer>
+                                <StatusText variant="body2">Connector pulled successfully.</StatusText>
+                            </StatusCard>
+                        )}
+                        {pullingStatus === PullingStatus.ERROR && (
+                            <StatusCard>
+                                <Icon
+                                    name="bi-error"
+                                    sx={{
+                                        color: ThemeColors.ERROR,
+                                        fontSize: "28px",
+                                        width: "28px",
+                                        height: "28px",
+                                    }}
+                                />
+                                <StatusText variant="body2">
+                                    Failed to pull the connector. Please try again.
+                                </StatusText>
+                            </StatusCard>
+                        )}
+                    </StatusContainer>
+                )}
+                {!pullingStatus && selectedNodeRef.current && (
+                    <>
+                        <FormContainer>
+                            <ConnectionConfigView
+                                fileName={fileName}
+                                submitText={loading || savingFormStatus === SavingFormStatus.SAVING ? "Saving..." : "Save Connection"}
+                                isSaving={loading || savingFormStatus === SavingFormStatus.SAVING}
+                                selectedNode={getNodeForForm(selectedNodeRef.current)}
+                                onSubmit={handleOnFormSubmit}
+                                updatedExpressionField={updatedExpressionField}
+                                resetUpdatedExpressionField={handleResetUpdatedExpressionField}
+                                isPullingConnector={savingFormStatus === SavingFormStatus.SAVING}
+                                footerActionButton={true}
+                                devantExpressionEditor={devantExpressionEditor}
+                                customValidator={customValidator}
+                            />
+                        </FormContainer>
+                    </>
+                )}
+            </ConfigContent>
         </>
     );
 }
