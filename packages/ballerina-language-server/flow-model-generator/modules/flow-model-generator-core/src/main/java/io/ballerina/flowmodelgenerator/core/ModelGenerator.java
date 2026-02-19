@@ -223,7 +223,7 @@ public class ModelGenerator {
             Path docFilePath = project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
                     project.sourceRoot().resolve(location.lineRange().fileName());
             DocumentId documentId = project.documentId(docFilePath);
-            Document document = project.currentPackage().getDefaultModule().document(documentId);
+            Document document = project.currentPackage().module(documentId.moduleId()).document(documentId);
             NonTerminalNode node = CommonUtils.getNode(document.syntaxTree(), location.textRange());
             if (node.kind() != SyntaxKind.SERVICE_DECLARATION) {
                 continue;
@@ -350,7 +350,7 @@ public class ModelGenerator {
             docFilePath = project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
                     project.sourceRoot().resolve(location.lineRange().fileName());
             DocumentId documentId = project.documentId(docFilePath);
-            document = project.currentPackage().getDefaultModule().document(documentId);
+            document = project.currentPackage().module(documentId.moduleId()).document(documentId);
             NonTerminalNode childNode =
                     symbol.getLocation().map(loc -> CommonUtils.getNode(document.syntaxTree(), loc.textRange()))
                             .orElseThrow();
@@ -401,7 +401,7 @@ public class ModelGenerator {
             docFilePath = project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
                     project.sourceRoot().resolve(location.lineRange().fileName());
             DocumentId documentId = project.documentId(docFilePath);
-            document = project.currentPackage().getDefaultModule().document(documentId);
+            document = project.currentPackage().module(documentId.moduleId()).document(documentId);
             NonTerminalNode childNode =
                     symbol.getLocation().map(loc -> CommonUtils.getNode(document.syntaxTree(), loc.textRange()))
                             .orElseThrow();
@@ -451,7 +451,7 @@ public class ModelGenerator {
                         docFilePath = project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
                                 project.sourceRoot().resolve(location.lineRange().fileName());
                         DocumentId documentId = project.documentId(docFilePath);
-                        document = project.currentPackage().getDefaultModule().document(documentId);
+                        document = project.currentPackage().module(documentId.moduleId()).document(documentId);
                     } catch (RuntimeException ignored) {
                         return Optional.empty();
                     }
@@ -527,7 +527,7 @@ public class ModelGenerator {
             docFilePath = project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
                     project.sourceRoot().resolve(location.lineRange().fileName());
             DocumentId documentId = project.documentId(docFilePath);
-            document = project.currentPackage().getDefaultModule().document(documentId);
+            document = project.currentPackage().module(documentId.moduleId()).document(documentId);
             NonTerminalNode childNode =
                     symbol.getLocation().map(loc -> CommonUtils.getNode(document.syntaxTree(), loc.textRange()))
                             .orElseThrow();
@@ -568,7 +568,7 @@ public class ModelGenerator {
                     DocumentId documentId = project.documentId(
                             project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
                                     project.sourceRoot().resolve(location.lineRange().fileName()));
-                    Document document = project.currentPackage().getDefaultModule().document(documentId);
+                    Document document = project.currentPackage().module(documentId.moduleId()).document(documentId);
                     NonTerminalNode node = CommonUtils.getNode(document.syntaxTree(), location.textRange());
 
                     // Check if this reference is within an assignment statement
