@@ -457,9 +457,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             private RecordSelectorType recordSelectorType;
             private boolean selected = false;
 
-            public record TypeModel(TypeData root, List<TypeData> references) {
-            }
-
             private TypeBuilder() {
             }
 
