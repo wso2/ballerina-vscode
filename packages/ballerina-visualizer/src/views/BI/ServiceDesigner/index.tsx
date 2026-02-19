@@ -199,6 +199,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [showFunctionConfigForm, setShowFunctionConfigForm] = useState<boolean>(false);
     const [projectListeners, setProjectListeners] = useState<ProjectStructureArtifactResponse[]>([]);
     const prevPosition = useRef(position);
+    const positionRef = useRef(position);
+    const isMountedRef = useRef(true);
 
     const [resources, setResources] = useState<ProjectStructureArtifactResponse[]>([]);
     const [searchValue, setSearchValue] = useState<string>("");
@@ -259,13 +261,21 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     };
 
     useEffect(() => {
+        positionRef.current = position;
+        isMountedRef.current = true;
+
         if (!serviceModel || isPositionChanged(prevPosition.current, position)) {
             fetchService(position);
         }
 
         rpcClient.onProjectContentUpdated(() => {
-            fetchService(position);
+            if (!isMountedRef.current) return;
+            fetchService(positionRef.current);
         });
+
+        return () => {
+            isMountedRef.current = false;
+        };
     }, [position]);
 
     const fetchService = (targetPosition: NodePosition, addMore?: boolean) => {
@@ -278,6 +288,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 .getServiceDesignerRpcClient()
                 .getServiceModelFromCode({ filePath, codedata: { lineRange } })
                 .then((res) => {
+                    if (!isMountedRef.current) return;
                     console.log("Service Model: ", res.service);
                     if (addMore) {
                         handleNewResourceFunction();
