@@ -24,6 +24,7 @@ import { ListenerModel, LineRange, RecordTypeField, Property, getPrimaryInputTyp
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import FormGeneratorNew from "../../Forms/FormGeneratorNew";
 import { getImportsForProperty } from "../../../../utils/bi";
+import { isValueEqual } from "../utils";
 
 const Container = styled.div`
     /* padding: 0 20px 20px; */
@@ -69,19 +70,6 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const initialFieldValuesRef = useRef<Record<string, any>>({});
-
-    const isValueEqual = (currentValue: any, initialValue: any): boolean => {
-        const serializeValue = new StringTemplateEditorConfig();
-        if (Array.isArray(currentValue) || Array.isArray(initialValue) || typeof currentValue === "object" || typeof initialValue === "object") {
-            return JSON.stringify(currentValue ?? null) === JSON.stringify(initialValue ?? null);
-        }
-        currentValue = serializeValue.serializeValue(currentValue as string).trim().replace(/^"|"$/g, '');
-        initialValue = serializeValue.serializeValue(initialValue as string).trim().replace(/^"|"$/g, '');
-        if (currentValue === initialValue) {
-            return true;
-        }
-        return false;
-    };
 
     useEffect(() => {
         const recordTypeFields: RecordTypeField[] = Object.entries(listenerModel.properties)
