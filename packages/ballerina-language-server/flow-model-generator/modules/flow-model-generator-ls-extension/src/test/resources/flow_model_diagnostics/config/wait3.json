@@ -163,7 +163,7 @@
     "flags": 0
   },
   "output": {
-    "id": "39851",
+    "id": "39898",
     "metadata": {
       "label": "Wait",
       "description": "Wait for a set of futures to complete"
@@ -178,165 +178,38 @@
         },
         "endLine": {
           "line": 8,
-          "offset": 47
+          "offset": 94
         }
       },
-      "sourceCode": "string waitResult = wait worker1 | worker2;"
+      "sourceCode": "string waitResult = wait {future1: {expression: worker1}, future2: {expression: worker2}};"
     },
     "returning": false,
     "properties": {
-      "waitAll": {
-        "metadata": {
-          "label": "Wait All",
-          "description": "Wait for all tasks to complete"
-        },
-        "types": [
-          {
-            "fieldType": "FLAG",
-            "selected": true
-          }
-        ],
-        "value": false,
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false
-      },
       "futures": {
-        "metadata": {
-          "label": "Futures",
-          "description": "The futures to wait for"
-        },
-        "types": [
-          {
-            "fieldType": "REPEATABLE_PROPERTY",
-            "selected": false
-          }
-        ],
         "value": {
           "future1": {
-            "metadata": {
-              "label": "Future",
-              "description": "The worker/async function to wait for"
-            },
             "types": [
               {
-                "fieldType": "FIXED_PROPERTY",
-                "selected": false
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "future<any|error>",
+                "selected": true
               }
             ],
-            "value": {
-              "variable": {
-                "metadata": {
-                  "label": "Variable Name",
-                  "description": "Name of the variable"
-                },
-                "types": [
-                  {
-                    "fieldType": "IDENTIFIER",
-                    "selected": true
-                  }
-                ],
-                "value": "",
-                "optional": false,
-                "editable": true,
-                "advanced": false,
-                "hidden": false,
-                "codedata": {
-                  "dependentProperty": "waitAll"
-                }
-              },
-              "expression": {
-                "metadata": {
-                  "label": "Expression",
-                  "description": "Expression"
-                },
-                "types": [
-                  {
-                    "fieldType": "EXPRESSION",
-                    "selected": true
-                  }
-                ],
-                "value": "worker1 ",
-                "optional": false,
-                "editable": true,
-                "advanced": false,
-                "hidden": false,
-                "diagnostics": {
-                  "hasDiagnostics": true,
-                  "diagnostics": [
-                    {
-                      "severity": "ERROR",
-                      "message": "incompatible types: expected 'future<string>', found 'future<int>'"
-                    }
-                  ]
-                }
-              }
-            },
+            "value": "{expression: worker1}",
             "optional": false,
             "editable": false,
             "advanced": false,
             "hidden": false
           },
           "future2": {
-            "metadata": {
-              "label": "Future",
-              "description": "The worker/async function to wait for"
-            },
             "types": [
               {
-                "fieldType": "FIXED_PROPERTY",
-                "selected": false
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "future<any|error>",
+                "selected": true
               }
             ],
-            "value": {
-              "variable": {
-                "metadata": {
-                  "label": "Variable Name",
-                  "description": "Name of the variable"
-                },
-                "types": [
-                  {
-                    "fieldType": "IDENTIFIER",
-                    "selected": true
-                  }
-                ],
-                "value": "",
-                "optional": false,
-                "editable": true,
-                "advanced": false,
-                "hidden": false,
-                "codedata": {
-                  "dependentProperty": "waitAll"
-                }
-              },
-              "expression": {
-                "metadata": {
-                  "label": "Expression",
-                  "description": "Expression"
-                },
-                "types": [
-                  {
-                    "fieldType": "EXPRESSION",
-                    "selected": true
-                  }
-                ],
-                "value": "worker2",
-                "optional": false,
-                "editable": true,
-                "advanced": false,
-                "hidden": false,
-                "diagnostics": {
-                  "hasDiagnostics": true,
-                  "diagnostics": [
-                    {
-                      "severity": "ERROR",
-                      "message": "incompatible types: expected 'future<string>', found 'future'"
-                    }
-                  ]
-                }
-              }
-            },
+            "value": "{expression: worker2}",
             "optional": false,
             "editable": false,
             "advanced": false,
@@ -380,7 +253,7 @@
       },
       "type": {
         "metadata": {
-          "label": "Variable Type",
+          "label": "Type of the variable",
           "description": "Type of the variable"
         },
         "types": [
@@ -394,7 +267,7 @@
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       }
     },

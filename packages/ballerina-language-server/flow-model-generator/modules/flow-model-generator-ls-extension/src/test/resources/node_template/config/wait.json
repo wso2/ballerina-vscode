@@ -27,7 +27,7 @@
             "template": {
               "metadata": {
                 "label": "Future",
-                "description": "Wait for a set of futures to complete"
+                "description": "The future to wait for"
               },
               "types": [
                 {
