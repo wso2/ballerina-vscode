@@ -6,18 +6,18 @@
     "lineRange": {
       "fileName": "function_def_transformed_type1.bal",
       "startLine": {
-        "line": 19,
+        "line": 21,
         "offset": 0
       },
       "endLine": {
-        "line": 19,
+        "line": 21,
         "offset": 106
       }
     },
     "sourceCode": ""
   },
   "position": {
-    "line": 19,
+    "line": 21,
     "offset": 48
   },
   "propertyKey": "expression",

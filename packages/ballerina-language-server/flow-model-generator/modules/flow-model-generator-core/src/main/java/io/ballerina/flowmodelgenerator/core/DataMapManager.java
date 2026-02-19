@@ -793,7 +793,7 @@ public class DataMapManager {
             ExpressionNode methodCallExpr = methodCall.expression();
             Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(methodCallExpr);
             if (typeSymbol.isPresent()) {
-                return new ConvertedVariable(letVarDeclaration, typeSymbol.get(), methodCallExpr.toSourceCode());
+                return new ConvertedVariable(letVarDeclaration, typeSymbol.get(), methodCallExpr.toSourceCode().trim());
             }
         }
         return null;
@@ -805,9 +805,13 @@ public class DataMapManager {
         if (bindingPattern.kind() != SyntaxKind.CAPTURE_BINDING_PATTERN) {
             return null;
         }
-
         String varName = ((CaptureBindingPatternNode) bindingPattern).variableName().text();
-        if (varName.equals(letExpr.toSourceCode())) {
+        String jsonConversion = "jsondata:toJson(" + varName + ")";
+        String xmlConversion = "xml:toXml(" + varName + ")";
+
+        String letExprSource = letExpr.toSourceCode().trim();
+        if (varName.equals(letExprSource) ||
+                jsonConversion.equals(letExprSource) || xmlConversion.equals(letExprSource)) {
             return new ConvertedVariable(letVarDeclaration, parentType, varName);
         }
 
@@ -1774,8 +1778,12 @@ public class DataMapManager {
                 for (LetVariableDeclarationNode letVarDeclaration : letExprNode.letVarDeclarations()) {
                     BindingPatternNode bindingPatternNode = letVarDeclaration.typedBindingPattern().bindingPattern();
                     if (bindingPatternNode.kind() == SyntaxKind.CAPTURE_BINDING_PATTERN) {
-                        if (((CaptureBindingPatternNode) bindingPatternNode).variableName().text()
-                                .equals(letExpr.toSourceCode())) {
+                        String varName = ((CaptureBindingPatternNode) bindingPatternNode).variableName().text();
+                        String letExprSource = letExpr.toSourceCode().trim();
+                        String jsonConversion = "jsondata:toJson(" + varName + ")";
+                        String xmlConversion = "xml:toXml(" + varName + ")";
+                        if (varName.equals(letExprSource) ||
+                                jsonConversion.equals(letExprSource) || xmlConversion.equals(letExprSource)) {
                             return letVarDeclaration.expression();
                         }
                     }
@@ -3414,10 +3422,6 @@ public class DataMapManager {
         }
     }
 
-    private record ParentPort(String typeName, String variable) {
-
-    }
-
     private static class MappingRecordPort extends MappingPort {
         List<MappingPort> fields = new ArrayList<>();
 
@@ -3840,7 +3844,8 @@ public class DataMapManager {
     }
 
     public JsonElement convertType(Path filePath, SemanticModel semanticModel, JsonElement cd, String typeName,
-                                   String variableName, boolean isInput) {
+                                   String variableName, String parentTypeName, boolean isInput,
+                                   Map<String, String> imports) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode node = getNode(codedata.lineRange());
         if (node.kind() != SyntaxKind.FUNCTION_DEFINITION) {
@@ -3862,12 +3867,14 @@ public class DataMapManager {
             if (!isInput) {
                 if (codedata.isNew() != null && codedata.isNew()) {
                     String statement = String.format(", %s %s = %s", typeName, variableName,
-                            letExpr.expression().toSourceCode());
+                            letExpr.expression().toSourceCode().trim());
                     SeparatedNodeList<LetVariableDeclarationNode> letVarDeclarationNodes = letExpr.letVarDeclarations();
                     LinePosition linePosition =
                             letVarDeclarationNodes.get(letVarDeclarationNodes.size() - 1).lineRange().endLine();
                     textEdits.add(new TextEdit(CommonUtils.toRange(linePosition), statement));
-                    textEdits.add(new TextEdit(CommonUtils.toRange(letExpr.expression().lineRange()), variableName));
+                    textEdits.add(new TextEdit(CommonUtils.toRange(letExpr.expression().lineRange()),
+                            addTypeConversion(parentTypeName, textEdits, variableName,
+                                    document.syntaxTree().rootNode())));
                 } else {
                     LetVariableDeclarationNode letVar = getMatchingLetVar(letExpr.letVarDeclarations(), variableName);
                     textEdits.add(new TextEdit(
@@ -3891,15 +3898,18 @@ public class DataMapManager {
         } else {
             String statement;
             if (!isInput) {
-                statement = String.format("let %s %s = %s in %s", typeName, variableName, expression.toSourceCode(),
-                        variableName);
+                statement = String.format("let %s %s = %s in %s", typeName, variableName,
+                        expression.toSourceCode().trim(), addTypeConversion(parentTypeName, textEdits, variableName,
+                                document.syntaxTree().rootNode()));
             } else {
                 statement = String.format("let %s %sConverted = check %s.ensureType() in %s", typeName, variableName,
-                        variableName, expression.toSourceCode());
+                        variableName, expression.toSourceCode().trim());
                 addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
             }
             textEdits.add(new TextEdit(CommonUtils.toRange(expression.lineRange()), statement));
         }
+
+        addImports(textEdits, document.syntaxTree().rootNode(), imports);
 
         textEditsMap.put(filePath, textEdits);
         return gson.toJsonTree(textEditsMap);
@@ -3944,6 +3954,45 @@ public class DataMapManager {
         } else {
             textEdits.add(new TextEdit(
                     CommonUtils.toRange(funcDefNode.functionSignature().lineRange().endLine()), " returns error?"));
+        }
+    }
+
+    private String addTypeConversion(String parentTypeName, List<TextEdit> textEdits, String variableName,
+                                     ModulePartNode rootNode) {
+        if (parentTypeName.equals("json")) {
+            if (!CommonUtils.importExists(rootNode, "ballerina", "data.jsondata")) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().startLine()),
+                        "import ballerina/data.jsondata;\n"));
+            }
+            return "jsondata:toJson(" + variableName + ")";
+        } else if (parentTypeName.equals("xml")) {
+            if (!CommonUtils.importExists(rootNode, "ballerina", "data.xmldata")) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().startLine()),
+                        "import ballerina/data.xmldata;\n"));
+            }
+            return "xmldata:toXml(" + variableName + ")";
+        }
+
+        return variableName;
+    }
+
+    private void addImports(List<TextEdit> textEdits, ModulePartNode rootNode, Map<String, String> imports) {
+        if (imports == null || imports.isEmpty()) {
+            return;
+        }
+        Set<String> importStmts = new HashSet<>();
+        imports.values().forEach(moduleId -> {
+            String[] importParts = moduleId.split("/");
+            String orgName = importParts[0];
+            String moduleName = importParts[1].split(":")[0];
+            if (!CommonUtils.importExists(rootNode, orgName, moduleName)) {
+                importStmts.add(getImportStmt(orgName, moduleName));
+            }
+        });
+
+        if (!importStmts.isEmpty()) {
+            textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().startLine()),
+                    String.join("", importStmts)));
         }
     }
 }

@@ -18,6 +18,7 @@
     "sourceCode": ""
   },
   "typeName": "UserInfo",
+  "parentTypeName": "json",
   "variableName": "user",
   "isInput": true,
   "output": {

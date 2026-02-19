@@ -18,6 +18,7 @@
     "sourceCode": ""
   },
   "typeName": "Student",
+  "parentTypeName": "json",
   "variableName": "transform2",
   "isInput": false,
   "output": {
@@ -33,7 +34,20 @@
             "character": 56
           }
         },
-        "newText": ", Student transform2 =         {a: 10, b: 20}"
+        "newText": ", Student transform2 = {a: 10, b: 20}"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerina/data.jsondata;\n"
       },
       {
         "range": {
@@ -46,7 +60,7 @@
             "character": 22
           }
         },
-        "newText": "transform2"
+        "newText": "jsondata:toJson(transform2)"
       }
     ]
   }

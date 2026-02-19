@@ -20,17 +20,22 @@ package io.ballerina.flowmodelgenerator.extension.request;
 
 import com.google.gson.JsonElement;
 
+import java.util.Map;
+
 /**
  * Represents a request to convert an expression from one type to another for incompatible types.
  *
  * @param filePath     The file path of the source file
  * @param codedata     The details of the node
  * @param typeName     The converted type name
+ * @param parentTypeName The parent type name of the converted type
  * @param variableName The converted variable name
  * @param isInput      The converted variable is input or output
+ * @param imports      The imports to be added for the conversion
  *
  * @since 2.0.0
  */
 public record DataMapperConvertTypeRequest(String filePath, JsonElement codedata, String typeName,
-                                           String variableName, boolean isInput) {
+                                           String parentTypeName, String variableName, boolean isInput,
+                                           Map<String, String> imports) {
 }
