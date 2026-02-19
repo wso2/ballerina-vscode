@@ -18,6 +18,7 @@
 
 import * as os from 'os';
 import { NodePosition } from "@wso2/syntax-tree";
+import { StateMachine } from "../../stateMachine";
 import { Position, Progress, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
 import { PROJECT_KIND, ProjectInfo, TextEdit, WorkspaceTypeResponse } from "@wso2/ballerina-core";
 import axios from 'axios';
@@ -90,7 +91,7 @@ export async function askFilePath() {
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
-        defaultUri: Uri.file(os.homedir()),
+        defaultUri: Uri.file(StateMachine.context().projectPath  ?? os.homedir()),
         filters: {
             'Files': ['yaml', 'json', 'yml', 'graphql', 'wsdl']
         },

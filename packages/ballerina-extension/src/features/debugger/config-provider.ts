@@ -69,6 +69,7 @@ import { prepareAndGenerateConfig, cleanAndValidateProject } from '../config-gen
 import { extension } from '../../BalExtensionContext';
 import * as fs from 'fs';
 import { findHighestVersionJdk } from '../../utils/server/server';
+import { PlatformExtRpcManager } from '../../rpc-managers/platform-ext/rpc-manager';
 
 const BALLERINA_COMMAND = "ballerina.command";
 const EXTENDED_CLIENT_CAPABILITIES = "capabilities";
@@ -94,7 +95,11 @@ class DebugConfigProvider implements DebugConfigurationProvider {
         if (config.noDebug && (extension.ballerinaExtInstance.enabledRunFast() || StateMachine.context().isBI)) {
             await handleMainFunctionParams(config);
         }
-        return getModifiedConfigs(_folder, config);
+        const configs = await getModifiedConfigs(_folder, config);
+
+        // connect to Devant if applicable
+        await new PlatformExtRpcManager().setupDevantProxyForDebugging(configs);
+        return configs;
     }
 }
 
@@ -669,7 +674,7 @@ class BIRunAdapter extends LoggingDebugSession {
             }
 
             // Use the current process environment which should have the updated PATH
-            const env = process.env;
+            const env = { ...process.env, ...((args as any)?.env || {}) };
             debugLog(`[BIRunAdapter] Creating shell execution with env. PATH length: ${env.PATH?.length || 0}`);
 
             // Determine the correct working directory for the task
