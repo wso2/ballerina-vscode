@@ -17,18 +17,16 @@
  */
 
 import React, { useState } from "react";
-import { Button, Icon, ProgressRing } from "@wso2/ui-toolkit";
+import { Codicon, Icon, ProgressRing } from "@wso2/ui-toolkit";
 import { useIONodesStyles } from "../../../styles";
 
-export interface NodeActionWidgetProps {
+export interface PayloadWidgetProps {
     onClick: () => void | Promise<void>;
-    iconName: string;
-    tooltip?: string;
-    label: string;
+    typeName?: string;
 }
 
-export function NodeActionWidget(props: NodeActionWidgetProps) {
-    const { onClick, iconName, tooltip, label } = props;
+export function PayloadWidget(props: PayloadWidgetProps) {
+    const { onClick, typeName } = props;
     const classes = useIONodesStyles();
     const [inProgress, setInProgress] = useState(false);
 
@@ -44,20 +42,19 @@ export function NodeActionWidget(props: NodeActionWidgetProps) {
     };
 
     return (
-        <Button 
-            className={classes.nodeActionButton} 
-            onClick={handleOnClick}
-            disabled={inProgress}
-            tooltip={tooltip}
+        <div
+            className={classes.payloadWidget}
+            onClick={!inProgress ? handleOnClick : undefined}
         >
-            {inProgress ? (
-                <ProgressRing sx={{ height: '16px', width: '16px' }} />
-            ) : (
-                <Icon name={iconName} className="action-icon" />
-            )}
-            <p style={{ margin: 0 }} title={tooltip}>
-                {label}
-            </p>
-        </Button>
+            <p className={classes.payloadWidgetMessage}>{`Please provide a sample ${typeName} payload to construct the ${typeName} structure to create mappings`}</p>
+            <div className={classes.payloadWidgetAction}>
+                {inProgress ? (
+                    <ProgressRing sx={{ height: '16px', width: '16px' }} />
+                ) : (
+                    <Codicon name="add"/>
+                )}
+                <p className={classes.payloadWidgetActionLabel}>{`Add Sample ${typeName}`}</p>
+            </div>
+        </div>
     );
 }
