@@ -48,7 +48,7 @@ const ConnectorInfoCard = styled.div`
     align-items: center;
     gap: 12px;
     padding: 12px;
-    margin: 16px 0;
+    margin: 16px 20px;
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 8px;
     background-color: ${ThemeColors.SURFACE_DIM};
@@ -143,7 +143,7 @@ const ConfigContent = styled.div<{ hasFooterButton?: boolean }>`
     display: flex;
     flex-direction: column;
     overflow: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "hidden" : "auto"};
-    padding: 0 0 ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"} 0;
+    padding: 0 16px ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"} 16px;
     min-height: 0;
 `;
 
@@ -181,10 +181,6 @@ const StatusText = styled(Typography)`
     color: ${ThemeColors.ON_SURFACE_VARIANT};
     font-size: 14px;
     text-align: center;
-`;
-
-const FormWrap = styled.div`
-    padding: 16px;
 `;
 
 enum PullingStatus {
@@ -233,9 +229,7 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                     </CloseButton>
                 </ConfigHeader>
 
-                <FormWrap>
-                    <ConnectionConfigurationForm {...props}/>
-                </FormWrap>
+                <ConnectionConfigurationForm {...props}/>
             </PopupContainer>
         </>
     );

@@ -113,16 +113,6 @@ export const ConnectorOptionTitle = styled(Typography)`
     margin: 0;
 `;
 
-export const ExperimentalBadge = styled(Typography)`
-    font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    padding: 4px;
-    border-radius: 4px;
-    background-color: ${ThemeColors.SURFACE_CONTAINER};
-    margin: 0;
-    display: inline-block;
-`;
-
 export const ConnectorOptionDescription = styled(Typography)`
     font-size: 12px;
     color: ${ThemeColors.ON_SURFACE_VARIANT};
