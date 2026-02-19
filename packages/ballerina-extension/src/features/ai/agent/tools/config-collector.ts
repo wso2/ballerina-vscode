@@ -37,7 +37,7 @@ const CONFIG_FILE_PATH = "Config.toml";
 const TEST_CONFIG_FILE_PATH = "tests/Config.toml";
 
 const ConfigVariableSchema = z.object({
-    name: z.string().describe("Variable name (e.g., API_KEY)"),
+    name: z.string().describe("Variable name in camelCase — must match the Ballerina configurable identifier exactly"),
     description: z.string().describe("Human-readable description"),
     type: z.enum(["string", "int"]).optional().describe("Data type: string (default) or int"),
     secret: z.boolean().optional().describe("Mark as true for sensitive values (API keys, passwords, tokens) to render as a masked input"),
@@ -123,31 +123,20 @@ Operation Modes:
    - Shows a form; nothing is written until the user confirms. If skipped, no file is created or modified
    - Pre-populates from existing Config.toml if it exists
    - For test configuration, set isTestConfig: true — reads from Config.toml, writes to tests/Config.toml after user confirms
-   - Example: { mode: "collect", variables: [{ name: "API_KEY", description: "Stripe API key", secret: true }] }
+   - Example: { mode: "collect", variables: [{ name: "stripeApiKey", description: "Stripe API key", secret: true }] }
    - Example (test): { mode: "collect", variables: [...], isTestConfig: true }
 
 2. CHECK: Inspect which values are filled or missing — can be called at any time
    - Returns status only, never actual values
-   - Example: { mode: "check", variableNames: ["API_KEY", "DB_PASSWORD"], filePath: "Config.toml" }
-   - Returns: { status: { API_KEY: "filled", DB_PASSWORD: "missing" } }
+   - Example: { mode: "check", variableNames: ["dbPassword", "apiKey"], filePath: "Config.toml" }
+   - Returns: { status: { dbPassword: "filled", apiKey: "missing" } }
 
-VARIABLE NAMING (CRITICAL):
-Variable names are converted: API_KEY → apikey, DB_HOST → dbhost (lowercase, no underscores).
-You MUST use identical names in Config.toml and Ballerina code.
-
-Correct:
-  Tool: { name: "DB_HOST" }
-  Config.toml: dbhost = "localhost"
-  Code: configurable string dbhost = ?;
-
-Incorrect (DO NOT DO):
-  Tool: { name: "DB_HOST" }
-  Config.toml: dbhost = "localhost"
-  Code: configurable string dbHost = ?;  // WRONG - mismatch causes runtime error
+VARIABLE NAMING:
+Use camelCase names that match exactly the Ballerina configurable identifier. The name is written as-is to Config.toml.
 
 SECURITY:
 - You NEVER see actual configuration values
-- Tool returns only status: { API_KEY: "filled" }
+- Tool returns only status: { dbPassword: "filled" }
 - NEVER hardcode configuration values in code`,
         inputSchema: ConfigCollectorSchema,
         execute: async (input) => {

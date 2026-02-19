@@ -113,10 +113,9 @@ export function writeConfigValuesToConfig(
         }
     }
 
-    // Replace placeholders with actual values (convert API_KEY to apikey)
     const intKeys = new Set<string>();
     for (const [variableName, value] of Object.entries(configValues)) {
-        const tomlKey = toTomlKey(variableName);
+        const tomlKey = variableName;
         const varType = typeMap.get(variableName) || "string";
 
         // Convert value based on type
@@ -179,15 +178,7 @@ function getNestedValue(obj: any, key: string): any {
 }
 
 export function validateVariableName(name: string): boolean {
-    return /^[A-Z_0-9]+$/.test(name);
-}
-
-/**
- * Converts configuration variable name to TOML key format
- * Example: API_KEY -> apikey, DB_HOST -> dbhost
- */
-export function toTomlKey(variableName: string): string {
-    return variableName.toLowerCase().replace(/_/g, "");
+    return /^[a-zA-Z][a-zA-Z0-9]*$/.test(name);
 }
 
 /**
@@ -209,7 +200,7 @@ export function readExistingConfigValues(
         const config = parse(content) as Record<string, any>;
 
         for (const name of variableNames) {
-            const tomlKey = toTomlKey(name);
+            const tomlKey = name;
             const value = getNestedValue(config, tomlKey);
 
             // Include the value if it exists and is not a placeholder
