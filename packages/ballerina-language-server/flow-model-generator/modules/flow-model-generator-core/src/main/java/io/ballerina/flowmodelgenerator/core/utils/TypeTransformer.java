@@ -896,7 +896,7 @@ public class TypeTransformer {
                 }
                 ModuleID moduleId = moduleSymbol.get().id();
                 builder.addImport(moduleId.modulePrefix(),
-                        String.format("%s/%s:%s", moduleId.orgName(), moduleId.packageName(), moduleId.version()));
+                        String.format("%s/%s:%s", moduleId.orgName(), moduleId.moduleName(), moduleId.version()));
             }
             case ARRAY -> addRequiredImports(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor(), builder);
             case MAP -> addRequiredImports(((MapTypeSymbol) typeSymbol).typeParam(), builder);
