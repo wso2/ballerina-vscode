@@ -227,6 +227,7 @@ public class CodeAnalyzer extends NodeVisitor {
     private final boolean forceAssign;
     private final String connectionScope;
     private final WorkspaceManager workspaceManager;
+    private final Path filePath;
 
     // State fields
     private NodeBuilder nodeBuilder;
@@ -256,7 +257,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
                         TextDocument textDocument, ModuleInfo moduleInfo,
                         boolean forceAssign,
-                        WorkspaceManager workspaceManager) {
+                        WorkspaceManager workspaceManager, Path filePath) {
         this.project = project;
         this.semanticModel = semanticModel;
         this.dataMappings = dataMappings;
@@ -269,6 +270,7 @@ public class CodeAnalyzer extends NodeVisitor {
         this.flowNodeBuilderStack = new Stack<>();
         this.diagnosticHandler = new DiagnosticHandler(semanticModel);
         this.workspaceManager = workspaceManager;
+        this.filePath = filePath;
     }
 
     @Override
@@ -2025,7 +2027,8 @@ public class CodeAnalyzer extends NodeVisitor {
 
             // Generate the property of the inferred type param
             nodeBuilder.codedata().inferredReturnType(functionData.returnError() ? returnType : null);
-            Module module = this.project.currentPackage().getDefaultModule();
+            Module module = workspaceManager.module(filePath)
+                    .orElse(project.currentPackage().getDefaultModule());
             CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType);
         });
     }
