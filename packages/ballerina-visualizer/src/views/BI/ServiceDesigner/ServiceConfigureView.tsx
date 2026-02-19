@@ -603,23 +603,24 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     const handleSave = async () => {
         setIsSaving(true);
         const changes = Object.values(changeMap);
-        for (const change of changes) {
-            if (change.isService) {
-                const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: change.filePath, service: change.data as ServiceModel });
-                const updatedArtifact = res.artifacts.at(0);
-                setCurrentIdentifier(updatedArtifact.name);
-                // Update the visualizer location
-                await rpcClient.getVisualizerRpcClient().openView({
-                    type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
-                    location: {
-                        documentUri: updatedArtifact.path,
-                        position: updatedArtifact.position,
-                        identifier: updatedArtifact.name
-                    }
-                });
-            } else {
-                await rpcClient.getServiceDesignerRpcClient().updateListenerSourceCode({ filePath: change.filePath, listener: change.data as ListenerModel });
-            }
+        const listenerChanges = changes.filter((c) => !c.isService);
+        const serviceChanges = changes.filter((c) => c.isService);
+        // Listeners first, then service last
+        for (const change of listenerChanges) {
+            await rpcClient.getServiceDesignerRpcClient().updateListenerSourceCode({ filePath: change.filePath, listener: change.data as ListenerModel });
+        }
+        for (const change of serviceChanges) {
+            const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: change.filePath, service: change.data as ServiceModel });
+            const updatedArtifact = res.artifacts.at(0);
+            setCurrentIdentifier(updatedArtifact.name);
+            // Update the visualizer location
+            await rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
+                location: {
+                    documentUri: updatedArtifact.path,
+                    position: updatedArtifact.position
+                }
+            });
         }
         setChangeMap({});
         setDirtyFormMap({});
