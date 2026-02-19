@@ -194,6 +194,8 @@ import {
     AINodesRequest,
     BISearchRequest,
     BISearchResponse,
+    WorkflowEventsRequest,
+    WorkflowEventsResponse,
     AIModelsResponse,
     GetRecordConfigRequest,
     GetRecordConfigResponse,
@@ -464,6 +466,7 @@ enum EXTENDED_APIS {
     BI_IS_ICP_ENABLED = 'icpService/isIcpEnabled',
     BI_ADD_ICP = 'icpService/addICP',
     BI_DISABLE_ICP = 'icpService/disableICP',
+    BI_WORKFLOW_ALL_EVENTS = 'workflowManager/getAllEvents',
     BI_SEARCH = 'flowDesignService/search',
     BI_SEARCH_NODES = 'flowDesignService/searchNodes',
     OPEN_API_GENERATE_CLIENT = 'openAPIService/genClient',
@@ -1411,6 +1414,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async search(params: BISearchRequest): Promise<BISearchResponse> {
         return this.sendRequest<BISearchResponse>(EXTENDED_APIS.BI_SEARCH, params);
+    }
+
+    async getAllEvents(params: WorkflowEventsRequest): Promise<WorkflowEventsResponse> {
+        return this.sendRequest<WorkflowEventsResponse>(EXTENDED_APIS.BI_WORKFLOW_ALL_EVENTS, params);
     }
 
     async searchNodes(params: BISearchNodesRequest): Promise<BISearchNodesResponse> {

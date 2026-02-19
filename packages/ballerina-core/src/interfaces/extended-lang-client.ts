@@ -952,6 +952,25 @@ export type BISearchResponse = {
     categories: Category[];
 }
 
+export interface WorkflowEventsRequest {
+    workflowName: string;
+    filePath: string;
+}
+
+export interface WorkflowEvent {
+    name: string;
+    type: string;
+}
+
+export interface WorkflowEventsResponse {
+    events?: WorkflowEvent[];
+    output?: {
+        events?: WorkflowEvent[];
+    };
+    errorMsg?: string;
+    stacktrace?: string;
+}
+
 export type BISearchNodesRequest = {
     filePath: string;
     position?: LinePosition;
@@ -2018,6 +2037,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
     getTypes: (params: GetTypesRequest) => Promise<GetTypesResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
+    getAllEvents: (params: WorkflowEventsRequest) => Promise<WorkflowEventsResponse>;
     updateImports: (params: UpdateImportsRequest) => Promise<ImportsInfoResponse>;
     addFunction: (params: AddFunctionRequest) => Promise<AddImportItemResponse>;
     convertJsonToRecordType: (params: JsonToRecordParams) => Promise<TypeDataWithReferences>;

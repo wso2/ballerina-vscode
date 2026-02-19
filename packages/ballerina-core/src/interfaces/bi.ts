@@ -543,6 +543,7 @@ export type NodeKind =
     | "RETURN"
     | "RETRY"
     | "ROLLBACK"
+    | "SEND_EVENT"
     | "START"
     | "STOP"
     | "TRANSACTION"

@@ -99,7 +99,9 @@ import {
     BISearchNodesResponse,
     BIDesignModelRequest,
     BIFlowModelRequest,
-    ExpressionTokensRequest
+    ExpressionTokensRequest,
+    WorkflowEventsRequest,
+    WorkflowEventsResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -200,6 +202,7 @@ export const addFunction: RequestType<AddFunctionRequest, AddImportItemResponse>
 export const getFunctionNode: RequestType<FunctionNodeRequest, FunctionNodeResponse> = { method: `${_preFix}/getFunctionNode` };
 export const getEndOfFile: RequestType<EndOfFileRequest, LinePosition> = { method: `${_preFix}/getEndOfFile` };
 export const search: RequestType<BISearchRequest, BISearchResponse> = { method: `${_preFix}/search` };
+export const getAllEvents: RequestType<WorkflowEventsRequest, WorkflowEventsResponse> = { method: `${_preFix}/getAllEvents` };
 export const searchNodes: RequestType<BISearchNodesRequest, BISearchNodesResponse> = { method: `${_preFix}/searchNodes` };
 export const getRecordNames: RequestType<void, RecordsInWorkspaceMentions> = { method: `${_preFix}/getRecordNames` };
 export const getFunctionNames: RequestType<void, RecordsInWorkspaceMentions> = { method: `${_preFix}/getFunctionNames` };

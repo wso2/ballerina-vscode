@@ -98,6 +98,7 @@ import { getHelperPaneNew } from "../../HelperPaneNew";
 import { ConfigureRecordPage } from "../../HelperPaneNew/Views/RecordConfigModal";
 import { VariableForm } from "../DeclareVariableForm";
 import KnowledgeBaseForm from "../KnowledgeBaseForm";
+import SendEventForm from "../SendEventForm";
 import { EditorContext, StackItem, TypeHelperItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
 import { EntryPointTypeCreator } from "../../../../components/EntryPointTypeCreator";
@@ -368,6 +369,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (!node) {
             return;
         }
+
         if ((node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE") &&
             node.properties?.type?.value &&
             (node.properties.type.value as string).length > 0) {
@@ -1649,6 +1651,31 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         </DynamicModal>
                     )}
             </EditorContext.Provider>
+        );
+    }
+
+    if (node?.codedata.node === "SEND_EVENT") {
+        return (
+            <SendEventForm
+                fileName={fileName}
+                node={node}
+                targetLineRange={targetLineRange}
+                expressionEditor={expressionEditor}
+                formFields={fields}
+                showProgressIndicator={showProgressIndicator}
+                onSubmit={onSubmit}
+                openSubPanel={openSubPanel}
+                updatedExpressionField={updatedExpressionField}
+                resetUpdatedExpressionField={resetUpdatedExpressionField}
+                subPanelView={subPanelView}
+                disableSaveButton={disableSaveButton}
+                submitText={submitText}
+                footerActionButton={footerActionButton}
+                scopeFieldAddon={scopeFieldAddon}
+                onChange={onChange}
+                projectPath={projectPath}
+                injectedComponents={injectedComponents}
+            />
         );
     }
 
