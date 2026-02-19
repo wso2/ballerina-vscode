@@ -590,7 +590,8 @@ const AIChat: React.FC = () => {
                 const toolCallId = response.toolCallId;
                 if (toolCallId) {
                     const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`;
-                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">Tests completed</toolresult>`;
+                    const resultMessage = response.toolOutput?.summary ?? "Tests completed";
+                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
                     updateLastMessage((content) => content.replace(searchPattern, replacement));
                 }
             }

@@ -73,12 +73,24 @@ export function createTestRunnerTool(
                 type: "tool_result",
                 toolName: TEST_RUNNER_TOOL_NAME,
                 toolCallId,
-                toolOutput: result
+                toolOutput: { summary: parseTestSummary(result.output) }
             });
 
             return result;
         }
     });
+}
+
+function parseTestSummary(output: string): string {
+    const passingMatch = output.match(/(\d+)\s+passing/);
+    const failingMatch = output.match(/(\d+)\s+failing/);
+    if (passingMatch) {
+        const passing = parseInt(passingMatch[1]);
+        const failing = failingMatch ? parseInt(failingMatch[1]) : 0;
+        const total = passing + failing;
+        return `Tests completed: ${passing}/${total} passing`;
+    }
+    return "Tests completed";
 }
 
 /**
