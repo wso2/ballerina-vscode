@@ -164,7 +164,7 @@ ${getLanglibInstructions()}
 
 ## Code Structure
 - Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables.
-- For sensitive configuration values (API keys, tokens, passwords), declare them as Ballerina configurables in the code. Variable names are converted to lowercase without underscores in Config.toml. You MUST use the exact Config.toml names in your Ballerina configurables to avoid runtime errors.
+- For sensitive configuration values (API keys, tokens, passwords), declare them as Ballerina configurables in the code. Use camelCase names that match exactly between the configurable declaration and Config.toml.
 - Use ${CONFIG_COLLECTOR_TOOL} in COLLECT mode only immediately before running or testing the project — never during code writing. For test configs, use isTestConfig: true.
 - Initialize any necessary clients with the correct configuration based on the retrieved libraries at the module level (before any function or service declarations).
 - Implement the main function OR service to address the query requirements.
