@@ -19,12 +19,12 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { AvailableNode, Category, Item, LinePosition } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Codicon, Icon, ThemeColors, Typography, ProgressRing, Tooltip } from "@wso2/ui-toolkit";
+import { Codicon, Icon, ThemeColors, Typography, ProgressRing } from "@wso2/ui-toolkit";
 import { cloneDeep, debounce } from "lodash";
 import ButtonCard from "../../../../components/ButtonCard";
 import { ConnectorIcon } from "@wso2/bi-diagram";
 import { BodyTinyInfo } from "../../../styles";
-import { ArrowIcon, ConnectorOptionButtons, ConnectorOptionCard, ConnectorOptionContent, ConnectorOptionDescription, ConnectorOptionIcon, ConnectorOptionTitle, ConnectorOptionTitleContainer, ConnectorsGrid, ConnectorTypeLabel, CreateConnectorOptions, ExperimentalBadge, FilterButton, FilterButtons, IntroText, SearchContainer, Section, SectionHeader, SectionTitle, StyledSearchBox } from "./styles";
+import { ArrowIcon, ConnectorOptionButtons, ConnectorOptionCard, ConnectorOptionContent, ConnectorOptionDescription, ConnectorOptionIcon, ConnectorOptionTitle, ConnectorOptionTitleContainer, ConnectorsGrid, ConnectorTypeLabel, CreateConnectorOptions, FilterButton, FilterButtons, IntroText, SearchContainer, Section, SectionHeader, SectionTitle, StyledSearchBox } from "./styles";
 import { AddConnectionPopupProps } from "./index";
 
 interface Props extends AddConnectionPopupProps {
@@ -42,45 +42,6 @@ export function AddConnectionPopupContent(props: Props) {
     const [isSearching, setIsSearching] = useState(false);
     const [fetchingInfo, setFetchingInfo] = useState(false);
     const [filterType, setFilterType] = useState<"All" | "Standard" | "Organization">("All");
-    const [experimentalEnabled, setExperimentalEnabled] = useState<boolean>(false);
-    const [hasPersistConnection, setHasPersistConnection] = useState<boolean>(false);
-
-    useEffect(() => {
-        rpcClient
-            ?.getCommonRpcClient()
-            .experimentalEnabled()
-            .then((enabled) => setExperimentalEnabled(enabled))
-            .catch((err) => {
-                console.error(">>> error checking experimental flag", err);
-                setExperimentalEnabled(false);
-            });
-    }, [rpcClient]);
-
-    // Temporary fix to check for existing database Persist connection till the backend is updated to support this.
-    useEffect(() => {
-        const checkExistingDatabaseConnection = async () => {
-            if (!rpcClient || !experimentalEnabled) {
-                return;
-            }
-            try {
-                const res = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
-
-                const hasDatabaseConnection = res.flowModel.connections?.some((connection) => {
-                    const metadataData = connection.metadata?.data as any;
-                    return metadataData?.connectorType === "persist";
-                });
-
-                setHasPersistConnection(hasDatabaseConnection || false);
-            } catch (error) {
-                console.error(">>> Error checking for existing database connection", error);
-                setHasPersistConnection(false);
-            }
-        };
-
-        if (experimentalEnabled) {
-            checkExistingDatabaseConnection();
-        }
-    }, [rpcClient, experimentalEnabled]);
 
     const fetchConnectors = useCallback((filter?: boolean) => {
         setFetchingInfo(true);
