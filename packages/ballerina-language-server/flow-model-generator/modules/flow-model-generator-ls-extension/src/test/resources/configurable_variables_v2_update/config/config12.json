@@ -79,8 +79,21 @@
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": true,
+          "modified": false,
           "value": "50"
+        },
+        "testConfigValue": {
+          "metadata": {
+            "label": "Config Value",
+            "description": "Config value of the variable, to be used in Config.toml"
+          },
+          "valueType": "EXPRESSION",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false,
+          "modified": true,
+          "value": "100"
         },
         "documentation": {
           "metadata": {
@@ -101,19 +114,19 @@
   },
   "response": {
     "textEdits": {
-      "/Users/danniles/Documents/Projects/WSO2/ballerina-language-server/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/configurable_variables_v2_update/source/config_update_test_project/Config.toml": [
+      "tests/Config.toml": [
         {
           "range": {
             "start": {
-              "line": 2,
+              "line": 1,
               "character": 0
             },
             "end": {
-              "line": 2,
+              "line": 1,
               "character": 19
             }
           },
-          "newText": "requiredConfig = 50"
+          "newText": "requiredConfig = 100"
         }
       ]
     }
