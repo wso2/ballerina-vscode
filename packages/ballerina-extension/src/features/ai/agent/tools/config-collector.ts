@@ -40,6 +40,7 @@ const ConfigVariableSchema = z.object({
     name: z.string().describe("Variable name (e.g., API_KEY)"),
     description: z.string().describe("Human-readable description"),
     type: z.enum(["string", "int"]).optional().describe("Data type: string (default) or int"),
+    secret: z.boolean().optional().describe("Mark as true for sensitive values (API keys, passwords, tokens) to render as a masked input"),
 });
 
 const ConfigCollectorSchema = z.object({
@@ -122,7 +123,7 @@ Operation Modes:
    - Shows a form; nothing is written until the user confirms. If skipped, no file is created or modified
    - Pre-populates from existing Config.toml if it exists
    - For test configuration, set isTestConfig: true — reads from Config.toml, writes to tests/Config.toml after user confirms
-   - Example: { mode: "collect", variables: [{ name: "API_KEY", description: "Stripe API key" }] }
+   - Example: { mode: "collect", variables: [{ name: "API_KEY", description: "Stripe API key", secret: true }] }
    - Example (test): { mode: "collect", variables: [...], isTestConfig: true }
 
 2. CHECK: Inspect which values are filled or missing — can be called at any time
