@@ -874,7 +874,7 @@ public class TypeTransformer {
      * generated source and registers them on the provided {@link AbstractBuilder}.
      *
      * <p>For {@code TYPE_REFERENCE} kinds every encountered type is stored unconditionally using the
-     * canonical format {@code orgName/packageName:version} (e.g. {@code ballerina/http:2.10.0}).
+     * canonical format {@code orgName/moduleName:version} (e.g. {@code ballerina/http:2.10.0}).
      * {@link io.ballerina.flowmodelgenerator.core.TypesManager#addImportsToTextEdits(Map, ModulePartNode,
      * List, Module)} is responsible
      * for filtering out same-package references and validating the format before emitting actual

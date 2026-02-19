@@ -439,7 +439,7 @@ public class TypesManager {
                     updatedReferencedTypes.add(updatedRefType);
                     TypeData typeData = field.get().getTypeAsTypeData();
                     Member member;
-                    if (typeData == null) {
+                    if (typeData == null || typeData.members() == null || typeData.members().isEmpty()) {
                         member = field.get().toBuilder()
                                 .type(newTypeName)
                                 .build();
