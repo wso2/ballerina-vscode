@@ -861,7 +861,7 @@ public class TypeTransformer {
             }
             return String.format("%s:%s", moduleId.modulePrefix(), symbolName);
         } else {
-            return String.format("%s/%s:%s", moduleId.orgName(), moduleId.packageName(), symbolName);
+            return String.format("%s/%s:%s", moduleId.orgName(), moduleId.moduleName(), symbolName);
         }
     }
 
