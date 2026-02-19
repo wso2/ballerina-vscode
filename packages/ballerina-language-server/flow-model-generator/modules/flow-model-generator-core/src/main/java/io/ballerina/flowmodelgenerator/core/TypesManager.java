@@ -431,7 +431,7 @@ public class TypesManager {
                             isMemberSelected(member, finalReferencedTypes))
                     .findFirst();
             if (field.isPresent()) {
-                if (referencedTypeName.equals(referencedType.metadata().label())) {
+                if (referencedType.metadata() != null && referencedTypeName.equals(referencedType.metadata().label())) {
                     String newTypeName = typePrefix + capitalize(getTypeName(referencedTypeName)) + "Type";
                     TypeData updatedRefType = referencedType.toBuilder()
                             .name(newTypeName)
