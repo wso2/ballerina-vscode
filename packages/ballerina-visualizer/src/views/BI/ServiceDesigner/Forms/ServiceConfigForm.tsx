@@ -25,7 +25,7 @@ import { URI, Utils } from "vscode-uri";
 import { FormGeneratorNew } from "../../Forms/FormGeneratorNew";
 import { FormHeader } from "../../../../components/FormHeader";
 import { getImportsForProperty } from "../../../../utils/bi";
-import { removeForwardSlashes, sanitizedHttpPath } from "../utils";
+import { isValueEqual, removeForwardSlashes, sanitizedHttpPath } from "../utils";
 
 const Container = styled.div`
     /* padding: 0 20px 20px; */
@@ -81,19 +81,6 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const initialFieldValuesRef = useRef<Record<string, any>>({});
-
-    const isValueEqual = (currentValue: any, initialValue: any): boolean => {
-        const serializeValue = new StringTemplateEditorConfig();
-        if (Array.isArray(currentValue) || Array.isArray(initialValue) || typeof currentValue === "object" || typeof initialValue === "object") {
-            return JSON.stringify(currentValue ?? null) === JSON.stringify(initialValue ?? null);
-        }
-        currentValue = serializeValue.serializeValue(currentValue as string).trim().replace(/^"|"$/g, '');
-        initialValue = serializeValue.serializeValue(initialValue as string).trim().replace(/^"|"$/g, '');
-        if (currentValue === initialValue) {
-            return true;
-        }
-        return false;
-    };
 
     useEffect(() => {
         // Check if the service is HTTP protocol and any properties with choices
