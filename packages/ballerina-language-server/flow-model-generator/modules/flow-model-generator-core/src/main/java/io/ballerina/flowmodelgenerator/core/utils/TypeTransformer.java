@@ -912,9 +912,18 @@ public class TypeTransformer {
                 ((TableTypeSymbol) typeSymbol).keyConstraintTypeParameter()
                         .ifPresent(t -> addRequiredImports(t, builder));
             }
-            case TUPLE -> ((TupleTypeSymbol) typeSymbol).memberTypeDescriptors()
-                    .forEach(t -> addRequiredImports(t, builder));
-            case ERROR -> addRequiredImports(((ErrorTypeSymbol) typeSymbol).detailTypeDescriptor(), builder);
+            case TUPLE -> {
+                ((TupleTypeSymbol) typeSymbol).memberTypeDescriptors()
+                        .forEach(t -> addRequiredImports(t, builder));
+                ((TupleTypeSymbol) typeSymbol).restTypeDescriptor()
+                        .ifPresent(t -> addRequiredImports(t, builder));
+            }
+            case ERROR -> {
+                TypeSymbol detailType = ((ErrorTypeSymbol) typeSymbol).detailTypeDescriptor();
+                if (detailType != null) {
+                    addRequiredImports(detailType, builder);
+                }
+            }
             case TYPEDESC -> ((TypeDescTypeSymbol) typeSymbol).typeParameter()
                     .ifPresent(t -> addRequiredImports(t, builder));
             default -> { }
