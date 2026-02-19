@@ -602,10 +602,11 @@ export function DataMapperView(props: DataMapperViewProps) {
             }
         });
 
-        let i = 2;
+        let i = 1;
         let uniqueName = name;
+        const separator = /\d$/.test(name) ? "_" : "";
         while (completions.some(c => c.insertText === uniqueName)) {
-            uniqueName = name + (i++);
+            uniqueName = name + separator + (i++);
         }
 
         return uniqueName;
