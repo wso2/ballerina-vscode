@@ -807,7 +807,7 @@ public class DataMapManager {
         }
         String varName = ((CaptureBindingPatternNode) bindingPattern).variableName().text();
         String jsonConversion = "jsondata:toJson(" + varName + ")";
-        String xmlConversion = "xml:toXml(" + varName + ")";
+        String xmlConversion = "xmldata:toXml(" + varName + ")";
 
         String letExprSource = letExpr.toSourceCode().trim();
         if (varName.equals(letExprSource) ||
@@ -1727,21 +1727,21 @@ public class DataMapManager {
 
     private ExpressionNode findConvertedVariable(LetExpressionNode letExpr) {
         ExpressionNode expr = letExpr.expression();
-        if (expr.kind() != SyntaxKind.SIMPLE_NAME_REFERENCE) {
-            return expr;
-        }
-        String name = expr.toSourceCode().trim();
+        String exprSource = expr.toSourceCode().trim();
         for (LetVariableDeclarationNode letVar : letExpr.letVarDeclarations()) {
             BindingPatternNode bindingPattern = letVar.typedBindingPattern().bindingPattern();
             if (bindingPattern.kind() != SyntaxKind.CAPTURE_BINDING_PATTERN) {
                 continue;
             }
-            if (((CaptureBindingPatternNode) bindingPattern).variableName().text().equals(name)) {
-                expr = letVar.expression();
-                if (expr.kind() == SyntaxKind.LET_EXPRESSION) {
-                    return ((LetExpressionNode) expr).expression();
+            String varName = ((CaptureBindingPatternNode) bindingPattern).variableName().text();
+            String jsonConversion = "jsondata:toJson(" + varName + ")";
+            String xmlConversion = "xmldata:toXml(" + varName + ")";
+            if (varName.equals(exprSource) || jsonConversion.equals(exprSource) || xmlConversion.equals(exprSource)) {
+                ExpressionNode letVarExpr = letVar.expression();
+                if (letVarExpr.kind() == SyntaxKind.LET_EXPRESSION) {
+                    return ((LetExpressionNode) letVarExpr).expression();
                 } else {
-                    return expr;
+                    return letVarExpr;
                 }
             }
         }
@@ -1781,7 +1781,7 @@ public class DataMapManager {
                         String varName = ((CaptureBindingPatternNode) bindingPatternNode).variableName().text();
                         String letExprSource = letExpr.toSourceCode().trim();
                         String jsonConversion = "jsondata:toJson(" + varName + ")";
-                        String xmlConversion = "xml:toXml(" + varName + ")";
+                        String xmlConversion = "xmldata:toXml(" + varName + ")";
                         if (varName.equals(letExprSource) ||
                                 jsonConversion.equals(letExprSource) || xmlConversion.equals(letExprSource)) {
                             return letVarDeclaration.expression();
@@ -3881,16 +3881,14 @@ public class DataMapManager {
                             CommonUtils.toRange(letVar.typedBindingPattern().typeDescriptor().lineRange()), typeName));
                 }
             } else {
-                SeparatedNodeList<LetVariableDeclarationNode> letVarDeclarationNodes = letExpr.letVarDeclarations();
                 if (codedata.isNew() != null && codedata.isNew()) {
-                    String statement = String.format(", %s %sConverted = check %s.ensureType()", typeName, variableName,
+                    String statement = String.format(" %s %sConverted = check %s.ensureType(),", typeName, variableName,
                             variableName);
-                    LinePosition linePosition =
-                            letVarDeclarationNodes.get(letVarDeclarationNodes.size() - 1).lineRange().endLine();
-                    textEdits.add(new TextEdit(CommonUtils.toRange(linePosition), statement));
+                    textEdits.add(
+                            new TextEdit(CommonUtils.toRange(letExpr.letKeyword().lineRange().endLine()), statement));
                     addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
                 } else {
-                    LetVariableDeclarationNode letVar = getMatchingLetVar(letVarDeclarationNodes, variableName);
+                    LetVariableDeclarationNode letVar = getMatchingLetVar(letExpr.letVarDeclarations(), variableName);
                     textEdits.add(new TextEdit(
                             CommonUtils.toRange(letVar.typedBindingPattern().typeDescriptor().lineRange()), typeName));
                 }
