@@ -27,6 +27,7 @@ import { formatCodebaseStructure, formatCodeContext } from "./utils";
 import { GenerateAgentCodeRequest, OperationType, ProjectSource } from "@wso2/ballerina-core";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np/prompts";
 import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/ai-utils";
+import { HTTP_REQUEST_TOOL_NAME } from "./tools/http-request";
 
 /**
  * Generates the system prompt for the design agent
@@ -200,6 +201,8 @@ ${getLanglibInstructions()}
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
 
 ${getNPSuffix(projects, op)}
+
+Use ${HTTP_REQUEST_TOOL_NAME} tool to make HTTP requests to try out APIs when needed. Use this tool to execute black box tests on a ballerina HTTP service you have implemented to verify its functionality (In this case, ask the user to run the service). You can also use it to test external APIs that you plan to integrate with before implementing the integration.
 `;
 }
 
