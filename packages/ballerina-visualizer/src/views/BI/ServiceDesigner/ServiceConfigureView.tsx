@@ -915,6 +915,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                                 version={serviceModel.version}
                                                                                 moduleName={serviceModel.moduleName}
                                                                                 type={existingListenerType}
+                                                                                removeDeprecated={serviceModel.moduleName === "ftp" && !!serviceModel.properties?.annotServiceConfig}
                                                                                 onAttachListener={handleOnAttachListener}
                                                                                 attachedListeners={getAttachedListenerNames(serviceModel.properties?.listener)}
                                                                             />
@@ -1000,8 +1001,11 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
     const handleListenerDirtyChange = (isDirty: boolean) => {
         onDirtyChange?.(isDirty, filePath, position);
     }
-    // Check if this is a legacy listener (has folderPath in listener properties)
-    const isLegacyListener = listenerModel?.properties?.folderPath !== undefined;
+
+    // Check if this is a legacy listener (legacy FTP listeners carry path/folderPath in listener properties)
+    const isLegacyListener =
+        listenerModel?.properties?.folderPath !== undefined ||
+        listenerModel?.properties?.path !== undefined;
 
     // For attached listeners in new system (no folderPath in listener), show only monitoring path
     const showMinimalConfig = isAttachedListener && !isLegacyListener;
@@ -1092,6 +1096,7 @@ interface AttachListenerModalProps {
     packageName: string;
     version: string;
     type: string;
+    removeDeprecated?: boolean;
     attachedListeners: string[];
     onAttachListener: (listenerName: string) => Promise<void>;
 }
@@ -1112,12 +1117,16 @@ function AttachListenerModal(props: AttachListenerModalProps) {
 
     useEffect(() => {
         setIsLoading(true);
-        rpcClient.getServiceDesignerRpcClient().getListeners({ filePath: props.filePath, moduleName: props.moduleName }).then(res => {
+        rpcClient.getServiceDesignerRpcClient().getListeners({
+            filePath: props.filePath,
+            moduleName: props.moduleName,
+            removeDeprecated: props.removeDeprecated
+        }).then(res => {
             setExistingListeners(res.listeners.filter(listener => !props.attachedListeners.includes(listener)).filter(listener => !listener.includes("+")));
         }).finally(() => {
             setIsLoading(false);
         });
-    }, [props.filePath, props.moduleName]);
+    }, [props.filePath, props.moduleName, props.removeDeprecated]);
 
     const handleTabChange = (tabId: string) => {
         setActiveTab(tabId as "existing" | "new");
@@ -1130,7 +1139,8 @@ function AttachListenerModal(props: AttachListenerModalProps) {
                 version: props.version,
                 type: props.type,
             },
-            filePath: props.filePath
+            filePath: props.filePath,
+            removeDeprecated: props.removeDeprecated
         };
 
         if (tabId === "new") {
