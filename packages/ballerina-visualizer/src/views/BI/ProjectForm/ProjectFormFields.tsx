@@ -160,13 +160,13 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
             <SectionDivider />
             <OptionalSectionsLabel>Optional Configurations</OptionalSectionsLabel>
 
-            {/* Project Structure Section */}
+            {/* Workspace Section */}
             {isWorkspaceSupported && (
                 <CollapsibleSection
                     isExpanded={isProjectStructureExpanded}
                     onToggle={handleProjectStructureToggle}
                     icon="folder"
-                    title="Project Structure"
+                    title="Workspace"
                 >
                     <CheckboxContainer>
                         <CheckBox
@@ -175,7 +175,7 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
                             onChange={(checked) => onFormDataChange({ createAsWorkspace: checked })}
                         />
                         <Description>
-                            Include this integration in a new workspace for multi-project management.
+                            Enable Workspace mode to manage multiple integrations within a single repository with shared dependencies.
                         </Description>
                     </CheckboxContainer>
                     {formData.createAsWorkspace && (
