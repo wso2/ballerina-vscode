@@ -104,6 +104,51 @@ function areAllSelected(members: Member[], referencedTypes: Type[], visited: Set
 }
 
 /**
+ * Propagates selection state upwards by marking parent as selected if any child is selected.
+ */
+function propagateSelectionUpwards(members: Member[], referencedTypes: Type[], visited: Set<string> = new Set()): void {
+    for (const member of members) {
+        const newVisited = new Set(visited);
+        if (member.refs?.length) newVisited.add(member.refs[0]);
+
+        if (typeof member.type !== "string") {
+            const typeObj = member.type as Type;
+            if (typeObj.members?.length) {
+                for (const typeMember of typeObj.members) {
+                    if (typeMember.kind !== "TYPE" || !typeMember.refs?.length) continue;
+                    const refName = typeMember.refs[0];
+                    if (newVisited.has(refName)) continue;
+                    const refType = referencedTypes.find(t => t.name === refName);
+                    if (!refType?.members) continue;
+
+                    const anyRefFieldSelected = refType.members
+                        .filter(m => m.kind === "FIELD")
+                        .some(m => m.selected);
+
+                    if (typeMember.optional !== false) {
+                        typeMember.selected = anyRefFieldSelected;
+                    }
+                }
+            }
+        }
+
+        const children = resolveChildren(member, referencedTypes, newVisited);
+        if (children.length > 0) {
+            // First, recursively propagate for children
+            propagateSelectionUpwards(children, referencedTypes, newVisited);
+            
+            // Then check if any child is selected
+            const anyChildSelected = children.some(child => child.selected);
+            
+            // Mirror child state upward: select parent when any child is selected, deselect parent when all children are deselected.
+            if (member.optional !== false) {
+                member.selected = anyChildSelected;
+            }
+        }
+    }
+}
+
+/**
  * Checks if a field has partial selection (some but not all children selected).
  * Returns true when a parent has some (but not all) descendants selected.
  */
@@ -325,6 +370,12 @@ export function DependentTypeEditor(props: DependentTypeEditorProps) {
         const isPartial = hasPartialSelection(member, referencedTypes);
         const shouldSelect = !member.selected || isPartial;
         toggleSelection(member, shouldSelect, referencedTypes);
+        
+        // Propagate selection upwards - mark parents as selected if any child is selected
+        if (rootType?.members) {
+            propagateSelectionUpwards(rootType.members, referencedTypes);
+        }
+        
         triggerUpdate();
     };
 
@@ -336,6 +387,7 @@ export function DependentTypeEditor(props: DependentTypeEditorProps) {
                 toggleSelection(m, !allChecked, referencedTypes);
             }
         }
+        propagateSelectionUpwards(rootType.members, referencedTypes);
         triggerUpdate();
     };
 
