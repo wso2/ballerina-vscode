@@ -198,7 +198,7 @@ export const executeHttpRequest = async (input: HTTPInput, eventHandler: Copilot
 	const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
     console.log(`Executing HTTP request: input:`, input);
     try {
-		eventHandler({type:"tool_call", toolName: HTTP_REQUEST_TOOL_NAME, toolInput: input});
+		eventHandler({type:"tool_call", toolName: HTTP_REQUEST_TOOL_NAME, toolInput: input, toolCallId});
         const response = await axios.request(parseCurl(input.curlCommand));
         console.log("HTTP request successful:", response);
 		const requestOutput = createSuccessResponse(response);
