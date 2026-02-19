@@ -85,7 +85,7 @@
         "testConfigValue": {
           "metadata": {
             "label": "Config Value",
-            "description": "Config value of the variable, to be used in Config.toml"
+            "description": "Config value of the variable for tests, to be used in tests/Config.toml"
           },
           "valueType": "EXPRESSION",
           "optional": true,

@@ -262,7 +262,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                             TEST_CONFIG_VALUE_KEY));
                 }
 
-                response.setTextEdits(gson.toJsonTree(toRelativePaths(rootProject.sourceRoot(), allTextEdits)));
+                response.setTextEdits(gson.toJsonTree(allTextEdits));
             } catch (WorkspaceDocumentException | EventSyncException | RuntimeException e) {
                 response.setError(e);
             }
@@ -307,7 +307,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                         request.moduleName(), configVariable, testsConfigTomlPath, existingTestsConfigToml, true,
                         TEST_CONFIG_VALUE_KEY));
 
-                response.setTextEdits(gson.toJsonTree(toRelativePaths(rootProject.sourceRoot(), allTextEdits)));
+                response.setTextEdits(gson.toJsonTree(allTextEdits));
             } catch (WorkspaceDocumentException | EventSyncException | RuntimeException e) {
                 response.setError(e);
             }
@@ -1263,15 +1263,6 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
 
         addTypeMembersFromSymbol(typeSymbol.get(), typeMembers, union);
         return typeMembers;
-    }
-
-    private static Map<String, List<TextEdit>> toRelativePaths(Path projectRoot, Map<Path, List<TextEdit>> textEdits) {
-        Map<String, List<TextEdit>> result = new LinkedHashMap<>();
-        for (Map.Entry<Path, List<TextEdit>> entry : textEdits.entrySet()) {
-            String relativePath = projectRoot.relativize(entry.getKey()).toString().replace("\\", "/");
-            result.put(relativePath, entry.getValue());
-        }
-        return result;
     }
 
     /**
