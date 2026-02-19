@@ -202,7 +202,7 @@ export const isValidDevantConnName = (value: string, devantConnNames: string[], 
 
 export const getKnownAvailableNode = (categories: Category[], org: string, module: string) => {
     const networkConnectors = categories?.find((item) => item.metadata.label === "Network");
-    const matchingNode = networkConnectors.items.find(
+    const matchingNode = networkConnectors?.items?.find(
         (item) => (item as AvailableNode).codedata?.org === org && (item as AvailableNode).codedata?.module === module,
     );
     return matchingNode as AvailableNode | undefined;
