@@ -46,11 +46,11 @@
       "types": [
         {
           "fieldType": "RECORD_MAP_EXPRESSION",
-          "ballerinaType": "ftp:ServiceConfig",
+          "ballerinaType": "ftp:ServiceConfiguration",
           "selected": true,
           "typeMembers": [
             {
-              "type": "ServiceConfig",
+              "type": "ServiceConfiguration",
               "packageInfo": "ballerina:ftp:2.17.0",
               "packageName": "ftp",
               "kind": "RECORD_TYPE",
@@ -67,6 +67,9 @@
         "type": "ANNOTATION_ATTACHMENT",
         "originalName": "ServiceConfig",
         "moduleName": "ftp"
+      },
+      "imports": {
+        "ftp": "ballerina/ftp:2.17.0"
       }
     }
   },

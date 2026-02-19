@@ -60,11 +60,18 @@ public class ListenerDeclAnalyzer {
     private final Map<String, Value> properties;
     private final SemanticModel semanticModel;
     private final ModuleInfo moduleInfo;
+    private final boolean removeDeprecated;
 
     public ListenerDeclAnalyzer(Map<String, Value> properties, SemanticModel semanticModel, ModuleInfo moduleInfo) {
+        this(properties, semanticModel, moduleInfo, true);
+    }
+
+    public ListenerDeclAnalyzer(Map<String, Value> properties, SemanticModel semanticModel, ModuleInfo moduleInfo,
+                                boolean removeDeprecated) {
         this.properties = properties;
         this.semanticModel = semanticModel;
         this.moduleInfo = moduleInfo;
+        this.removeDeprecated = removeDeprecated;
     }
 
     public Map<String, Value> getProperties() {
@@ -115,7 +122,7 @@ public class ListenerDeclAnalyzer {
                         || paramKind.equals(ParameterData.Kind.INCLUDED_RECORD)) {
                     continue;
                 }
-                if (paramResult.deprecated()) {
+                if (removeDeprecated && paramResult.deprecated()) {
                     continue;
                 }
 
@@ -161,7 +168,7 @@ public class ListenerDeclAnalyzer {
                             : namedArgValueMap.get(paramResult.name());
 
                     funcParamMap.remove(parameterSymbol.getName().get());
-                    if (paramResult.deprecated()) {
+                    if (removeDeprecated && paramResult.deprecated()) {
                         namedArgValueMap.remove(paramResult.name());
                         continue;
                     }
@@ -191,7 +198,7 @@ public class ListenerDeclAnalyzer {
                 String escapedParamName = CommonUtil.escapeReservedKeyword(restParamSymbol.getName().get());
                 ParameterData restParamResult = funcParamMap.get(escapedParamName);
                 funcParamMap.remove(restParamSymbol.getName().get());
-                if (restParamResult.deprecated()) {
+                if (removeDeprecated && restParamResult.deprecated()) {
                     // Skip deprecated rest parameter
                     addRemainingParamsToPropertyMap(funcParamMap);
                     return;
@@ -241,7 +248,7 @@ public class ListenerDeclAnalyzer {
                     paramValue = namedArgValueMap.get(paramResult.name());
                     namedArgValueMap.remove(paramResult.name());
                 }
-                if (paramResult.deprecated()) {
+                if (removeDeprecated && paramResult.deprecated()) {
                     funcParamMap.remove(escapedParamName);
                     continue;
                 }
@@ -253,7 +260,7 @@ public class ListenerDeclAnalyzer {
                         String argName = namedArgumentNode.argumentName().name().text();
                         if (argName.equals(paramResult.name())) {  // foo("a", b = {})
                             paramResult = funcParamMap.get(escapedParamName);
-                            if (paramResult.deprecated()) {
+                            if (removeDeprecated && paramResult.deprecated()) {
                                 continue;
                             }
                             String value = paramValue != null ? paramValue.toSourceCode() : null;
@@ -277,7 +284,7 @@ public class ListenerDeclAnalyzer {
                             if (funcParamMap.containsKey(argName)) { // included record attribute
                                 paramResult = funcParamMap.get(argName);
                                 funcParamMap.remove(argName);
-                                if (paramResult.deprecated()) {
+                                if (removeDeprecated && paramResult.deprecated()) {
                                     continue;
                                 }
                                 if (paramValue == null) {
@@ -308,7 +315,7 @@ public class ListenerDeclAnalyzer {
                         if (paramValue != null) {
                             String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
                             funcParamMap.remove(escapedParamName);
-                            if (paramResult.deprecated()) {
+                            if (removeDeprecated && paramResult.deprecated()) {
                                 continue;
                             }
                             String value = paramValue.toSourceCode();
@@ -362,7 +369,7 @@ public class ListenerDeclAnalyzer {
                     continue;
                 }
                 ParameterData paramResult = funcParamMap.remove(escapedParamName);
-                if (paramResult.deprecated()) {
+                if (removeDeprecated && paramResult.deprecated()) {
                     continue;
                 }
                 String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
@@ -395,7 +402,7 @@ public class ListenerDeclAnalyzer {
                     || paramResult.kind().equals(ParameterData.Kind.INCLUDED_RECORD)) {
                 continue;
             }
-            if (paramResult.deprecated()) {
+            if (removeDeprecated && paramResult.deprecated()) {
                 continue;
             }
 

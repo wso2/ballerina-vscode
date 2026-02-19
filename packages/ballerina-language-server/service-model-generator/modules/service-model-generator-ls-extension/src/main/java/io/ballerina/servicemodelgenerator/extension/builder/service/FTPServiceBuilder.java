@@ -389,7 +389,16 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);
         populateListenerInfo(serviceModel, serviceNode);
         updateServiceDocs(serviceNode, serviceModel);
-        updateAnnotationAttachmentProperty(serviceNode, serviceModel);
+
+        boolean hasServiceConfig = hasServiceConfigAnnotation(serviceNode, semanticModel);
+        if (hasServiceConfig) {
+            updateAnnotationAttachmentProperty(serviceNode, serviceModel);
+        } else {
+            // Legacy listener-based configuration should continue to expose listener params,
+            // without showing the new service-level ServiceConfig annotation editor.
+            serviceModel.getProperties().remove("annotServiceConfig");
+        }
+
         updateListenerItems(FTP, semanticModel, context.project(), serviceModel);
         return serviceModel;
     }
