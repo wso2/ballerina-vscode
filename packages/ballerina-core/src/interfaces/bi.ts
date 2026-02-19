@@ -98,6 +98,7 @@ export type ParentMetadata = {
     label: string;
     accessor?: string;
     parameters?: string[];
+    sourceCode?: string;
     return?: string;
     isServiceFunction?: boolean;
 };

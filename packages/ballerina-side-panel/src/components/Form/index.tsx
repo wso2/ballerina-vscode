@@ -939,7 +939,7 @@ export const Form = forwardRef((props: FormProps) => {
             async (data) => {
                 try {
                     //HACK: skip form validation for "ACTIVITY_CALL" and "WAIT_EVENT" nodes until fixed diagnostic issue from LS.
-                    if (selectedNode === "ACTIVITY_CALL" || selectedNode === "WAIT_EVENT") {
+                    if (selectedNode === "ACTIVITY_CALL") {
                         handleOnSave(data);
                         return;
                     }

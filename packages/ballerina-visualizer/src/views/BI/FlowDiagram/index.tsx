@@ -557,9 +557,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             }
                             updateAgentModelTypes(model?.flowModel);
                             setModel(model.flowModel);
-                            const parentMetadata = model.flowModel.nodes.find(
+                            const eventStartNode = model.flowModel.nodes.find(
                                 (node) => node.codedata.node === "EVENT_START"
-                            )?.metadata.data as ParentMetadata | undefined;
+                            );
+                            const eventStartMetadata = eventStartNode?.metadata.data as ParentMetadata | undefined;
+                            const parentMetadata = eventStartMetadata
+                                ? { ...eventStartMetadata, sourceCode: eventStartNode?.codedata?.sourceCode }
+                                : undefined;
                             if (shouldUpdateLineRangeRef.current) {
                                 const varName = typeof updatedNodeRef.current?.properties?.variable?.value === "string"
                                     ? updatedNodeRef.current.properties.variable.value
