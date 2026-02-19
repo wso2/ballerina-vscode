@@ -968,7 +968,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
             const variables = await StateMachine.langClient().getConfigVariablesV2({
                 projectPath: projectPath,
-                configTomlPath: params?.configTomlPath,
                 includeLibraries
             }) as ConfigVariableResponse;
             resolve(variables);
@@ -1572,7 +1571,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getTypes(params: GetTypesRequest): Promise<GetTypesResponse> {
         let filePath = params.filePath;
 
-        if (!filePath && StateMachine.context()?.projectPath){
+        if (!filePath && StateMachine.context()?.projectPath) {
             const projectPath = StateMachine.context().projectPath;
             const ballerinaFiles = await getBallerinaFiles(Uri.file(projectPath).fsPath);
             filePath = ballerinaFiles.at(0);

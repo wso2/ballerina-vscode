@@ -336,8 +336,25 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                 projectPath: ''
             })
             .then((variables) => {
-                data = (variables as any).configVariables;
+                const raw = (variables as any).configVariables as ConfigVariablesState;
                 errorMsg = (variables as any).errorMsg;
+                // Exclude variables that have 'isTestConfig' in codedata.data — those belong to Tests only
+                const filtered: ConfigVariablesState = {};
+                Object.keys(raw || {}).forEach(category => {
+                    const filteredModules: { [module: string]: ConfigVariable[] } = {};
+                    Object.keys(raw[category]).forEach(module => {
+                        const vars = raw[category][module].filter(
+                            variable => !('isTestConfig' in (variable.codedata?.data || {}))
+                        );
+                        if (vars.length > 0) {
+                            filteredModules[module] = vars;
+                        }
+                    });
+                    if (Object.keys(filteredModules).length > 0) {
+                        filtered[category] = filteredModules;
+                    }
+                });
+                data = filtered;
             })
 
         setConfigVariables(data);
@@ -367,8 +384,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         const variables = await rpcClient
             .getBIDiagramRpcClient()
             .getConfigVariablesV2({
-                projectPath: '',
-                configTomlPath: props.testsConfigTomlPath
+                projectPath: ''
             });
         const data = (variables as any).configVariables as ConfigVariablesState;
         setTestConfigVariables(data || {});
@@ -780,7 +796,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                             moduleName={moduleName}
                                                                             index={index}
                                                                             fileName={props.fileName}
-                                                                            configTomlPath={props.testsConfigTomlPath}
+                                                                            isTestsContext={true}
                                                                             onDeleteConfigVariable={makeTestDeleteHandler(integrationCategory.current, moduleName)}
                                                                             onFormSubmit={getTestConfigVariables}
                                                                             updateErrorMessage={updateErrorMessage}
@@ -827,7 +843,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                                                     moduleName={moduleName}
                                                                                                     index={index}
                                                                                                     fileName={props.fileName}
-                                                                                                    configTomlPath={props.testsConfigTomlPath}
+                                                                                                    isTestsContext={true}
                                                                                                     onDeleteConfigVariable={makeTestDeleteHandler(cat.name, moduleName)}
                                                                                                     onFormSubmit={getTestConfigVariables}
                                                                                                     updateErrorMessage={updateErrorMessage}
@@ -860,7 +876,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                                     moduleName={selectedModule.module}
                                                                                     index={index}
                                                                                     fileName={props.fileName}
-                                                                                    configTomlPath={isTestsContext ? props.testsConfigTomlPath : undefined}
+                                                                                    isTestsContext={isTestsContext}
                                                                                     onDeleteConfigVariable={handleOnDeleteConfigVariable}
                                                                                     onFormSubmit={handleFormSubmit}
                                                                                     updateErrorMessage={updateErrorMessage}
@@ -894,7 +910,6 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                             onSubmit={handleFormSubmit}
                                                             title={`Add Configurable Variable`}
                                                             filename={props.fileName}
-                                                            configTomlPath={isTestsContext ? props.testsConfigTomlPath : undefined}
                                                             packageName={selectedModule.category}
                                                             moduleName={selectedModule.module}
                                                         />
