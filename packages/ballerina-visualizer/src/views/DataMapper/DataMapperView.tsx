@@ -113,7 +113,8 @@ export function DataMapperView(props: DataMapperViewProps) {
         model,
         isFetching,
         isError,
-        refreshDMModel
+        refreshDMModel,
+        requestRefreshDMModel
     } = useDataMapperModel(filePath, viewState, position);
 
     const prevPositionRef = useRef(position);
@@ -629,7 +630,8 @@ export function DataMapperView(props: DataMapperViewProps) {
         initialTypeNameRef.current = await genUniqueName(initialTypeName, viewState.viewId);
 
         onTypeCreateRef.current = (type: Type | string, imports?: Imports) => {
-            const newTypeName = typeof type === 'string' ? type : (type as Type).name
+            const newTypeName = typeof type === 'string' ? type : (type as Type).name;
+            requestRefreshDMModel();
             rpcClient
                 .getDataMapperRpcClient()
                 .createConvertedVariable({
