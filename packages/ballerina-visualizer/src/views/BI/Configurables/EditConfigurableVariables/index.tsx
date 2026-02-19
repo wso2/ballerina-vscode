@@ -39,7 +39,6 @@ export interface ConfigFormProps {
     variable: ConfigVariable;
     title: string;
     filename: string;
-    configTomlPath?: string;
     packageName: string;
     moduleName: string;
     onSubmit?: () => void;
@@ -69,7 +68,6 @@ export function EditForm(props: ConfigFormProps) {
         
         await rpcClient.getBIDiagramRpcClient().updateConfigVariablesV2({
             configFilePath: props.filename,
-            configTomlPath: props.configTomlPath,
             configVariable: data,
             packageName: props.packageName,
             moduleName: props.moduleName,

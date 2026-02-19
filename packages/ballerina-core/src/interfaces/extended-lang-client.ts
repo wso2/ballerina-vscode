@@ -1021,7 +1021,6 @@ export type ServiceFromOASResponse = {
 
 export interface ConfigVariableRequest {
     projectPath: string;
-    configTomlPath?: string;
     includeLibraries?: boolean;
 }
 
@@ -1032,7 +1031,6 @@ export type ConfigVariableResponse = {
 
 export interface UpdateConfigVariableRequestV2 {
     configFilePath: string;
-    configTomlPath?: string;
     configVariable: FlowNode | FunctionNode;
     packageName: string;
     moduleName: string;
