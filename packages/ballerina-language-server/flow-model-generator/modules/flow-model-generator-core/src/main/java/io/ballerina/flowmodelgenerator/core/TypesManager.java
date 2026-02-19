@@ -238,9 +238,11 @@ public class TypesManager {
         addDependencyTypes(typeSymbol, refs, false);
 
         List<TypeData> result = new ArrayList<>();
-        // Add referenced types
+        // Add referenced types from the same package only (different modules are allowed).
+        // TypeData.editable() is set to true by TypeTransformer only when the symbol is within
+        // the same package (via CommonUtils.isWithinPackage), so it serves as the same-package predicate.
         for (Object ref : refs.values()) {
-            if (ref instanceof TypeData refTypeData) {
+            if (ref instanceof TypeData refTypeData && refTypeData.editable()) {
                 result.add(refTypeData);
             }
         }
