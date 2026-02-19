@@ -263,7 +263,7 @@
                     "docs": "",
                     "annotationAttachments": [],
                     "imports": {
-                      "db": "nipunaf/new_connection1:0.1.0"
+                      "db": "nipunaf/new_connection1.db:0.1.0"
                     },
                     "selected": false
                   },
