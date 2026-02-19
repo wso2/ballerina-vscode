@@ -37,6 +37,7 @@ import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -52,17 +53,9 @@ public class WaitBuilder extends NodeBuilder {
     public static final String LABEL = "Wait";
     public static final String DESCRIPTION = "Wait for a set of futures to complete";
 
-    public static final String WAIT_ALL_KEY = "waitAll";
-    public static final String WAIT_ALL_LABEL = "Wait All";
-    public static final String WAIT_ALL_DOC = "Wait for all tasks to complete";
-
     public static final String FUTURES_KEY = "futures";
-    public static final String FUTURES_LABEL = "Futures";
-    public static final String FUTURES_DOC = "The futures to wait for";
-
-    public static final String FUTURE_KEY = "future";
     public static final String FUTURE_LABEL = "Future";
-    public static final String FUTURE_DOC = "The worker/async function to wait for";
+    public static final String FUTURE_DOC = "The future to wait for";
 
     public static final String FUTURE_TYPE_BALLERINA_TYPE = "future<any|error>";
 
@@ -94,6 +87,13 @@ public class WaitBuilder extends NodeBuilder {
             throw new IllegalStateException("Wait node does not have a variable to assign the result to");
         }
 
+        try {
+            sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to load the project for the given file path: "
+                    + sourceBuilder.filePath, e);
+        }
+
         Optional<Document> document = sourceBuilder.workspaceManager.document(sourceBuilder.filePath);
         if (document.isEmpty()) {
             throw new IllegalStateException("Document not found for the given file path: " + sourceBuilder.filePath);
@@ -112,23 +112,23 @@ public class WaitBuilder extends NodeBuilder {
         String typeSignature = "";
         if (type.isPresent()) {
             String sourceCode = type.get().toSourceCode();
-            if (sourceCode.startsWith("map<") && sourceCode.endsWith(">")) {
+            if (!sourceCode.startsWith("map<") && !sourceCode.endsWith(">")) {
                 typeSignature = sourceCode;
             }
         }
 
         List<String> keyValuePairs = new ArrayList<>();
-        if (type.isEmpty() || typeSignature.isEmpty()) {
-            List<String> expressions = new ArrayList<>();
-            futureMap.forEach((keyObj, valueObj) -> {
-                String key = (String) keyObj;
-                String expression = Property.convertToProperty(valueObj).toSourceCode();
-                if (!expression.isEmpty()) {
-                    keyValuePairs.add(key + ": " + expression);
-                    expressions.add(expression);
-                }
-            });
+        List<String> expressions = new ArrayList<>();
+        futureMap.forEach((keyObj, valueObj) -> {
+            String key = (String) keyObj;
+            String expression = Property.convertToProperty(valueObj).toSourceCode();
+            if (!expression.isEmpty()) {
+                keyValuePairs.add(key + ": " + expression);
+                expressions.add(expression);
+            }
+        });
 
+        if (typeSignature.isEmpty()) {
             List<Symbol> symbols = semanticModel.visibleSymbols(document.get(),
                     sourceBuilder.flowNode.codedata().lineRange().startLine());
 
@@ -144,13 +144,18 @@ public class WaitBuilder extends NodeBuilder {
                     })
                     .filter(Objects::nonNull)
                     .distinct()
+                    .sorted(Comparator.comparing(t -> t.getName().orElse("")))
                     .toArray(TypeSymbol[]::new);
 
-            UnionTypeSymbol build = semanticModel.types().builder().UNION_TYPE
-                    .withMemberTypes(workerAndAsyncSymbols).build();
+            if (workerAndAsyncSymbols.length != 0) {
+                UnionTypeSymbol build = semanticModel.types().builder().UNION_TYPE
+                        .withMemberTypes(workerAndAsyncSymbols).build();
 
-            typeSignature = CommonUtils.getTypeSignature(semanticModel, build, false);
-            typeSignature = "map<" + typeSignature + ">";
+                typeSignature = CommonUtils.getTypeSignature(semanticModel, build, false);
+                typeSignature = "map<" + typeSignature + ">";
+            } else {
+                typeSignature = "map<any|error>";
+            }
         }
 
         sourceBuilder.token().name(typeSignature)
@@ -170,6 +175,6 @@ public class WaitBuilder extends NodeBuilder {
         return new FormBuilder<>(null, null, null, null)
                 .futureTemplate()
                 .build()
-                .get(FUTURE_KEY);
+                .get(FUTURES_KEY);
     }
 }
