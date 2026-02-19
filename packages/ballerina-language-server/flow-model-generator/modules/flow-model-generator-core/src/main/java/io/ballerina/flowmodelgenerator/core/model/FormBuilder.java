@@ -1194,19 +1194,35 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
-    public FormBuilder<T> waitAll(boolean value) {
+    public FormBuilder<T> futures(Property template) {
         propertyBuilder
                 .metadata()
-                    .label(WaitBuilder.WAIT_ALL_LABEL)
-                    .description(WaitBuilder.WAIT_ALL_DOC)
+                    .label(WaitBuilder.FUTURE_LABEL)
+                    .description(WaitBuilder.DESCRIPTION)
                     .stepOut()
-                .value(value)
                 .type()
-                    .fieldType(Property.ValueType.FLAG)
+                    .fieldType(Property.ValueType.REPEATABLE_MAP)
+                    .template(template)
                     .selected(true)
                     .stepOut()
                 .editable();
-        addProperty(WaitBuilder.WAIT_ALL_KEY);
+        addProperty(WaitBuilder.FUTURES_KEY);
+        return this;
+    }
+
+    public FormBuilder<T> futureTemplate() {
+        propertyBuilder.
+                metadata()
+                    .label(WaitBuilder.FUTURE_LABEL)
+                    .description(WaitBuilder.DESCRIPTION)
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.EXPRESSION)
+                    .ballerinaType(WaitBuilder.FUTURE_TYPE_BALLERINA_TYPE)
+                    .selected(true)
+                    .stepOut()
+                .editable();
+        addProperty(WaitBuilder.FUTURE_KEY);
         return this;
     }
 

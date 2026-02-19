@@ -129,6 +129,7 @@ import io.ballerina.flowmodelgenerator.core.model.McpToolKitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.PropertyType;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
@@ -1813,6 +1814,10 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.properties()
                     .dataVariable(this.typedBindingPatternNode, Property.RESULT_NAME, Property.RESULT_TYPE_LABEL,
                             Property.RESULT_DOC, false, new HashSet<>(), false);
+        } else if (nodeBuilder instanceof WaitBuilder) {
+            nodeBuilder.properties()
+                    .dataVariable(this.typedBindingPatternNode, Property.VARIABLE_NAME, Property.TYPE_DOC,
+                            Property.VARIABLE_DOC, true, new HashSet<>(), true);
         } else {
             nodeBuilder.properties().dataVariable(this.typedBindingPatternNode, implicit, new HashSet<>());
         }
@@ -2268,7 +2273,6 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(WaitActionNode waitActionNode) {
-        startNode(NodeKind.WAIT, waitActionNode);
 
         // Capture the future nodes associated with the wait node
         boolean waitAll = false;
@@ -2306,29 +2310,15 @@ public class CodeAnalyzer extends NodeVisitor {
             default -> nodes.add(waitFutureExpr);
         }
 
-        // Generate the properties for the futures
-        nodeBuilder.properties().waitAll(waitAll).nestedProperty();
-        Node waitField;
-        ExpressionNode expressionNode;
-        int i = 1;
-        for (Node n : nodes) {
-            if (n.kind() == SyntaxKind.WAIT_FIELD) {
-                waitField = ((WaitFieldNode) n).fieldName();
-                expressionNode = ((WaitFieldNode) n).waitFutureExpr();
-            } else {
-                waitField = null;
-                expressionNode = (ExpressionNode) n;
-            }
-            nodeBuilder.properties()
-                    .nestedProperty()
-                    .waitField(waitField)
-                    .expression(expressionNode)
-                    .endNestedProperty(Property.ValueType.FIXED_PROPERTY, WaitBuilder.FUTURE_KEY + i++,
-                            WaitBuilder.FUTURE_LABEL, WaitBuilder.FUTURE_DOC);
+        if (!waitAll) {
+            // custom node
+            startNode(NodeKind.EXPRESSION, waitActionNode)
+                    .properties().statement(waitActionNode);
+            return;
         }
 
-        nodeBuilder.properties().endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, WaitBuilder.FUTURES_KEY,
-                WaitBuilder.FUTURES_LABEL, WaitBuilder.FUTURES_DOC);
+        startNode(NodeKind.WAIT_ALL, waitActionNode);
+        nodeBuilder.properties().custom().handleWaitNode(nodes).stepOut().addProperty(WaitBuilder.FUTURES_KEY);
     }
 
     @Override

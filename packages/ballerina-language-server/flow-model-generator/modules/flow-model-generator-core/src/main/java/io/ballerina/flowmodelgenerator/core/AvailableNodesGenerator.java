@@ -252,7 +252,7 @@ public class AvailableNodesGenerator {
                 .stepIn(Category.Name.CONCURRENCY)
                     .node(NodeKind.FORK)
                     .node(NodeKind.PARALLEL_FLOW)
-                    .node(NodeKind.WAIT)
+                    .node(NodeKind.WAIT_ALL)
                     .node(NodeKind.LOCK)
                     .node(NodeKind.START)
                     .node(NodeKind.TRANSACTION)
