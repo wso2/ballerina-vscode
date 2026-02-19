@@ -33,6 +33,7 @@ import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.flowmodelgenerator.core.TypesManager;
+import io.ballerina.flowmodelgenerator.core.Constants;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
@@ -105,6 +106,9 @@ public class SourceBuilder {
         Codedata codedata = flowNode.codedata();
         if (codedata == null) {
             this.filePath = filePath;
+        } else if (Boolean.TRUE.equals(codedata.isNew()) && codedata.data() != null
+                && codedata.data().containsKey(Constants.FILE_PATH_KEY)) {
+            this.filePath = resolveFromData(codedata);
         } else {
             NodeKind nodeKind = codedata.node();
             if (filePath.endsWith(AGENTS_BAL) && (nodeKind == NodeKind.FUNCTION_DEFINITION
@@ -120,6 +124,18 @@ public class SourceBuilder {
 
     public SourceBuilder(FlowNode flowNode, WorkspaceManager workspaceManager, Path filePath) {
         this(flowNode, workspaceManager, filePath, null);
+    }
+
+    private Path resolveFromData(Codedata codedata) {
+        Path targetPath = Path.of(codedata.data().get(Constants.FILE_PATH_KEY).toString());
+        try {
+            workspaceManager.loadProject(targetPath);
+            Document document = FileSystemUtils.getDocument(workspaceManager, targetPath);
+            defaultRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
+        } catch (WorkspaceDocumentException | EventSyncException e) {
+            throw new RuntimeException(e);
+        }
+        return targetPath;
     }
 
     private Path resolvePath(Path inputPath, NodeKind node, LineRange lineRange, Boolean isNew) {
