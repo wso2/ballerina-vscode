@@ -868,6 +868,7 @@ export type BISourceCodeResponse = {
 export type BIDeleteByComponentInfoRequest = {
     filePath: string;
     component: ComponentInfo;
+    nodeType?: string;
 }
 
 export type BIDeleteByComponentInfoResponse = {
@@ -1498,6 +1499,8 @@ export interface Member {
     optional?: boolean;
     imports?: Imports;
     readonly?: boolean;
+    selected?: boolean;
+    typeName?: string;
     isGraphqlId?: boolean;
 }
 
@@ -1863,17 +1866,6 @@ export type OpenAPIClientDeleteData = {
 export type OpenAPIClientDeleteResponse = {
     deleteData: OpenAPIClientDeleteData
 }
-
-// <-------- Deployment Related ------->
-
-export interface DeploymentRequest {
-    integrationTypes: SCOPE[];
-}
-
-export interface DeploymentResponse {
-    isCompleted: boolean;
-}
-
 
 // 2201.12.3 -> New Project Component Artifacts Tree
 

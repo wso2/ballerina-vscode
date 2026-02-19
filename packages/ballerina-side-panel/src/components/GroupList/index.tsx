@@ -17,11 +17,13 @@
  */
 
 import React, { useState } from "react";
-import { Codicon, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { CallIcon, LogIcon } from "../../resources";
 import { Category, Node } from "./../NodeList/types";
 import { stripHtmlTags } from "../Form/utils";
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
+import { DownloadIcon } from "../../resources/icons/nodes/DownloadIcon";
 import { formatMethodName } from "../../utils/formatMethodName";
 
 
@@ -38,6 +40,10 @@ namespace S {
         background-color: ${ThemeColors.SURFACE_DIM_2};
     `;
 
+    export const DevantInputCard = styled(Card)`
+        opacity: 0.8;
+    `;
+
     export const Row = styled.div<{}>`
         display: flex;
         flex-direction: row;
@@ -52,6 +58,10 @@ namespace S {
     export const TitleRow = styled(Row)<{}>`
         cursor: pointer;
         padding: 0 5px;
+    `;
+
+    export const DevantPullTitleRow = styled(TitleRow)<{}>`
+        cursor: unset;
     `;
 
     export const Title = styled.div<{}>`
@@ -154,10 +164,11 @@ interface GroupListProps {
     expand?: boolean;
     onSelect: (node: Node, category: string) => void;
     enableSingleNodeDirectNav?: boolean;
+    onImportDevantConn?: (devantConn: ConnectionListItem) => void;
 }
 
 export function GroupList(props: GroupListProps) {
-    const { category, expand, onSelect, enableSingleNodeDirectNav } = props;
+    const { category, expand, onSelect, enableSingleNodeDirectNav, onImportDevantConn } = props;
 
     const [showList, setShowList] = useState(expand ?? false);
     const [expandedTitleIndex, setExpandedTitleIndex] = useState<number | null>(null);
@@ -184,6 +195,16 @@ export function GroupList(props: GroupListProps) {
         setExpandedTitleIndex(null);
     };
 
+    if (category.devant && category.unusedDevantConn) {
+        return (
+            <UnusedDevantCard
+                title={category.title}
+                devantConn={category.devant}
+                onImportDevantConn={onImportDevantConn}
+            />
+        );
+    }
+
     if (nodes.length === 0) {
         return null;
     }
@@ -193,6 +214,13 @@ export function GroupList(props: GroupListProps) {
             <S.TitleRow onClick={handleToggleList}>
                 <S.CardIcon>{category.icon || <LogIcon />}</S.CardIcon>
                 <S.Title>{category.title}</S.Title>
+                {category.tooltip && (
+                    <Codicon
+                        sx={{ color: category.tooltip?.color }}
+                        name={category.tooltip?.icon || "info"}
+                        tooltip={category.tooltip?.text}
+                    />
+                )}
                 <S.CardAction>
                     {isSingleNode ? (
                         <Codicon name={"chevron-right"} />
@@ -235,6 +263,32 @@ export function GroupList(props: GroupListProps) {
         </S.Card>
     );
 }
+
+const UnusedDevantCard = (props: {
+    title: string;
+    devantConn: ConnectionListItem;
+    onImportDevantConn?: (devantConn: ConnectionListItem) => void;
+}) => {
+    const { title, devantConn, onImportDevantConn } = props;
+    return (
+        <S.DevantInputCard>
+            <S.DevantPullTitleRow>
+                <S.CardIcon>{<DownloadIcon />}</S.CardIcon>
+                <S.Title>{title || devantConn?.name}</S.Title>
+                <Codicon name="info" tooltip="Unused Devant Connection" />
+                <S.CardAction>
+                    <Button
+                        tooltip="Import and use this Devant connection"
+                        appearance="icon"
+                        onClick={onImportDevantConn ? () => onImportDevantConn(devantConn) : undefined}
+                    >
+                        Import
+                    </Button>
+                </S.CardAction>
+            </S.DevantPullTitleRow>
+        </S.DevantInputCard>
+    );
+};
 
 export default GroupList;
 

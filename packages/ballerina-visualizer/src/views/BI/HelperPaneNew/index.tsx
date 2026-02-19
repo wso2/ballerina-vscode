@@ -30,11 +30,12 @@ import { CreateValue } from './Views/CreateValue';
 import { FunctionsPage } from './Views/Functions';
 import { FormSubmitOptions } from '../FlowDiagram';
 import { Configurables } from './Views/Configurables';
+import { DevantConfigurables } from './Views/DevantConfigurables';
 import styled from '@emotion/styled';
 import { useModalStack } from '../../../Context';
 import { getDefaultValue } from './utils/types';
 import { HelperPaneIconType, getHelperPaneIcon } from './utils/iconUtils';
-import { HelperpaneOnChangeOptions, InputMode } from '@wso2/ballerina-side-panel';
+import { ExpressionEditorDevantProps, HelperpaneOnChangeOptions, InputMode } from '@wso2/ballerina-side-panel';
 
 const AI_PROMPT_TYPE = "ai:Prompt";
 
@@ -68,6 +69,7 @@ export type HelperPaneNewProps = {
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
     handleValueTypeConstChange: (valueTypeConstraint: string) => void;
     inputMode?: InputMode;
+    devantExpressionEditor?: ExpressionEditorDevantProps;
 };
 
 const TitleContainer = styled.div`
@@ -94,7 +96,8 @@ const HelperPaneNewEl = ({
     handleRetrieveCompletions,
     forcedValueTypeConstraint,
     handleValueTypeConstChange,
-    inputMode
+    inputMode,
+    devantExpressionEditor,
 }: HelperPaneNewProps) => {
     const [selectedItem, setSelectedItem] = useState<number>();
     const currentMenuItemCount = types ?
@@ -256,8 +259,21 @@ const HelperPaneNewEl = ({
                     <SlidingPane name="PAGE1" paneWidth={300} paneHeight='170px'>
                         <div style={{ padding: '8px 0px' }}>
                             <ExpandableList >
+                                {devantExpressionEditor && (
+                                    <SlidingPaneNavContainer
+                                        ref={el => menuItemRefs.current[0] = el}
+                                        to="DEVANT_CONFIGS"
+                                    >
+                                        <ExpandableList.Item>
+                                            {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
+                                            <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                                Devant Configs
+                                            </Typography>
+                                        </ExpandableList.Item>
+                                    </SlidingPaneNavContainer>
+                                )}
                                 <SlidingPaneNavContainer
-                                    ref={el => menuItemRefs.current[2] = el}
+                                    ref={el => menuItemRefs.current[3] = el}
                                     to="INPUTS"
                                 >
                                     <ExpandableList.Item>
@@ -268,7 +284,7 @@ const HelperPaneNewEl = ({
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
                                 <SlidingPaneNavContainer
-                                    ref={el => menuItemRefs.current[1] = el}
+                                    ref={el => menuItemRefs.current[2] = el}
                                     to="VARIABLES"
                                 >
                                     <ExpandableList.Item>
@@ -279,7 +295,7 @@ const HelperPaneNewEl = ({
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
                                 <SlidingPaneNavContainer
-                                    ref={el => menuItemRefs.current[3] = el}
+                                    ref={el => menuItemRefs.current[4] = el}
                                     to="CONFIGURABLES"
                                 >
                                     <ExpandableList.Item>
@@ -292,7 +308,7 @@ const HelperPaneNewEl = ({
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
                                 <SlidingPaneNavContainer
-                                    ref={el => menuItemRefs.current[4] = el}
+                                    ref={el => menuItemRefs.current[5] = el}
                                     to="FUNCTIONS"
                                 >
                                     <ExpandableList.Item>
@@ -304,7 +320,7 @@ const HelperPaneNewEl = ({
                                 </SlidingPaneNavContainer>
                                 {forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) && (
                                     <SlidingPaneNavContainer
-                                        ref={el => menuItemRefs.current[5] = el}
+                                        ref={el => menuItemRefs.current[6] = el}
                                         to="DOCUMENTS"
                                     >
                                         <ExpandableList.Item>
@@ -359,6 +375,22 @@ const HelperPaneNewEl = ({
                         />
                     </SlidingPane>
 
+                    {devantExpressionEditor && (
+                        <SlidingPane name="DEVANT_CONFIGS" paneWidth={300}>
+                            <SlidingPaneHeader> Devant Configs</SlidingPaneHeader>
+                            <DevantConfigurables
+                                anchorRef={anchorRef}
+                                fileName={fileName}
+                                onChange={handleChange}
+                                targetLineRange={targetLineRange}
+                                isInModal={isInModal}
+                                onClose={onClose}
+                                inputMode={inputMode}
+                                devantExpressionEditor={devantExpressionEditor}
+                            />
+                        </SlidingPane>
+                    )}
+
                     <SlidingPane name="CREATE_VALUE" paneWidth={300}>
                         <SlidingPaneHeader> Create Value</SlidingPaneHeader>
                         <CreateValue
@@ -399,6 +431,7 @@ const HelperPaneNewEl = ({
                             isInModal={isInModal}
                             onClose={onClose}
                             inputMode={inputMode}
+                            excludedConfigs={devantExpressionEditor?.devantConfigs || []}
                         />
                     </SlidingPane>
 
@@ -501,6 +534,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             forcedValueTypeConstraint={forcedValueTypeConstraint}
             handleValueTypeConstChange={handleValueTypeConstChange}
             inputMode={props.inputMode}
+            devantExpressionEditor={props.devantExpressionEditor}
         />
     );
 };
