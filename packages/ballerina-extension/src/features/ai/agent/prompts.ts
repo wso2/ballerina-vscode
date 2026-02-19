@@ -164,11 +164,8 @@ ${getLanglibInstructions()}
 
 ## Code Structure
 - Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables.
-- For sensitive configuration values (API keys, tokens, passwords), use ${CONFIG_COLLECTOR_TOOL} in COLLECT mode. Variable names are converted to lowercase without underscores in Config.toml. You MUST use the exact Config.toml names in your Ballerina configurables to avoid runtime errors.
-- When generating tests that need configuration values:
-  - Use COLLECT mode with isTestConfig: true
-  - The tool will automatically read existing values from Config.toml (if exists), ask user to reuse or modify for testing, and save to tests/Config.toml
-  - Example: { mode: "collect", variables: [...], isTestConfig: true }
+- For sensitive configuration values (API keys, tokens, passwords), declare them as Ballerina configurables in the code. Variable names are converted to lowercase without underscores in Config.toml. You MUST use the exact Config.toml names in your Ballerina configurables to avoid runtime errors.
+- Use ${CONFIG_COLLECTOR_TOOL} in COLLECT mode only immediately before running or testing the project — never during code writing. For test configs, use isTestConfig: true.
 - Initialize any necessary clients with the correct configuration based on the retrieved libraries at the module level (before any function or service declarations).
 - Implement the main function OR service to address the query requirements.
 

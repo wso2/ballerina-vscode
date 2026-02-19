@@ -112,34 +112,23 @@ export function createConfigCollectorTool(
 ) {
     return tool({
         description: `
-Manages configuration values in Config.toml for Ballerina integrations securely. Use this tool when user requirements involve API keys, passwords, database credentials, or other sensitive configuration.
+Manages configuration values in Config.toml for Ballerina integrations securely.
 
-IMPORTANT: Before calling COLLECT mode, briefly tell the user what configuration values you need and why.
+IMPORTANT: Only call COLLECT mode immediately before executing the project (running or testing). Do NOT call it during code writing or implementation — even if the code has sensitive configurables. Write the code first, then collect config only when you are about to run or test.
 
 Operation Modes:
-1. COLLECT: Request configuration values from user
-   - Shows a form to the user to fill in values; nothing is written to disk until the user confirms
-   - If user skips, no file is created or modified
-   - Pre-populates the form with existing values from Config.toml if it exists
-   - Use for all cases where configuration values are needed
-   - Example: { mode: "collect", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }] }
+1. COLLECT: Collect configuration values from the user
+   - Call ONLY immediately before running or testing the project — never during code writing
+   - Shows a form; nothing is written until the user confirms. If skipped, no file is created or modified
+   - Pre-populates from existing Config.toml if it exists
+   - For test configuration, set isTestConfig: true — reads from Config.toml, writes to tests/Config.toml after user confirms
+   - Example: { mode: "collect", variables: [{ name: "API_KEY", description: "Stripe API key" }] }
+   - Example (test): { mode: "collect", variables: [...], isTestConfig: true }
 
-2. COLLECT with isTestConfig: Request configuration values for test Config.toml
-   - Use when generating tests that need configuration values
-   - Set isTestConfig: true
-   - Tool automatically:
-     * Reads existing configuration from Config.toml (if exists) to pre-populate the form
-     * Writes to tests/Config.toml only after user confirms
-     * Creates tests/ directory if needed
-   - Example: { mode: "collect", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }], isTestConfig: true }
-
-3. CHECK: Check which configuration values are filled/missing
-   - Returns status metadata only, NEVER actual configuration values
+2. CHECK: Inspect which values are filled or missing — can be called at any time
+   - Returns status only, never actual values
    - Example: { mode: "check", variableNames: ["API_KEY", "DB_PASSWORD"], filePath: "Config.toml" }
-   - Returns: { success: true, status: { API_KEY: "filled", DB_PASSWORD: "missing" } }
-
-IMPORTANT: When generating tests that use configurables, ALWAYS use isTestConfig: true.
-This ensures tests have their own Config.toml in the tests/ directory.
+   - Returns: { status: { API_KEY: "filled", DB_PASSWORD: "missing" } }
 
 VARIABLE NAMING (CRITICAL):
 Variable names are converted: API_KEY → apikey, DB_HOST → dbhost (lowercase, no underscores).
