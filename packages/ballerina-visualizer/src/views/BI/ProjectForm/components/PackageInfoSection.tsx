@@ -53,7 +53,7 @@ export function PackageInfoSection({
             title="Package Information"
         >
             <Note style={{ marginBottom: "16px" }}>
-                Each integration is packed as a Ballerina Package. You can customize the organization and version of the package.
+                This integration is generated as a Ballerina package. Define the organization and version that will be assigned to it.     
             </Note>
             <FieldGroup>
                 <TextField
