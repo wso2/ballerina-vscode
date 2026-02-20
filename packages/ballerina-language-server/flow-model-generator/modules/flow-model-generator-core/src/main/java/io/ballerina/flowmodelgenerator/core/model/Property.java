@@ -231,6 +231,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
     public static final String CONFIG_VALUE_LABEL = "Config Value";
     public static final String CONFIG_VALUE_DOC = "Config value of the variable, to be used in Config.toml";
 
+    public static final String TEST_CONFIG_VALUE_KEY = "testConfigValue";
+    public static final String TEST_CONFIG_VALUE_LABEL = "Test Config Value";
+    public static final String TEST_CONFIG_VALUE_DOC =
+            "Config value of the variable for tests, to be used in tests/Config.toml";
+
     public static final String CONFIG_VAR_DOC_KEY = "documentation";
     public static final String CONFIG_VAR_DOC_LABEL = "Documentation";
     public static final String CONFIG_VAR_DOC_DOC = "Variable documentation in Markdown format";
