@@ -19,16 +19,16 @@
 import { BI_COMMANDS, DIRECTORY_MAP, EVENT_TYPE, MACHINE_VIEW, SCOPE, findScopeByModule } from "@wso2/ballerina-core";
 import {
     CommandIds as PlatformCommandIds,
-    IWso2PlatformExtensionAPI,
     ICommitAndPushCmdParams,
     ICreateComponentCmdParams,
 } from "@wso2/wso2-platform-core";
 import { BallerinaExtension } from "../../core";
 import { openView, StateMachine } from "../../stateMachine";
-import { commands, extensions, window } from "vscode";
+import { commands, window } from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import { debug } from "../../utils";
+import { getPlatformExtensionAPI } from "../../utils/ai/auth";
 
 export function activateDevantFeatures(_ballerinaExtInstance: BallerinaExtension) {
     const cloudToken = process.env.CLOUD_STS_TOKEN;
@@ -46,14 +46,10 @@ const handleComponentPushToDevant = async () => {
         return;
     }
 
-    const platformExt = extensions.getExtension("wso2.wso2-platform");
-    if (!platformExt) {
+    const platformExtAPI = await getPlatformExtensionAPI();
+    if (!platformExtAPI) {
         return;
     }
-    if (!platformExt.isActive) {
-        await platformExt.activate();
-    }
-    const platformExtAPI: IWso2PlatformExtensionAPI = platformExt.exports;
     if (isGitRepo(projectRoot)) {
         // push changes to repo if component for the directory already exists
         await commands.executeCommand(PlatformCommandIds.CommitAndPushToGit, {

@@ -23,7 +23,7 @@ import {
     findDevantScopeByModule,
     AvailableNode,
 } from "@wso2/ballerina-core";
-import { extensions, Uri, window, WorkspaceEdit } from "vscode";
+import { Uri, window, WorkspaceEdit } from "vscode";
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
@@ -87,6 +87,7 @@ import {
 import { debounce } from "lodash";
 import { BiDiagramRpcManager } from "../bi-diagram/rpc-manager";
 import { updateSourceCode } from "../../utils";
+import { getPlatformExtensionAPI } from "../../utils/ai/auth";
 
 export class PlatformExtRpcManager implements PlatformExtAPI {
     static platformExtAPI: IWso2PlatformExtensionAPI;
@@ -94,14 +95,10 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         if (PlatformExtRpcManager.platformExtAPI) {
             return PlatformExtRpcManager.platformExtAPI;
         }
-        const platformExt = extensions.getExtension("wso2.wso2-platform");
-        if (!platformExt) {
+        const platformExtAPI = await getPlatformExtensionAPI();
+        if (!platformExtAPI) {
             throw new Error("platform ext not installed");
         }
-        if (!platformExt.isActive) {
-            await platformExt.activate();
-        }
-        const platformExtAPI: IWso2PlatformExtensionAPI = platformExt.exports;
         PlatformExtRpcManager.platformExtAPI = platformExtAPI;
         return platformExtAPI;
     }
