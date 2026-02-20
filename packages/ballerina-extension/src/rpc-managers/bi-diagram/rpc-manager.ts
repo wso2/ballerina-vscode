@@ -1130,14 +1130,14 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             return { isCompleted: true };
         }
 
-        const deployementParams: ICreateComponentCmdParams = {
+        const deploymentParams: ICreateComponentCmdParams = {
             integrationType: integrationType as any,
-            buildPackLang: "ballerina", // Example language
+            buildPackLang: "ballerina",
             name: path.basename(StateMachine.context().projectPath),
             componentDir: StateMachine.context().projectPath,
             extName: "Devant"
         };
-        commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deployementParams);
+        await commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deploymentParams);
 
         return { isCompleted: true };
     }
@@ -1148,7 +1148,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             window.showWarningMessage("No deployable projects found in the workspace.");
             return { isCompleted: true };
         }
-        const deployementParams: ICreateComponentCmdParams[] = [];
+        const deploymentParams: ICreateComponentCmdParams[] = [];
 
         // If there is only one project in the workspace and it has multiple integration types,
         // ask the user to pick the type similar to the single project deploy flow.
@@ -1169,7 +1169,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 extName: "Devant",
                 supportedIntegrationTypes: integrationTypes as any[]
             };
-            deployementParams.push(deployementParam);
+            deploymentParams.push(deployementParam);
         } else {
             for (const projectScope of projectScopes) {
                 const { projectPath, integrationTypes } = projectScope;
@@ -1188,15 +1188,19 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     // Pass all available types so user can select in the component form
                     supportedIntegrationTypes: integrationTypes as any[]
                 };
-                deployementParams.push(deployementParam);
+                deploymentParams.push(deployementParam);
             }
         }
 
-        if (deployementParams.length === 0) {
+        if (deploymentParams.length === 0) {
             return { isCompleted: true };
         }
 
-        commands.executeCommand(PlatformExtCommandIds.CreateMultipleNewComponents, deployementParams, params.rootDirectory);
+        await commands.executeCommand(
+            PlatformExtCommandIds.CreateMultipleNewComponents,
+            deploymentParams,
+            params.rootDirectory
+        );
         return { isCompleted: true };
     }
 
