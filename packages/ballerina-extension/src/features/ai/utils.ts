@@ -41,7 +41,7 @@ import { BallerinaExtension } from 'src/core';
 
 const config = workspace.getConfiguration('ballerina');
 const isDevantDev = process.env.CLOUD_ENV === "dev";
-export const BACKEND_URL: string = config.get('rootUrl') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_ROOT_URL : process.env.BALLERINA_ROOT_URL;
+export const BACKEND_URL: string = config.get('rootUrl') || (isDevantDev ? process.env.COPILOT_DEV_ROOT_URL : process.env.COPILOT_ROOT_URL)
 
 export const DEVANT_TOKEN_EXCHANGE_URL: string = BACKEND_URL + "/auth-api/v1.0/auth/token-exchange";
 
