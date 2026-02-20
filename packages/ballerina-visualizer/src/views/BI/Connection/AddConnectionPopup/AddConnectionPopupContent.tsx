@@ -32,12 +32,12 @@ import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
 interface Props extends AddConnectionPopupProps {
     handleDatabaseConnection?: () => void;
     handleApiSpecConnection?: () => void;
-    handleDevantMarketplace?: () => void;
     handleSelectConnector: (connector: AvailableNode, filteredCategories: Category[]) => void;
+    DevantServicesSection?: React.ComponentType<{ searchText: string }>;
 }
 
 export function AddConnectionPopupContent(props: Props) {
-    const { fileName, target, handleDatabaseConnection, handleApiSpecConnection, handleDevantMarketplace, handleSelectConnector } = props;
+    const { fileName, target, handleDatabaseConnection, handleApiSpecConnection, handleSelectConnector, DevantServicesSection } = props;
     const { rpcClient } = useRpcContext();
     const { platformExtState, loginToDevant } = usePlatformExtContext();
 
@@ -300,38 +300,6 @@ export function AddConnectionPopupContent(props: Props) {
                 />
             </SearchContainer>
 
-            {!searchText && handleDevantMarketplace && (
-                <Section>
-                    <CreateConnectorOptions>
-                        <ConnectorOptionCard onClick={handleDevantMarketplace}>
-                            <ConnectorOptionIcon>
-                                <Icon name="Devant" sx={{ fontSize: 24, width: 24, height: 24 }} />
-                            </ConnectorOptionIcon>
-                            <ConnectorOptionContent>
-                                <ConnectorOptionTitle>Devant Marketplace</ConnectorOptionTitle>
-                                <ConnectorOptionDescription>
-                                    Connect to services running in Devant or 3rd party services configured in Devant
-                                </ConnectorOptionDescription>
-                                <ConnectorOptionButtons>
-                                    <ConnectorTypeLabel>
-                                        OpenAPI
-                                    </ConnectorTypeLabel>
-                                    <ConnectorTypeLabel>
-                                        GraphQL
-                                    </ConnectorTypeLabel>
-                                    <ConnectorTypeLabel>
-                                        Pre-built Connectors
-                                    </ConnectorTypeLabel>
-                                </ConnectorOptionButtons>
-                            </ConnectorOptionContent>
-                            <ArrowIcon>
-                                <Codicon name="chevron-right" />
-                            </ArrowIcon>
-                        </ConnectorOptionCard>
-                    </CreateConnectorOptions>
-                </Section>
-            )}
-
             {(connectorOptions.showApiSpec || connectorOptions.showDatabase) && (
                 <Section>
                     <SectionTitle variant="h4">Create New Connector</SectionTitle>
@@ -393,6 +361,8 @@ export function AddConnectionPopupContent(props: Props) {
                     </CreateConnectorOptions>
                 </Section>
             )}
+
+            {DevantServicesSection && <DevantServicesSection searchText={searchText} />}
 
             <Section>
                 <SectionHeader>

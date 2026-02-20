@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { AvailableNode, LinePosition } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Codicon, ProgressRing } from "@wso2/ui-toolkit";
@@ -30,12 +30,9 @@ import {
     ConnectorsGrid,
     FilterButton,
     FilterButtons,
-    IntroText,
-    SearchContainer,
     Section,
     SectionHeader,
     SectionTitle,
-    StyledSearchBox,
 } from "../AddConnectionPopup/styles";
 import { DevantConnectionFlow } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { DevantConnectionType, getKnownAvailableNode, ProgressWrap } from "./utils";
@@ -48,18 +45,23 @@ interface DevantConnectorListProps {
     ) => void;
     fileName: string;
     target?: LinePosition;
+    searchText?: string;
 }
 
 export function DevantConnectorList(props: DevantConnectorListProps) {
-    const { onItemSelect, fileName, target } = props;
+    const { onItemSelect, fileName, target, searchText } = props;
     const { platformExtState, platformRpcClient } = usePlatformExtContext();
-    const [searchText, setSearchText] = useState<string>("");
     const { rpcClient } = useRpcContext();
+    const [filterType, setFilterType] = useState<"all" | "internal" | "thirdParty">("all");
 
-    const debouncedSetSearchText = useCallback(
-        debounce((value: string) => setSearchText(value), 500),
-        [],
-    );
+    const [debouncedSearchText, setDebouncedSearchText] = useState(searchText || "");
+
+    const debouncedSetSearch = useMemo(() => debounce((text: string) => setDebouncedSearchText(text), 500), []);
+
+    useEffect(() => {
+        debouncedSetSearch(searchText || "");
+        return () => debouncedSetSearch.cancel();
+    }, [searchText, debouncedSetSearch]);
 
     const { data: balOrgConnectors, isLoading: loadingBalOrgConnectors } = useQuery({
         queryKey: ["searchConnectors", fileName, target],
@@ -105,7 +107,7 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
     const reactQueryKey = {
         org: platformExtState?.selectedContext?.org?.uuid,
         project: platformExtState?.selectedContext?.project?.id,
-        debouncedSearch: searchText,
+        debouncedSearch: debouncedSearchText,
         isLoggedIn: platformExtState.isLoggedIn,
         component: platformExtState?.selectedComponent?.metadata?.id,
     };
@@ -116,13 +118,20 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
         networkVisibilityFilter: "all",
         networkVisibilityprojectId: platformExtState?.selectedContext?.project?.id,
         sortBy: "createdTime",
-        query: searchText || undefined,
+        query: debouncedSearchText || undefined,
         searchContent: false,
-        isThirdParty: false,
     };
 
-    const { data: internalApisResp, isLoading: internalApisLoading } = useQuery({
-        queryKey: ["devant-internal-services", reactQueryKey],
+    if(filterType === "internal") {
+        getMarketPlaceParams.isThirdParty = false;
+    }
+    if(filterType === "thirdParty") {
+        getMarketPlaceParams.isThirdParty = true;
+        getMarketPlaceParams.networkVisibilityFilter = "org,project,public";
+    }
+
+    const { data: marketplaceServices, isLoading: isLoadingMarketplace } = useQuery({
+        queryKey: ["marketplace-services", filterType, reactQueryKey],
         queryFn: () =>
             platformRpcClient?.getMarketplaceItems({
                 orgId: platformExtState?.selectedContext?.org?.id?.toString(),
@@ -132,125 +141,103 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
         select: (data) => ({
             ...data,
             data: data.data.filter(
-                (item) => item.component?.componentId !== platformExtState?.selectedComponent?.metadata?.id,
+                (item) => {
+                    if (filterType === "internal") {
+                        return item.component?.componentId !== platformExtState?.selectedComponent?.metadata?.id
+                    }
+                    return true
+                },
             ),
         }),
     });
 
-    const { data: thirdPartyApisResp, isLoading: thirdPartyApisLoading } = useQuery({
-        queryKey: ["third-party-services", reactQueryKey],
-        queryFn: () =>
-            platformRpcClient?.getMarketplaceItems({
-                orgId: platformExtState?.selectedContext?.org?.id?.toString(),
-                request: {
-                    ...getMarketPlaceParams,
-                    isThirdParty: true,
-                    networkVisibilityFilter: "org,project,public",
-                },
-            }),
-        enabled: platformExtState.isLoggedIn && !!platformExtState?.selectedContext?.project,
-    });
+    let emptyText = "No services running or configured in Devant";
+    if (filterType === "internal") {
+        emptyText = "No services running in Devant";
+    } else if (filterType === "thirdParty") {
+        emptyText = "No third party services configured in Devant";
+    }
 
     return (
         <>
-            <IntroText>
-                Connect to API services running in Devant or use existing third-party connections.
-            </IntroText>
-
-            <SearchContainer>
-                <StyledSearchBox
-                    value={searchText}
-                    placeholder="Search services..."
-                    onChange={debouncedSetSearchText}
-                    size={60}
-                />
-            </SearchContainer>
-
-            <>
-                {loadingBalOrgConnectors && (
-                    <ProgressWrap>
-                        <ProgressRing />
-                    </ProgressWrap>
-                )}
+            <Section>
+                <SectionHeader>
+                    <SectionTitle variant="h4">Devant Services</SectionTitle>
+                    <FilterButtons onClick={(e) => e.stopPropagation()}>
+                        <FilterButton
+                            title="All Services running or configured in Devant"
+                            active={filterType === "all"}
+                            onClick={() => setFilterType("all")}
+                        >
+                            All
+                        </FilterButton>
+                        <FilterButton
+                            title="Services running in Devant"
+                            active={filterType === "internal"}
+                            onClick={() => setFilterType("internal")}
+                        >
+                            Internal
+                        </FilterButton>
+                        <FilterButton
+                            title="Services configured in Devant"
+                            active={filterType === "thirdParty"}
+                            onClick={() => setFilterType("thirdParty")}
+                        >
+                            Third Party
+                        </FilterButton>
+                    </FilterButtons>
+                </SectionHeader>
                 <ConnectionSection
-                    emptyText="No API services deployed"
-                    title="Services running in Devant"
-                    loading={internalApisLoading}
-                    data={internalApisResp?.data || []}
+                    emptyText={emptyText}
+                    loading={isLoadingMarketplace}
+                    data={marketplaceServices?.data || []}
                     searchText={searchText}
                     onItemClick={(item) => handleMarketplaceItemClick(item, DevantConnectionType.INTERNAL)}
+                    disableItems={loadingBalOrgConnectors}
                 />
-                <ConnectionSection
-                    emptyText={"No third party services configured"}
-                    title="Services configured in Devant"
-                    loading={thirdPartyApisLoading}
-                    data={thirdPartyApisResp?.data || []}
-                    searchText={searchText}
-                    onItemClick={(item) => handleMarketplaceItemClick(item, DevantConnectionType.THIRD_PARTY)}
-                />
-            </>
+            </Section>
         </>
     );
 }
 
 const ConnectionSection = ({
     emptyText,
-    title,
     loading,
     data,
     searchText,
     onItemClick,
+    disableItems = false,
 }: {
     emptyText?: string;
-    title: string;
     loading: boolean;
     data: MarketplaceItem[];
     searchText: string;
     onItemClick: (item: MarketplaceItem) => void;
+    disableItems?: boolean;
 }) => {
-    const { platformExtState } = usePlatformExtContext();
-    const [filterType, setFilterType] = useState<"Project" | "Organization">("Organization");
-    const filteredData = data.filter((item) => {
-        if (filterType === "Project") {
-            return item.projectId === platformExtState?.selectedContext?.project?.id;
-        }
-        return true;
-    });
     return (
-        <Section>
-            <SectionHeader>
-                <SectionTitle variant="h4">{title}</SectionTitle>
-                <FilterButtons>
-                    <FilterButton active={filterType === "Organization"} onClick={() => setFilterType("Organization")}>
-                        All
-                    </FilterButton>
-                    <FilterButton active={filterType === "Project"} onClick={() => setFilterType("Project")}>
-                        Project
-                    </FilterButton>
-                </FilterButtons>
-            </SectionHeader>
+        <>
             {loading ? (
                 <ProgressWrap>
                     <ProgressRing />
                 </ProgressWrap>
             ) : (
                 <>
-                    {filteredData?.length === 0 ? (
+                    {data?.length === 0 ? (
                         <>
                             {searchText ? (
-                                <BodyTinyInfo style={{ paddingBottom: "30px" }}>
-                                    {emptyText} in your Devant {filterType === "Project" ? "project" : "organization"}{" "}
-                                    matching with "{searchText}"
+                                <BodyTinyInfo style={{ paddingBottom: "10px" }}>
+                                    {emptyText} in your Devant organization matching with "{searchText}"
                                 </BodyTinyInfo>
                             ) : (
-                                <BodyTinyInfo style={{ paddingBottom: "30px" }}>
-                                    {emptyText} in your Devant {filterType === "Project" ? "project" : "organization"}
+                                <BodyTinyInfo style={{ paddingBottom: "10px" }}>
+                                    {emptyText} in your Devant organization
                                 </BodyTinyInfo>
                             )}
                         </>
                     ) : (
                         <ConnectorsGrid>
-                            {filteredData?.map((item) => {
+                            {data?.map((item) => {
                                 return (
                                     <ButtonCard
                                         id={`connector-${item.serviceId}`}
@@ -259,6 +246,7 @@ const ConnectionSection = ({
                                         description={item.description}
                                         icon={<Codicon name="package" />}
                                         onClick={() => onItemClick(item)}
+                                        disabled={disableItems}
                                     />
                                 );
                             })}
@@ -266,6 +254,6 @@ const ConnectionSection = ({
                     )}
                 </>
             )}
-        </Section>
+        </>
     );
 };
