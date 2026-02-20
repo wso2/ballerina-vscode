@@ -275,12 +275,21 @@ export function AddConnectionPopupContent(props: Props) {
                     to Devant in order to connect with Devant dependencies
                 </IntroText>
             )}
-            <IntroText>
-                To establish your connection, first define a connector. You may create a custom connector using
-                an API specification or by introspecting a database. Alternatively, you can select one of the
-                pre-built connectors below. You will then be guided to provide the required details to complete
-                the connection setup.
-            </IntroText>
+            {platformExtState?.selectedContext?.project ? (
+                <IntroText>
+                    To establish your connection, first define a connector. You may create a custom connector using an
+                    API specification. Alternatively, you can select one of the pre-built
+                    connectors below or connect to services running in Devant or services configured in Devant. You will
+                    then be guided to provide the required details to complete the connection setup.
+                </IntroText>
+            ) : (
+                <IntroText>
+                    To establish your connection, first define a connector. You may create a custom connector using an
+                    API specification or by introspecting a database. Alternatively, you can select one of the pre-built
+                    connectors below. You will then be guided to provide the required details to complete the connection
+                    setup.
+                </IntroText>
+            )}
 
             <SearchContainer>
                 <StyledSearchBox
