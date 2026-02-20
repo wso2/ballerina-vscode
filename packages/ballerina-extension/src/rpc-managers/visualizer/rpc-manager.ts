@@ -239,7 +239,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 return;
             }
             const filePath = Array.isArray(params.segments) ? Utils.joinPath(URI.file(projectPath), ...params.segments) : Utils.joinPath(URI.file(projectPath), params.segments);
-            resolve({ filePath: filePath.fsPath, projectPath: projectPath });
+            resolve({ filePath: filePath.fsPath, projectPath: projectPath, exists: params.checkExists ? fs.existsSync(filePath.fsPath) : undefined });
         });
     }
     async undoRedoState(): Promise<UndoRedoStateResponse> {
