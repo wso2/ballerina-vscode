@@ -63,6 +63,9 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
         const sanitized = sanitizePackageName(value);
         onFormDataChange({ packageName: sanitized });
         setPackageNameTouched(value.length > 0);
+        if (packageNameError) {
+            setPackageNameError(null);
+        }
     };
 
     const handleProjectDirSelection = async () => {
@@ -109,6 +112,11 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
         })();
     }, []);
 
+    useEffect(() => {
+        const error = validatePackageName(formData.packageName, formData.integrationName);
+        setPackageNameError(error);
+    }, [formData.packageName, formData.integrationName]);
+
     // Validation effect for org name
     useEffect(() => {
         const orgError = validateOrgName(formData.orgName);
@@ -136,7 +144,7 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
                     value={formData.packageName}
                     label="Package Name"
                     description="This will be used as the Ballerina package name for the integration."
-                    errorMsg={packageNameValidationError || ""}
+                    errorMsg={packageNameValidationError || packageNameError || ""}
                 />
             </FieldGroup>
 
