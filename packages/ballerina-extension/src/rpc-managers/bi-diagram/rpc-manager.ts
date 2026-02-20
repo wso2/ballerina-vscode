@@ -501,7 +501,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise((resolve) => {
             const fileNameOrPath = params.filePath;
             let filePath = fileNameOrPath;
-            if (path.basename(fileNameOrPath) === fileNameOrPath) {
+            if (!path.isAbsolute(fileNameOrPath)) {
                 filePath = path.join(StateMachine.context().projectPath, fileNameOrPath);
             }
             StateMachine.langClient()
