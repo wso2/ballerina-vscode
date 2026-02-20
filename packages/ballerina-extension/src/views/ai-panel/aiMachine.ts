@@ -28,8 +28,7 @@ import {
     getPlatformStsToken,
     exchangeStsToCopilotToken,
     storeAuthCredentials,
-    isPlatformExtensionAvailable,
-    PLATFORM_EXTENSION_ID
+    getPlatformExtensionAPI
 } from '../../utils/ai/auth';
 import * as vscode from 'vscode';
 import { notifyAiPromptUpdated } from '../../RPCLayer';
@@ -515,44 +514,35 @@ const isExtendedEvent = <K extends AIMachineEventType>(
  * When user logs in via platform extension, we exchange the token and complete auth.
  */
 const setupPlatformExtensionListener = () => {
-    if (!isPlatformExtensionAvailable()) {
-        return;
-    }
-
-    const platformExt = vscode.extensions.getExtension(PLATFORM_EXTENSION_ID);
-    if (!platformExt) {
-        return;
-    }
-
-    // Activate and subscribe to login state changes
-    platformExt.activate().then(
+    getPlatformExtensionAPI().then(
         (api) => {
-            if (api.subscribeIsLoggedIn) {
-                api.subscribeIsLoggedIn(async (isLoggedIn: boolean) => {
-                    const currentState = aiStateService.getSnapshot().value;
-
-                    // Only handle login events when we're in the SSO authentication flow
-                    if (isLoggedIn && typeof currentState === 'object' && 'Authenticating' in currentState) {
-                        try {
-                            const stsToken = await getPlatformStsToken();
-                            if (!stsToken) {
-                                console.error('Failed to get STS token after platform login');
-                                return;
-                            }
-
-                            const secrets = await exchangeStsToCopilotToken(stsToken);
-                            await storeAuthCredentials({
-                                loginMethod: LoginMethod.BI_INTEL,
-                                secrets
-                            });
-                            aiStateService.send(AIMachineEventType.COMPLETE_AUTH);
-                        } catch (error) {
-                            console.error('Failed to exchange token after platform login:', error);
-                            aiStateService.send(AIMachineEventType.CANCEL_LOGIN);
-                        }
-                    }
-                });
+            if (!api || !api.subscribeIsLoggedIn) {
+                return;
             }
+            api.subscribeIsLoggedIn(async (isLoggedIn: boolean) => {
+                const currentState = aiStateService.getSnapshot().value;
+
+                // Only handle login events when we're in the SSO authentication flow
+                if (isLoggedIn && typeof currentState === 'object' && 'Authenticating' in currentState) {
+                    try {
+                        const stsToken = await getPlatformStsToken();
+                        if (!stsToken) {
+                            console.error('Failed to get STS token after platform login');
+                            return;
+                        }
+
+                        const secrets = await exchangeStsToCopilotToken(stsToken);
+                        await storeAuthCredentials({
+                            loginMethod: LoginMethod.BI_INTEL,
+                            secrets
+                        });
+                        aiStateService.send(AIMachineEventType.COMPLETE_AUTH);
+                    } catch (error) {
+                        console.error('Failed to exchange token after platform login:', error);
+                        aiStateService.send(AIMachineEventType.CANCEL_LOGIN);
+                    }
+                }
+            });
         },
         (error) => {
             console.error('Failed to activate platform extension for login listener:', error);
