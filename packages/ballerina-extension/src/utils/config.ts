@@ -382,6 +382,15 @@ export function getOrgAndPackageName(projectInfo: ProjectInfo, projectPath: stri
 }
 
 export async function isLibraryProject(projectPath: string): Promise<boolean> {
-    const tomlValues = await getProjectTomlValues(projectPath);
-    return tomlValues?.package?.library === true;
+    const libBalPath = path.join(projectPath, 'lib.bal');
+    return fs.existsSync(libBalPath);
+
+    // TODO: Enable checking the validator import in the lib.bal file
+    // once this this implemented: https://github.com/wso2/product-ballerina-integrator/issues/2409
+
+    // if (fs.existsSync(libBalPath)) {
+    //     const libBalContent = fs.readFileSync(libBalPath, 'utf8');
+    //     return libBalContent.includes(`import ${VALIDATOR_PACKAGE_NAME} as _;`);
+    // }
+    // return false;
 }

@@ -29,6 +29,7 @@ import {
     GoToSourceRequest,
     OpenExternalUrlRequest,
     PackageTomlValues,
+    PublishToCentralResponse,
     RunExternalCommandRequest,
     RunExternalCommandResponse,
     SampleDownloadRequest,
@@ -49,8 +50,10 @@ import {
     getWorkspaceRoot,
     getWorkspaceType,
     goToSource,
+    hasCentralPATConfigured,
     isNPSupported,
     openExternalUrl,
+    publishToCentral,
     runBackgroundTerminalCommand,
     selectFileOrDirPath,
     selectFileOrFolderPath,
@@ -126,7 +129,7 @@ export class CommonRpcClient implements CommonRPCAPI {
     showErrorMessage(params: ShowErrorMessageRequest): void {
         return this._messenger.sendNotification(showErrorMessage, HOST_EXTENSION, params);
     }
-    
+
     showInformationModal(params: ShowInfoModalRequest): Promise<string> {
         return this._messenger.sendRequest(showInformationModal, HOST_EXTENSION, params);
     }
@@ -154,12 +157,20 @@ export class CommonRpcClient implements CommonRPCAPI {
     clearWebviewCache(params: IDBValidKey): Promise<void> {
         return this._messenger.sendRequest(ClearWebviewCache, HOST_EXTENSION, params);
     }
-    
+
     downloadSelectedSampleFromGithub(params: SampleDownloadRequest): Promise<boolean> {
         return this._messenger.sendRequest(downloadSelectedSampleFromGithub, HOST_EXTENSION, params);
     }
 
     getDefaultOrgName(): Promise<DefaultOrgNameResponse> {
         return this._messenger.sendRequest(getDefaultOrgName, HOST_EXTENSION);
+    }
+
+    publishToCentral(): Promise<PublishToCentralResponse> {
+        return this._messenger.sendRequest(publishToCentral, HOST_EXTENSION);
+    }
+
+    hasCentralPATConfigured(): Promise<boolean> {
+        return this._messenger.sendRequest(hasCentralPATConfigured, HOST_EXTENSION);
     }
 }

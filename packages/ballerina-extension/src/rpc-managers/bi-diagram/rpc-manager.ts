@@ -69,6 +69,12 @@ import {
     DeleteTypeResponse,
     ValidateProjectFormRequest,
     ValidateProjectFormResponse,
+    DeploymentRequest,
+    WorkspaceDeploymentRequest,
+    DeploymentResponse,
+    DevantMetadata,
+    WorkspaceDevantMetadata,
+    ProjectDevantMetadata,
     Diagnostics,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
@@ -150,6 +156,11 @@ import * as path from 'path';
 import * as vscode from "vscode";
 
 import {
+    ICreateComponentCmdParams,
+    IWso2PlatformExtensionAPI,
+    CommandIds as PlatformExtCommandIds
+} from "@wso2/wso2-platform-core";
+import {
     ShellExecution,
     Task,
     TaskDefinition,
@@ -160,7 +171,6 @@ import {
 } from "vscode";
 import { DebugProtocol } from "vscode-debugprotocol";
 import { extension } from "../../BalExtensionContext";
-import { notifyBreakpointChange } from "../../RPCLayer";
 import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
 import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
@@ -168,17 +178,29 @@ import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
-import { README_FILE, addProjectToExistingWorkspace, convertProjectToWorkspace, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, deleteProjectFromWorkspace, openInVSCode, validateProjectPath } from "../../utils/bi";
+import {
+    addProjectToExistingWorkspace,
+    convertProjectToWorkspace,
+    createBIAutomation,
+    createBIFunction,
+    createBIProjectPure,
+    createBIWorkspace,
+    deleteProjectFromWorkspace,
+    openInVSCode
+, validateProjectPath } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
 import { PlatformExtRpcManager } from "../platform-ext/rpc-manager";
 import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
-import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { getCurrentBallerinaProject } from "../../utils/project-utils";
 import { CommonRpcManager } from "../common/rpc-manager";
 import * as toml from "@iarna/toml";
+import { readOrWriteReadmeContent } from "./utils";
+import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
+import { getRepoRoot } from "../platform-ext/platform-utils";
+
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -641,10 +663,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async createProject(params: ProjectRequest): Promise<void> {
         if (params.createAsWorkspace) {
-            const workspaceRoot = createBIWorkspace(params);
+            const workspaceRoot = await createBIWorkspace(params);
             openInVSCode(workspaceRoot);
         } else {
-            const projectRoot = createBIProjectPure(params);
+            const projectRoot = await createBIProjectPure(params);
             openInVSCode(projectRoot);
         }
     }
@@ -899,31 +921,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async handleReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
-        return new Promise((resolve) => {
-            const projectPath = params.projectPath;
-            const readmePath = projectPath ? path.join(projectPath, README_FILE) : undefined;
-            if (!readmePath) {
-                resolve({ content: "" });
-                return;
-            }
-            if (params.read) {
-                if (!fs.existsSync(readmePath)) {
-                    resolve({ content: "" });
-                } else {
-                    const content = fs.readFileSync(readmePath, "utf8");
-                    console.log(">>> Read content:", content);
-                    resolve({ content });
-                }
-            } else {
-                if (!fs.existsSync(readmePath)) {
-                    fs.writeFileSync(readmePath, params.content);
-                    console.log(">>> Created and saved readme.md with content:", params.content);
-                } else {
-                    fs.writeFileSync(readmePath, params.content);
-                    console.log(">>> Updated readme.md with content:", params.content);
-                }
-            }
-        });
+        return readOrWriteReadmeContent(params);
     }
 
     async getExpressionCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
@@ -1123,6 +1121,104 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
+    async deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
+        const scopes = params.integrationTypes;
+
+        const integrationType = await this.selectIntegrationType(scopes);
+
+        if (!integrationType) {
+            return { isCompleted: true };
+        }
+
+        const deploymentParams: ICreateComponentCmdParams = {
+            integrationType: integrationType as any,
+            buildPackLang: "ballerina",
+            name: path.basename(StateMachine.context().projectPath),
+            componentDir: StateMachine.context().projectPath,
+            extName: "Devant"
+        };
+        await commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deploymentParams);
+
+        return { isCompleted: true };
+    }
+
+    async deployWorkspace(params: WorkspaceDeploymentRequest): Promise<DeploymentResponse> {
+        const projectScopes = params.projectScopes;
+        if (!projectScopes?.length) {
+            window.showWarningMessage("No deployable projects found in the workspace.");
+            return { isCompleted: true };
+        }
+        const deploymentParams: ICreateComponentCmdParams[] = [];
+
+        // If there is only one project in the workspace and it has multiple integration types,
+        // ask the user to pick the type similar to the single project deploy flow.
+        if (projectScopes.length === 1) {
+            const { projectPath, integrationTypes } = projectScopes[0];
+
+            const integrationType = await this.selectIntegrationType(integrationTypes);
+
+            if (!integrationType) {
+                return { isCompleted: true };
+            }
+
+            const deployementParam: ICreateComponentCmdParams = {
+                integrationType: integrationType as any,
+                buildPackLang: "ballerina",
+                name: path.basename(projectPath),
+                componentDir: projectPath,
+                extName: "Devant",
+                supportedIntegrationTypes: integrationTypes as any[]
+            };
+            deploymentParams.push(deployementParam);
+        } else {
+            for (const projectScope of projectScopes) {
+                const { projectPath, integrationTypes } = projectScope;
+                if (!integrationTypes?.length) {
+                    window.showWarningMessage(`No integration types found for ${path.basename(projectPath)}.`);
+                    continue;
+                }
+
+                const deployementParam: ICreateComponentCmdParams = {
+                    // Use the first type as default, user can change in the UI
+                    integrationType: integrationTypes[0] as any,
+                    buildPackLang: "ballerina",
+                    name: path.basename(projectPath),
+                    componentDir: projectPath,
+                    extName: "Devant",
+                    // Pass all available types so user can select in the component form
+                    supportedIntegrationTypes: integrationTypes as any[]
+                };
+                deploymentParams.push(deployementParam);
+            }
+        }
+
+        if (deploymentParams.length === 0) {
+            return { isCompleted: true };
+        }
+
+        await commands.executeCommand(
+            PlatformExtCommandIds.CreateMultipleNewComponents,
+            deploymentParams,
+            params.rootDirectory
+        );
+        return { isCompleted: true };
+    }
+
+    private async selectIntegrationType(integrationTypes: SCOPE[]): Promise<SCOPE | undefined> {
+        if (!integrationTypes || integrationTypes.length === 0) {
+            return undefined;
+        }
+
+        if (integrationTypes.length === 1) {
+            return integrationTypes[0];
+        }
+
+        const selectedScope = await window.showQuickPick(integrationTypes, {
+            placeHolder: 'You have different types of artifacts within this integration. Select the artifact type to be deployed'
+        });
+
+        return selectedScope as SCOPE;
+    }
 
     openAIChat(params: AIChatRequest): void {
         if (params.readme) {
@@ -1847,6 +1943,120 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
 
         return { mentions: recordNames };
+    }
+
+    async getDevantMetadata(): Promise<DevantMetadata | undefined> {
+        let hasContextYaml = false;
+        let isLoggedIn = false;
+        let hasComponent = false;
+        let hasLocalChanges = false;
+        try {
+            const projectPath = StateMachine.context().projectPath;
+            const repoRoot = getRepoRoot(projectPath);
+            if (repoRoot) {
+                const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+                if (fs.existsSync(contextYamlPath)) {
+                    hasContextYaml = true;
+                }
+            }
+
+            const platformExt = extensions.getExtension("wso2.wso2-platform");
+            if (!platformExt) {
+                return { hasComponent: hasContextYaml, isLoggedIn: false };
+            }
+            const platformExtAPI: IWso2PlatformExtensionAPI = await platformExt.activate();
+            hasLocalChanges = await platformExtAPI.localRepoHasChanges(projectPath);
+            isLoggedIn = platformExtAPI.isLoggedIn();
+            if (isLoggedIn) {
+                const components = platformExtAPI.getDirectoryComponents(projectPath);
+                hasComponent = components.length > 0;
+                return { isLoggedIn, hasComponent, hasLocalChanges };
+            }
+            return { isLoggedIn, hasComponent: hasContextYaml, hasLocalChanges };
+        } catch (err) {
+            console.error("failed to call getDevantMetadata: ", err);
+            return { hasComponent: hasComponent || hasContextYaml, isLoggedIn, hasLocalChanges };
+        }
+    }
+
+    async getWorkspaceDevantMetadata(): Promise<WorkspaceDevantMetadata | undefined> {
+        let isLoggedIn = false;
+        let hasAnyComponent = false;
+        let hasLocalChanges = false;
+        const projectsMetadata: ProjectDevantMetadata[] = [];
+
+        try {
+            // Get workspace structure
+            const workspaceStructure = await this.getProjectStructure();
+            if (!workspaceStructure || !workspaceStructure.workspacePath) {
+                return { isLoggedIn: false, hasAnyComponent: false, hasLocalChanges: false };
+            }
+
+            const repoRoot = getRepoRoot(workspaceStructure.workspacePath);
+            if (!repoRoot) {
+                return { isLoggedIn: false, hasAnyComponent: false, hasLocalChanges: false };
+            }
+
+            const platformExt = extensions.getExtension("wso2.wso2-platform");
+            if (!platformExt) {
+                // Check for context.yaml as fallback
+                const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+                const hasContextYaml = fs.existsSync(contextYamlPath);
+                return {
+                    isLoggedIn: false,
+                    hasAnyComponent: hasContextYaml,
+                    hasLocalChanges: false
+                };
+            }
+
+            const platformExtAPI: IWso2PlatformExtensionAPI = await platformExt.activate();
+            isLoggedIn = platformExtAPI.isLoggedIn();
+            hasLocalChanges = await platformExtAPI.localRepoHasChanges(repoRoot);
+
+            // Check each project in the workspace
+            for (const project of workspaceStructure.projects) {
+                const projectPath = project.projectPath;
+                const projectName = project.projectTitle || project.projectName;
+
+                let projectHasComponent = false;
+                let projectHasLocalChanges = false;
+
+                if (isLoggedIn) {
+                    const components = platformExtAPI.getDirectoryComponents(projectPath);
+                    projectHasComponent = components.length > 0;
+                    if (projectHasComponent) {
+                        hasAnyComponent = true;
+                        // Only check local changes for deployed projects
+                        projectHasLocalChanges = await platformExtAPI.localRepoHasChanges(projectPath);
+                    }
+                }
+
+                projectsMetadata.push({
+                    projectPath,
+                    projectName,
+                    hasComponent: projectHasComponent,
+                    hasLocalChanges: projectHasLocalChanges
+                });
+            }
+
+            // If not logged in, check for context.yaml as fallback
+            if (!isLoggedIn) {
+                const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+                if (fs.existsSync(contextYamlPath)) {
+                    hasAnyComponent = true;
+                }
+            }
+
+            return {
+                isLoggedIn,
+                hasAnyComponent,
+                hasLocalChanges,
+                projectsMetadata
+            };
+        } catch (err) {
+            console.error("failed to call getWorkspaceDevantMetadata: ", err);
+            return { isLoggedIn, hasAnyComponent, hasLocalChanges };
+        }
     }
 
     async getRecordConfig(params: GetRecordConfigRequest): Promise<GetRecordConfigResponse> {

@@ -57,6 +57,7 @@ export enum SCOPE {
     EVENT_INTEGRATION = "event-integration",
     FILE_INTEGRATION = "file-integration",
     AI_AGENT = "ai-agent",
+    LIBRARY = "library",
     ANY = "any"
 }
 
