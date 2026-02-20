@@ -59,19 +59,21 @@ interface ListenerConfigFormProps {
     onChange?: (data: ListenerModel) => void;
     onDirtyChange?: (isDirty: boolean) => void;
     onValidityChange?: (isValid: boolean) => void;
+    filePath?: string;
 }
 
 export function ListenerConfigForm(props: ListenerConfigFormProps) {
     const { rpcClient } = useRpcContext();
 
     const [listenerFields, setListenerFields] = useState<FormField[]>([]);
-    const { listenerModel, onSubmit, onBack, formSubmitText = "Next", isSaving, onChange, onDirtyChange, onValidityChange } = props;
+    const { listenerModel, onSubmit, onBack, formSubmitText = "Next", isSaving, onChange, onDirtyChange, onValidityChange, filePath: targetFilePath } = props;
     const [filePath, setFilePath] = useState<string>('');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const initialFieldValuesRef = useRef<Record<string, any>>({});
 
     useEffect(() => {
+        let cancelled = false;
         const recordTypeFields: RecordTypeField[] = Object.entries(listenerModel.properties)
             .filter(([_, property]) =>
                 getPrimaryInputType(property.types)?.typeMembers &&
@@ -93,7 +95,6 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
                 } as Property,
                 recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
             }));
-        console.log(">>> recordTypeFields", recordTypeFields);
         setRecordTypeFields(recordTypeFields);
 
         if (listenerModel) {
@@ -105,10 +106,19 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
             }, {} as Record<string, any>);
             onDirtyChange?.(false);
         }
-        rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((response) => {
-            setFilePath(response.filePath);
-        });
-    }, [listenerModel]);
+        if (targetFilePath) {
+            setFilePath(targetFilePath);
+        } else {
+            rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((response) => {
+                if (!cancelled && !targetFilePath) {
+                    setFilePath(response.filePath);
+                }
+            });
+        }
+        return () => {
+            cancelled = true;
+        };
+    }, [listenerModel, rpcClient, targetFilePath]);
 
     const handleListenerSubmit = async (data: FormValues, formImports: FormImports) => {
         listenerFields.forEach(val => {
@@ -121,10 +131,9 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
         onSubmit(response);
     };
 
-    const handleListenerChange = (fieldKey: string, value: any, allValues: FormValues) => {
+    const handleListenerChange = (_fieldKey: string, _value: any, allValues: FormValues) => {
         if (onChange && !allValues["defaultListener"]) {
             let hasChanges = false;
-            console.log("Listener change: ", fieldKey, value, allValues);
             listenerFields.forEach(val => {
                 if (allValues[val.key] !== undefined && !isValueEqual(allValues[val.key], initialFieldValuesRef.current[val.key])) {
                     hasChanges = true;
