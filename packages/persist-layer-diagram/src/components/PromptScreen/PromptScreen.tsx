@@ -39,7 +39,7 @@ export function PromptScreen(props: PromptScreenProps) {
                     appearance="icon"
                     onClick={showProblemPanel}
                 >
-                    <Codicon name='search' iconSx={{ marginRight: '5px' }} />
+                    <Codicon name='search' iconSx={{ marginRight: '10px' }} sx={{ marginRight: '10px' }} />
                     View Diagnostics
                 </Button>
             }
