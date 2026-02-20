@@ -163,7 +163,7 @@ ${getLanglibInstructions()}
 - If the codebase structure shows connector modules in generated/moduleName, import using: import packageName.moduleName
 
 ## Code Structure
-- Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables.
+- Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables. Never assign hardcoded default values to configurables.
 - For sensitive configuration values (API keys, tokens, passwords), declare them as Ballerina configurables in the code. Use camelCase names that match exactly between the configurable declaration and Config.toml.
 - Use ${CONFIG_COLLECTOR_TOOL} in COLLECT mode only immediately before running or testing — never during code writing. When running tests, use isTestConfig: true.
 - Initialize any necessary clients with the correct configuration based on the retrieved libraries at the module level (before any function or service declarations).
