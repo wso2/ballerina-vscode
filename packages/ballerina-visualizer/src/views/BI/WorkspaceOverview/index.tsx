@@ -601,16 +601,20 @@ export function WorkspaceOverview() {
             return;
         }
 
-        const icpStatus = await Promise.all(
-            projectPaths.map((projectPath) =>
-                rpcClient.getICPRpcClient().isIcpEnabled({ projectPath })
-            )
-        );
-        const nextStatusMap = projectPaths.reduce<Record<string, boolean>>((acc, projectPath, index) => {
-            acc[projectPath] = Boolean(icpStatus[index]?.enabled);
-            return acc;
-        }, {});
-        setIcpStatusByProjectPath(nextStatusMap);
+        try {
+            const icpStatus = await Promise.all(
+                projectPaths.map((projectPath) =>
+                    rpcClient.getICPRpcClient().isIcpEnabled({ projectPath })
+                )
+            );
+            const nextStatusMap = projectPaths.reduce<Record<string, boolean>>((acc, projectPath, index) => {
+                acc[projectPath] = Boolean(icpStatus[index]?.enabled);
+                return acc;
+            }, {});
+            setIcpStatusByProjectPath(nextStatusMap);
+        } catch (error) {
+            console.error("Failed to sync ICP status:", error);
+        }
     };
 
     const fetchContext = () => {
@@ -770,10 +774,14 @@ export function WorkspaceOverview() {
         }
 
         for (const projectPath of projectPaths) {
-            if (enableICP) {
-                await rpcClient.getICPRpcClient().addICP({ projectPath });
-            } else {
-                await rpcClient.getICPRpcClient().disableICP({ projectPath });
+            try {
+                if (enableICP) {
+                    await rpcClient.getICPRpcClient().addICP({ projectPath });
+                } else {
+                    await rpcClient.getICPRpcClient().disableICP({ projectPath });
+                }
+            } catch (error) {
+                console.error("Failed to update ICP for project:", projectPath, error);
             }
         }
     };
