@@ -186,7 +186,6 @@ import {
     handleReadmeContent,
     openAIChat,
     openConfigToml,
-    copyConfigToml,
     openReadme,
     removeBreakpointFromSource,
     renameIdentifier,
@@ -336,13 +335,9 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
     getConfigVariableNodeTemplate(params: GetConfigVariableNodeTemplateRequest): Promise<BINodeTemplateResponse> {
         return this._messenger.sendRequest(getConfigVariableNodeTemplate, HOST_EXTENSION, params);
     }
-    
+
     OpenConfigTomlRequest(params: OpenConfigTomlRequest): Promise<void> {
         return this._messenger.sendRequest(openConfigToml, HOST_EXTENSION, params);
-    }
-
-    copyConfigToml(params: CopyConfigTomlRequest): Promise<void> {
-        return this._messenger.sendRequest(copyConfigToml, HOST_EXTENSION, params);
     }
 
     getModuleNodes(): Promise<BIModuleNodesResponse> {

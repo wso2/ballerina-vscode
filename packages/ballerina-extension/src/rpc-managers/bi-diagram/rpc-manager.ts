@@ -283,7 +283,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         const nodeKind = params.flowNode.codedata.node;
                         const skipFormatting = nodeKind === 'DATA_MAPPER_CREATION' || nodeKind === 'FUNCTION_CREATION';
                         const artifactData = params.artifactData || this.getArtifactDataFromNodeKind(nodeKind);
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData, description: this.getSourceDescription(params)}, params.isHelperPaneChange, skipFormatting);
+                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData, description: this.getSourceDescription(params) }, params.isHelperPaneChange, skipFormatting);
                         resolve({ artifacts });
                     }
                 })
@@ -1072,22 +1072,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     }
 
-
-    async copyConfigToml(params: CopyConfigTomlRequest): Promise<void> {
-        const { sourceFilePath, destFilePath } = params;
-        const sourceConfigToml = path.join(sourceFilePath, "Config.toml");
-        if (!fs.existsSync(sourceConfigToml)) {
-            window.showErrorMessage(`Source Config.toml not found at: ${sourceConfigToml}`);
-            return;
-        }
-        try {
-            const content = fs.readFileSync(sourceConfigToml, 'utf8');
-            fs.writeFileSync(destFilePath, content, 'utf8');
-        } catch (error) {
-            window.showErrorMessage(`Failed to copy Config.toml: ${error}`);
-        }
-    }
-
     async getReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
         return new Promise((resolve) => {
             const projectPath = params.projectPath;
@@ -1333,7 +1317,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             });
         };
 
-        if(params.nodeType === "connection-node"){
+        if (params.nodeType === "connection-node") {
             // If its a Devant connection, need to delete it from Devant backend as well
             await new PlatformExtRpcManager().deleteBiDevantConnection({
                 filePath: params.filePath,
@@ -2005,7 +1989,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 }
 
                 resolve({});
-            } catch(error){
+            } catch (error) {
                 console.log(">>> error generating openapi client", error);
                 reject(error);
             }
