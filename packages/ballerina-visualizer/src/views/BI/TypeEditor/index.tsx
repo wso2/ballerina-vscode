@@ -55,10 +55,11 @@ type FormTypeEditorProps = {
     payloadContext?: PayloadContext;
     simpleType?: string;
     defaultTab?: 'import' | 'create-from-scratch' | 'browse-exisiting-types';
+    note?: string;
 };
 
 export const FormTypeEditor = (props: FormTypeEditorProps) => {
-    const { type, onTypeChange, newType, newTypeValue, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext, defaultTab, isGraphql } = props;
+    const { type, onTypeChange, newType, newTypeValue, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext, defaultTab, isGraphql, note } = props;
     const { rpcClient } = useRpcContext();
     const isCdcService = payloadContext?.protocol === Protocol.CDC;
 
@@ -269,6 +270,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         simpleType={simpleType}
                         payloadContext={payloadContext}
                         defaultTab={defaultTab}
+                        note={note}
                         typeHelper={{
                             loading,
                             loadingTypeBrowser,
