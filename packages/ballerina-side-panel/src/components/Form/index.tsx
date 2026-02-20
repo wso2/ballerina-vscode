@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { forwardRef, useMemo, useEffect, useState, useRef } from "react";
+import React, { forwardRef, useCallback, useMemo, useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import ReactMarkdown from "react-markdown";
 import {
@@ -32,7 +32,7 @@ import {
 import styled from "@emotion/styled";
 
 import { ExpressionFormField, FieldDerivation, FormExpressionEditorProps, FormField, FormImports, FormValues } from "./types";
-import { EditorFactory } from "../editors/EditorFactory";
+import { FieldFactory } from "../editors/FieldFactory";
 import { getValueForDropdown, isDropdownField } from "../editors/utils";
 import {
     Diagnostic,
@@ -458,7 +458,7 @@ export const Form = forwardRef((props: FormProps) => {
         setValue,
         setError,
         clearErrors,
-        formState: { isValidating, errors, dirtyFields },
+        formState: { isValidating, isValid: formStateIsValid, errors, dirtyFields },
     } = useForm<FormValues>();
 
     const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
@@ -501,7 +501,7 @@ export const Form = forwardRef((props: FormProps) => {
                     } else if (isDropdownField(field)) {
                         defaultValues[field.key] = getValueForDropdown(field) ?? "";
                     } else if (field.type === "FLAG" && field.types?.length > 1) {
-                        if (field.value && typeof field.value === "boolean") {
+                        if (typeof field.value === "boolean") {
                             defaultValues[field.key] = String(field.value);
                         }
                         else {
@@ -517,7 +517,7 @@ export const Form = forwardRef((props: FormProps) => {
                     if (field.key === "variable") {
                         defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
                     }
-                    if (field.key === "parameters" && field.value.length === 0) {
+                    if (field.key === "parameters" && field.value?.length && field.value.length === 0) {
                         defaultValues[field.key] = formValues[field.key] ?? [];
                     }
 
@@ -611,10 +611,12 @@ export const Form = forwardRef((props: FormProps) => {
         setActiveFormField(key);
     };
 
-    const handleSetDiagnosticsInfo = (diagnostics: FormDiagnostics) => {
-        const otherDiagnostics = diagnosticsInfo?.filter((item) => item.key !== diagnostics.key) || [];
-        setDiagnosticsInfo([...otherDiagnostics, diagnostics]);
-    };
+    const handleSetDiagnosticsInfo = useCallback((diagnostics: FormDiagnostics) => {
+        setDiagnosticsInfo(prev => {
+            const otherDiagnostics = prev?.filter((item) => item.key !== diagnostics.key) || [];
+            return [...otherDiagnostics, diagnostics];
+        });
+    }, []);
 
     const handleOpenSubPanel = (subPanel: SubPanel) => {
         let updatedSubPanel = subPanel;
@@ -779,7 +781,11 @@ export const Form = forwardRef((props: FormProps) => {
 
                 let diagnostics: Diagnostic[] = diagnosticsInfoItem.diagnostics || [];
                 if (diagnostics.length === 0) {
-                    clearErrors(key);
+                    // Only clear errors that were set by the expression diagnostics system,
+                    // not errors set by other validators (e.g., PathEditor)
+                    if (errors[key]?.type === "expression_diagnostic") {
+                        clearErrors(key);
+                    }
                     continue;
                 } else {
                     // Filter the BCE2066 diagnostics
@@ -788,7 +794,7 @@ export const Form = forwardRef((props: FormProps) => {
                     );
 
                     const diagnosticsMessage = diagnostics.map((d) => d.message).join("\n");
-                    setError(key, { type: "validate", message: diagnosticsMessage });
+                    setError(key, { type: "expression_diagnostic", message: diagnosticsMessage });
 
                     // If the severity is not ERROR, don't invalidate
                     const hasErrorDiagnostics = diagnostics.some((d) => d.severity === 1);
@@ -814,11 +820,12 @@ export const Form = forwardRef((props: FormProps) => {
     // Call onValidityChange when form validity changes
     useEffect(() => {
         if (onValidityChange) {
-            const formIsValid = isValid && !isValidating && Object.keys(errors).length === 0 &&
+            // formStateIsValid captures errors from PathEditor and other validators (setError)
+            const formIsValid = isValid && formStateIsValid && !isValidating && Object.keys(errors).length === 0 &&
                 (!concertMessage || !concertRequired || isUserConcert) && !isIdentifierEditing && !isSubComponentEnabled;
             onValidityChange(formIsValid);
         }
-    }, [isValid, isValidating, errors, concertMessage, concertRequired, isUserConcert, isIdentifierEditing, isSubComponentEnabled, onValidityChange]);
+    }, [isValid, formStateIsValid, isValidating, errors, concertMessage, concertRequired, isUserConcert, isIdentifierEditing, isSubComponentEnabled, onValidityChange]);
 
     const handleIdentifierEditingStateChange = (isEditing: boolean) => {
         setIsIdentifierEditing(isEditing);
@@ -830,7 +837,7 @@ export const Form = forwardRef((props: FormProps) => {
 
     const disableSaveButton =
         isValidating || props.disableSaveButton || (concertMessage && concertRequired && !isUserConcert) ||
-        isIdentifierEditing || isSubComponentEnabled || isValidatingForm || Object.keys(errors).length > 0;
+        isIdentifierEditing || isSubComponentEnabled || isValidatingForm || !formStateIsValid || Object.keys(errors).length > 0;
 
     const handleShowMoreClick = () => {
         setIsMarkdownExpanded(!isMarkdownExpanded);
@@ -1026,7 +1033,7 @@ export const Form = forwardRef((props: FormProps) => {
                         const updatedField = updateFormFieldWithImports(field, formImports);
                         renderedComponents.push(
                             <S.Row key={updatedField.key}>
-                                <EditorFactory
+                                <FieldFactory
                                     field={updatedField}
                                     selectedNode={selectedNode}
                                     openRecordEditor={
@@ -1110,7 +1117,7 @@ export const Form = forwardRef((props: FormProps) => {
                                 const updatedField = updateFormFieldWithImports(field, formImports);
                                 return (
                                     <S.Row key={updatedField.key}>
-                                        <EditorFactory
+                                        <FieldFactory
                                             field={updatedField}
                                             openRecordEditor={
                                                 openRecordEditor &&
@@ -1134,7 +1141,7 @@ export const Form = forwardRef((props: FormProps) => {
                             const updatedField = updateFormFieldWithImports(field, formImports);
                             return (
                                 <S.Row key={updatedField.key}>
-                                    <EditorFactory
+                                    <FieldFactory
                                         field={updatedField}
                                         openRecordEditor={
                                             openRecordEditor &&
@@ -1155,7 +1162,7 @@ export const Form = forwardRef((props: FormProps) => {
             {!preserveOrder && (variableField || typeField || targetTypeField) && (
                 <S.CategoryRow topBorder={!compact && hasParameters}>
                     {variableField && (
-                        <EditorFactory
+                        <FieldFactory
                             field={variableField}
                             handleOnFieldFocus={handleOnFieldFocus}
                             recordTypeFields={recordTypeFields}
@@ -1164,7 +1171,7 @@ export const Form = forwardRef((props: FormProps) => {
                         />
                     )}
                     {typeField && !isInferredReturnType && (
-                        <EditorFactory
+                        <FieldFactory
                             field={typeField}
                             openRecordEditor={
                                 openRecordEditor &&
@@ -1181,7 +1188,7 @@ export const Form = forwardRef((props: FormProps) => {
                     )}
                     {targetTypeField && !targetTypeField.advanced && (
                         <>
-                            <EditorFactory
+                            <FieldFactory
                                 field={targetTypeField}
                                 handleOnFieldFocus={handleOnFieldFocus}
                                 recordTypeFields={recordTypeFields}

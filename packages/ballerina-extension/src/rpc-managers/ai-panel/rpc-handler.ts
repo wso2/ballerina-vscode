@@ -48,6 +48,7 @@ import {
     generateOpenAPI,
     GenerateOpenAPIRequest,
     getActiveTempDir,
+    getAffectedPackages,
     getAIMachineSnapshot,
     getChatMessages,
     getCheckpoints,
@@ -57,12 +58,12 @@ import {
     getGeneratedDocumentation,
     getLoginMethod,
     getSemanticDiff,
-    getAffectedPackages,
-    isWorkspaceProject,
     getServiceNames,
     isCopilotSignedIn,
     isPlanModeFeatureEnabled,
+    isPlatformExtensionAvailable,
     isUserAuthenticated,
+    isWorkspaceProject,
     markAlertShown,
     MetadataWithAttachments,
     openAIPanel,
@@ -91,6 +92,7 @@ import { AiPanelRpcManager } from "./rpc-manager";
 export function registerAiPanelRpcHandlers(messenger: Messenger) {
     const rpcManger = new AiPanelRpcManager();
     messenger.onRequest(getLoginMethod, () => rpcManger.getLoginMethod());
+    messenger.onRequest(isPlatformExtensionAvailable, () => rpcManger.isPlatformExtensionAvailable());
     messenger.onRequest(getDefaultPrompt, () => rpcManger.getDefaultPrompt());
     messenger.onRequest(getAIMachineSnapshot, () => rpcManger.getAIMachineSnapshot());
     messenger.onNotification(clearInitialPrompt, () => rpcManger.clearInitialPrompt());

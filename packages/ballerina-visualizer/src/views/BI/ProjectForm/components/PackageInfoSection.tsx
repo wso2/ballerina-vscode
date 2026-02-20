@@ -17,7 +17,7 @@
  */
 
 import { TextField } from "@wso2/ui-toolkit";
-import { FieldGroup } from "../styles";
+import { FieldGroup, Note } from "../styles";
 import { CollapsibleSection } from "./CollapsibleSection";
 
 export interface PackageInfoData {
@@ -34,6 +34,8 @@ export interface PackageInfoSectionProps {
     data: PackageInfoData;
     /** Callback when the package info changes */
     onChange: (data: Partial<PackageInfoData>) => void;
+    /** Error message for org name validation */
+    orgNameError?: string | null;
 }
 
 export function PackageInfoSection({
@@ -41,6 +43,7 @@ export function PackageInfoSection({
     onToggle,
     data,
     onChange,
+    orgNameError,
 }: PackageInfoSectionProps) {
     return (
         <CollapsibleSection
@@ -48,14 +51,17 @@ export function PackageInfoSection({
             onToggle={onToggle}
             icon="package"
             title="Package Information"
-            subtitle={data.orgName || undefined}
         >
+            <Note style={{ marginBottom: "16px" }}>
+                This integration is generated as a Ballerina package. Define the organization and version that will be assigned to it.     
+            </Note>
             <FieldGroup>
                 <TextField
                     onTextChange={(value) => onChange({ orgName: value })}
                     value={data.orgName}
                     label="Organization Name"
                     description="The organization that owns this Ballerina package."
+                    errorMsg={orgNameError || undefined}
                 />
             </FieldGroup>
             <FieldGroup>

@@ -17,6 +17,7 @@
  */
 
 import React, { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import {
     Button,
     Codicon,
@@ -36,7 +37,9 @@ import { GroupListSkeleton } from "../Skeletons";
 import GroupList from "../GroupList";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { getExpandedCategories, setExpandedCategories, getDefaultExpandedState } from "../../utils/localStorage";
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
 import { shouldShowEmptyCategory, shouldUseConnectionContainer, getCategoryActions, isCategoryFixed } from "./categoryConfig";
+import { stripHtmlTags } from "../Form/utils";
 
 namespace S {
     export const Container = styled.div<{}>`
@@ -114,6 +117,38 @@ namespace S {
     export const BodyText = styled.div<{}>`
         font-size: 11px;
         opacity: 0.5;
+    `;
+
+    export const TooltipMarkdown = styled.div`
+        font-size: 12px;
+        line-height: 1.4;
+        font-family: var(--vscode-font-family);
+
+        p {
+            margin: 0 0 6px 0;
+        }
+
+        p:last-of-type {
+            margin-bottom: 0;
+        }
+
+        pre {
+            display: none;
+        }
+
+        code {
+            display: inline;
+        }
+
+        ul,
+        ol {
+            margin: 6px 0;
+            padding-left: 18px;
+        }
+
+        li {
+            margin: 2px 0;
+        }
     `;
 
     export const Component = styled.div<{ enabled?: boolean }>`
@@ -319,6 +354,9 @@ interface NodeListProps {
     onBack?: () => void;
     onClose?: () => void;
     searchPlaceholder?: string;
+    onImportDevantConn?: (devantConn: ConnectionListItem) => void;
+    onLinkDevantProject?: () => void;
+    onRefreshDevantConnections?: () => void;
 }
 
 export function NodeList(props: NodeListProps) {
@@ -335,6 +373,9 @@ export function NodeList(props: NodeListProps) {
         onBack,
         onClose,
         searchPlaceholder,
+        onImportDevantConn,
+        onLinkDevantProject,
+        onRefreshDevantConnections,
     } = props;
 
     const [searchText, setSearchText] = useState<string>("");
@@ -434,6 +475,31 @@ export function NodeList(props: NodeListProps) {
         }
     };
 
+    const handleOnLinkDevantProject = () => {
+        if (onLinkDevantProject){
+            onLinkDevantProject();
+        }
+    }
+
+    const handleOnRefreshDevantConnections = () => {
+        if (onRefreshDevantConnections){
+            onRefreshDevantConnections();
+        }
+    }
+    
+    const renderTooltipContent = (description?: string): React.ReactNode | undefined => {
+        const cleaned = stripHtmlTags(description || "").trim();
+        if (!cleaned) {
+            return undefined;
+        }
+
+        return (
+            <S.TooltipMarkdown>
+                <ReactMarkdown>{cleaned}</ReactMarkdown>
+            </S.TooltipMarkdown>
+        );
+    };
+
     const getNodesContainer = (items: (Node | Category)[], parentCategoryTitle?: string) => {
         const safeItems = items.filter((item) => item != null);
         const nodes = safeItems.filter((item): item is Node => "id" in item && !("title" in item));
@@ -450,7 +516,7 @@ export function NodeList(props: NodeListProps) {
                         return (
                             <Tooltip 
                                 key={node.id + index}
-                                content={node.description} 
+                                content={renderTooltipContent(node.description)}
                                 sx={{ 
                                     maxWidth: "280px",
                                     whiteSpace: "normal",
@@ -535,6 +601,7 @@ export function NodeList(props: NodeListProps) {
                         category={category}
                         expand={searchText?.length > 0}
                         onSelect={handleAddNode}
+                        onImportDevantConn={onImportDevantConn}
                         enableSingleNodeDirectNav={enableSingleNodeDirectNav}
                     />
                 ))
@@ -578,7 +645,7 @@ export function NodeList(props: NodeListProps) {
                     // Hide categories that don't have items, except for special categories that can add items
                     if (!group || !group.items || group.items.length === 0) {
                         // Only show empty categories if they have add functionality
-                        if (!shouldShowEmptyCategory(group.title)) {
+                        if (!shouldShowEmptyCategory(group.title, isSubCategory) && categoryActions.length === 0) {
                             return null;
                         }
                     }
@@ -614,7 +681,9 @@ export function NodeList(props: NodeListProps) {
                                                         const handlers = {
                                                             onAddConnection: handleAddConnection,
                                                             onAddFunction: handleAddFunction,
-                                                            onAdd: handleAdd
+                                                            onAdd: handleAdd,
+                                                            onLinkDevantProject: handleOnLinkDevantProject,
+                                                            onRefreshDevantConnections: handleOnRefreshDevantConnections
                                                         };
                                                         
                                                         const handler = handlers[action.handlerKey];
@@ -634,7 +703,7 @@ export function NodeList(props: NodeListProps) {
                                                                         handler();
                                                                     }}
                                                                 >
-                                                                    <Codicon name="add" />
+                                                                    <Codicon name={action?.codeIcon || "add"} />
                                                                 </Button>
                                                             </Tooltip>
                                                         );
@@ -658,32 +727,35 @@ export function NodeList(props: NodeListProps) {
                                             </Tooltip>
                                         </S.Row>
                                     )}
-                                    {(isCategoryExpanded || isCategoryFixed(group.title)) && (
+                                    {(isSubCategory || isCategoryExpanded || isCategoryFixed(group.title)) && (
                                         <>
-                                            {(!group.items || group.items.length === 0) &&
+                                            {(isSubCategory || (!group.items || group.items.length === 0)) &&
                                                 !searchText &&
                                                 !isSearching &&
                                                 categoryActions.map((action, actionIndex) => {
                                                     const handlers = {
                                                         onAddConnection: handleAddConnection,
                                                         onAddFunction: handleAddFunction,
-                                                        onAdd: handleAdd
+                                                        onAdd: handleAdd,
+                                                        onLinkDevantProject: handleOnLinkDevantProject,
+                                                        onRefreshDevantConnections: handleOnRefreshDevantConnections
                                                     };
                                                     
                                                     const handler = handlers[action.handlerKey];
                                                     const propsHandler = props[action.handlerKey];
                                                     
                                                     // Only render if the handler exists in props
-                                                    if (!propsHandler || !handler) return null;
+                                                    if (!propsHandler || !handler || action.hideOnEmptyState) return null;
                                                     
                                                     const buttonLabel = action.emptyStateLabel || addButtonLabel || "Add";
                                                     
                                                     return (
                                                         <S.HighlightedButton 
                                                             key={`empty-${group.title}-${actionIndex}`}
+                                                            style={{padding: '5px 10px', width: isSubCategory ? '160px' : '100%'}}
                                                             onClick={handler}
                                                         >
-                                                            <Codicon name="add" iconSx={{ fontSize: 12 }} />
+                                                            <Codicon name={action?.codeIcon || "add"} iconSx={{ fontSize: 12 }} />
                                                             {buttonLabel}
                                                         </S.HighlightedButton>
                                                     );

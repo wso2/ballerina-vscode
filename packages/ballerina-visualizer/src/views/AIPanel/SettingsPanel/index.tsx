@@ -21,7 +21,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Typography } from "@wso2/ui-toolkit";
 
 import { AIChatView } from "../styles";
-import { AIMachineEventType, LoginMethod } from "@wso2/ballerina-core";
+import { AIMachineEventType } from "@wso2/ballerina-core";
 
 const Container = styled.div`
     display: flex;
@@ -62,7 +62,6 @@ export const SettingsPanel = (props: { onClose: () => void }) => {
     const { rpcClient } = useRpcContext();
 
     const [copilotAuthorized, setCopilotAuthorized] = React.useState(false);
-    const [shouldShowLogoutButton, setShouldShowLogoutButton] = React.useState(true);
 
     const messagesEndRef = createRef<HTMLDivElement>();
 
@@ -70,14 +69,6 @@ export const SettingsPanel = (props: { onClose: () => void }) => {
         isCopilotAuthorized().then((authorized) => {
             setCopilotAuthorized(authorized);
         });
-
-        rpcClient
-            .getAiPanelRpcClient()
-            .getLoginMethod()
-            .then((loginMethod) => {
-                console.log("Login Method: ", loginMethod);
-                setShouldShowLogoutButton(loginMethod !== LoginMethod.DEVANT_ENV);
-            });
     }, []);
 
     const handleCopilotLogout = () => {
@@ -109,18 +100,16 @@ export const SettingsPanel = (props: { onClose: () => void }) => {
             <VerticalLine />
             <Container>
                 <Typography variant="subtitle1">Connect to AI Platforms for Enhanced Features</Typography>
-                {shouldShowLogoutButton && (
-                    <RowGroup>
-                        <Row>
-                            <Typography variant="subtitle2">Logout from BI Copilot</Typography>
-                            <Typography variant="caption">
-                                Logging out will end your session and disconnect access to AI-powered tools like code
-                                generation, completions, test generation, and data mappings.
-                            </Typography>
-                        </Row>
-                        <Button onClick={() => handleCopilotLogout()}>Logout</Button>
-                    </RowGroup>
-                )}
+                <RowGroup>
+                    <Row>
+                        <Typography variant="subtitle2">Logout from BI Copilot</Typography>
+                        <Typography variant="caption">
+                            Logging out will end your session and disconnect access to AI-powered tools like code
+                            generation, completions, test generation, and data mappings.
+                        </Typography>
+                    </Row>
+                    <Button onClick={() => handleCopilotLogout()}>Logout</Button>
+                </RowGroup>
                 <RowGroup>
                     <Row>
                         <Typography variant="subtitle2">Enable GitHub Copilot Integration</Typography>

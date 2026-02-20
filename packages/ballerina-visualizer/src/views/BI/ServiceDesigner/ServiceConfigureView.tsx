@@ -16,9 +16,9 @@
  * under the License.
  */
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import styled from "@emotion/styled";
-import { ConfigProperties, ConfigVariable, DIRECTORY_MAP, getPrimaryInputType, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, ServiceModel } from "@wso2/ballerina-core";
+import { ConfigProperties, ConfigVariable, DIRECTORY_MAP, EVENT_TYPE, getPrimaryInputType, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, ServiceModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Icon, LinkButton, ProgressRing, SidePanelBody, SplitView, TabPanel, ThemeColors, TreeView, TreeViewItem, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -200,24 +200,38 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     const [serviceModel, setServiceModel] = useState<ServiceModel>(undefined);
     const [listeners, setListeners] = useState<ProjectStructureArtifactResponse[]>([]);
 
+    const [currentIdentifier, setCurrentIdentifier] = useState<string | null>(null);
+
     const [isSaving, setIsSaving] = useState<boolean>(false);
-    const [hasChanges, setHasChanges] = useState<boolean>(false);
     const [existingListenerType, setExistingListenerType] = useState<string>(""); // Example: "Listener", "CdcListener"
 
     const [selectedListener, setSelectedListener] = useState<string | null>(null);
 
     const [changeMap, setChangeMap] = useState<{ [key: string]: ChangeMap }>({});
+    const [dirtyFormMap, setDirtyFormMap] = useState<{ [key: string]: boolean }>({});
 
     const { addModal, closeModal } = useModalStack()
 
     // Helper function to create key from filePath and position
-    const getChangeKey = (filePath: string, position: NodePosition) => {
-        return `${filePath}:${position.startLine}:${position.startColumn}:${position.endLine}:${position.endColumn}`;
+    const getChangeKey = (filePath: string, position: NodePosition, isService: boolean) => {
+        const modelType = isService ? "service" : "listener";
+        return `${modelType}:${filePath}:${position.startLine}:${position.startColumn}:${position.endLine}:${position.endColumn}`;
     };
     // Helper function to add a change to the map
     const addChangeToMap = (filePath: string, position: NodePosition, data: ServiceModel | ListenerModel, isService: boolean) => {
-        const key = getChangeKey(filePath, position);
+        const key = getChangeKey(filePath, position, isService);
         setChangeMap(prev => ({ ...prev, [key]: { data, isService, filePath } }));
+    };
+    const removeChangeFromMap = (filePath: string, position: NodePosition, isService: boolean) => {
+        const key = getChangeKey(filePath, position, isService);
+        setChangeMap(prev => {
+            if (!prev[key]) {
+                return prev;
+            }
+            const next = { ...prev };
+            delete next[key];
+            return next;
+        });
     };
 
 
@@ -244,6 +258,31 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     const [listenerType, setListenerType] = useState<"SINGLE" | "MULTIPLE">("MULTIPLE");
     const [haveServiceConfigs, setHaveServiceConfigs] = useState<boolean>(true);
+
+    // Track validity of each form (service form + listener forms) to disable Save when diagnostics exist
+    const [formValidityMap, setFormValidityMap] = useState<{ [key: string]: boolean }>({});
+    const hasDiagnostics = Object.values(formValidityMap).some(isValid => !isValid);
+    const hasDirtyChanges = Object.values(dirtyFormMap).some(isDirty => isDirty);
+
+    const handleFormValidityChange = useCallback((formKey: string, isValid: boolean) => {
+        setFormValidityMap(prev => {
+            if (prev[formKey] === isValid) return prev;
+            return { ...prev, [formKey]: isValid };
+        });
+    }, []);
+
+    const handleFormDirtyChange = useCallback((filePath: string, position: NodePosition, isService: boolean, isDirty: boolean) => {
+        const key = getChangeKey(filePath, position, isService);
+        setDirtyFormMap(prev => {
+            if (prev[key] === isDirty) {
+                return prev;
+            }
+            return { ...prev, [key]: isDirty };
+        });
+        if (!isDirty) {
+            removeChangeFromMap(filePath, position, isService);
+        }
+    }, []);
 
     useEffect(() => {
         fetchService(props.position);
@@ -429,6 +468,9 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                     setServiceListeners(res.service);
                     // Find the listener type
                     findListenerType(res.service);
+                    // Reset change state on load - Save button should be disabled until user makes changes
+                    setChangeMap({});
+                    setDirtyFormMap({});
                 });
         } catch (error) {
             console.log("Error fetching service model: ", error);
@@ -498,17 +540,35 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         serviceModel.properties['listener'].values.push(listenerName);
         const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: props.filePath, service: serviceModel });
         const updatedArtifact = res.artifacts.at(0);
-        await fetchService(updatedArtifact.position);
+        setCurrentIdentifier(updatedArtifact.name);
+        await rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
+            location: {
+                documentUri: updatedArtifact.path,
+                position: updatedArtifact.position,
+                identifier: updatedArtifact.name
+            }
+        });
         closeModal(POPUP_IDS.ATTACH_LISTENER);
         setChangeMap({});
+        setDirtyFormMap({});
     }
 
     const handleOnDetachListener = async (listenerName: string) => {
         serviceModel.properties['listener'].values = serviceModel.properties['listener'].values.filter(listener => listener !== listenerName);
         const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: props.filePath, service: serviceModel });
         const updatedArtifact = res.artifacts.at(0);
-        await fetchService(updatedArtifact.position);
+        setCurrentIdentifier(updatedArtifact.name);
+        await rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
+            location: {
+                documentUri: updatedArtifact.path,
+                position: updatedArtifact.position,
+                identifier: updatedArtifact.name
+            }
+        });
         setChangeMap({});
+        setDirtyFormMap({});
     }
 
     const handleOnListenerClick = (listenerId: string) => {
@@ -532,30 +592,38 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     const handleListenerChange = async (data: ListenerModel, filePath: string, position: NodePosition) => {
         addChangeToMap(filePath, position, data, false);
-        setHasChanges(true);
         setIsSaving(false);
     }
 
     const handleServiceChange = async (data: ServiceModel, filePath: string, position: NodePosition) => {
         addChangeToMap(filePath, position, data, true);
-        setHasChanges(true);
         setIsSaving(false);
     }
 
     const handleSave = async () => {
         setIsSaving(true);
         const changes = Object.values(changeMap);
-        for (const change of changes) {
-            if (change.isService) {
-                const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: change.filePath, service: change.data as ServiceModel });
-                const updatedArtifact = res.artifacts.at(0);
-                await fetchService(updatedArtifact.position);
-            } else {
-                await rpcClient.getServiceDesignerRpcClient().updateListenerSourceCode({ filePath: change.filePath, listener: change.data as ListenerModel });
-            }
+        const listenerChanges = changes.filter((c) => !c.isService);
+        const serviceChanges = changes.filter((c) => c.isService);
+        // Listeners first, then service last
+        for (const change of listenerChanges) {
+            await rpcClient.getServiceDesignerRpcClient().updateListenerSourceCode({ filePath: change.filePath, listener: change.data as ListenerModel });
+        }
+        for (const change of serviceChanges) {
+            const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: change.filePath, service: change.data as ServiceModel });
+            const updatedArtifact = res.artifacts.at(0);
+            setCurrentIdentifier(updatedArtifact.name);
+            // Update the visualizer location
+            await rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.UPDATE_PROJECT_LOCATION,
+                location: {
+                    documentUri: updatedArtifact.path,
+                    position: updatedArtifact.position
+                }
+            });
         }
         setChangeMap({});
-        setHasChanges(false);
+        setDirtyFormMap({});
         setIsSaving(false);
     }
 
@@ -563,6 +631,10 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         if (!existingListenerType) {
             setExistingListenerType(type);
         }
+    }
+
+    const handleGoBack = () => {
+        rpcClient.getVisualizerRpcClient().goBack({ identifier: currentIdentifier });
     }
 
     return (
@@ -576,7 +648,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             {
                 serviceModel && (
                     <>
-                        <TitleBar title={`${serviceModel.name} Configuration`} subtitle="Configure and manage service details" />
+                        <TitleBar title={`${serviceModel.name} Configuration`} subtitle="Configure and manage service details" onBack={handleGoBack} />
                         <ViewContent padding>
                             <div style={{ height: 'calc(100vh - 220px)' }}>
                                 <div style={{ width: "auto" }}>
@@ -694,7 +766,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                             {configTitle}
                                                         </Typography>
 
-                                                        <Button appearance="primary" onClick={handleSave} disabled={isSaving || !hasChanges} id="save-changes-btn">
+                                                        <Button appearance="primary" onClick={handleSave} disabled={isSaving || !hasDirtyChanges || hasDiagnostics} id="save-changes-btn">
                                                             {isSaving ? <Typography variant="progress">Saving...</Typography> : <>Save Changes</>}
                                                         </Button>
                                                     </TitleContent>
@@ -711,7 +783,13 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                             <div>
                                                                 {haveServiceConfigs && (
                                                                     <div ref={serviceRef} data-section-id="service">
-                                                                        <ServiceEditView filePath={props.filePath} position={props.position} onChange={handleServiceChange} />
+                                                                        <ServiceEditView
+                                                                            filePath={props.filePath}
+                                                                            position={props.position}
+                                                                            onChange={handleServiceChange}
+                                                                            onDirtyChange={(isDirty, filePath, position) => handleFormDirtyChange(filePath, position, true, isDirty)}
+                                                                            onValidityChange={(isValid) => handleFormValidityChange('service', isValid)}
+                                                                        />
                                                                     </div>
                                                                 )}
                                                                 {listeners.map((listener) => (
@@ -740,7 +818,9 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                                 filePath={listener.path}
                                                                                 position={listener.position}
                                                                                 onChange={handleListenerChange}
+                                                                                onDirtyChange={(isDirty, filePath, position) => handleFormDirtyChange(filePath, position, false, isDirty)}
                                                                                 setListenerType={handleSetListenerType}
+                                                                                onValidityChange={(isValid) => handleFormValidityChange(listener.id, isValid)}
                                                                             />
                                                                         </div>
                                                                     </AccordionContainer>
@@ -785,11 +865,13 @@ interface ServiceConfigureListenerEditViewProps {
     filePath: string;
     position: NodePosition;
     onChange?: (data: ListenerModel, filePath: string, position: NodePosition) => void;
+    onDirtyChange?: (isDirty: boolean, filePath: string, position: NodePosition) => void;
     setListenerType?: (type: string) => void;
+    onValidityChange?: (isValid: boolean) => void;
 }
 
 function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditViewProps) {
-    const { filePath, position, onChange, setListenerType } = props;
+    const { filePath, position, onChange, onDirtyChange, setListenerType, onValidityChange } = props;
     const { rpcClient } = useRpcContext();
     const [listenerModel, setListenerModel] = useState<ListenerModel>(undefined);
 
@@ -834,6 +916,10 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
         onChange(data, filePath, position);
     }
 
+    const handleListenerDirtyChange = (isDirty: boolean) => {
+        onDirtyChange?.(isDirty, filePath, position);
+    }
+
     return (
         <ServiceConfigureListenerEditViewContainer>
             {!listenerModel &&
@@ -843,7 +929,15 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
                 </LoadingContainer>
             }
             {listenerModel &&
-                <ListenerConfigForm listenerModel={listenerModel} onSubmit={onSubmit} formSubmitText={saving ? savingText : "Save"} isSaving={saving} onChange={handleListenerChange} />
+                <ListenerConfigForm
+                    listenerModel={listenerModel}
+                    onSubmit={onSubmit}
+                    formSubmitText={saving ? savingText : "Save"}
+                    isSaving={saving}
+                    onChange={handleListenerChange}
+                    onDirtyChange={handleListenerDirtyChange}
+                    onValidityChange={onValidityChange}
+                />
             }
         </ServiceConfigureListenerEditViewContainer>
     );

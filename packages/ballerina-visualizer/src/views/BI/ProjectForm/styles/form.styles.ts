@@ -258,7 +258,7 @@ export const RadioDescription = styled.span`
     line-height: 1.4;
 `;
 
-export const ProjectTypeNote = styled.div`
+export const Note = styled.div`
     font-size: 11px;
     color: var(--vscode-descriptionForeground);
     margin-top: 12px;
