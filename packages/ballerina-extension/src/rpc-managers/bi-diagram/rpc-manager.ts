@@ -270,29 +270,44 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async getSourceCode(params: BISourceCodeRequest): Promise<UpdatedArtifactsResponse> {
         console.log(">>> requesting bi source code from ls", params);
-        return new Promise((resolve) => {
-            StateMachine.langClient()
-                .getSourceCode(params)
-                .then(async (model) => {
-                    console.log(">>> bi source code from ls", model);
-                    if (params?.isConnector) {
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, description: this.getSourceDescription(params) });
-                        resolve({ artifacts });
-                    } else {
-                        const nodeKind = params.flowNode.codedata.node;
-                        const skipFormatting = nodeKind === 'DATA_MAPPER_CREATION' || nodeKind === 'FUNCTION_CREATION';
-                        const artifactData = params.artifactData || this.getArtifactDataFromNodeKind(nodeKind);
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData, description: this.getSourceDescription(params)}, params.isHelperPaneChange, skipFormatting);
-                        resolve({ artifacts });
-                    }
-                })
-                .catch((error) => {
-                    console.log(">>> error fetching source code from ls", error);
-                    return new Promise((resolve) => {
-                        resolve({ artifacts: [], error: error });
-                    });
-                });
-        });
+        try {
+            const model = await StateMachine.langClient().getSourceCode(params) as BISourceCodeResponse;
+            console.log(">>> bi source code from ls", model);
+
+            if (model?.errorMsg) {
+                const errorMessage = model.errorMsg;
+                console.error(">>> error generating source code from ls", { errorMessage, stacktrace: model.stacktrace });
+                window.showErrorMessage(`Failed to save changes: ${errorMessage}`);
+                return { artifacts: [], error: errorMessage };
+            }
+
+            if (!model?.textEdits) {
+                const errorMessage = "Failed to save changes: language server returned an empty source update.";
+                console.error(">>> invalid source code response from ls", model);
+                window.showErrorMessage(errorMessage);
+                return { artifacts: [], error: errorMessage };
+            }
+
+            if (params?.isConnector) {
+                const artifacts = await updateSourceCode({ textEdits: model.textEdits, description: this.getSourceDescription(params) });
+                return { artifacts };
+            }
+
+            const nodeKind = params.flowNode.codedata.node;
+            const skipFormatting = nodeKind === 'DATA_MAPPER_CREATION' || nodeKind === 'FUNCTION_CREATION';
+            const artifactData = params.artifactData || this.getArtifactDataFromNodeKind(nodeKind);
+            const artifacts = await updateSourceCode(
+                { textEdits: model.textEdits, artifactData, description: this.getSourceDescription(params) },
+                params.isHelperPaneChange,
+                skipFormatting
+            );
+            return { artifacts };
+        } catch (error) {
+            console.log(">>> error fetching source code from ls", error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            window.showErrorMessage(`Failed to save changes: ${errorMessage}`);
+            return { artifacts: [], error: errorMessage };
+        }
     }
 
     private capitalizeFirstLetter(name: string): string {
@@ -993,7 +1008,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 // Create config.bal if it doesn't exist
                 writeBallerinaFileDidOpen(params.configFilePath, "\n");
             }
-            const response = await StateMachine.langClient().deleteConfigVariableV2(req) as BISourceCodeResponse;
+            const response = await StateMachine.langClient().deleteConfigVariableV2(req) as DeleteConfigVariableResponseV2;
             await updateSourceCode({ textEdits: response.textEdits, artifactData: { artifactType: DIRECTORY_MAP.CONFIGURABLE }, description: 'Config Variable Deletion' });
             resolve(response);
         });
