@@ -17,7 +17,7 @@
  */
 
 import { TextField } from "@wso2/ui-toolkit";
-import { FieldGroup } from "../styles";
+import { FieldGroup, Note } from "../styles";
 import { CollapsibleSection } from "./CollapsibleSection";
 
 export interface PackageInfoData {
@@ -51,8 +51,10 @@ export function PackageInfoSection({
             onToggle={onToggle}
             icon="package"
             title="Package Information"
-            subtitle={data.orgName || undefined}
         >
+            <Note style={{ marginBottom: "16px" }}>
+                This integration is generated as a Ballerina package. Define the organization and version that will be assigned to it.     
+            </Note>
             <FieldGroup>
                 <TextField
                     onTextChange={(value) => onChange({ orgName: value })}
