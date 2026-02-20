@@ -249,6 +249,10 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
         return null;
     }
 
+    if (!platformExtState?.isLoggedIn) {
+        return <ConnectionConfigurationForm {...props} />;
+    }
+
     return (
         <ConnectionConfigurationForm
             {...props}

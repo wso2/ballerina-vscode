@@ -33,6 +33,7 @@ const defaultPlatformExtContext: {
     devantConsoleUrl: string;
     platformRpcClient?: PlatformExtRpcClient;
     onLinkDevantProject: () => void;
+    loginToDevant: () => void;
     importConnection: {
         connection?: ConnectionListItem;
         setConnection: (item?: ConnectionListItem) => void;
@@ -40,6 +41,7 @@ const defaultPlatformExtContext: {
 } = {
     platformExtState: { components: [], isLoggedIn: false, userInfo: null },
     onLinkDevantProject: () => {},
+    loginToDevant: () => {},
     devantConsoleUrl: "",
     importConnection: { setConnection: () => {} },
 };
@@ -72,6 +74,15 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
         queryFn: () => platformRpcClient.getDevantConsoleUrl(),
     });
 
+    const loginToDevant = () => {
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: [
+                PlatformExtCommandIds.SignIn,
+                { extName: "Devant" } as ICmdParamsBase,
+            ],
+        })
+    }
+
     const onLinkDevantProject = () => {
         if (!platformExtState?.isLoggedIn && platformExtState?.hasPossibleComponent) {
             rpcClient
@@ -84,9 +95,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                     if (resp === "Login") {
                         platformRpcClient.deployIntegrationInDevant();
                     } else if (resp === "Associate Project") {
-                        rpcClient.getCommonRpcClient().executeCommand({
-                            commands: [PlatformExtCommandIds.SignIn, { extName: "Devant" } as ICmdParamsBase],
-                        });
+                        loginToDevant();
                     }
                 });
         } else {
@@ -127,6 +136,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                     components: platformExtState?.isLoggedIn ? platformExtState.components : [],
                     devantConns: platformExtState?.isLoggedIn ? platformExtState.devantConns : {},
                 },
+                loginToDevant,
                 devantConsoleUrl,
                 platformRpcClient,
                 onLinkDevantProject,
