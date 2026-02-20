@@ -37,7 +37,6 @@ const FormContainer = styled.div`
 
     .side-panel-body {
         overflow: visible;
-        overflow-y: hidden;
     }
 `;
 
