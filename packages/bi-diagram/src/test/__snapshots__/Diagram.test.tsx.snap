@@ -1310,13 +1310,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   <div
                     class="connector-icon"
                   >
-                    <div
-                      class="css-47"
-                    >
-                      <i
-                        class="fw-bi-ai-agent"
-                      />
-                    </div>
+                    <img
+                      src="https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+                      style="width: 24px; height: 24px; font-size: 24px;"
+                    />
                   </div>
                 </foreignobject>
                 <text
@@ -1536,7 +1533,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                       class="css-47"
                     >
                       <i
-                        class="fw-bi-ai-agent"
+                        class="fw-bi-mcp"
                       />
                     </div>
                   </div>
@@ -7997,13 +7994,10 @@ exports[`BI Diagram - Snapshot Tests renders all nodes flow correctly: all-nodes
                   <div
                     class="connector-icon"
                   >
-                    <div
-                      class="css-70"
-                    >
-                      <i
-                        class="fw-bi-ai-agent"
-                      />
-                    </div>
+                    <img
+                      src="https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.gcalendar_4.0.1.png"
+                      style="width: 24px; height: 24px; font-size: 24px;"
+                    />
                   </div>
                 </foreignobject>
                 <text
@@ -8223,7 +8217,7 @@ exports[`BI Diagram - Snapshot Tests renders all nodes flow correctly: all-nodes
                       class="css-70"
                     >
                       <i
-                        class="fw-bi-ai-agent"
+                        class="fw-bi-mcp"
                       />
                     </div>
                   </div>
