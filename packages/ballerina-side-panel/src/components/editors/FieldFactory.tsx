@@ -99,13 +99,17 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         if (!props.field.types || props.field.types.length === 0) {
             throw new Error("Field types are not defined");
         }
+        if (props.field.types.length === 1) {
+            return props.field.types[0];
+        }
+
         const selectedType = props.field.types.find(type => type.selected);
         if (selectedType) {
             return selectedType;
         }
-        if (!props.field.value) {
-            return props.field.types[0];
-        }
+
+        // Fallback for refactored models where all types can be unselected.
+        // Prioritize the last type (usually EXPRESSION mode) for multi-type fields.
         return props.field.types[props.field.types.length - 1];
     }
 
