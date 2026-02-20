@@ -129,23 +129,24 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                     setFilteredBasicTypes(basicTypes);
                     fetchedInitialTypes.current = true;
 
+
+                    const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                        filePath: filePath,
+                        position: targetLineRange,
+                        queryMap: {
+                            q: '',
+                            offset: 0,
+                            limit: 1000
+                        },
+                        searchKind: 'TYPE'
+                    });
+
+                    const workspaceTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.CURRENT);
+                    setWorkspaceTypes(workspaceTypes);
                     // Additionally fetch imported types 
                     if (!isGraphQLContext) {
-                        const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
-                            filePath: filePath,
-                            position: targetLineRange,
-                            queryMap: {
-                                q: '',
-                                offset: 0,
-                                limit: 1000
-                            },
-                            searchKind: 'TYPE'
-                        });
-
                         const importedTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.IMPORTED);
-                        const workspaceTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.CURRENT);
                         setImportedTypes(importedTypes);
-                        setWorkspaceTypes(workspaceTypes);
                     }
 
                 } catch (error) {
