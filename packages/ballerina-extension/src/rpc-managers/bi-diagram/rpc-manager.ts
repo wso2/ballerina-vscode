@@ -199,6 +199,7 @@ import { CommonRpcManager } from "../common/rpc-manager";
 import * as toml from "@iarna/toml";
 import { readOrWriteReadmeContent } from "./utils";
 import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
+import { getRepoRoot } from "../platform-ext/platform-utils";
 
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
