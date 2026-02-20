@@ -798,13 +798,26 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         }
     };
 
+    const hasPropertyDiagnosticMessages = (nodeWithDiagnostics: FlowNode | null): boolean => {
+        const nodeProperties = nodeWithDiagnostics?.properties;
+        if (!nodeProperties) {
+            return false;
+        }
+
+        return Object.values(nodeProperties).some((property) => {
+            const diagnostics = property?.diagnostics?.diagnostics;
+            return Array.isArray(diagnostics) && diagnostics.some((diagnostic) => Boolean(diagnostic?.message?.trim()));
+        });
+    };
+
     const handleFormValidation = async (data: FormValues, dirtyFields?: any): Promise<boolean> => {
         if (node && targetLineRange && !skipFormValidation) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
             const nodeWithDiagnostics = await getFormWithDiagnostics(updatedNode);
             setDiagnosticsToFields(data, nodeWithDiagnostics!);
 
-            if (nodeWithDiagnostics?.diagnostics?.hasDiagnostics) {
+            // HACK: Ignore top-level hasDiagnostics when LS does not send property-level diagnostic messages.
+            if (nodeWithDiagnostics?.diagnostics?.hasDiagnostics && hasPropertyDiagnosticMessages(nodeWithDiagnostics)) {
                 return false
             }
         }
