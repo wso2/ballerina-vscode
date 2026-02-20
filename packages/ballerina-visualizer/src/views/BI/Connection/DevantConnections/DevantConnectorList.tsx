@@ -176,7 +176,7 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
             <SearchContainer>
                 <StyledSearchBox
                     value={searchText}
-                    placeholder="Search connections..."
+                    placeholder="Search services..."
                     onChange={debouncedSetSearchText}
                     size={60}
                 />
