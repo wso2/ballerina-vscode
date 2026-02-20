@@ -71,7 +71,7 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
                 .search({ filePath: fileName, queryMap: { limit: 60, orgName: "ballerina" }, searchKind: "CONNECTOR" }),
     });
 
-    const handleMarketplaceItemClick = (item: MarketplaceItem, type: DevantConnectionType) => {
+    const handleMarketplaceItemClick = (item: MarketplaceItem) => {
         // TODO: once we store the connector info in Devant side,
         // we should be able to open the correct form
         let availableNode: AvailableNode | undefined;
@@ -85,7 +85,7 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
             availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerina", "grpc");
         }
 
-        if (type === DevantConnectionType.THIRD_PARTY) {
+        if (item.isThirdParty) {
             if (item.serviceType === "REST") {
                 onItemSelect(DevantConnectionFlow.CREATE_THIRD_PARTY_OAS, item, availableNode);
             } else if (availableNode) {
@@ -93,7 +93,7 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
             } else {
                 onItemSelect(DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR, item, availableNode);
             }
-        } else if (type === DevantConnectionType.INTERNAL) {
+        } else {
             if (item.serviceType === "REST") {
                 onItemSelect(DevantConnectionFlow.CREATE_INTERNAL_OAS, item, availableNode);
             } else if (availableNode) {
@@ -192,7 +192,7 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
                     loading={isLoadingMarketplace}
                     data={marketplaceServices?.data || []}
                     searchText={searchText}
-                    onItemClick={(item) => handleMarketplaceItemClick(item, DevantConnectionType.INTERNAL)}
+                    onItemClick={(item) => handleMarketplaceItemClick(item)}
                     disableItems={loadingBalOrgConnectors}
                 />
             </Section>
