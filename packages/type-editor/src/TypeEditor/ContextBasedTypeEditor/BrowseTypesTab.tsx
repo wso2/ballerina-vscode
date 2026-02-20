@@ -30,6 +30,20 @@ const SearchContainer = styled.div`
     margin-top: 5px;
 `;
 
+const InfoBanner = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background-color: var(--vscode-textCodeBlock-background);
+    border-radius: 4px;
+    margin-bottom: 12px;
+`;
+
+const InfoText = styled(Typography)`
+    color: var(--vscode-descriptionForeground);
+`;
+
 const CategorySection = styled.div`
     margin-top: 8px;
 `;
@@ -137,6 +151,7 @@ interface BrowseTypesTabProps {
     onTypeItemClick: (item: TypeHelperItem) => Promise<any>;
     onTypeSelect: (type: Type, imports?: Imports) => void;
     simpleType?: string;
+    note?: string;
 }
 
 export function BrowseTypesTab(props: BrowseTypesTabProps) {
@@ -147,7 +162,8 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
         onSearchTypeHelper,
         onTypeItemClick,
         onTypeSelect,
-        simpleType
+        simpleType,
+        note
     } = props;
 
     const firstRender = useRef<boolean>(true);
@@ -344,6 +360,12 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
     return (
         <StickyFooterContainer>
             <ContentBody>
+                {note && (
+                    <InfoBanner>
+                        <Codicon name="info" />
+                        <InfoText variant="body3">{note}</InfoText>
+                    </InfoBanner>
+                )}
                 <SearchContainer>
                     <TextField
                         value={searchText}
@@ -379,4 +401,3 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
         </StickyFooterContainer>
     );
 }
-

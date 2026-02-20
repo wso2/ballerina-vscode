@@ -107,6 +107,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [listener, setListener] = useState("");
     const [parentMetadata, setParentMetadata] = useState<ParentMetadata>();
     const [currentPosition, setCurrentPosition] = useState<NodePosition>();
+    const [parentCodedata, setParentCodedata] = useState<CodeData>();
 
     const [functionModel, setFunctionModel] = useState<FunctionModel>();
     const [servicePosition, setServicePosition] = useState<NodePosition>();
@@ -209,7 +210,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         setLoadingDiagram(true);
     };
 
-    const handleReadyDiagram = (fileName?: string, parentMetadata?: ParentMetadata, position?: NodePosition) => {
+    const handleReadyDiagram = (fileName?: string, parentMetadata?: ParentMetadata, position?: NodePosition, parentCodedata?: CodeData) => {
         setLoadingDiagram(false);
         if (fileName) {
             setFileName(fileName);
@@ -219,6 +220,9 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         }
         if (position) {
             setCurrentPosition(position);
+        }
+        if (parentCodedata) {
+            setParentCodedata(parentCodedata);
         }
     };
 
@@ -260,6 +264,35 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     };
 
     const handleEdit = (fileUri?: string, position?: NodePosition) => {
+        const isTestFunction = parentCodedata?.sourceCode.includes("@test:Config");
+        const isAIEvaluation = isTestFunction && parentCodedata?.sourceCode.includes('"evaluations"');
+
+        if (isAIEvaluation) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.BIAIEvaluationForm,
+                    identifier: parentMetadata?.label || "",
+                    documentUri: fileUri,
+                    serviceType: 'UPDATE_TEST',
+                }
+            });
+            return;
+        }
+
+        if (isTestFunction) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.BITestFunctionForm,
+                    identifier: parentMetadata?.label || "",
+                    documentUri: fileUri,
+                    serviceType: 'UPDATE_TEST',
+                }
+            });
+            return;
+        }
+
         const context: VisualizerLocation = {
             view:
                 view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION
@@ -289,6 +322,9 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const getTitle = () => {
         if (isNPFunction) return "Natural Function";
         if (isAutomation) return "Automation";
+        if (parentCodedata?.sourceCode.includes("@ai:AgentTool")) return "Agent Tool";
+        if ((parentCodedata?.sourceCode.includes("@test:Config")) && parentCodedata?.sourceCode.includes("\"evaluations\"")) return "AI Evaluation";
+        if (parentCodedata?.sourceCode.includes("@test:Config")) return "Test";
         return parentMetadata?.kind || "";
     };
 

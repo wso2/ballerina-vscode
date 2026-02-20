@@ -41,7 +41,7 @@ import { BallerinaExtension } from 'src/core';
 
 const config = workspace.getConfiguration('ballerina');
 const isDevantDev = process.env.CLOUD_ENV === "dev";
-export const BACKEND_URL: string = config.get('rootUrl') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_ROOT_URL : process.env.BALLERINA_ROOT_URL;
+export const BACKEND_URL: string = config.get('rootUrl') || (isDevantDev ? process.env.COPILOT_DEV_ROOT_URL : process.env.COPILOT_ROOT_URL)
 
 export const DEVANT_TOKEN_EXCHANGE_URL: string = BACKEND_URL + "/auth-api/v1.0/auth/token-exchange";
 
@@ -278,6 +278,13 @@ export async function addConfigFile(configPath: string): Promise<boolean> {
                 }
                 const openAiEpUrl = BACKEND_URL + LLM_API_BASE_PATH + "/openai";
                 const success = addDefaultModelConfig(configPath, token, openAiEpUrl);
+
+                // Also update tests/Config.toml if a tests folder exists
+                const testsDir = path.join(configPath, 'tests');
+                if (fs.existsSync(testsDir) && fs.statSync(testsDir).isDirectory()) {
+                    addDefaultModelConfig(testsDir, token, openAiEpUrl);
+                }
+
                 if (success) {
                     return true;
                 }

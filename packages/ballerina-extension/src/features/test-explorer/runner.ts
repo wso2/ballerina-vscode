@@ -18,7 +18,7 @@
  */
 
 import { exec } from 'child_process';
-import { CancellationToken, TestRunRequest, TestMessage, TestRun, TestItem, debug, Uri, WorkspaceFolder, DebugConfiguration, workspace, TestRunProfileKind } from 'vscode';
+import { CancellationToken, TestRunRequest, TestMessage, TestRun, TestItem, debug, Uri, WorkspaceFolder, DebugConfiguration, workspace, TestRunProfileKind, commands, window } from 'vscode';
 import { EVALUATION_GROUP, testController } from './activator';
 import { StateMachine } from "../../stateMachine";
 import { isTestFunctionItem, isTestGroupItem, isProjectGroupItem } from './discover';
@@ -26,6 +26,7 @@ import { extension } from '../../BalExtensionContext';
 import { constructDebugConfig } from "../debugger";
 const fs = require('fs');
 import path from 'path';
+import { EvaluationReportWebview } from '../../views/evaluation-report/webview';
 
 /**
  * Extract project path from a test item
@@ -117,8 +118,9 @@ function isAiEvaluations(test: TestItem): boolean {
 function buildTestCommand(test: TestItem, executor: string, projectName: string | undefined, testCaseNames?: string[]): string {
     if (isAiEvaluations(test)) {
         // Evaluations tests use group-based execution with test report
+        const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
         const projectPart = projectName ? ` ${projectName}` : '';
-        return `${executor} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=evaluation-reports${projectPart}`;
+        return `${executor} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=evaluation-reports${testsPart}${projectPart}`;
     } else {
         // Standard tests use code coverage and optional test filtering
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
@@ -205,7 +207,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -214,7 +222,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -239,7 +253,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -248,7 +268,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -274,7 +300,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -283,13 +315,17 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
                 });
-            }).finally(() => {
-                run.end();
             });
         }
     });
@@ -412,6 +448,47 @@ export async function readTestJson(file): Promise<JSON | undefined> {
         return JSON.parse(rawdata);
     } catch {
         return undefined;
+    }
+}
+
+async function findLatestEvaluationReport(workingDirectory: string): Promise<Uri | undefined> {
+    const reportsDir = path.join(workingDirectory, 'evaluation-reports');
+
+    if (!fs.existsSync(reportsDir)) {
+        return undefined;
+    }
+
+    try {
+        const files = fs.readdirSync(reportsDir);
+        const htmlFiles = files
+            .filter((file: string) => file.endsWith('.html'))
+            .map((file: string) => ({
+                name: file,
+                path: path.join(reportsDir, file),
+                mtime: fs.statSync(path.join(reportsDir, file)).mtime
+            }))
+            .sort((a: { mtime: Date }, b: { mtime: Date }) => b.mtime.getTime() - a.mtime.getTime());
+
+        if (htmlFiles.length > 0) {
+            return Uri.file(htmlFiles[0].path);
+        }
+    } catch (error) {
+        console.error('Error finding evaluation report:', error);
+    }
+
+    return undefined;
+}
+
+async function openEvaluationReport(reportUri: Uri): Promise<void> {
+    try {
+        // Show notification (non-blocking, no button)
+        window.showInformationMessage('Evaluation report generated');
+
+        // Open report in webview
+        await EvaluationReportWebview.createOrShow(reportUri);
+    } catch (error) {
+        console.error('Failed to open evaluation report:', error);
+        window.showErrorMessage('Failed to open evaluation report');
     }
 }
 
