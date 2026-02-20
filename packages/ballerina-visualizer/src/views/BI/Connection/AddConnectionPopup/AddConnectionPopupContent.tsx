@@ -26,16 +26,20 @@ import { ConnectorIcon } from "@wso2/bi-diagram";
 import { BodyTinyInfo } from "../../../styles";
 import { ArrowIcon, ConnectorOptionButtons, ConnectorOptionCard, ConnectorOptionContent, ConnectorOptionDescription, ConnectorOptionIcon, ConnectorOptionTitle, ConnectorOptionTitleContainer, ConnectorsGrid, ConnectorTypeLabel, CreateConnectorOptions, FilterButton, FilterButtons, IntroText, SearchContainer, Section, SectionHeader, SectionTitle, StyledSearchBox } from "./styles";
 import { AddConnectionPopupProps } from "./index";
+import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
+import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
 
 interface Props extends AddConnectionPopupProps {
     handleDatabaseConnection?: () => void;
     handleApiSpecConnection?: () => void;
+    handleDevantMarketplace?: () => void;
     handleSelectConnector: (connector: AvailableNode, filteredCategories: Category[]) => void;
 }
 
 export function AddConnectionPopupContent(props: Props) {
-    const { fileName, target, handleDatabaseConnection, handleApiSpecConnection, handleSelectConnector } = props;
+    const { fileName, target, handleDatabaseConnection, handleApiSpecConnection, handleDevantMarketplace, handleSelectConnector } = props;
     const { rpcClient } = useRpcContext();
+    const { platformExtState, loginToDevant } = usePlatformExtContext();
 
     const [searchText, setSearchText] = useState<string>("");
     const [connectors, setConnectors] = useState<Category[]>([]);
@@ -263,12 +267,29 @@ export function AddConnectionPopupContent(props: Props) {
 
     return (
         <>
-            <IntroText>
-                To establish your connection, first define a connector. You may create a custom connector using
-                an API specification or by introspecting a database. Alternatively, you can select one of the
-                pre-built connectors below. You will then be guided to provide the required details to complete
-                the connection setup.
-            </IntroText>
+            {(platformExtState?.hasPossibleComponent && !platformExtState?.isLoggedIn) && (
+                 <IntroText>
+                    <VSCodeLink onClick={loginToDevant}>
+                        Login
+                    </VSCodeLink>{" "}
+                    to Devant in order to connect with Devant dependencies
+                </IntroText>
+            )}
+            {platformExtState?.selectedContext?.project ? (
+                <IntroText>
+                    To establish your connection, first define a connector. You may create a custom connector using an
+                    API specification. Alternatively, you can select one of the pre-built
+                    connectors below or connect to services running in Devant or services configured in Devant. You will
+                    then be guided to provide the required details to complete the connection setup.
+                </IntroText>
+            ) : (
+                <IntroText>
+                    To establish your connection, first define a connector. You may create a custom connector using an
+                    API specification or by introspecting a database. Alternatively, you can select one of the pre-built
+                    connectors below. You will then be guided to provide the required details to complete the connection
+                    setup.
+                </IntroText>
+            )}
 
             <SearchContainer>
                 <StyledSearchBox
@@ -279,11 +300,43 @@ export function AddConnectionPopupContent(props: Props) {
                 />
             </SearchContainer>
 
+            {!searchText && handleDevantMarketplace && (
+                <Section>
+                    <CreateConnectorOptions>
+                        <ConnectorOptionCard onClick={handleDevantMarketplace}>
+                            <ConnectorOptionIcon>
+                                <Icon name="Devant" sx={{ fontSize: 24, width: 24, height: 24 }} />
+                            </ConnectorOptionIcon>
+                            <ConnectorOptionContent>
+                                <ConnectorOptionTitle>Devant Marketplace</ConnectorOptionTitle>
+                                <ConnectorOptionDescription>
+                                    Connect to services running in Devant or 3rd party services configured in Devant
+                                </ConnectorOptionDescription>
+                                <ConnectorOptionButtons>
+                                    <ConnectorTypeLabel>
+                                        OpenAPI
+                                    </ConnectorTypeLabel>
+                                    <ConnectorTypeLabel>
+                                        GraphQL
+                                    </ConnectorTypeLabel>
+                                    <ConnectorTypeLabel>
+                                        Pre-built Connectors
+                                    </ConnectorTypeLabel>
+                                </ConnectorOptionButtons>
+                            </ConnectorOptionContent>
+                            <ArrowIcon>
+                                <Codicon name="chevron-right" />
+                            </ArrowIcon>
+                        </ConnectorOptionCard>
+                    </CreateConnectorOptions>
+                </Section>
+            )}
+
             {(connectorOptions.showApiSpec || connectorOptions.showDatabase) && (
                 <Section>
                     <SectionTitle variant="h4">Create New Connector</SectionTitle>
                     <CreateConnectorOptions>
-                        {connectorOptions.showApiSpec && (
+                        {connectorOptions.showApiSpec && handleApiSpecConnection && (
                             <ConnectorOptionCard onClick={handleApiSpecConnection}>
                                 <ConnectorOptionIcon>
                                     <Icon name="bi-api-spec" sx={{ fontSize: 24, width: 24, height: 24 }} />
@@ -308,7 +361,7 @@ export function AddConnectionPopupContent(props: Props) {
                             </ConnectorOptionCard>
                         )}
                         {/* Database connection option */}
-                        {connectorOptions.showDatabase && (
+                        {connectorOptions.showDatabase && handleDatabaseConnection && (
                             <ConnectorOptionCard onClick={handleDatabaseConnection}>
                                 <ConnectorOptionIcon>
                                     <Icon name="bi-db" sx={{ fontSize: 24, width: 24, height: 24 }} />

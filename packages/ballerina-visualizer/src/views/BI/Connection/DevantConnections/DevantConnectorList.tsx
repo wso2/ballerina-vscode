@@ -17,31 +17,17 @@
  */
 
 import React, { useState, useCallback } from "react";
-import { AvailableNode, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
+import { AvailableNode, LinePosition } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Codicon, Icon, ThemeColors, ProgressRing, Button } from "@wso2/ui-toolkit";
+import { Codicon, ProgressRing } from "@wso2/ui-toolkit";
 import { debounce } from "lodash";
 import ButtonCard from "../../../../components/ButtonCard";
 import { BodyTinyInfo } from "../../../styles";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 import { useQuery } from "@tanstack/react-query";
+import { GetMarketplaceItemsParams, MarketplaceItem } from "@wso2/wso2-platform-core";
 import {
-    GetMarketplaceItemsParams,
-    MarketplaceItem,
-    CommandIds as PlatformExtCommandIds,
-    ICmdParamsBase as PlatformExtICmdParamsBase,
-} from "@wso2/wso2-platform-core";
-import {
-    ArrowIcon,
-    ConnectorOptionButtons,
-    ConnectorOptionCard,
-    ConnectorOptionContent,
-    ConnectorOptionDescription,
-    ConnectorOptionIcon,
-    ConnectorOptionTitle,
     ConnectorsGrid,
-    ConnectorTypeLabel,
-    CreateConnectorOptions,
     FilterButton,
     FilterButtons,
     IntroText,
@@ -55,7 +41,6 @@ import { DevantConnectionFlow } from "@wso2/ballerina-core/lib/rpc-types/platfor
 import { DevantConnectionType, getKnownAvailableNode, ProgressWrap } from "./utils";
 
 interface DevantConnectorListProps {
-    showBiConnectors: () => void;
     onItemSelect: (
         flow: DevantConnectionFlow | null,
         item: MarketplaceItem,
@@ -66,7 +51,7 @@ interface DevantConnectorListProps {
 }
 
 export function DevantConnectorList(props: DevantConnectorListProps) {
-    const { showBiConnectors, onItemSelect, fileName, target } = props;
+    const { onItemSelect, fileName, target } = props;
     const { platformExtState, platformRpcClient } = usePlatformExtContext();
     const [searchText, setSearchText] = useState<string>("");
     const { rpcClient } = useRpcContext();
@@ -169,90 +154,41 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
     return (
         <>
             <IntroText>
-                Connect to API services running in Devant, use existing third-party connections, or create a new
-                connection.
+                Connect to API services running in Devant or use existing third-party connections.
             </IntroText>
 
             <SearchContainer>
                 <StyledSearchBox
                     value={searchText}
-                    placeholder="Search connections..."
+                    placeholder="Search services..."
                     onChange={debouncedSetSearchText}
                     size={60}
                 />
             </SearchContainer>
 
-            <Section>
-                <CreateConnectorOptions>
-                    <ConnectorOptionCard onClick={() => showBiConnectors()}>
-                        <ConnectorOptionIcon>
-                            <Icon name="bi-connection" sx={{ fontSize: 24, width: 24, height: 24 }} />
-                        </ConnectorOptionIcon>
-                        <ConnectorOptionContent>
-                            <ConnectorOptionTitle>Create New Connection</ConnectorOptionTitle>
-                            <ConnectorOptionDescription>
-                                Create new connection using pre-built ballerina connectors or using API specifications
-                            </ConnectorOptionDescription>
-                            <ConnectorOptionButtons>
-                                <ConnectorTypeLabel>Ballerina Connectors</ConnectorTypeLabel>
-                                <ConnectorTypeLabel>OpenAPI</ConnectorTypeLabel>
-                                <ConnectorTypeLabel>Databases</ConnectorTypeLabel>
-                            </ConnectorOptionButtons>
-                        </ConnectorOptionContent>
-                        <ArrowIcon>
-                            <Codicon name="chevron-right" />
-                        </ArrowIcon>
-                    </ConnectorOptionCard>
-                </CreateConnectorOptions>
-            </Section>
-
-            {platformExtState?.isLoggedIn ? (
-                <>
-                    {loadingBalOrgConnectors && (
-                        <ProgressWrap>
-                            <ProgressRing />
-                        </ProgressWrap>
-                    )}
-                    <ConnectionSection
-                        emptyText="No API services deployed"
-                        title="Services running in Devant"
-                        loading={internalApisLoading}
-                        data={internalApisResp?.data || []}
-                        searchText={searchText}
-                        onItemClick={(item) => handleMarketplaceItemClick(item, DevantConnectionType.INTERNAL)}
-                    />
-                    <ConnectionSection
-                        emptyText={"No third party services configured"}
-                        title="Services configured in Devant"
-                        loading={thirdPartyApisLoading}
-                        data={thirdPartyApisResp?.data || []}
-                        searchText={searchText}
-                        onItemClick={(item) => handleMarketplaceItemClick(item, DevantConnectionType.THIRD_PARTY)}
-                    />
-                </>
-            ) : (
-                <Section>
-                    <SectionHeader>
-                        <SectionTitle variant="body3">Devant Dependencies</SectionTitle>
-                    </SectionHeader>
-                    <BodyTinyInfo>
-                        You need to be signed into Devant in order connect with dependencies managed by Devant
-                    </BodyTinyInfo>
-                    <Button
-                        onClick={() =>
-                            rpcClient.getCommonRpcClient().executeCommand({
-                                commands: [
-                                    PlatformExtCommandIds.SignIn,
-                                    { extName: "Devant" } as PlatformExtICmdParamsBase,
-                                ],
-                            })
-                        }
-                        buttonSx={{ minWidth: "160px" }}
-                    >
-                        Sign In
-                    </Button>
-                </Section>
-            )}
+            <>
+                {loadingBalOrgConnectors && (
+                    <ProgressWrap>
+                        <ProgressRing />
+                    </ProgressWrap>
+                )}
+                <ConnectionSection
+                    emptyText="No API services deployed"
+                    title="Services running in Devant"
+                    loading={internalApisLoading}
+                    data={internalApisResp?.data || []}
+                    searchText={searchText}
+                    onItemClick={(item) => handleMarketplaceItemClick(item, DevantConnectionType.INTERNAL)}
+                />
+                <ConnectionSection
+                    emptyText={"No third party services configured"}
+                    title="Services configured in Devant"
+                    loading={thirdPartyApisLoading}
+                    data={thirdPartyApisResp?.data || []}
+                    searchText={searchText}
+                    onItemClick={(item) => handleMarketplaceItemClick(item, DevantConnectionType.THIRD_PARTY)}
+                />
+            </>
         </>
     );
 }
