@@ -154,7 +154,7 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
     return (
         <>
             <IntroText>
-                Connect to API services running in Devant or use existing third-party connections connection.
+                Connect to API services running in Devant or use existing third-party connections.
             </IntroText>
 
             <SearchContainer>
