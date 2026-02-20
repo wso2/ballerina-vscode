@@ -32,7 +32,6 @@ import {
     hasMultipleBallerinaPackages
 } from '../../utils';
 import { readOrWriteReadmeContent, resolveReadmePath } from '../bi-diagram/utils';
-import { StateMachine } from '../../stateMachine';
 import { README_FILE } from '../../utils/bi';
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";

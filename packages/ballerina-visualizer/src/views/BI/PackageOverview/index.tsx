@@ -688,20 +688,13 @@ export function PackageOverview(props: PackageOverviewProps) {
     const { projectPath, isInDevant } = props;
     const { rpcClient } = useRpcContext();
     const [readmeContent, setReadmeContent] = React.useState<string>("");
-    const { platformRpcClient, platformExtState } = usePlatformExtContext();
+    const { platformExtState } = usePlatformExtContext();
     const [enabled, setEnableICP] = useState(false);
     const [showAlert, setShowAlert] = React.useState(false);
     const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
     const [isWorkspace, setIsWorkspace] = useState(false);
     const [isLibrary, setIsLibrary] = useState<boolean>(false);
 
-    const [enabled, setEnableICP] = useState(false);
-    const { data: devantMetadata } = useQuery({
-        queryKey: ["devant-metadata", projectPath],
-        queryFn: () => rpcClient.getBIDiagramRpcClient().getDevantMetadata(),
-        refetchInterval: 5000
-    });
-    const [showAlert, setShowAlert] = useState(false);
     const [librarySearchQuery, setLibrarySearchQuery] = useState("");
     const librarySearchRef = useRef<HTMLInputElement>(null);
 
@@ -794,7 +787,9 @@ export function PackageOverview(props: PackageOverviewProps) {
     };
 
     const handleDeploy = async () => {
-        platformRpcClient.deployIntegrationInDevant();
+        await rpcClient.getBIDiagramRpcClient().deployProject({
+            integrationTypes: deployableIntegrationTypes
+        });
     };
 
     const handleICP = (icpEnabled: boolean) => {
