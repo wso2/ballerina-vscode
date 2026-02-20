@@ -18,9 +18,10 @@
 
 package io.ballerina.servicemodelgenerator.extension.model.request;
 
-public record ListenerDiscoveryRequest(String filePath, String orgName, String pkgName, String moduleName) {
+public record ListenerDiscoveryRequest(String filePath, String orgName, String pkgName, String moduleName,
+                                       Boolean removeDeprecated) {
 
     public ListenerDiscoveryRequest(String filePath, String orgName, String moduleName) {
-        this(filePath, orgName, moduleName, moduleName);
+        this(filePath, orgName, moduleName, moduleName, null);
     }
 }
