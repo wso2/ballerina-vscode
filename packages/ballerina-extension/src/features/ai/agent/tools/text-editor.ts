@@ -107,6 +107,7 @@ const ErrorMessages = {
   INVALID_LINE_RANGE: 'Invalid line range',
   EDIT_FAILED: 'Edit operation failed',
   NO_EDITS: 'No edits provided',
+  FILE_READ_NOT_PERMITTED: 'File read not permitted',
 };
 
 // ============================================================================
@@ -696,13 +697,13 @@ export function createReadExecute(
     }
 
     // Block reads of restricted files (e.g. Config.toml) in any path
-    const fileName = file_path.replace(/\\/g, '/').split('/').pop() ?? '';
-    if (RESTRICTED_READ_FILES.includes(fileName)) {
+    const fileName = (file_path.replace(/\\/g, '/').split('/').pop() ?? '').toLowerCase();
+    if (RESTRICTED_READ_FILES.some(f => f.toLowerCase() === fileName)) {
       console.error(`[FileReadTool] Blocked read of restricted file: ${file_path}`);
       return {
         success: false,
         message: `Reading '${file_path}' is not permitted.`,
-        error: `Error: ${ErrorMessages.INVALID_FILE_PATH}`
+        error: `Error: ${ErrorMessages.FILE_READ_NOT_PERMITTED}`
       };
     }
 
