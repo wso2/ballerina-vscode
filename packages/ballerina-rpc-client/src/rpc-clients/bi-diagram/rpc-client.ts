@@ -91,7 +91,6 @@ import {
     OpenAPIGeneratedModulesRequest,
     OpenAPIGeneratedModulesResponse,
     OpenConfigTomlRequest,
-    CopyConfigTomlRequest,
     OpenReadmeRequest,
     ProjectComponentsResponse,
     ProjectRequest,

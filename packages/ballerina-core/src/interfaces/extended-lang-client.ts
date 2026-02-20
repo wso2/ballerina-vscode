@@ -497,9 +497,9 @@ export interface ClausePositionResponse {
 }
 
 export interface ConvertExpressionRequest {
-     outputType: string;
-     expression: string;
-     expressionType: string;
+    outputType: string;
+    expression: string;
+    expressionType: string;
 }
 
 export interface ConvertExpressionResponse {
@@ -1064,11 +1064,6 @@ export interface GetConfigVariableNodeTemplateRequest {
 
 export interface OpenConfigTomlRequest {
     filePath: string
-}
-
-export interface CopyConfigTomlRequest {
-    sourceFilePath: string;
-    destFilePath: string;
 }
 
 export interface BICopilotContextRequest {

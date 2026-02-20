@@ -79,7 +79,6 @@ import {
     OpenAPIClientDeleteRequest,
     OpenAPIClientDeleteResponse,
     OpenConfigTomlRequest,
-    CopyConfigTomlRequest,
     UpdateConfigVariableRequestV2,
     GetConfigVariableNodeTemplateRequest,
     UpdateConfigVariableResponseV2,
