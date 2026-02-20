@@ -15,7 +15,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { SCOPE, DIRECTORY_MAP, ProjectStructure } from "@wso2/ballerina-core";
+import {
+    SCOPE,
+    DIRECTORY_MAP,
+    ProjectStructure,
+    ProjectStructureResponse,
+    ProjectScopeMapping
+} from "@wso2/ballerina-core";
 
 const INTEGRATION_API_MODULES = ["http", "graphql", "tcp"];
 const EVENT_INTEGRATION_MODULES = ["kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb"];
@@ -64,5 +70,40 @@ export function getIntegrationTypes(projectStructure: ProjectStructure | undefin
         scopes.push(SCOPE.AUTOMATION);
     }
 
+    // Add library scope if the project is a library
+    if (projectStructure.isLibrary) {
+        scopes.push(SCOPE.LIBRARY);
+    }
+
     return scopes;
+}
+
+/**
+ * Builds a list of deployable integration scopes per project for a workspace.
+ *
+ * @param workspaceStructure - Workspace structure containing the projects list.
+ * @returns A list of project-to-scope mappings used for workspace-level deployment.
+ */
+export function getWorkspaceProjectScopes(
+    workspaceStructure: ProjectStructureResponse | undefined
+): ProjectScopeMapping[] {
+    if (!workspaceStructure || !workspaceStructure.projects) {
+        return [];
+    }
+
+    const mapProjectToScope = (project: ProjectStructure): ProjectScopeMapping | undefined => {
+        const integrationTypes = getIntegrationTypes(project);
+        if (integrationTypes.length > 0) {
+            return {
+                projectPath: project.projectPath!,
+                projectTitle: project.projectTitle || project.projectName,
+                integrationTypes
+            };
+        }
+        return undefined;
+    };
+
+    return workspaceStructure.projects
+        .map(mapProjectToScope)
+        .filter((scopeMapping): scopeMapping is ProjectScopeMapping => scopeMapping !== undefined);
 }

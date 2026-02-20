@@ -38,7 +38,8 @@ import {
     SetWebviewCacheRequestParam,
     ShowInfoModalRequest,
     SampleDownloadRequest,
-    ShowQuickPickRequest
+    ShowQuickPickRequest,
+    PublishToCentralResponse
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -65,3 +66,5 @@ export const RestoreWebviewCache: RequestType<IDBValidKey, unknown> = { method: 
 export const ClearWebviewCache: RequestType<IDBValidKey, void> = { method: `${_preFix}/clearWebviewCache` };
 export const downloadSelectedSampleFromGithub: RequestType<SampleDownloadRequest, boolean> = { method: `${_preFix}/downloadSelectedSampleFromGithub` };
 export const getDefaultOrgName: RequestType<void, { orgName: string }> = { method: `${_preFix}/getDefaultOrgName` };
+export const publishToCentral: RequestType<void, PublishToCentralResponse> = { method: `${_preFix}/publishToCentral` };
+export const hasCentralPATConfigured: RequestType<void, boolean> = { method: `${_preFix}/hasCentralPATConfigured` };
