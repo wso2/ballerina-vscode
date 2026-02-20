@@ -555,6 +555,18 @@ export const Form = forwardRef((props: FormProps) => {
 
                     diagnosticsMap.push({ key: field.key, diagnostics: [] });
                 }
+
+                // Handle the case where the name is updated dynamically (e.g., from a sibling field's onValueChange like headerName)
+                // Sync from field.value when it differs from form - but preserve user edits (when field was manually touched)
+                if (field.key === "name" && field.value !== undefined && field.value !== null) {
+                    const existingName = formValues[field.key];
+                    const newName = typeof field.value === "string" ? (formatJSONLikeString(field.value) ?? field.value) : String(field.value);
+                    // Only sync from field when: form is stale (external update) or user hasn't edited the name field
+                    if (existingName !== newName && !dirtyFields?.[field.key]) {
+                        setValue(field.key, newName);
+                        defaultValues[field.key] = newName;
+                    }
+                }
             });
             setDiagnosticsInfo(diagnosticsMap);
             reset(defaultValues);
@@ -734,7 +746,7 @@ export const Form = forwardRef((props: FormProps) => {
 
     const canOpenInDataMapper = (selectedNode === "VARIABLE" &&
         expressionField &&
-        visualizableField?.isDataMapped) || 
+        visualizableField?.isDataMapped) ||
         selectedNode === "DATA_MAPPER_CREATION";
 
     const canOpenInFunctionEditor = selectedNode === "FUNCTION_CREATION";
@@ -916,8 +928,8 @@ export const Form = forwardRef((props: FormProps) => {
             if (data.expression === '' && visualizableField?.defaultValue) {
                 data.expression = visualizableField.defaultValue;
             }
-            return handleOnSave({ 
-                ...data, 
+            return handleOnSave({
+                ...data,
                 editorConfig: {
                     view: selectedNode === "VARIABLE" ? MACHINE_VIEW.InlineDataMapper : MACHINE_VIEW.DataMapper,
                     displayMode: EditorDisplayMode.VIEW,
@@ -929,8 +941,8 @@ export const Form = forwardRef((props: FormProps) => {
     const handleOnOpenInFunctionEditor = () => {
         setSavingButton('functionEditor');
         handleSubmit((data) => {
-            return handleOnSave({ 
-                ...data, 
+            return handleOnSave({
+                ...data,
                 editorConfig: {
                     view: MACHINE_VIEW.BIDiagram,
                     displayMode: EditorDisplayMode.VIEW,
@@ -1076,68 +1088,44 @@ export const Form = forwardRef((props: FormProps) => {
                         });
                     }
 
-                        return renderedComponents;
-                    })()}
-                    {hasAdvanceFields && (
-                        <S.Row>
-                            {optionalFieldsTitle}
-                            <S.ButtonContainer>
-                                {!showAdvancedOptions && (
-                                    <LinkButton
-                                        onClick={handleOnShowAdvancedOptions}
-                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                    >
-                                        <Codicon
-                                            name={"chevron-down"}
-                                            iconSx={{ fontSize: 12 }}
-                                            sx={{ height: 12 }}
-                                        />
-                                        Expand
-                                    </LinkButton>
-                                )}
-                                {showAdvancedOptions && (
-                                    <LinkButton
-                                        onClick={handleOnHideAdvancedOptions}
-                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                    >
-                                        <Codicon
-                                            name={"chevron-up"}
-                                            iconSx={{ fontSize: 12 }}
-                                            sx={{ height: 12 }}
-                                        />Collapse
-                                    </LinkButton>
-                                )}
-                            </S.ButtonContainer>
-                        </S.Row>
-                    )}
-                    {hasAdvanceFields &&
-                        showAdvancedOptions &&
-                        formFields.map((field) => {
-                            if (field.advanced && !field.hidden) {
-                                const updatedField = updateFormFieldWithImports(field, formImports);
-                                return (
-                                    <S.Row key={updatedField.key}>
-                                        <FieldFactory
-                                            field={updatedField}
-                                            openRecordEditor={
-                                                openRecordEditor &&
-                                                ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
-                                            }
-                                            subPanelView={subPanelView}
-                                            handleOnFieldFocus={handleOnFieldFocus}
-                                            recordTypeFields={recordTypeFields}
-                                            onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                            handleOnTypeChange={handleOnTypeChange}
-                                            onBlur={handleOnBlur}
-                                        />
-                                    </S.Row>
-                                );
-                            }
-                            return null;
-                        })}
-                    {hasAdvanceFields &&
-                        showAdvancedOptions &&
-                        advancedChoiceFields.map((field) => {
+                    return renderedComponents;
+                })()}
+                {hasAdvanceFields && (
+                    <S.Row>
+                        {optionalFieldsTitle}
+                        <S.ButtonContainer>
+                            {!showAdvancedOptions && (
+                                <LinkButton
+                                    onClick={handleOnShowAdvancedOptions}
+                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                >
+                                    <Codicon
+                                        name={"chevron-down"}
+                                        iconSx={{ fontSize: 12 }}
+                                        sx={{ height: 12 }}
+                                    />
+                                    Expand
+                                </LinkButton>
+                            )}
+                            {showAdvancedOptions && (
+                                <LinkButton
+                                    onClick={handleOnHideAdvancedOptions}
+                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                >
+                                    <Codicon
+                                        name={"chevron-up"}
+                                        iconSx={{ fontSize: 12 }}
+                                        sx={{ height: 12 }}
+                                    />Collapse
+                                </LinkButton>
+                            )}
+                        </S.ButtonContainer>
+                    </S.Row>
+                )}
+                {hasAdvanceFields &&
+                    showAdvancedOptions &&
+                    formFields.map((field) => {
+                        if (field.advanced && !field.hidden) {
                             const updatedField = updateFormFieldWithImports(field, formImports);
                             return (
                                 <S.Row key={updatedField.key}>
@@ -1156,8 +1144,32 @@ export const Form = forwardRef((props: FormProps) => {
                                     />
                                 </S.Row>
                             );
-                        })}
-                </S.CategoryRow>
+                        }
+                        return null;
+                    })}
+                {hasAdvanceFields &&
+                    showAdvancedOptions &&
+                    advancedChoiceFields.map((field) => {
+                        const updatedField = updateFormFieldWithImports(field, formImports);
+                        return (
+                            <S.Row key={updatedField.key}>
+                                <FieldFactory
+                                    field={updatedField}
+                                    openRecordEditor={
+                                        openRecordEditor &&
+                                        ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                                    }
+                                    subPanelView={subPanelView}
+                                    handleOnFieldFocus={handleOnFieldFocus}
+                                    recordTypeFields={recordTypeFields}
+                                    onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                    handleOnTypeChange={handleOnTypeChange}
+                                    onBlur={handleOnBlur}
+                                />
+                            </S.Row>
+                        );
+                    })}
+            </S.CategoryRow>
 
             {!preserveOrder && (variableField || typeField || targetTypeField) && (
                 <S.CategoryRow topBorder={!compact && hasParameters}>

@@ -127,6 +127,7 @@ export type Imports = {
 export type FormFieldInputType = "TEXT" |
     "BOOLEAN" |
     "IDENTIFIER" |
+    "AUTOCOMPLETE" |
     "SINGLE_SELECT" |
     "MULTIPLE_SELECT" |
     "TEXTAREA" |
