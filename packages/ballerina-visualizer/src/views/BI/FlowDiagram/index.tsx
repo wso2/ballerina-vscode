@@ -95,7 +95,7 @@ export interface BIFlowDiagramProps {
     breakpointState?: number;
     syntaxTree?: STNode;
     onUpdate: () => void;
-    onReady: (fileName: string, parentMetadata?: ParentMetadata, position?: NodePosition) => void;
+    onReady: (fileName: string, parentMetadata?: ParentMetadata, position?: NodePosition, parentCodedata?: CodeData) => void;
     onSave?: () => void;
 }
 
@@ -542,9 +542,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             }
                             updateAgentModelTypes(model?.flowModel);
                             setModel(model.flowModel);
-                            const parentMetadata = model.flowModel.nodes.find(
-                                (node) => node.codedata.node === "EVENT_START"
-                            )?.metadata.data as ParentMetadata | undefined;
+                            const eventStartNode = model.flowModel.nodes.find((node) => node.codedata.node === "EVENT_START");
+                            const parentMetadata = eventStartNode?.metadata.data as ParentMetadata | undefined;
+                            const parentCodedata = eventStartNode?.codedata;
                             if (shouldUpdateLineRangeRef.current) {
                                 const varName = typeof updatedNodeRef.current?.properties?.variable?.value === "string"
                                     ? updatedNodeRef.current.properties.variable.value
@@ -558,7 +558,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             // Get visualizer location and pass position to onReady
                             rpcClient.getVisualizerLocation().then((location: VisualizerLocation) => {
                                 console.log(">>> Visualizer location", location?.position);
-                                onReady(model.flowModel.fileName, parentMetadata, location?.position);
+                                onReady(model.flowModel.fileName, parentMetadata, location?.position, parentCodedata);
                             });
                         }
                     })
