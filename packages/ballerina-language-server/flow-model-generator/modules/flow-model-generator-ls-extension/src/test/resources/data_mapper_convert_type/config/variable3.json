@@ -26,14 +26,14 @@
         "range": {
           "start": {
             "line": 19,
-            "character": 56
+            "character": 7
           },
           "end": {
             "line": 19,
-            "character": 56
+            "character": 7
           }
         },
-        "newText": ", Student studentConverted = check student.ensureType()"
+        "newText": " Student studentConverted = check student.ensureType(),"
       }
     ]
   }
