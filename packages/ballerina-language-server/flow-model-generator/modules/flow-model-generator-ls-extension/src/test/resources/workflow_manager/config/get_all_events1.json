@@ -1,0 +1,17 @@
+{
+  "source": "workflow_project/main.bal",
+  "description": "Get all events for a workflow with multiple events",
+  "workflowName": "orderWorkflow",
+  "output": {
+    "events": [
+      {
+        "name": "approve",
+        "type": "ApprovalData"
+      },
+      {
+        "name": "paymentReceived",
+        "type": "PaymentData"
+      }
+    ]
+  }
+}

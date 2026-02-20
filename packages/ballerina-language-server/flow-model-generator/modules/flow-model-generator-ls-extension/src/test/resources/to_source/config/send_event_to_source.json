@@ -1,0 +1,123 @@
+{
+  "source": "workflow_function/functions.bal",
+  "description": "Generate workflow:sendEvent call",
+  "diagram": {
+    "id": "1",
+    "metadata": {
+      "label": "Send Event",
+      "description": "Send an event to an existing workflow instance"
+    },
+    "codedata": {
+      "node": "SEND_EVENT",
+      "org": "ballerina",
+      "module": "workflow",
+      "isNew": true,
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 16,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 16,
+          "offset": 4
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "workflowName": {
+        "metadata": {
+          "label": "Workflow Name",
+          "description": "The workflow function to send the event to"
+        },
+        "valueType": "SINGLE_SELECT",
+        "value": "orderWorkflow",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "eventName": {
+        "metadata": {
+          "label": "Event Name",
+          "description": "The name of the event to send"
+        },
+        "valueType": "SINGLE_SELECT",
+        "value": "approve",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "eventData": {
+        "metadata": {
+          "label": "Event Data",
+          "description": "The event data to send"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "map<anydata>",
+        "value": "{approved: true}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result Variable",
+          "description": "Variable name to receive the result"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "sendResult",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 1
+  },
+  "output": {
+    "workflow_function/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 1,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/workflow;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 16,
+            "character": 4
+          },
+          "end": {
+            "line": 16,
+            "character": 4
+          }
+        },
+        "newText": "boolean sendResult = check workflow:sendEvent(orderWorkflow, {approved: true}, \"approve\");\n"
+      }
+    ]
+  }
+}

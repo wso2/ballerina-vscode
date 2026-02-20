@@ -88,10 +88,8 @@ public class ActivityCallBuilder extends CallBuilder {
                 .name(variableName)
                 .whiteSpace()
                 .keyword(SyntaxKind.EQUAL_TOKEN);
+        sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
 
-        if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
-            sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
-        }
         //Todo: ctx value should be dynamic based on the context variable name
         //Todo: handle activity function from imported modules with module prefix
         sourceBuilder.token()
@@ -142,7 +140,6 @@ public class ActivityCallBuilder extends CallBuilder {
 
         return sourceBuilder
                 .textEdit()
-                .acceptImport(WORKFLOW_ORG, WORKFLOW_MODULE)
                 .build();
     }
 }

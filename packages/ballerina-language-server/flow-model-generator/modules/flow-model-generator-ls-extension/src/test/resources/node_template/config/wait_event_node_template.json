@@ -41,7 +41,7 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION",
+            "fieldType": "TYPE",
             "ballerinaType": "anydata",
             "selected": true
           }

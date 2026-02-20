@@ -116,6 +116,7 @@ public class Constants {
         public static final String ACTIVITY_ANNOTATION = "Activity";
         public static final String EVENTS_PARAM_NAME = "events";
         public static final String EVENTS_SUFFIX = "Events";
+        public static final String ANYDATA = "anydata";
     }
 
     // Constants used for AI

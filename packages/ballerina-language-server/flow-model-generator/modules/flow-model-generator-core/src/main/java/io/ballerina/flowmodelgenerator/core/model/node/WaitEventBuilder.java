@@ -24,8 +24,6 @@ import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
-import io.ballerina.compiler.api.symbols.TypeDescKind;
-import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
@@ -38,9 +36,13 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.Member;
+import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.Document;
@@ -55,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ANYDATA;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_PARAM_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_SUFFIX;
 
@@ -115,8 +118,8 @@ public class WaitEventBuilder extends WaitBuilder {
                         .description(EVENT_TYPE_DOC)
                         .stepOut()
                     .type()
-                        .fieldType(Property.ValueType.EXPRESSION)
-                        .ballerinaType("anydata")
+                        .fieldType(Property.ValueType.TYPE)
+                        .ballerinaType(ANYDATA)
                         .selected(true)
                         .stepOut()
                     .value("")
@@ -208,12 +211,67 @@ public class WaitEventBuilder extends WaitBuilder {
                 .filter(symbol -> symbol.nameEquals(eventsTypeName))
                 .findFirst();
 
-        Path typesFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath).resolve(TYPES_BAL);
-
         if (existingSymbol.isPresent() && existingSymbol.get().kind() == SymbolKind.TYPE_DEFINITION) {
             TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) existingSymbol.get();
-            modifyExistingEventsType(sourceBuilder, typeDefSymbol, eventType, eventName, typesFilePath);
+            modifyExistingEventsType(sourceBuilder, typeDefSymbol, eventType, eventName);
+        } else {
+            createNewEventsType(sourceBuilder, eventsTypeName, eventType, eventName, functionNode);
         }
+    }
+
+    private void createNewEventsType(SourceBuilder sourceBuilder, String eventsTypeName,
+                                     String eventType, String eventName,
+                                     FunctionDefinitionNode functionNode) {
+        // Create a new events type with the field
+        String eventFieldType = SyntaxKind.FUTURE_KEYWORD.stringValue() + SyntaxKind.LT_TOKEN.stringValue()
+                + eventType + SyntaxKind.GT_TOKEN.stringValue();
+        List<Member> members = new ArrayList<>();
+        members.add(new Member.MemberBuilder()
+                .kind(Member.MemberKind.FIELD)
+                .type(eventFieldType)
+                .name(eventName)
+                .optional(false)
+                .readonly(false)
+                .build());
+
+        TypeData eventsTypeData = new TypeData(
+                eventsTypeName,
+                true,
+                new Metadata(eventsTypeName, "Events record for workflow process function",
+                        null, null, null, null),
+                new Codedata.Builder<>(null).node(NodeKind.RECORD).build(),
+                Map.of(),
+                members,
+                null,
+                null,
+                null,
+                null,
+                false
+        );
+        sourceBuilder.acceptTypeGeneration(eventsTypeData);
+
+        // Add the events parameter to the workflow process function
+        addEventsParameterToFunction(sourceBuilder, functionNode, eventsTypeName);
+    }
+
+    private void addEventsParameterToFunction(SourceBuilder sourceBuilder,
+                                              FunctionDefinitionNode functionNode,
+                                              String eventsTypeName) {
+        // Get the position right before the closing parenthesis of the function signature
+        Token closeParenToken = functionNode.functionSignature().closeParenToken();
+        LineRange closeParenLineRange = closeParenToken.lineRange();
+
+        // Build the events parameter text: , EventsTypeName events
+        String eventsParam = ", " + eventsTypeName + " " + EVENTS_PARAM_NAME;
+
+        Range insertRange = CommonUtils.toRange(
+                io.ballerina.tools.text.LinePosition.from(
+                        closeParenLineRange.startLine().line(),
+                        closeParenLineRange.startLine().offset()));
+
+        List<TextEdit> textEdits = sourceBuilder.getTextEditsMap().computeIfAbsent(sourceBuilder.filePath,
+                k -> new ArrayList<>());
+        textEdits.add(new TextEdit(insertRange, eventsParam));
     }
 
     private FunctionDefinitionNode findEnclosingWorkflowFunction(NonTerminalNode node) {
@@ -242,7 +300,7 @@ public class WaitEventBuilder extends WaitBuilder {
     }
 
     private void modifyExistingEventsType(SourceBuilder sourceBuilder, TypeDefinitionSymbol typeDefSymbol,
-                                          String eventType, String eventName, Path typesFilePath) {
+                                          String eventType, String eventName) {
         TypeSymbol typeDescriptor = typeDefSymbol.typeDescriptor();
         RecordTypeSymbol recordType = (RecordTypeSymbol) typeDescriptor;
         Map<String, RecordFieldSymbol> existingFields = recordType.fieldDescriptors();
@@ -259,6 +317,7 @@ public class WaitEventBuilder extends WaitBuilder {
         LineRange typeLineRange = typeDefSymbol.getLocation().get().lineRange();
 
         try {
+            Path typesFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath).resolve(TYPES_BAL);
             Document typesDoc = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, typesFilePath);
             SyntaxTree typesSyntaxTree = typesDoc.syntaxTree();
             ModulePartNode typesRootNode = typesSyntaxTree.rootNode();

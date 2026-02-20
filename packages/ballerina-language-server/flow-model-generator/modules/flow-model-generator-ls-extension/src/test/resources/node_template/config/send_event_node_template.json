@@ -1,0 +1,134 @@
+{
+  "source": "workflow_function/functions.bal",
+  "position": {
+    "line": 3,
+    "offset": 0
+  },
+  "description": "Send event node template with workflow options",
+  "codedata": {
+    "node": "SEND_EVENT"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Send Event",
+      "description": "Send an event to an existing workflow instance"
+    },
+    "codedata": {
+      "node": "SEND_EVENT",
+      "org": "ballerina",
+      "module": "workflow",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "workflowName": {
+        "metadata": {
+          "label": "Workflow Name",
+          "description": "The workflow function to send the event to"
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              {
+                "label": "orderWorkflow",
+                "value": "orderWorkflow"
+              }
+            ],
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "eventName": {
+        "metadata": {
+          "label": "Event Name",
+          "description": "The name of the event to send"
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [],
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "eventData": {
+        "metadata": {
+          "label": "Event Data",
+          "description": "The event data to send"
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "map<anydata>",
+            "typeMembers": [
+              {
+                "type": "map<anydata>",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "map<anydata>",
+            "selected": false
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result Variable",
+          "description": "Variable name to receive the result"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": false
+          }
+        ],
+        "value": "result",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": false
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}
+

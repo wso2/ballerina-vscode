@@ -1,0 +1,9 @@
+{
+  "source": "workflow_project/main.bal",
+  "description": "Get all events for a workflow without events parameter",
+  "workflowName": "simpleWorkflow",
+  "output": {
+    "events": []
+  }
+}
+

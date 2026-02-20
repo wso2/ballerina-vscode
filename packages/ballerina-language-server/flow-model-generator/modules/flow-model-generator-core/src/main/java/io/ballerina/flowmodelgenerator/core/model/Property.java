@@ -495,6 +495,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 return this;
             }
 
+            public TypeBuilder typeMembersRaw(List<PropertyTypeMemberInfo> typeMembers) {
+                this.typeMembers = typeMembers;
+                return this;
+            }
+
             public TypeBuilder selected(boolean selected) {
                 this.selected = selected;
                 return this;
