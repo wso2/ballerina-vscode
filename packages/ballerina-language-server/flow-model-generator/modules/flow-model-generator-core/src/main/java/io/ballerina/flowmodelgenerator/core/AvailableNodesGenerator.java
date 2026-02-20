@@ -133,7 +133,8 @@ public class AvailableNodesGenerator {
         JsonArray jsonArray = gson.toJsonTree(items).getAsJsonArray();
 
         if (isInsideTestFunction(position)) {
-            addFilePathToNodes(jsonArray, this.filePath.toString());
+            Path relativePath = pkg.project().sourceRoot().relativize(this.filePath);
+            addFilePathToNodes(jsonArray, relativePath.toString());
         }
 
         return jsonArray;

@@ -108,7 +108,7 @@ public class SourceBuilder {
             this.filePath = filePath;
         } else if (Boolean.TRUE.equals(codedata.isNew()) && codedata.data() != null
                 && codedata.data().containsKey(Constants.FILE_PATH_KEY)) {
-            this.filePath = resolveFromData(codedata);
+            this.filePath = resolveFromData(codedata, filePath);
         } else {
             NodeKind nodeKind = codedata.node();
             if (filePath.endsWith(AGENTS_BAL) && (nodeKind == NodeKind.FUNCTION_DEFINITION
@@ -126,8 +126,9 @@ public class SourceBuilder {
         this(flowNode, workspaceManager, filePath, null);
     }
 
-    private Path resolveFromData(Codedata codedata) {
-        Path targetPath = Path.of(codedata.data().get(Constants.FILE_PATH_KEY).toString());
+    private Path resolveFromData(Codedata codedata, Path requestFilePath) {
+        Path relativePath = Path.of(codedata.data().get(Constants.FILE_PATH_KEY).toString());
+        Path targetPath = workspaceManager.projectRoot(requestFilePath).resolve(relativePath);
         try {
             workspaceManager.loadProject(targetPath);
             Document document = FileSystemUtils.getDocument(workspaceManager, targetPath);
