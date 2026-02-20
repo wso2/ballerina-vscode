@@ -159,26 +159,41 @@ function parseCurl(curl: string): {
 /**
  * Tokenize curl command while respecting quoted strings
  */
+enum TokenScope {
+	Plain = "Plain",
+	InSingleQuotes = "InSingleQuotes",
+	InDoubleQuotes = "InDoubleQuotes",
+}
+
 function tokenizeCurl(curl: string): string[] {
 	const tokens: string[] = [];
 	let current = '';
-	let inQuotes = false;
-	let quoteChar = '';
+	let scope = TokenScope.Plain;
 	
 	for (let i = 0; i < curl.length; i++) {
 		const char = curl[i];
 		
-		if ((char === '"' || char === "'") && (i === 0 || curl[i - 1] !== '\\')) {
-			if (!inQuotes) {
-				inQuotes = true;
-				quoteChar = char;
-			} else if (char === quoteChar) {
-				inQuotes = false;
-				quoteChar = '';
-			} else {
-				current += char;
+		// Handle escape sequences inside quotes: \\ → \, \" → " (double quotes), \' → ' (single quotes)
+		if (scope !== TokenScope.Plain && char === '\\' && i + 1 < curl.length) {
+			const nextChar = curl[i + 1];
+			if (nextChar === '\\' ||
+				(scope === TokenScope.InSingleQuotes && nextChar === "'") ||
+				(scope === TokenScope.InDoubleQuotes && nextChar === '"')) {
+				current += nextChar;
+				i++;
+				continue;
 			}
-		} else if (char === ' ' && !inQuotes) {
+		}
+		
+		if (char === "'" && scope === TokenScope.Plain) {
+			scope = TokenScope.InSingleQuotes;
+		} else if (char === "'" && scope === TokenScope.InSingleQuotes) {
+			scope = TokenScope.Plain;
+		} else if (char === '"' && scope === TokenScope.Plain) {
+			scope = TokenScope.InDoubleQuotes;
+		} else if (char === '"' && scope === TokenScope.InDoubleQuotes) {
+			scope = TokenScope.Plain;
+		} else if (char === ' ' && scope === TokenScope.Plain) {
 			if (current) {
 				tokens.push(current);
 				current = '';
