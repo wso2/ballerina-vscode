@@ -49,7 +49,8 @@ import {
     undo,
     undoRedoState,
     updateCurrentArtifactLocation,
-    reviewAccepted
+    reviewAccepted,
+    GoBackRequest
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -73,8 +74,8 @@ export class VisualizerRpcClient implements VisualizerAPI {
         return this._messenger.sendNotification(addToHistory, HOST_EXTENSION, entry);
     }
 
-    goBack(): void {
-        return this._messenger.sendNotification(goBack, HOST_EXTENSION);
+    goBack(params?: GoBackRequest): void {
+        return this._messenger.sendNotification(goBack, HOST_EXTENSION, params);
     }
 
     goHome(): void {

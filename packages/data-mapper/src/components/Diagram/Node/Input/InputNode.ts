@@ -101,7 +101,7 @@ export class InputNode extends DataMapperNodeModel {
                 }
             } else if (this.filteredInputType.kind === TypeKind.Array) {
                 this.numberOfFields += await this.addPortsForInputField({
-                    field: this.filteredInputType?.member,
+                    field: this.filteredInputType.member,
                     portType: "OUT",
                     parentId: this.identifier,
                     unsafeParentId: this.identifier,
@@ -109,9 +109,45 @@ export class InputNode extends DataMapperNodeModel {
                     collapsedFields,
                     expandedFields,
                     hidden: parentPort.attributes.collapsed,
-                    isOptional: this.filteredInputType?.member?.optional,
+                    isOptional: this.filteredInputType.member?.optional,
                     focusedFieldFQNs
                 });
+            } else if (this.filteredInputType.kind === TypeKind.Json || this.filteredInputType.kind === TypeKind.Xml) {
+                if (this.filteredInputType.convertedField) {
+                    this.numberOfFields += await this.addPortsForInputField({
+                        field: this.filteredInputType.convertedField,
+                        portType: "OUT",
+                        parentId: "",
+                        unsafeParentId: "",
+                        parent: parentPort,
+                        collapsedFields,
+                        expandedFields,
+                        hidden: parentPort.attributes.collapsed,
+                        isOptional: this.filteredInputType.convertedField.optional,
+                        focusedFieldFQNs
+                    });
+                    if (!parentPort.attributes.collapsed){
+                        this.numberOfFields += 2; // This is for converting arrow and additional gap
+                    }
+                } else if (this.filteredInputType.fields) {
+                    const fields = this.filteredInputType.fields?.filter(f => !!f);
+                    for (const subField of fields) {
+                        this.numberOfFields += await this.addPortsForInputField({
+                            field: subField,
+                            portType: "OUT",
+                            parentId: this.identifier,
+                            unsafeParentId: this.identifier,
+                            parent: parentPort,
+                            collapsedFields,
+                            expandedFields,
+                            hidden: parentPort.attributes.collapsed,
+                            isOptional: subField.optional,
+                            focusedFieldFQNs
+                        });
+                    }
+                } else if (!parentPort.attributes.collapsed) {
+                    this.numberOfFields += 6; // This is for payload widget and arrow
+                }
             } else {
                 await this.addPortsForInputField({
                     field: this.filteredInputType,

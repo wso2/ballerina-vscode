@@ -183,6 +183,7 @@ export function ResponseEditor(props: ParamProps) {
                     ...convertPropertyToFormField(res.name),
                     key: `check`,
                     type: "FLAG",
+                    types: [{fieldType: "FLAG", selected: false}],
                     label: "Make this response reusable",
                     documentation: "Check this option to make this response reusable",
                     onValueChange: (value: string | boolean) => {

@@ -46,12 +46,10 @@ import ReactMarkdown from 'react-markdown';
 import { FieldProvider } from "./FieldContext";
 import { useModeSwitcherContext } from "./ModeSwitcherContext";
 import ModeSwitcher from '../ModeSwitcher';
-import { ExpressionField, getEditorConfiguration } from './ExpressionField';
-import WarningPopup from '../WarningPopup';
+import { ExpressionField } from './ExpressionField';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
 import { ExpandedEditor } from './ExpandedEditor';
-import { NumberExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
@@ -400,10 +398,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const key = fieldKey ?? field.key;
     const [focused, setFocused] = useState<boolean>(false);
     const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
-    const [showModeSwitchWarning, setShowModeSwitchWarning] = useState(false);
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
     const [isExpandedModalOpen, setIsExpandedModalOpen] = useState(false);
-    const targetInputModeRef = useRef<InputMode>(null);
 
     // Update formDiagnostics when field.diagnostics changes
     useEffect(() => {
@@ -427,9 +423,23 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const exprRef = useRef<FormExpressionEditorRef>(null);
     const anchorRef = useRef<HTMLDivElement>(null);
 
-    const modeSwitcherContext = useModeSwitcherContext();
+    // This guard is here because the IF form and Match forms
+    //  does not populate the context value since they use expressionEditor 
+    // component directly instead of going through the FieldFactory. 
+    // This should ideally be handled as followes.
+    //  1.) Refactor IF and Match forms to use FieldFactory component
+    //  and LS property models
+    //  2.) Remove this guard and make sure all the usages of ExpressionEditor 
+    // are wrapped with ModeSwitcherContext provider
+    const modeSwitcherContext = useModeSwitcherContext() ?? {
+        inputMode: InputMode.EXP,
+        isModeSwitcherEnabled: false,
+        isRecordTypeField: false,
+        onModeChange: () => { },
+        types: undefined
+    };
 
-    const { inputMode } = modeSwitcherContext
+    const { inputMode } = modeSwitcherContext;
 
     // Use to fetch initial diagnostics
     const previousDiagnosticsFetchContext = useRef<diagnosticsFetchContext>({
