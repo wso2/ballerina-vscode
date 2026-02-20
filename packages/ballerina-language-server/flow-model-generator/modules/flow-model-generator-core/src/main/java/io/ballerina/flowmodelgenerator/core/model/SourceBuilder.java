@@ -32,6 +32,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.flowmodelgenerator.core.Constants;
 import io.ballerina.flowmodelgenerator.core.TypesManager;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -70,8 +71,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.ballerina.flowmodelgenerator.core.model.Property.convertToProperty;
 import static io.ballerina.flowmodelgenerator.core.model.Property.PROPERTY_TYPE_LIST_TYPE_TOKEN;
+import static io.ballerina.flowmodelgenerator.core.model.Property.convertToProperty;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
 public class SourceBuilder {
@@ -105,6 +106,9 @@ public class SourceBuilder {
         Codedata codedata = flowNode.codedata();
         if (codedata == null) {
             this.filePath = filePath;
+        } else if (Boolean.TRUE.equals(codedata.isNew()) && codedata.data() != null
+                && codedata.data().containsKey(Constants.FILE_PATH_KEY)) {
+            this.filePath = resolveFromData(codedata, filePath);
         } else {
             NodeKind nodeKind = codedata.node();
             if (filePath.endsWith(AGENTS_BAL) && (nodeKind == NodeKind.FUNCTION_DEFINITION
@@ -120,6 +124,23 @@ public class SourceBuilder {
 
     public SourceBuilder(FlowNode flowNode, WorkspaceManager workspaceManager, Path filePath) {
         this(flowNode, workspaceManager, filePath, null);
+    }
+
+    private Path resolveFromData(Codedata codedata, Path requestFilePath) {
+        Path relativePath = Path.of(codedata.data().get(Constants.FILE_PATH_KEY).toString());
+        Path targetPath = workspaceManager.projectRoot(requestFilePath).resolve(relativePath);
+        try {
+            workspaceManager.loadProject(targetPath);
+            if (codedata.lineRange() != null) {
+                defaultRange = CommonUtils.toRange(codedata.lineRange());
+            } else {
+                Document document = FileSystemUtils.getDocument(workspaceManager, targetPath);
+                defaultRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
+            }
+        } catch (WorkspaceDocumentException | EventSyncException e) {
+            throw new RuntimeException(e);
+        }
+        return targetPath;
     }
 
     private Path resolvePath(Path inputPath, NodeKind node, LineRange lineRange, Boolean isNew) {
@@ -200,7 +221,8 @@ public class SourceBuilder {
             return typeName;
         }
         String inferredType = inferredParam.get().value().toString();
-        String inferredTypeDef = inferredParam.get().codedata().originalName();
+        String inferredTypeDef = inferredParam.get()
+                .codedata().originalName();
 
         Property inferredProperty = inferredParam.get();
         if (inferredProperty.types() != null && !inferredProperty.types().isEmpty() &&
