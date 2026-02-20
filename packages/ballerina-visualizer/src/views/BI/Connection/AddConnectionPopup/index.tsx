@@ -45,7 +45,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
     const { onClose, onNavigateToOverview, isPopup, target, fileName, projectPath } = props;
     const { platformExtState } = usePlatformExtContext();
 
-    if((platformExtState?.hasPossibleComponent && !platformExtState?.isLoggedIn) || platformExtState?.selectedContext?.project){
+    if(platformExtState?.isLoggedIn && platformExtState?.selectedContext?.project){
         return (
             <DevantConnectorPopup
                 onNavigateToOverview={onNavigateToOverview}

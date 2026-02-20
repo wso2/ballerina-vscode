@@ -37,9 +37,10 @@ const CONFIG_FILE_PATH = "Config.toml";
 const TEST_CONFIG_FILE_PATH = "tests/Config.toml";
 
 const ConfigVariableSchema = z.object({
-    name: z.string().describe("Variable name (e.g., API_KEY)"),
+    name: z.string().describe("Variable name in camelCase — must match the Ballerina configurable identifier exactly"),
     description: z.string().describe("Human-readable description"),
     type: z.enum(["string", "int"]).optional().describe("Data type: string (default) or int"),
+    secret: z.boolean().optional().describe("Mark as true for sensitive values (API keys, passwords, tokens) to render as a masked input"),
 });
 
 const ConfigCollectorSchema = z.object({
@@ -112,52 +113,30 @@ export function createConfigCollectorTool(
 ) {
     return tool({
         description: `
-Manages configuration values in Config.toml for Ballerina integrations securely. Use this tool when user requirements involve API keys, passwords, database credentials, or other sensitive configuration.
+Manages configuration values in Config.toml for Ballerina integrations securely.
 
-IMPORTANT: Before calling COLLECT mode, briefly tell the user what configuration values you need and why.
+IMPORTANT: Only call COLLECT mode immediately before executing the project (running or testing). Do NOT call it during code writing or implementation — even if the code has sensitive configurables. Write the code first, then collect config only when you are about to run or test.
 
 Operation Modes:
-1. COLLECT: Request configuration values from user
-   - Shows a form to the user to fill in values; nothing is written to disk until the user confirms
-   - If user skips, no file is created or modified
-   - Pre-populates the form with existing values from Config.toml if it exists
-   - Use for all cases where configuration values are needed
-   - Example: { mode: "collect", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }] }
+1. COLLECT: Collect configuration values from the user
+   - Call ONLY immediately before running or testing the project — never during code writing
+   - Shows a form; nothing is written until the user confirms. If skipped, no file is created or modified
+   - Pre-populates from existing Config.toml if it exists
+   - When running tests, use isTestConfig: true — this is the only collect call needed; writes to tests/Config.toml after user confirms
+   - Example: { mode: "collect", variables: [{ name: "stripeApiKey", description: "Stripe API key", secret: true }] }
+   - Example (test): { mode: "collect", variables: [...], isTestConfig: true }
 
-2. COLLECT with isTestConfig: Request configuration values for test Config.toml
-   - Use when generating tests that need configuration values
-   - Set isTestConfig: true
-   - Tool automatically:
-     * Reads existing configuration from Config.toml (if exists) to pre-populate the form
-     * Writes to tests/Config.toml only after user confirms
-     * Creates tests/ directory if needed
-   - Example: { mode: "collect", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }], isTestConfig: true }
+2. CHECK: Inspect which values are filled or missing — can be called at any time
+   - Returns status only, never actual values
+   - Example: { mode: "check", variableNames: ["dbPassword", "apiKey"], filePath: "Config.toml" }
+   - Returns: { status: { dbPassword: "filled", apiKey: "missing" } }
 
-3. CHECK: Check which configuration values are filled/missing
-   - Returns status metadata only, NEVER actual configuration values
-   - Example: { mode: "check", variableNames: ["API_KEY", "DB_PASSWORD"], filePath: "Config.toml" }
-   - Returns: { success: true, status: { API_KEY: "filled", DB_PASSWORD: "missing" } }
-
-IMPORTANT: When generating tests that use configurables, ALWAYS use isTestConfig: true.
-This ensures tests have their own Config.toml in the tests/ directory.
-
-VARIABLE NAMING (CRITICAL):
-Variable names are converted: API_KEY → apikey, DB_HOST → dbhost (lowercase, no underscores).
-You MUST use identical names in Config.toml and Ballerina code.
-
-Correct:
-  Tool: { name: "DB_HOST" }
-  Config.toml: dbhost = "localhost"
-  Code: configurable string dbhost = ?;
-
-Incorrect (DO NOT DO):
-  Tool: { name: "DB_HOST" }
-  Config.toml: dbhost = "localhost"
-  Code: configurable string dbHost = ?;  // WRONG - mismatch causes runtime error
+VARIABLE NAMING:
+Use camelCase names that match exactly the Ballerina configurable identifier. The name is written as-is to Config.toml.
 
 SECURITY:
 - You NEVER see actual configuration values
-- Tool returns only status: { API_KEY: "filled" }
+- Tool returns only status: { dbPassword: "filled" }
 - NEVER hardcode configuration values in code`,
         inputSchema: ConfigCollectorSchema,
         execute: async (input) => {

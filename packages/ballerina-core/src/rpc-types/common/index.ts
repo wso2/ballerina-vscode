@@ -38,7 +38,8 @@ import {
     ShowInfoModalRequest,
     SampleDownloadRequest,
     ShowQuickPickRequest,
-    DefaultOrgNameResponse
+    DefaultOrgNameResponse,
+    PublishToCentralResponse
 } from "./interfaces";
 
 export interface CommonRPCAPI {
@@ -64,4 +65,6 @@ export interface CommonRPCAPI {
     clearWebviewCache: (params: IDBValidKey) => void;
     downloadSelectedSampleFromGithub: (params: SampleDownloadRequest) => Promise<boolean>;
     getDefaultOrgName: () => Promise<DefaultOrgNameResponse>;
+    publishToCentral: () => Promise<PublishToCentralResponse>;
+    hasCentralPATConfigured: () => Promise<boolean>;
 }

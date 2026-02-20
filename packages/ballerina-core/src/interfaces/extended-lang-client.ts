@@ -497,9 +497,9 @@ export interface ClausePositionResponse {
 }
 
 export interface ConvertExpressionRequest {
-     outputType: string;
-     expression: string;
-     expressionType: string;
+    outputType: string;
+    expression: string;
+    expressionType: string;
 }
 
 export interface ConvertExpressionResponse {
@@ -1883,6 +1883,27 @@ export type OpenAPIClientDeleteData = {
 
 export type OpenAPIClientDeleteResponse = {
     deleteData: OpenAPIClientDeleteData
+}
+
+// <-------- Deployment Related ------->
+
+export interface ProjectScopeMapping {
+    projectPath: string;
+    projectTitle: string;
+    integrationTypes?: SCOPE[];
+}
+
+export interface DeploymentRequest {
+    integrationTypes: SCOPE[];
+}
+
+export interface DeploymentResponse {
+    isCompleted: boolean;
+}
+
+export interface WorkspaceDeploymentRequest {
+    projectScopes: ProjectScopeMapping[];
+    rootDirectory: string;
 }
 
 // 2201.12.3 -> New Project Component Artifacts Tree
