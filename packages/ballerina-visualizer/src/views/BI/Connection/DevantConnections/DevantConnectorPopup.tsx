@@ -53,7 +53,6 @@ import {
 } from "./utils";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { URI } from "vscode-uri";
-import { set } from "lodash";
 
 interface DevantConnectorPopupProps {
     onClose?: (parent?: ParentPopupData) => void;
@@ -75,7 +74,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
     const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
     const [devantConfigs, setDevantConfigs] = useState<DevantTempConfig[]>([]);
     const [availableNode, setAvailableNode] = useState<AvailableNode>();
-    const [showBiConnectorSelection, setShowBiConnectorSelection] = useState<boolean>(false);
+    const [showDevantMarketplace, setShowDevantMarketplace] = useState<boolean>(false);
     const [IDLFilePath, setIDLFilePath] = useState<string>("");
     const [oasConnectorName, setOasConnectorName] = useState<string>("");
     const [importingConn, setImportingConn] = useState<ConnectionListItem>();
@@ -224,8 +223,8 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
             setOasConnectorName("");
             setIDLFilePath("");
 
-            if (showBiConnectorSelection && !selectedFlow) {
-                setShowBiConnectorSelection(false);
+            if (showDevantMarketplace && !selectedFlow) {
+                setShowDevantMarketplace(false);
             }
         }
     };
@@ -284,6 +283,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
             allConns.forEach((conns) => conns.forEach((conn) => allConnNamesSet.add(conn.name)));
             return Array.from(allConnNamesSet);
         },
+        enabled: !!platformExtState?.selectedContext?.project?.id,
     });
 
     const { mutateAsync: importInternalOASConnection, isPending: initializingOASConn } = useMutation({
@@ -365,6 +365,10 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
     });
 
     let title: string = isCreating ? "Add Connection" : "Import Connection";
+    if (showDevantMarketplace) {
+        title = "Devant Marketplace";
+    }
+
     let subTitle: string = "";
     if (selectedFlow && DevantConnectionFlowTitles[selectedFlow]) {
         title = DevantConnectionFlowTitles[selectedFlow];
@@ -378,7 +382,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
             <PopupOverlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }} />
             <PopupContainer>
                 <PopupHeader>
-                    {(isCreating ? selectedFlow || showBiConnectorSelection : currentStepIndex > 0) && (
+                    {(isCreating ? selectedFlow || showDevantMarketplace : currentStepIndex > 0) && (
                         <BackButton appearance="icon" onClick={handleBackButtonClick}>
                             <Codicon name="chevron-left" />
                         </BackButton>
@@ -520,10 +524,19 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                                 </>
                             ) : (
                                 <>
-                                    {showBiConnectorSelection ? (
+                                    {showDevantMarketplace ? (
+                                        <DevantConnectorList
+                                            fileName={fileName}
+                                            target={target}
+                                            onItemSelect={(flow, item, availableNode) => {
+                                                setSelectedFlow(flow);
+                                                setSelectedMarketplaceItem(item);
+                                                setAvailableNode(availableNode);
+                                            }}
+                                        />
+                                    ) : (
                                         <AddConnectionPopupContent
                                             {...props}
-                                            projectPath={projectPath}
                                             handleSelectConnector={(availableNode, _) => {
                                                 setAvailableNode(availableNode);
                                                 setSelectedFlow(
@@ -535,17 +548,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                                                     DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS,
                                                 );
                                             }}
-                                        />
-                                    ) : (
-                                        <DevantConnectorList
-                                            fileName={fileName}
-                                            target={target}
-                                            showBiConnectors={() => setShowBiConnectorSelection(true)}
-                                            onItemSelect={(flow, item, availableNode) => {
-                                                setSelectedFlow(flow);
-                                                setSelectedMarketplaceItem(item);
-                                                setAvailableNode(availableNode);
-                                            }}
+                                            handleDevantMarketplace={() => setShowDevantMarketplace(true)}
                                         />
                                     )}
                                 </>
