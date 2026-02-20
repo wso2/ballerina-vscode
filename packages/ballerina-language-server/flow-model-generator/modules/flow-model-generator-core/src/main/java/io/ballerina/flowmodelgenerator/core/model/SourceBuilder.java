@@ -131,8 +131,12 @@ public class SourceBuilder {
         Path targetPath = workspaceManager.projectRoot(requestFilePath).resolve(relativePath);
         try {
             workspaceManager.loadProject(targetPath);
-            Document document = FileSystemUtils.getDocument(workspaceManager, targetPath);
-            defaultRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
+            if (codedata.lineRange() != null) {
+                defaultRange = CommonUtils.toRange(codedata.lineRange());
+            } else {
+                Document document = FileSystemUtils.getDocument(workspaceManager, targetPath);
+                defaultRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
+            }
         } catch (WorkspaceDocumentException | EventSyncException e) {
             throw new RuntimeException(e);
         }
