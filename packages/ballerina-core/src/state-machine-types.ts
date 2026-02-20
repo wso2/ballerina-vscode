@@ -175,6 +175,7 @@ export interface ConfigurationCollectorMetadata {
         name: string;
         description: string;
         type?: "string" | "int";
+        secret?: boolean;
     }>;
     existingValues?: Record<string, string>;
     message: string;
@@ -469,6 +470,7 @@ export interface ConfigurationCollectionEvent {
         name: string;
         description: string;
         type?: "string" | "int";
+        secret?: boolean;
     }>;
     existingValues?: Record<string, string>;
     message: string;

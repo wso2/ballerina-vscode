@@ -86,6 +86,8 @@ const VALID_FILE_EXTENSIONS = [
     '.bal', '.toml', '.md', '.sql'
 ];
 
+const RESTRICTED_READ_FILES = ['Config.toml'];
+
 const MAX_LINE_LENGTH = 2000;
 const PREVIEW_LENGTH = 200;
 
@@ -693,6 +695,17 @@ export function createReadExecute(
       };
     }
 
+    // Block reads of restricted files (e.g. Config.toml) in any path
+    const fileName = file_path.replace(/\\/g, '/').split('/').pop() ?? '';
+    if (RESTRICTED_READ_FILES.includes(fileName)) {
+      console.error(`[FileReadTool] Blocked read of restricted file: ${file_path}`);
+      return {
+        success: false,
+        message: `Reading '${file_path}' is not permitted.`,
+        error: `Error: ${ErrorMessages.INVALID_FILE_PATH}`
+      };
+    }
+
     const fullPath = path.join(tempProjectPath, file_path);
 
     // Check if file exists
@@ -889,7 +902,8 @@ export function createBatchEditTool(execute: MultiEditExecute) {
 export function createReadTool(execute: ReadExecute) {
   return tool({
     description: `Reads a file from the local filesystem.
-    ALWAYS prefer reading files mentioned in the ser’s message in the chat history first. Only use this tool if you need to read a file that is not present in the chat history.
+    ALWAYS prefer reading files mentioned in the user’s message in the chat history first. Only use this tool if you need to read a file that is not present in the chat history.
+    NOTE: The following files are restricted and cannot be read: ${RESTRICTED_READ_FILES.join(", ")}.
     Usage:
     - The file_path parameter must be an filename only, do not include any directories unless the user specifically requests it.
     - You can optionally specify a line offset and limit (especially handy for long files).
