@@ -77,3 +77,6 @@ export interface SaveEvalThreadResponse {
     success: boolean;
     error?: string;
 }
+export interface GoBackRequest {
+    identifier?: string;
+}

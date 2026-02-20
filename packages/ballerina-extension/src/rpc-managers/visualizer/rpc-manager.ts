@@ -19,6 +19,7 @@ import {
     AddToUndoStackRequest,
     ColorThemeKind,
     EVENT_TYPE,
+    GoBackRequest,
     HandleApprovalPopupCloseRequest,
     HistoryEntry,
     JoinProjectPathRequest,
@@ -65,9 +66,9 @@ export class VisualizerRpcManager implements VisualizerAPI {
         });
     }
 
-    goBack(): void {
+    goBack(params: GoBackRequest): void {
         history.pop();
-        updateView();
+        updateView(false, params?.identifier);
     }
 
     async getHistory(): Promise<HistoryEntry[]> {

@@ -51,6 +51,7 @@ export interface AIPanelAPI {
     // General Functions
     // ==================================
     getLoginMethod: () => Promise<LoginMethod>;
+    isPlatformExtensionAvailable: () => Promise<boolean>;
     getDefaultPrompt: () => Promise<AIPanelPrompt>; //starting args
     getAIMachineSnapshot: () => Promise<AIMachineSnapshot>; //login state machine
     clearInitialPrompt: () => void; //starting args

@@ -506,6 +506,22 @@ export interface ConvertExpressionResponse {
     convertedExpression: string;
 }
 
+export interface CreateConvertedVariableRequest {
+    // Data Mapper related
+    filePath: string;
+    codedata: CodeData;
+    varName: string;
+    targetField: string;
+    subMappingName?: string;
+
+    // Converting variable related
+    variableName: string;
+    isInput: boolean;
+    typeName: string;
+    parentTypeName?: string;
+    imports?: Imports;
+}
+
 export interface GraphqlDesignServiceParams {
     filePath: string;
     startLine: LinePosition;
@@ -868,6 +884,7 @@ export type BISourceCodeResponse = {
 export type BIDeleteByComponentInfoRequest = {
     filePath: string;
     component: ComponentInfo;
+    nodeType?: string;
 }
 
 export type BIDeleteByComponentInfoResponse = {
@@ -1498,6 +1515,8 @@ export interface Member {
     optional?: boolean;
     imports?: Imports;
     readonly?: boolean;
+    selected?: boolean;
+    typeName?: string;
     isGraphqlId?: boolean;
 }
 

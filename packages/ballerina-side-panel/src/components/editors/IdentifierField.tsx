@@ -36,12 +36,17 @@ export function IdentifierField(props: IdentifierFieldProps) {
     const { expressionEditor, form } = useFormContext();
     const { getExpressionEditorDiagnostics } = expressionEditor;
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
-    const { watch, formState, register } = form;
+    const { watch, formState, register, setValue } = form;
     const { errors } = formState;
 
     useEffect(() => {
         setFormDiagnostics(field.diagnostics);
     }, [field.diagnostics]);
+
+    // Sync external field value changes to the form (e.g., when a sibling field's onValueChange updates the value)
+    useEffect(() => {
+        setValue(field.key, field.value ?? '');
+    }, [field.key, field.value, setValue]);
 
     const validateIdentifierName = useCallback(debounce(async (value: string) => {
         const fieldValue = watch(field.key);

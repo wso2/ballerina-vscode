@@ -26,7 +26,7 @@ import {
     RadioContent,
     RadioTitle,
     RadioDescription,
-    ProjectTypeNote,
+    Note,
 } from "../styles";
 
 export interface ProjectTypeOption {
@@ -87,7 +87,7 @@ export function ProjectTypeSelector({
                     );
                 })}
             </RadioGroup>
-            {note && <ProjectTypeNote>{note}</ProjectTypeNote>}
+            {note && <Note>{note}</Note>}
         </ProjectTypeContainer>
     );
 }

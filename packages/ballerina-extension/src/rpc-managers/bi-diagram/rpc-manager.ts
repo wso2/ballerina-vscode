@@ -148,7 +148,8 @@ import {
     AvailableNode,
     Item,
     Category,
-    NodePosition
+    NodePosition,
+    PackageTomlValues
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -190,11 +191,15 @@ import {
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
+import { PlatformExtRpcManager } from "../platform-ext/rpc-manager";
 import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { getCurrentBallerinaProject } from "../../utils/project-utils";
+import { CommonRpcManager } from "../common/rpc-manager";
+import * as toml from "@iarna/toml";
 import { readOrWriteReadmeContent } from "./utils";
 import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
+
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -828,19 +833,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     // get next suggestion
                     const copilot_token = await extension.context.secrets.get("GITHUB_COPILOT_TOKEN");
                     if (!copilot_token) {
-                        let token: string;
-                        const loginMethod = await getLoginMethod();
-                        if (loginMethod === LoginMethod.BI_INTEL) {
-                            const credentials = await getAccessToken();
-                            const secrets = credentials.secrets as BIIntelSecrets;
-                            token = secrets.accessToken;
-                        }
-                        if (!token) {
-                            //TODO: Do we need to prompt to login here? If so what? Copilot or Ballerina AI?
-                            resolve(undefined);
-                            return;
-                        }
-                        suggestedContent = await this.getCompletionsWithHostedAI(token, copilotContext);
+                        resolve(undefined);
+                        return;
                     } else {
                         const resp = await getCompleteSuggestions({
                             prefix: copilotContext.prefix,
@@ -1200,7 +1194,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         if (deployementParams.length === 0) {
             return { isCompleted: true };
         }
-            
+
         commands.executeCommand(PlatformExtCommandIds.CreateMultipleNewComponents, deployementParams, params.rootDirectory);
         return { isCompleted: true };
     }
@@ -1413,6 +1407,15 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     });
             });
         };
+
+        if(params.nodeType === "connection-node"){
+            // If its a Devant connection, need to delete it from Devant backend as well
+            await new PlatformExtRpcManager().deleteBiDevantConnection({
+                filePath: params.filePath,
+                ...params.component
+            });
+        }
+
 
         // If there are diagnostics, remove unused imports first, then delete component
         if (projectDiags.length > 0) {
@@ -1994,10 +1997,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 // Check for context.yaml as fallback
                 const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
                 const hasContextYaml = fs.existsSync(contextYamlPath);
-                return { 
-                    isLoggedIn: false, 
-                    hasAnyComponent: hasContextYaml, 
-                    hasLocalChanges: false 
+                return {
+                    isLoggedIn: false,
+                    hasAnyComponent: hasContextYaml,
+                    hasLocalChanges: false
                 };
             }
 
@@ -2009,10 +2012,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             for (const project of workspaceStructure.projects) {
                 const projectPath = project.projectPath;
                 const projectName = project.projectTitle || project.projectName;
-                
+
                 let projectHasComponent = false;
                 let projectHasLocalChanges = false;
-                
+
                 if (isLoggedIn) {
                     const components = platformExtAPI.getDirectoryComponents(projectPath);
                     projectHasComponent = components.length > 0;
@@ -2039,11 +2042,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 }
             }
 
-            return { 
-                isLoggedIn, 
-                hasAnyComponent, 
+            return {
+                isLoggedIn,
+                hasAnyComponent,
                 hasLocalChanges,
-                projectsMetadata 
+                projectsMetadata
             };
         } catch (err) {
             console.error("failed to call getWorkspaceDevantMetadata: ", err);
@@ -2141,14 +2144,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async generateOpenApiClient(params: OpenAPIClientGenerationRequest): Promise<GeneratedClientSaveResponse> {
-        return new Promise((resolve, reject) => {
-            const projectPath = StateMachine.context().projectPath;
-            const request: OpenAPIClientGenerationRequest = {
-                openApiContractPath: params.openApiContractPath,
-                projectPath: projectPath,
-                module: params.module
-            };
-            StateMachine.langClient().openApiGenerateClient(request).then(async (res) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const res = await StateMachine.langClient().openApiGenerateClient(params);
+
                 if (!res.source || !res.source.textEditsMap) {
                     console.error("textEditsMap is undefined or null");
                     reject(new Error("textEditsMap is undefined or null"));
@@ -2170,13 +2169,35 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         skipPayloadCheck: true
                     });
                     console.log(">>> Applied text edits for openapi client");
+
+                    // check if params.openApiContractPath is within the project path
+                    if (params.openApiContractPath.startsWith(params.projectPath)) {
+                        const updatedSpecPath = params.openApiContractPath.replace(params.projectPath, '.');
+                        // Replace the file path of the openapi spec to be relative path in the toml
+                        const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
+                        const updatedToml: Partial<PackageTomlValues> = {
+                            ...tomlValues,
+                            tool: {
+                                ...tomlValues?.tool,
+                                openapi: tomlValues.tool?.openapi?.map((item) => {
+                                    if (item.id === params.module) {
+                                        return { ...item, filePath: updatedSpecPath };
+                                    }
+                                    return item;
+                                }),
+                            },
+                        };
+                        const balTomlPath = path.join(params.projectPath, "Ballerina.toml");
+                        const updatedTomlContent = toml.stringify(JSON.parse(JSON.stringify(updatedToml)));
+                        fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
+                    }
                 }
 
                 resolve({});
-            }).catch((error) => {
+            } catch(error){
                 console.log(">>> error generating openapi client", error);
                 reject(error);
-            });
+            }
         });
     }
 
@@ -2309,19 +2330,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 });
         });
     }
-}
-
-export function getRepoRoot(projectRoot: string): string | undefined {
-    // traverse up the directory tree until .git directory is found
-    const gitDir = path.join(projectRoot, ".git");
-    if (fs.existsSync(gitDir)) {
-        return projectRoot;
-    }
-    // path is root return undefined
-    if (projectRoot === path.parse(projectRoot).root) {
-        return undefined;
-    }
-    return getRepoRoot(path.join(projectRoot, ".."));
 }
 
 export async function getBallerinaFiles(dir: string): Promise<string[]> {

@@ -18,7 +18,7 @@
 
 import { startCase } from "lodash";
 import { FormField } from "../Form/types";
-import { ExpressionProperty } from "@wso2/ballerina-core";
+import { ExpressionProperty, getPrimaryInputType, InputType, RecordTypeField } from "@wso2/ballerina-core";
 import { InputMode } from "../..";
 import { EditorMode } from "./ExpandedEditor";
 import { EXPANDABLE_MODES } from "./ExpandedEditor/modes/types";
@@ -106,7 +106,7 @@ export const getFieldKeyForAdvanceProp = (fieldKey: string, advancePropKey: stri
     if (splitedAdvanceProp.length > 1) {
         parentKeyForAdvanceProp = splitedAdvanceProp.slice(0, -1).join('.advanceProperties.');
     }
-    
+
     if (parentKeyForAdvanceProp === fieldKey) {
         return advancePropKey;
     }
@@ -116,11 +116,11 @@ export const getFieldKeyForAdvanceProp = (fieldKey: string, advancePropKey: stri
 
 
 export const isRecord = (value: unknown): value is Record<string, unknown> => {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    !Array.isArray(value)
-  );
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        !Array.isArray(value)
+    );
 };
 
 export const getValueForTextModeEditor = (value: string | any[] | Record<string, unknown>) => {
@@ -142,4 +142,216 @@ export function isExpandableMode(mode: InputMode): mode is EditorMode {
 
 export function toEditorMode(mode: InputMode): EditorMode | undefined {
     return isExpandableMode(mode) ? mode : undefined;
+}
+
+export const getArraySubFormFieldFromTypes = (formId: string, types: InputType[]): FormField => {
+    return {
+        key: `ar-elm-${formId}`,
+        label: "",
+        type: getPrimaryInputType(types)?.fieldType || "",
+        optional: false,
+        editable: true,
+        documentation: "",
+        value: "",
+        types: types,
+        enabled: true
+    }
+}
+
+export const getMapSubFormFieldFromTypes = (formId: string, types: InputType[]): FormField[] => {
+    return [
+        {
+            key: `mp-key-${formId}`,
+            label: "Key",
+            type: "IDENTIFIER",
+            optional: false,
+            editable: true,
+            documentation: "",
+            value: "",
+            types: [{ fieldType: "IDENTIFIER", selected: true }],
+            enabled: true
+        },
+        {
+            key: `mp-val-${formId}`,
+            label: "Value",
+            type: getPrimaryInputType(types)?.fieldType || "",
+            optional: false,
+            editable: true,
+            documentation: "",
+            value: "",
+            types: types,
+            enabled: true
+        }
+    ]
+}
+
+export function stringToRawArrayElements(input: string): string[] {
+    // remove outer [ ]
+    const s = input.trim().slice(1, -1);
+
+    if (s === "") {
+        return [""];
+    }
+
+    const result: string[] = [];
+    let current = "";
+    let depth = 0;
+    let inString = false;
+
+    for (let i = 0; i < s.length; i++) {
+        const char = s[i];
+        const prev = s[i - 1];
+
+        // handle string boundaries
+        if (char === '"' && prev !== "\\") {
+            inString = !inString;
+            current += char;
+            continue;
+        }
+
+        if (!inString) {
+            if (char === "[" || char === "{") depth++;
+            if (char === "]" || char === "}") depth--;
+
+            if (char === "," && depth === 0) {
+                result.push(current);
+                current = "";
+                continue;
+            }
+        }
+
+        current += char;
+    }
+
+    // Always push the final element (even if empty) to preserve trailing empty values
+    result.push(current);
+
+    return result;
+}
+
+export function stringToRawObjectEntries(
+    input: string
+): { key: string; value: string }[] {
+
+    // remove outer { }
+    const s = input.trim().slice(1, -1);
+
+    const result: { key: string; value: string }[] = [];
+
+    let current = "";
+    let depth = 0;
+    let inString = false;
+
+    for (let i = 0; i < s.length; i++) {
+        const char = s[i];
+        const prev = s[i - 1];
+
+        // toggle string state
+        if (char === '"' && prev !== "\\") {
+            inString = !inString;
+            current += char;
+            continue;
+        }
+
+        if (!inString) {
+            if (char === "{" || char === "[") depth++;
+            if (char === "}" || char === "]") depth--;
+
+            // top-level comma → end of one pair
+            if (char === "," && depth === 0) {
+                pushPair(current, result);
+                current = "";
+                continue;
+            }
+        }
+
+        current += char;
+    }
+
+    if (current.trim()) {
+        pushPair(current, result);
+    }
+
+    return result;
+}
+
+function pushPair(
+    text: string,
+    result: { key: string; value: string }[]
+) {
+    let depth = 0;
+    let inString = false;
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const prev = text[i - 1];
+
+        if (char === '"' && prev !== "\\") {
+            inString = !inString;
+        }
+
+        if (!inString) {
+            if (char === "{" || char === "[") depth++;
+            if (char === "}" || char === "]") depth--;
+
+            // first top-level colon
+            if (char === ":" && depth === 0) {
+                const key = text.slice(0, i).trim();
+                const value = text.slice(i + 1).trim();
+
+                result.push({
+                    key: key,
+                    value: value
+                });
+                return;
+            }
+        }
+    }
+}
+
+export function buildStringArray(elements: FormField[]): string {
+    if (typeof elements === "string") return elements;
+    const parts = elements.map(el => {
+        return (el.value as string).trim();
+    });
+    return `[${parts.join(", ")}]`;
+}
+
+export function buildStringMap(elements: FormField[][] | string): string {
+    if (typeof elements === "string") return elements;
+    let finalString = "{";
+    elements.forEach((el, index) => {
+        let processedValue = (el[1].value as string).trim();
+        const keyValue = (el[0].value as string).trim();
+        
+        if (index !== 0) {
+            finalString += `, ${keyValue}: ${processedValue}`;
+        }
+        else {
+            finalString += ` ${keyValue}: ${processedValue}`;
+        }
+    });
+
+    return finalString + "}";
+}
+
+export function getRecordTypeFields(fields: FormField[]): RecordTypeField[] {
+    return fields.filter(field => {
+        const types = field.types;
+        if (!types) return false;
+        return types.some(
+            type =>
+            (
+                type.typeMembers &&
+                type.typeMembers.some(member => member.kind === "RECORD_TYPE")
+            )
+        );
+    })
+        .map((field) => ({
+            key: field.key,
+            property: getPropertyFromFormField(field),
+            recordTypeMembers: field.types
+                .flatMap(type => type.typeMembers || [])
+                .filter(member => member.kind === "RECORD_TYPE")
+        }));
 }

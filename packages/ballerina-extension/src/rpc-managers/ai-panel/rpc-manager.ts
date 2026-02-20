@@ -46,7 +46,6 @@ import {
 import * as fs from 'fs';
 import path from "path";
 import { extensions, workspace } from 'vscode';
-import { URI } from "vscode-uri";
 
 import { isNumber } from "lodash";
 import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
@@ -56,13 +55,11 @@ import { extension } from "../../BalExtensionContext";
 import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
-import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { submitFeedback as submitFeedbackUtil } from "../../features/ai/utils/feedback";
 import { sendGenerationKeptTelemetry, sendGenerationDiscardTelemetry } from "../../features/ai/utils/generation-response";
-import { fetchWithAuth } from "../../features/ai/utils/ai-client";
 import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
-import { getLoginMethod, loginGithubCopilot } from "../../utils/ai/auth";
+import { getLoginMethod, isPlatformExtensionAvailable, loginGithubCopilot } from "../../utils/ai/auth";
 import { normalizeCodeContext } from "../../views/ai-panel/codeContextUtils";
 import { refreshDataMapper } from "../data-mapper/utils";
 import {
@@ -73,6 +70,7 @@ import { addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "
 import { onHideReviewActions } from '@wso2/ballerina-core';
 import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent } from '../../features/ai/agent/index';
 import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
+import { WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
 import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
 import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/InlineMappingExecutor';
@@ -81,7 +79,6 @@ import { cleanupTempProject } from "../../features/ai/utils/project/temp-project
 import { RPCLayer } from '../../RPCLayer';
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
-import { WI_EXTENSION_ID } from "../../features/ai/constants";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -90,6 +87,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
             const loginMethod = await getLoginMethod();
             resolve(loginMethod);
         });
+    }
+
+    async isPlatformExtensionAvailable(): Promise<boolean> {
+        return isPlatformExtensionAvailable();
     }
 
     async getDefaultPrompt(): Promise<AIPanelPrompt> {

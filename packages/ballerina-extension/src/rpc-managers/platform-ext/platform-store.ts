@@ -1,0 +1,53 @@
+/**
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import { createStore } from "zustand";
+import { persist } from "zustand/middleware";
+import {
+    PlatformExtConnectionState,
+    PlatformExtState,
+} from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { getWorkspaceStateStore } from "./platform-utils";
+
+interface PlatformExtStore {
+    state: PlatformExtState;
+    setState: (params: Partial<PlatformExtState>) => void;
+    setConnectionState: (params: Partial<PlatformExtConnectionState>) => void;
+}
+
+const initialState: PlatformExtState = {
+    isLoggedIn: false,
+    userInfo: null,
+    components: [],
+    devantConns: { list: [], loading: false, connectedToDevant: true },
+};
+
+export const platformExtStore = createStore(
+    persist<PlatformExtStore>(
+        (set, get) => ({
+            state: initialState,
+            setState: (params: Partial<PlatformExtState>) => {
+                set(({ state }) => ({ state: { ...state, ...params } }));
+            },
+            setConnectionState: (params: Partial<PlatformExtConnectionState>) => {
+                set(({ state }) => ({ state: { ...state, devantConns: { ...state.devantConns, ...params } } }));
+            },
+        }),
+        getWorkspaceStateStore("bi-platform-storage"),
+    ),
+);
