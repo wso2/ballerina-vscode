@@ -29,13 +29,17 @@ import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.BindingPatternNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FieldBindingPatternFullNode;
 import io.ballerina.compiler.syntax.tree.ListBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.MappingBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.WaitFieldNode;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.flowmodelgenerator.core.TypeParameterReplacer;
+import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
@@ -966,6 +970,34 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
                         builder.value(valueMap);
                     });
+        }
+
+        public Builder<T> handleWaitNode(List<Node> nodes) {
+            Map<String, Property> valueMap = new LinkedHashMap<>();
+            Node waitField;
+            ExpressionNode expressionNode;
+            String fieldKey;
+            Property template = WaitBuilder.futureTemplate();
+            for (Node n : nodes) {
+                if (n.kind() == SyntaxKind.WAIT_FIELD) {
+                    waitField = ((WaitFieldNode) n).fieldName();
+                    expressionNode = ((WaitFieldNode) n).waitFutureExpr();
+                    fieldKey = waitField.toSourceCode();
+                } else {
+                    expressionNode = (ExpressionNode) n;
+                    fieldKey = n.toSourceCode();
+                }
+
+                Property.Builder<Object> templateBuilder = createPropertyBuilderFrom(template);
+                templateBuilder.types.stream()
+                        .filter(pt -> pt.fieldType() == Property.ValueType.EXPRESSION)
+                        .findFirst()
+                        .ifPresent(pt -> pt.selected(true));
+                templateBuilder.value(expressionNode.toSourceCode().trim());
+                valueMap.put(fieldKey, templateBuilder.build());
+            }
+            this.value(valueMap);
+            return this;
         }
 
         /**

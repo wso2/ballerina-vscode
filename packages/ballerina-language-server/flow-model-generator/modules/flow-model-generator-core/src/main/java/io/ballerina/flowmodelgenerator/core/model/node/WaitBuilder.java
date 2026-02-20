@@ -19,18 +19,28 @@
 package io.ballerina.flowmodelgenerator.core.model.node;
 
 import com.google.gson.Gson;
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.api.symbols.WorkerSymbol;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.projects.Document;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -43,17 +53,11 @@ public class WaitBuilder extends NodeBuilder {
     public static final String LABEL = "Wait";
     public static final String DESCRIPTION = "Wait for a set of futures to complete";
 
-    public static final String WAIT_ALL_KEY = "waitAll";
-    public static final String WAIT_ALL_LABEL = "Wait All";
-    public static final String WAIT_ALL_DOC = "Wait for all tasks to complete";
-
     public static final String FUTURES_KEY = "futures";
-    public static final String FUTURES_LABEL = "Futures";
-    public static final String FUTURES_DOC = "The futures to wait for";
-
-    public static final String FUTURE_KEY = "future";
     public static final String FUTURE_LABEL = "Future";
-    public static final String FUTURE_DOC = "The worker/async function to wait for";
+    public static final String FUTURE_DOC = "The future to wait for";
+
+    public static final String FUTURE_TYPE_BALLERINA_TYPE = "future<any|error>";
 
     private static final Gson gson = new Gson();
 
@@ -66,66 +70,111 @@ public class WaitBuilder extends NodeBuilder {
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
         properties()
-                .dataVariable(null, context.getAllVisibleSymbolNames())
-                .waitAll(false)
-                .nestedProperty()
-                    .nestedProperty()
-                        .waitField(null)
-                        .expression(null)
-                    .endNestedProperty(Property.ValueType.FIXED_PROPERTY, WaitBuilder.FUTURE_KEY + 1,
-                        WaitBuilder.FUTURE_LABEL, WaitBuilder.FUTURE_DOC)
-                .endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, WaitBuilder.FUTURES_KEY,
-                        WaitBuilder.FUTURES_LABEL, WaitBuilder.FUTURES_DOC);
+                .futures(futureTemplate())
+                .dataVariable(null, Property.VARIABLE_NAME, Property.TYPE_DOC, Property.VARIABLE_DOC,
+                        true, context.getAllVisibleSymbolNames(), true);
     }
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        sourceBuilder.newVariable();
-        sourceBuilder.token().keyword(SyntaxKind.WAIT_KEYWORD);
-
-        boolean waitAll = sourceBuilder.flowNode.properties().containsKey(WAIT_ALL_KEY) &&
-                sourceBuilder.flowNode.properties().get(WAIT_ALL_KEY).value().equals(true);
-
-        if (waitAll) {
-            sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
-        }
-
         Optional<Property> futures = sourceBuilder.getProperty(FUTURES_KEY);
+        Optional<Property> variable = sourceBuilder.getProperty(Property.VARIABLE_KEY);
         if (futures.isEmpty() || !(futures.get().value() instanceof Map<?, ?> futureMap)) {
             throw new IllegalStateException("Wait node does not have futures to wait for");
         }
 
+        if (variable.isEmpty()) {
+            throw new IllegalStateException("Wait node does not have a variable to assign the result to");
+        }
+
+        try {
+            sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to load the project for the given file path: "
+                    + sourceBuilder.filePath, e);
+        }
+
+        Optional<Document> document = sourceBuilder.workspaceManager.document(sourceBuilder.filePath);
+        if (document.isEmpty()) {
+            throw new IllegalStateException("Document not found for the given file path: " + sourceBuilder.filePath);
+        }
+
+        if (semanticModel == null) {
+            Optional<SemanticModel> model = sourceBuilder.workspaceManager.semanticModel(sourceBuilder.filePath);
+            if (model.isEmpty()) {
+                throw new IllegalStateException("Semantic model not found for the given file path: "
+                        + sourceBuilder.filePath);
+            }
+            semanticModel = model.get();
+        }
+
+        Optional<Property> type = sourceBuilder.getProperty(Property.TYPE_KEY);
+        String typeSignature = "";
+        if (type.isPresent()) {
+            String sourceCode = type.get().toSourceCode();
+            if (!sourceCode.startsWith("map<") && !sourceCode.endsWith(">")) {
+                typeSignature = sourceCode;
+            }
+        }
+
+        List<String> keyValuePairs = new ArrayList<>();
         List<String> expressions = new ArrayList<>();
-        for (Object obj : futureMap.values()) {
-            Property futureProperty = gson.fromJson(gson.toJsonTree(obj), Property.class);
-            if (!(futureProperty.value() instanceof Map<?, ?> futureChildMap)) {
-                continue;
+        futureMap.forEach((keyObj, valueObj) -> {
+            String key = (String) keyObj;
+            String expression = Property.convertToProperty(valueObj).toSourceCode();
+            if (!expression.isEmpty()) {
+                keyValuePairs.add(key + ": " + expression);
+                expressions.add(expression);
             }
+        });
 
-            Map<String, Property> futureChildProperties = gson.fromJson(gson.toJsonTree(futureChildMap),
-                    FormBuilder.NODE_PROPERTIES_TYPE);
+        if (typeSignature.isEmpty()) {
+            List<Symbol> symbols = semanticModel.visibleSymbols(document.get(),
+                    sourceBuilder.flowNode.codedata().lineRange().startLine());
 
-            String waitField;
-            Property variableProperty = futureChildProperties.get(Property.VARIABLE_KEY);
-            if (waitAll && variableProperty != null && !variableProperty.value().toString().isEmpty()) {
-                waitField = variableProperty.value() + ":";
+            TypeSymbol[] workerAndAsyncSymbols = symbols.stream()
+                    .filter(symbol -> expressions.contains(symbol.getName().orElse("")))
+                    .map(symbol -> {
+                        if (symbol instanceof WorkerSymbol workerSymbol) {
+                            return workerSymbol.returnType();
+                        } else if (symbol instanceof VariableSymbol variableSymbol) {
+                            return variableSymbol.typeDescriptor();
+                        }
+                        return null;
+                    })
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .sorted(Comparator.comparing(t -> t.getName().orElse("")))
+                    .toArray(TypeSymbol[]::new);
+
+            if (workerAndAsyncSymbols.length != 0) {
+                UnionTypeSymbol build = semanticModel.types().builder().UNION_TYPE
+                        .withMemberTypes(workerAndAsyncSymbols).build();
+
+                typeSignature = CommonUtils.getTypeSignature(semanticModel, build, false);
+                typeSignature = "map<" + typeSignature + ">";
             } else {
-                waitField = "";
+                typeSignature = "map<any|error>";
             }
-
-            Property expressionProperty = futureChildProperties.get(Property.EXPRESSION_KEY);
-            if (expressionProperty == null) {
-                continue;
-            }
-            expressions.add(waitField + expressionProperty.value().toString());
         }
-        String delimiter = waitAll ? "," : "|";
-        sourceBuilder.token().name(String.join(delimiter, expressions));
 
-        if (waitAll) {
-            sourceBuilder.token().keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
-        }
+        sourceBuilder.token().name(typeSignature)
+                .whiteSpace()
+                .expression(variable.get())
+                .whiteSpace()
+                .keyword(SyntaxKind.EQUAL_TOKEN)
+                .keyword(SyntaxKind.WAIT_KEYWORD)
+                .keyword(SyntaxKind.OPEN_BRACE_TOKEN)
+                .name(String.join(", ", keyValuePairs))
+                .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
 
         return sourceBuilder.token().endOfStatement().stepOut().textEdit().build();
+    }
+
+    public static Property futureTemplate() {
+        return new FormBuilder<>(null, null, null, null)
+                .futureTemplate()
+                .build()
+                .get(FUTURES_KEY);
     }
 }

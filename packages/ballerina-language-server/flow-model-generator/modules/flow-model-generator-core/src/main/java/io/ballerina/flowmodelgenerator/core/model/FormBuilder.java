@@ -163,25 +163,6 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
-    public FormBuilder<T> waitField(Node node) {
-        propertyBuilder
-                .metadata()
-                    .label(Property.VARIABLE_NAME)
-                    .description(Property.VARIABLE_DOC)
-                    .stepOut()
-                .codedata()
-                    .dependentProperty(WaitBuilder.WAIT_ALL_KEY)
-                    .stepOut()
-                .value(node == null ? "" : node.toSourceCode().strip())
-                .type()
-                    .fieldType(Property.ValueType.IDENTIFIER)
-                    .selected(true)
-                    .stepOut()
-                .editable();
-        addProperty(Property.VARIABLE_KEY, node);
-        return this;
-    }
-
     public FormBuilder<T> type(Node node, boolean editable) {
         return type(node, Property.TYPE_LABEL, editable);
     }
@@ -1213,19 +1194,35 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
-    public FormBuilder<T> waitAll(boolean value) {
+    public FormBuilder<T> futures(Property template) {
         propertyBuilder
                 .metadata()
-                    .label(WaitBuilder.WAIT_ALL_LABEL)
-                    .description(WaitBuilder.WAIT_ALL_DOC)
+                    .label(WaitBuilder.FUTURE_LABEL)
+                    .description(WaitBuilder.DESCRIPTION)
                     .stepOut()
-                .value(value)
                 .type()
-                    .fieldType(Property.ValueType.FLAG)
+                    .fieldType(Property.ValueType.REPEATABLE_MAP)
+                    .template(template)
                     .selected(true)
                     .stepOut()
                 .editable();
-        addProperty(WaitBuilder.WAIT_ALL_KEY);
+        addProperty(WaitBuilder.FUTURES_KEY);
+        return this;
+    }
+
+    public FormBuilder<T> futureTemplate() {
+        propertyBuilder.
+                metadata()
+                    .label(WaitBuilder.FUTURE_LABEL)
+                    .description(WaitBuilder.FUTURE_DOC)
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.EXPRESSION)
+                    .ballerinaType(WaitBuilder.FUTURE_TYPE_BALLERINA_TYPE)
+                    .selected(true)
+                    .stepOut()
+                .editable();
+        addProperty(WaitBuilder.FUTURES_KEY);
         return this;
     }
 
