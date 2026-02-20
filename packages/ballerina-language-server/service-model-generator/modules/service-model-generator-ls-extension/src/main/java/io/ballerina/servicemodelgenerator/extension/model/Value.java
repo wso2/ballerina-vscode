@@ -21,6 +21,7 @@ package io.ballerina.servicemodelgenerator.extension.model;
 import com.google.gson.JsonPrimitive;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +92,6 @@ public class Value {
         SINGLE_SELECT,
         MULTI_SELECT,
         MULTIPLE_SELECT,
-        MAPPING_EXPRESSION,
         MAPPING_EXPRESSION_SET,
         EXPRESSION_SET,
         TEXT_SET,
@@ -110,7 +110,9 @@ public class Value {
         MULTIPLE_SELECT_LISTENER,
         FILE_SELECT,
         OPTIONAL_IDENTIFIER,
-        ACTION_TYPE
+        ACTION_TYPE,
+        REPEATABLE_LIST,
+        REPEATABLE_MAP,
     }
 
     public MetaData getMetadata() {
@@ -146,7 +148,56 @@ public class Value {
     }
 
     public String getValue() {
+        if (value == null || value.toString().isEmpty()) {
+            return "";
+        }
+
+        if (value instanceof Map<?, ?> valueMap) {
+            return buildMapSourceCode(valueMap);
+        } else if (value instanceof List<?> valueList) {
+            return buildListSourceCode(valueList);
+        }
+
         return CommonUtils.extractLiteralFromStringTemplate(getValueString());
+    }
+
+    private static String buildMapSourceCode(Map<?, ?> valueMap) {
+        if (valueMap.isEmpty()) {
+            return "";
+        }
+
+        List<String> keyValuePairs = new ArrayList<>();
+        valueMap.forEach((keyObj, valueObj) -> {
+            String key = (String) keyObj;
+            String propertyValue = convertToValue(valueObj).getValue();
+            if (!propertyValue.isEmpty()) {
+                keyValuePairs.add(key + ": " + propertyValue);
+            }
+        });
+
+        return keyValuePairs.isEmpty() ? "" : "{%s}".formatted(String.join(", ", keyValuePairs));
+    }
+
+    public static Value convertToValue(Object propObj) {
+        Value.ValueBuilder builder = new Value.ValueBuilder();
+        if (propObj instanceof Map<?, ?> propMap) {
+            builder.value(propMap.get("value"));
+        }
+        return builder.build();
+    }
+
+    private static String buildListSourceCode(List<?> valueList) {
+        if (valueList.isEmpty()) {
+            return "";
+        }
+
+        List<String> stringValues = valueList.stream()
+                .filter(Map.class::isInstance)
+                .map(Map.class::cast)
+                .map(val -> new Value.ValueBuilder().value(val.get("value")).build().getValue())
+                .toList();
+
+        return stringValues.isEmpty() ? "" : "[%s]".formatted(String.join(", ", stringValues));
     }
 
     public String getValueString() {
@@ -167,9 +218,6 @@ public class Value {
         }
         if (value instanceof JsonPrimitive) {
             return ((JsonPrimitive) value).getAsString();
-        }
-        if (value instanceof Map<?, ?> mapValue) {
-            return CommonUtils.convertMapToString(mapValue);
         }
         return null;
     }

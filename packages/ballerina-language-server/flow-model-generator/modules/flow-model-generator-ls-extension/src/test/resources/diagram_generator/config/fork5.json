@@ -492,12 +492,39 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION_SET",
-                        "selected": false
+                        "fieldType": "REPEATABLE_LIST",
+                        "ballerinaType": "io:Printable",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "io:Printable",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": true
                       }
                     ],
                     "value": [
-                      "\"Worker B\""
+                      {
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "io:Printable",
+                            "selected": true
+                          }
+                        ],
+                        "value": "\"Worker B\"",
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
+                      }
                     ],
                     "placeholder": "()",
                     "optional": false,
@@ -619,12 +646,39 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION_SET",
-                        "selected": false
+                        "fieldType": "REPEATABLE_LIST",
+                        "ballerinaType": "io:Printable",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "io:Printable",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": true
                       }
                     ],
                     "value": [
-                      "\"Worker C\""
+                      {
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "io:Printable",
+                            "selected": true
+                          }
+                        ],
+                        "value": "\"Worker C\"",
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
+                      }
                     ],
                     "placeholder": "()",
                     "optional": false,

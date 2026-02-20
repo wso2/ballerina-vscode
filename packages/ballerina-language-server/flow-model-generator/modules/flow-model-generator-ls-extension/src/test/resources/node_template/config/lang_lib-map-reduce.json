@@ -38,6 +38,24 @@
         },
         "types": [
           {
+            "fieldType": "REPEATABLE_MAP",
+            "ballerinaType": "map<map<any|error>>",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "map<any|error>",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "map<map<any|error>>",
             "selected": false

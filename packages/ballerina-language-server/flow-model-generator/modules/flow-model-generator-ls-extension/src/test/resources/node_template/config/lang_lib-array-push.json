@@ -10,14 +10,14 @@
     "org": "ballerina",
     "module": "lang.array",
     "packageName": "lang.array",
-    "symbol": "'map",
+    "symbol": "push",
     "version": "0.0.0"
   },
   "output": {
     "id": "31",
     "metadata": {
-      "label": "'map",
-      "description": "Applies a function to each member of an array and returns an array of the results.\n\n```ballerina\nint[] numbers = [0, 1, 2];\nnumbers.map(n => n * 2) ⇒ [0,2,4]\n```\n",
+      "label": "push",
+      "description": "Adds values to the end of an array.\n\n```ballerina\nint[] numbers = [2];\nnumbers.push(4, 6);\nnumbers ⇒ [2,4,6]\nint[] moreNumbers = [8, 10, 12, 14];\nnumbers.push(...moreNumbers);\nnumbers ⇒ [2,4,6,8,10,12,14]\n```\n",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.array_0.0.0.png"
     },
     "codedata": {
@@ -25,7 +25,7 @@
       "org": "ballerina",
       "module": "lang.array",
       "packageName": "lang.array",
-      "symbol": "'map",
+      "symbol": "push",
       "version": "0.0.0",
       "isNew": true
     },
@@ -71,63 +71,40 @@
           "originalName": "arr"
         }
       },
-      "func": {
+      "vals": {
         "metadata": {
-          "label": "Func",
-          "description": "a function to apply to each member"
+          "label": "Vals",
+          "description": "values to add to the end of the array"
         },
         "types": [
           {
-            "fieldType": "EXPRESSION",
-            "ballerinaType": "function ((any|error) val) returns (any|error)",
-            "selected": false
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "(any|error)",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "(any|error)",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": true
           }
         ],
-        "placeholder": "",
-        "optional": false,
+        "placeholder": "()",
+        "optional": true,
         "editable": true,
-        "advanced": false,
+        "advanced": true,
         "hidden": false,
         "codedata": {
-          "kind": "REQUIRED",
-          "originalName": "func"
+          "kind": "REST_PARAMETER",
+          "originalName": "vals"
         }
-      },
-      "type": {
-        "metadata": {
-          "label": "Result Type",
-          "description": "Type of the variable"
-        },
-        "types": [
-          {
-            "fieldType": "TYPE",
-            "selected": true
-          }
-        ],
-        "value": "(any|error)[]",
-        "placeholder": "var",
-        "optional": false,
-        "editable": false,
-        "advanced": false,
-        "hidden": true,
-        "codedata": {}
-      },
-      "variable": {
-        "metadata": {
-          "label": "Result",
-          "description": "Name of the result variable"
-        },
-        "types": [
-          {
-            "fieldType": "IDENTIFIER",
-            "selected": true
-          }
-        ],
-        "value": "arrayType1",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false
       }
     },
     "flags": 0

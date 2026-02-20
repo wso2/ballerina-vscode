@@ -494,12 +494,39 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION_SET",
-                        "selected": false
+                        "fieldType": "REPEATABLE_LIST",
+                        "ballerinaType": "io:Printable",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "io:Printable",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": true
                       }
                     ],
                     "value": [
-                      "string `Retrieved customer via remote: ${existingCustomer.fullName}`"
+                      {
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "io:Printable",
+                            "selected": true
+                          }
+                        ],
+                        "value": "string `Retrieved customer via remote: ${existingCustomer.fullName}`",
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
+                      }
                     ],
                     "placeholder": "()",
                     "optional": false,
@@ -808,12 +835,39 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION_SET",
-                        "selected": false
+                        "fieldType": "REPEATABLE_LIST",
+                        "ballerinaType": "io:Printable",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "io:Printable",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": true
                       }
                     ],
                     "value": [
-                      "string `Retrieved customer via resource: ${customerViaResource.fullName}`"
+                      {
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "io:Printable",
+                            "selected": true
+                          }
+                        ],
+                        "value": "string `Retrieved customer via resource: ${customerViaResource.fullName}`",
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
+                      }
                     ],
                     "placeholder": "()",
                     "optional": false,

@@ -926,7 +926,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                     .value(CommonUtils.getVariableName(typeDescriptor))
                     .type()
                         .fieldType(Property.ValueType.TYPE)
-                        .typeMembers(extractTypeMembersFromTypeDescriptor(typeDescriptor, semanticModel))
+                        .setTypeMembers(extractTypeMembersFromTypeDescriptor(typeDescriptor, semanticModel))
                         .stepOut()
                     .editable(isRootProject)
                     .stepOut()

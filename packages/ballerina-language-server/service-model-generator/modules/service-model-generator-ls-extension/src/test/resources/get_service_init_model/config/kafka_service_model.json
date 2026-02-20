@@ -33,8 +33,26 @@
               "selected": true
             },
             {
-              "fieldType": "EXPRESSION_SET",
+              "fieldType": "REPEATABLE_LIST",
               "ballerinaType": "string[]",
+              "template": {
+                "types": [
+                  {
+                    "fieldType": "TEXT",
+                    "ballerinaType": "string",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "string",
+                    "selected": false
+                  }
+                ],
+                "enabled": false,
+                "editable": false,
+                "optional": false,
+                "advanced": false
+              },
               "selected": false
             },
             {
@@ -65,8 +83,26 @@
               "selected": true
             },
             {
-              "fieldType": "EXPRESSION_SET",
+              "fieldType": "REPEATABLE_LIST",
               "ballerinaType": "string[]",
+              "template": {
+                "types": [
+                  {
+                    "fieldType": "TEXT",
+                    "ballerinaType": "string",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "string",
+                    "selected": false
+                  }
+                ],
+                "enabled": false,
+                "editable": false,
+                "optional": false,
+                "advanced": false
+              },
               "selected": false
             },
             {

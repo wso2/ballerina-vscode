@@ -97,14 +97,22 @@
           "kind": "INCLUDED_RECORD_REST",
           "originalName": "params"
         },
-        "value": [
-          {
-            "param1": "\"value1\""
+        "value": {
+          "param1": {
+            "value": "\"value1\"",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
           },
-          {
-            "param2": "12"
+          "param2": {
+            "value": "12",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
           }
-        ]
+        }
       },
       "checkError": {
         "metadata": {

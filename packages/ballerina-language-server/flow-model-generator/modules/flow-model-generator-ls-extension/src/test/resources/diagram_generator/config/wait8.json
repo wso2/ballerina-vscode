@@ -748,12 +748,39 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET",
-                "selected": false
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "io:Printable",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "io:Printable",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": true
               }
             ],
             "value": [
-              "\"Value: \" + value"
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "\"Value: \" + value",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
             ],
             "placeholder": "()",
             "optional": false,

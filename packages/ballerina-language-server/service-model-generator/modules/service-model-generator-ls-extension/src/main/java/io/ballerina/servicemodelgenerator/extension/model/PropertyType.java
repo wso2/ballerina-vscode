@@ -29,10 +29,17 @@ import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.syntax.tree.BindingPatternNode;
+import io.ballerina.compiler.syntax.tree.FieldBindingPatternFullNode;
+import io.ballerina.compiler.syntax.tree.ListBindingPatternNode;
+import io.ballerina.compiler.syntax.tree.MappingBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
@@ -40,7 +47,9 @@ import org.ballerinalang.langserver.common.utils.CommonUtil;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -55,6 +64,7 @@ public class PropertyType {
     private final String ballerinaType;
     private final List<Option> options;
     private final List<PropertyTypeMemberInfo> typeMembers;
+    private final Value template;
     private boolean selected;
     private final Integer minItems;
     private final Integer defaultItems;
@@ -62,12 +72,13 @@ public class PropertyType {
     private final String patternErrorMessage;
 
     public PropertyType(Value.FieldType fieldType, String ballerinaType, List<Option> options,
-                        List<PropertyTypeMemberInfo> typeMembers, boolean selected, Integer minItems,
+                        List<PropertyTypeMemberInfo> typeMembers, Value template, boolean selected, Integer minItems,
                         Integer defaultItems, String pattern, String patternErrorMessage) {
         this.fieldType = fieldType;
         this.ballerinaType = ballerinaType;
         this.options = options;
         this.typeMembers = typeMembers;
+        this.template = template;
         this.selected = selected;
         this.minItems = minItems;
         this.defaultItems = defaultItems;
@@ -94,14 +105,15 @@ public class PropertyType {
             return;
         }
         String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
+        List<PropertyType> propertyTypes = new ArrayList<>();
 
         // Handle the primitive input types
-        Optional<PropertyType> propertyType = handlePrimitiveType(typeSymbol, ballerinaType);
+        boolean success = handlePrimitiveType(typeSymbol, ballerinaType, semanticModel, moduleInfo,
+                valueBuilder, propertyTypes);
 
-        List<PropertyType> propertyTypes = new ArrayList<>();
         TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
         // Handle union of singleton types as single-select options
-        if (propertyType.isEmpty() && rawType instanceof UnionTypeSymbol unionTypeSymbol) {
+        if (!success && rawType instanceof UnionTypeSymbol unionTypeSymbol) {
             List<TypeSymbol> typeSymbols = unionTypeSymbol.memberTypeDescriptors();
             List<Option> options = new ArrayList<>();
             boolean allSingletons = true;
@@ -127,12 +139,13 @@ public class PropertyType {
             } else {
                 // Handle union of primitive types by defining an input type for each primitive type
                 for (TypeSymbol ts : typeSymbols) {
-                    Optional<PropertyType> propType = handlePrimitiveType(ts,
-                            CommonUtils.getTypeSignature(ts, moduleInfo));
-                    propType.ifPresent(propertyTypes::add);
+                    handlePrimitiveType(ts, CommonUtils.getTypeSignature(ts, moduleInfo), semanticModel, moduleInfo,
+                            valueBuilder, propertyTypes);
                 }
                 // group by the fieldType
                 propertyTypes.stream()
+                        .filter(pt -> !(pt.fieldType() == Value.FieldType.REPEATABLE_LIST
+                                || pt.fieldType() == Value.FieldType.REPEATABLE_MAP))
                         .collect(java.util.stream.Collectors.groupingBy(PropertyType::fieldType))
                         .forEach((fieldType, groupedTypes) -> {
                             if (groupedTypes.size() > 1) {
@@ -156,12 +169,11 @@ public class PropertyType {
 
                                 // add the merged type
                                 propertyTypes.add(new PropertyType(fieldType, mergedBallerinaType, null,
-                                        distinctMembers, false, null, null, null, null));
+                                        distinctMembers, null, false, null, null,
+                                        null, null));
                             }
                         });
             }
-        } else {
-            propertyType.ifPresent(propertyTypes::add);
         }
 
         // All the ballerina types will have a default to expression type
@@ -178,25 +190,15 @@ public class PropertyType {
             Value.FieldType matchingValueType = findMatchingValueType(value);
             // if matching type is mapping_expression_set
             // need to check if it's a map or a record if its a map then need to set the matching type
-            if (matchingValueType == Value.FieldType.MAPPING_EXPRESSION_SET) {
+            if (matchingValueType == Value.FieldType.REPEATABLE_MAP) {
                 Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
-                if (paramType.isPresent()) {
-                    matchingValueType = Value.FieldType.RECORD_MAP_EXPRESSION;
+                boolean hasRecordValue = handleRecordValue(value, semanticModel, valueBuilder, paramType,
+                        propertyTypes);
+                if (!hasRecordValue && value instanceof MappingBindingPatternNode bindingPatternNode) {
+                    handleMapValue(typeSymbol, moduleInfo, valueBuilder, bindingPatternNode, paramType, propertyTypes);
                 }
-                Value.FieldType finalMatchingValueType = matchingValueType;
-                propertyTypes.stream()
-                        .filter(propType -> propType.fieldType() == finalMatchingValueType)
-                        .findFirst()
-                        .ifPresent(propType -> {
-                            propType.selected(true);
-                            if (propType.fieldType() == Value.FieldType.RECORD_MAP_EXPRESSION) {
-                                String selectedType = getSelectedType(value, semanticModel);
-                                if (selectedType != null) {
-                                    propType.typeMembers().stream().filter(typeMember ->
-                                            typeMember.type().equals(selectedType)).forEach(t -> t.selected(true));
-                                }
-                            }
-                        });
+            } else if (matchingValueType == Value.FieldType.REPEATABLE_LIST) {
+                handleListValue(typeSymbol, moduleInfo, valueBuilder, value, semanticModel, propertyTypes);
             } else if (matchingValueType == Value.FieldType.EXPRESSION) {
                 boolean foundMatch = false;
                 PropertyType expressionPropType = null;
@@ -233,14 +235,43 @@ public class PropertyType {
         valueBuilder.types(propertyTypes);
     }
 
-    private static Optional<PropertyType> handlePrimitiveType(TypeSymbol typeSymbol, String ballerinaType) {
+    private static boolean handlePrimitiveType(TypeSymbol typeSymbol, String ballerinaType,
+                                                              SemanticModel semanticModel, ModuleInfo moduleInfo,
+                                                              Value.ValueBuilder builder,
+                                                              List<PropertyType> propertyTypes) {
         TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
         return switch (rawType.typeKind()) {
             case INT, INT_SIGNED8, INT_UNSIGNED8, INT_SIGNED16, INT_UNSIGNED16,
-                 INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL ->
-                    Optional.of(PropertyType.types(Value.FieldType.NUMBER, ballerinaType));
-            case STRING, STRING_CHAR -> Optional.of(PropertyType.types(Value.FieldType.TEXT, ballerinaType));
-            case BOOLEAN -> Optional.of(PropertyType.types(Value.FieldType.FLAG, ballerinaType));
+                 INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> {
+                propertyTypes.add(PropertyType.types(Value.FieldType.NUMBER, ballerinaType));
+                yield true;
+            }
+            case STRING, STRING_CHAR -> {
+                propertyTypes.add(PropertyType.types(Value.FieldType.TEXT, ballerinaType));
+                yield true;
+            }
+            case BOOLEAN -> {
+                propertyTypes.add(PropertyType.types(Value.FieldType.FLAG, ballerinaType));
+                yield true;
+            }
+            case ARRAY -> {
+                PropertyType propertyType = new PropertyType.Builder()
+                        .fieldType(Value.FieldType.REPEATABLE_LIST)
+                        .ballerinaType(ballerinaType)
+                        .template(buildRepeatableTemplates(typeSymbol, semanticModel, moduleInfo))
+                        .build();
+                propertyTypes.add(propertyType);
+                yield true;
+            }
+            case MAP -> {
+                PropertyType propertyType = new PropertyType.Builder()
+                        .fieldType(Value.FieldType.REPEATABLE_MAP)
+                        .ballerinaType(ballerinaType)
+                        .template(buildRepeatableTemplates(typeSymbol, semanticModel, moduleInfo))
+                        .build();
+                propertyTypes.add(propertyType);
+                yield true;
+            }
             case RECORD -> {
                 if (typeSymbol.typeKind() != TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
                     // not an anonymous record
@@ -257,27 +288,265 @@ public class PropertyType {
                             .setTypeMembers(List.of(new ParameterMemberTypeData(type, "RECORD_TYPE",
                                     packageIdentifier, id.packageName())))
                             .build();
-                    yield Optional.of(propertyType);
+                    propertyTypes.add(propertyType);
+                    yield true;
                 }
-                yield Optional.empty();
+                yield false;
             }
-            default -> Optional.empty();
+            default -> false;
         };
     }
+
+    public static Value buildRepeatableTemplates(TypeSymbol tSymbol, SemanticModel semanticModel,
+                                             ModuleInfo moduleInfo) {
+        Value.ValueBuilder builder = new Value.ValueBuilder();
+
+        TypeSymbol rawType = CommonUtil.getRawType(tSymbol);
+        if (rawType.typeKind() == TypeDescKind.ARRAY) {
+            ArrayTypeSymbol arrayTypeSymbol = (ArrayTypeSymbol) rawType;
+            TypeSymbol memberTypeSymbol = arrayTypeSymbol.memberTypeDescriptor();
+            typeWithExpression(builder, memberTypeSymbol, moduleInfo, null, semanticModel);
+        } else if (rawType.typeKind() == TypeDescKind.MAP) {
+            MapTypeSymbol mapTypeSymbol = (MapTypeSymbol) rawType;
+            TypeSymbol constrainedTypeSymbol = mapTypeSymbol.typeParam();
+            typeWithExpression(builder, constrainedTypeSymbol, moduleInfo, null, semanticModel);
+        } else {
+            typeWithExpression(builder, tSymbol, moduleInfo, null, semanticModel);
+        }
+
+        return builder.build();
+    }
+
 
     private static Value.FieldType findMatchingValueType(Node node) {
         return switch (node.kind()) {
             case STRING_TEMPLATE_EXPRESSION, STRING_LITERAL -> Value.FieldType.TEXT;
             case NUMERIC_LITERAL -> Value.FieldType.NUMBER;
             case TRUE_KEYWORD, FALSE_KEYWORD, BOOLEAN_LITERAL -> Value.FieldType.FLAG;
-            case MAPPING_BINDING_PATTERN, MAPPING_CONSTRUCTOR -> Value.FieldType.MAPPING_EXPRESSION_SET;
+            case MAPPING_BINDING_PATTERN, MAPPING_CONSTRUCTOR -> Value.FieldType.REPEATABLE_MAP;
+            case LIST_BINDING_PATTERN, LIST_CONSTRUCTOR -> Value.FieldType.REPEATABLE_LIST;
             default -> Value.FieldType.EXPRESSION;
         };
     }
 
-    private static String getSelectedType(Node node, SemanticModel semanticModel) {
-        if (node != null) {
-            Optional<TypeSymbol> paramType = semanticModel.typeOf(node);
+    private static void handleListValue(TypeSymbol typeSymbol, ModuleInfo moduleInfo, Value.ValueBuilder builder,
+                                        Node value, SemanticModel semanticModel, List<PropertyType> propertyTypes) {
+        Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
+        if (paramType.isEmpty() || !(value instanceof ListBindingPatternNode bindingPatternNode)) {
+            return;
+        }
+
+        TypeSymbol actualParamType = paramType.get();
+
+        // Collect candidate array type symbols
+        List<TypeSymbol> candidateArrayTypes = new ArrayList<>();
+        if (typeSymbol instanceof UnionTypeSymbol unionType) {
+            unionType.memberTypeDescriptors().stream()
+                    .filter(ArrayTypeSymbol.class::isInstance)
+                    .forEach(candidateArrayTypes::add);
+        } else if (typeSymbol instanceof ArrayTypeSymbol) {
+            candidateArrayTypes.add(typeSymbol);
+        }
+
+        // Find the matching type symbol that is a subtype of the parameter type
+        TypeSymbol matchingType = candidateArrayTypes.stream()
+                .filter(candidate -> candidate.subtypeOf(actualParamType))
+                .findFirst()
+                .orElse(null);
+
+        if (matchingType == null) {
+            return;
+        }
+
+        String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
+
+        // Find and update the matching property type
+        propertyTypes.stream()
+                .filter(propType -> propType.fieldType().equals(Value.FieldType.REPEATABLE_LIST)
+                        && propType.ballerinaType().equals(ballerinaType))
+                .findFirst()
+                .ifPresent(matchingPropType -> {
+                    matchingPropType.selected(true);
+
+                    Value template = matchingPropType.template();
+                    if (template == null) {
+                        return;
+                    }
+
+                    // Build value list from binding pattern nodes
+                    List<Value> valueList = new ArrayList<>();
+                    SeparatedNodeList<BindingPatternNode> bindingPatterns = bindingPatternNode.bindingPatterns();
+
+                    for (BindingPatternNode bindingNode : bindingPatterns) {
+                        String bindingValue = bindingNode.toSourceCode().trim();
+
+                        Value property = createPropertyFrom(template);
+                        property.getTypes().stream()
+                                .filter(pt -> pt.fieldType() == Value.FieldType.EXPRESSION)
+                                .findFirst()
+                                .ifPresent(pt -> pt.selected(true));
+                        property.setValue(bindingValue);
+
+                        valueList.add(property);
+                    }
+
+                    builder.value(valueList);
+                });
+    }
+
+    public static void handleRestArguments(Value.ValueBuilder builder, List<Node> values,
+                                           List<PropertyType> propertyTypes) {
+        // Find and update the matching property type
+        propertyTypes.stream()
+                .filter(propType -> propType.fieldType().equals(Value.FieldType.REPEATABLE_LIST))
+                .findFirst()
+                .ifPresent(matchingPropType -> {
+                    matchingPropType.selected(true);
+
+                    Value template = matchingPropType.template();
+                    if (template == null) {
+                        return;
+                    }
+
+                    // Build value list from binding pattern nodes
+                    List<Value> valueList = new ArrayList<>();
+                    for (Node value : values) {
+                        String expr = value.toSourceCode().trim();
+
+                        Value property = createPropertyFrom(template);
+                        property.getTypes().stream()
+                                .filter(pt -> pt.fieldType() == Value.FieldType.EXPRESSION)
+                                .findFirst()
+                                .ifPresent(pt -> pt.selected(true));
+                        property.setValue(expr);
+
+                        valueList.add(property);
+                    }
+                    builder.value(valueList);
+                });
+    }
+
+    private static void handleMapValue(TypeSymbol typeSymbol, ModuleInfo moduleInfo, Value.ValueBuilder builder,
+                                       MappingBindingPatternNode bindingPatternNode,
+                                       Optional<TypeSymbol> paramType, List<PropertyType> propertyTypes) {
+        if (paramType.isEmpty()) {
+            return;
+        }
+
+        TypeSymbol actualParamType = paramType.get();
+
+        List<TypeSymbol> candidateMapTypes = new ArrayList<>();
+        if (typeSymbol instanceof UnionTypeSymbol unionType) {
+            unionType.memberTypeDescriptors().stream()
+                    .filter(MapTypeSymbol.class::isInstance)
+                    .forEach(candidateMapTypes::add);
+        } else if (typeSymbol instanceof MapTypeSymbol) {
+            candidateMapTypes.add(typeSymbol);
+        }
+
+        // Find the matching type symbol that is a subtype of the parameter type
+        TypeSymbol matchingType = candidateMapTypes.stream()
+                .filter(candidate -> candidate.subtypeOf(actualParamType))
+                .findFirst()
+                .orElse(null);
+
+        if (matchingType == null) {
+            return;
+        }
+
+        String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
+
+        // Find and update the matching property type
+        propertyTypes.stream()
+                .filter(propType -> propType.fieldType().equals(Value.FieldType.REPEATABLE_MAP)
+                        && propType.ballerinaType().equals(ballerinaType))
+                .findFirst()
+                .ifPresent(matchingPropType -> {
+                    matchingPropType.selected(true);
+
+                    Value template = matchingPropType.template();
+                    if (template == null) {
+                        return;
+                    }
+
+                    // Build value map from binding pattern nodes
+                    Map<String, Value> valueMap = new LinkedHashMap<>();
+                    SeparatedNodeList<BindingPatternNode> fieldBindings = bindingPatternNode.fieldBindingPatterns();
+
+                    for (BindingPatternNode bindingNode : fieldBindings) {
+                        if (bindingNode instanceof FieldBindingPatternFullNode fieldBinding) {
+                            String fieldKey = fieldBinding.variableName().name().text().trim();
+                            String fieldValue = fieldBinding.bindingPattern().toSourceCode().trim();
+
+                            Value property = createPropertyFrom(template);
+                            property.getTypes().stream()
+                                    .filter(pt -> pt.fieldType() == Value.FieldType.EXPRESSION)
+                                    .findFirst()
+                                    .ifPresent(pt -> pt.selected(true));
+                            property.setValue(fieldValue);
+
+                            valueMap.put(fieldKey, property);
+                        }
+                    }
+
+                    builder.value(valueMap);
+                });
+    }
+
+    /**
+     * Creates a new property builder based on an existing property template.
+     * This method copies all type information from the template property to create
+     * a new builder instance that can be further customized.
+     *
+     * @param template the property to use as a template
+     * @return a new Builder instance with copied type information
+     */
+    public static Value createPropertyFrom(Value template) {
+        Value.ValueBuilder builder = new Value.ValueBuilder();
+
+        if (template.getTypes() != null) {
+            List<PropertyType> propertyTypes = new ArrayList<>();
+            for (PropertyType type : template.getTypes()) {
+                PropertyType propertyType = new PropertyType.Builder()
+                        .fieldType(type.fieldType())
+                        .ballerinaType(type.ballerinaType())
+                        .template(type.template())
+                        .options(type.options())
+                        .typeMembers(type.typeMembers())
+                        .build();
+                propertyTypes.add(propertyType);
+            }
+            builder.types(propertyTypes);
+        }
+
+        return builder.build();
+    }
+
+    private static boolean handleRecordValue(Node value, SemanticModel semanticModel, Value.ValueBuilder valueBuilder,
+                                             Optional<TypeSymbol> paramType, List<PropertyType> propertyTypes) {
+        if (!(paramType.isPresent() && CommonUtil.getRawType(paramType.get()).typeKind() == TypeDescKind.RECORD)) {
+            return false;
+        }
+        propertyTypes.stream()
+                .filter(propType -> propType.fieldType() == Value.FieldType.RECORD_MAP_EXPRESSION)
+                .findFirst()
+                .ifPresent(propType -> {
+                    propType.selected(true);
+                    if (propType.fieldType() == Value.FieldType.RECORD_MAP_EXPRESSION) {
+                        String selectedType = getSelectedType(value, semanticModel, valueBuilder);
+                        if (selectedType != null) {
+                            propType.typeMembers().stream().filter(typeMember ->
+                                    typeMember.type().equals(selectedType)).forEach(t -> t.selected(true));
+                        }
+                    }
+                });
+        return true;
+    }
+
+    private static String getSelectedType(Node value, SemanticModel semanticModel, Value.ValueBuilder builder) {
+        if (value != null) {
+            builder.value(value.toSourceCode().strip());
+            Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
             if (paramType.isPresent()) {
                 if (paramType.get().getModule().isPresent()) {
                     ModuleID id = paramType.get().getModule().get().id();
@@ -330,11 +599,16 @@ public class PropertyType {
         return patternErrorMessage;
     }
 
+    public Value template() {
+        return template;
+    }
+
     public static class Builder {
         private Value.FieldType fieldType;
         private String ballerinaType;
         private List<Option> options;
         private List<PropertyTypeMemberInfo> typeMembers;
+        private Value template;
         private boolean selected = false;
         private Integer minItems;
         private Integer defaultItems;
@@ -356,6 +630,11 @@ public class PropertyType {
 
         public Builder options(List<Option> options) {
             this.options = options;
+            return this;
+        }
+
+        public Builder typeMembers(List<PropertyTypeMemberInfo> typeMembers) {
+            this.typeMembers = typeMembers;
             return this;
         }
 
@@ -395,8 +674,13 @@ public class PropertyType {
             return this;
         }
 
+        public Builder template(Value template) {
+            this.template = template;
+            return this;
+        }
+
         public PropertyType build() {
-            return new PropertyType(fieldType, ballerinaType, options, typeMembers, selected, minItems,
+            return new PropertyType(fieldType, ballerinaType, options, typeMembers, template, selected, minItems,
                     defaultItems, pattern, patternErrorMessage);
         }
     }
