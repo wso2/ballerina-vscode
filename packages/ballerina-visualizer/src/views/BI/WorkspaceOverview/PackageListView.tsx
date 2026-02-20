@@ -18,7 +18,7 @@
 
 import React, { useMemo } from 'react';
 import styled from '@emotion/styled';
-import { Codicon, Icon, Typography } from '@wso2/ui-toolkit';
+import { Codicon, Icon, Tooltip, Typography } from '@wso2/ui-toolkit';
 import { EVENT_TYPE, MACHINE_VIEW, ProjectStructureResponse, SCOPE } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { getIntegrationTypes } from '../PackageOverview/utils';
@@ -136,6 +136,13 @@ const ChipContainer = styled.div`
     min-height: 28px;
 `;
 
+const MetaRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+`;
+
 const Chip = styled.div<{ color: string }>`
     display: inline-flex;
     align-items: center;
@@ -151,8 +158,43 @@ const Chip = styled.div<{ color: string }>`
     white-space: nowrap;
 `;
 
+const ICPBadge = styled.div`
+    --icp-badge-green: #00b894;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.03em;
+    color: var(--icp-badge-green);
+    background: color-mix(in srgb, var(--icp-badge-green) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--icp-badge-green) 55%, transparent);
+    white-space: nowrap;
+`;
+
+const ICPBadgeIcon = styled.span`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    line-height: 1;
+`;
+
+const ICPBadgeText = styled.span`
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    line-height: 1;
+`;
+
 export interface PackageListViewProps {
     workspaceStructure: ProjectStructureResponse;
+    icpStatusByProjectPath?: Record<string, boolean>;
+    showICPBadge?: boolean;
 }
 
 const getTypeColor = (type: SCOPE): string => {
@@ -219,6 +261,8 @@ const renderPackageIcon = (types: SCOPE[]) => {
 export function PackageListView(props: PackageListViewProps) {
     const { rpcClient } = useRpcContext();
     const workspaceStructure = props.workspaceStructure;
+    const icpStatusByProjectPath = props.icpStatusByProjectPath ?? {};
+    const showICPBadge = props.showICPBadge ?? false;
 
     const packages = useMemo(() => {
         return workspaceStructure.projects.map((project) => {
@@ -226,6 +270,7 @@ export function PackageListView(props: PackageListViewProps) {
                 id: project.projectName,
                 name: project.projectTitle,
                 projectPath: project.projectPath,
+                isLibrary: project.isLibrary ?? false,
                 types: getIntegrationTypes(project)
             }
         });
@@ -277,13 +322,25 @@ export function PackageListView(props: PackageListViewProps) {
                                 <Codicon name="chevron-right" iconSx={{ fontSize: 18, opacity: 0.5 }} />
                             </PackageActions>
                         </PackageHeader>
-                        <ChipContainer>
-                            {pkg.types.length > 0 && pkg.types.map((type) => (
-                                <Chip key={type} color={getTypeColor(type)}>
-                                    {type !== SCOPE.ANY ? getTypeLabel(type) : ''}
-                                </Chip>
-                            ))}
-                        </ChipContainer>
+                        <MetaRow>
+                            <ChipContainer>
+                                {pkg.types.length > 0 && pkg.types.map((type) => (
+                                    <Chip key={type} color={getTypeColor(type)}>
+                                        {type !== SCOPE.ANY ? getTypeLabel(type) : ''}
+                                    </Chip>
+                                ))}
+                            </ChipContainer>
+                            {showICPBadge && !pkg.isLibrary && icpStatusByProjectPath[pkg.projectPath] && (
+                                <Tooltip content="Integration Control Plane is enabled for this package">
+                                    <ICPBadge>
+                                        <ICPBadgeIcon>
+                                            <Codicon name="pass-filled" iconSx={{ fontSize: 14, display: "block", lineHeight: 1 }} />
+                                        </ICPBadgeIcon>
+                                        <ICPBadgeText>ICP</ICPBadgeText>
+                                    </ICPBadge>
+                                </Tooltip>
+                            )}
+                        </MetaRow>
                     </PackageCard>
                 ))}
             </CardGrid>
