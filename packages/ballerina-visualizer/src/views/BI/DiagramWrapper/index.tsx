@@ -375,7 +375,6 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         if (isResource && serviceType === "http") {
             return (
                 <>
-                    {tracingButton}
                     <ActionButton id="bi-edit" appearance="secondary" onClick={() => getFunctionModel()}>
                         <Icon
                             name="bi-settings"
