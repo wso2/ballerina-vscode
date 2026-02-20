@@ -21,6 +21,7 @@ import { extension } from "../../BalExtensionContext";
 import { DEVANT_TOKEN_EXCHANGE_URL } from '../../features/ai/utils';
 import axios from 'axios';
 import { AuthCredentials, BIIntelSecrets, LoginMethod } from '@wso2/ballerina-core';
+import { IWso2PlatformExtensionAPI } from '@wso2/wso2-platform-core';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 
 export const TOKEN_NOT_AVAILABLE_ERROR_MESSAGE = "Access token is not available.";
@@ -28,6 +29,21 @@ export const PLATFORM_EXTENSION_ID = 'wso2.wso2-platform';
 export const TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL = "Token refresh is only supported for BI Intelligence authentication";
 export const AUTH_CREDENTIALS_SECRET_KEY = 'CopilotAuthCredentials';
 export const NO_AUTH_CREDENTIALS_FOUND = "No authentication credentials found.";
+
+/**
+ * Get the WSO2 Platform extension API, activating it if needed.
+ * Returns undefined if the extension is not installed.
+ */
+export const getPlatformExtensionAPI = async (): Promise<IWso2PlatformExtensionAPI | undefined> => {
+    const platformExt = vscode.extensions.getExtension(PLATFORM_EXTENSION_ID);
+    if (!platformExt) {
+        return undefined;
+    }
+    if (!platformExt.isActive) {
+        await platformExt.activate();
+    }
+    return platformExt.exports as IWso2PlatformExtensionAPI;
+};
 
 //TODO: What if user doesnt have github copilot.
 //TODO: Where does auth git get triggered
@@ -135,12 +151,11 @@ export const isPlatformExtensionAvailable = (): boolean => {
  * Get STS token from the platform extension
  */
 export const getPlatformStsToken = async (): Promise<string | undefined> => {
-    const platformExt = vscode.extensions.getExtension(PLATFORM_EXTENSION_ID);
-    if (!platformExt) {
-        return undefined;
-    }
     try {
-        const api = await platformExt.activate();
+        const api = await getPlatformExtensionAPI();
+        if (!api) {
+            return undefined;
+        }
         return await api.getStsToken();
     } catch (error) {
         console.error('Error getting STS token from platform extension:', error);
@@ -152,12 +167,11 @@ export const getPlatformStsToken = async (): Promise<string | undefined> => {
  * Check if user is logged into Devant via platform extension
  */
 export const isDevantUserLoggedIn = async (): Promise<boolean> => {
-    const platformExt = vscode.extensions.getExtension(PLATFORM_EXTENSION_ID);
-    if (!platformExt) {
-        return false;
-    }
     try {
-        const api = await platformExt.activate();
+        const api = await getPlatformExtensionAPI();
+        if (!api) {
+            return false;
+        }
         return api.isLoggedIn();
     } catch (error) {
         console.error('Error checking Devant login status:', error);
@@ -283,14 +297,8 @@ export const getAccessToken = async (): Promise<AuthCredentials | undefined> => 
                             });
                             return;
                         } catch (err: any) {
-                            if (axios.isAxiosError(err)) {
-                                const status = err.response?.status;
-                                if (status === 400 || status === 401) {
-                                    reject(new Error("TOKEN_EXPIRED"));
-                                    return;
-                                }
-                            }
-                            reject(err);
+                            // Any failure to refresh BI_INTEL token means user needs to re-login
+                            reject(new Error("TOKEN_EXPIRED"));
                             return;
                         }
 

@@ -55,10 +55,11 @@ type FormTypeEditorProps = {
     payloadContext?: PayloadContext;
     simpleType?: string;
     defaultTab?: 'import' | 'create-from-scratch' | 'browse-exisiting-types';
+    note?: string;
 };
 
 export const FormTypeEditor = (props: FormTypeEditorProps) => {
-    const { type, onTypeChange, newType, newTypeValue, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext, defaultTab, isGraphql } = props;
+    const { type, onTypeChange, newType, newTypeValue, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext, defaultTab, isGraphql, note } = props;
     const { rpcClient } = useRpcContext();
     const isCdcService = payloadContext?.protocol === Protocol.CDC;
 
@@ -107,92 +108,93 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
     }, [refetchTypes]);
 
     const debouncedSearchTypeHelper = useCallback(
-            debounce(async (searchText: string, isType: boolean) => {
-                if (!rpcClient) return;
-    
-                if (isType && (!fetchedInitialTypes.current || refetchTypes)) {
+        debounce(async (searchText: string, isType: boolean) => {
+            if (!rpcClient) return;
+
+            if (isType && (!fetchedInitialTypes.current || refetchTypes)) {
+                try {
+                    let types;
+                    if (isGraphql) {
+                        const context = type?.codedata?.node === "CLASS"
+                            ? TypeHelperContext.GRAPHQL_FIELD_TYPE
+                            : TypeHelperContext.GRAPHQL_INPUT_TYPE;
+                        types = await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
+                            filePath: filePath,
+                            context: context,
+                        });
+                    } else {
+                        types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+                            filePath: filePath,
+                            position: {
+                                line: targetLineRange.startLine.line,
+                                offset: targetLineRange.startLine.offset
+                            },
+                        });
+                    }
+                    const basicTypes = getTypes(types, false, payloadContext);
+                    setBasicTypes(basicTypes);
+                    setFilteredBasicTypes(basicTypes);
+                    fetchedInitialTypes.current = true;
+
+                    const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                        filePath: filePath,
+                        position: targetLineRange,
+                        queryMap: {
+                            q: '',
+                            offset: 0,
+                            limit: 1000
+                        },
+                        searchKind: 'TYPE'
+                    });
+
+                    const workspaceTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.CURRENT);
+                    setWorkspaceTypes(workspaceTypes);
+
+                    if (!isGraphql && !isCdcService) {
+                        const importedTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.IMPORTED);
+                        setImportedTypes(importedTypes);
+                    }
+
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    setLoading(false);
+                }
+            } else if (isType) {
+                setFilteredBasicTypes(filterTypes(basicTypes, searchText));
+
+                if (!isCdcService) {
                     try {
-                        let types;
-                        if (isGraphql) {
-                            const context = type?.codedata?.node === "CLASS"
-                                ? TypeHelperContext.GRAPHQL_FIELD_TYPE
-                                : TypeHelperContext.GRAPHQL_INPUT_TYPE;
-                            types = await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
-                                filePath: filePath,
-                                context: context,
-                            });
-                        } else {
-                            types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
-                                filePath: filePath,
-                                position: {
-                                    line: targetLineRange.startLine.line,
-                                    offset: targetLineRange.startLine.offset
-                                },
-                            });
-                        }
-                        const basicTypes = getTypes(types, false, payloadContext);
-                        setBasicTypes(basicTypes);
-                        setFilteredBasicTypes(basicTypes);
-                        fetchedInitialTypes.current = true;
+                        const response = await rpcClient.getBIDiagramRpcClient().search({
+                            filePath: filePath,
+                            position: targetLineRange,
+                            queryMap: {
+                                q: searchText,
+                                offset: 0,
+                                limit: 1000
+                            },
+                            searchKind: 'TYPE'
+                        });
 
-                        if (!isGraphql && !isCdcService) {
-                            const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
-                                filePath: filePath,
-                                position: targetLineRange,
-                                queryMap: {
-                                    q: '',
-                                    offset: 0,
-                                    limit: 1000
-                                },
-                                searchKind: 'TYPE'
-                            });
-
-                            const importedTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.IMPORTED);
-                            const workspaceTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.CURRENT);
-                            setImportedTypes(importedTypes);
-                            setWorkspaceTypes(workspaceTypes);
-                        }
-    
+                        const importedTypes = getFilteredTypesByKind(response.categories, functionKinds.IMPORTED);
+                        const workspaceTypes = getFilteredTypesByKind(response.categories, functionKinds.CURRENT);
+                        setImportedTypes(importedTypes);
+                        setWorkspaceTypes(workspaceTypes);
                     } catch (error) {
                         console.error(error);
                     } finally {
                         setLoading(false);
                     }
-                } else if (isType) {
-                    setFilteredBasicTypes(filterTypes(basicTypes, searchText));
-
-                    if (!isCdcService) {
-                        try {
-                            const response = await rpcClient.getBIDiagramRpcClient().search({
-                                filePath: filePath,
-                                position: targetLineRange,
-                                queryMap: {
-                                    q: searchText,
-                                    offset: 0,
-                                    limit: 1000
-                                },
-                                searchKind: 'TYPE'
-                            });
-
-                            const importedTypes = getFilteredTypesByKind(response.categories, functionKinds.IMPORTED);
-                            const workspaceTypes = getFilteredTypesByKind(response.categories, functionKinds.CURRENT);
-                            setImportedTypes(importedTypes);
-                            setWorkspaceTypes(workspaceTypes);
-                        } catch (error) {
-                            console.error(error);
-                        } finally {
-                            setLoading(false);
-                        }
-                    } else {
-                        setLoading(false);
-                    }
                 } else {
-                    setFilteredOperators(filterOperators(TYPE_HELPER_OPERATORS, searchText));
                     setLoading(false);
                 }
-            }, 150),
-            [basicTypes, filePath, targetLineRange, rpcClient]
-    );    
+            } else {
+                setFilteredOperators(filterOperators(TYPE_HELPER_OPERATORS, searchText));
+                setLoading(false);
+            }
+        }, 150),
+        [basicTypes, filePath, targetLineRange, rpcClient]
+    );
     const handleSearchTypeHelper = useCallback(
         (searchText: string, isType: boolean) => {
             setLoading(true);
@@ -269,6 +271,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         simpleType={simpleType}
                         payloadContext={payloadContext}
                         defaultTab={defaultTab}
+                        note={note}
                         typeHelper={{
                             loading,
                             loadingTypeBrowser,

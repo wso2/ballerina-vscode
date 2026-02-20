@@ -343,7 +343,7 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
     getConfigVariableNodeTemplate(params: GetConfigVariableNodeTemplateRequest): Promise<BINodeTemplateResponse> {
         return this._messenger.sendRequest(getConfigVariableNodeTemplate, HOST_EXTENSION, params);
     }
-    
+
     OpenConfigTomlRequest(params: OpenConfigTomlRequest): Promise<void> {
         return this._messenger.sendRequest(openConfigToml, HOST_EXTENSION, params);
     }

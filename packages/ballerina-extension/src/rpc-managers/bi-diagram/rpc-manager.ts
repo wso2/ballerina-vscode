@@ -304,7 +304,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         const nodeKind = params.flowNode.codedata.node;
                         const skipFormatting = nodeKind === 'DATA_MAPPER_CREATION' || nodeKind === 'FUNCTION_CREATION';
                         const artifactData = params.artifactData || this.getArtifactDataFromNodeKind(nodeKind);
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData, description: this.getSourceDescription(params)}, params.isHelperPaneChange, skipFormatting);
+                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData, description: this.getSourceDescription(params) }, params.isHelperPaneChange, skipFormatting);
                         resolve({ artifacts });
                     }
                 })
@@ -958,7 +958,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             const projectPath = StateMachine.context().projectPath;
             const showLibraryConfigVariables = extension.ballerinaExtInstance.showLibraryConfigVariables();
 
-            // if params includeLibraries is not set, then use settings 
+            // if params includeLibraries is not set, then use settings
             const includeLibraries = params?.includeLibraries !== undefined
                 ? params.includeLibraries
                 : showLibraryConfigVariables !== false;
@@ -1068,7 +1068,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
 
     }
-
 
     async getReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
         return new Promise((resolve) => {
@@ -1413,7 +1412,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             });
         };
 
-        if(params.nodeType === "connection-node"){
+        if (params.nodeType === "connection-node") {
             // If its a Devant connection, need to delete it from Devant backend as well
             await new PlatformExtRpcManager().deleteBiDevantConnection({
                 filePath: params.filePath,
@@ -1651,7 +1650,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getTypes(params: GetTypesRequest): Promise<GetTypesResponse> {
         let filePath = params.filePath;
 
-        if (!filePath && StateMachine.context()?.projectPath){
+        if (!filePath && StateMachine.context()?.projectPath) {
             const projectPath = StateMachine.context().projectPath;
             const ballerinaFiles = await getBallerinaFiles(Uri.file(projectPath).fsPath);
             filePath = ballerinaFiles.at(0);
@@ -2199,7 +2198,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 }
 
                 resolve({});
-            } catch(error){
+            } catch (error) {
                 console.log(">>> error generating openapi client", error);
                 reject(error);
             }

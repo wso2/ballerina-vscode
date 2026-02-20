@@ -103,6 +103,10 @@ const GroupBody = styled.div`
 `;
 
 const ToolCallItemWrapper = styled.div`
+    padding-left: 16px;
+    border-left: 2px solid var(--vscode-panel-border);
+    margin-left: 10px;
+
     & > pre {
         margin: 0;
         border: none;
@@ -129,13 +133,16 @@ interface ToolCategory {
 }
 
 const FILE_TOOLS = ["file_write", "file_edit", "file_batch_edit"];
-const LIBRARY_TOOLS = ["LibrarySearchTool", "LibraryGetTool", "HealthcareLibraryProviderTool"];
+const LIBRARY_SEARCH_TOOLS = ["LibrarySearchTool"];
+const LIBRARY_FETCH_TOOLS = ["LibraryGetTool", "HealthcareLibraryProviderTool"];
 
 function getGroupCategory(toolNames: (string | undefined)[]): ToolCategory {
     const names = toolNames.filter(Boolean) as string[];
 
     const hasFile = names.some(n => FILE_TOOLS.includes(n));
-    const hasLibrary = names.some(n => LIBRARY_TOOLS.includes(n));
+    const hasLibrarySearch = names.some(n => LIBRARY_SEARCH_TOOLS.includes(n));
+    const hasLibraryFetch = names.some(n => LIBRARY_FETCH_TOOLS.includes(n));
+    const hasLibrary = hasLibrarySearch || hasLibraryFetch;
     const hasDiagnostics = names.includes("getCompilationErrors");
     const hasPlanning = names.includes("task_write") || names.includes("TaskWrite");
     const hasConfig = names.includes("ConfigCollector");
@@ -148,8 +155,11 @@ function getGroupCategory(toolNames: (string | undefined)[]): ToolCategory {
     if (hasDiagnostics && !hasFile && !hasLibrary) {
         return { running: "Checking for errors...", done: "No issues found" };
     }
-    if (hasLibrary && !hasFile && !hasDiagnostics) {
+    if (hasLibrarySearch && !hasLibraryFetch && !hasFile && !hasDiagnostics) {
         return { running: "Searching libraries...", done: "Libraries found" };
+    }
+    if (hasLibraryFetch && !hasFile && !hasDiagnostics) {
+        return { running: "Fetching libraries...", done: "Libraries fetched" };
     }
     if (hasPlanning) {
         return { running: "Planning...", done: "Plan ready" };

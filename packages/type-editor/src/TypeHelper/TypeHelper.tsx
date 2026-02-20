@@ -260,7 +260,13 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
     };
 
     const hasNoSearchResults = () => {
-        return basicTypes.length === 0 && (!importedTypes || importedTypes.length === 0 || !importedTypes.some(type => type.subCategory?.length > 0));
+        const hasBasicTypes = basicTypes.length > 0;
+        const hasImportedTypes = importedTypes && importedTypes.length > 0 &&
+            importedTypes.some(type => (type.subCategory?.length > 0 && type.subCategory.some(sub => sub.items?.length > 0)) || type.items?.length > 0);
+        const hasWorkspaceTypes = workspaceTypes && workspaceTypes.length > 0 &&
+            workspaceTypes.some(type => (type.subCategory?.length > 0 && type.subCategory.some(sub => sub.items?.length > 0)) || type.items?.length > 0);
+
+        return !hasBasicTypes && !hasImportedTypes && !hasWorkspaceTypes;
     }
 
     useEffect(() => {
@@ -299,34 +305,58 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                     <HelperPane.Loader />
                                 ) : (
                                     <ScrollableContainer style={{ margin: '8px 0px' }}>
-                                        {workspaceTypes?.some(cat => cat.subCategory?.length > 0) && (
+                                        {workspaceTypes?.some(cat => (cat.subCategory?.length > 0 && cat.subCategory.some(sub => sub.items?.length > 0)) || cat.items?.length > 0) && (
                                             <ExpandableList>
-                                                {workspaceTypes.map((category, index) => (
-                                                    <ExpandableList.Section
-                                                         sx={{ marginTop: index === 0 ? '0px' : '20px' }}
-                                                        key={category.category}
-                                                        title={
-                                                            <span style={{ padding: '10px' }}>{category.category}</span>
-                                                        }
-                                                        level={0}
-                                                    >
-                                                        {category.subCategory?.map((subCategory) => (
-                                                            <ExpandableList.Section
-                                                                sx={{ marginTop: '10px' }}
-                                                                key={subCategory.category}
-                                                                title={
-                                                                    <span style={{ padding: '10px', color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                                                        {subCategory.category}
-                                                                    </span>}
-                                                                level={0}
-                                                            >
+                                                {workspaceTypes
+                                                    .filter(cat => (cat.subCategory?.length > 0 && cat.subCategory.some(sub => sub.items?.length > 0)) || cat.items?.length > 0)
+                                                    .map((category, index) => (
+                                                        <ExpandableList.Section
+                                                            sx={{ marginTop: index === 0 ? '0px' : '20px' }}
+                                                            key={category.category}
+                                                            title={
+                                                                <span style={{ padding: '10px' }}>{category.category}</span>
+                                                            }
+                                                            level={0}
+                                                        >
+                                                            {category.subCategory?.length > 0 ? (
+                                                                // Render subcategories if they exist
+                                                                category.subCategory
+                                                                    .filter(sub => sub.items?.length > 0)
+                                                                    .map((subCategory) => (
+                                                                        <ExpandableList.Section
+                                                                            sx={{ marginTop: '10px' }}
+                                                                            key={subCategory.category}
+                                                                            title={
+                                                                                <span style={{ padding: '10px', color: ThemeColors.ON_SURFACE_VARIANT }}>
+                                                                                    {subCategory.category}
+                                                                                </span>}
+                                                                            level={0}
+                                                                        >
+                                                                            <div style={{ marginTop: '10px' }}>
+                                                                                {subCategory.items?.map((item) => (
+                                                                                    <SlidingPaneNavContainer
+                                                                                        key={`${subCategory.category}-${item.name}`}
+                                                                                        onClick={() => handleTypeBrowserItemClick(item)}>
+                                                                                        <ExpandableList.Item
+                                                                                            key={`${subCategory.category}-${item.name}`}
+                                                                                        >
+                                                                                            <Icon name="bi-type" sx={{ fontSize: '16px' }} />
+                                                                                            <FunctionItemLabel>{item.name}</FunctionItemLabel>
+                                                                                        </ExpandableList.Item>
+                                                                                    </SlidingPaneNavContainer>
+                                                                                ))}
+                                                                            </div>
+                                                                        </ExpandableList.Section>
+                                                                    ))
+                                                            ) : (
+                                                                // Render items directly if no subcategories
                                                                 <div style={{ marginTop: '10px' }}>
-                                                                    {subCategory.items?.map((item) => (
+                                                                    {category.items?.map((item) => (
                                                                         <SlidingPaneNavContainer
-                                                                            key={`${subCategory.category}-${item.name}`}
+                                                                            key={`${category.category}-${item.name}`}
                                                                             onClick={() => handleTypeBrowserItemClick(item)}>
                                                                             <ExpandableList.Item
-                                                                                key={`${subCategory.category}-${item.name}`}
+                                                                                key={`${category.category}-${item.name}`}
                                                                             >
                                                                                 <Icon name="bi-type" sx={{ fontSize: '16px' }} />
                                                                                 <FunctionItemLabel>{item.name}</FunctionItemLabel>
@@ -334,10 +364,9 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                                         </SlidingPaneNavContainer>
                                                                     ))}
                                                                 </div>
-                                                            </ExpandableList.Section>
-                                                        ))}
-                                                    </ExpandableList.Section>
-                                                ))}
+                                                            )}
+                                                        </ExpandableList.Section>
+                                                    ))}
                                             </ExpandableList>
                                         )}
                                         {basicTypes.map((category) => (
@@ -366,33 +395,58 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                 </ExpandableList.Section>
                                             </ExpandableList>
                                         ))}
-                                       {importedTypes?.some(cat => cat.subCategory?.length > 0) && (
+                                        {importedTypes?.some(cat => (cat.subCategory?.length > 0 && cat.subCategory.some(sub => sub.items?.length > 0)) || cat.items?.length > 0) && (
                                             <ExpandableList>
-                                                {importedTypes.map((category) => (
-                                                    <ExpandableList.Section
-                                                        sx={{ marginTop: '20px' }}
-                                                        key={category.category}
-                                                        title={
-                                                            <span style={{ padding: '10px' }}>{category.category}</span>
-                                                        }
-                                                        level={0}
-                                                    >
-                                                        {category.subCategory?.map((subCategory) => (
-                                                            <ExpandableList.Section
-                                                                sx={{ marginTop: '10px' }}
-                                                                key={subCategory.category}
-                                                                title={
-                                                                    <span style={{ padding: '10px', color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                                                        {subCategory.category}
-                                                                    </span>}
-                                                                level={0}
-                                                            >
+                                                {importedTypes
+                                                    .filter(cat => (cat.subCategory?.length > 0 && cat.subCategory.some(sub => sub.items?.length > 0)) || cat.items?.length > 0)
+                                                    .map((category) => (
+                                                        <ExpandableList.Section
+                                                            sx={{ marginTop: '20px' }}
+                                                            key={category.category}
+                                                            title={
+                                                                <span style={{ padding: '10px' }}>{category.category}</span>
+                                                            }
+                                                            level={0}
+                                                        >
+                                                            {category.subCategory?.length > 0 ? (
+                                                                // Render subcategories if they exist
+                                                                category.subCategory
+                                                                    .filter(sub => sub.items?.length > 0)
+                                                                    .map((subCategory) => (
+                                                                        <ExpandableList.Section
+                                                                            sx={{ marginTop: '10px' }}
+                                                                            key={subCategory.category}
+                                                                            title={
+                                                                                <span style={{ padding: '10px', color: ThemeColors.ON_SURFACE_VARIANT }}>
+                                                                                    {subCategory.category}
+                                                                                </span>}
+                                                                            level={0}
+                                                                        >
+                                                                            <div style={{ marginTop: '10px' }}>
+                                                                                {subCategory.items?.map((item) => (
+                                                                                    <SlidingPaneNavContainer
+                                                                                        key={`${subCategory.category}-${item.name}`}
+                                                                                        onClick={() => handleTypeBrowserItemClick(item)}>
+                                                                                        <ExpandableList.Item
+                                                                                            key={`${subCategory.category}-${item.name}`}
+                                                                                        >
+                                                                                            <Icon name="bi-type" sx={{ fontSize: '16px' }} />
+                                                                                            <FunctionItemLabel>{item.name}</FunctionItemLabel>
+                                                                                        </ExpandableList.Item>
+                                                                                    </SlidingPaneNavContainer>
+                                                                                ))}
+                                                                            </div>
+                                                                        </ExpandableList.Section>
+                                                                    ))
+                                                            ) : (
+                                                                // Render items directly if no subcategories
                                                                 <div style={{ marginTop: '10px' }}>
-                                                                    {subCategory.items?.map((item) => (
+                                                                    {category.items?.map((item) => (
                                                                         <SlidingPaneNavContainer
+                                                                            key={`${category.category}-${item.name}`}
                                                                             onClick={() => handleTypeBrowserItemClick(item)}>
                                                                             <ExpandableList.Item
-                                                                                key={`${subCategory.category}-${item.name}`}
+                                                                                key={`${category.category}-${item.name}`}
                                                                             >
                                                                                 <Icon name="bi-type" sx={{ fontSize: '16px' }} />
                                                                                 <FunctionItemLabel>{item.name}</FunctionItemLabel>
@@ -400,10 +454,9 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                                         </SlidingPaneNavContainer>
                                                                     ))}
                                                                 </div>
-                                                            </ExpandableList.Section>
-                                                        ))}
-                                                    </ExpandableList.Section>
-                                                ))}
+                                                            )}
+                                                        </ExpandableList.Section>
+                                                    ))}
                                             </ExpandableList>
                                         )}
                                         {hasNoSearchResults() && (
