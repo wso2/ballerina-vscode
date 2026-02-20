@@ -19,7 +19,7 @@
 import { useState } from "react";
 import { Button, Icon, Typography } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { EVENT_TYPE, MACHINE_VIEW, ValidateProjectFormErrorField } from "@wso2/ballerina-core";
 import {
     PageWrapper,
     FormContainer,
@@ -30,6 +30,7 @@ import {
 } from "./styles";
 import { ProjectFormFields } from "./ProjectFormFields";
 import { ProjectFormData } from "./types";
+import { validatePackageName } from "./utils";
 
 export function ProjectForm() {
     const { rpcClient } = useRpcContext();
@@ -63,18 +64,72 @@ export function ProjectForm() {
         }
     };
 
-    const handleCreateProject = () => {
-        rpcClient.getBIDiagramRpcClient().createProject({
-            projectName: formData.integrationName,
-            packageName: formData.packageName,
-            projectPath: formData.path,
-            createDirectory: formData.createDirectory,
-            createAsWorkspace: formData.createAsWorkspace,
-            workspaceName: formData.workspaceName,
-            orgName: formData.orgName || undefined,
-            version: formData.version || undefined,
-            isLibrary: formData.isLibrary,
-        });
+    const handleCreateProject = async () => {
+        setIsValidating(true);
+        setIntegrationNameError(null);
+        setPathError(null);
+        setPackageNameValidationError(null);
+
+        let hasError = false;
+
+        if (formData.integrationName.length < 2) {
+            setIntegrationNameError("Integration name must be at least 2 characters");
+            hasError = true;
+        }
+
+        if (formData.packageName.length < 2) {
+            setPackageNameValidationError("Package name must be at least 2 characters");
+            hasError = true;
+        } else {
+            const packageNameError = validatePackageName(formData.packageName, formData.integrationName);
+            if (packageNameError) {
+                setPackageNameValidationError(packageNameError);
+                hasError = true;
+            }
+        }
+
+        if (formData.path.length < 2) {
+            setPathError("Please select a path for your project");
+            hasError = true;
+        }
+
+        if (hasError) {
+            setIsValidating(false);
+            return;
+        }
+
+        try {
+            const validationResult = await rpcClient.getBIDiagramRpcClient().validateProjectPath({
+                projectPath: formData.path,
+                projectName: formData.createAsWorkspace ? formData.workspaceName : formData.packageName,
+                createDirectory: formData.createDirectory,
+            });
+
+            if (!validationResult.isValid) {
+                if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
+                    setPathError(validationResult.errorMessage || "Invalid project path");
+                } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
+                    setPackageNameValidationError(validationResult.errorMessage || "Invalid project name");
+                }
+                setIsValidating(false);
+                return;
+            }
+
+            rpcClient.getBIDiagramRpcClient().createProject({
+                projectName: formData.integrationName,
+                packageName: formData.packageName,
+                projectPath: formData.path,
+                createDirectory: formData.createDirectory,
+                createAsWorkspace: formData.createAsWorkspace,
+                workspaceName: formData.workspaceName,
+                orgName: formData.orgName || undefined,
+                version: formData.version || undefined,
+                isLibrary: formData.isLibrary,
+            });
+        } catch (error) {
+            setPathError("An error occurred during validation");
+            setIsValidating(false);
+        }
     };
 
     const gotToWelcome = () => {
