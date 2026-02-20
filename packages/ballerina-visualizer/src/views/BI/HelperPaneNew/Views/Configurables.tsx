@@ -84,6 +84,12 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                 isNew: true,
                 isEnvVariable: isImportEnv
             });
+            if (fileName.includes("/tests/")) {
+                if (!node.flowNode.codedata.data) {
+                    node.flowNode.codedata.data = {};
+                }
+                node.flowNode.codedata.data["filePath"] = fileName;
+            }
             setCofigVarNode(node.flowNode);
         };
 

@@ -278,6 +278,13 @@ export async function addConfigFile(configPath: string): Promise<boolean> {
                 }
                 const openAiEpUrl = BACKEND_URL + LLM_API_BASE_PATH + "/openai";
                 const success = addDefaultModelConfig(configPath, token, openAiEpUrl);
+
+                // Also update tests/Config.toml if a tests folder exists
+                const testsDir = path.join(configPath, 'tests');
+                if (fs.existsSync(testsDir) && fs.statSync(testsDir).isDirectory()) {
+                    addDefaultModelConfig(testsDir, token, openAiEpUrl);
+                }
+
                 if (success) {
                     return true;
                 }

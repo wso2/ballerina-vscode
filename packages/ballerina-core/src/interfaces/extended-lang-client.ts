@@ -497,9 +497,9 @@ export interface ClausePositionResponse {
 }
 
 export interface ConvertExpressionRequest {
-     outputType: string;
-     expression: string;
-     expressionType: string;
+    outputType: string;
+    expression: string;
+    expressionType: string;
 }
 
 export interface ConvertExpressionResponse {

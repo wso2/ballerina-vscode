@@ -474,6 +474,7 @@ export type NodePropertyKey =
     | "store"
     | "systemPrompt"
     | "targetType"
+    | "testConfigValue"
     | "toolKitName"
     | "tools"
     | "type"
