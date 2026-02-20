@@ -430,7 +430,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                     throw new IllegalArgumentException(
                             String.format("Type '%s' is not a record", request.typeConstraint()));
                 }
-                response.setRecordConfig(Type.fromSemanticSymbol(typeSymbol.get(), semanticModel.get(), packageName));
+                response.setRecordConfig(Type.fromSemanticSymbol(typeSymbol.get(), semanticModel.get()));
             } catch (Throwable e) {
                 response.setError(e);
             }
