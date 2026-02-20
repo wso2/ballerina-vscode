@@ -23,7 +23,8 @@ export const HTTP_REQUEST_TOOL_NAME = "Send-HTTP-request";
 
 
 export const HTTPInputSchema = z.object({
-    curlCommand: z.string().describe("The curl command to execute, including the URL, method, headers, and body. For example: `curl -X POST https://api.example.com/data -H 'Content-Type: application/json' -d '{\"key\":\"value\"}'`")
+    curlCommand: z.string().describe("The curl command to execute, including the URL, method, headers, and body. For example: `curl -X POST https://api.example.com/data -H 'Content-Type: application/json' -d '{\"key\":\"value\"}'`"),
+    testScenario: z.string().max(30).optional().describe("An optional identifier (max 30 chars) to group requests belonging to the same test scenario.")
 });
 
 export type HTTPInput = z.infer<typeof HTTPInputSchema>;
