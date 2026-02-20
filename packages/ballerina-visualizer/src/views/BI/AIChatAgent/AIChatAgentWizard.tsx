@@ -203,7 +203,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             const agentVarName = `${agentName}Agent`;
             agentNodeTemplate.properties.systemPrompt.value = systemPromptValue;
             agentNodeTemplate.properties.model.value = modelVarName;
-            agentNodeTemplate.properties.tools.value = [];
+            agentNodeTemplate.properties.tools.value = "[]";
             agentNodeTemplate.properties.variable.value = agentVarName;
 
             await rpcClient
@@ -248,7 +248,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             const serviceConfiguration = serviceResponse.service;
             serviceConfiguration.properties["listener"].editable = true;
             serviceConfiguration.properties["listener"].items = [listenerVariableName];
-            serviceConfiguration.properties["listener"].values = [listenerVariableName];
+            serviceConfiguration.properties["listener"].value = listenerVariableName;
             serviceConfiguration.properties["basePath"].value = `/${agentName}`;
             serviceConfiguration.properties["agentName"].value = agentName;
 
