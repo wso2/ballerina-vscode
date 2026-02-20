@@ -127,12 +127,16 @@ public class AvailableNodesGenerator {
         connections.sort(Comparator.comparing(connection -> connection.metadata().label()));
         this.rootBuilder.stepIn(Category.Name.CONNECTIONS).items(new ArrayList<>(connections)).stepOut();
 
+        boolean insideTestFunction = isInsideTestFunction(position);
         List<Item> items = new ArrayList<>();
         items.addAll(getAvailableFlowNodes(position, disableBallerinaAiNodes));
         items.addAll(LocalIndexCentral.getInstance().getFunctions());
+        if (insideTestFunction) {
+            items.addAll(LocalIndexCentral.getInstance().getTestFunctions());
+        }
         JsonArray jsonArray = gson.toJsonTree(items).getAsJsonArray();
 
-        if (isInsideTestFunction(position)) {
+        if (insideTestFunction) {
             Path relativePath = pkg.project().sourceRoot().relativize(this.filePath);
             addFilePathToNodes(jsonArray, relativePath.toString());
         }
