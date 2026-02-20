@@ -376,6 +376,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
      * @return {@link CommonSourceResponse} of the common source response
      */
     @JsonRequest
+    @Deprecated
     public CompletableFuture<CommonSourceResponse> addService(ServiceSourceRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {

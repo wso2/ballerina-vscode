@@ -100,10 +100,14 @@
                   "label": "values",
                   "description": "The value(s) to be printed"
                 },
-                "valueType": "EXPRESSION_SET",
-                "valueTypeConstraint": "io:Printable",
                 "value": [
-                  "\"Worker B\""
+                  {
+                    "value": "\"Worker B\"",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                  }
                 ],
                 "placeholder": "()",
                 "optional": false,
@@ -196,10 +200,14 @@
                   "label": "values",
                   "description": "The value(s) to be printed"
                 },
-                "valueType": "EXPRESSION_SET",
-                "valueTypeConstraint": "io:Printable",
                 "value": [
-                  "\"Worker C\""
+                  {
+                    "value": "\"Worker C\"",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                  }
                 ],
                 "placeholder": "()",
                 "optional": false,

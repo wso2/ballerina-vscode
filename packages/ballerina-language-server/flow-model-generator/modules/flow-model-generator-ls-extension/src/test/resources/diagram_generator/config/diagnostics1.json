@@ -469,9 +469,27 @@
             },
             "types": [
               {
+                "fieldType": "REPEATABLE_MAP",
+                "ballerinaType": "map<json>",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "json",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "map<json>",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "[]",

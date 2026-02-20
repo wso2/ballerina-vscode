@@ -77,14 +77,42 @@
           "label": "values",
           "description": "Take the sum of value"
         },
-        "valueType": "EXPRESSION_SET",
-        "valueTypeConstraint": "int",
         "value": [
-          "1",
-          "2",
-          "3",
-          "4",
-          "5"
+          {
+            "value": "1",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          {
+            "value": "2",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          {
+            "value": "3",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          {
+            "value": "4",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          {
+            "value": "5",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
         ],
         "placeholder": "0",
         "optional": true,

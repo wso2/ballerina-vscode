@@ -76,6 +76,29 @@
               "selected": true
             },
             {
+              "fieldType": "REPEATABLE_LIST",
+              "ballerinaType": "string[]",
+              "template": {
+                "types": [
+                  {
+                    "fieldType": "TEXT",
+                    "ballerinaType": "string",
+                    "selected": true
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "string",
+                    "selected": false
+                  }
+                ],
+                "enabled": false,
+                "editable": false,
+                "optional": false,
+                "advanced": false
+              },
+              "selected": false
+            },
+            {
               "fieldType": "EXPRESSION",
               "ballerinaType": "string|string[]",
               "selected": false
@@ -130,6 +153,29 @@
               "fieldType": "TEXT",
               "ballerinaType": "string",
               "selected": true
+            },
+            {
+              "fieldType": "REPEATABLE_LIST",
+              "ballerinaType": "string[]",
+              "template": {
+                "types": [
+                  {
+                    "fieldType": "TEXT",
+                    "ballerinaType": "string",
+                    "selected": true
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "string",
+                    "selected": false
+                  }
+                ],
+                "enabled": false,
+                "editable": false,
+                "optional": false,
+                "advanced": false
+              },
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
@@ -403,9 +449,27 @@
           "value": "",
           "types": [
             {
+              "fieldType": "REPEATABLE_MAP",
+              "ballerinaType": "map<anydata> & readonly",
+              "template": {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "anydata & readonly",
+                    "selected": true
+                  }
+                ],
+                "enabled": false,
+                "editable": false,
+                "optional": false,
+                "advanced": false
+              },
+              "selected": true
+            },
+            {
               "fieldType": "EXPRESSION",
               "ballerinaType": "map<anydata> & readonly",
-              "selected": true
+              "selected": false
             }
           ],
           "enabled": true,
@@ -502,9 +566,32 @@
           "value": "",
           "types": [
             {
+              "fieldType": "REPEATABLE_MAP",
+              "ballerinaType": "map<string>",
+              "template": {
+                "types": [
+                  {
+                    "fieldType": "TEXT",
+                    "ballerinaType": "string",
+                    "selected": true
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "string",
+                    "selected": false
+                  }
+                ],
+                "enabled": false,
+                "editable": false,
+                "optional": false,
+                "advanced": false
+              },
+              "selected": true
+            },
+            {
               "fieldType": "EXPRESSION",
               "ballerinaType": "map<string>",
-              "selected": true
+              "selected": false
             }
           ],
           "enabled": true,

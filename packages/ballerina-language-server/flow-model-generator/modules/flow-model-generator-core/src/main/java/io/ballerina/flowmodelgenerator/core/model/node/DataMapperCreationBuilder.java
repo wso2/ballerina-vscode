@@ -99,24 +99,13 @@ public class DataMapperCreationBuilder extends NodeBuilder {
         properties().functionNameTemplate("transform", context.getAllVisibleSymbolNames(),
                 getNameLabel(), getNameDoc());
 
-        setMandatoryProperties(this, null);
+        setMandatoryProperties(context, this, null);
         setOptionalProperties(this);
     }
 
-    public void setMandatoryProperties(NodeBuilder nodeBuilder, String returnType) {
-        nodeBuilder.properties().custom()
-                .metadata()
-                    .label(Property.RESULT_NAME)
-                    .description(Property.RESULT_DOC)
-                .stepOut()
-                .value("outputResult")
-                .type()
-                    .fieldType(Property.ValueType.IDENTIFIER)
-                    .selected(true)
-                .stepOut()
-                .editable()
-                .stepOut()
-                .addProperty(Property.VARIABLE_KEY);
+    public void setMandatoryProperties(TemplateContext context, NodeBuilder nodeBuilder, String returnType) {
+        nodeBuilder.properties()
+                .dataVariable(null, context.getAllVisibleSymbolNames());
 
         nodeBuilder.properties().custom()
                 .metadata()
@@ -129,7 +118,6 @@ public class DataMapperCreationBuilder extends NodeBuilder {
                 .stepOut()
                 .addProperty(Property.TYPE_KEY)
                 .nestedProperty();
-
     }
 
     public static void setProperty(FormBuilder<?> formBuilder, String type, String name) {

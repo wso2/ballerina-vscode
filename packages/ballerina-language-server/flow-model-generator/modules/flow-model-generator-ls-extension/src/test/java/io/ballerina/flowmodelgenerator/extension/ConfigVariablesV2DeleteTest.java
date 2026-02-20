@@ -48,12 +48,12 @@ public class ConfigVariablesV2DeleteTest extends AbstractLSTest {
     public void test(Path config) throws IOException {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
-        String projectPath = sourceDir.resolve(testConfig.project()).toAbsolutePath().toString();
+        Path projectPath = sourceDir.resolve(testConfig.project()).toAbsolutePath();
 
         ConfigVariableDeleteRequest request = new ConfigVariableDeleteRequest(
                 testConfig.request().packageName(),
                 testConfig.request().moduleName(),
-                Paths.get(projectPath, testConfig.request().configFilePath()).toAbsolutePath().toString(),
+                Paths.get(projectPath.toString(), testConfig.request().configFilePath()).toAbsolutePath().toString(),
                 testConfig.request().configVariable()
         );
         ConfigVariableDeleteResponse actualResponse = gson.fromJson(getResponse(request),
@@ -71,18 +71,18 @@ public class ConfigVariablesV2DeleteTest extends AbstractLSTest {
         }
     }
 
-    private boolean isEqual(Map<String, TextEdit[]> expected, Map<String, TextEdit[]> actual, String projectPath) {
+    private boolean isEqual(Map<String, TextEdit[]> expected, Map<String, TextEdit[]> actual, Path projectPath) {
         if (expected.size() != actual.size()) {
             return false;
         }
 
-        for (Map.Entry<String, TextEdit[]> entry : expected.entrySet()) {
-            String expectedFilePath = entry.getKey();
-            TextEdit[] expectedEdits = entry.getValue();
+        for (Map.Entry<String, TextEdit[]> entry : actual.entrySet()) {
+            Path fullPath = Paths.get(entry.getKey());
+            String relativePath = projectPath.relativize(fullPath).toString().replace("\\", "/");
 
-            String actualFilePath = Paths.get(projectPath, expectedFilePath).toAbsolutePath().toString();
-            TextEdit[] actualEdits = actual.get(actualFilePath);
-            if (actualEdits == null || expectedEdits.length != actualEdits.length) {
+            TextEdit[] expectedEdits = expected.get(relativePath);
+            TextEdit[] actualEdits = entry.getValue();
+            if (expectedEdits == null || expectedEdits.length != actualEdits.length) {
                 return false;
             }
             for (int i = 0; i < expectedEdits.length; i++) {

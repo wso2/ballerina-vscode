@@ -748,6 +748,25 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
+    public FormBuilder<T> testConfigValue(ExpressionNode expr) {
+        propertyBuilder
+                .metadata()
+                .label(Property.TEST_CONFIG_VALUE_LABEL)
+                .description(Property.TEST_CONFIG_VALUE_DOC)
+                .stepOut()
+                .value((expr != null && expr.kind() != SyntaxKind.REQUIRED_EXPRESSION) ? expr.toSourceCode() : "")
+                .type()
+                    .fieldType(Property.ValueType.EXPRESSION)
+                    .selected(true)
+                    .stepOut()
+                .optional(true)
+                .modified(false)
+                .hidden()
+                .editable();
+        addProperty(Property.TEST_CONFIG_VALUE_KEY, expr);
+        return this;
+    }
+
     public FormBuilder<T> documentation(Node docNode) {
         return documentation(docNode, true);
     }
