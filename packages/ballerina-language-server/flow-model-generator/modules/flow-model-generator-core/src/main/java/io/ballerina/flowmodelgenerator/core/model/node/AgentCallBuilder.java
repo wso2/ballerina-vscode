@@ -525,7 +525,7 @@ public class AgentCallBuilder extends CallBuilder {
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope,
                 Map.of(), Map.of(), textDocument,
                 ModuleInfo.from(document.module().descriptor()), false,
-                agentTemplateContext.workspaceManager());
+                agentTemplateContext.workspaceManager(), filePath);
         syntaxNode.accept(codeAnalyzer);
 
         // Get the generated flow nodes and return the first one (should be the agent node)

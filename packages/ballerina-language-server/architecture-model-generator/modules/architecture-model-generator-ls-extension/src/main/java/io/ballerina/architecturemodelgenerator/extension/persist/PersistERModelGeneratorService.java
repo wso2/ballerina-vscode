@@ -24,21 +24,17 @@ import com.google.gson.JsonObject;
 import io.ballerina.architecturemodelgenerator.core.ArchitectureModel;
 import io.ballerina.architecturemodelgenerator.core.Constants;
 import io.ballerina.architecturemodelgenerator.core.diagnostics.ArchitectureModelDiagnostic;
-import io.ballerina.architecturemodelgenerator.core.diagnostics.ArchitectureModelException;
 import io.ballerina.architecturemodelgenerator.core.diagnostics.DiagnosticMessage;
 import io.ballerina.architecturemodelgenerator.core.diagnostics.DiagnosticUtils;
 import io.ballerina.architecturemodelgenerator.core.generators.entity.EntityModelGenerator;
 import io.ballerina.architecturemodelgenerator.core.model.entity.Entity;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.directory.SingleFileProject;
 import org.ballerinalang.annotation.JavaSPIService;
-import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
-import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
-import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
-import org.eclipse.lsp4j.services.LanguageServer;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -46,7 +42,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -58,13 +53,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("persistERGeneratorService")
 public class PersistERModelGeneratorService implements ExtendedLanguageServerService {
-
-    private WorkspaceManager workspaceManager;
-
-    @Override
-    public void init(LanguageServer langServer, WorkspaceManager workspaceManager) {
-        this.workspaceManager = workspaceManager;
-    }
 
     @Override
     public Class<?> getRemoteInterface() {
@@ -80,7 +68,8 @@ public class PersistERModelGeneratorService implements ExtendedLanguageServerSer
             AtomicBoolean hasDiagnosticErrors = new AtomicBoolean(false);
             Map<String, Entity> entities = new HashMap<>();
             try {
-                Project project = getCurrentProject(path);
+                // Persist model file should be loaded as a single file project
+                Project project = SingleFileProject.load(path);
                 PackageCompilation currentPackageCompilation = project.currentPackage().getCompilation();
                 EntityModelGenerator entityModelGenerator =
                         new EntityModelGenerator(currentPackageCompilation,
@@ -99,12 +88,6 @@ public class PersistERModelGeneratorService implements ExtendedLanguageServerSer
                     });
                     response.addDiagnostics(diagnostics);
                 }
-            } catch (ArchitectureModelException | WorkspaceDocumentException | EventSyncException e) {
-                // todo : Improve error messages
-                hasDiagnosticErrors.set(true);
-                DiagnosticMessage message = DiagnosticMessage.ballerinaProjectNotFound(path.toString());
-                response.addDiagnostics
-                        (DiagnosticUtils.getDiagnosticResponse(List.of(message), response.getDiagnostics()));
             } catch (Exception e) {
                 hasDiagnosticErrors.set(true);
                 DiagnosticMessage message = DiagnosticMessage.failedToResolveBallerinaPackage(path.toString(),
@@ -121,15 +104,5 @@ public class PersistERModelGeneratorService implements ExtendedLanguageServerSer
             response.setPersistERModels(persistERModel);
             return response;
         });
-    }
-
-    private Project getCurrentProject(Path path) throws ArchitectureModelException, WorkspaceDocumentException,
-            EventSyncException {
-
-        Optional<Project> project = workspaceManager.project(path);
-        if (project.isEmpty()) {
-            return workspaceManager.loadProject(path);
-        }
-        return project.get();
     }
 }

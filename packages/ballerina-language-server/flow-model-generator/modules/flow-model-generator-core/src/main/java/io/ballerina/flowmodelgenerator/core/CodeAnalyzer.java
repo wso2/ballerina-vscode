@@ -162,6 +162,7 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Location;
@@ -190,6 +191,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINA_ORG_NAME
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.getClientClassSymbol;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistClientLabel;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
@@ -225,6 +227,7 @@ public class CodeAnalyzer extends NodeVisitor {
     private final boolean forceAssign;
     private final String connectionScope;
     private final WorkspaceManager workspaceManager;
+    private final Path filePath;
 
     // State fields
     private NodeBuilder nodeBuilder;
@@ -254,7 +257,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
                         TextDocument textDocument, ModuleInfo moduleInfo,
                         boolean forceAssign,
-                        WorkspaceManager workspaceManager) {
+                        WorkspaceManager workspaceManager, Path filePath) {
         this.project = project;
         this.semanticModel = semanticModel;
         this.dataMappings = dataMappings;
@@ -267,6 +270,7 @@ public class CodeAnalyzer extends NodeVisitor {
         this.flowNodeBuilderStack = new Stack<>();
         this.diagnosticHandler = new DiagnosticHandler(semanticModel);
         this.workspaceManager = workspaceManager;
+        this.filePath = filePath;
     }
 
     @Override
@@ -916,7 +920,7 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isPersistClient(classSymbol, semanticModel)) {
             persistData = new HashMap<>();
             persistData.put(CONNECTOR_TYPE, PERSIST);
-            getPersistModelFilePath(project.sourceRoot())
+            getPersistModelFilePath(project.sourceRoot(), classSymbol)
                     .ifPresent(modelFile -> persistData.put(PERSIST_MODEL_FILE, modelFile));
         } else {
             persistData = null;
@@ -1604,8 +1608,10 @@ public class CodeAnalyzer extends NodeVisitor {
             }
         }
 
-        if (isPersistClient(semanticModel, functionData, name)) {
-            updatePersistRelatedMetadata(functionData, packageName);
+        ClassSymbol clientClassSymbol = getClientClassSymbol(semanticModel, functionData, name)
+                .orElse(classSymbol);
+        if (isPersistClient(clientClassSymbol, semanticModel)) {
+            updatePersistRelatedMetadata(functionData, packageName, clientClassSymbol);
         }
 
         nodeBuilder.codedata()
@@ -1627,14 +1633,15 @@ public class CodeAnalyzer extends NodeVisitor {
      *
      * @param functionData the function data containing the module name
      * @param packageName  the package name to strip from the module name
+     * @param classSymbol the class symbol representing the persist client
      */
-    private void updatePersistRelatedMetadata(FunctionData functionData, String packageName) {
+    private void updatePersistRelatedMetadata(FunctionData functionData, String packageName, ClassSymbol classSymbol) {
         String moduleName = functionData.moduleName();
         getPersistClientLabel(packageName, moduleName)
                 .ifPresent(label -> nodeBuilder.metadata().label(label));
         nodeBuilder.metadata()
                 .addData(CONNECTOR_TYPE, PERSIST);
-        getPersistModelFilePath(project.sourceRoot())
+        getPersistModelFilePath(project.sourceRoot(), classSymbol)
                 .ifPresent(modelPath -> nodeBuilder.metadata().addData(PERSIST_MODEL_FILE, modelPath));
     }
 
@@ -2057,6 +2064,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
             // Derive the value of the inferred type name
             String inferredTypeName;
+            TypeSymbol targetVarType = null;
             // Check if the value exists in the named arg map
             Node node = namedArgValueMap.get(key);
             if (node != null) {
@@ -2070,6 +2078,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 if (symbol.isEmpty() || symbol.get().kind() != SymbolKind.VARIABLE) {
                     return;
                 }
+                targetVarType = ((VariableSymbol) symbol.get()).typeDescriptor();
                 String variableType =
                         CommonUtils.getTypeSignature(((VariableSymbol) symbol.get()).typeDescriptor(), moduleInfo);
 
@@ -2078,7 +2087,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
             // Generate the property of the inferred type param
             nodeBuilder.codedata().inferredReturnType(functionData.returnError() ? returnType : null);
-            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName);
+            Module module = workspaceManager.module(filePath)
+                    .orElse(project.currentPackage().getDefaultModule());
+            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType);
         });
     }
 

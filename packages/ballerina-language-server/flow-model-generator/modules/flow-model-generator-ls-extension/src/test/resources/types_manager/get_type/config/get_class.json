@@ -202,31 +202,37 @@
         "kind": "FIELD",
         "refs": [],
         "type": "int",
+        "typeName": "int",
         "name": "year",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": "Year of manufacturing."
+        "docs": "Year of manufacturing.",
+        "selected": false
       },
       {
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "make",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "selected": false
       },
       {
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "model",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "selected": false
       }
     ],
     "includes": [
@@ -310,10 +316,12 @@
             "kind": "FIELD",
             "refs": [],
             "type": "string",
+            "typeName": "string",
             "name": "time",
             "optional": false,
             "readonly": false,
-            "isGraphqlId": false
+            "isGraphqlId": false,
+            "selected": false
           }
         ],
         "kind": "FUNCTION",
@@ -386,10 +394,12 @@
             "kind": "FIELD",
             "refs": [],
             "type": "int",
+            "typeName": "int",
             "name": "year",
             "optional": false,
             "readonly": false,
-            "isGraphqlId": false
+            "isGraphqlId": false,
+            "selected": false
           }
         ],
         "kind": "FUNCTION",
@@ -645,21 +655,25 @@
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "make",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "model",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "selected": false
         }
       ],
       "includes": [],
@@ -740,10 +754,12 @@
               "kind": "FIELD",
               "refs": [],
               "type": "int",
+              "typeName": "int",
               "name": "year",
               "optional": false,
               "readonly": false,
-              "isGraphqlId": false
+              "isGraphqlId": false,
+              "selected": false
             }
           ],
           "kind": "FUNCTION",

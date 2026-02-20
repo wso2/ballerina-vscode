@@ -810,7 +810,7 @@ public class AgentsGenerator {
     }
 
     public JsonElement getMethodCallFlowNode(FunctionDefinitionNode functionDefinitionNode, Project project,
-                                             Document document, WorkspaceManager workspaceManager) {
+                                             Document document, WorkspaceManager workspaceManager, Path filePath) {
         FunctionBodyNode fnBodyNode = functionDefinitionNode.functionBody();
         if (functionDefinitionNode.functionBody().kind() != SyntaxKind.FUNCTION_BODY_BLOCK) {
             return null;
@@ -821,7 +821,7 @@ public class AgentsGenerator {
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, Map.of(), Map.of(),
                 document.textDocument(), ModuleInfo.from(document.module().descriptor()),
-                false, workspaceManager);
+                false, workspaceManager, filePath);
         StatementNode firstStmt = statements.get(0);
         firstStmt.accept(codeAnalyzer);
 

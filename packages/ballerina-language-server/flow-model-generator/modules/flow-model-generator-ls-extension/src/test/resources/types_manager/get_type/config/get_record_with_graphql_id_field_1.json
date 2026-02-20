@@ -118,6 +118,7 @@
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "name",
         "optional": false,
         "readonly": false,
@@ -132,18 +133,21 @@
         ],
         "imports": {
           "graphql": "ballerina/graphql"
-        }
+        },
+        "selected": false
       },
       {
         "kind": "FIELD",
         "refs": [],
         "type": "int",
+        "typeName": "int",
         "name": "age",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       }
     ],
     "includes": [],

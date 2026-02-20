@@ -197,7 +197,7 @@ public class DesignModelGenerator {
                         if (objectTypeSymbol instanceof ClassSymbol objectClassSymbol &&
                                 isPersistClient(objectClassSymbol, semanticModel)) {
                             connection.addMetadata(CONNECTOR_TYPE, PERSIST);
-                            getPersistModelFilePath(rootPath)
+                            getPersistModelFilePath(rootPath, objectClassSymbol)
                                     .ifPresent(modelFile -> connection.addMetadata(PERSIST_MODEL_FILE, modelFile));
                         }
                         intermediateModel.connectionMap.put(
