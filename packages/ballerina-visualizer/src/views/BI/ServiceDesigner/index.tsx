@@ -767,29 +767,9 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     };
 
     const haveServiceTypeName = serviceModel?.properties["serviceTypeName"]?.value;
-
-    const getFtpServiceTitle = () => {
-        if (!serviceModel || !isFtpService) {
-            return serviceModel?.name;
-        }
-        const annotValue = serviceModel.properties?.annotServiceConfig?.value?.toString().trim();
-        const pathValue = serviceModel.properties?.path?.value?.toString().trim();
-
-        const extractPath = (value?: string) => {
-            if (!value) return undefined;
-            const match = value.match(/path\s*:\s*([^,\n}]+)/);
-            if (!match) return undefined;
-            let raw = match[1].trim();
-            raw = raw.replace(/^"(.*)"$/, "$1");
-            return raw;
-        };
-
-        const displayPath = extractPath(annotValue) || (pathValue ? pathValue.replace(/^"(.*)"$/, "$1") : undefined);
-        if (!displayPath) {
-            return serviceModel.name;
-        }
-        return `${serviceModel.name} - ${displayPath}`;
-    };
+    const displayServiceName = isFtpService
+        ? (serviceModel?.name || "").replace(/\s*-\s*\/$/, "")
+        : serviceModel?.name;
 
     const getFtpHandlerTitle = () => {
         const handlerKey = (selectedFTPHandler || functionModel?.metadata?.label || "").toLowerCase();
@@ -856,7 +836,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 serviceModel && (
                     <>
                         <TitleBar
-                            title={isFtpService ? getFtpServiceTitle() : serviceModel.name}
+                            title={displayServiceName}
                             subtitle={"Implement and configure your service"}
                             actions={
                                 <>

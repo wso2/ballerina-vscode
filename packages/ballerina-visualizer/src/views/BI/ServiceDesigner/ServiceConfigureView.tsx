@@ -186,6 +186,17 @@ interface ChangeMap {
     filePath: string;
 }
 
+function getDisplayServiceName(service?: ServiceModel): string {
+    const serviceName = service?.name || "";
+    if (!serviceName) {
+        return serviceName;
+    }
+    if (service?.moduleName !== "ftp") {
+        return serviceName;
+    }
+    return serviceName.replace(/\s*-\s*\/$/, "");
+}
+
 const Overlay = styled.div`
     position: fixed;
     width: 100vw;
@@ -354,7 +365,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             const serviceSection = visibleSections.find(s => s.isService);
             if (serviceSection && serviceSection.ratio > 0.05) {
                 newVisibleSection = 'service';
-                newTitle = `${serviceModel.name} Configuration`;
+                newTitle = `${getDisplayServiceName(serviceModel)} Configuration`;
             } else {
                 // Get all visible listeners
                 const visibleListenerIds = visibleSections
@@ -463,7 +474,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                     console.log("Service Model: ", res.service);
                     // Set the service model
                     setServiceModel(res.service);
-                    setConfigTitle(`${res.service.name} Configuration`);
+                    setConfigTitle(`${getDisplayServiceName(res.service)} Configuration`);
                     // Set the service listeners
                     setServiceListeners(res.service);
                     // Find the listener type
@@ -725,7 +736,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             {
                 serviceModel && (
                     <>
-                        <TitleBar title={`${serviceModel.name} Configuration`} subtitle="Configure and manage service details" onBack={handleGoBack} />
+                        <TitleBar title={`${getDisplayServiceName(serviceModel)} Configuration`} subtitle="Configure and manage service details" onBack={handleGoBack} />
                         <ViewContent padding>
                             <div style={{ height: 'calc(100vh - 220px)' }}>
                                 <div style={{ width: "auto" }}>
@@ -749,7 +760,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                             fontWeight: !selectedListener
                                                                 ? 'bold' : 'normal'
                                                         }}
-                                                    >{serviceModel.name}</Typography>
+                                                    >{getDisplayServiceName(serviceModel)}</Typography>
                                                 </TreeViewItem>
                                             )}
 
