@@ -231,7 +231,7 @@ export function HeaderSetEditor(props: HeaderSetEditorProps) {
             optional: false,
             editable: true,
             documentation: "Type of the header",
-            value: headerSetToEdit?.type || "",
+            value: headerSetToEdit?.type || field.items?.[0] || "",
             types: [{ fieldType: "SINGLE_SELECT", ballerinaType: "string", selected: false }],
             label: "Type",
             type: "SINGLE_SELECT",
@@ -240,11 +240,11 @@ export function HeaderSetEditor(props: HeaderSetEditorProps) {
         {
             key: "optional",
             enabled: true,
-            optional: false,
+            optional: true,
             editable: true,
             documentation: "Required or Optional",
             value: headerSetToEdit?.optional ?? false as any,
-            types: [{ fieldType: "BOOLEAN", ballerinaType: "boolean", selected: false }],
+            types: [{ fieldType: "FLAG", selected: true }],
             label: "Optional",
             type: "FLAG",
         }
