@@ -109,9 +109,14 @@ const Overlay = styled.div`
     z-index: 1000;
 `;
 
+enum Environment {
+    Application = 'Application',
+    Test = 'Test',
+}
+
 const environmentOptions = [
-    { content: 'Application', id: 'Application', value: 'Application' },
-    { content: 'Tests', id: 'Tests', value: 'Tests' },
+    { content: Environment.Application, id: Environment.Application, value: Environment.Application },
+    { content: Environment.Test, id: Environment.Test, value: Environment.Test },
 ];
 
 export function ViewConfigurableVariables(props?: ConfigProps) {
@@ -126,6 +131,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     const integrationCategory = useRef<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isTestsContext, setIsTestsContext] = useState<boolean>(false);
+    const isTestsContextRef = useRef<boolean>(false);
     const [testConfigVariables, setTestConfigVariables] = useState<ConfigVariablesState>({});
     const [testCategoriesWithModules, setTestCategoriesWithModules] = useState<CategoryWithModules[]>([]);
 
@@ -141,6 +147,20 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
             });
 
     }, [props.projectPath]);
+
+    useEffect(() => {
+        isTestsContextRef.current = isTestsContext;
+    }, [isTestsContext]);
+
+    useEffect(() => {
+        rpcClient.onProjectContentUpdated(() => {
+            if (isTestsContextRef.current) {
+                getTestConfigVariables();
+            } else {
+                getConfigVariables();
+            }
+        });
+    }, []);
 
     useEffect(() => {
         if (categoriesWithModules.length > 0 && !selectedModule && !isTestsContext) {
@@ -244,7 +264,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     };
 
     const handleEnvironmentChange = (value: string) => {
-        if (value === 'Tests') {
+        if (value === Environment.Test) {
             setIsTestsContext(true);
             getTestConfigVariables();
         } else {
@@ -333,21 +353,18 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
             .then((variables) => {
                 const raw = (variables as any).configVariables as ConfigVariablesState;
                 errorMsg = (variables as any).errorMsg;
-                // Exclude variables that have 'isTestConfig' in codedata.data — those belong to Tests only
+                // Exclude variables that have 'isTestConfig' in codedata.data — those belong to Tests only.
+                // Modules and categories are always preserved even if all variables are filtered out,
+                // so submodules appear in both Application and Test environments.
                 const filtered: ConfigVariablesState = {};
                 Object.keys(raw || {}).forEach(category => {
                     const filteredModules: { [module: string]: ConfigVariable[] } = {};
                     Object.keys(raw[category]).forEach(module => {
-                        const vars = raw[category][module].filter(
+                        filteredModules[module] = raw[category][module].filter(
                             variable => !('isTestConfig' in (variable.codedata?.data || {}))
                         );
-                        if (vars.length > 0) {
-                            filteredModules[module] = vars;
-                        }
                     });
-                    if (Object.keys(filteredModules).length > 0) {
-                        filtered[category] = filteredModules;
-                    }
+                    filtered[category] = filteredModules;
                 });
                 data = filtered;
             })
@@ -446,9 +463,9 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                         <Dropdown
                             id="environment-selector"
                             items={environmentOptions}
-                            value={isTestsContext ? 'Tests' : 'Application'}
+                            value={isTestsContext ? Environment.Test : Environment.Application}
                             onValueChange={handleEnvironmentChange}
-                            sx={{ width: 130 }}
+                            sx={{ width: 120 }}
                         />
                     )}
                 </div>
