@@ -1,12 +1,12 @@
 {
-  "description": "Delete variable with having a config value (Config.toml)",
-  "project": "config_delete_test_project",
+  "description": "Update the config value of a variable in tests/Config.toml (no source edits)",
+  "project": "config_update_test_project",
   "request": {
-    "packageName": "config_tests/config_delete_test_project",
+    "packageName": "config_tests/config_update_test_project",
     "moduleName": "",
     "configFilePath": "config.bal",
     "configVariable": {
-      "id": "31780",
+      "id": "32789",
       "metadata": {
         "label": "Config",
         "description": "Create a configurable variable"
@@ -21,7 +21,7 @@
           },
           "endLine": {
             "line": 0,
-            "offset": 36
+            "offset": 33
           }
         }
       },
@@ -38,7 +38,8 @@
           "optional": false,
           "editable": true,
           "advanced": false,
-          "hidden": false
+          "hidden": false,
+          "modified": false
         },
         "type": {
           "metadata": {
@@ -52,6 +53,7 @@
           "editable": true,
           "advanced": false,
           "hidden": false,
+          "modified": false,
           "codedata": {}
         },
         "defaultValue": {
@@ -60,12 +62,12 @@
             "description": "Default value of the variable"
           },
           "valueType": "EXPRESSION",
+          "value": "",
           "optional": true,
           "editable": true,
-          "advanced": false,
+          "advanced": true,
           "hidden": false,
-          "modified": false,
-          "value": ""
+          "modified": false
         },
         "configValue": {
           "metadata": {
@@ -73,12 +75,25 @@
             "description": "Config value of the variable, to be used in Config.toml"
           },
           "valueType": "EXPRESSION",
-          "value": "",
           "optional": true,
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": true
+          "modified": false,
+          "value": "50"
+        },
+        "testConfigValue": {
+          "metadata": {
+            "label": "Config Value",
+            "description": "Config value of the variable for tests, to be used in tests/Config.toml"
+          },
+          "valueType": "EXPRESSION",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false,
+          "modified": true,
+          "value": "100"
         },
         "documentation": {
           "metadata": {
@@ -89,7 +104,7 @@
           "value": "",
           "optional": true,
           "editable": true,
-          "advanced": false,
+          "advanced": true,
           "hidden": false,
           "modified": false
         }
@@ -99,34 +114,19 @@
   },
   "response": {
     "textEdits": {
-      "Config.toml": [
+      "tests/Config.toml": [
         {
           "range": {
             "start": {
-              "line": 2,
+              "line": 1,
               "character": 0
             },
             "end": {
-              "line": 3,
-              "character": 0
+              "line": 1,
+              "character": 19
             }
           },
-          "newText": ""
-        }
-      ],
-      "config.bal": [
-        {
-          "range": {
-            "start": {
-              "line": 0,
-              "character": 0
-            },
-            "end": {
-              "line": 0,
-              "character": 36
-            }
-          },
-          "newText": ""
+          "newText": "requiredConfig = 100"
         }
       ]
     }

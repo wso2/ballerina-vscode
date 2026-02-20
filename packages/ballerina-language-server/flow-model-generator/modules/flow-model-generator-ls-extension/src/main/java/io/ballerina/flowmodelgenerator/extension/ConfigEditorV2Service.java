@@ -53,7 +53,9 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
+import io.ballerina.flowmodelgenerator.core.Constants;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
@@ -91,13 +93,16 @@ import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -116,6 +121,7 @@ import java.util.concurrent.CompletableFuture;
 import static io.ballerina.flowmodelgenerator.core.model.Property.CONFIG_VALUE_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.CONFIG_VAR_DOC_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.DEFAULT_VALUE_KEY;
+import static io.ballerina.flowmodelgenerator.core.model.Property.TEST_CONFIG_VALUE_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.VARIABLE_KEY;
 import static io.ballerina.modelgenerator.commons.CommonUtils.importExists;
 
@@ -185,17 +191,17 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 Project project = workspaceManager.loadProject(Path.of(request.projectPath()));
                 Package rootPackage = project.currentPackage();
 
-                // Parse Config.toml if it exists.
+                // Parse root Config.toml if it exists.
                 Toml configTomlValues = parseConfigToml(project);
                 handleConfigTomlErrors(configTomlValues, response);
 
-                configVarMap.putAll(extractVariablesFromProject(rootPackage, configTomlValues));
+                configVarMap.putAll(extractVariablesFromProject(rootPackage, project, configTomlValues));
                 if (request.includeLibraries()) {
                     configVarMap.putAll(extractConfigsFromDependencies(rootPackage, configTomlValues));
                 }
 
                 response.setConfigVariables(gson.toJsonTree(configVarMap));
-            } catch (Exception e) {
+            } catch (WorkspaceDocumentException | EventSyncException | RuntimeException e) {
                 response.setError(e);
             }
             return response;
@@ -219,21 +225,45 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 Project rootProject = workspaceManager.loadProject(configFilePath);
 
                 Map<Path, List<TextEdit>> allTextEdits = new HashMap<>();
+
+                Property configValueProp = configVariable.properties().get(CONFIG_VALUE_KEY);
+                Property testConfigValueProp = configVariable.properties().get(TEST_CONFIG_VALUE_KEY);
+                Property variableNameProp = configVariable.properties().get(VARIABLE_KEY);
+                boolean configValueModified = configValueProp != null
+                        && Boolean.TRUE.equals(configValueProp.modified());
+                boolean testConfigValueModified = testConfigValueProp != null
+                        && Boolean.TRUE.equals(testConfigValueProp.modified());
+                boolean nameModified = variableNameProp != null
+                        && Boolean.TRUE.equals(variableNameProp.modified());
+
                 // Text edits for Ballerina source files.
+                // Skip when testConfigValue is the only modified property (not a source concern).
                 if (requireSourceEdits(configVariable) && isPackageInRootProject(request.packageName(), rootProject)) {
                     allTextEdits.putAll(constructSourceTextEdits(rootProject, configFilePath, configVariable, false));
                 }
-                // Text edits for Config.toml.
-                if (requireConfigTomlEdits(configVariable)) {
+
+                // Root Config.toml edits: when configValue or variable name is modified.
+                if (configValueModified || nameModified) {
                     Toml existingConfigToml = parseConfigToml(rootProject);
                     handleConfigTomlErrors(existingConfigToml, response);
                     Path configTomlPath = rootProject.sourceRoot().resolve(CONFIG_TOML_FILENAME);
                     allTextEdits.putAll(constructConfigTomlTextEdits(rootProject, request.packageName(),
-                            request.moduleName(), configVariable, configTomlPath, existingConfigToml, false));
+                            request.moduleName(), configVariable, configTomlPath, existingConfigToml, false,
+                            CONFIG_VALUE_KEY));
+                }
+
+                // Tests Config.toml edits: when testConfigValue or variable name is modified.
+                if (testConfigValueModified || nameModified) {
+                    Path testsConfigTomlPath = getTestsConfigTomlPath(rootProject, request.moduleName());
+                    Toml existingTestsConfigToml = parseConfigToml(testsConfigTomlPath);
+                    handleConfigTomlErrors(existingTestsConfigToml, response);
+                    allTextEdits.putAll(constructConfigTomlTextEdits(rootProject, request.packageName(),
+                            request.moduleName(), configVariable, testsConfigTomlPath, existingTestsConfigToml, false,
+                            TEST_CONFIG_VALUE_KEY));
                 }
 
                 response.setTextEdits(gson.toJsonTree(allTextEdits));
-            } catch (Exception e) {
+            } catch (WorkspaceDocumentException | EventSyncException | RuntimeException e) {
                 response.setError(e);
             }
 
@@ -261,16 +291,24 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 // Text edits for Ballerina source files.
                 allTextEdits.putAll(constructSourceTextEdits(rootProject, configFilePath, configVariable, true));
 
-                // Text edits for Config.toml.
-
+                // Text edits for root Config.toml.
                 Toml existingConfigToml = parseConfigToml(rootProject);
                 handleConfigTomlErrors(existingConfigToml, response);
                 Path configTomlPath = rootProject.sourceRoot().resolve(CONFIG_TOML_FILENAME);
                 allTextEdits.putAll(constructConfigTomlTextEdits(rootProject, request.packageName(),
-                        request.moduleName(), configVariable, configTomlPath, existingConfigToml, true));
+                        request.moduleName(), configVariable, configTomlPath, existingConfigToml, true,
+                        CONFIG_VALUE_KEY));
+
+                // Text edits for tests/Config.toml.
+                Path testsConfigTomlPath = getTestsConfigTomlPath(rootProject, request.moduleName());
+                Toml existingTestsConfigToml = parseConfigToml(testsConfigTomlPath);
+                handleConfigTomlErrors(existingTestsConfigToml, response);
+                allTextEdits.putAll(constructConfigTomlTextEdits(rootProject, request.packageName(),
+                        request.moduleName(), configVariable, testsConfigTomlPath, existingTestsConfigToml, true,
+                        TEST_CONFIG_VALUE_KEY));
 
                 response.setTextEdits(gson.toJsonTree(allTextEdits));
-            } catch (Exception e) {
+            } catch (WorkspaceDocumentException | EventSyncException | RuntimeException e) {
                 response.setError(e);
             }
 
@@ -344,8 +382,8 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
     /**
      * Adds necessary import statements to the text edits for a configuration variable.
      *
-     * @param node The configuration variable flow node.
-     * @param document The document containing the configuration variable.
+     * @param node      The configuration variable flow node.
+     * @param document  The document containing the configuration variable.
      * @param textEdits The list of text edits to which import statements will be added.
      */
     private static void addImportEdits(FlowNode node, Document document, List<TextEdit> textEdits) {
@@ -420,19 +458,35 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      * Parses the Config.toml file and returns its content as a {@link Toml} object.
      *
      * @param project The Ballerina project.
-     * @return A {@link Toml} object representing the parsed Config.toml, or {@code null} if parsing fails
-     * or the file doesn't exist.
+     * @return A {@link Toml} object representing the parsed Config.toml, or {@code null} if parsing fails or the file
+     * doesn't exist.
      */
     private Toml parseConfigToml(Project project) {
+        return parseConfigToml(project.sourceRoot().resolve(CONFIG_TOML_FILENAME));
+    }
+
+    private Toml parseConfigToml(Path configTomlPath) {
         try {
-            Path configTomlPath = project.sourceRoot().resolve(CONFIG_TOML_FILENAME);
             if (!Files.exists(configTomlPath)) {
                 return null;
             }
             return Toml.read(configTomlPath);
-        } catch (Exception ignored) {
+        } catch (IOException ignored) {
             return null;
         }
+    }
+
+    /**
+     * Returns the path to the tests/Config.toml for the given module. For the default module, this is
+     * {@code {root}/tests/Config.toml}. For a named module "foo", this is
+     * {@code {root}/modules/foo/tests/Config.toml}.
+     */
+    private Path getTestsConfigTomlPath(Project project, String moduleName) {
+        if (moduleName == null || moduleName.isEmpty()) {
+            return project.sourceRoot().resolve("tests").resolve(CONFIG_TOML_FILENAME);
+        }
+        return project.sourceRoot().resolve("modules").resolve(moduleName)
+                .resolve("tests").resolve(CONFIG_TOML_FILENAME);
     }
 
     /**
@@ -545,14 +599,16 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      * Extracts configuration variables from the current package and its submodules.
      */
     private Map<String, Map<String, List<FlowNode>>> extractVariablesFromProject(
-            Package rootPackage, Toml configTomlValues) {
+            Package rootPackage, Project project, Toml configTomlValues) {
         Map<String, List<FlowNode>> moduleConfigVarMap = new HashMap<>();
         String pkgName = rootPackage.packageOrg().value() + FORWARD_SLASH + rootPackage.packageName().value();
 
         for (Module module : rootPackage.modules()) {
             String modName = module.moduleName().moduleNamePart() != null ?
                     module.moduleName().moduleNamePart() : EMPTY_STRING;
-            List<FlowNode> variables = extractModuleConfigVariables(module, configTomlValues, pkgName, modName, true);
+            Toml testsConfigTomlValues = parseConfigToml(getTestsConfigTomlPath(project, modName));
+            List<FlowNode> variables = extractModuleConfigVariables(module, configTomlValues, testsConfigTomlValues,
+                    pkgName, modName, true);
             moduleConfigVarMap.put(modName, variables);
         }
 
@@ -562,6 +618,13 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
     }
 
     private Path findVariableFilePath(FlowNode configVariable, Path contextFilePath, Project rootProject) {
+        // If an explicit file path is supplied in codedata.data (e.g. test-function context), use it.
+        Codedata codedata = configVariable.codedata();
+        if (codedata != null && codedata.data() != null
+                && codedata.data().containsKey(Constants.FILE_PATH_KEY)) {
+            return Path.of(codedata.data().get(Constants.FILE_PATH_KEY).toString());
+        }
+
         if (isNew(configVariable)) {
             return contextFilePath;
         }
@@ -577,6 +640,12 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
 
         for (Module module : rootProject.currentPackage().modules()) {
             for (DocumentId documentId : module.documentIds()) {
+                Document document = module.document(documentId);
+                if (document.name().equals(variableFileName)) {
+                    return rootProject.sourceRoot().resolve(document.syntaxTree().filePath());
+                }
+            }
+            for (DocumentId documentId : module.testDocumentIds()) {
                 Document document = module.document(documentId);
                 if (document.name().equals(variableFileName)) {
                     return rootProject.sourceRoot().resolve(document.syntaxTree().filePath());
@@ -599,9 +668,11 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      * Extracts configuration variables from the given module.
      */
     private List<FlowNode> extractModuleConfigVariables(Module module, Toml configTomlValues,
-                                                        String packageName, String moduleName, boolean isRootProject) {
+                                                        Toml testsConfigTomlValues, String packageName,
+                                                        String moduleName, boolean isRootProject) {
         List<FlowNode> configVariables = new LinkedList<>();
         Optional<SemanticModel> semanticModel = getSemanticModel(module);
+        boolean hasTests = isRootProject && !module.testDocumentIds().isEmpty();
 
         for (DocumentId documentId : module.documentIds()) {
             Document document = module.document(documentId);
@@ -615,7 +686,27 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                     ModuleVariableDeclarationNode varDeclarationNode = (ModuleVariableDeclarationNode) node;
                     if (hasConfigurableQualifier(varDeclarationNode)) {
                         FlowNode configVarNode = constructConfigVarNode(varDeclarationNode, semanticModel.orElse(null),
-                                configTomlValues, packageName, moduleName, isRootProject);
+                                configTomlValues, testsConfigTomlValues, packageName, moduleName, isRootProject, false,
+                                hasTests);
+                        configVariables.add(configVarNode);
+                    }
+                }
+            }
+        }
+
+        for (DocumentId documentId : module.testDocumentIds()) {
+            Document document = module.document(documentId);
+            SyntaxTree syntaxTree = document.syntaxTree();
+            if (syntaxTree == null) {
+                continue;
+            }
+            ModulePartNode modulePartNode = syntaxTree.rootNode();
+            for (Node node : modulePartNode.members()) {
+                if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
+                    ModuleVariableDeclarationNode varDeclarationNode = (ModuleVariableDeclarationNode) node;
+                    if (hasConfigurableQualifier(varDeclarationNode)) {
+                        FlowNode configVarNode = constructConfigVarNode(varDeclarationNode, semanticModel.orElse(null),
+                                null, testsConfigTomlValues, packageName, moduleName, isRootProject, true, true);
                         configVariables.add(configVarNode);
                     }
                 }
@@ -704,8 +795,8 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         for (Module module : dependency.packageInstance().modules()) {
             String moduleName = module.moduleName().moduleNamePart() != null ?
                     module.moduleName().moduleNamePart() : EMPTY_STRING;
-            List<FlowNode> variables = extractModuleConfigVariables(module, configTomlValues, packageName, moduleName,
-                    false);
+            List<FlowNode> variables = extractModuleConfigVariables(module, configTomlValues, null, packageName,
+                    moduleName, false);
             if (!variables.isEmpty()) {
                 moduleConfigs.put(moduleName, variables);
             }
@@ -714,8 +805,8 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
     }
 
     /**
-     * Populates a collection with valid module dependencies for a given package and module.
-     * Valid dependencies are those with default scope and not belonging to the same package.
+     * Populates a collection with valid module dependencies for a given package and module. Valid dependencies are
+     * those with default scope and not belonging to the same package.
      */
     private static void populateValidDependencies(Package packageInstance, Module module,
                                                   Collection<ModuleDependency> dependencies) {
@@ -768,12 +859,13 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
     }
 
     /**
-     * Constructs a {@link FlowNode} for a configuration variable, incorporating its value from Config.toml
-     * if available.
+     * Constructs a {@link FlowNode} for a configuration variable, incorporating its value from Config.toml if
+     * available.
      */
     private FlowNode constructConfigVarNode(ModuleVariableDeclarationNode variableNode,
                                             SemanticModel semanticModel, Toml configTomlValues,
-                                            String packageName, String moduleName, boolean isRootProject) {
+                                            Toml testsConfigTomlValues, String packageName, String moduleName,
+                                            boolean isRootProject, boolean isTestSource, boolean hasTests) {
 
         NodeBuilder nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.CONFIG_VARIABLE)
                 .semanticModel(semanticModel)
@@ -789,7 +881,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         String variableName = typedBindingPattern.bindingPattern().toSourceCode().trim();
         Optional<Node> markdownDocs = extractVariableDocs(variableNode);
 
-        // Get the configuration value from Config.toml.
+        // Get the configuration value from root Config.toml.
         Optional<TomlNode> configTomlValue = getConfigValue(configTomlValues, packageName, moduleName, variableName,
                 isRootProject);
         ExpressionNode configValueExpr = null;
@@ -800,13 +892,28 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             }
         }
 
+        // Get the configuration value from the module-specific tests/Config.toml.
+        Optional<TomlNode> testConfigTomlValue = getConfigValue(testsConfigTomlValues, packageName, moduleName,
+                variableName, isRootProject);
+        ExpressionNode testConfigValueExpr = null;
+        if (testConfigTomlValue.isPresent()) {
+            String tomlStringValue = getAsString(testConfigTomlValue.get());
+            if (tomlStringValue != null) {
+                testConfigValueExpr = NodeParser.parseExpression(tomlStringValue);
+            }
+        }
+
         TypeDescriptorNode typeDescriptor = typedBindingPattern.typeDescriptor();
-        return nodeBuilder
+        Codedata.Builder<NodeBuilder> codedataBuilder = nodeBuilder
                 .metadata()
                 .stepOut()
                 .codedata()
                 .node(NodeKind.CONFIG_VARIABLE)
-                .lineRange(variableNode.lineRange())
+                .lineRange(variableNode.lineRange());
+        if (isTestSource) {
+            codedataBuilder.data("isTestConfig", true);
+        }
+        var propsBuilder = codedataBuilder
                 .stepOut()
                 .properties()
                 .variableName(variableName, isRootProject)
@@ -825,7 +932,11 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                     .stepOut()
                     .addProperty(Property.TYPE_KEY, typeDescriptor.lineRange())
                 .defaultValue(variableNode.initializer().orElse(null), isRootProject)
-                .configValue(configValueExpr)
+                .configValue(configValueExpr);
+        if (hasTests) {
+            propsBuilder.testConfigValue(testConfigValueExpr);
+        }
+        return propsBuilder
                 .documentation(markdownDocs.orElse(null), isRootProject)
                 .stepOut()
                 .build();
@@ -882,15 +993,18 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
     }
 
     /**
-     * Constructs text edits for updating the Config.toml file with a new configuration value or deleting an entry.
+     * Constructs text edits for updating a Config.toml file with a new configuration value or deleting an entry.
+     *
+     * @param configValueKey the property key to read the value from ({@code CONFIG_VALUE_KEY} for the root Config.toml,
+     *                       {@code TEST_CONFIG_VALUE_KEY} for the tests Config.toml)
      */
     private Map<Path, List<TextEdit>> constructConfigTomlTextEdits(Project project, String packageName,
                                                                    String moduleName, FlowNode configVariable,
                                                                    Path configTomlPath, Toml existingConfigToml,
-                                                                   boolean isDelete) {
+                                                                   boolean isDelete, String configValueKey) {
         Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
         try {
-            if (!configVariable.properties().containsKey(CONFIG_VALUE_KEY)) {
+            if (!isDelete && !configVariable.properties().containsKey(configValueKey)) {
                 return textEditsMap;
             }
 
@@ -900,7 +1014,12 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
 
             Optional<TomlNode> oldConfigValue = getConfigValue(existingConfigToml, packageName, moduleName,
                     oldVariableName, isPackageInRootProject(packageName, project));
-            String configValue = configVariable.properties().get(CONFIG_VALUE_KEY).toSourceCode();
+            String configValue = configVariable.properties().containsKey(configValueKey)
+                    ? configVariable.properties().get(configValueKey).toSourceCode() : "";
+            // Treat a Ballerina empty-string literal ("") as "no value" so the entry is removed from Config.toml.
+            if ("\"\"".equals(configValue)) {
+                configValue = EMPTY_STRING;
+            }
             if (isDelete && oldConfigValue.isEmpty()) {
                 return textEditsMap;
             } else if (oldConfigValue.isEmpty() && configValue.isEmpty()) {
@@ -920,7 +1039,11 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 String fileName = oldConfigValue.get().location().lineRange().fileName();
                 LineRange lineRange = oldConfigValue.get().location().lineRange();
                 LinePosition startPos = LinePosition.from(lineRange.startLine().line(), 0);
-                LinePosition endPos = LinePosition.from(lineRange.endLine().line(), lineRange.endLine().offset());
+                // When deleting, extend the end to the start of the next line to consume the trailing newline,
+                // preventing a blank line from being left behind.
+                LinePosition endPos = newContent.isEmpty()
+                        ? LinePosition.from(lineRange.endLine().line() + 1, 0)
+                        : LinePosition.from(lineRange.endLine().line(), lineRange.endLine().offset());
 
                 LineRange newlineRange = LineRange.from(fileName, startPos, endPos);
                 textEdits.add(new TextEdit(CommonUtils.toRange(newlineRange), newContent));
@@ -964,7 +1087,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                             // Find the last entry in the root table
                             TomlNode lastEntry = rootNode.entries().values().stream()
                                     .reduce((first, second) -> second)
-                                    .orElse(null);
+                                    .orElseThrow();
                             insertPos = LinePosition.from(lastEntry.location().lineRange().endLine().line() + 1, 0);
                         } else {
                             // Empty config file
@@ -979,7 +1102,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                     if (!Files.exists(configTomlPath)) {
                         try {
                             Files.createFile(configTomlPath);
-                        } catch (Exception createEx) {
+                        } catch (IOException createEx) {
                             // Handle file creation error
                             return textEditsMap;
                         }
@@ -1099,17 +1222,6 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 || (documentation != null && Boolean.TRUE.equals(documentation.modified()));
     }
 
-    /**
-     * Checks if the Config.toml edits are required when updating a configuration variable, based on its modified
-     * properties.
-     */
-    private boolean requireConfigTomlEdits(FlowNode configVariable) {
-        Property variableName = configVariable.properties().get(VARIABLE_KEY);
-        Property configValue = configVariable.properties().get(CONFIG_VALUE_KEY);
-        return (variableName != null && Boolean.TRUE.equals(variableName.modified()))
-                || (configValue != null && Boolean.TRUE.equals(configValue.modified()));
-    }
-
     private static void handleConfigTomlErrors(Toml configTomlValues, AbstractFlowModelResponse response) {
         boolean hasErrors = configTomlValues != null && configTomlValues.diagnostics().stream()
                 .anyMatch(d -> d.diagnosticInfo().severity() == DiagnosticSeverity.ERROR);
@@ -1122,8 +1234,8 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
     }
 
     /**
-     * Extracts type members from a TypeDescriptorNode using SemanticModel.
-     * For union types, this extracts all member types with their metadata.
+     * Extracts type members from a TypeDescriptorNode using SemanticModel. For union types, this extracts all member
+     * types with their metadata.
      *
      * <p>
      * TODO: this is a replicate implementation of {@link io.ballerina.modelgenerator.commons.FunctionDataBuilder},
