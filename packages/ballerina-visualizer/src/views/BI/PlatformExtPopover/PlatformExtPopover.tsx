@@ -30,7 +30,6 @@ import {
 } from "@wso2/wso2-platform-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { QuickPickItem } from "vscode";
-import { useQuery } from "@tanstack/react-query";
 
 const PopupContainer = styled.div`
     min-width: 200px;
@@ -98,7 +97,7 @@ export interface DiagnosticsPopUpProps {
 
 export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
     const { isVisible, onClose, anchorEl, projectPath } = props;
-    const { platformExtState, platformRpcClient } = usePlatformExtContext();
+    const { platformExtState, platformRpcClient, loginToDevant } = usePlatformExtContext();
     const { rpcClient } = useRpcContext();
 
     const handleSignOut = () => {
@@ -126,12 +125,6 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
                     onlyShowSwitchProject: true,
                 } as IManageDirContextCmdParams,
             ],
-        });
-    };
-
-    const handleLogin = () => {
-        rpcClient.getCommonRpcClient().executeCommand({
-            commands: [PlatformExtCommandIds.SignIn, { extName: "Devant" } as ICmdParamsBase],
         });
     };
 
@@ -350,7 +343,7 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
                     ) : (
                         <PanelItem>
                             <PanelItemVal style={{ textAlign: "center" }}>
-                                <PanelItemVSCodeLink onClick={handleLogin}>Login</PanelItemVSCodeLink> to your Devant
+                                <PanelItemVSCodeLink onClick={loginToDevant}>Login</PanelItemVSCodeLink> to your Devant
                                 account
                                 <br /> to manage your project in the cloud
                             </PanelItemVal>
