@@ -42,8 +42,10 @@ import {
     getWorkspaceRoot,
     getWorkspaceType,
     goToSource,
+    hasCentralPATConfigured,
     isNPSupported,
     openExternalUrl,
+    publishToCentral,
     runBackgroundTerminalCommand,
     SampleDownloadRequest,
     selectFileOrDirPath,
@@ -80,4 +82,6 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onRequest(ClearWebviewCache, (params: string) => rpcManger.clearWebviewCache(params));
     messenger.onRequest(downloadSelectedSampleFromGithub, (args: SampleDownloadRequest) => rpcManger.downloadSelectedSampleFromGithub(args));
     messenger.onRequest(getDefaultOrgName, () => rpcManger.getDefaultOrgName());
+    messenger.onRequest(publishToCentral, () => rpcManger.publishToCentral());
+    messenger.onRequest(hasCentralPATConfigured, () => rpcManger.hasCentralPATConfigured());
 }
