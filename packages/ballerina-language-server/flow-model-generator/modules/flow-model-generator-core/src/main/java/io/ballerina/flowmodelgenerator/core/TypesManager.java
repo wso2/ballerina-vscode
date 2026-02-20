@@ -420,9 +420,7 @@ public class TypesManager {
 
         for (TypeData referencedType : referencedTypes) {
             String referencedTypeName = referencedType.name();
-            // TODO: Special casing time package records for now since they don't support creating new types from
-            // extending them. Need a better solution to handle such cases in the future.
-            if (referencedTypeName == null || referencedTypeName.startsWith("ballerina/time")) {
+            if (referencedTypeName == null) {
                 continue;
             }
 
