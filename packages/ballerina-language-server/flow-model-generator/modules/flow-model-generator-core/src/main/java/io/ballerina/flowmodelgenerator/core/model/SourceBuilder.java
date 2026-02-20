@@ -32,8 +32,8 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.flowmodelgenerator.core.TypesManager;
 import io.ballerina.flowmodelgenerator.core.Constants;
+import io.ballerina.flowmodelgenerator.core.TypesManager;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
@@ -71,8 +71,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.ballerina.flowmodelgenerator.core.model.Property.convertToProperty;
 import static io.ballerina.flowmodelgenerator.core.model.Property.PROPERTY_TYPE_LIST_TYPE_TOKEN;
+import static io.ballerina.flowmodelgenerator.core.model.Property.convertToProperty;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
 public class SourceBuilder {
@@ -217,7 +217,8 @@ public class SourceBuilder {
             return typeName;
         }
         String inferredType = inferredParam.get().value().toString();
-        String inferredTypeDef = inferredParam.get().codedata().originalName();
+        String inferredTypeDef = inferredParam.get()
+                .codedata().originalName();
 
         Property inferredProperty = inferredParam.get();
         if (inferredProperty.types() != null && !inferredProperty.types().isEmpty() &&
