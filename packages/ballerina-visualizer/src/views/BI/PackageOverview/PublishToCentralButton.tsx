@@ -101,7 +101,7 @@ export function PublishToCentralButton({
 
     const tooltipMessage = hasCentralPATConfigured
         ? "Publish this library to Ballerina Central."
-        : "No central PAT configured. Please try again after configuring the central PAT.";
+        : "No Ballerina Central PAT configured. Please try again after configuring the PAT.";
     const learnMoreLabel = "Learn more";
     const publishingLabel = isPublishing ? "Publishing..." : "Publish";
 
