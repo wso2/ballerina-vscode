@@ -442,13 +442,15 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                     <Button appearance="secondary" onClick={handleOpenConfigFile}>
                         <Icon sx={{ marginRight: 5, paddingTop: '2px' }} name="editIcon" />Edit {isTestsContext ? 'tests/Config.toml' : 'Config.toml'}
                     </Button>
-                    <Dropdown
-                        id="environment-selector"
-                        items={environmentOptions}
-                        value={isTestsContext ? 'Tests' : 'Application'}
-                        onValueChange={handleEnvironmentChange}
-                        sx={{ width: 130 }}
-                    />
+                    {props.testsConfigTomlPath && (
+                        <Dropdown
+                            id="environment-selector"
+                            items={environmentOptions}
+                            value={isTestsContext ? 'Tests' : 'Application'}
+                            onValueChange={handleEnvironmentChange}
+                            sx={{ width: 130 }}
+                        />
+                    )}
                 </div>
             } />
             {isAddConfigVariableFormOpen && <Overlay data-testid="config-overlay" />}

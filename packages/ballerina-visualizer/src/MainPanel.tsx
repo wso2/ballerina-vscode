@@ -285,7 +285,8 @@ const MainPanel = () => {
         setNavActive(true);
         rpcClient.getVisualizerLocation().then(async (value) => {
             const configFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['config.bal'] })).filePath;
-            const testsConfigTomlPath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['tests', 'Config.toml'] })).filePath;
+            const testsFolderResult = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['tests'], checkExists: true });
+            const testsConfigTomlPath = testsFolderResult.exists ? (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['tests', 'Config.toml'] })).filePath : undefined;
             let defaultFunctionsFile = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] })).filePath;
             if (value.documentUri) {
                 defaultFunctionsFile = value.documentUri
