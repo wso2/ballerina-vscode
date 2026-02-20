@@ -672,6 +672,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                                                         String moduleName, boolean isRootProject) {
         List<FlowNode> configVariables = new LinkedList<>();
         Optional<SemanticModel> semanticModel = getSemanticModel(module);
+        boolean hasTests = isRootProject && !module.testDocumentIds().isEmpty();
 
         for (DocumentId documentId : module.documentIds()) {
             Document document = module.document(documentId);
@@ -685,7 +686,8 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                     ModuleVariableDeclarationNode varDeclarationNode = (ModuleVariableDeclarationNode) node;
                     if (hasConfigurableQualifier(varDeclarationNode)) {
                         FlowNode configVarNode = constructConfigVarNode(varDeclarationNode, semanticModel.orElse(null),
-                                configTomlValues, testsConfigTomlValues, packageName, moduleName, isRootProject, false);
+                                configTomlValues, testsConfigTomlValues, packageName, moduleName, isRootProject, false,
+                                hasTests);
                         configVariables.add(configVarNode);
                     }
                 }
@@ -704,7 +706,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                     ModuleVariableDeclarationNode varDeclarationNode = (ModuleVariableDeclarationNode) node;
                     if (hasConfigurableQualifier(varDeclarationNode)) {
                         FlowNode configVarNode = constructConfigVarNode(varDeclarationNode, semanticModel.orElse(null),
-                                null, testsConfigTomlValues, packageName, moduleName, isRootProject, true);
+                                null, testsConfigTomlValues, packageName, moduleName, isRootProject, true, true);
                         configVariables.add(configVarNode);
                     }
                 }
@@ -863,7 +865,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
     private FlowNode constructConfigVarNode(ModuleVariableDeclarationNode variableNode,
                                             SemanticModel semanticModel, Toml configTomlValues,
                                             Toml testsConfigTomlValues, String packageName, String moduleName,
-                                            boolean isRootProject, boolean isTestSource) {
+                                            boolean isRootProject, boolean isTestSource, boolean hasTests) {
 
         NodeBuilder nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.CONFIG_VARIABLE)
                 .semanticModel(semanticModel)
@@ -911,7 +913,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         if (isTestSource) {
             codedataBuilder.data("isTestConfig", true);
         }
-        return codedataBuilder
+        var propsBuilder = codedataBuilder
                 .stepOut()
                 .properties()
                 .variableName(variableName, isRootProject)
@@ -930,8 +932,11 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                     .stepOut()
                     .addProperty(Property.TYPE_KEY, typeDescriptor.lineRange())
                 .defaultValue(variableNode.initializer().orElse(null), isRootProject)
-                .configValue(configValueExpr)
-                .testConfigValue(testConfigValueExpr)
+                .configValue(configValueExpr);
+        if (hasTests) {
+            propsBuilder.testConfigValue(testConfigValueExpr);
+        }
+        return propsBuilder
                 .documentation(markdownDocs.orElse(null), isRootProject)
                 .stepOut()
                 .build();
@@ -1082,7 +1087,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                             // Find the last entry in the root table
                             TomlNode lastEntry = rootNode.entries().values().stream()
                                     .reduce((first, second) -> second)
-                                    .orElse(null);
+                                    .orElseThrow();
                             insertPos = LinePosition.from(lastEntry.location().lineRange().endLine().line() + 1, 0);
                         } else {
                             // Empty config file
