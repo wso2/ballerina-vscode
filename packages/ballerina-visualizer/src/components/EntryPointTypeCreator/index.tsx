@@ -40,6 +40,7 @@ interface EntryPointTypeCreatorProps {
     modalHeight?: number;
     payloadContext?: PayloadContext;
     defaultTab?: 'import' | 'create-from-scratch' | 'browse-exisiting-types';
+    note?: string;
 }
 
 interface TypeEditorState {
@@ -51,7 +52,7 @@ interface TypeEditorState {
 
 
 export function EntryPointTypeCreator(props: EntryPointTypeCreatorProps) {
-    const { modalTitle, initialTypeName, modalWidth, modalHeight, payloadContext, isOpen, onClose, onTypeCreate, defaultTab } = props;
+    const { modalTitle, initialTypeName, modalWidth, modalHeight, payloadContext, isOpen, onClose, onTypeCreate, defaultTab, note } = props;
 
     const [typeEditorState, setTypeEditorState] = React.useState<TypeEditorState>({
         isTypeCreatorOpen: false,
@@ -275,6 +276,7 @@ export function EntryPointTypeCreator(props: EntryPointTypeCreatorProps) {
                         isContextTypeForm={true}
                         payloadContext={payloadContext}
                         defaultTab={defaultTab}
+                        note={note}
                     />
                 </div>
             </DynamicModal>
