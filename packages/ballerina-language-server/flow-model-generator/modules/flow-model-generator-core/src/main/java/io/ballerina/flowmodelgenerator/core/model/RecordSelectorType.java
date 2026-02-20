@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @param rootType        the root record type model (name is stripped to {@code null})
  * @param referencedTypes additional record types referenced by the root, may be empty
- * @since 1.0.0
+ * @since 1.7.0
  */
 public record RecordSelectorType(TypeData rootType, List<TypeData> referencedTypes) {
 }
