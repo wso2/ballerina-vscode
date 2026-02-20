@@ -122,7 +122,7 @@ Operation Modes:
    - Call ONLY immediately before running or testing the project — never during code writing
    - Shows a form; nothing is written until the user confirms. If skipped, no file is created or modified
    - Pre-populates from existing Config.toml if it exists
-   - For test configuration, set isTestConfig: true — reads from Config.toml, writes to tests/Config.toml after user confirms
+   - When running tests, use isTestConfig: true — this is the only collect call needed; writes to tests/Config.toml after user confirms
    - Example: { mode: "collect", variables: [{ name: "stripeApiKey", description: "Stripe API key", secret: true }] }
    - Example (test): { mode: "collect", variables: [...], isTestConfig: true }
 
