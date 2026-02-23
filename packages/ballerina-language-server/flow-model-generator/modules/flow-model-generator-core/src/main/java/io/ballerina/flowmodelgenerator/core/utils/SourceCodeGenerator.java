@@ -494,6 +494,7 @@ public class SourceCodeGenerator {
         if (rawName != null && (rawName.startsWith("'") || rawName.startsWith("\\"))) {
             fieldName = rawName;
         } else {
+            assert rawName != null;
             fieldName = escapeIdentifier(rawName);
         }
         if (member.optional()) {
