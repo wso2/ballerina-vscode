@@ -18,10 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.model.node;
 
-import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
-import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
-import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
@@ -32,6 +29,7 @@ import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.PropertyTypeMemberInfo;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Package;
 import org.eclipse.lsp4j.TextEdit;
@@ -42,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.PROCESS_ANNOTATION;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
@@ -253,7 +250,7 @@ public class SendEventBuilder extends NodeBuilder {
                 module.getCompilation().getSemanticModel().moduleSymbols().stream()
                         .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)
                         .map(symbol -> (FunctionSymbol) symbol)
-                        .filter(this::hasWorkflowProcessAnnotation)
+                        .filter(WorkflowUtil::isWorkflowFunction)
                         .forEach(funcSymbol -> {
                             String funcName = funcSymbol.getName().orElse("");
                             if (!funcName.isEmpty()) {
@@ -266,31 +263,5 @@ public class SendEventBuilder extends NodeBuilder {
         }
 
         return options;
-    }
-
-    /**
-     * Checks if the given function symbol has the @workflow:Process annotation.
-     *
-     * @param funcSymbol The function symbol to check
-     * @return true if the function has @workflow:Process annotation, false otherwise
-     */
-    private boolean hasWorkflowProcessAnnotation(FunctionSymbol funcSymbol) {
-        List<AnnotationAttachmentSymbol> annotations = funcSymbol.annotAttachments();
-        for (AnnotationAttachmentSymbol attachment : annotations) {
-            AnnotationSymbol annotation = attachment.typeDescriptor();
-            Optional<String> annotationName = annotation.getName();
-            Optional<ModuleSymbol> moduleSymbol = annotation.getModule();
-
-            if (annotationName.isPresent() && moduleSymbol.isPresent()) {
-                String name = annotationName.get();
-                String moduleName = moduleSymbol.get().id().moduleName();
-                String orgName = moduleSymbol.get().id().orgName();
-                if (PROCESS_ANNOTATION.equals(name) && WORKFLOW_MODULE.equals(moduleName)
-                        && WORKFLOW_ORG.equals(orgName)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 }

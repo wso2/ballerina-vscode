@@ -18,16 +18,12 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
-import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.FutureTypeSymbol;
-import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
@@ -37,6 +33,7 @@ import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllEventsRequest;
 import io.ballerina.flowmodelgenerator.extension.response.GetAllEventsResponse;
 import io.ballerina.modelgenerator.commons.PackageUtil;
@@ -55,9 +52,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_SUFFIX;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.PROCESS_ANNOTATION;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
 /**
  * Service for managing workflow-related operations.
@@ -108,7 +102,7 @@ public class WorkflowManagerService implements ExtendedLanguageServerService {
                     Optional<Symbol> functionSymbol = semanticModel.moduleSymbols().stream()
                             .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)
                             .filter(symbol -> symbol.getName().orElse("").equals(request.workflowName()))
-                            .filter(symbol -> hasWorkflowProcessAnnotation((FunctionSymbol) symbol))
+                            .filter(symbol -> WorkflowUtil.isWorkflowFunction((FunctionSymbol) symbol))
                             .findFirst();
 
                     if (functionSymbol.isPresent() && functionSymbol.get() instanceof FunctionSymbol funcSymbol) {
@@ -212,31 +206,4 @@ public class WorkflowManagerService implements ExtendedLanguageServerService {
     private String extractTypeFromFuture(TypeSymbol typeSymbol) {
         return ((FutureTypeSymbol) typeSymbol).typeParameter().get().getName().get();
     }
-
-    /**
-     * Checks if the given function symbol has the @workflow:Process annotation.
-     *
-     * @param funcSymbol The function symbol to check
-     * @return true if the function has @workflow:Process annotation, false otherwise
-     */
-    private boolean hasWorkflowProcessAnnotation(FunctionSymbol funcSymbol) {
-        List<AnnotationAttachmentSymbol> annotations = funcSymbol.annotAttachments();
-        for (AnnotationAttachmentSymbol attachment : annotations) {
-            AnnotationSymbol annotation = attachment.typeDescriptor();
-            Optional<String> annotationName = annotation.getName();
-            Optional<ModuleSymbol> moduleSymbol = annotation.getModule();
-
-            if (annotationName.isPresent() && moduleSymbol.isPresent()) {
-                String name = annotationName.get();
-                String moduleName = moduleSymbol.get().id().moduleName();
-                String orgName = moduleSymbol.get().id().orgName();
-                if (PROCESS_ANNOTATION.equals(name) && WORKFLOW_MODULE.equals(moduleName)
-                        && WORKFLOW_ORG.equals(orgName)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }
-

@@ -18,10 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
-import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
-import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
-import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
@@ -29,6 +26,7 @@ import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
 import io.ballerina.projects.Package;
@@ -37,11 +35,6 @@ import io.ballerina.tools.text.LineRange;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ACTIVITY_ANNOTATION;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
 /**
  * Represents a command to search for workflow activity functions within a project.
@@ -97,7 +90,7 @@ class ActivitySearchCommand extends SearchCommand {
             module.getCompilation().getSemanticModel().moduleSymbols().stream()
                     .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)
                     .map(symbol -> (FunctionSymbol) symbol)
-                    .filter(this::hasActivityAnnotation)
+                    .filter(WorkflowUtil::isActivityFunction)
                     .filter(funcSymbol -> matchesQuery(funcSymbol.getName().orElse("")))
                     .forEach(funcSymbol -> {
                         String funcName = funcSymbol.getName().orElse("");
@@ -126,32 +119,6 @@ class ActivitySearchCommand extends SearchCommand {
     }
 
     /**
-     * Checks if the given function symbol has the @workflow:Activity annotation.
-     *
-     * @param funcSymbol The function symbol to check
-     * @return true if the function has @workflow:Activity annotation, false otherwise
-     */
-    private boolean hasActivityAnnotation(FunctionSymbol funcSymbol) {
-        List<AnnotationAttachmentSymbol> annotations = funcSymbol.annotAttachments();
-        for (AnnotationAttachmentSymbol attachment : annotations) {
-            AnnotationSymbol annotation = attachment.typeDescriptor();
-            Optional<String> annotationName = annotation.getName();
-            Optional<ModuleSymbol> moduleSymbol = annotation.getModule();
-
-            if (annotationName.isPresent() && moduleSymbol.isPresent()) {
-                String name = annotationName.get();
-                String moduleName = moduleSymbol.get().id().moduleName();
-                String orgName = moduleSymbol.get().id().orgName();
-                if (ACTIVITY_ANNOTATION.equals(name) && WORKFLOW_MODULE.equals(moduleName)
-                        && WORKFLOW_ORG.equals(orgName)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
      * Checks if the function name matches the search query.
      *
      * @param funcName The function name to check
@@ -164,4 +131,3 @@ class ActivitySearchCommand extends SearchCommand {
         return funcName.toLowerCase().contains(query.toLowerCase());
     }
 }
-

@@ -100,7 +100,7 @@ public class Constants {
 
         public static final String WORKFLOW_ORG = "ballerina";
         public static final String WORKFLOW_MODULE = "workflow";
-        public static final String CONTEXT_TYPE_NAME = "Context";
+        public static final String CONTEXT_CLASS_NAME = "Context";
         public static final String CREATE_INSTANCE_METHOD_NAME = "createInstance";
         public static final String CREATE_INSTANCE_LABEL = "Start Workflow";
         public static final String CREATE_INSTANCE_DESCRIPTION = "Create and start a new workflow instance";

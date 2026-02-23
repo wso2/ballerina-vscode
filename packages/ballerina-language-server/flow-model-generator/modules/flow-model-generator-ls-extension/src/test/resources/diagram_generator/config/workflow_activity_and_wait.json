@@ -1,0 +1,632 @@
+{
+  "start": {
+    "line": 26,
+    "offset": 0
+  },
+  "end": {
+    "line": 34,
+    "offset": 1
+  },
+  "source": "workflow_operations.bal",
+  "description": "Test workflow process function with ctx->callActivity returns ACTIVITY_CALL and wait events returns WAIT_EVENT",
+  "diagram": {
+    "fileName": "workflow_operations.bal",
+    "nodes": [
+      {
+        "id": "61071",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "orderWorkflow",
+            "isServiceFunction": false,
+            "parameters": [
+              "workflow:Context ctx",
+              "OrderInput input",
+              "OrderWorkflowEvents events"
+            ],
+            "return": "error?"
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 26,
+              "offset": 106
+            },
+            "endLine": {
+              "line": 34,
+              "offset": 1
+            }
+          },
+          "sourceCode": "# Process an order workflow with events\n@workflow:Process\nfunction orderWorkflow(workflow:Context ctx, OrderInput input, OrderWorkflowEvents events) returns error? {\n    // Activity call - should be ACTIVITY_CALL\n    int intResult = check ctx->callActivity(calculateDiscount, {amount: 100.0});\n    io:println(\"Discount calculated: \" + intResult.toString());\n\n    // Wait for event - should be WAIT_EVENT\n    ApprovalData approval = check wait events.approve;\n    io:println(\"Approved by: \" + approval.approverName);\n}"
+        },
+        "returning": false,
+        "diagnostics": {
+          "hasDiagnostics": true
+        },
+        "flags": 0
+      },
+      {
+        "id": "58574",
+        "metadata": {
+          "label": "Comment",
+          "description": "Activity call - should be ACTIVITY_CALL"
+        },
+        "codedata": {
+          "node": "COMMENT",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 27,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 27,
+              "offset": 46
+            }
+          },
+          "sourceCode": "Activity call - should be ACTIVITY_CALL"
+        },
+        "returning": false,
+        "properties": {
+          "comment": {
+            "metadata": {
+              "label": "Comment",
+              "description": "Comment to describe the flow"
+            },
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "selected": true
+              }
+            ],
+            "value": "Activity call - should be ACTIVITY_CALL",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "59724",
+        "metadata": {
+          "label": "callActivity",
+          "description": "Executes an activity function within the workflow context.\n\nActivities are non-deterministic operations (I/O, database calls, external APIs)\nthat should only be executed once during workflow execution and not during replay.\nThe workflow runtime ensures exactly-once execution semantics for activities.\n\nThe return type is determined by the `T` typedesc parameter, allowing compile-time\ntype checking when the expected return type is specified. The compiler plugin\nvalidates that the activity function's return type is compatible with `T`.\n\nExample:\n```ballerina\nstring result = check ctx->callActivity(sendEmailActivity, {\"email\": recipientEmail, \"subject\": subject});\n// For activities with no parameters, pass an empty record:\nstring result = check ctx->callActivity(noArgActivity, {});\n```\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.1.0.png"
+        },
+        "codedata": {
+          "node": "ACTIVITY_CALL",
+          "org": "ballerina",
+          "module": "workflow",
+          "packageName": "workflow",
+          "object": "Context",
+          "symbol": "callActivity",
+          "version": "0.1.0",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 28,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 28,
+              "offset": 80
+            }
+          },
+          "sourceCode": "// Activity call - should be ACTIVITY_CALL\n    int intResult = check ctx->callActivity(calculateDiscount, {amount: 100.0});",
+          "inferredReturnType": "T"
+        },
+        "returning": false,
+        "properties": {
+          "connection": {
+            "metadata": {
+              "label": "Connection",
+              "description": "Connection to use"
+            },
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "selected": true
+              }
+            ],
+            "value": "ctx",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": true
+          },
+          "activityFunction": {
+            "metadata": {
+              "label": "Activity Function",
+              "description": "The activity function to execute (must be annotated with @Activity)"
+            },
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "function",
+                "selected": true
+              }
+            ],
+            "value": "calculateDiscount",
+            "placeholder": "",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "activityFunction"
+            }
+          },
+          "args": {
+            "metadata": {
+              "label": "Args",
+              "description": "Record containing the arguments to pass to the activity function"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "workflow:Parameters",
+                "typeMembers": [
+                  {
+                    "type": "Parameters",
+                    "packageInfo": "ballerina:workflow:0.1.0",
+                    "packageName": "workflow",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "workflow:Parameters",
+                "selected": false
+              }
+            ],
+            "value": "{amount: 100.0}",
+            "placeholder": "{}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "diagnostics": {
+              "hasDiagnostics": true,
+              "diagnostics": [
+                {
+                  "severity": "ERROR",
+                  "message": "invalid key 'amount': identifiers cannot be used as rest field keys, expected a string literal or an expression"
+                }
+              ]
+            },
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "args"
+            },
+            "defaultValue": "{}"
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Trigger error flow"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "selected": true
+              }
+            ],
+            "value": true,
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true
+          },
+          "T": {
+            "metadata": {
+              "label": "T",
+              "description": "The expected return type (inferred from context or explicitly specified)"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "anydata",
+                "selected": false
+              }
+            ],
+            "value": "int",
+            "placeholder": "anydata",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "T"
+            },
+            "defaultValue": "anydata"
+          },
+          "variable": {
+            "metadata": {
+              "label": "Variable Name",
+              "description": "Name of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "value": "intResult",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "workflow_operations.bal",
+                "startLine": {
+                  "line": 28,
+                  "offset": 8
+                },
+                "endLine": {
+                  "line": 28,
+                  "offset": 17
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Variable Type",
+              "description": "Type of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "value": "int",
+            "placeholder": "var",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          }
+        },
+        "diagnostics": {
+          "hasDiagnostics": true
+        },
+        "flags": 1
+      },
+      {
+        "id": "60699",
+        "metadata": {
+          "label": "println",
+          "description": "Prints `any`, `error` or string templates(such as `The respective int value is ${val}`) value(s) to the STDOUT\nfollowed by a new line.\n```ballerina\nio:println(\"Start processing the CSV file from \", srcFileName);\n```\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+        },
+        "codedata": {
+          "node": "FUNCTION_CALL",
+          "org": "ballerina",
+          "module": "io",
+          "packageName": "io",
+          "symbol": "println",
+          "version": "1.8.0",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 29,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 29,
+              "offset": 63
+            }
+          },
+          "sourceCode": "io:println(\"Discount calculated: \" + intResult.toString());"
+        },
+        "returning": false,
+        "properties": {
+          "values": {
+            "metadata": {
+              "label": "values",
+              "description": "The value(s) to be printed"
+            },
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET",
+                "selected": false
+              }
+            ],
+            "value": [
+              "\"Discount calculated: \" + intResult.toString()"
+            ],
+            "placeholder": "()",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REST_PARAMETER",
+              "originalName": "values"
+            }
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "61579",
+        "metadata": {
+          "label": "Comment",
+          "description": "Wait for event - should be WAIT_EVENT"
+        },
+        "codedata": {
+          "node": "COMMENT",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 30,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 31,
+              "offset": 44
+            }
+          },
+          "sourceCode": "Wait for event - should be WAIT_EVENT"
+        },
+        "returning": false,
+        "properties": {
+          "comment": {
+            "metadata": {
+              "label": "Comment",
+              "description": "Comment to describe the flow"
+            },
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "selected": true
+              }
+            ],
+            "value": "Wait for event - should be WAIT_EVENT",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "63666",
+        "metadata": {
+          "label": "Wait for Event",
+          "description": "Wait for a workflow event to be received"
+        },
+        "codedata": {
+          "node": "WAIT_EVENT",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 32,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 32,
+              "offset": 54
+            }
+          },
+          "sourceCode": "// Wait for event - should be WAIT_EVENT\n    ApprovalData approval = check wait events.approve;"
+        },
+        "returning": false,
+        "properties": {
+          "waitAll": {
+            "metadata": {
+              "label": "Wait All",
+              "description": "Wait for all tasks to complete"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "selected": true
+              }
+            ],
+            "value": false,
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "futures": {
+            "metadata": {
+              "label": "Futures",
+              "description": "The futures to wait for"
+            },
+            "types": [
+              {
+                "fieldType": "REPEATABLE_PROPERTY",
+                "selected": false
+              }
+            ],
+            "value": {
+              "future1": {
+                "metadata": {
+                  "label": "Future",
+                  "description": "The worker/async function to wait for"
+                },
+                "types": [
+                  {
+                    "fieldType": "FIXED_PROPERTY",
+                    "selected": false
+                  }
+                ],
+                "value": {
+                  "variable": {
+                    "metadata": {
+                      "label": "Variable Name",
+                      "description": "Name of the variable"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
+                      }
+                    ],
+                    "value": "",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                      "dependentProperty": "waitAll"
+                    }
+                  },
+                  "expression": {
+                    "metadata": {
+                      "label": "Expression",
+                      "description": "Expression"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "selected": true
+                      }
+                    ],
+                    "value": "events.approve",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "variable": {
+            "metadata": {
+              "label": "Variable Name",
+              "description": "Name of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "value": "approval",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "workflow_operations.bal",
+                "startLine": {
+                  "line": 32,
+                  "offset": 17
+                },
+                "endLine": {
+                  "line": 32,
+                  "offset": 25
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Variable Type",
+              "description": "Type of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "value": "ApprovalData",
+            "placeholder": "var",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          }
+        },
+        "flags": 1
+      },
+      {
+        "id": "64660",
+        "metadata": {
+          "label": "println",
+          "description": "Prints `any`, `error` or string templates(such as `The respective int value is ${val}`) value(s) to the STDOUT\nfollowed by a new line.\n```ballerina\nio:println(\"Start processing the CSV file from \", srcFileName);\n```\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+        },
+        "codedata": {
+          "node": "FUNCTION_CALL",
+          "org": "ballerina",
+          "module": "io",
+          "packageName": "io",
+          "symbol": "println",
+          "version": "1.8.0",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 33,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 33,
+              "offset": 56
+            }
+          },
+          "sourceCode": "io:println(\"Approved by: \" + approval.approverName);"
+        },
+        "returning": false,
+        "properties": {
+          "values": {
+            "metadata": {
+              "label": "values",
+              "description": "The value(s) to be printed"
+            },
+            "types": [
+              {
+                "fieldType": "EXPRESSION_SET",
+                "selected": false
+              }
+            ],
+            "value": [
+              "\"Approved by: \" + approval.approverName"
+            ],
+            "placeholder": "()",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REST_PARAMETER",
+              "originalName": "values"
+            }
+          }
+        },
+        "flags": 0
+      }
+    ],
+    "connections": []
+  }
+}

@@ -29,12 +29,9 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
-import io.ballerina.compiler.syntax.tree.AnnotationNode;
-import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
-import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
@@ -51,6 +48,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.KnowledgeBaseBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionCall;
 import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
@@ -73,8 +71,6 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.NaturalFunctions;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.PROCESS_ANNOTATION;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
@@ -175,7 +171,7 @@ public class AvailableNodesGenerator {
         NonTerminalNode iterationNode = nonTerminalNode;
 
         // Check if we're inside a @workflow:Process function
-        boolean isInWorkflowProcess = isInsideWorkflowProcessFunction(nonTerminalNode);
+        boolean isInWorkflowProcess = WorkflowUtil.isInsideWorkflowProcessFunction(this.semanticModel, nonTerminalNode);
 
         while (iterationNode != null) {
             SyntaxKind kind = iterationNode.kind();
@@ -407,32 +403,6 @@ public class AvailableNodesGenerator {
         }
 
         return workflowNodes;
-    }
-
-    private boolean isInsideWorkflowProcessFunction(NonTerminalNode node) {
-        Node parent = node;
-        while (parent != null) {
-            if (parent.kind() == SyntaxKind.FUNCTION_DEFINITION) {
-                FunctionDefinitionNode functionNode = (FunctionDefinitionNode) parent;
-                // Check if function has metadata
-                if (functionNode.metadata().isEmpty()) {
-                    return false;
-                }
-                // Check if function has @workflow:Process annotation
-                for (AnnotationNode annotation : functionNode.metadata().get().annotations()) {
-                    if (annotation.annotReference().kind().equals(SyntaxKind.QUALIFIED_NAME_REFERENCE)) {
-                        QualifiedNameReferenceNode annotRef =  (QualifiedNameReferenceNode) annotation.annotReference();
-                        if (annotRef.modulePrefix().text().equals(WORKFLOW_MODULE) &&
-                                annotRef.identifier().text().equals(PROCESS_ANNOTATION)) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-            parent = parent.parent();
-        }
-        return false;
     }
 
     private void setStopNode(NonTerminalNode node) {

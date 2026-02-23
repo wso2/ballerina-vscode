@@ -169,6 +169,11 @@ import io.ballerina.tools.text.TextDocument;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CALL_ACTIVITY_METHOD_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CREATE_INSTANCE_METHOD_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SEND_EVENT_METHOD_NAME;
+
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -184,6 +189,8 @@ import java.util.Stack;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isInsideWorkflowProcessFunction;
+import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINA_ORG_NAME;
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
@@ -403,6 +410,8 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
             populateAgentMetaData(expressionNode, classSymbol);
+        } else if (isWorkflowActivityCall(remoteMethodCallActionNode, classSymbol)) {
+            startNode(NodeKind.ACTIVITY_CALL, expressionNode.parent());
         } else {
             startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
         }
@@ -726,6 +735,42 @@ public class CodeAnalyzer extends NodeVisitor {
         return typeSymbol instanceof TypeReferenceTypeSymbol referenceTypeSymbol
                 && referenceTypeSymbol.typeDescriptor() instanceof ClassSymbol classSymbol
                 && isAiMcpBaseToolKit(classSymbol);
+    }
+
+    private boolean isWorkflowOperation(FunctionSymbol functionSymbol, String operationName) {
+        String functionName = functionSymbol.getName().orElse("");
+        return operationName.equals(functionName) && isWorkflowModule(functionSymbol.getModule());
+    }
+
+    private boolean isWorkflowActivityCall(RemoteMethodCallActionNode remoteMethodCallActionNode,
+                                           ClassSymbol classSymbol) {
+        String methodName = remoteMethodCallActionNode.methodName().name().text();
+        String className = classSymbol.getName().orElse("");
+        return methodName.equals(CALL_ACTIVITY_METHOD_NAME) &&
+                className.equals(CONTEXT_CLASS_NAME) && isWorkflowModule(classSymbol.getModule());
+    }
+
+    private boolean isWorkflowWaitEvent(WaitActionNode waitActionNode) {
+        Node waitFutureExpr = waitActionNode.waitFutureExpr();
+        // For workflow events, we expect: wait events.eventName
+        if (waitFutureExpr.kind() != SyntaxKind.FIELD_ACCESS) {
+            return false;
+        }
+
+        FieldAccessExpressionNode fieldAccess = (FieldAccessExpressionNode) waitFutureExpr;
+        ExpressionNode expression = fieldAccess.expression();
+        // Check if the variable being accessed is named "events"
+        if (expression.kind() != SyntaxKind.SIMPLE_NAME_REFERENCE) {
+            return false;
+        }
+
+        SimpleNameReferenceNode nameRef = (SimpleNameReferenceNode) expression;
+        if (!nameRef.name().text().equals(Constants.Workflow.EVENTS_PARAM_NAME)) {
+            return false;
+        }
+
+        // Check if we are inside a @workflow:Process annotated function
+        return isInsideWorkflowProcessFunction(this.semanticModel, waitActionNode);
     }
 
     private boolean isClassField(ExpressionNode expr) {
@@ -1892,6 +1937,10 @@ public class CodeAnalyzer extends NodeVisitor {
             startNode(NodeKind.AGENT_CALL, functionCallExpressionNode.parent());
         } else if (naturalFunctions.containsKey(functionName)) {
             startNode(NodeKind.NP_FUNCTION_CALL, functionCallExpressionNode.parent());
+        } else if (isWorkflowOperation(functionSymbol, CREATE_INSTANCE_METHOD_NAME)) {
+            startNode(NodeKind.WORKFLOW_START, functionCallExpressionNode.parent());
+        } else if (isWorkflowOperation(functionSymbol, SEND_EVENT_METHOD_NAME)) {
+            startNode(NodeKind.SEND_EVENT, functionCallExpressionNode.parent());
         } else {
             startNode(NodeKind.FUNCTION_CALL, functionCallExpressionNode.parent());
         }
@@ -2163,7 +2212,12 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(WaitActionNode waitActionNode) {
-        startNode(NodeKind.WAIT, waitActionNode);
+        // Check if this is a workflow wait event (wait events.eventName)
+        if (isWorkflowWaitEvent(waitActionNode)) {
+            startNode(NodeKind.WAIT_EVENT, waitActionNode);
+        } else {
+            startNode(NodeKind.WAIT, waitActionNode);
+        }
 
         // Capture the future nodes associated with the wait node
         boolean waitAll = false;
