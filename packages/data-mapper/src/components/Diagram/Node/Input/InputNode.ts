@@ -127,7 +127,7 @@ export class InputNode extends DataMapperNodeModel {
                         focusedFieldFQNs
                     });
                     if (!parentPort.attributes.collapsed){
-                        this.numberOfFields += 2; // This is for converting arrow and additional gap
+                        this.numberOfFields += 1; // This is for converting arrow and additional gap
                     }
                 } else if (this.filteredInputType.fields) {
                     const fields = this.filteredInputType.fields?.filter(f => !!f);
@@ -146,7 +146,7 @@ export class InputNode extends DataMapperNodeModel {
                         });
                     }
                 } else if (!parentPort.attributes.collapsed) {
-                    this.numberOfFields += 6; // This is for payload widget and arrow
+                    this.numberOfFields += 5; // This is for payload widget and arrow
                 }
             } else {
                 await this.addPortsForInputField({

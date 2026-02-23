@@ -167,7 +167,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                             <FieldActionButton
                                 id={"field-action-edit-" + id}
                                 tooltip="Edit"
-                                iconName="settings-gear"
+                                iconName="edit"
                                 onClick={async () => await context.createConvertedVariable(dmType.name, true, dmType.typeName)}
                             />
                         )}
@@ -217,10 +217,9 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
             }
             {expanded && isConvertibleType && !dmType.convertedField &&
                 <>
-                    <ArrowWidget direction="down" />
                     <PayloadWidget
                         onClick={async () => await context.createConvertedVariable(headerLabel, true, undefined, dmType.typeName)}
-                        typeName={dmType.typeName}
+                        typeName={dmType.typeName.toUpperCase()}
                     />
                 </>
             }

@@ -166,7 +166,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 							<FieldActionButton
 								id={"field-action-edit-" + id}
 								tooltip="Edit"
-								iconName="settings-gear"
+								iconName="edit"
 								onClick={async () => await context.createConvertedVariable(outputType.name, false, outputType.typeName)}
 							/>
 						)}
@@ -213,7 +213,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 					<ArrowWidget direction="up" />
 					<PayloadWidget
 						onClick={async () => await context.createConvertedVariable(valueLabel, false, undefined, outputType.typeName)}
-						typeName={outputType.typeName}
+						typeName={outputType.typeName.toUpperCase()}
 					/>
 				</>
 			}
