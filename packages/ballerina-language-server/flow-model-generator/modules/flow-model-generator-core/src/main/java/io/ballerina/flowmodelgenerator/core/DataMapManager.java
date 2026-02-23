@@ -1725,6 +1725,103 @@ public class DataMapManager {
         return gson.toJsonTree(textEditsMap);
     }
 
+    public JsonElement resolve(SemanticModel semanticModel, Path filePath, JsonElement codeData, String targetField) {
+        Codedata codedata = gson.fromJson(codeData, Codedata.class);
+        NonTerminalNode node = getNode(codedata.lineRange());
+        TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+
+        if (targetNode != null) {
+            ExpressionNode expr = targetNode.matchingNode().expr();
+            boolean removeAll = removeInvalidFields(expr, semanticModel, textEdits);
+            if (removeAll) {
+                if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                    MappingConstructorExpressionNode mappingCtrExpressionNode = (MappingConstructorExpressionNode) expr;
+                    textEdits.add(new TextEdit(CommonUtils.toRange(mappingCtrExpressionNode.lineRange()), "{}"));
+                } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+                    ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
+                    textEdits.add(new TextEdit(CommonUtils.toRange(listCtrExpr.lineRange()), "[]"));
+                } else {
+                    textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), ""));
+                }
+            }
+        }
+
+        return gson.toJsonTree(textEditsMap);
+    }
+
+    private boolean removeInvalidFields(Node expr, SemanticModel semanticModel, List<TextEdit> textExits) {
+        if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+            return removeInvalidFields((MappingConstructorExpressionNode) expr, semanticModel, textExits);
+        } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+            ListConstructorExpressionNode listConstructor = (ListConstructorExpressionNode) expr;
+            boolean allRemoved = true;
+            for (Node member : listConstructor.expressions()) {
+                allRemoved = allRemoved && removeInvalidFields(member, semanticModel, textExits);
+            }
+            return allRemoved;
+        } else {
+            List<Diagnostic> diagnostics = semanticModel.diagnostics(expr.lineRange());
+            return !diagnostics.isEmpty();
+        }
+    }
+
+    private boolean removeInvalidFields(MappingConstructorExpressionNode mappingExpr, SemanticModel semanticModel,
+                                        List<TextEdit> textExits) {
+        List<Integer> indexToRemove = new ArrayList<>();
+        SeparatedNodeList<MappingFieldNode> fields = mappingExpr.fields();
+        int fieldsSize = fields.size();
+        for (int i = 0; i < fieldsSize; i++) {
+            MappingFieldNode field = fields.get(i);
+            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
+                continue;
+            }
+            SpecificFieldNode specificField = (SpecificFieldNode) field;
+            List<Diagnostic> diagnostics = semanticModel.diagnostics(specificField.fieldName().lineRange());
+            if (!diagnostics.isEmpty()) {
+                indexToRemove.add(i);
+                continue;
+            }
+
+            Optional<ExpressionNode> optValueExpr = specificField.valueExpr();
+            if (optValueExpr.isEmpty()) {
+                continue;
+            }
+
+            ExpressionNode valueExpr = optValueExpr.get();
+            diagnostics = semanticModel.diagnostics(valueExpr.lineRange());
+            if (diagnostics.isEmpty()) {
+                continue;
+            }
+            boolean allRemoved = removeInvalidFields(valueExpr, semanticModel, textExits);
+            if (allRemoved) {
+                indexToRemove.add(i);
+            }
+        }
+
+        if (indexToRemove.size() == fieldsSize) {
+            return true;
+        } else {
+            for (int index : indexToRemove) {
+                MappingFieldNode field = fields.get(index);
+                LinePosition start;
+                LinePosition end;
+                if (index == 0) {
+                    start = field.lineRange().startLine();
+                    end = fields.get(index + 1).lineRange().startLine();
+                } else {
+                    start = fields.get(index - 1).lineRange().endLine();
+                    end = field.lineRange().endLine();
+                }
+                textExits.add(new TextEdit(CommonUtils.toRange(start, end), ""));
+            }
+            return false;
+        }
+    }
+
     private ExpressionNode findConvertedVariable(LetExpressionNode letExpr) {
         ExpressionNode expr = letExpr.expression();
         String exprSource = expr.toSourceCode().trim();

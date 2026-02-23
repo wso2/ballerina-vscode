@@ -33,6 +33,7 @@ import io.ballerina.flowmodelgenerator.extension.request.DataMapperFieldPosition
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperModelRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperNodePositionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperQueryConvertRequest;
+import io.ballerina.flowmodelgenerator.extension.request.DataMapperResolveRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSourceRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSubMappingRequest;
 import io.ballerina.flowmodelgenerator.extension.request.DataMapperSubMappingSourceRequest;
@@ -178,6 +179,29 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 DataMapManager dataMapManager = new DataMapManager(document.get());
                 response.setTextEdits(dataMapManager.deleteMapping(semanticModel.get(), filePath, request.codedata(),
                         request.mapping(), request.targetField()));
+            } catch (Throwable e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<DataMappingDeleteResponse> resolve(DataMapperResolveRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            DataMappingDeleteResponse response = new DataMappingDeleteResponse();
+            try {
+                Path filePath = Path.of(request.filePath());
+                this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                Optional<Document> document = this.workspaceManager.document(filePath);
+                if (document.isEmpty() || semanticModel.isEmpty()) {
+                    return response;
+                }
+
+                DataMapManager dataMapManager = new DataMapManager(document.get());
+                response.setTextEdits(dataMapManager.resolve(semanticModel.get(), filePath, request.codedata(),
+                        request.targetField()));
             } catch (Throwable e) {
                 response.setError(e);
             }
