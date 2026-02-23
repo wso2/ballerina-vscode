@@ -1,0 +1,156 @@
+{
+  "filePath": "test_pack1/types.bal",
+  "description": "Create a new record type",
+  "type": {
+    "name": "MyType",
+    "editable": true,
+    "metadata": {
+      "label": "MyType",
+      "description": ""
+    },
+    "codedata": {
+      "node": "RECORD"
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Type name",
+          "description": "Unique name to identify the type"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "MyType",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Make visible across the workspace"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "description": {
+        "metadata": {
+          "label": "Type description",
+          "description": "Detailed description about the type"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "isArray": {
+        "metadata": {
+          "label": "Is array type",
+          "description": "Is this type an array or list value"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": "false",
+        "optional": true,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "arraySize": {
+        "metadata": {
+          "label": "Size of the array",
+          "description": "Array dimensions"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      }
+    },
+    "members": [
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "int",
+        "typeName": "int",
+        "name": "total_count",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "selected": false
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "int",
+        "typeName": "int",
+        "name": "+1",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "selected": false
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "int",
+        "typeName": "int",
+        "name": "-1",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "selected": false
+      }
+    ],
+    "includes": [],
+    "allowAdditionalFields": false
+  },
+  "output": {
+    "test_pack1/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 37,
+            "character": 0
+          },
+          "end": {
+            "line": 37,
+            "character": 0
+          }
+        },
+        "newText": "\npublic type MyType record {|\n\tint total_count;\n\tint \\+1;\n\tint \\-1;\n|};"
+      }
+    ]
+  }
+}
