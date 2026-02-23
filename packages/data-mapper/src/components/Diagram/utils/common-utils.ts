@@ -327,9 +327,12 @@ export function handleExpand(id: string, expanded: boolean) {
 }
 
 export function isExpandable(field: IOType): boolean {
-    return field?.kind === TypeKind.Record ||
-        field?.kind === TypeKind.Array ||
-        field?.kind === TypeKind.Enum;
+    const fieldKind = field?.kind;
+    return fieldKind === TypeKind.Record ||
+        fieldKind === TypeKind.Array ||
+        fieldKind === TypeKind.Json ||
+        fieldKind === TypeKind.Xml ||
+        fieldKind === TypeKind.Enum;
 }
 
 export function getTargetField(viewId: string, outputId: string){
