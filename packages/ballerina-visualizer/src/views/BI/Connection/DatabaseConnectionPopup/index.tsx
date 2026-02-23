@@ -581,6 +581,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                     items={DATABASE_TYPES}
                                     value={credentials.databaseType}
                                     onValueChange={handleDatabaseTypeChange}
+                                    disabled={isIntrospecting}
                                 />
                             </FormField>
                             <FormField>
@@ -590,6 +591,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                     placeholder="Database host"
                                     value={credentials.host}
                                     onTextChange={(value) => handleCredentialsChange("host", value)}
+                                    {...(isIntrospecting ? { readonly: true } : {})}
                                 />
                             </FormField>
                             <FormField>
@@ -599,6 +601,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                     placeholder="Database port"
                                     value={String(credentials.port)}
                                     onTextChange={(value) => handleCredentialsChange("port", value)}
+                                    {...(isIntrospecting ? { readonly: true } : {})}
                                 />
                             </FormField>
                             <FormField>
@@ -608,6 +611,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                     placeholder="Database name"
                                     value={credentials.databaseName}
                                     onTextChange={(value) => handleCredentialsChange("databaseName", value)}
+                                    {...(isIntrospecting ? { readonly: true } : {})}
                                 />
                             </FormField>
                             <FormField>
@@ -617,6 +621,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                     placeholder="Database username"
                                     value={credentials.username}
                                     onTextChange={(value) => handleCredentialsChange("username", value)}
+                                    {...(isIntrospecting ? { readonly: true } : {})}
                                 />
                             </FormField>
                             <FormField>
@@ -627,6 +632,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                     placeholder="Database password"
                                     value={credentials.password}
                                     onTextChange={(value) => handleCredentialsChange("password", value)}
+                                    {...(isIntrospecting ? { readonly: true } : {})}
                                 />
                             </FormField>
                         </FormSection>
@@ -698,6 +704,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                     placeholder="Database connection name"
                                     value={connectionName}
                                     onTextChange={setConnectionName}
+                                    {...(isSaving ? { readonly: true } : {})}
                                 />
                             </FormField>
                         </FormSection>
