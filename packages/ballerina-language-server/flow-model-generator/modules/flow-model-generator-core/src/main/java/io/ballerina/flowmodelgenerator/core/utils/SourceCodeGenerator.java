@@ -489,7 +489,13 @@ public class SourceCodeGenerator {
 
         String template = "%s %s%s"; // <type descriptor> <identifier> [= <default value>]
 
-        String fieldName = escapeIdentifier(member.name());
+        String rawName = member.name();
+        String fieldName;
+        if (rawName != null && (rawName.startsWith("'") || rawName.startsWith("\\"))) {
+            fieldName = rawName;
+        } else {
+            fieldName = escapeIdentifier(rawName);
+        }
         if (member.optional()) {
             fieldName = fieldName + "?";
         }
