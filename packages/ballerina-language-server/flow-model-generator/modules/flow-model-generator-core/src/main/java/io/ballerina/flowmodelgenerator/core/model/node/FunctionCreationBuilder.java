@@ -40,6 +40,8 @@ public class FunctionCreationBuilder extends DataMapperCreationBuilder {
 
     private static final String FUNCTION_DEFINITION_FILE = "functions.bal";
 
+    private static final String FUNCTION_NAME = "function";
+
     @Override
     protected String getNameLabel() {
         return FUNCTION_NAME_LABEL;
@@ -69,6 +71,11 @@ public class FunctionCreationBuilder extends DataMapperCreationBuilder {
     @Override
     protected String getNodeDefinitionFile() {
         return FUNCTION_DEFINITION_FILE;
+    }
+
+    @Override
+    protected String getFunctionName() {
+        return FUNCTION_NAME;
     }
 
     @Override
