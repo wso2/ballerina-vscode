@@ -160,9 +160,13 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                                 const flowNode = getFlowNodeForNaturalFunction(node.functionDefinition);
                                 model.flowModel.nodes.push(flowNode);
                                 setModel(model.flowModel);
-                                const parentMetadata = model.flowModel.nodes.find(
+                                const eventStartNode = model.flowModel.nodes.find(
                                     (node) => node.codedata.node === "EVENT_START"
-                                )?.metadata.data as ParentMetadata | undefined;
+                                );
+                                const eventStartMetadata = eventStartNode?.metadata.data as ParentMetadata | undefined;
+                                const parentMetadata = eventStartMetadata
+                                    ? { ...eventStartMetadata, sourceCode: eventStartNode?.codedata?.sourceCode }
+                                    : undefined;
                                 // Get visualizer location and pass position to onReady
                                 rpcClient.getVisualizerLocation().then((location: VisualizerLocation) => {
                                     onReady(model.flowModel.fileName, parentMetadata, location?.position);

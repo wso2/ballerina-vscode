@@ -97,7 +97,9 @@ import {
     BISearchNodesRequest,
     BISearchNodesResponse,
     BIDesignModelRequest,
-    BIFlowModelRequest
+    BIFlowModelRequest,
+    WorkflowEventsRequest,
+    WorkflowEventsResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -197,6 +199,7 @@ export interface BIDiagramAPI {
     getFunctionNode: (params: FunctionNodeRequest) => Promise<FunctionNodeResponse>;
     getEndOfFile: (params: EndOfFileRequest) => Promise<LinePosition>;
     search: (params: BISearchRequest) => Promise<BISearchResponse>;
+    getAllEvents: (params: WorkflowEventsRequest) => Promise<WorkflowEventsResponse>;
     searchNodes: (params: BISearchNodesRequest) => Promise<BISearchNodesResponse>;
     getRecordNames: () => Promise<RecordsInWorkspaceMentions>;
     getFunctionNames: () => Promise<RecordsInWorkspaceMentions>;

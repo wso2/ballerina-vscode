@@ -91,15 +91,17 @@ import {
 import ForkForm from "../ForkForm";
 import { FormTypeEditor } from "../../TypeEditor";
 import { getTypeHelper } from "../../TypeHelper";
-import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
+import { EXPRESSION_EXTRACTION_REGEX, TypeHelperContext } from "../../../../constants";
 import MatchForm from "../MatchForm";
 import { FormSubmitOptions } from "../../FlowDiagram";
 import { getHelperPaneNew } from "../../HelperPaneNew";
 import { ConfigureRecordPage } from "../../HelperPaneNew/Views/RecordConfigModal";
 import { VariableForm } from "../DeclareVariableForm";
 import KnowledgeBaseForm from "../KnowledgeBaseForm";
+import SendEventForm from "../SendEventForm";
 import { EditorContext, StackItem, TypeHelperItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
+import { EntryPointTypeCreator } from "../../../../components/EntryPointTypeCreator";
 import React from "react";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
@@ -229,6 +231,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const [baseFields, setBaseFields] = useState<FormField[]>([]);
     const [formImports, setFormImports] = useState<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
+    const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
+    const [editingTypeName, setEditingTypeName] = useState<string>("");
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
@@ -365,6 +369,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (!node) {
             return;
         }
+
         if ((node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE") &&
             node.properties?.type?.value &&
             (node.properties.type.value as string).length > 0) {
@@ -420,12 +425,53 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         });
     };
 
+    const normalizeTextFields = (fields: FormField[]): FormField[] => {
+        return fields.map((field) => {
+            const primaryInputType = getPrimaryInputType(field.types);
+            const isTextField = field.type === "TEXT" || primaryInputType?.fieldType === "TEXT";
+            const normalizedLabel = `${field.metadata?.label ?? field.label ?? ""}`.toLowerCase();
+            const isDescriptionField = normalizedLabel.includes("description") || normalizedLabel.includes("discription");
+
+            if (isTextField && isDescriptionField) {
+                return {
+                    ...field,
+                    type: "TEXTAREA",
+                };
+            }
+            return field;
+        });
+    };
+
+    const hideTypeDescriptionField = (fields: FormField[]): FormField[] => {
+        return fields.map((field) => {
+            if (field.key === "typeDescription") {
+                return {
+                    ...field,
+                    hidden: true,
+                };
+            }
+            return field;
+        });
+    };
+
     const initForm = (node: FlowNode) => {
         const formProperties = getFormProperties(node);
         let enrichedNodeProperties;
         if (nodeFormTemplate) {
             const formTemplateProperties = getFormProperties(nodeFormTemplate);
             enrichedNodeProperties = enrichFormTemplatePropertiesWithValues(formProperties, formTemplateProperties);
+        }
+
+        const nodeProperties = enrichedNodeProperties || formProperties;
+
+        if (node.codedata.node === "WORKFLOW" && nodeProperties?.inputType) {
+            const inputTypeProperty = nodeProperties.inputType;
+            const typeModelName = (getPrimaryInputType(inputTypeProperty.types) as any)?.typeModel?.name;
+            nodeProperties.inputType = {
+                ...inputTypeProperty,
+                editable: true,
+                value: inputTypeProperty.value || typeModelName || "",
+            };
         }
 
         // hide connection property if node is a REMOTE_ACTION_CALL or RESOURCE_ACTION_CALL node
@@ -464,7 +510,23 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         setRecordTypeFields(recordTypeFields);
 
         // get node properties
-        const fields = convertNodePropertiesToFormFields(enrichedNodeProperties || formProperties, connections, clientName);
+        let fields = convertNodePropertiesToFormFields(nodeProperties, connections, clientName);
+
+        if (node.codedata.node === "WORKFLOW") {
+            fields = fields.map((field) => {
+                if (field.key !== "inputType") {
+                    return field;
+                }
+                return {
+                    ...field,
+                    editable: true,
+                    isContextTypeSupported: true,
+                };
+            });
+        }
+
+        fields = normalizeTextFields(fields);
+        fields = hideTypeDescriptionField(fields);
 
         const sortedFields = sortFieldsByPriority(fields);
         setBaseFields(sortedFields);
@@ -546,6 +608,21 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         setTypeEditorState({ isOpen, fieldKey: editingField?.key, newTypeValue: f[editingField?.key] });
     };
 
+    const handleOpenFormTypeEditor = (open: boolean, typeName?: string, editingField?: FormField) => {
+        setTypeEditorState((prevState) => ({
+            ...prevState,
+            fieldKey: editingField?.key,
+            newTypeValue: typeName || "",
+        }));
+        setIsTypeEditorOpen(open);
+        setEditingTypeName(typeName || "");
+    };
+
+    const handleTypeEditorClose = () => {
+        setIsTypeEditorOpen(false);
+        setEditingTypeName("");
+    };
+
     const handleTypeEditorStateChange = (state: boolean) => {
         if (!state) {
             if (stack.length > 1) {
@@ -571,6 +648,24 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             setFormImports(updatedImports);
         }
     }
+
+    const handleTypeCreated = (type: Type | string, imports?: Imports) => {
+        const typeName = typeof type === "string" ? type : type?.name;
+        if (typeName) {
+            const targetFieldKey = typeEditorState.fieldKey || "type";
+            const updatedFields = fields.map((field) => {
+                if (field.key === targetFieldKey) {
+                    return { ...field, value: typeName };
+                }
+                return field;
+            });
+            setBaseFields(updatedFields);
+            if (imports) {
+                handleUpdateImports(targetFieldKey, imports);
+            }
+        }
+        handleTypeEditorClose();
+    };
 
     /* Expression editor related functions */
     const handleExpressionEditorCancel = () => {
@@ -965,6 +1060,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         onTypeCreate: () => void,
         exprRef?: RefObject<FormExpressionEditorRef>,
     ) => {
+        const formField = fields.find(f => f.key === fieldKey);
         const handleCreateNewType = (typeName: string) => {
             onTypeCreate();
             setTypeEditorState({ isOpen: true, newTypeValue: typeName, fieldKey: fieldKey });
@@ -974,6 +1070,11 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             debouncedGetVisibleTypes.cancel();
             handleExpressionEditorCancel();
         }
+
+        const typeHelperContext =
+            getPrimaryInputType(formField?.types)?.fieldType === "WORKFLOW_INPUT_TYPE"
+                ? TypeHelperContext.WORKFLOW_INPUT_TYPE
+                : TypeHelperContext.HTTP_STATUS_CODE;
 
         return getTypeHelper({
             fieldKey: fieldKey,
@@ -991,6 +1092,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             onTypeCreate: handleCreateNewType,
             onCloseCompletions: handleCloseCompletions,
             exprRef: exprRef,
+            typeHelperContext,
         });
     }
 
@@ -1462,6 +1564,15 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     handleSelectedTypeChange={handleSelectedTypeChange}
                     preserveOrder={node.codedata.node === "VARIABLE" as NodeKind || node.codedata.node === "CONFIG_VARIABLE" as NodeKind}
                 />
+                <EntryPointTypeCreator
+                    isOpen={isTypeEditorOpen}
+                    onClose={handleTypeEditorClose}
+                    onTypeCreate={handleTypeCreated}
+                    initialTypeName={editingTypeName || "WorkflowInput"}
+                    modalTitle="Define Workflow Input Type"
+                    modalWidth={650}
+                    modalHeight={600}
+                />
                 {
                     stack.map((item, i) => <DynamicModal
                         key={i}
@@ -1543,6 +1654,31 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         );
     }
 
+    if (node?.codedata.node === "SEND_EVENT") {
+        return (
+            <SendEventForm
+                fileName={fileName}
+                node={node}
+                targetLineRange={targetLineRange}
+                expressionEditor={expressionEditor}
+                formFields={fields}
+                showProgressIndicator={showProgressIndicator}
+                onSubmit={onSubmit}
+                openSubPanel={openSubPanel}
+                updatedExpressionField={updatedExpressionField}
+                resetUpdatedExpressionField={resetUpdatedExpressionField}
+                subPanelView={subPanelView}
+                disableSaveButton={disableSaveButton}
+                submitText={submitText}
+                footerActionButton={footerActionButton}
+                scopeFieldAddon={scopeFieldAddon}
+                onChange={onChange}
+                projectPath={projectPath}
+                injectedComponents={injectedComponents}
+            />
+        );
+    }
+
     // default form
     return (
         <EditorContext.Provider
@@ -1555,6 +1691,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     projectPath={projectPath}
                     selectedNode={node.codedata.node}
                     openRecordEditor={handleOpenTypeEditor}
+                    openFormTypeEditor={handleOpenFormTypeEditor}
                     popupManager={popupManager}
                     onSubmit={handleOnSubmit}
                     onBlur={handleOnBlur}
@@ -1591,6 +1728,15 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     derivedFields={props.derivedFields}
                 />
             )}
+            <EntryPointTypeCreator
+                isOpen={isTypeEditorOpen}
+                onClose={handleTypeEditorClose}
+                onTypeCreate={handleTypeCreated}
+                initialTypeName={editingTypeName || "WorkflowInput"}
+                modalTitle="Define Workflow Input Type"
+                modalWidth={650}
+                modalHeight={600}
+            />
             {stack.map((item, i) => (
                 <DynamicModal
                     key={i}

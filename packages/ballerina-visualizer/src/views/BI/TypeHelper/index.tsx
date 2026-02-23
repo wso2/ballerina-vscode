@@ -127,7 +127,7 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                     setFilteredBasicTypes(basicTypes);
                     fetchedInitialTypes.current = true;
 
-                    if (typeHelperContext === TypeHelperContext.HTTP_STATUS_CODE) {
+                    if (typeHelperContext === TypeHelperContext.HTTP_STATUS_CODE || typeHelperContext === TypeHelperContext.WORKFLOW_INPUT_TYPE) {
                         const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
                             filePath: filePath,
                             position: targetLineRange,

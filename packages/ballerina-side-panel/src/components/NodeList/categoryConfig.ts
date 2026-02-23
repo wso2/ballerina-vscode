@@ -67,10 +67,24 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             },
             {
                 type: 'function',
+                tooltip: "Create Workflow",
+                emptyStateLabel: "Create Workflow",
+                handlerKey: 'onAddFunction',
+                condition: (title) => title === "Workflows"
+            },
+            {
+                type: 'function',
+                tooltip: "Create Activity",
+                emptyStateLabel: "Create Activity",
+                handlerKey: 'onAddFunction',
+                condition: (title) => title === "Activities"
+            },
+            {
+                type: 'function',
                 tooltip: "Create Function",
                 emptyStateLabel: "Create Function",
                 handlerKey: 'onAddFunction',
-                condition: (title) => title !== "Data Mappers" && title !== "Natural Functions"
+                condition: (title) => title !== "Data Mappers" && title !== "Natural Functions" && title !== "Workflows" && title !== "Activities"
             }
         ],
         showWhenEmpty: true,

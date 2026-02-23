@@ -102,6 +102,16 @@ export class NodeFactoryVisitor implements BaseVisitor {
         return nodeModel;
     }
 
+    private isWorkflowActivityCallNode(node: FlowNode): boolean {
+        return (
+            node.codedata.node === "REMOTE_ACTION_CALL" &&
+            node.codedata.org === "ballerina" &&
+            node.codedata.module === "workflow" &&
+            node.codedata.object === "Context" &&
+            node.codedata.symbol === "callActivity"
+        );
+    }
+
     private createEmptyNode(id: string, x: number, y: number, visible = true, showButton = false): EmptyNodeModel {
         const nodeModel = new EmptyNodeModel(id, visible, showButton, this.visibleBtnCounter++);
         nodeModel.setPosition(x, y);
@@ -600,7 +610,11 @@ export class NodeFactoryVisitor implements BaseVisitor {
     beginVisitRemoteActionCall(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         if (node.id) {
-            this.createApiCallNode(node);
+            if (this.isWorkflowActivityCallNode(node)) {
+                this.createBaseNode(node);
+            } else {
+                this.createApiCallNode(node);
+            }
             this.addSuggestionsButton(node);
         }
     }

@@ -49,13 +49,14 @@ interface FunctionFormProps {
     functionName: string;
     isDataMapper?: boolean;
     isNpFunction?: boolean;
+    isWorkflow?: boolean;
     isAutomation?: boolean;
     isPopup?: boolean;
 }
 
 export function FunctionForm(props: FunctionFormProps) {
     const { rpcClient } = useRpcContext();
-    const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isAutomation, isPopup } = props;
+    const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isWorkflow, isAutomation, isPopup } = props;
 
     const [functionFields, setFunctionFields] = useState<FormField[]>([]);
     const [functionNode, setFunctionNode] = useState<FunctionNode>(undefined);
@@ -67,6 +68,13 @@ export function FunctionForm(props: FunctionFormProps) {
 
     const fileName = filePath.split(/[\\/]/).pop();
     const formType = useRef("Function");
+
+    const hideTypeDescriptionField = (flowNode: FunctionNode): FunctionNode => {
+        if (flowNode?.properties?.typeDescription) {
+            flowNode.properties.typeDescription.hidden = true;
+        }
+        return flowNode;
+    };
 
     useEffect(() => {
         let nodeKind: NodeKind;
@@ -85,6 +93,11 @@ export function FunctionForm(props: FunctionFormProps) {
             formType.current = 'Natural Function';
             setTitleSubtitle('Build a flow using a natural language description');
             setFormSubtitle('Describe what you need in a prompt and let AI handle the implementation');
+        } else if (isWorkflow) {
+            nodeKind = 'WORKFLOW';
+            formType.current = 'Workflow';
+            setTitleSubtitle('Build reusable workflow processes');
+            setFormSubtitle('Define a workflow process with a strongly typed input payload');
         } else {
             nodeKind = 'FUNCTION_DEFINITION';
             formType.current = 'Function';
@@ -96,7 +109,7 @@ export function FunctionForm(props: FunctionFormProps) {
         } else {
             getFunctionNode(nodeKind);
         }
-    }, [isDataMapper, isNpFunction, isAutomation, functionName]);
+    }, [isDataMapper, isNpFunction, isWorkflow, isAutomation, functionName]);
 
     useEffect(() => {
         let fields = functionNode ? convertConfig(functionNode.properties) : [];
@@ -106,6 +119,22 @@ export function FunctionForm(props: FunctionFormProps) {
             formType.current = "Automation";
             const automationFields = fields.filter(field => field.key !== "functionName" && field.key !== "type");
             fields = automationFields;
+        }
+
+        if (isWorkflow) {
+            formType.current = "Workflow";
+            fields = fields.map((field) => {
+                if (field.key !== "inputType") {
+                    return field;
+                }
+                const typeModelName = (getPrimaryInputType(field.types) as any)?.typeModel?.name;
+                return {
+                    ...field,
+                    editable: true,
+                    isContextTypeSupported: true,
+                    value: field.value || typeModelName || "",
+                };
+            });
         }
 
         // update description fields as "TEXTAREA"
@@ -134,7 +163,7 @@ export function FunctionForm(props: FunctionFormProps) {
                 filePath: filePath,
                 id: { node: kind },
             });
-        let flowNode = res.flowNode;
+        let flowNode = hideTypeDescriptionField(res.flowNode);
         if (isNpFunction) {
             /* 
             * TODO: Remove this once the LS is updated
@@ -172,7 +201,7 @@ export function FunctionForm(props: FunctionFormProps) {
                 fileName,
                 projectPath
             });
-        let flowNode = res.functionDefinition;
+        let flowNode = hideTypeDescriptionField(res.functionDefinition);
         if (isNpFunction) {
             /* 
             * TODO: Remove this once the LS is updated
@@ -200,6 +229,117 @@ export function FunctionForm(props: FunctionFormProps) {
         setIsLoading(false);
         console.log("Existing Function Node: ", flowNode);
     }
+
+    const enrichWorkflowInputTypeModel = async (flowNode: FunctionNode) => {
+        if (!isWorkflow) {
+            return;
+        }
+
+        const properties = flowNode.properties as NodeProperties;
+        const inputTypeProperty = properties?.inputType;
+        const primaryInputType = getPrimaryInputType(inputTypeProperty?.types);
+        if (!inputTypeProperty || primaryInputType?.fieldType !== "WORKFLOW_INPUT_TYPE") {
+            return;
+        }
+
+        const workflowInputType = `${inputTypeProperty.value ?? ""}`.trim();
+        if (!workflowInputType) {
+            return;
+        }
+
+        const existingTypeModel = (primaryInputType as any)?.typeModel;
+        if (existingTypeModel?.name === workflowInputType) {
+            return;
+        }
+
+        const resolveTypeByLinePosition = async (targetFilePath: string, linePosition: { line: number; offset: number }) => {
+            const typeResponse = await rpcClient.getBIDiagramRpcClient().getType({
+                filePath: targetFilePath,
+                linePosition
+            });
+            if (typeResponse?.type) {
+                (primaryInputType as any).typeModel = typeResponse.type;
+                return true;
+            }
+            return false;
+        };
+
+        try {
+            const typesResponse = await rpcClient.getBIDiagramRpcClient().getTypes({ filePath });
+            const matchingType = typesResponse?.types?.find((type) =>
+                type?.name === workflowInputType || workflowInputType.endsWith(`:${type?.name}`)
+            );
+            const typeLineRange = matchingType?.codedata?.lineRange;
+
+            if (typeLineRange?.startLine) {
+                const resolved = await resolveTypeByLinePosition(
+                    typeLineRange.fileName || filePath,
+                    typeLineRange.startLine
+                );
+                if (resolved) {
+                    return;
+                }
+            }
+
+            const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                filePath,
+                queryMap: {
+                    q: workflowInputType,
+                    offset: 0,
+                    limit: 1000
+                },
+                searchKind: "TYPE"
+            });
+
+            const findTypeItem = (items: any[]): any => {
+                for (const item of items || []) {
+                    if ((item as any)?.codedata) {
+                        const itemLabel = item?.metadata?.label;
+                        const isMatchingType = itemLabel === workflowInputType || workflowInputType.endsWith(`:${itemLabel}`);
+                        if (isMatchingType) {
+                            return item;
+                        }
+                        continue;
+                    }
+                    const nestedItem = findTypeItem(item?.items || []);
+                    if (nestedItem) {
+                        return nestedItem;
+                    }
+                }
+                return undefined;
+            };
+
+            const matchedTypeFromSearch = findTypeItem(searchResponse?.categories || []);
+            const matchedLineRange = matchedTypeFromSearch?.codedata?.lineRange;
+            if (matchedLineRange?.startLine) {
+                const resolved = await resolveTypeByLinePosition(
+                    matchedLineRange.fileName || filePath,
+                    matchedLineRange.startLine
+                );
+                if (resolved) {
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error("Error resolving workflow input type model: ", error);
+        }
+
+        // Fallback to preserve input type name when type lookup fails.
+        (primaryInputType as any).typeModel = {
+            name: workflowInputType,
+            editable: false,
+            metadata: {
+                label: workflowInputType,
+                description: ""
+            },
+            codedata: {
+                node: "RECORD"
+            },
+            properties: {},
+            members: [],
+            includes: []
+        };
+    };
 
     const onSubmit = async (data: FormValues, formImports?: FormImports) => {
         console.log("Function Form Data: ", data);
@@ -266,6 +406,8 @@ export function FunctionForm(props: FunctionFormProps) {
                 }
             }
         }
+
+        await enrichWorkflowInputTypeModel(functionNodeCopy);
         console.log("Updated function node: ", functionNodeCopy);
         const sourceCode = await rpcClient
             .getBIDiagramRpcClient()
@@ -332,6 +474,8 @@ export function FunctionForm(props: FunctionFormProps) {
             return "Data Mapper";
         } else if (isNpFunction) {
             return "Natural Function";
+        } else if (isWorkflow) {
+            return "Workflow";
         } else if (isAutomation || functionName === "main") {
             return "Automation";
         }
@@ -341,7 +485,15 @@ export function FunctionForm(props: FunctionFormProps) {
     const handleClosePopup = (functionName?: string) => {
         rpcClient
             .getVisualizerRpcClient()
-            .openView({ type: EVENT_TYPE.CLOSE_VIEW, location: { view: null, recentIdentifier: functionName, artifactType: DIRECTORY_MAP.FUNCTION }, isPopup: true });
+            .openView({
+                type: EVENT_TYPE.CLOSE_VIEW,
+                location: {
+                    view: null,
+                    recentIdentifier: functionName,
+                    artifactType: isWorkflow ? DIRECTORY_MAP.WORKFLOW : DIRECTORY_MAP.FUNCTION
+                },
+                isPopup: true
+            });
     }
 
     useEffect(() => {
@@ -381,13 +533,15 @@ export function FunctionForm(props: FunctionFormProps) {
                     {isPopup && (
                         <>
                             <TopBar>
-                                <Typography variant="h2">Create New Function</Typography>
+                                <Typography variant="h2">{`Create New ${getFunctionType()}`}</Typography>
                                 <Button appearance="icon" onClick={() => handleClosePopup()}>
                                     <Codicon name="close" />
                                 </Button>
                             </TopBar>
                             <BodyText>
-                                Create a new function to define reusable logic.
+                                {isWorkflow
+                                    ? "Create a new workflow process with a configurable input type."
+                                    : "Create a new function to define reusable logic."}
                             </BodyText>
                         </>
                     )}

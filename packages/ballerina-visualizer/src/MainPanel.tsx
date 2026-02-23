@@ -592,6 +592,16 @@ const MainPanel = () => {
                                 functionName={value?.identifier}
                             />);
                         break;
+                    case MACHINE_VIEW.BIWorkflowForm:
+                        setViewComponent(
+                            <FunctionForm
+                                projectPath={value.projectPath}
+                                filePath={defaultFunctionsFile}
+                                functionName={value?.identifier}
+                                isWorkflow={true}
+                            />
+                        );
+                        break;
                     case MACHINE_VIEW.BITestFunctionForm:
                         setViewComponent(
                             <TestFunctionForm

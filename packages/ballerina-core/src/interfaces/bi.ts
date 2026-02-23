@@ -98,6 +98,7 @@ export type ParentMetadata = {
     label: string;
     accessor?: string;
     parameters?: string[];
+    sourceCode?: string;
     return?: string;
     isServiceFunction?: boolean;
 };
@@ -156,6 +157,7 @@ export type FormFieldInputType = "TEXT" |
     "PROMPT" |
     "SQL_QUERY" |
     "CLAUSE_EXPRESSION" |
+    "WORKFLOW_INPUT_TYPE" |
     "SLIDER";
 
 export interface BaseType {
@@ -319,6 +321,7 @@ export enum DIRECTORY_MAP {
     SERVICE = "SERVICE",
     TYPE = "TYPE",
     VARIABLE = "VARIABLE",
+    WORKFLOW = "WORKFLOW",
 }
 
 export enum FUNCTION_TYPE {
@@ -425,6 +428,8 @@ export type NodePropertyKey =
     | "functionName"
     | "functionNameDescription"
     | "instructions"
+    | "input"
+    | "inputType"
     | "isIsolated"
     | "maxIter"
     | "memory"
@@ -468,6 +473,8 @@ export type FieldScope = "Global" | "Local" | "Object";
 
 export type NodeKind =
     | "ACTION_OR_EXPRESSION"
+    | "ACTIVITY"
+    | "ACTIVITY_CALL"
     | "AGENTS"
     | "AGENT"
     | "AGENT_CALL"
@@ -536,12 +543,16 @@ export type NodeKind =
     | "RETURN"
     | "RETRY"
     | "ROLLBACK"
+    | "SEND_EVENT"
     | "START"
     | "STOP"
     | "TRANSACTION"
     | "UPDATE_DATA"
     | "WAIT"
+    | "WAIT_EVENT"
     | "WHILE"
+    | "WORKFLOW"
+    | "WORKFLOW_START"
     | "WORKER"
     | "VARIABLE";
 

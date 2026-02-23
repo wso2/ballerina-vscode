@@ -28,7 +28,7 @@ import {
 } from "../../../resources/constants";
 import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
 import { MoreVertIcon } from "../../../resources";
-import NodeIcon from "../../NodeIcon";
+import NodeIcon, { getNodeChartColor } from "../../NodeIcon";
 import { useDiagramContext } from "../../DiagramContext";
 import { BaseNodeModel } from "./BaseNodeModel";
 import { ELineRange, FlowNode } from "@wso2/ballerina-core";
@@ -195,10 +195,43 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     const isMenuOpen = Boolean(menuAnchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
-    const canViewFunction =
+    const isWorkflowActivityCall =
+        model.node.codedata.node === "REMOTE_ACTION_CALL" &&
+        model.node.codedata.org === "ballerina" &&
+        model.node.codedata.module === "workflow" &&
+        model.node.codedata.object === "Context" &&
+        model.node.codedata.symbol === "callActivity";
+    const isWorkflowInitCall =
         model.node.codedata.node === "FUNCTION_CALL" &&
-        model.node.codedata.org === project?.org &&
-        Boolean(model.node.properties?.view?.value);
+        model.node.codedata.org === "ballerina" &&
+        model.node.codedata.module === "workflow" &&
+        model.node.codedata.symbol === "createInstance";
+    const workflowTargetFunctionName =
+        isWorkflowActivityCall
+            ? (typeof model.node.properties?.["activityFunction"]?.value === "string"
+                ? model.node.properties?.["activityFunction"]?.value.trim()
+                : undefined)
+            : (isWorkflowInitCall
+                ? (typeof model.node.properties?.["processFunction"]?.value === "string"
+                    ? model.node.properties?.["processFunction"]?.value.trim()
+                    : undefined)
+                : undefined);
+    const functionViewRange =
+        (model.node.properties?.view?.value as ELineRange | undefined) ||
+        (isWorkflowActivityCall
+            ? (model.node.properties?.["activityFunction"]?.codedata?.lineRange as ELineRange | undefined)
+            : undefined) ||
+        (isWorkflowInitCall
+            ? (model.node.properties?.["processFunction"]?.codedata?.lineRange as ELineRange | undefined)
+            : undefined);
+    const hasViewRange = Boolean(functionViewRange);
+    const canViewFunction =
+        (hasViewRange || Boolean(workflowTargetFunctionName)) &&
+        (
+            (model.node.codedata.node === "FUNCTION_CALL" && model.node.codedata.org === project?.org) ||
+            isWorkflowActivityCall ||
+            isWorkflowInitCall
+        );
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
         if (readOnly) {
@@ -208,7 +241,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             // Handle action when cmd key is pressed
             if (model.node.codedata.node === "DATA_MAPPER_CALL") {
                 openDataMapper();
-            } else if (model.node.codedata.node === "FUNCTION_CALL") {
+            } else if (canViewFunction) {
                 viewFunction();
             } else {
                 onGoToSource();
@@ -288,22 +321,32 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     };
 
     const viewFunction = async () => {
-        if (!model.node.properties?.view?.value) {
+        if (!functionViewRange && !workflowTargetFunctionName) {
             return;
         }
-        const { fileName, startLine, endLine } = model.node.properties.view.value as ELineRange;
-        const response = await project?.getProjectPath?.({ segments: [fileName], codeData: model.node.codedata });
-        openView &&
-            openView({
-                documentUri: response.filePath,
-                position: {
-                    startLine: startLine.line,
-                    startColumn: startLine.offset,
-                    endLine: endLine.line,
-                    endColumn: endLine.offset,
-                },
-                projectPath: response.projectPath,
-            });
+        if (functionViewRange) {
+            const { fileName, startLine, endLine } = functionViewRange;
+            const response = await project?.getProjectPath?.({ segments: [fileName], codeData: model.node.codedata });
+            openView &&
+                openView({
+                    documentUri: response.filePath,
+                    position: {
+                        startLine: startLine.line,
+                        startColumn: startLine.offset,
+                        endLine: endLine.line,
+                        endColumn: endLine.offset,
+                    },
+                    projectPath: response.projectPath,
+                });
+            return;
+        }
+
+        if (workflowTargetFunctionName && project?.getFunctionLocation) {
+            const functionLocation = await project.getFunctionLocation(workflowTargetFunctionName);
+            if (functionLocation) {
+                openView && openView(functionLocation);
+            }
+        }
     };
 
     const menuItems: Item[] = [
@@ -382,7 +425,19 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
             <NodeStyles.Row>
                 <NodeStyles.Icon onClick={handleOnClick}>
-                    <NodeIcon type={model.node.codedata.node} size={24} />
+                    {isWorkflowInitCall ? (
+                        <Icon
+                            name="bi-workflow"
+                            sx={{
+                                fontSize: 24,
+                                width: 24,
+                                height: 24,
+                                color: getNodeChartColor(model.node.codedata.node),
+                            }}
+                        />
+                    ) : (
+                        <NodeIcon type={model.node.codedata.node} size={24} />
+                    )}
                     {/* {model.node.properties.variable?.value && (
                         <NodeStyles.Description>{model.node.properties.variable.value}</NodeStyles.Description>
                     )} */}

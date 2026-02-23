@@ -78,6 +78,13 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
                     view: MACHINE_VIEW.BIFunctionForm,
                 },
             });
+        } else if (key === DIRECTORY_MAP.WORKFLOW) {
+            await rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.BIWorkflowForm,
+                },
+            });
         } else if (key === DIRECTORY_MAP.NP_FUNCTION) {
             await rpcClient.getVisualizerRpcClient().openView({
                 type: EVENT_TYPE.OPEN_VIEW,
@@ -99,6 +106,12 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
                 </BodyText>
             </TitleWrapper>
             <CardGrid>
+                <ButtonCard
+                    id="workflow"
+                    icon={<Icon name="bi-workflow" />}
+                    title="Workflow"
+                    onClick={() => handleClick(DIRECTORY_MAP.WORKFLOW)}
+                />
                 <ButtonCard
                     id="bi-function"
                     data-testid="function"

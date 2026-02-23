@@ -40,6 +40,26 @@ import { getExpandedCategories, setExpandedCategories, getDefaultExpandedState }
 import { shouldShowEmptyCategory, shouldUseConnectionContainer, getCategoryActions, isCategoryFixed } from "./categoryConfig";
 import { stripHtmlTags } from "../Form/utils";
 
+const CATEGORY_DISPLAY_ORDER: Record<string, number> = {
+    connections: 0,
+    statement: 1,
+    statements: 1,
+    control: 2,
+    controls: 2,
+    ai: 3,
+    workflow: 4,
+    workflows: 4,
+    "error handling": 5,
+    concurrency: 6,
+    logging: 7,
+    loggin: 7,
+};
+
+const getCategoryDisplayOrder = (title: string): number => {
+    const normalizedTitle = title.trim().toLowerCase().replace(/\s+/g, " ");
+    return CATEGORY_DISPLAY_ORDER[normalizedTitle] ?? Number.MAX_SAFE_INTEGER;
+};
+
 namespace S {
     export const Container = styled.div<{}>`
         width: 100%;
@@ -594,7 +614,9 @@ export function NodeList(props: NodeListProps) {
         const categoryConfig = {
             "Connections": { hasBackground: false },
             "Statement": { hasBackground: true, showSeparatorBefore: true }, // Show separator before Statement
-            "AI": { hasBackground: true, targetPosition: 3 }, // 4th position (0-indexed)
+            "AI": { hasBackground: true },
+            "Workflow": { hasBackground: true },
+            "Workflows": { hasBackground: true },
             "Control": { hasBackground: true },
             "Error Handling": { hasBackground: true },
             "Concurrency": { hasBackground: true },
@@ -606,58 +628,121 @@ export function NodeList(props: NodeListProps) {
             "Data Loaders": { hasBackground: false },
             "Chunkers": { hasBackground: false },
         };
-        
-        // Reorder categories to move AI as 4th category
-        const reorderedGroups = [...groups];
-        const aiCategoryIndex = reorderedGroups.findIndex(group => group.title === "AI");
-        if (aiCategoryIndex !== -1 && aiCategoryIndex < 3) {
-            const aiCategory = reorderedGroups.splice(aiCategoryIndex, 1)[0];
-            reorderedGroups.splice(3, 0, aiCategory);
-        }
-        
+
+        const reorderedGroups = isSubCategory
+            ? [...groups]
+            : [...groups]
+                .map((group, index) => ({ group, index }))
+                .sort((a, b) => {
+                    const orderDiff = getCategoryDisplayOrder(a.group.title) - getCategoryDisplayOrder(b.group.title);
+                    return orderDiff !== 0 ? orderDiff : a.index - b.index;
+                })
+                .map(({ group }) => group);
+
         const content = (
             <>
-                {reorderedGroups.map((group, index) => {
-                    const categoryActions = getCategoryActions(group.title, title);
-                    const config = categoryConfig[group.title] || { hasBackground: true };
-                    const shouldShowSeparator = config.showSeparatorBefore;
+                {(() => {
+                    let lastVisibleCategoryTitle: string | undefined;
 
-                    // Hide categories that don't have items, except for special categories that can add items
-                    if (!group || !group.items || group.items.length === 0) {
-                        // Only show empty categories if they have add functionality
-                        if (!shouldShowEmptyCategory(group.title)) {
+                    return reorderedGroups.map((group, index) => {
+                        const categoryActions = getCategoryActions(group.title, title);
+                        const config = categoryConfig[group.title] || { hasBackground: true };
+                        const shouldShowSeparator =
+                            config.showSeparatorBefore ||
+                            (!isSubCategory &&
+                                lastVisibleCategoryTitle === "Connections" &&
+                                group.title !== "Connections");
+
+                        // Hide categories that don't have items, except for special categories that can add items
+                        if (!group || !group.items || group.items.length === 0) {
+                            // Only show empty categories if they have add functionality
+                            if (!shouldShowEmptyCategory(group.title)) {
+                                return null;
+                            }
+                        }
+                        if (searchText && (!group.items || group.items.length === 0)) {
                             return null;
                         }
-                    }
-                    if (searchText && (!group.items || group.items.length === 0)) {
-                        return null;
-                    }
-                    // skip current integration category if onAddFunction is not provided and items are empty
-                    if (!onAddFunction && group.title === "Current Integration" && (!group.items || group.items.length === 0)) {
-                        return null;
-                    }
+                        // skip current integration category if onAddFunction is not provided and items are empty
+                        if (!onAddFunction && group.title === "Current Integration" && (!group.items || group.items.length === 0)) {
+                            return null;
+                        }
 
-                    const isCategoryExpanded = shouldExpandAll || expandedCategories[group.title] !== false;
+                        lastVisibleCategoryTitle = group.title;
+                        const isCategoryExpanded = shouldExpandAll || expandedCategories[group.title] !== false;
 
-                    return (
-                        <React.Fragment key={group.title + index}>
-                            {shouldShowSeparator && <S.CategorySeparator />}
-                            <S.CategoryCard hasBackground={config.hasBackground && !isSubCategory}>
-                                <S.CategoryRow showBorder={false}>
-                                    {!isSubCategory ? (
-                                        (() => {
-                                            const isFixed = isCategoryFixed(group.title);
-                                            const HeaderComponent = isFixed ? S.CategoryHeaderFixed : S.CategoryHeader;
-                                            const headerProps = isFixed ? 
-                                                { fullWidth: config.hasBackground && !isSubCategory } : 
-                                                { fullWidth: config.hasBackground && !isSubCategory, onClick: () => toggleCategory(group.title) };
-                                            
-                                            return (
-                                                <HeaderComponent {...headerProps}>
-                                                    <S.Row style={{ margin: 0, cursor: isFixed ? 'default' : 'pointer' }}>
-                                                        <S.Title>{group.title}</S.Title>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    {categoryActions.map((action, actionIndex) => {
+                        return (
+                            <React.Fragment key={group.title + index}>
+                                {shouldShowSeparator && <S.CategorySeparator />}
+                                <S.CategoryCard hasBackground={config.hasBackground && !isSubCategory}>
+                                    <S.CategoryRow showBorder={false}>
+                                        {!isSubCategory ? (
+                                            (() => {
+                                                const isFixed = isCategoryFixed(group.title);
+                                                const HeaderComponent = isFixed ? S.CategoryHeaderFixed : S.CategoryHeader;
+                                                const headerProps = isFixed ? 
+                                                    { fullWidth: config.hasBackground && !isSubCategory } : 
+                                                    { fullWidth: config.hasBackground && !isSubCategory, onClick: () => toggleCategory(group.title) };
+                                                
+                                                return (
+                                                    <HeaderComponent {...headerProps}>
+                                                        <S.Row style={{ margin: 0, cursor: isFixed ? 'default' : 'pointer' }}>
+                                                            <S.Title>{group.title}</S.Title>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        {categoryActions.map((action, actionIndex) => {
+                                                            const handlers = {
+                                                                onAddConnection: handleAddConnection,
+                                                                onAddFunction: handleAddFunction,
+                                                                onAdd: handleAdd
+                                                            };
+                                                            
+                                                            const handler = handlers[action.handlerKey];
+                                                            const propsHandler = props[action.handlerKey];
+                                                            
+                                                            // Only render if the handler exists in props
+                                                            if (!propsHandler || !handler) return null;
+                                                            
+                                                            const tooltipText = action.tooltip || addButtonLabel || "";
+                                                            
+                                                            return (
+                                                                <Tooltip key={`${group.title}-${actionIndex}`} content={tooltipText}>
+                                                                    <Button
+                                                                        appearance="icon"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handler();
+                                                                        }}
+                                                                    >
+                                                                        <Codicon name="add" />
+                                                                    </Button>
+                                                                </Tooltip>
+                                                            );
+                                                        })}
+                                                        {!isFixed && (
+                                                            <Tooltip content={isCategoryExpanded ? "Collapse" : "Expand"}>
+                                                                <S.ChevronIcon isExpanded={isCategoryExpanded}>
+                                                                    <Codicon name="chevron-right" />
+                                                                </S.ChevronIcon>
+                                                            </Tooltip>
+                                                        )}
+                                                    </div>
+                                                </S.Row>
+                                            </HeaderComponent>
+                                                );
+                                            })()
+                                        ) : (
+                                            <S.Row>
+                                                <Tooltip content={group.description}>
+                                                    <S.SubTitle>{group.title}</S.SubTitle>
+                                                </Tooltip>
+                                            </S.Row>
+                                        )}
+                                        {(isCategoryExpanded || isCategoryFixed(group.title)) && (
+                                            <>
+                                                {(!group.items || group.items.length === 0) &&
+                                                    !searchText &&
+                                                    !isSearching &&
+                                                    categoryActions.map((action, actionIndex) => {
                                                         const handlers = {
                                                             onAddConnection: handleAddConnection,
                                                             onAddFunction: handleAddFunction,
@@ -670,96 +755,44 @@ export function NodeList(props: NodeListProps) {
                                                         // Only render if the handler exists in props
                                                         if (!propsHandler || !handler) return null;
                                                         
-                                                        const tooltipText = action.tooltip || addButtonLabel || "";
+                                                        const buttonLabel = action.emptyStateLabel || addButtonLabel || "Add";
                                                         
                                                         return (
-                                                            <Tooltip key={`${group.title}-${actionIndex}`} content={tooltipText}>
-                                                                <Button
-                                                                    appearance="icon"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handler();
-                                                                    }}
-                                                                >
-                                                                    <Codicon name="add" />
-                                                                </Button>
-                                                            </Tooltip>
+                                                            <S.HighlightedButton 
+                                                                key={`empty-${group.title}-${actionIndex}`}
+                                                                onClick={handler}
+                                                            >
+                                                                <Codicon name="add" iconSx={{ fontSize: 12 }} />
+                                                                {buttonLabel}
+                                                            </S.HighlightedButton>
                                                         );
                                                     })}
-                                                    {!isFixed && (
-                                                        <Tooltip content={isCategoryExpanded ? "Collapse" : "Expand"}>
-                                                            <S.ChevronIcon isExpanded={isCategoryExpanded}>
-                                                                <Codicon name="chevron-right" />
-                                                            </S.ChevronIcon>
-                                                        </Tooltip>
-                                                    )}
-                                                </div>
-                                            </S.Row>
-                                        </HeaderComponent>
-                                            );
-                                        })()
-                                    ) : (
-                                        <S.Row>
-                                            <Tooltip content={group.description}>
-                                                <S.SubTitle>{group.title}</S.SubTitle>
-                                            </Tooltip>
-                                        </S.Row>
-                                    )}
-                                    {(isCategoryExpanded || isCategoryFixed(group.title)) && (
-                                        <>
-                                            {(!group.items || group.items.length === 0) &&
-                                                !searchText &&
-                                                !isSearching &&
-                                                categoryActions.map((action, actionIndex) => {
-                                                    const handlers = {
-                                                        onAddConnection: handleAddConnection,
-                                                        onAddFunction: handleAddFunction,
-                                                        onAdd: handleAdd
-                                                    };
-                                                    
-                                                    const handler = handlers[action.handlerKey];
-                                                    const propsHandler = props[action.handlerKey];
-                                                    
-                                                    // Only render if the handler exists in props
-                                                    if (!propsHandler || !handler) return null;
-                                                    
-                                                    const buttonLabel = action.emptyStateLabel || addButtonLabel || "Add";
-                                                    
-                                                    return (
-                                                        <S.HighlightedButton 
-                                                            key={`empty-${group.title}-${actionIndex}`}
-                                                            onClick={handler}
-                                                        >
-                                                            <Codicon name="add" iconSx={{ fontSize: 12 }} />
-                                                            {buttonLabel}
-                                                        </S.HighlightedButton>
-                                                    );
-                                                })}
-                                            {group.items &&
-                                            group.items.length > 0 &&
-                                            // 1. If parent group uses connection container and ALL items don't have id, use getConnectionContainer
-                                            shouldUseConnectionContainer(group.title) &&
-                                            group.items.filter((item) => item != null).every((item) => !("id" in item))
-                                                ? getConnectionContainer(group.items as Category[], group.title === "Agent")
-                                                : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
+                                                {group.items &&
+                                                group.items.length > 0 &&
+                                                // 1. If parent group uses connection container and ALL items don't have id, use getConnectionContainer
+                                                shouldUseConnectionContainer(group.title) &&
                                                 group.items.filter((item) => item != null).every((item) => !("id" in item))
-                                                ? getCategoryContainer(
-                                                      group.items as Category[],
-                                                      true,
-                                                      !isSubCategory ? group.title : parentCategoryTitle
-                                                  )
-                                                : // 3. Otherwise (has items with id or mixed), use getNodesContainer
-                                                  getNodesContainer(
-                                                      group.items as (Node | Category)[],
-                                                      !isSubCategory ? group.title : parentCategoryTitle
-                                                  )}
-                                        </>
-                                    )}
-                                </S.CategoryRow>
-                            </S.CategoryCard>
-                        </React.Fragment>
-                    );
-                })}
+                                                    ? getConnectionContainer(group.items as Category[], group.title === "Agent")
+                                                    : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
+                                                    group.items.filter((item) => item != null).every((item) => !("id" in item))
+                                                    ? getCategoryContainer(
+                                                          group.items as Category[],
+                                                          true,
+                                                          !isSubCategory ? group.title : parentCategoryTitle
+                                                      )
+                                                    : // 3. Otherwise (has items with id or mixed), use getNodesContainer
+                                                      getNodesContainer(
+                                                          group.items as (Node | Category)[],
+                                                          !isSubCategory ? group.title : parentCategoryTitle
+                                                      )}
+                                            </>
+                                        )}
+                                    </S.CategoryRow>
+                                </S.CategoryCard>
+                            </React.Fragment>
+                        );
+                    });
+                })()}
             </>
         );
 

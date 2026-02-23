@@ -938,8 +938,14 @@ export const Form = forwardRef((props: FormProps) => {
         handleSubmit(
             async (data) => {
                 try {
+                    //HACK: skip form validation for "ACTIVITY_CALL" and "WAIT_EVENT" nodes until fixed diagnostic issue from LS.
+                    if (selectedNode === "ACTIVITY_CALL" || selectedNode === "WAIT_EVENT") {
+                        handleOnSave(data);
+                        return;
+                    }
                     const isValidForm = await handleFormValidation(data);
                     if (!isValidForm) {
+                        console.error(">>> Form validation failed, not saving", { data: props, formData: data });
                         setSavingButton(null);
                         return;
                     }

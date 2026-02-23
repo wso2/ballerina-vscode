@@ -146,13 +146,13 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 handleNewTypeSelected={handleNewTypeSelected}
             />
         );
-    } else if (!field.items && (field.key === "type" || field.type === "TYPE") && field.editable) {
+    } else if (!field.items && (field.key === "type" || field.type === "TYPE" || field.type === "WORKFLOW_INPUT_TYPE") && field.editable) {
         return (
             <TypeEditor
                 field={field}
                 openRecordEditor={openRecordEditor}
                 openFormTypeEditor={openFormTypeEditor}
-                isContextTypeEditorSupported={isContextTypeEditorSupported}
+                isContextTypeEditorSupported={isContextTypeEditorSupported || field.type === "WORKFLOW_INPUT_TYPE"}
                 handleOnFieldFocus={handleOnFieldFocus}
                 autoFocus={autoFocus}
                 onBlur={onBlur}
