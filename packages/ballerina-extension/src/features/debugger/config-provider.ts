@@ -603,7 +603,9 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
     }
     getScriptPath(args: string[]): string {
         args.push('start-debugger-adapter');
-        return extension.ballerinaExtInstance.getBallerinaCmd();
+        const cmd = extension.ballerinaExtInstance.getBallerinaCmd();
+        // Quote the path to handle spaces in directory names (used with shell: true)
+        return cmd.includes(' ') ? `"${cmd}"` : cmd;
     }
     getCurrentWorkingDir(): string {
         return path.join(extension.ballerinaExtInstance.ballerinaHome, "bin");
@@ -662,7 +664,9 @@ class BIRunAdapter extends LoggingDebugSession {
                 task: 'run'
             };
 
-            let runCommand: string = `${extension.ballerinaExtInstance.getBallerinaCmd()} run`;
+            const balCmd = extension.ballerinaExtInstance.getBallerinaCmd();
+            const quotedBalCmd = balCmd.includes(' ') ? `"${balCmd}"` : balCmd;
+            let runCommand: string = `${quotedBalCmd} run`;
 
             const programArgs = (args as any).programArgs;
             if (programArgs && programArgs.length > 0) {
