@@ -173,13 +173,6 @@ const TodoText = styled.span<{ status: string }>`
             : "var(--vscode-descriptionForeground)"};
 `;
 
-const MessageHint = styled.div`
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-    padding: 5px 4px 2px 4px;
-`;
-
-
 interface TodoSectionProps {
     tasks: Task[];
     message?: string;
@@ -200,7 +193,7 @@ const getStatusIcon = (status: string, isLoading: boolean): { className: string;
     }
 };
 
-const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, isLoading = false }) => {
+const TodoSection: React.FC<TodoSectionProps> = ({ tasks, isLoading = false }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const inProgressRef = useRef<HTMLDivElement>(null);
     const todoListRef = useRef<HTMLDivElement>(null);
@@ -252,7 +245,7 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, isLoading = f
                 <ChevronIcon expanded={isExpanded}>
                     <span className="codicon codicon-chevron-right"></span>
                 </ChevronIcon>
-                <HeaderTitle>Plan</HeaderTitle>
+                <HeaderTitle>Tasks</HeaderTitle>
                 {!isExpanded && inProgressTask && (
                     <CollapsedActiveTask>{inProgressTask.description}</CollapsedActiveTask>
                 )}
@@ -260,7 +253,6 @@ const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, isLoading = f
             </TodoHeader>
             {isExpanded && (
                 <>
-                    {message && <MessageHint>{message}</MessageHint>}
                     <TodoList ref={todoListRef}>
                         {tasks.map((task) => {
                             const statusInfo = getStatusIcon(task.status, isLoading);

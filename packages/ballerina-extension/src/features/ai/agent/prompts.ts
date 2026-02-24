@@ -77,10 +77,19 @@ This plan will be visible to the user and the execution will be guided on the ta
 - Responsible for writing test cases that cover the core logic of the implementation.
 - Include this task only if the user has explicitly asked for tests. Skip it otherwise.
 
-#### Task Breakdown Example
-1. Create the HTTP service contract
-2. Create the MYSQL Connection
-3. Implement the resource functions
+#### Task Breakdown Approach
+First, identify the logical implementation units in the user requirement.
+For example, "Connect to Google Sheets and save to CSV" → two units:
+  Unit 1: Google Sheets integration
+  Unit 2: CSV file export
+
+For each logical unit, create the necessary typed tasks using the task types above.
+Keep tasks high-level and non-overlapping. Do NOT create micro-tasks for individual functions.
+
+Example breakdown for the above:
+1. Initialize the Google Sheets client (connections_init)
+2. Implement the data reading logic (implementation)
+3. Implement the CSV file export (implementation)
 
 **Critical Rules**:
 - Task management is MANDATORY for all implementations
@@ -89,10 +98,10 @@ This plan will be visible to the user and the execution will be guided on the ta
 
 **Execution Flow**:
 1. Think about and explain your high-level design plan to the user
-2. After explaining the plan, output: <toolcall>Planning...</toolcall>
-3. Then immediately call ${TASK_WRITE_TOOL_NAME} with the broken down tasks (DO NOT write any text after the toolcall tag)
+2. Immediately call ${TASK_WRITE_TOOL_NAME} with ALL tasks and **isPlanApproval: true** (DO NOT write any text before or after the tool call)
 4. The tool will wait for PLAN APPROVAL from the user
-5. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
+5. If the user requests changes, revise the task list and call ${TASK_WRITE_TOOL_NAME} again with **isPlanApproval: true**
+6. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
 
    **For each task:**
    - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} and immediately start implementation in parallel (single message with multiple tool calls)
@@ -101,13 +110,12 @@ This plan will be visible to the user and the execution will be guided on the ta
      - First use ${LIBRARY_SEARCH_TOOL} with relevant keywords to discover available libraries
      - Then use ${LIBRARY_GET_TOOL} to fetch full details for the discovered libraries
      - If NO suitable library is found, call ${CONNECTOR_GENERATOR_TOOL} to generate connector from OpenAPI spec
-   - Before marking the task as completed, use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them. Introduce a new subtask if needed.
-   - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
-   - The tool will wait for TASK COMPLETION APPROVAL from the user
-   - Once approved (success: true), immediately start the next task
+   - Before marking the task as completed, use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them.
+   - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks, no approval flags) — the agent continues automatically
+   - After completing a logical unit of work (a set of related tasks), set **requestReview: true** on the TaskWrite call to let the user review before continuing. Do NOT set this after every single task.
    - Repeat until ALL tasks are done
 
-6. **Critical**: After each approval (both plan and task completions), immediately proceed to the next step without any delay or additional prompting
+7. **Critical**: Unless requestReview is set, immediately proceed to the next task after each completion without delay or prompting
 
 **User Communication**:
 - Using the task_write tool will automatically show progress to the user via a task list

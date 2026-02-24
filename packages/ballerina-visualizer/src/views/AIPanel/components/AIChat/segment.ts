@@ -14,6 +14,7 @@ export enum SegmentType {
     ConfigurationCollector = "ConfigurationCollector",
     ReviewActions = "ReviewActions",
     TryItScenarios = "TryItScenarios",
+    ExecutionStream = "ExecutionStream",
 }
 
 interface Segment {
@@ -88,7 +89,7 @@ export function splitContent(content: string): Segment[] {
     // Combined regex to capture either <code ...>```<language> code ```</code> or <progress>Text</progress>
     // Using matchAll for stateless iteration to avoid regex lastIndex corruption during streaming
     const regexPattern =
-        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall(?:\s+[^>]*)?>([\s\S]*?)<\/toolcall>|<toolresult(?:\s+[^>]*)?>([\s\S]*?)<\/toolresult>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>|<reviewactions>([\s\S]*?)<\/reviewactions>|<configurationcollector>([\s\S]*?)<\/configurationcollector>|<tryitcall(?:\s+[^>]*)?>([\s\S]*?)<\/tryitcall>|<tryitresult(?:\s+[^>]*)?>([\s\S]*?)<\/tryitresult>/g;
+        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall(?:\s+[^>]*)?>([\s\S]*?)<\/toolcall>|<toolresult(?:\s+[^>]*)?>([\s\S]*?)<\/toolresult>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>|<reviewactions>([\s\S]*?)<\/reviewactions>|<configurationcollector>([\s\S]*?)<\/configurationcollector>|<tryitcall(?:\s+[^>]*)?>([\s\S]*?)<\/tryitcall>|<tryitresult(?:\s+[^>]*)?>([\s\S]*?)<\/tryitresult>|<executionstream>([\s\S]*?)<\/executionstream>/g;
 
     // Convert to array to avoid stateful regex iteration issues
     const matches = Array.from(content.matchAll(regexPattern));
@@ -301,6 +302,22 @@ export function splitContent(content: string): Segment[] {
                     loading: false,
                     text: tryitresultText,
                 });
+            }
+        } else if (match[20]) {
+            // <executionstream> block matched — serialized plan-mode execution history
+            const executionStreamData = match[20];
+
+            updateLastProgressSegmentLoading();
+            try {
+                const parsedData = JSON.parse(executionStreamData);
+                segments.push({
+                    type: SegmentType.ExecutionStream,
+                    loading: false,
+                    text: "",
+                    executionStream: parsedData.tasks ?? [],
+                });
+            } catch (error) {
+                console.error("Failed to parse execution stream data:", error);
             }
         }
 
