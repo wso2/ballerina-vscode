@@ -103,6 +103,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         fieldInputType.fieldType === "RECORD_MAP_EXPRESSION" ||
         fieldInputType.fieldType === "SQL_QUERY" ||
         fieldInputType.fieldType === "NUMBER" ||
+        fieldInputType.fieldType === "PROMPT" ||
         (fieldInputType.fieldType === "FLAG" && field.types?.length > 1)
     )
 
@@ -178,7 +179,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             />
         );
 
-    } else if (!field.items && fieldInputType.fieldType === "ACTION_EXPRESSION") {
+    } else if (!field.items && field.type === "ACTION_EXPRESSION") {
         return (
             <ActionExpressionEditor
                 field={field}
