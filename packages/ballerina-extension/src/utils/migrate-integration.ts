@@ -53,7 +53,8 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
     }
 
     const ballerinaCmd = extension.ballerinaExtInstance.getBallerinaCmd();
-    const command = `${ballerinaCmd} tool pull ${migrationToolName}:${version}`;
+    const quotedCmd = ballerinaCmd.includes(' ') ? `"${ballerinaCmd}"` : ballerinaCmd;
+    const command = `${quotedCmd} tool pull ${migrationToolName}:${version}`;
     debug(`Executing migration tool pull command: ${command}`);
 
     // 2. This function now returns a promise that wraps the exec lifecycle
