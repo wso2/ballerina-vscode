@@ -72,7 +72,8 @@ export function runHandler(request: TestRunRequest, cancellation: CancellationTo
             try {
                 // execute test
                 const executor = extension.ballerinaExtInstance.getBallerinaCmd();
-                const commandText = `${executor} ${BALLERINA_COMMANDS.TEST} ${EXEC_ARG.TESTS} ${testNames} ${EXEC_ARG.COVERAGE}`;
+                const quotedExecutor = executor.includes(' ') ? `"${executor}"` : executor;
+                const commandText = `${quotedExecutor} ${BALLERINA_COMMANDS.TEST} ${EXEC_ARG.TESTS} ${testNames} ${EXEC_ARG.COVERAGE}`;
                 await runCommand(commandText, projectRoot);
 
             } catch {
