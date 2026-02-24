@@ -290,12 +290,13 @@ public class ServiceClassUtil {
                     if (module.isPresent() && annotSymbol.typeDescriptor().isPresent()) {
                         String moduleName = module.get().id().moduleName();
                         String moduleOrg = module.get().id().orgName();
+                        String packageName = module.get().id().packageName();
                         property.getCodedata().setModuleName(moduleName);
                         property.getCodedata().setOrgName(moduleOrg);
                         String type = annotSymbol.typeDescriptor().get().getName().orElse(RESOURCE_CONFIG);
                         property.getTypes().getFirst().typeMembers().add(new PropertyTypeMemberInfo(type,
                                 String.join(COLON, moduleOrg, moduleName, module.get().id().version()),
-                                "RECORD_TYPE", false));
+                                packageName, "RECORD_TYPE", false));
                     }
                 }
                 property.setValue(annotationNode.annotValue().get().toSourceCode().trim());

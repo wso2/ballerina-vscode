@@ -6,5 +6,5 @@
   "prefix": "",
   "allowAdditionalFields": false,
   "asInline": false,
-  "expectedTypes": "\ntype Parent record {|\n\tstring name;\n\tint age;\n\tParent parent?;\n|};\n\ntype PhoneNumbersItem record {|\n\tstring id;\n|};\n\ntype PhoneNumbers (PhoneNumbersItem|string)[];\n\ntype Person record {|\n\tstring name;\n\tint age;\n\tParent parent;\n\tPhoneNumbers phoneNumbers;\n|};\n"
+  "expectedTypes": "\npublic type Parent record {|\n\tstring name;\n\tint age;\n\tParent parent?;\n|};\n\npublic type PhoneNumbersItem record {|\n\tstring id;\n|};\n\npublic type PhoneNumbers (PhoneNumbersItem|string)[];\n\npublic type Person record {|\n\tstring name;\n\tint age;\n\tParent parent;\n\tPhoneNumbers phoneNumbers;\n|};\n"
 }

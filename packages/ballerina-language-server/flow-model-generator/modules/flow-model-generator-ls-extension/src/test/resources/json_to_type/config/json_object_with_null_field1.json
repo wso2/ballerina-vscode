@@ -6,5 +6,5 @@
   "prefix": "",
   "allowAdditionalFields": false,
   "asInline": false,
-  "expectedTypes": "\ntype Roles string[];\n\ntype Person record {|\n\tint id;\n\tstring name;\n\tstring email;\n\tstring date_of_birth;\n\tboolean is_active;\n\t() age;\n\tRoles roles;\n|};\n"
+  "expectedTypes": "\npublic type Roles string[];\n\npublic type Person record {|\n\tint id;\n\tstring name;\n\tstring email;\n\tstring date_of_birth;\n\tboolean is_active;\n\t() age;\n\tRoles roles;\n|};\n"
 }

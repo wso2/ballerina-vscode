@@ -1,0 +1,79 @@
+{
+  "source": "empty.bal",
+  "description": "Public function with no parameters and no return type",
+  "diagram": {
+    "id": "78668",
+    "metadata": {
+      "label": "Function Definition",
+      "description": "Define a function"
+    },
+    "codedata": {
+      "node": "FUNCTION_DEFINITION",
+      "lineRange": {
+        "fileName": "single.bal",
+        "startLine": {
+          "line": 47,
+          "offset": 7
+        },
+        "endLine": {
+          "line": 47,
+          "offset": 82
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Function Name",
+          "description": "Name of the function"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "initialize",
+        "optional": false,
+        "editable": true,
+        "advanced": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "valueType": "TYPE",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Make visible across the workspace"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "empty.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 47,
+            "character": 7
+          },
+          "end": {
+            "line": 47,
+            "character": 82
+          }
+        },
+        "newText": "public function initialize( ) "
+      }
+    ]
+  }
+}

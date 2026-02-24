@@ -205,10 +205,10 @@
                     "packageInfo": "nipunaf:new_connection1:0.1.0",
                     "packageName": "new_connection1",
                     "kind": "RECORD_TYPE",
-                    "selected": false
+                    "selected": true
                   }
                 ],
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
@@ -633,10 +633,7 @@
                 "selected": false
               }
             ],
-            "value": {
-              "name": "\"John\"",
-              "age": "30"
-            },
+            "value": "{name: \"John\", age: 30}",
             "placeholder": "()",
             "optional": false,
             "editable": true,
@@ -673,7 +670,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "indentation"
             },
-            "defaultValue": "0"
+            "defaultValue": "4"
           },
           "variable": {
             "metadata": {

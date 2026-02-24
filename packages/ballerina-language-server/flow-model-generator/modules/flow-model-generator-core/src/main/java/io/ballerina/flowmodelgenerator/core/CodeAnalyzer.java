@@ -159,8 +159,10 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
@@ -217,6 +219,8 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
  */
 public class CodeAnalyzer extends NodeVisitor {
 
+    public static final String PARAMETERIZED_QUERY = "sql:ParameterizedQuery";
+    public static final String PARAMETERIZED_CALL_QUERY = "sql:ParameterizedCallQuery";
     // Readonly fields
     private final Project project;
     private final SemanticModel semanticModel;
@@ -294,7 +298,8 @@ public class CodeAnalyzer extends NodeVisitor {
             } else {
                 kind = FunctionKind.RESOURCE;
             }
-        } else if (hasQualifier(functionDefinitionNode.qualifierList(), SyntaxKind.REMOTE_KEYWORD)) {
+        } else if (functionDefinitionNode.qualifierList().stream()
+                .anyMatch(qualifier -> qualifier.kind() == SyntaxKind.REMOTE_KEYWORD)) {
             kind = FunctionKind.REMOTE_FUNCTION;
         } else {
             kind = FunctionKind.FUNCTION;
@@ -802,11 +807,16 @@ public class CodeAnalyzer extends NodeVisitor {
                                        RemoteMethodCallActionNode remoteMethodCallActionNode,
                                        MethodSymbol functionSymbol, String objName,
                                        Map<String, Object> metadataData) {
+        Optional<Package> resolvedPackage = moduleInfo != null ?
+                PackageUtil.resolveModulePackage(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version()) :
+                Optional.empty();
+
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(functionName)
                 .functionSymbol(functionSymbol)
                 .semanticModel(semanticModel)
-                .userModuleInfo(moduleInfo);
+                .userModuleInfo(moduleInfo)
+                .resolvedPackage(resolvedPackage.orElse(null));
         FunctionData functionData = functionDataBuilder.build();
 
         nodeBuilder
@@ -990,12 +1000,26 @@ public class CodeAnalyzer extends NodeVisitor {
                     customPropBuilder.defaultable(false);
                 }
                 unescapedParamName = "additionalValues";
-                customPropBuilder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
+                Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                        semanticModel, moduleInfo);
+                customPropBuilder.type()
+                        .fieldType(Property.ValueType.REPEATABLE_MAP)
+                        .ballerinaType(paramResult.type())
+                        .template(template)
+                        .selected(true)
+                        .stepOut();
             } else if (paramResult.kind() == ParameterData.Kind.REST_PARAMETER) {
                 if (hasOnlyRestParams) {
                     customPropBuilder.defaultable(false);
                 }
-                customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
+                Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                        semanticModel, moduleInfo);
+                customPropBuilder.type()
+                        .fieldType(Property.ValueType.REPEATABLE_LIST)
+                        .ballerinaType(paramResult.type())
+                        .template(template)
+                        .selected(true)
+                        .stepOut();
             } else {
                 customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
             }
@@ -1063,12 +1087,26 @@ public class CodeAnalyzer extends NodeVisitor {
                     if (hasOnlyRestParams) {
                         customPropBuilder.defaultable(false);
                     }
-                    customPropBuilder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
+                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    customPropBuilder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_MAP)
+                            .ballerinaType(paramResult.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 } else if (paramKind == ParameterData.Kind.REST_PARAMETER) {
                     if (hasOnlyRestParams) {
                         customPropBuilder.defaultable(false);
                     }
-                    customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
+                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    customPropBuilder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_LIST)
+                            .ballerinaType(paramResult.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 } else {
                     customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
                 }
@@ -1089,19 +1127,26 @@ public class CodeAnalyzer extends NodeVisitor {
                 int paramCount = paramsList.size(); // param count without rest params
                 int argCount = positionalArgs.size();
 
-                List<String> restArgs = new ArrayList<>();
+                List<Node> restArgs = new ArrayList<>();
                 for (int i = 0; i < paramsList.size(); i++) {
                     ParameterSymbol parameterSymbol = paramsList.get(i);
-                    String escapedParamName = parameterSymbol.getName().get();
+                    Optional<String> nameOptional = parameterSymbol.getName();
+                    if (nameOptional.isEmpty()) {
+                        continue;
+                    }
+                    String escapedParamName = nameOptional.get();
                     ParameterData paramResult = funcParamMap.get(escapedParamName);
                     if (paramResult == null) {
-                        escapedParamName = CommonUtil.escapeReservedKeyword(parameterSymbol.getName().get());
+                        escapedParamName = CommonUtil.escapeReservedKeyword(escapedParamName);
                     }
                     paramResult = funcParamMap.get(escapedParamName);
+                    if (paramResult == null) {
+                        continue;
+                    }
                     Node paramValue = i < argCount ? positionalArgs.poll()
                             : namedArgValueMap.get(paramResult.name());
 
-                    funcParamMap.remove(parameterSymbol.getName().get());
+                    funcParamMap.remove(escapedParamName);
                     Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                             nodeBuilder.properties().custom();
                     String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
@@ -1129,24 +1174,31 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
 
                 for (int i = paramCount; i < argCount; i++) {
-                    restArgs.add(Objects.requireNonNull(positionalArgs.poll()).toSourceCode().strip());
+                    restArgs.add(Objects.requireNonNull(positionalArgs.poll()));
                 }
                 Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                         nodeBuilder.properties().custom();
-                String escapedParamName = restParamSymbol.getName().get();
-                ParameterData restParamResult = funcParamMap.get(escapedParamName);
-                if (restParamResult == null) {
-                    restParamResult = funcParamMap.get(CommonUtil.escapeReservedKeyword(
-                            restParamSymbol.getName().get()));
+                Optional<String> restNameOptional = restParamSymbol.getName();
+                if (restNameOptional.isEmpty()) {
+                    return;
                 }
-                funcParamMap.remove(restParamSymbol.getName().get());
+                String escapedParamName = restNameOptional.get();
+                ParameterData restParamResult = funcParamMap.get(escapedParamName);
+                Optional<String> restParamName = restParamSymbol.getName();
+                if (restParamResult == null && restParamName.isPresent()) {
+                    restParamResult = funcParamMap.get(CommonUtil.escapeReservedKeyword(
+                            restParamName.get()));
+                }
+                restParamName.ifPresent(funcParamMap::remove);
+                if (restParamResult == null) {
+                    return;
+                }
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(restParamResult.name());
-                buildPropertyType(customPropBuilder, restParamResult);
-                customPropBuilder
+                FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
                         .metadata()
-                            .label(unescapedParamName)
-                            .description(restParamResult.description())
-                            .stepOut()
+                        .label(unescapedParamName)
+                        .description(restParamResult.description())
+                        .stepOut()
                         .imports(restParamResult.importStatements())
                         .value(restArgs)
                         .placeholder(restParamResult.placeholder())
@@ -1154,11 +1206,13 @@ public class CodeAnalyzer extends NodeVisitor {
                         .editable()
                         .defaultable(!hasOnlyRestParams)
                         .codedata()
-                            .kind(restParamResult.kind().name())
-                            .originalName(restParamResult.name())
-                            .stepOut()
+                        .kind(restParamResult.kind().name())
+                        .originalName(restParamResult.name())
                         .stepOut()
-                        .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName));
+                        .stepOut();
+
+                buildPropertyTypeForRestParam(customPropBuilder, restParamResult, restArgs);
+                nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName));
             }
             // iterate over functionParamMap
             addRemainingParamsToPropertyMap(funcParamMap, hasOnlyRestParams);
@@ -1170,10 +1224,14 @@ public class CodeAnalyzer extends NodeVisitor {
             List<ParameterSymbol> paramsList = paramsOptional.get();
             int argCount = positionalArgs.size();
 
-            final List<LinkedHashMap<String, String>> includedRecordRestArgs = new ArrayList<>();
+            final List<LinkedHashMap<String, Node>> includedRecordRestArgs = new ArrayList<>();
             for (int i = 0; i < paramsList.size(); i++) {
                 ParameterSymbol parameterSymbol = paramsList.get(i);
-                String escapedParamName = parameterSymbol.getName().get();
+                Optional<String> paramNameOptional = parameterSymbol.getName();
+                if (paramNameOptional.isEmpty()) {
+                    continue;
+                }
+                String escapedParamName = paramNameOptional.get();
                 if (!funcParamMap.containsKey(escapedParamName)) {
                     escapedParamName = CommonUtil.escapeReservedKeyword(escapedParamName);
                     if (!funcParamMap.containsKey(escapedParamName)) {
@@ -1322,69 +1380,80 @@ public class CodeAnalyzer extends NodeVisitor {
                 nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
             }
 
-            for (Map.Entry<String, Node> entry : namedArgValueMap.entrySet()) { // handle remaining named args
-                String escapedParamName = CommonUtil.escapeReservedKeyword(entry.getKey());
-                if (!funcParamMap.containsKey(escapedParamName)) {
-                    LinkedHashMap<String, String> map = new LinkedHashMap<>();
-                    map.put(entry.getKey(), entry.getValue().toSourceCode().strip());
-                    includedRecordRestArgs.add(map);
-                    continue;
-                }
-                Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
-                        nodeBuilder.properties().custom();
-                ParameterData paramResult = funcParamMap.remove(escapedParamName);
-                String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-                Node paramValue = entry.getValue();
-                String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
-
-                FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
-                        .metadata()
-                            .label(paramResult.label())
-                            .description(paramResult.description())
-                            .stepOut()
-                        .imports(paramResult.importStatements())
-                        .value(value)
-                        .placeholder(paramResult.placeholder())
-                        .defaultValue(paramResult.defaultValue())
-                        .editable()
-                        .defaultable(paramResult.optional())
-                        .codedata()
-                            .kind(paramResult.kind().name())
-                            .originalName(paramResult.name())
-                            .stepOut()
-                        .stepOut();
-
-                buildPropertyType(customPropBuilder, paramResult, paramValue);
-                nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
-            }
-            ParameterData includedRecordRest = funcParamMap.get("Additional Values");
-            if (includedRecordRest != null) {
-                funcParamMap.remove("Additional Values");
-                Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
-                        nodeBuilder.properties().custom();
-                buildPropertyType(customPropBuilder, includedRecordRest);
-                customPropBuilder
-                        .metadata()
-                            .label(includedRecordRest.label())
-                            .description(includedRecordRest.description())
-                            .stepOut()
-                        .imports(includedRecordRest.importStatements())
-                        .value(includedRecordRestArgs)
-                        .placeholder(includedRecordRest.placeholder())
-                        .defaultValue(includedRecordRest.defaultValue())
-                        .editable()
-                        .defaultable(includedRecordRest.optional())
-                        .codedata()
-                            .kind(includedRecordRest.kind().name())
-                            .originalName(includedRecordRest.name())
-                            .stepOut()
-                        .stepOut()
-                        .addProperty("additionalValues");
-            }
+            handleRemaningNamedArgs(funcParamMap, namedArgValueMap, includedRecordRestArgs);
+            handleIncludedRecordRestArgs(funcParamMap, includedRecordRestArgs);
             if (hasIncludedParamAsNamedArg) {
                 return;
             }
             addRemainingParamsToPropertyMap(funcParamMap, hasOnlyRestParams);
+        }
+    }
+
+    private void handleRemaningNamedArgs(Map<String, ParameterData> funcParamMap, Map<String, Node> namedArgValueMap,
+                                         List<LinkedHashMap<String, Node>> includedRecordRestArgs) {
+        for (Map.Entry<String, Node> entry : namedArgValueMap.entrySet()) {
+            String escapedParamName = CommonUtil.escapeReservedKeyword(entry.getKey());
+            if (!funcParamMap.containsKey(escapedParamName)) {
+                LinkedHashMap<String, Node> map = new LinkedHashMap<>();
+                map.put(entry.getKey(), entry.getValue());
+                includedRecordRestArgs.add(map);
+                continue;
+            }
+            Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
+                    nodeBuilder.properties().custom();
+            ParameterData paramResult = funcParamMap.remove(escapedParamName);
+            String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
+            Node paramValue = entry.getValue();
+            String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
+
+            FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
+                    .metadata()
+                        .label(paramResult.label())
+                        .description(paramResult.description())
+                        .stepOut()
+                    .imports(paramResult.importStatements())
+                    .value(value)
+                    .placeholder(paramResult.placeholder())
+                    .defaultValue(paramResult.defaultValue())
+                    .editable()
+                    .defaultable(paramResult.optional())
+                    .codedata()
+                        .kind(paramResult.kind().name())
+                        .originalName(paramResult.name())
+                        .stepOut()
+                    .stepOut();
+
+            buildPropertyType(customPropBuilder, paramResult, paramValue);
+            nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
+        }
+    }
+
+    private void handleIncludedRecordRestArgs(Map<String, ParameterData> funcParamMap,
+                                              List<LinkedHashMap<String, Node>> includedRecordRestArgs) {
+        ParameterData includedRecordRest = funcParamMap.get("Additional Values");
+        if (includedRecordRest != null) {
+            funcParamMap.remove("Additional Values");
+            Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
+                    nodeBuilder.properties().custom();
+            FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
+                    .metadata()
+                    .label(includedRecordRest.label())
+                    .description(includedRecordRest.description())
+                    .stepOut()
+                    .imports(includedRecordRest.importStatements())
+                    .value(includedRecordRestArgs)
+                    .placeholder(includedRecordRest.placeholder())
+                    .defaultValue(includedRecordRest.defaultValue())
+                    .editable()
+                    .defaultable(includedRecordRest.optional())
+                    .codedata()
+                    .kind(includedRecordRest.kind().name())
+                    .originalName(includedRecordRest.name())
+                    .stepOut()
+                    .stepOut();
+
+            buildPropertyTypeForIncludedRecordRest(customPropBuilder, includedRecordRest, includedRecordRestArgs);
+            nodeBuilderFormBuilder.addProperty("additionalValues");
         }
     }
 
@@ -1403,8 +1472,28 @@ public class CodeAnalyzer extends NodeVisitor {
         }
     }
 
-    private void buildPropertyType(Property.Builder<?> builder, ParameterData paramData) {
-        buildPropertyType(builder, paramData, null);
+    private void buildPropertyTypeForRestParam(Property.Builder<?> builder, ParameterData paramData,
+                                               List<Node> values) {
+        Property template = builder.buildRepeatableTemplates(paramData.typeSymbol(), semanticModel, moduleInfo);
+        builder.type()
+                .fieldType(Property.ValueType.REPEATABLE_LIST)
+                .ballerinaType(paramData.type())
+                .template(template)
+                .selected(true)
+                .stepOut();
+        builder.handleRestArguments(builder, values);
+    }
+
+    private void buildPropertyTypeForIncludedRecordRest(Property.Builder<?> builder, ParameterData paramData,
+                                                        List<LinkedHashMap<String, Node>> values) {
+        Property template = builder.buildRepeatableTemplates(paramData.typeSymbol(), semanticModel, moduleInfo);
+        builder.type()
+                .fieldType(Property.ValueType.REPEATABLE_MAP)
+                .ballerinaType(paramData.type())
+                .template(template)
+                .selected(true)
+                .stepOut();
+        builder.handleIncludedRecordRestArgs(builder, values);
     }
 
     private void buildPropertyType(Property.Builder<?> builder, ParameterData paramData, Node value) {
@@ -1413,25 +1502,41 @@ public class CodeAnalyzer extends NodeVisitor {
             builder.type(Property.ValueType.EXPRESSION_SET);
         } else if (kind == ParameterData.Kind.INCLUDED_RECORD_REST) {
             builder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
-        } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
-            String typeSignature = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
-            if (AiUtils.AI_PROMPT_TYPE.equals(typeSignature)) {
-                boolean isPromptSelected = value != null && value.kind() == SyntaxKind.RAW_TEMPLATE_EXPRESSION;
+        } else {
+            String ballerinaType = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
+            if (ballerinaType != null && (ballerinaType.contains(PARAMETERIZED_QUERY)
+                    || ballerinaType.contains(PARAMETERIZED_CALL_QUERY))) {
+                // Handle SQL query parameters with SQL_QUERY as primary option
                 builder.type()
-                        .fieldType(Property.ValueType.PROMPT)
-                        .ballerinaType(AiUtils.AI_PROMPT_TYPE)
-                        .selected(isPromptSelected)
+                        .fieldType(Property.ValueType.SQL_QUERY)
+                        .ballerinaType(ballerinaType)
+                        .selected(true)
                         .stepOut();
                 builder.type()
                         .fieldType(Property.ValueType.EXPRESSION)
-                        .ballerinaType(typeSignature)
-                        .selected(!isPromptSelected)
+                        .ballerinaType(ballerinaType)
+                        .selected(false)
                         .stepOut();
+            } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
+                String typeSignature = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
+                if (AiUtils.AI_PROMPT_TYPE.equals(typeSignature)) {
+                    boolean isPromptSelected = value != null && value.kind() == SyntaxKind.RAW_TEMPLATE_EXPRESSION;
+                    builder.type()
+                            .fieldType(Property.ValueType.PROMPT)
+                            .ballerinaType(AiUtils.AI_PROMPT_TYPE)
+                            .selected(isPromptSelected)
+                            .stepOut();
+                    builder.type()
+                            .fieldType(Property.ValueType.EXPRESSION)
+                            .ballerinaType(typeSignature)
+                            .selected(!isPromptSelected)
+                            .stepOut();
+                } else {
+                    builder.type(Property.ValueType.RAW_TEMPLATE);
+                }
             } else {
-                builder.type(Property.ValueType.RAW_TEMPLATE);
+                builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder);
             }
-        } else {
-            builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel);
         }
     }
 
@@ -2321,9 +2426,14 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(RetryStatementNode retryStatementNode) {
-        int retryCount = retryStatementNode.arguments().isEmpty() ? 3 :
-                Integer.parseInt(retryStatementNode.arguments()
-                        .map(arg -> arg.arguments().get(0)).get().toString());
+        int retryCount;
+        if (retryStatementNode.arguments().isEmpty()) {
+            retryCount = 3;
+        } else {
+            Optional<Node> argumentOptional = retryStatementNode.arguments()
+                    .map(arg -> arg.arguments().get(0));
+            retryCount = argumentOptional.map(node -> Integer.parseInt(node.toString())).orElse(3);
+        }
 
         StatementNode statementNode = retryStatementNode.retryBody();
         if (statementNode.kind() == SyntaxKind.BLOCK_STATEMENT) {
@@ -2772,8 +2882,12 @@ public class CodeAnalyzer extends NodeVisitor {
 
         // TODO: Once https://github.com/ballerina-platform/ballerina-lang/pull/43871 is merged,
         //  we can use `typeSymbol.subtypeOf(semanticModel.types().RAW_TEMPLATE)` to check the subtyping
-        TypeDefinitionSymbol rawTypeDefSymbol = (TypeDefinitionSymbol)
-                semanticModel.types().getTypeByName(BALLERINA_ORG_NAME, "lang.object", "0.0.0", "RawTemplate").get();
+        Optional<Symbol> rawSymbolOptional = semanticModel.types()
+                .getTypeByName(BALLERINA_ORG_NAME, "lang.object", "0.0.0", "RawTemplate");
+        if (rawSymbolOptional.isEmpty()) {
+            return false;
+        }
+        TypeDefinitionSymbol rawTypeDefSymbol = (TypeDefinitionSymbol) rawSymbolOptional.get();
 
         TypeSymbol rawTemplateTypeDesc = rawTypeDefSymbol.typeDescriptor();
         return typeSymbol.subtypeOf(rawTemplateTypeDesc);
@@ -2822,9 +2936,6 @@ public class CodeAnalyzer extends NodeVisitor {
                 .collect(Collectors.joining());
     }
 
-    private static boolean hasQualifier(NodeList<Token> qualifierList, SyntaxKind kind) {
-        return qualifierList.stream().anyMatch(qualifier -> qualifier.kind() == kind);
-    }
 
     private boolean isAgent(ServiceDeclarationNode serviceDeclarationNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceDeclarationNode.expressions();

@@ -20,8 +20,6 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 
 import com.google.gson.Gson;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.flowmodelgenerator.core.model.Codedata;
-import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
@@ -29,6 +27,7 @@ import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.projects.Document;
 import org.ballerinalang.model.types.TypeKind;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -63,6 +62,8 @@ public class DataMapperCreationBuilder extends NodeBuilder {
     public static final String RETURN_TYPE = TypeKind.ANYDATA.typeName();
     public static final String PARAMETER_TYPE = TypeKind.ANYDATA.typeName();
 
+    private static final String DATA_MAPPER_DEFINITION_FILE = "data_mappings.bal";
+
     protected String getNameLabel() {
         return DATA_MAPPER_NAME_LABEL;
     }
@@ -77,6 +78,10 @@ public class DataMapperCreationBuilder extends NodeBuilder {
 
     protected String getParametersDoc() {
         return PARAMETERS_DOC;
+    }
+
+    protected String getNodeDefinitionFile() {
+        return DATA_MAPPER_DEFINITION_FILE;
     }
 
     @Override
@@ -94,24 +99,13 @@ public class DataMapperCreationBuilder extends NodeBuilder {
         properties().functionNameTemplate("transform", context.getAllVisibleSymbolNames(),
                 getNameLabel(), getNameDoc());
 
-        setMandatoryProperties(this, null);
+        setMandatoryProperties(context, this, null);
         setOptionalProperties(this);
     }
 
-    public void setMandatoryProperties(NodeBuilder nodeBuilder, String returnType) {
-        nodeBuilder.properties().custom()
-                .metadata()
-                    .label(Property.RESULT_NAME)
-                    .description(Property.RESULT_DOC)
-                .stepOut()
-                .value("outputResult")
-                .type()
-                    .fieldType(Property.ValueType.IDENTIFIER)
-                    .selected(true)
-                .stepOut()
-                .editable()
-                .stepOut()
-                .addProperty(Property.VARIABLE_KEY);
+    public void setMandatoryProperties(TemplateContext context, NodeBuilder nodeBuilder, String returnType) {
+        nodeBuilder.properties()
+                .dataVariable(null, context.getAllVisibleSymbolNames());
 
         nodeBuilder.properties().custom()
                 .metadata()
@@ -124,7 +118,6 @@ public class DataMapperCreationBuilder extends NodeBuilder {
                 .stepOut()
                 .addProperty(Property.TYPE_KEY)
                 .nestedProperty();
-
     }
 
     public static void setProperty(FormBuilder<?> formBuilder, String type, String name) {
@@ -139,8 +132,8 @@ public class DataMapperCreationBuilder extends NodeBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        Map<Path, List<TextEdit>> definition = createDefinition(sourceBuilder);
         Map<Path, List<TextEdit>> invocation = createInvocation(sourceBuilder);
+        Map<Path, List<TextEdit>> definition = createDefinition(sourceBuilder);
 
         Map<Path, List<TextEdit>> combined = new HashMap<>(definition);
         combined.putAll(invocation);
@@ -148,17 +141,21 @@ public class DataMapperCreationBuilder extends NodeBuilder {
     }
 
     private Map<Path, List<TextEdit>> createDefinition(SourceBuilder sourceBuilder) {
-        sourceBuilder.token().keyword(SyntaxKind.FUNCTION_KEYWORD);
+        Path rootPath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
+        Path nodeDefinitionPath = rootPath.resolve(getNodeDefinitionFile());
+        SourceBuilder definitionBuilder =
+                new SourceBuilder(sourceBuilder.flowNode, sourceBuilder.workspaceManager, nodeDefinitionPath);
+        definitionBuilder.token().keyword(SyntaxKind.FUNCTION_KEYWORD);
 
-        Optional<Property> property = sourceBuilder.getProperty(Property.FUNCTION_NAME_KEY);
+        Optional<Property> property = definitionBuilder.getProperty(Property.FUNCTION_NAME_KEY);
         if (property.isEmpty()) {
             throw new IllegalStateException("Data mapper name is not present");
         }
-        sourceBuilder.token()
+        definitionBuilder.token()
                 .name(property.get().value().toString())
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
 
-        Optional<Property> parameters = sourceBuilder.getProperty(Property.PARAMETERS_KEY);
+        Optional<Property> parameters = definitionBuilder.getProperty(Property.PARAMETERS_KEY);
         if (parameters.isPresent() && parameters.get().value() instanceof Map<?, ?> paramMap) {
             List<String> paramList = new ArrayList<>();
             for (Map.Entry<?, ?> entry : paramMap.entrySet()) {
@@ -171,29 +168,31 @@ public class DataMapperCreationBuilder extends NodeBuilder {
                         FormBuilder.NODE_PROPERTIES_TYPE);
                 paramList.add(paramProperties.get(Property.TYPE_KEY).value().toString() + " " + entry.getKey());
             }
-            sourceBuilder.token().name(String.join(", ", paramList));
+            definitionBuilder.token().name(String.join(", ", paramList));
         }
-        sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
+        definitionBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
 
         // Write the return type
-        Optional<Property> returnType = sourceBuilder.getProperty(Property.TYPE_KEY);
+        Optional<Property> returnType = definitionBuilder.getProperty(Property.TYPE_KEY);
         if (returnType.isEmpty() || returnType.get().value().toString().isEmpty()) {
             throw new IllegalStateException("The return type should be defined");
         }
         String returnTypeString = returnType.get().value().toString();
-        sourceBuilder.token()
+        definitionBuilder.token()
                 .keyword(SyntaxKind.RETURNS_KEYWORD)
                 .name(returnTypeString);
 
         Optional<String> returnBody =
-                sourceBuilder.getExpressionBodyText(returnTypeString, returnType.get().imports());
+                definitionBuilder.getExpressionBodyText(returnTypeString, returnType.get().imports());
         if (returnBody.isEmpty()) {
             throw new IllegalStateException("Failed to produce the function body");
         }
 
-        endSourceGeneration(sourceBuilder, returnBody.get());
-        return sourceBuilder
-                .textEdit(SourceBuilder.SourceKind.DECLARATION)
+        endSourceGeneration(definitionBuilder, returnBody.get());
+        Document document = FileSystemUtils.getDocument(definitionBuilder.workspaceManager, nodeDefinitionPath);
+        return definitionBuilder
+                .textEdit(SourceBuilder.SourceKind.DECLARATION, nodeDefinitionPath,
+                        CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine()))
                 .build();
     }
 
@@ -206,22 +205,16 @@ public class DataMapperCreationBuilder extends NodeBuilder {
     }
 
     private Map<Path, List<TextEdit>> createInvocation(SourceBuilder sourceBuilder) {
-        FlowNode flowNode = sourceBuilder.flowNode;
-        Codedata codedata = flowNode.codedata();
-        Path path = FileSystemUtils.resolveFilePathFromCodedata(codedata,
-                sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath));
-        SourceBuilder callBuilder = new SourceBuilder(flowNode, sourceBuilder.workspaceManager, path);
-
-        callBuilder.newVariableWithInferredType();
+        sourceBuilder.newVariableWithInferredType();
         Optional<Property> property = sourceBuilder.getProperty(Property.FUNCTION_NAME_KEY);
         if (property.isEmpty()) {
             throw new IllegalStateException("Name is not present");
         }
-        callBuilder.token()
+        sourceBuilder.token()
                 .name(property.get().value().toString())
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
 
-        Optional<Property> parameters = callBuilder.getProperty(Property.PARAMETERS_KEY);
+        Optional<Property> parameters = sourceBuilder.getProperty(Property.PARAMETERS_KEY);
         if (parameters.isPresent() && parameters.get().value() instanceof Map<?, ?> paramMap) {
             List<String> argsList = new ArrayList<>();
             for (Object obj : paramMap.values()) {
@@ -234,13 +227,13 @@ public class DataMapperCreationBuilder extends NodeBuilder {
                 String paramName = paramProperties.get(Property.VARIABLE_KEY).value().toString();
                 argsList.add(paramName);
             }
-            callBuilder.token().name(String.join(", ", argsList));
+            sourceBuilder.token().name(String.join(", ", argsList));
         }
-        callBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
-        callBuilder.token().endOfStatement();
+        sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
+        sourceBuilder.token().endOfStatement();
 
-        return callBuilder
-                .textEdit(SourceBuilder.SourceKind.STATEMENT, path, CommonUtils.toRange(codedata.lineRange()))
+        return sourceBuilder
+                .textEdit(SourceBuilder.SourceKind.STATEMENT)
                 .acceptImportWithVariableType()
                 .build();
     }

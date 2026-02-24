@@ -161,7 +161,7 @@
           "kind": "DEFAULTABLE",
           "originalName": "strict"
         },
-        "defaultValue": "\"\""
+        "defaultValue": "\"true\""
       },
       "allowNull": {
         "metadata": {

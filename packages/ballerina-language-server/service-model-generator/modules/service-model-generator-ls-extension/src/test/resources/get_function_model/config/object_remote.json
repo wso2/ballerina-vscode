@@ -1,0 +1,154 @@
+{
+  "description": "Test getting remote function model for objects",
+  "type": "object",
+  "functionName": "remote",
+  "response": {
+    "metadata": {
+      "label": "Remote Method",
+      "description": "Remote Method"
+    },
+    "qualifiers": [],
+    "kind": "REMOTE",
+    "accessor": {
+      "metadata": {
+        "label": "Accessor",
+        "description": "The accessor of the function"
+      },
+      "enabled": false,
+      "editable": false,
+      "optional": false,
+      "advanced": false
+    },
+    "name": {
+      "metadata": {
+        "label": "Function Name",
+        "description": "The name of the function"
+      },
+      "placeholder": "",
+      "value": "",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the resource"
+      },
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "parameters": [],
+    "schema": {
+      "parameter": {
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      }
+    },
+    "returnType": {
+      "hasError": false,
+      "isGraphqlId": false,
+      "metadata": {
+        "label": "Return Type",
+        "description": "The return type of the function"
+      },
+      "types": [
+        {
+          "fieldType": "TYPE",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "enabled": true,
+    "optional": false,
+    "editable": true,
+    "canAddParameters": false
+  }
+}

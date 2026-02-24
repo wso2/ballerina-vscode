@@ -25,6 +25,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Option;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.PropertyTypeMemberInfo;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.PackageUtil;
@@ -105,8 +106,8 @@ public class SendEventBuilder extends NodeBuilder {
                 .stepOut()
                 .addProperty(EVENT_NAME_KEY);
 
-        List<ParameterMemberTypeData> typeMembers = List.of(
-                new ParameterMemberTypeData(MAP_ANYDATA_TYPE, "RECORD_TYPE", null, null)
+        List<PropertyTypeMemberInfo> typeMembers = List.of(
+                new PropertyTypeMemberInfo("RECORD_TYPE", null, null, MAP_ANYDATA_TYPE, false)
         );
 
         properties().custom()

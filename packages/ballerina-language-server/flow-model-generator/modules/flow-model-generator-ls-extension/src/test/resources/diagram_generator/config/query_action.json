@@ -289,8 +289,21 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION_SET",
+                        "fieldType": "REPEATABLE_LIST",
                         "ballerinaType": "error:StackFrame[]",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "error:StackFrame",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
                         "selected": false
                       },
                       {
@@ -317,11 +330,25 @@
                     },
                     "types": [
                       {
-                        "fieldType": "MAPPING_EXPRESSION_SET",
-                        "selected": false
+                        "fieldType": "REPEATABLE_MAP",
+                        "ballerinaType": "log:Value",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "log:Value",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": true
                       }
                     ],
-                    "value": [],
+                    "value": {},
                     "placeholder": "{}",
                     "optional": true,
                     "editable": true,
@@ -347,7 +374,7 @@
         "metadata": {
           "label": "Kafka Producer",
           "description": "Represents a Kafka producer endpoint.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.3.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -382,8 +409,26 @@
                 "selected": true
               },
               {
-                "fieldType": "EXPRESSION_SET",
+                "fieldType": "REPEATABLE_LIST",
                 "ballerinaType": "string[]",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "ballerinaType": "string",
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
                 "selected": false
               },
               {
@@ -442,7 +487,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "acks"
             },
-            "defaultValue": "\"all\""
+            "defaultValue": "ACKS_SINGLE"
           },
           "compressionType": {
             "metadata": {
@@ -491,7 +536,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "compressionType"
             },
-            "defaultValue": "\"none\""
+            "defaultValue": "COMPRESSION_NONE"
           },
           "clientId": {
             "metadata": {
@@ -780,8 +825,21 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION",
+                "fieldType": "REPEATABLE_MAP",
                 "ballerinaType": "map<anydata>",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "anydata",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
                 "selected": false
               },
               {
@@ -836,7 +894,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "keySerializerType"
             },
-            "defaultValue": "\"SER_AVRO\""
+            "defaultValue": "SER_BYTE_ARRAY"
           },
           "valueSerializerType": {
             "metadata": {
@@ -873,7 +931,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "valueSerializerType"
             },
-            "defaultValue": "\"SER_AVRO\""
+            "defaultValue": "SER_BYTE_ARRAY"
           },
           "additionalProperties": {
             "metadata": {
@@ -882,8 +940,26 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION",
+                "fieldType": "REPEATABLE_MAP",
                 "ballerinaType": "map<string>",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "ballerinaType": "string",
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
                 "selected": false
               },
               {
@@ -1447,7 +1523,7 @@
                 "typeMembers": [
                   {
                     "type": "SecureSocket",
-                    "packageInfo": "ballerinax:kafka:4.6.2",
+                    "packageInfo": "ballerinax:kafka:4.6.3",
                     "packageName": "kafka",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1484,7 +1560,7 @@
                 "typeMembers": [
                   {
                     "type": "AuthenticationConfiguration",
-                    "packageInfo": "ballerinax:kafka:4.6.2",
+                    "packageInfo": "ballerinax:kafka:4.6.3",
                     "packageName": "kafka",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1552,7 +1628,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "securityProtocol"
             },
-            "defaultValue": "\"PLAINTEXT\""
+            "defaultValue": "PROTOCOL_PLAINTEXT"
           },
           "checkError": {
             "metadata": {

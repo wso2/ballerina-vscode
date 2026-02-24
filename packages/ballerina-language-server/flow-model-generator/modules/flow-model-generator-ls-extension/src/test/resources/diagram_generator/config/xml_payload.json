@@ -461,7 +461,7 @@
                 "selected": true
               }
             ],
-            "value": "xml:Element",
+            "value": "var",
             "placeholder": "var",
             "optional": false,
             "editable": true,

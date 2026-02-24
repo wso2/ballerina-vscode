@@ -145,7 +145,7 @@ public class ListenerDeclAnalyzer {
                 int paramCount = paramsList.size(); // param count without rest params
                 int argCount = positionalArgs.size();
 
-                List<String> restArgs = new ArrayList<>();
+                List<Node> restArgs = new ArrayList<>();
                 for (int i = 0; i < paramsList.size(); i++) {
                     ParameterSymbol parameterSymbol = paramsList.get(i);
                     String escapedParamName = parameterSymbol.getName().get();
@@ -178,7 +178,7 @@ public class ListenerDeclAnalyzer {
                 }
 
                 for (int i = paramCount; i < argCount; i++) {
-                    restArgs.add(Objects.requireNonNull(positionalArgs.poll()).toSourceCode());
+                    restArgs.add(Objects.requireNonNull(positionalArgs.poll()));
                 }
 
                 String escapedParamName = CommonUtil.escapeReservedKeyword(restParamSymbol.getName().get());
@@ -195,14 +195,13 @@ public class ListenerDeclAnalyzer {
                 Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                         .setMetadata(new MetaData(label, restParamResult.description()))
                         .setCodedata(codedata)
-                        .value("[%s]".formatted(String.join(", ", restArgs)))
                         .setPlaceholder(restParamResult.placeholder())
                         .editable(true)
                         .enabled(true)
                         .optional(restParamResult.optional())
                         .setAdvanced(restParamResult.optional());
 
-                buildPropertyType(valueBuilder, restParamResult, semanticModel, moduleInfo);
+                buildPropertyTypeForRestParam(valueBuilder, restParamResult, restArgs);
                 properties.put(unescapedParamName, valueBuilder.build());
             }
             // iterate over functionParamMap
@@ -388,22 +387,30 @@ public class ListenerDeclAnalyzer {
     }
 
     public static void buildPropertyType(Value.ValueBuilder valueBuilder,
-                                                       ParameterData paramData,
-                                                       SemanticModel semanticModel,
-                                                       ModuleInfo moduleInfo) {
+                                         ParameterData paramData,
+                                         SemanticModel semanticModel,
+                                         ModuleInfo moduleInfo) {
         buildPropertyType(valueBuilder, paramData, null, semanticModel, moduleInfo);
+    }
+
+    private void buildPropertyTypeForRestParam(Value.ValueBuilder builder, ParameterData paramData, List<Node> values) {
+        Value template = PropertyType.buildRepeatableTemplates(paramData.typeSymbol(), semanticModel, moduleInfo);
+        PropertyType propertyType = new PropertyType.Builder()
+                .fieldType(Value.FieldType.REPEATABLE_LIST)
+                .ballerinaType(paramData.type())
+                .template(template)
+                .selected(true)
+                .build();
+        List<PropertyType> propertyTypes = List.of(propertyType);
+        builder.types(propertyTypes);
+        PropertyType.handleRestArguments(builder, values, propertyTypes);
     }
 
     private static void buildPropertyType(Value.ValueBuilder valueBuilder,
                                           ParameterData paramData, Node value,
                                           SemanticModel semanticModel,
                                           ModuleInfo moduleInfo) {
-        ParameterData.Kind kind = paramData.kind();
-        if (kind == ParameterData.Kind.REST_PARAMETER) {
-            valueBuilder.types(List.of(PropertyType.types(Value.FieldType.EXPRESSION_SET)));
-        } else if (kind == ParameterData.Kind.INCLUDED_RECORD_REST) {
-            valueBuilder.types(List.of(PropertyType.types(Value.FieldType.MAPPING_EXPRESSION_SET)));
-        } else if (isSubTypeOfRawTemplate(paramData.typeSymbol(), semanticModel)) {
+        if (isSubTypeOfRawTemplate(paramData.typeSymbol(), semanticModel)) {
             valueBuilder.types(List.of(PropertyType.types(Value.FieldType.RAW_TEMPLATE)));
         } else {
             PropertyType.typeWithExpression(valueBuilder, paramData.typeSymbol(), moduleInfo, value, semanticModel);

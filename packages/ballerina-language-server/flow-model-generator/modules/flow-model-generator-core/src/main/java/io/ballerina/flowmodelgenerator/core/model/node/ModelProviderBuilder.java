@@ -103,6 +103,8 @@ public class ModelProviderBuilder extends CallBuilder {
         FunctionData functionData = new FunctionDataBuilder().moduleInfo(codedataModuleInfo).userModuleInfo(moduleInfo)
                 .parentSymbolType(codedata.object()).name(codedata.symbol())
                 .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.MODEL_PROVIDER)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath())
                 .build();
 
         metadata().label(functionData.packageName()).description(functionData.description())
@@ -162,13 +164,27 @@ public class ModelProviderBuilder extends CallBuilder {
                         customPropBuilder.defaultable(false);
                     }
                     unescapedParamName = "additionalValues";
-                    customPropBuilder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
+                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    customPropBuilder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_MAP)
+                            .ballerinaType(paramResult.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 }
                 case REST_PARAMETER -> {
                     if (hasOnlyRestParams) {
                         customPropBuilder.defaultable(false);
                     }
-                    customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
+                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    customPropBuilder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_LIST)
+                            .ballerinaType(paramResult.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 }
                 default -> {
                     customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);

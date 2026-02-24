@@ -33,7 +33,14 @@
             "description": "Agent tool function",
             "data": {
               "isAgentTool": true,
-              "isIsolatedFunction": true
+              "isIsolatedFunction": true,
+              "inputParameters": [
+                {
+                  "name": "data",
+                  "type": "json"
+                }
+              ],
+              "outputType": "json"
             }
           },
           "codedata": {

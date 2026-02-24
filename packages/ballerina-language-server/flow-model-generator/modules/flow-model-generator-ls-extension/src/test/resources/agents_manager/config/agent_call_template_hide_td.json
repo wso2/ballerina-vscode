@@ -66,7 +66,8 @@
         "advanced": false,
         "hidden": true,
         "codedata": {
-          "kind": "INCLUDED_FIELD"
+          "kind": "INCLUDED_FIELD",
+          "originalName": "systemPrompt"
         },
         "defaultValue": "{role: \"\", instructions: \"\"}"
       },
@@ -88,7 +89,8 @@
         "advanced": false,
         "hidden": true,
         "codedata": {
-          "kind": "INCLUDED_FIELD"
+          "kind": "INCLUDED_FIELD",
+          "originalName": "model"
         },
         "defaultValue": "object {}"
       },
@@ -99,8 +101,35 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION_SET",
+            "fieldType": "REPEATABLE_LIST",
             "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "RECORD_MAP_EXPRESSION",
+                  "ballerinaType": "ai:ToolConfig",
+                  "typeMembers": [
+                    {
+                      "type": "ToolConfig",
+                      "packageInfo": "ballerina:ai:1.9.0",
+                      "packageName": "ai",
+                      "kind": "RECORD_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
             "selected": false
           },
           {
@@ -115,7 +144,8 @@
         "advanced": true,
         "hidden": true,
         "codedata": {
-          "kind": "INCLUDED_FIELD"
+          "kind": "INCLUDED_FIELD",
+          "originalName": "tools"
         },
         "defaultValue": "[]"
       },
@@ -142,9 +172,10 @@
         "advanced": true,
         "hidden": false,
         "codedata": {
-          "kind": "INCLUDED_FIELD"
+          "kind": "INCLUDED_FIELD",
+          "originalName": "maxIter"
         },
-        "defaultValue": "\"INFER_TOOL_COUNT\""
+        "defaultValue": "INFER_TOOL_COUNT"
       },
       "verbose": {
         "metadata": {
@@ -169,7 +200,8 @@
         "advanced": true,
         "hidden": false,
         "codedata": {
-          "kind": "INCLUDED_FIELD"
+          "kind": "INCLUDED_FIELD",
+          "originalName": "verbose"
         },
         "defaultValue": "false"
       },
@@ -191,7 +223,8 @@
         "advanced": true,
         "hidden": true,
         "codedata": {
-          "kind": "INCLUDED_FIELD"
+          "kind": "INCLUDED_FIELD",
+          "originalName": "memory"
         },
         "defaultValue": "()"
       },
@@ -205,12 +238,12 @@
             "fieldType": "SINGLE_SELECT",
             "options": [
               {
-                "label": "LLM_FILTER",
-                "value": "\"LLM_FILTER\""
-              },
-              {
                 "label": "NO_FILTER",
                 "value": "\"NO_FILTER\""
+              },
+              {
+                "label": "LLM_FILTER",
+                "value": "\"LLM_FILTER\""
               }
             ],
             "selected": false
@@ -227,9 +260,10 @@
         "advanced": true,
         "hidden": false,
         "codedata": {
-          "kind": "INCLUDED_FIELD"
+          "kind": "INCLUDED_FIELD",
+          "originalName": "toolLoadingStrategy"
         },
-        "defaultValue": "\"LLM_FILTER\""
+        "defaultValue": "NO_FILTER"
       },
       "type": {
         "metadata": {
@@ -299,10 +333,7 @@
         "optional": false,
         "editable": true,
         "advanced": true,
-        "hidden": true,
-        "codedata": {
-          "kind": ""
-        }
+        "hidden": true
       },
       "role": {
         "metadata": {
@@ -430,7 +461,7 @@
           "kind": "DEFAULTABLE",
           "originalName": "sessionId"
         },
-        "defaultValue": "\"\""
+        "defaultValue": "sessionId"
       },
       "context": {
         "metadata": {
@@ -453,11 +484,11 @@
           "kind": "DEFAULTABLE",
           "originalName": "context"
         },
-        "defaultValue": "new ()"
+        "defaultValue": "new"
       },
       "td": {
         "metadata": {
-          "label": "Td",
+          "label": "Type Descriptor",
           "description": "Type descriptor specifying the expected return type format"
         },
         "types": [

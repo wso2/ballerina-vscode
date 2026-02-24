@@ -33,7 +33,18 @@
             "description": "Agent tool function",
             "data": {
               "isAgentTool": true,
-              "isIsolatedFunction": true
+              "isIsolatedFunction": true,
+              "inputParameters": [
+                {
+                  "name": "a",
+                  "type": "int"
+                },
+                {
+                  "name": "b",
+                  "type": "int"
+                }
+              ],
+              "outputType": "int"
             }
           },
           "codedata": {

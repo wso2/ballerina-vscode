@@ -38,13 +38,26 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "array:AnydataType[]",
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "(anydata|error)[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "(anydata|error)",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
             "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "array:AnydataType[]",
+            "ballerinaType": "(anydata|error)[]",
             "selected": false
           }
         ],
@@ -66,7 +79,7 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "array:AnydataType",
+            "ballerinaType": "(anydata|error)",
             "selected": false
           }
         ],
@@ -106,7 +119,7 @@
           "kind": "DEFAULTABLE",
           "originalName": "startIndex"
         },
-        "defaultValue": "0"
+        "defaultValue": "arr.length() - 1"
       },
       "type": {
         "metadata": {

@@ -44,6 +44,9 @@ public class Constants {
     public static final String COLLECTION_TYPE_CONSTRAINT =
             "(any|error)[]|stream<any|error, ()>|string|map<any|error>|json";
 
+    // Codedata data keys
+    public static final String FILE_PATH_KEY = "filePath";
+
     // Constants used for Natural functions
     public static final class NaturalFunctions {
 

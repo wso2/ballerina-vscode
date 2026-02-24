@@ -114,10 +114,10 @@
                     "packageInfo": "ballerina:http:2.15.4",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
-                    "selected": false
+                    "selected": true
                   }
                 ],
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
@@ -293,10 +293,10 @@
                     "packageInfo": "ballerina:http:2.15.4",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
-                    "selected": false
+                    "selected": true
                   }
                 ],
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
@@ -1328,7 +1328,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "connection"
             },
-            "defaultValue": "\"\""
+            "defaultValue": "\"redis://localhost:6379\""
           },
           "connectionPooling": {
             "metadata": {
@@ -1577,7 +1577,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "connection"
             },
-            "defaultValue": "\"\""
+            "defaultValue": "\"redis://localhost:6379\""
           },
           "connectionPooling": {
             "metadata": {
@@ -2685,7 +2685,7 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "connection"
             },
-            "defaultValue": "\"\""
+            "defaultValue": "\"redis://localhost:6379\""
           },
           "connectionPooling": {
             "metadata": {

@@ -515,15 +515,10 @@
             {
               "metadata": {
                 "label": "Agent",
-                "description": "Create new agent"
+                "description": "Create or reuse an Agent."
               },
               "codedata": {
-                "node": "AGENT_CALL",
-                "org": "ballerina",
-                "module": "ai",
-                "packageName": "ai",
-                "object": "Agent",
-                "symbol": "run"
+                "node": "AGENTS"
               },
               "enabled": true
             }

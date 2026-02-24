@@ -44,6 +44,7 @@ public class FunctionData {
     private final String importStatements;
     private Map<String, ParameterData> parameters;
     private String packageId;
+    private ReturnTypeData returnTypeData;
 
     public FunctionData(int functionId, String name, String description, String returnType,
                         String packageName, String moduleName, String org, String version, String resourcePath,
@@ -69,6 +70,10 @@ public class FunctionData {
 
     public void setPackageId(String attachmentId) {
         this.packageId = attachmentId;
+    }
+
+    public void setReturnTypeData(ReturnTypeData returnTypeData) {
+        this.returnTypeData = returnTypeData;
     }
 
     // Getters
@@ -130,6 +135,10 @@ public class FunctionData {
 
     public String packageId() {
         return packageId;
+    }
+
+    public ReturnTypeData returnTypeData() {
+        return returnTypeData;
     }
 
     public enum Kind {

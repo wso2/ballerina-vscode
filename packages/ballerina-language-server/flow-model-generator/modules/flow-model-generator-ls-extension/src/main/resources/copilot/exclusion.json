@@ -1,0 +1,96 @@
+[
+  {
+    "name": "ballerinax/slack",
+    "clients": [
+      {
+        "name": "Client",
+        "functions": [
+          {
+            "name": "getConversationMembers"
+          },
+          {
+            "name": "getConversationList"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ballerina/io",
+    "functions": [
+      {
+        "name": "createReadableChannel"
+      },
+      {
+        "name": "fileReadBlocksAsStream"
+      },
+      {
+        "name": "fileReadCsvAsStream"
+      },
+      {
+        "name": "fileReadLinesAsStream"
+      },
+      {
+        "name": "fileReadXml"
+      },
+      {
+        "name": "fileWriteBlocksFromStream"
+      },
+      {
+        "name": "fileWriteCsvFromStream"
+      },
+      {
+        "name": "fileWriteLinesFromStream"
+      },
+      {
+        "name": "fileWriteXml"
+      },
+      {
+        "name": "fprint"
+      },
+      {
+        "name": "fprintln"
+      },
+      {
+        "name": "openReadableFile"
+      },
+      {
+        "name": "openReadableCsvFile"
+      },
+      {
+        "name": "openWritableCsvFile"
+      },
+      {
+        "name": "openWritableFile"
+      },
+      {
+        "name": "print"
+      },
+      {
+        "name": "println"
+      },
+      {
+        "name": "readln"
+      }
+    ]
+  },
+  {
+    "name": "ballerinax/googleapis.sheets",
+    "clients": [
+      {
+        "name": "Client",
+        "functions": [
+          {
+            "name": "getAllSpreadsheets"
+          },
+          {
+            "name": "getConversationMembers"
+          },
+          {
+            "name": "getConversationList"
+          }
+        ]
+      }
+    ]
+  }
+]

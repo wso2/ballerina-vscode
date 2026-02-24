@@ -147,7 +147,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "maxChunkSize"
           },
-          "defaultValue": "0"
+          "defaultValue": "500"
         },
         "maxOverlapSize": {
           "metadata": {
@@ -175,7 +175,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "maxOverlapSize"
           },
-          "defaultValue": "0"
+          "defaultValue": "50"
         },
         "strategy": {
           "metadata": {
@@ -187,6 +187,10 @@
               "fieldType": "SINGLE_SELECT",
               "options": [
                 {
+                  "label": "recursive",
+                  "value": "\"recursive\""
+                },
+                {
                   "label": "character",
                   "value": "\"character\""
                 },
@@ -197,10 +201,6 @@
                 {
                   "label": "sentence",
                   "value": "\"sentence\""
-                },
-                {
-                  "label": "recursive",
-                  "value": "\"recursive\""
                 }
               ],
               "selected": false
@@ -220,7 +220,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "strategy"
           },
-          "defaultValue": "\"character\""
+          "defaultValue": "RECURSIVE"
         },
         "httpVersion": {
           "metadata": {

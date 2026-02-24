@@ -124,8 +124,49 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION",
+                "fieldType": "REPEATABLE_MAP",
                 "ballerinaType": "map<string|string[]>",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "ballerinaType": "string",
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "REPEATABLE_LIST",
+                      "ballerinaType": "string[]",
+                      "template": {
+                        "types": [
+                          {
+                            "fieldType": "TEXT",
+                            "ballerinaType": "string",
+                            "selected": false
+                          },
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "string",
+                            "selected": false
+                          }
+                        ],
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
+                      },
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string|string[]",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
                 "selected": false
               },
               {
@@ -358,10 +399,10 @@
                     "packageInfo": "ballerina:http:2.15.4",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
-                    "selected": false
+                    "selected": true
                   }
                 ],
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
@@ -549,8 +590,49 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION",
+                "fieldType": "REPEATABLE_MAP",
                 "ballerinaType": "map<string|string[]>",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "ballerinaType": "string",
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "REPEATABLE_LIST",
+                      "ballerinaType": "string[]",
+                      "template": {
+                        "types": [
+                          {
+                            "fieldType": "TEXT",
+                            "ballerinaType": "string",
+                            "selected": false
+                          },
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "string",
+                            "selected": false
+                          }
+                        ],
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
+                      },
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string|string[]",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
                 "selected": false
               },
               {
@@ -942,10 +1024,10 @@
                     "packageInfo": "ballerina:http:2.15.4",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
-                    "selected": false
+                    "selected": true
                   }
                 ],
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",

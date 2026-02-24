@@ -30,7 +30,7 @@
         "displayName": "l2Item",
         "typeName": "l2Item",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "focusExpression": "var1.l1.l2",
         "ref": "1640916549"
       },
@@ -40,7 +40,7 @@
         "displayName": "var1",
         "typeName": "MyType4",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-371017086"
       },
       {

@@ -6,5 +6,5 @@
   "prefix": "",
   "allowAdditionalFields": true,
   "asInline": true,
-  "expectedTypes": "\ntype Person record {|\n\tstring name;\n\tint age;\n\tboolean active;\n\trecord {|\n\tstring street;\n\tstring city;\n\tstring state;\n\tstring zip;\n\tjson ...;\n|} address;\n\t(record {|\n\tstring 'type;\n\tstring number;\n\tjson ...;\n|}|string)[] phoneNumbers;\n\tjson ...;\n|};\n"
+  "expectedTypes": "\npublic type Person record {|\n\tstring name;\n\tint age;\n\tboolean active;\n\trecord {|\n\tstring street;\n\tstring city;\n\tstring state;\n\tstring zip;\n\tjson ...;\n|} address;\n\t(record {|\n\tstring 'type;\n\tstring number;\n\tjson ...;\n|}|string)[] phoneNumbers;\n\tjson ...;\n|};\n"
 }

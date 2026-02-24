@@ -121,7 +121,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "serviceUrl"
           },
-          "defaultValue": "\"\""
+          "defaultValue": "http://localhost:11434"
         },
         "mirostat": {
           "metadata": {
@@ -190,7 +190,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "mirostatEta"
           },
-          "defaultValue": "0.0"
+          "defaultValue": "0.1"
         },
         "mirostatTau": {
           "metadata": {
@@ -218,7 +218,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "mirostatTau"
           },
-          "defaultValue": "0.0"
+          "defaultValue": "5.0"
         },
         "numCtx": {
           "metadata": {
@@ -246,7 +246,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "numCtx"
           },
-          "defaultValue": "0"
+          "defaultValue": "2048"
         },
         "repeatLastN": {
           "metadata": {
@@ -274,7 +274,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "repeatLastN"
           },
-          "defaultValue": "0"
+          "defaultValue": "64"
         },
         "repeatPenalty": {
           "metadata": {
@@ -302,7 +302,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "repeatPenalty"
           },
-          "defaultValue": "0.0"
+          "defaultValue": "1.1"
         },
         "temperature": {
           "metadata": {
@@ -330,7 +330,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "temperature"
           },
-          "defaultValue": "0.0"
+          "defaultValue": "0.8"
         },
         "seed": {
           "metadata": {
@@ -386,7 +386,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "numPredict"
           },
-          "defaultValue": "0"
+          "defaultValue": "-1"
         },
         "topK": {
           "metadata": {
@@ -414,7 +414,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "topK"
           },
-          "defaultValue": "0"
+          "defaultValue": "40"
         },
         "topP": {
           "metadata": {
@@ -442,7 +442,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "topP"
           },
-          "defaultValue": "0.0"
+          "defaultValue": "0.9"
         },
         "minP": {
           "metadata": {
@@ -511,7 +511,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "httpVersion"
           },
-          "defaultValue": "\"2.0\""
+          "defaultValue": "http:HTTP_2_0"
         },
         "http1Settings": {
           "metadata": {
@@ -613,7 +613,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "timeout"
           },
-          "defaultValue": "0.0d"
+          "defaultValue": "60"
         },
         "forwarded": {
           "metadata": {
@@ -641,7 +641,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "forwarded"
           },
-          "defaultValue": "\"\""
+          "defaultValue": "\"disable\""
         },
         "poolConfig": {
           "metadata": {
@@ -756,7 +756,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "compression"
           },
-          "defaultValue": "\"AUTO\""
+          "defaultValue": "AUTO"
         },
         "circuitBreaker": {
           "metadata": {
@@ -969,7 +969,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "validation"
           },
-          "defaultValue": "false"
+          "defaultValue": "true"
         },
         "scope": {
           "metadata": {

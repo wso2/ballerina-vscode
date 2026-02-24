@@ -53,10 +53,10 @@
                   "packageInfo": "ballerina:ai:1.9.0",
                   "packageName": "ai",
                   "kind": "RECORD_TYPE",
-                  "selected": false
+                  "selected": true
                 }
               ],
-              "selected": false
+              "selected": true
             },
             {
               "fieldType": "EXPRESSION",
@@ -107,9 +107,36 @@
           },
           "types": [
             {
-              "fieldType": "EXPRESSION_SET",
+              "fieldType": "REPEATABLE_LIST",
               "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
-              "selected": true
+              "template": {
+                "types": [
+                  {
+                    "fieldType": "RECORD_MAP_EXPRESSION",
+                    "ballerinaType": "ai:ToolConfig",
+                    "typeMembers": [
+                      {
+                        "type": "ToolConfig",
+                        "packageInfo": "ballerina:ai:1.9.0",
+                        "packageName": "ai",
+                        "kind": "RECORD_TYPE",
+                        "selected": false
+                      }
+                    ],
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool",
+                    "selected": false
+                  }
+                ],
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
@@ -155,7 +182,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "maxIter"
           },
-          "defaultValue": "\"INFER_TOOL_COUNT\""
+          "defaultValue": "INFER_TOOL_COUNT"
         },
         "verbose": {
           "metadata": {
@@ -243,7 +270,7 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "toolLoadingStrategy"
           },
-          "defaultValue": "\"LLM_FILTER\""
+          "defaultValue": "NO_FILTER"
         },
         "checkError": {
           "metadata": {

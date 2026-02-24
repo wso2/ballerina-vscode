@@ -107,8 +107,35 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION_SET",
+            "fieldType": "REPEATABLE_LIST",
             "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "RECORD_MAP_EXPRESSION",
+                  "ballerinaType": "ai:ToolConfig",
+                  "typeMembers": [
+                    {
+                      "type": "ToolConfig",
+                      "packageInfo": "ballerinax:ai:1.0.1",
+                      "packageName": "ai",
+                      "kind": "RECORD_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
             "selected": false
           },
           {
@@ -163,7 +190,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "agentType"
         },
-        "defaultValue": "\"FUNCTION_CALL_AGENT\""
+        "defaultValue": "FUNCTION_CALL_AGENT"
       },
       "maxIter": {
         "metadata": {
@@ -191,7 +218,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "maxIter"
         },
-        "defaultValue": "0"
+        "defaultValue": "5"
       },
       "verbose": {
         "metadata": {
@@ -242,7 +269,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "memory"
         },
-        "defaultValue": "()"
+        "defaultValue": "new MessageWindowChatMemory()"
       },
       "type": {
         "metadata": {

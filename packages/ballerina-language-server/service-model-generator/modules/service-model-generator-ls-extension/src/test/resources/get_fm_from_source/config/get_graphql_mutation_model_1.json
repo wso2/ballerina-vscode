@@ -26,6 +26,7 @@
         "label": "Accessor",
         "description": "The accessor of the function"
       },
+      "value": "",
       "types": [
         {
           "fieldType": "IDENTIFIER",
@@ -422,6 +423,7 @@
               {
                 "type": "GraphqlResourceConfig",
                 "packageInfo": "ballerina:graphql:1.16.0",
+                "packageName": "graphql",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }
