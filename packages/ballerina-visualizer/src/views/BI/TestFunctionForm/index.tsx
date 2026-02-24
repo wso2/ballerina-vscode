@@ -173,6 +173,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                     fields.push({
                         ...generatedField,
                         type: 'SLIDER',
+                        types: [{ fieldType: 'SLIDER', selected: false }],
                         advanced: true,
                         sliderProps: {
                             min: 0,

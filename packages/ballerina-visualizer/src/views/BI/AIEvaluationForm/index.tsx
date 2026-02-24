@@ -307,6 +307,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                     fields.push({
                         ...generatedField,
                         type: 'SLIDER',
+                        types: [{ fieldType: 'SLIDER', selected: false }],
                         sliderProps: {
                             min: 0,
                             max: 100,
@@ -323,6 +324,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                     fields.push({
                         ...generateFieldFromProperty('evalSetFile', evalSetFileField),
                         type: 'SINGLE_SELECT',
+                        types: [{ fieldType: 'SINGLE_SELECT', selected: false }],
                         itemOptions: evalsetOptions
                     });
                 }
