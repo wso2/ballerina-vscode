@@ -214,6 +214,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     const [currentIdentifier, setCurrentIdentifier] = useState<string | null>(null);
 
     const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [position, setPosition] = useState<NodePosition>(props.position);
     const [existingListenerType, setExistingListenerType] = useState<string>(""); // Example: "Listener", "CdcListener"
 
     const [selectedListener, setSelectedListener] = useState<string | null>(null);
@@ -296,8 +297,8 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     }, []);
 
     useEffect(() => {
-        fetchService(props.position);
-    }, [props.position]);
+        fetchService(position);
+    }, [position]);
 
     useEffect(() => {
         if (props.listenerName) {
@@ -475,6 +476,10 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                     // Set the service model
                     setServiceModel(res.service);
                     setConfigTitle(`${getDisplayServiceName(res.service)} Configuration`);
+                    // Set the current identifier from the service name
+                    if (res.service.name && !currentIdentifier) {
+                        setCurrentIdentifier(res.service.name);
+                    }
                     // Set the service listeners
                     setServiceListeners(res.service);
                     // Find the listener type
@@ -656,6 +661,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             console.error("No artifact returned after detaching listener");
             return;
         }
+        setPosition(updatedArtifact.position);
         setCurrentIdentifier(updatedArtifact.name);
         await fetchService(updatedArtifact.position);
         setChangeMap({});
@@ -691,6 +697,31 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         setIsSaving(false);
     }
 
+    const refreshServicePosition = async () => {
+        if (!currentIdentifier) {
+            console.error("No current identifier available for refreshing service position");
+            return;
+        }
+
+        try {
+            const projectStructureResponse = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
+            const project = projectStructureResponse.projects.find(p => p.projectPath === props.projectPath);
+
+            if (!project) {
+                console.error("Project not found in structure response");
+                return;
+            }
+
+            const entryPoint = project
+                .directoryMap[DIRECTORY_MAP.SERVICE]
+                .find((service: ProjectStructureArtifactResponse) => service.name === currentIdentifier);
+            
+            setPosition(entryPoint.position);
+        } catch (error) {
+            console.error('Error refreshing service position:', error);
+        } 
+    };
+
     const handleSave = async () => {
         setIsSaving(true);
         const changes = Object.values(changeMap);
@@ -700,6 +731,13 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         for (const change of listenerChanges) {
             await rpcClient.getServiceDesignerRpcClient().updateListenerSourceCode({ filePath: change.filePath, listener: change.data as ListenerModel });
         }
+
+        // Re-fetch service position after listener changes
+        if (listenerChanges.length > 0 && serviceChanges.length === 0) {
+            await refreshServicePosition();
+        }
+
+        // Update service changes
         for (const change of serviceChanges) {
             const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: change.filePath, service: change.data as ServiceModel });
             const updatedArtifact = res.artifacts.at(0);
@@ -708,6 +746,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                 continue;
             }
             setCurrentIdentifier(updatedArtifact.name);
+            setPosition(updatedArtifact.position);
             await fetchService(updatedArtifact.position);
         }
         setChangeMap({});
