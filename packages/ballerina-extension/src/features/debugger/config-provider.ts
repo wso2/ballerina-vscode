@@ -48,6 +48,7 @@ import {
     createVersionNumber
 } from "../../utils";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
+import { quoteShellPath } from "../../utils/config";
 import { decimal, ExecutableOptions } from 'vscode-languageclient/node';
 import { BAL_NOTEBOOK, getTempFile, NOTEBOOK_CELL_SCHEME } from '../../views/notebook';
 import fileUriToPath from 'file-uri-to-path';
@@ -603,9 +604,8 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
     }
     getScriptPath(args: string[]): string {
         args.push('start-debugger-adapter');
-        const cmd = extension.ballerinaExtInstance.getBallerinaCmd();
         // Quote the path to handle spaces in directory names (used with shell: true)
-        return cmd.includes(' ') ? `"${cmd}"` : cmd;
+        return quoteShellPath(extension.ballerinaExtInstance.getBallerinaCmd());
     }
     getCurrentWorkingDir(): string {
         return path.join(extension.ballerinaExtInstance.ballerinaHome, "bin");
@@ -664,9 +664,7 @@ class BIRunAdapter extends LoggingDebugSession {
                 task: 'run'
             };
 
-            const balCmd = extension.ballerinaExtInstance.getBallerinaCmd();
-            const quotedBalCmd = balCmd.includes(' ') ? `"${balCmd}"` : balCmd;
-            let runCommand: string = `${quotedBalCmd} run`;
+            let runCommand: string = `${quoteShellPath(extension.ballerinaExtInstance.getBallerinaCmd())} run`;
 
             const programArgs = (args as any).programArgs;
             if (programArgs && programArgs.length > 0) {
