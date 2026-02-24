@@ -2758,8 +2758,9 @@ function findWindowsBallerinaPath(): string {
                     return versionedBin + path.sep;
                 }
             }
-        } catch (_) {
+        } catch (err) {
             // Directory doesn't exist or isn't readable — skip
+            debug(`[WIN_BAL_FIND] Failed to read directory "${root}" for versioned Ballerina installations: ${err}`);
         }
     }
 
