@@ -46,6 +46,7 @@ import ToolCallSegment from "../ToolCallSegment";
 import ToolCallGroupSegment, { ToolCallItem } from "../ToolCallGroupSegment";
 import TryItScenariosSegment from "../TryItScenariosSegment";
 import TodoSection from "../TodoSection";
+import PlanStepper, { ExecutionTask, ExecutionEvent } from "../PlanStepper";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
 import RoleContainer from "../RoleContainter";
@@ -121,6 +122,95 @@ function formatFileNameForDisplay(filePath: string): string {
 
 //TODO: Add better error handling from backend. stream error type and non 200 status codes
 
+// ── Plan mode execution stream helpers ────────────────────────────────────────
+
+function getPlanModeToolCallLabel(toolName: string, toolInput: any): string {
+    switch (toolName) {
+        case "TaskWrite": return "Planning...";
+        case "LibrarySearchTool": {
+            const desc = toolInput?.searchDescription;
+            return desc ? `Searching for ${desc}...` : "Searching libraries...";
+        }
+        case "LibraryGetTool": return "Fetching library details...";
+        case "HealthcareLibraryProviderTool": return "Analyzing healthcare libraries...";
+        case "file_write": return `Creating ${formatFileNameForDisplay(toolInput?.fileName || "file")}...`;
+        case "file_edit": return `Updating ${formatFileNameForDisplay(toolInput?.fileName || "file")}...`;
+        case "file_batch_edit": return `Editing files...`;
+        case "getCompilationErrors": return "Checking for errors...";
+        case "ConnectorGeneratorTool": return "Generating connector...";
+        case "ConfigCollector": return "Reading config...";
+        case "runTests": return "Running tests...";
+        default: return "Working...";
+    }
+}
+
+function getPlanModeToolResultLabel(toolName: string, toolOutput: any): string {
+    switch (toolName) {
+        case "LibrarySearchTool": {
+            const desc = toolOutput?.searchDescription;
+            return desc ? `${desc.charAt(0).toUpperCase() + desc.slice(1)} search completed` : "Library search completed";
+        }
+        case "LibraryGetTool": {
+            const names = toolOutput || [];
+            return names.length > 0 ? `Fetched libraries: [${names.join(", ")}]` : "No relevant libraries found";
+        }
+        case "HealthcareLibraryProviderTool": {
+            const names = toolOutput || [];
+            return names.length > 0 ? `Fetched healthcare libraries: [${names.join(", ")}]` : "No relevant healthcare libraries found";
+        }
+        case "file_write": return toolOutput?.action === "updated" ? `Updated ${formatFileNameForDisplay(toolOutput?.fileName || "file")}` : `Created ${formatFileNameForDisplay(toolOutput?.fileName || "file")}`;
+        case "file_edit": return `Updated ${formatFileNameForDisplay(toolOutput?.fileName || "file")}`;
+        case "file_batch_edit": return "Files updated";
+        case "getCompilationErrors": return toolOutput?.diagnostics?.length > 0 ? `Found ${toolOutput.diagnostics.length} error(s)` : "No issues found";
+        case "ConnectorGeneratorTool": return "Connector ready";
+        case "ConfigCollector": return "Config loaded";
+        case "runTests": return toolOutput?.summary ?? "Tests completed";
+        default: return "Done";
+    }
+}
+
+function serializeExecutionStream(stream: ExecutionTask[]): string {
+    return `<executionstream>${JSON.stringify({ tasks: stream })}</executionstream>`;
+}
+
+function addEventToLastTask(stream: ExecutionTask[], event: ExecutionEvent): ExecutionTask[] {
+    if (stream.length === 0) return stream;
+    const last = stream[stream.length - 1];
+    return [...stream.slice(0, -1), { ...last, events: [...last.events, event] }];
+}
+
+function updateEventInLastTask(
+    stream: ExecutionTask[],
+    toolCallId: string | undefined,
+    toolName: string,
+    update: Partial<ExecutionEvent>
+): ExecutionTask[] {
+    if (stream.length === 0) return stream;
+
+    // If we have a toolCallId, search all entries (not just last) so results that
+    // arrive after new entries have been pushed (e.g. TaskWrite) are still matched.
+    if (toolCallId) {
+        let matched = false;
+        const updated = stream.map(task => {
+            const idx = task.events.findIndex(e => e.toolCallId === toolCallId);
+            if (idx === -1) return task;
+            matched = true;
+            const updatedEvents = task.events.map((e, i) => i === idx ? { ...e, ...update } : e);
+            return { ...task, events: updatedEvents };
+        });
+        if (matched) return updated;
+    }
+
+    // Fallback: update last loading event with matching toolName in the last entry
+    const last = stream[stream.length - 1];
+    const updatedEvents = last.events.map((e: ExecutionEvent) =>
+        (!toolCallId && e.toolName === toolName && e.loading)
+            ? { ...e, ...update }
+            : e
+    );
+    return [...stream.slice(0, -1), { ...last, events: updatedEvents }];
+}
+
 const AIChat: React.FC = () => {
     const { rpcClient } = useRpcContext();
     const [messages, setMessages] = useState<Array<{ role: string; content: string; type: string; checkpointId?: string; messageId?: string }>>([]);
@@ -155,6 +245,10 @@ const AIChat: React.FC = () => {
 
     const [approvalRequest, setApprovalRequest] = useState<TaskApprovalRequest | null>(null);
     const [approvalOverlay, setApprovalOverlay] = useState<ApprovalOverlayState>({ show: false });
+
+    // Plan mode: execution stream shown below the frozen plan list
+    const [executionStream, setExecutionStream] = useState<ExecutionTask[]>([]);
+    const currentTaskDescriptionRef = useRef<string | null>(null);
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
@@ -399,6 +493,63 @@ const AIChat: React.FC = () => {
         // TODO: Need to handle the content as step blocks
         const type = response.type;
         if (type === "content_block") {
+            // In plan mode, route ALL text into executionStream from the very first chunk.
+            // - If a task is in progress: append under that task's events
+            // - Otherwise: append to a floating entry (description="")
+            if (agentMode === AgentMode.Plan) {
+                const content = response.content;
+                setExecutionStream(prev => {
+                    if (!content.trim()) return prev;
+
+                    // If stream is empty, push the first floating entry (planning preamble)
+                    if (prev.length === 0) {
+                        return [{ description: "", events: [{ type: "text" as const, text: content, loading: false }] }];
+                    }
+
+                    const last = prev[prev.length - 1];
+
+                    // Determine whether there is an active named task.
+                    // A named task is "active" (still receiving events) when:
+                    //  - The ref says it's the current task AND
+                    //  - The last entry is that named task (not a floating entry that was pushed after it)
+                    const isActiveNamedTask =
+                        !!currentTaskDescriptionRef.current &&
+                        last.description === currentTaskDescriptionRef.current;
+
+                    if (!isActiveNamedTask) {
+                        // No active task — route to a floating entry
+                        const lastEvent = last.events[last.events.length - 1];
+                        if (last.description === "" && lastEvent?.type === "text") {
+                            // Append to existing trailing text event in the floating entry
+                            const updatedEvents = [
+                                ...last.events.slice(0, -1),
+                                { ...lastEvent, text: lastEvent.text + content }
+                            ];
+                            return [...prev.slice(0, -1), { ...last, events: updatedEvents }];
+                        } else if (last.description === "") {
+                            // Add a new text event to the existing floating entry
+                            const newEvent = { type: "text" as const, text: content, loading: false };
+                            return [...prev.slice(0, -1), { ...last, events: [...last.events, newEvent] }];
+                        } else {
+                            // Last entry is a named task — push a new floating entry
+                            return [...prev, { description: "", events: [{ type: "text" as const, text: content, loading: false }] }];
+                        }
+                    }
+
+                    // Active named task — append text event to it
+                    const lastEvent = last.events[last.events.length - 1];
+                    if (lastEvent?.type === "text") {
+                        const updatedEvents = [
+                            ...last.events.slice(0, -1),
+                            { ...lastEvent, text: lastEvent.text + content }
+                        ];
+                        return [...prev.slice(0, -1), { ...last, events: updatedEvents }];
+                    } else {
+                        return [...prev.slice(0, -1), { ...last, events: [...last.events, { type: "text" as const, text: content, loading: false }] }];
+                    }
+                });
+                return;
+            }
             const content = response.content;
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
@@ -406,6 +557,10 @@ const AIChat: React.FC = () => {
                 return newMessages;
             });
         } else if (type === "content_replace") {
+            if (agentMode === AgentMode.Plan) {
+                // In plan mode message.content is never written to — skip entirely
+                return;
+            }
             const content = response.content;
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
@@ -413,6 +568,27 @@ const AIChat: React.FC = () => {
                 return newMessages;
             });
         } else if (type === "tool_call") {
+            // In plan mode, route ALL tool calls to executionStream — regardless of whether a task is active.
+            // If no task is active yet (planning phase), append to the last floating entry or create one.
+            if (agentMode === AgentMode.Plan) {
+                const label = getPlanModeToolCallLabel(response.toolName, response.toolInput);
+                const newEvent: ExecutionEvent = { toolCallId: response.toolCallId, toolName: response.toolName, text: label, loading: true };
+                setExecutionStream(prev => {
+                    if (prev.length === 0) {
+                        return [{ description: "", events: [newEvent] }];
+                    }
+                    const last = prev[prev.length - 1];
+                    const isActiveNamedTask =
+                        !!currentTaskDescriptionRef.current &&
+                        last.description === currentTaskDescriptionRef.current;
+                    if (!isActiveNamedTask && last.description !== "") {
+                        // No active task and last entry is a named task — push to a new floating entry
+                        return [...prev, { description: "", events: [newEvent] }];
+                    }
+                    return addEventToLastTask(prev, newEvent);
+                });
+                return;
+            }
             if (response.toolName === "LibrarySearchTool") {
                 const toolCallId = response?.toolCallId;
                 const toolInput = response.toolInput;
@@ -504,6 +680,24 @@ const AIChat: React.FC = () => {
                 );
             }
         } else if (type === "tool_result") {
+            // In plan mode, route ALL tool results to executionStream — regardless of whether a task is active.
+            if (agentMode === AgentMode.Plan && response.toolName !== "TaskWrite") {
+                const label = getPlanModeToolResultLabel(response.toolName, response.toolOutput);
+                setExecutionStream(prev => updateEventInLastTask(prev, response.toolCallId, response.toolName, {
+                    text: label,
+                    loading: false,
+                    failed: false,
+                }));
+                return;
+            }
+            // TaskWrite result: resolve the "Planning..." loading event in the stream.
+            if (agentMode === AgentMode.Plan && response.toolName === "TaskWrite") {
+                setExecutionStream(prev => updateEventInLastTask(prev, response.toolCallId, "TaskWrite", {
+                    text: "Plan ready",
+                    loading: false,
+                    failed: false,
+                }));
+            }
             if (response.toolName === "LibrarySearchTool") {
                 const toolCallId = response.toolCallId;
                 const toolOutput = response.toolOutput;
@@ -549,63 +743,81 @@ const AIChat: React.FC = () => {
             } else if (response.toolName == "TaskWrite") {
                 const taskOutput = response.toolOutput;
 
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        if (!taskOutput.success || !taskOutput.tasks || taskOutput.tasks.length === 0) {
-                            const isInternalError = taskOutput.message &&
-                                taskOutput.message.includes("ERROR: Missing");
+                // In plan mode, track in-progress task to route events to the execution stream
+                if (agentMode === AgentMode.Plan && taskOutput?.tasks) {
+                    const inProgressTask = taskOutput.tasks.find((t: { status: string }) => t.status === "in_progress");
+                    if (inProgressTask && inProgressTask.description !== currentTaskDescriptionRef.current) {
+                        // New task started — push it to the execution stream
+                        currentTaskDescriptionRef.current = inProgressTask.description;
+                        setExecutionStream(prev => {
+                            // Only add if not already present
+                            if (prev.some((t: ExecutionTask) => t.description === inProgressTask.description)) return prev;
+                            return [...prev, { description: inProgressTask.description, events: [] }];
+                        });
+                    } else if (!inProgressTask && currentTaskDescriptionRef.current !== null) {
+                        // No in-progress task — all tasks completed or back to plan state.
+                        // Clear the ref so content_block and tool events render normally again.
+                        currentTaskDescriptionRef.current = null;
+                    }
+                }
 
-                            const indicatorPattern = /<toolcall tool="TaskWrite">Planning\.\.\.<\/toolcall>/;
-                            const todoPattern = /<todo>.*?<\/todo>/s;
+                // In plan mode, TaskWrite never touches message.content — everything is in executionStream.
+                if (agentMode !== AgentMode.Plan) {
+                    setMessages((prevMessages) => {
+                        const newMessages = [...prevMessages];
+                        if (newMessages.length > 0) {
+                            if (!taskOutput.success || !taskOutput.tasks || taskOutput.tasks.length === 0) {
+                                const isInternalError = taskOutput.message &&
+                                    taskOutput.message.includes("ERROR: Missing");
 
-                            if (isInternalError) {
-                                newMessages[newMessages.length - 1].content = newMessages[
-                                    newMessages.length - 1
-                                ].content.replace(indicatorPattern, "").replace(todoPattern, "");
-                            } else {
-                                let simplifiedMessage = "Task update failed";
+                                const indicatorPattern = /<toolcall tool="TaskWrite">Planning\.\.\.<\/toolcall>/;
+                                const todoPattern = /<todo>.*?<\/todo>/s;
 
-                                if (taskOutput.message) {
-                                    const commentMatch = taskOutput.message.match(/User comment: "([^"]+)"/);
-                                    const userComment = commentMatch ? commentMatch[1] : null;
+                                if (isInternalError) {
+                                    newMessages[newMessages.length - 1].content = newMessages[
+                                        newMessages.length - 1
+                                    ].content.replace(indicatorPattern, "").replace(todoPattern, "");
+                                } else {
+                                    let simplifiedMessage = "Task update failed";
 
-                                    if (taskOutput.message.includes("Plan not approved")) {
-                                        simplifiedMessage = userComment
-                                            ? `Plan not approved: ${userComment}`
-                                            : "Plan not approved";
+                                    if (taskOutput.message) {
+                                        const commentMatch = taskOutput.message.match(/User comment: "([^"]+)"/);
+                                        const userComment = commentMatch ? commentMatch[1] : null;
+
+                                        if (taskOutput.message.includes("Plan not approved")) {
+                                            simplifiedMessage = userComment
+                                                ? `Plan not approved: ${userComment}`
+                                                : "Plan not approved";
+                                        }
                                     }
+
+                                    newMessages[newMessages.length - 1].content = newMessages[
+                                        newMessages.length - 1
+                                    ].content.replace(indicatorPattern, `<toolcall tool="TaskWrite">${simplifiedMessage}</toolcall>`).replace(todoPattern, "");
                                 }
-
-                                // Keep tool="TaskWrite" (matching the tool_call tag written by the TaskWrite handler)
-                                newMessages[newMessages.length - 1].content = newMessages[
-                                    newMessages.length - 1
-                                ].content.replace(indicatorPattern, `<toolcall tool="TaskWrite">${simplifiedMessage}</toolcall>`).replace(todoPattern, "");
-                            }
-                        } else {
-                            const todoData = {
-                                tasks: taskOutput.tasks,
-                                message: taskOutput.message
-                            };
-                            const todoJson = JSON.stringify(todoData);
-
-                            const lastMessageContent = newMessages[newMessages.length - 1].content;
-                            const todoPattern = /<todo>.*?<\/todo>/s;
-
-                            if (todoPattern.test(lastMessageContent)) {
-                                // Replace existing todo section
-                                newMessages[newMessages.length - 1].content = lastMessageContent.replace(
-                                    todoPattern,
-                                    `<todo>${todoJson}</todo>`
-                                );
                             } else {
-                                // Add new todo section
-                                newMessages[newMessages.length - 1].content += `\n\n<todo>${todoJson}</todo>`;
+                                const todoData = {
+                                    tasks: taskOutput.tasks,
+                                    message: taskOutput.message
+                                };
+                                const todoJson = JSON.stringify(todoData);
+
+                                const lastMessageContent = newMessages[newMessages.length - 1].content;
+                                const todoPattern = /<todo>.*?<\/todo>/s;
+
+                                if (todoPattern.test(lastMessageContent)) {
+                                    newMessages[newMessages.length - 1].content = lastMessageContent.replace(
+                                        todoPattern,
+                                        `<todo>${todoJson}</todo>`
+                                    );
+                                } else {
+                                    newMessages[newMessages.length - 1].content += `\n\n<todo>${todoJson}</todo>`;
+                                }
                             }
                         }
-                    }
-                    return newMessages;
-                });
+                        return newMessages;
+                    });
+                }
             } else if (["file_write", "file_edit", "file_batch_edit"].includes(response.toolName)) {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
@@ -730,23 +942,25 @@ const AIChat: React.FC = () => {
             }
         } else if (type === "task_approval_request") {
             if (response.approvalType === "plan") {
-                const todoJson = JSON.stringify({ tasks: response.tasks, message: response.message });
-                updateLastMessage((content) => {
-                    const cleaned = content
-                        .replace(/<toolcall>Planning\.\.\.<\/toolcall>/, '')
-                        .replace(/<todo>.*?<\/todo>/s, '');
-                    return cleaned + `\n\n<todo>${todoJson}</todo>`;
-                });
-            } else if (response.approvalType === "completion") {
-                const tasks = isAutoApproveEnabled
-                    ? response.tasks.map((t: { status: string }) =>
-                        t.status === "review" ? { ...t, status: "completed" } : t)
-                    : response.tasks;
-                const todoJson = JSON.stringify({ tasks, message: response.message });
-                updateLastMessage((content) =>
-                    content.replace(/<todo>.*?<\/todo>/s, `<todo>${todoJson}</todo>`)
-                );
+                if (agentMode === AgentMode.Plan) {
+                    // In plan mode: push planTasks as a new floating entry for the TodoSection to render.
+                    setExecutionStream(prev => [
+                        ...prev,
+                        { description: "", events: [], planTasks: response.tasks, planMessage: response.message }
+                    ]);
+                } else {
+                    // Edit mode fallback: write the frozen plan list into message content as a <todo> tag
+                    const todoJson = JSON.stringify({ tasks: response.tasks, message: response.message });
+                    updateLastMessage((content) => {
+                        const cleaned = content
+                            .replace(/<toolcall>Planning\.\.\.<\/toolcall>/, '')
+                            .replace(/<todo>.*?<\/todo>/s, '');
+                        return cleaned + `\n\n<todo>${todoJson}</todo>`;
+                    });
+                }
             }
+            // Note: completion approvals do NOT update the <todo> tag — the plan list stays frozen.
+            // The review checkpoint is shown via ApprovalFooter only.
 
             if (isAutoApproveEnabled && response.approvalType === "completion") {
                 await rpcClient.getAiPanelRpcClient().approveTask({ requestId: response.requestId });
@@ -771,7 +985,7 @@ const AIChat: React.FC = () => {
             setCurrentFileArray(response.fileArray);
         } else if (type === "connector_generation_notification") {
             const connectorNotification = response as any;
-            const connectorJson = JSON.stringify({
+            const connectorData = {
                 requestId: connectorNotification.requestId,
                 stage: connectorNotification.stage,
                 serviceName: connectorNotification.serviceName,
@@ -782,8 +996,25 @@ const AIChat: React.FC = () => {
                 message: connectorNotification.message,
                 inputMethod: connectorNotification.inputMethod,
                 sourceIdentifier: connectorNotification.sourceIdentifier
-            });
+            };
 
+            if (agentMode === AgentMode.Plan) {
+                // Route connector events to executionStream as a floating entry
+                setExecutionStream(prev => {
+                    const existingIdx = prev.findIndex(t => t.description === "" && (t as any).connectorData?.requestId === connectorData.requestId);
+                    if (existingIdx !== -1) {
+                        // Update existing floating entry
+                        const updated = [...prev];
+                        updated[existingIdx] = { ...updated[existingIdx], connectorData };
+                        return updated;
+                    }
+                    // Push new floating entry for this connector notification
+                    return [...prev, { description: "", events: [], connectorData }];
+                });
+                return;
+            }
+
+            const connectorJson = JSON.stringify(connectorData);
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
                 if (newMessages.length > 0) {
@@ -822,8 +1053,23 @@ const AIChat: React.FC = () => {
                 error: configurationNotification.error
             };
 
-            const configurationJson = JSON.stringify(configurationData);
+            if (agentMode === AgentMode.Plan) {
+                // Route config collection events to executionStream as a floating entry
+                setExecutionStream(prev => {
+                    const existingIdx = prev.findIndex(t => t.description === "" && (t as any).configData?.requestId === configurationData.requestId);
+                    if (existingIdx !== -1) {
+                        // Update existing floating entry
+                        const updated = [...prev];
+                        updated[existingIdx] = { ...updated[existingIdx], configData: configurationData };
+                        return updated;
+                    }
+                    // Push new floating entry for this config collection event
+                    return [...prev, { description: "", events: [], configData: configurationData }];
+                });
+                return;
+            }
 
+            const configurationJson = JSON.stringify(configurationData);
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
                 if (newMessages.length > 0) {
@@ -864,33 +1110,53 @@ const AIChat: React.FC = () => {
             setIsCodeLoading(false);
             setIsLoading(false);
             fetchUsage();
+            // Stream ended — clear task ref so any subsequent content renders normally
+            currentTaskDescriptionRef.current = null;
         } else if (type === "abort") {
             console.log("Received abort signal");
-            const interruptedMessage = "\n\n*[Request interrupted by user]*";
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                if (newMessages.length > 0) {
-                    newMessages[newMessages.length - 1].content += interruptedMessage;
-                } else {
-                    // Edge case: abort before any messages
-                    newMessages.push({
-                        role: "assistant",
-                        content: interruptedMessage,
-                        type: "text"
-                    });
-                }
-                return newMessages;
-            });
+            const interruptedMessage = "*[Request interrupted by user]*";
+            if (agentMode === AgentMode.Plan) {
+                // In plan mode, route abort message to executionStream
+                setExecutionStream(prev => {
+                    const abortEvent = { type: "text" as const, text: interruptedMessage, loading: false };
+                    if (prev.length === 0) {
+                        return [{ description: "", events: [abortEvent] }];
+                    }
+                    const last = prev[prev.length - 1];
+                    if (last.description === "") {
+                        return [...prev.slice(0, -1), { ...last, events: [...last.events, abortEvent] }];
+                    }
+                    return [...prev, { description: "", events: [abortEvent] }];
+                });
+            } else {
+                setMessages((prevMessages) => {
+                    const newMessages = [...prevMessages];
+                    if (newMessages.length > 0) {
+                        newMessages[newMessages.length - 1].content += `\n\n${interruptedMessage}`;
+                    } else {
+                        newMessages.push({ role: "assistant", content: interruptedMessage, type: "text" });
+                    }
+                    return newMessages;
+                });
+            }
             setIsCodeLoading(false);
             setIsLoading(false);
+            currentTaskDescriptionRef.current = null;
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
             const messageId = response.messageId;
 
+            // In plan mode the message content is never written to — serialize the
+            // executionStream instead so the history can be replayed on reload.
+            const contentToSave =
+                agentMode === AgentMode.Plan && executionStream.length > 0
+                    ? serializeExecutionStream(executionStream)
+                    : messages[messages.length - 1].content;
+
             // Update chat message in state machine with UI message
             await rpcClient.getAiPanelRpcClient().updateChatMessage({
                 messageId,
-                content: messages[messages.length - 1].content
+                content: contentToSave,
             });
         } else if (type === "error") {
             console.log("Received error signal");
@@ -985,7 +1251,7 @@ const AIChat: React.FC = () => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
         }
-    }, [messages]);
+    }, [messages, executionStream]);
 
     async function handleSendQuery(content: {
         input: Input[];
@@ -1048,6 +1314,9 @@ const AIChat: React.FC = () => {
         setMessages((prevMessages) => prevMessages.filter((message, index) => message.type !== "question"));
         setIsLoading(true);
         isErrorChunkReceivedRef.current = false;
+        // Reset plan mode execution stream for each new generation
+        setExecutionStream([]);
+        currentTaskDescriptionRef.current = null;
         setMessages((prevMessages) =>
             prevMessages.filter((message, index) => index <= lastQuestionIndex || message.type !== "question")
         );
@@ -1377,6 +1646,8 @@ const AIChat: React.FC = () => {
         setMessages([]);
         setApprovalRequest(null);
         setShowReviewActions(false);
+        setExecutionStream([]);
+        currentTaskDescriptionRef.current = null;
 
         await rpcClient.getAiPanelRpcClient().clearChat();
     }
@@ -1473,6 +1744,14 @@ const AIChat: React.FC = () => {
                 requestId: approvalRequest.requestId,
                 comment: undefined
             });
+            if (agentMode === AgentMode.Plan) {
+                // Remove the TodoSection from the executionStream entry — plan is approved, no longer needed
+                setExecutionStream(prev => prev.map(t =>
+                    t.planTasks ? { ...t, planTasks: undefined, planMessage: undefined } : t
+                ));
+            } else {
+                updateLastMessage((content) => content.replace(/<todo>.*?<\/todo>/s, "").trimEnd());
+            }
         } else if (approvalRequest.approvalType === "completion") {
             const reviewTasks = approvalRequest.tasks.filter(t => t.status === "review");
             const lastReviewTask = reviewTasks[reviewTasks.length - 1];
@@ -1494,6 +1773,12 @@ const AIChat: React.FC = () => {
                 requestId: approvalRequest.requestId,
                 comment
             });
+            if (agentMode === AgentMode.Plan) {
+                // Remove the TodoSection from the executionStream entry — plan is rejected, no longer needed
+                setExecutionStream(prev => prev.map(t =>
+                    t.planTasks ? { ...t, planTasks: undefined, planMessage: undefined } : t
+                ));
+            }
         } else if (approvalRequest.approvalType === "completion") {
             await rpcClient.getAiPanelRpcClient().declineTask({
                 requestId: approvalRequest.requestId,
@@ -1633,7 +1918,17 @@ const AIChat: React.FC = () => {
                                             title={message.role}
                                         />
                                     )}
-                                    {segmentedContent.map((segment, i) => {
+                                    {!(agentMode === AgentMode.Plan && isAssistantMessage && isLatestAssistantMessage) && segmentedContent.map((segment, i) => {
+                                        if (segment.type === SegmentType.ExecutionStream) {
+                                            return (
+                                                <PlanStepper
+                                                    key={`exec-stream-${i}`}
+                                                    executionStream={segment.executionStream}
+                                                    isLoading={false}
+                                                    rpcClient={undefined}
+                                                />
+                                            );
+                                        }
                                         if (segment.type === SegmentType.Code) {
                                             const nextSegment = segmentedContent[i + 1];
                                             if (
@@ -1883,6 +2178,9 @@ const AIChat: React.FC = () => {
                                             return <MarkdownRenderer key={`markdown-${i}`} markdownContent={segment.text} />;
                                         }
                                     })}
+                                    {agentMode === AgentMode.Plan && isAssistantMessage && isLatestAssistantMessage && executionStream.length > 0 && (
+                                        <PlanStepper executionStream={executionStream} isLoading={isLoading} rpcClient={rpcClient} />
+                                    )}
                                     {/* Show feedback bar only for the latest assistant message and when loading is complete, but not if review actions are present */}
                                     {isAssistantMessage && isLatestAssistantMessage && !isLoading && !isCodeLoading && !hasReviewActions && (
                                         <FeedbackBar
