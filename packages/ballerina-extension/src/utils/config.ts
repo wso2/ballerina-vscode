@@ -73,6 +73,14 @@ export function isWSL(): boolean {
     );
 }
 
+/**
+ * Wraps a file path in double quotes if it contains spaces,
+ * so it can be safely used in shell command strings.
+ */
+export function quoteShellPath(filePath: string): string {
+    return filePath.includes(' ') ? `"${filePath}"` : filePath;
+}
+
 export function isSupportedVersion(ballerinaExtInstance: BallerinaExtension, supportedRelease: VERSION,
     supportedVersion: number): boolean {
     const ballerinaVersion: string = ballerinaExtInstance.ballerinaVersion.toLocaleLowerCase();

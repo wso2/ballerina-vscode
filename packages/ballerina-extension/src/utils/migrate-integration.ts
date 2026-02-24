@@ -22,6 +22,7 @@ import { extension } from "../BalExtensionContext";
 import { RPCLayer } from "../RPCLayer";
 import { VisualizerWebview } from "../views/visualizer/webview";
 import { debug } from "./logger";
+import { quoteShellPath } from "./config";
 
 const PROGRESS_COMPLETE = 100;
 
@@ -53,8 +54,7 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
     }
 
     const ballerinaCmd = extension.ballerinaExtInstance.getBallerinaCmd();
-    const quotedCmd = ballerinaCmd.includes(' ') ? `"${ballerinaCmd}"` : ballerinaCmd;
-    const command = `${quotedCmd} tool pull ${migrationToolName}:${version}`;
+    const command = `${quoteShellPath(ballerinaCmd)} tool pull ${migrationToolName}:${version}`;
     debug(`Executing migration tool pull command: ${command}`);
 
     // 2. This function now returns a promise that wraps the exec lifecycle
