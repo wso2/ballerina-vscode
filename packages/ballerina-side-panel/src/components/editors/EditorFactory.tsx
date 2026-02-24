@@ -179,7 +179,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             />
         );
 
-    } else if (!field.items && field.type === "ACTION_EXPRESSION") {
+    } else if (!field.items && fieldInputType.fieldType === "ACTION_EXPRESSION") {
         return (
             <ActionExpressionEditor
                 field={field}
