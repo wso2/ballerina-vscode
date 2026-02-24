@@ -57,6 +57,8 @@ public class DataMapperCreationBuilder extends NodeBuilder {
     public static final String OUTPUT_LABEL = "Output";
     public static final String OUTPUT_DOC = "Output type of the data mapper";
 
+    private static final String FUNCTION_NAME = "transform";
+
     private static final Gson gson = new Gson();
 
     public static final String RETURN_TYPE = TypeKind.ANYDATA.typeName();
@@ -84,6 +86,10 @@ public class DataMapperCreationBuilder extends NodeBuilder {
         return DATA_MAPPER_DEFINITION_FILE;
     }
 
+    protected String getFunctionName() {
+        return FUNCTION_NAME;
+    }
+
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
@@ -96,7 +102,7 @@ public class DataMapperCreationBuilder extends NodeBuilder {
 
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
-        properties().functionNameTemplate("transform", context.getAllVisibleSymbolNames(),
+        properties().functionNameTemplate(getFunctionName(), context.getAllVisibleSymbolNames(),
                 getNameLabel(), getNameDoc());
 
         setMandatoryProperties(context, this, null);
