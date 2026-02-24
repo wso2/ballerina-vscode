@@ -3866,12 +3866,14 @@ public class DataMapManager {
             LetExpressionNode letExpr = (LetExpressionNode) expression;
             if (!isInput) {
                 if (codedata.isNew() != null && codedata.isNew()) {
-                    String statement = String.format(", %s %s = {}", typeName, variableName);
+                    ExpressionNode expr = letExpr.expression();
+                    String statement = String.format(", %s %s = %s", typeName, variableName,
+                            expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR ? expr.toSourceCode().trim() : "{}");
                     SeparatedNodeList<LetVariableDeclarationNode> letVarDeclarationNodes = letExpr.letVarDeclarations();
                     LinePosition linePosition =
                             letVarDeclarationNodes.get(letVarDeclarationNodes.size() - 1).lineRange().endLine();
                     textEdits.add(new TextEdit(CommonUtils.toRange(linePosition), statement));
-                    textEdits.add(new TextEdit(CommonUtils.toRange(letExpr.expression().lineRange()),
+                    textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()),
                             addTypeConversion(parentTypeName, textEdits, variableName,
                                     document.syntaxTree().rootNode())));
                 } else {
@@ -3895,7 +3897,8 @@ public class DataMapManager {
         } else {
             String statement;
             if (!isInput) {
-                statement = String.format("let %s %s = {} in %s", typeName, variableName,
+                statement = String.format("let %s %s = %s in %s", typeName, variableName,
+                        expression.kind() == SyntaxKind.MAPPING_CONSTRUCTOR ? expression.toSourceCode().trim() : "{}",
                         addTypeConversion(parentTypeName, textEdits, variableName, document.syntaxTree().rootNode()));
             } else {
                 statement = String.format("let %s %sConverted = check %s.ensureType() in %s", typeName, variableName,
