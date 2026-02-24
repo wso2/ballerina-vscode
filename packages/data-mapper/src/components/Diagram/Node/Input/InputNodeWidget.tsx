@@ -166,7 +166,6 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                                 id={"converted-icon-" + id}
                                 appearance="icon"
                                 tooltip="Type defined variable"
-                                onClick={() => { }}
                             >
                                 <Icon name="arrow-down-right" />
                             </Button>

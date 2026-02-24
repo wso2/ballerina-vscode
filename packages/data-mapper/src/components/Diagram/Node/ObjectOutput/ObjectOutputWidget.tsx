@@ -167,7 +167,6 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 								id={"converted-icon-" + id}
 								appearance="icon"
 								tooltip="Type defined variable"
-								onClick={() => { }}
 							>
 								<Icon name="arrow-left-up" />
 							</Button>
