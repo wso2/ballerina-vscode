@@ -715,6 +715,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 const data = await response.json();
                 return data as UsageResponse;
             }
+            console.error("Failed to fetch usage: ", response?.status, response?.statusText);
             return undefined;
         } catch (error) {
             console.error("Failed to fetch usage:", error);
