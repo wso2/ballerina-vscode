@@ -76,9 +76,22 @@ export function isWSL(): boolean {
 /**
  * Wraps a file path in double quotes if it contains spaces,
  * so it can be safely used in shell command strings.
+ * Handles already-quoted paths and escapes embedded double quotes.
  */
 export function quoteShellPath(filePath: string): string {
-    return filePath.includes(' ') ? `"${filePath}"` : filePath;
+    // Strip existing surrounding quotes to normalize
+    let normalized = filePath;
+    if (normalized.length >= 2 && normalized.startsWith('"') && normalized.endsWith('"')) {
+        normalized = normalized.slice(1, -1);
+    }
+
+    if (!normalized.includes(' ')) {
+        return normalized;
+    }
+
+    // Escape any embedded double quotes
+    const escaped = normalized.replace(/"/g, '\\"');
+    return `"${escaped}"`;
 }
 
 export function isSupportedVersion(ballerinaExtInstance: BallerinaExtension, supportedRelease: VERSION,
