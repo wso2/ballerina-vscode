@@ -1794,7 +1794,7 @@ export class BallerinaExtension {
         } else if (isWindows() && !ballerinaHome) {
             // On Windows, if syncEnvironment() already merged the User+Machine PATH the
             // 'bal.bat version' call below will just work via PATH lookup (distPath stays
-            // empty).  But for restricted environments (company laptops where even User
+            // empty).  But for restricted environments (where even User
             // PATH is locked, or where VSCode's inherited PATH is still stale), we run a
             // proactive directory search here so that we can use an absolute path instead
             // of relying on PATH resolution.
