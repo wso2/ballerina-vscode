@@ -18,7 +18,7 @@
 
 import { BallerinaProject } from "@wso2/ballerina-core";
 import { Terminal, window, workspace } from "vscode";
-import { isSupportedSLVersion, isWindows, createVersionNumber } from "../../../utils";
+import { isSupportedSLVersion, isWindows, createVersionNumber, quoteShellPath } from "../../../utils";
 import { extension } from "../../../BalExtensionContext";
 import { TracerMachine } from "../../../features/tracing";
 
@@ -127,10 +127,8 @@ export function runCommandWithConf(file: BallerinaProject | string, executor: st
         });
     }
     let commandText;
-    // Quote executor path to handle spaces in directory names
-    const quotedExecutor = /\s/g.test(executor) ? `"${executor}"` : executor;
     if (cmd === BALLERINA_COMMANDS.OTHER) {
-        commandText = `${quotedExecutor} ${argsList}`;
+        commandText = `${quoteShellPath(executor)} ${argsList}`;
         terminal = window.createTerminal({ name: TERMINAL_NAME });
     } else {
         let env = {};
@@ -166,7 +164,7 @@ export function runCommandWithConf(file: BallerinaProject | string, executor: st
             }
         }
 
-        commandText = `${quotedExecutor} ${cmd} ${argsList}`;
+        commandText = `${quoteShellPath(executor)} ${cmd} ${argsList}`;
         if (confPath !== '') {
             const configs = env['BAL_CONFIG_FILES'] ? `${env['BAL_CONFIG_FILES']}:${confPath}` : confPath;
             Object.assign(env, { BAL_CONFIG_FILES: configs });

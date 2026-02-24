@@ -40,6 +40,7 @@ import {
     outputChannel,
     isWindows,
     isWSL,
+    quoteShellPath,
     isSupportedVersion,
     VERSION,
     isSupportedSLVersion,
@@ -1850,7 +1851,7 @@ export class BallerinaExtension {
         }
 
         // Quote the executable path to handle spaces in directory names
-        let ballerinaCommand = balExecutablePath.includes(' ') ? `"${balExecutablePath}" version` : `${balExecutablePath} version`;
+        let ballerinaCommand = `${quoteShellPath(balExecutablePath)} version`;
 
         debug(`[VERSION] Executing command: '${ballerinaCommand}'`);
 
