@@ -451,6 +451,8 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
     const handleSaveConnection = async () => {
         setIsSaving(true);
+        setConnectionError(null);
+        setLsErrorDetails({ errorMessage: null, isExpanded: false });
         try {
             // Get project path
             const visualizerLocation = await rpcClient.getVisualizerLocation();
@@ -481,8 +483,9 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
             });
 
             if (response.errorMsg) {
-                console.error(">>> Error saving connection", response.errorMsg);
-                setConnectionError("Failed to save the connection. Please try again.");
+                console.error(">>> Error creating connection", response.errorMsg);
+                setConnectionError("Unable to create the connection. Please check the error details below.");
+                setLsErrorDetails({ errorMessage: response.errorMsg, isExpanded: false });
                 return;
             }
 
@@ -497,8 +500,9 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
             onClose?.({ recentIdentifier: connectionName, artifactType: DIRECTORY_MAP.CONNECTION });
         } catch (error) {
-            console.error(">>> Error saving connection", error);
-            setConnectionError("Failed to save the connection. Please try again.");
+            console.error(">>> Error creating connection", error);
+            setConnectionError("An unexpected error occurred while creating the connection. Please check the error details below.");
+            setLsErrorDetails({ errorMessage: error instanceof Error ? error.message : String(error), isExpanded: false });
         } finally {
             setIsSaving(false);
         }
@@ -552,7 +556,10 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                 )}
                 <SeparatorLine />
                 <Typography variant="body2">
-                    Or try using a pre-built connector:
+                    Need an alternative solution?
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: '12px', color: ThemeColors.ON_SURFACE_VARIANT }}>
+                    You can use a pre-built connector from the connector catalog instead.
                 </Typography>
                 <BrowseMoreButton appearance="secondary" onClick={handleBrowseMoreConnectors} buttonSx={{ width: "100%" }}>
                     Browse Pre-built Connectors
@@ -696,6 +703,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 Name your connection and configure default values for configurables
                             </SectionSubtitle>
                         </div>
+                        {renderErrorDisplay()}
                         <FormSection>
                             <FormField>
                                 <TextField
@@ -703,7 +711,13 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                     label="Connection Name"
                                     placeholder="Database connection name"
                                     value={connectionName}
-                                    onTextChange={setConnectionName}
+                                    onTextChange={(value) => {
+                                        setConnectionName(value);
+                                        if (connectionError) {
+                                            setConnectionError(null);
+                                            setLsErrorDetails({ errorMessage: null, isExpanded: false });
+                                        }
+                                    }}
                                     {...(isSaving ? { readonly: true } : {})}
                                 />
                             </FormField>
