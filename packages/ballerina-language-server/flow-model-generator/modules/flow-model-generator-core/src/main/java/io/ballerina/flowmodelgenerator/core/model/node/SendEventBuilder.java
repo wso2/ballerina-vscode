@@ -21,16 +21,14 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Option;
 import io.ballerina.flowmodelgenerator.core.model.Property;
-import io.ballerina.flowmodelgenerator.core.model.PropertyTypeMemberInfo;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
-import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.PackageUtil;
+import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
 import io.ballerina.projects.Package;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -50,22 +48,17 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_O
  * @since 2.0.0
  */
 public class SendEventBuilder extends NodeBuilder {
-
     public static final String LABEL = "Send Event";
     public static final String DESCRIPTION = "Send an event to an existing workflow instance";
-
     public static final String WORKFLOW_NAME_KEY = "workflowName";
     public static final String WORKFLOW_NAME_LABEL = "Workflow Name";
     public static final String WORKFLOW_NAME_DOC = "The workflow function to send the event to";
-
     public static final String EVENT_NAME_KEY = "eventName";
     public static final String EVENT_NAME_LABEL = "Event Name";
     public static final String EVENT_NAME_DOC = "The name of the event to send";
-
     public static final String EVENT_DATA_KEY = "eventData";
     public static final String EVENT_DATA_LABEL = "Event Data";
     public static final String EVENT_DATA_DOC = "The event data to send";
-
     private static final String SEND_EVENT_METHOD = "sendEvent";
     private static final String MAP_ANYDATA_TYPE = "map<anydata>";
 
@@ -80,10 +73,8 @@ public class SendEventBuilder extends NodeBuilder {
 
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
-        // Get available workflow functions for the SINGLE_SELECT options
         List<Option> workflowOptions = getAvailableWorkflowFunctions(context);
 
-        // Property 1: Workflow Name (SINGLE_SELECT with workflow options)
         properties().custom()
                 .metadata()
                     .label(WORKFLOW_NAME_LABEL)
@@ -99,7 +90,6 @@ public class SendEventBuilder extends NodeBuilder {
                 .stepOut()
                 .addProperty(WORKFLOW_NAME_KEY);
 
-        // Property 2: Event Name (SINGLE_SELECT with empty options initially)
         properties().custom()
                 .metadata()
                     .label(EVENT_NAME_LABEL)
@@ -115,12 +105,10 @@ public class SendEventBuilder extends NodeBuilder {
                 .stepOut()
                 .addProperty(EVENT_NAME_KEY);
 
-        // Build typeMembers for RECORD_MAP_EXPRESSION
-        List<PropertyTypeMemberInfo> typeMembers = List.of(
-                new PropertyTypeMemberInfo(MAP_ANYDATA_TYPE, null, null, "RECORD_TYPE", false)
+        List<ParameterMemberTypeData> typeMembers = List.of(
+                new ParameterMemberTypeData(MAP_ANYDATA_TYPE, "RECORD_TYPE", null, null)
         );
 
-        // Property 3: Event Data (RECORD_MAP_EXPRESSION and EXPRESSION types)
         properties().custom()
                 .metadata()
                     .label(EVENT_DATA_LABEL)
@@ -129,7 +117,7 @@ public class SendEventBuilder extends NodeBuilder {
                 .type()
                     .fieldType(Property.ValueType.RECORD_MAP_EXPRESSION)
                     .ballerinaType(MAP_ANYDATA_TYPE)
-                    .typeMembersRaw(typeMembers)
+                    .typeMembers(typeMembers)
                     .selected(false)
                     .stepOut()
                 .type()
@@ -141,75 +129,22 @@ public class SendEventBuilder extends NodeBuilder {
                 .editable(true)
                 .stepOut()
                 .addProperty(EVENT_DATA_KEY);
-
-        // Variable property for result
-        properties().custom()
-                .metadata()
-                    .label("Result Variable")
-                    .description("Variable name to receive the result")
-                    .stepOut()
-                .type(Property.ValueType.IDENTIFIER)
-                .value("result")
-                .editable(true)
-                .stepOut()
-                .addProperty(Property.VARIABLE_KEY);
-
-        // Check error property
-        properties().custom()
-                .metadata()
-                    .label("Check Error")
-                    .description("Trigger error flow")
-                    .stepOut()
-                .type(Property.ValueType.FLAG)
-                .value(true)
-                .editable(true)
-                .advanced(true)
-                .hidden(true)
-                .stepOut()
-                .addProperty(Property.CHECK_ERROR_KEY);
     }
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        FlowNode flowNode = sourceBuilder.flowNode;
-
-        // Get variable name property
-        Optional<Property> variableProp = sourceBuilder.getProperty(Property.VARIABLE_KEY);
-        String variableName = variableProp
-                .map(p -> p.value().toString())
-                .orElse("result");
-
-        // Get workflow name property
         Optional<Property> workflowNameProp = sourceBuilder.getProperty(WORKFLOW_NAME_KEY);
-        String workflowName = workflowNameProp
-                .map(p -> p.value().toString())
-                .orElse("");
+        String workflowName = workflowNameProp.map(p -> p.value().toString()).orElse("");
 
-        // Get event name property
         Optional<Property> eventNameProp = sourceBuilder.getProperty(EVENT_NAME_KEY);
-        String eventName = eventNameProp
-                .map(p -> p.value().toString())
-                .orElse("");
+        String eventName = eventNameProp.map(p -> p.value().toString()).orElse("");
 
-        // Get event data property
         Optional<Property> eventDataProp = sourceBuilder.getProperty(EVENT_DATA_KEY);
-        String eventData = eventDataProp
-                .map(p -> p.value().toString())
-                .orElse("{}");
+        String eventData = eventDataProp.map(p -> p.value().toString()).orElse("{}");
 
-        // Generate: boolean result = check workflow:sendEvent(workflowFunction, eventData, "eventName");
+        // Generate: check workflow:sendEvent(workflowFunction, eventData, "eventName");
         sourceBuilder.token()
-                .keyword(SyntaxKind.BOOLEAN_KEYWORD)
-                .name(variableName)
-                .whiteSpace()
-                .keyword(SyntaxKind.EQUAL_TOKEN);
-
-        if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
-            sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
-        }
-
-        // Build: workflow:sendEvent(workflowFunction, eventData, "eventName")
-        sourceBuilder.token()
+                .keyword(SyntaxKind.CHECK_KEYWORD)
                 .name(WORKFLOW_MODULE)
                 .keyword(SyntaxKind.COLON_TOKEN)
                 .name(SEND_EVENT_METHOD)
@@ -239,13 +174,10 @@ public class SendEventBuilder extends NodeBuilder {
      */
     private List<Option> getAvailableWorkflowFunctions(TemplateContext context) {
         List<Option> options = new ArrayList<>();
-
         try {
             Package currentPackage = PackageUtil.loadProject(context.workspaceManager(), context.filePath())
                     .currentPackage();
             PackageUtil.getCompilation(currentPackage);
-
-            // Search for functions with @workflow:Process annotation in all modules
             currentPackage.modules().forEach(module -> {
                 module.getCompilation().getSemanticModel().moduleSymbols().stream()
                         .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)
@@ -261,7 +193,6 @@ public class SendEventBuilder extends NodeBuilder {
         } catch (Exception e) {
             // Return empty options if project loading fails
         }
-
         return options;
     }
 }
