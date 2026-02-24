@@ -1791,6 +1791,18 @@ export class BallerinaExtension {
                     if (distPath) { break; }
                 }
             }
+        } else if (isWindows() && !ballerinaHome) {
+            // On Windows, if syncEnvironment() already merged the User+Machine PATH the
+            // 'bal.bat version' call below will just work via PATH lookup (distPath stays
+            // empty).  But for restricted environments (company laptops where even User
+            // PATH is locked, or where VSCode's inherited PATH is still stale), we run a
+            // proactive directory search here so that we can use an absolute path instead
+            // of relying on PATH resolution.
+            const detectedBinPath = findWindowsBallerinaPath();
+            if (detectedBinPath) {
+                distPath = detectedBinPath;
+                debug(`[VERSION] Windows fallback search found Ballerina bin: ${distPath}`);
+            }
         }
 
         let exeExtension = "";
@@ -2679,6 +2691,82 @@ function updateProcessEnv(newEnv: NodeJS.ProcessEnv): void {
     debug("[UPDATE_ENV] Process environment update completed");
 }
 
+/**
+ * Searches for the Ballerina bin directory on Windows using two strategies:
+ *   1. Read the User-scope and Machine-scope PATH entries from the registry and look
+ *      for a directory that contains bal.bat.
+ *   2. Check well-known installation directories (LOCALAPPDATA, ProgramFiles, etc.).
+ *
+ * Returns the bin directory path (with trailing separator) or an empty string when
+ * nothing is found. This is used as a last-resort fallback for environments where the
+ * process PATH was not updated (e.g. company laptops with restricted System PATH, or
+ * VS Code opened before the installer ran).
+ */
+function findWindowsBallerinaPath(): string {
+    debug('[WIN_BAL_FIND] Searching for Ballerina installation on Windows...');
+
+    // --- Strategy 1: scan PATH entries from User + Machine registry scopes ---
+    try {
+        const psCommand =
+            '[Environment]::GetEnvironmentVariable(\'Path\',\'Machine\') + \';\' + ' +
+            '[Environment]::GetEnvironmentVariable(\'Path\',\'User\')';
+        const rawPaths = execSync(
+            `powershell.exe -NoProfile -Command "${psCommand}"`,
+            { encoding: 'utf8', timeout: 10000 }
+        ).trim();
+
+        debug(`[WIN_BAL_FIND] Registry PATH (Machine+User) length: ${rawPaths.length} chars`);
+
+        const pathEntries = rawPaths.split(';').map(p => p.trim()).filter(Boolean);
+        for (const entry of pathEntries) {
+            const candidate = path.join(entry, 'bal.bat');
+            if (fs.existsSync(candidate)) {
+                debug(`[WIN_BAL_FIND] Found bal.bat in registry PATH entry: ${entry}`);
+                return entry + path.sep;
+            }
+        }
+        debug('[WIN_BAL_FIND] bal.bat not found in registry PATH entries');
+    } catch (err) {
+        debug(`[WIN_BAL_FIND] Failed to read registry PATH: ${err}`);
+    }
+
+    // --- Strategy 2: check well-known Ballerina installation directories ---
+    const localAppData = process.env.LOCALAPPDATA || '';
+    const programFiles = process.env.ProgramFiles || 'C:\\Program Files';
+    const programFilesX86 = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)';
+
+    const searchRoots = [
+        localAppData ? path.join(localAppData, 'Programs', 'Ballerina') : '',
+        path.join(programFiles, 'Ballerina'),
+        path.join(programFilesX86, 'Ballerina'),
+        'C:\\Ballerina',
+    ].filter(Boolean);
+
+    for (const root of searchRoots) {
+        const directBin = path.join(root, 'bin');
+        if (fs.existsSync(path.join(directBin, 'bal.bat'))) {
+            debug(`[WIN_BAL_FIND] Found bal.bat in common directory: ${directBin}`);
+            return directBin + path.sep;
+        }
+        // Handle versioned subdirectory layout, e.g. Ballerina\ballerina-2.x.x\bin
+        try {
+            const children = fs.readdirSync(root);
+            for (const child of children) {
+                const versionedBin = path.join(root, child, 'bin');
+                if (fs.existsSync(path.join(versionedBin, 'bal.bat'))) {
+                    debug(`[WIN_BAL_FIND] Found bal.bat in versioned directory: ${versionedBin}`);
+                    return versionedBin + path.sep;
+                }
+            }
+        } catch (_) {
+            // Directory doesn't exist or isn't readable — skip
+        }
+    }
+
+    debug('[WIN_BAL_FIND] Ballerina installation not found via fallback search');
+    return '';
+}
+
 function getShellEnvironment(): Promise<NodeJS.ProcessEnv> {
     return new Promise((resolve, reject) => {
         debug('[SHELL_ENV] Starting shell environment retrieval...');
@@ -2688,8 +2776,19 @@ function getShellEnvironment(): Promise<NodeJS.ProcessEnv> {
 
         if (isWindowsPlatform) {
             debug('[SHELL_ENV] Windows platform detected');
-            // Windows: use PowerShell to get environment
-            command = 'powershell.exe -Command "[Environment]::GetEnvironmentVariables(\'Process\') | ConvertTo-Json"';
+            // Windows: read from registry (Machine + User scopes) so that paths added by
+            // a fresh Ballerina install (which goes to the User PATH registry key) are
+            // picked up even when VS Code's process was launched before the installation.
+            // We start with the current Process environment so that VS Code-internal
+            // variables are preserved, but we override Path with the merged registry value.
+            command = 'powershell.exe -NoProfile -Command "' +
+                '$e=[Environment]::GetEnvironmentVariables(\'Process\');' +
+                '$mp=[Environment]::GetEnvironmentVariable(\'Path\',\'Machine\');' +
+                '$up=[Environment]::GetEnvironmentVariable(\'Path\',\'User\');' +
+                'if($mp -and $up){$e[\'Path\']=$mp+\';\'+$up}' +
+                'elseif($mp){$e[\'Path\']=$mp}' +
+                'elseif($up){$e[\'Path\']=$up};' +
+                '$e | ConvertTo-Json"';
             debug(`[SHELL_ENV] Windows command: ${command}`);
         } else if (isWSL()) {
             debug("[SHELL_ENV] Windows WSL platform, using non-interactive shell");
