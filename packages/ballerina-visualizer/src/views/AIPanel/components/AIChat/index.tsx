@@ -89,6 +89,8 @@ const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the docume
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS = "Generate code based on the following requirements: ";
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED = GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS.trim();
 
+const USAGE_EXCEEDED_THRESHOLD_PERCENT = 3;
+
 /**
  * Formats a file path into a user-friendly display name
  * - Removes .bal extension
@@ -254,13 +256,16 @@ const AIChat: React.FC = () => {
             const result = await rpcClient.getAiPanelRpcClient().getUsage();
             if (result) {
                 setUsage(result);
-                setIsUsageExceeded(result.resetsIn !== -1 && result.remainingUsagePercentage < 3);
+                setIsUsageExceeded(result.resetsIn !== -1 && result.remainingUsagePercentage < USAGE_EXCEEDED_THRESHOLD_PERCENT);
             } else {
                 setUsage(null);
                 setIsUsageExceeded(false);
             }
         } catch (e) {
             console.error("Failed to fetch usage:", e);
+            // Reset on error to avoid permanently blocking the user on transient failures
+            setUsage(null);
+            setIsUsageExceeded(false);
         }
     };
 
