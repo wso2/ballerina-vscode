@@ -51,7 +51,7 @@ import RoleContainer from "../RoleContainter";
 import CheckpointSeparator from "../CheckpointSeparator";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 
-import { AIChatView, Header, HeaderButtons, ChatMessage, Badge, ApprovalOverlay, OverlayMessage } from "../../styles";
+import { AIChatView, Header, HeaderButtons, ChatMessage, Badge, ResetsInBadge, ApprovalOverlay, OverlayMessage } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import MarkdownRenderer from "../MarkdownRenderer";
@@ -88,6 +88,8 @@ const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the docume
 
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS = "Generate code based on the following requirements: ";
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED = GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS.trim();
+
+const USAGE_EXCEEDED_THRESHOLD_PERCENT = 3;
 
 /**
  * Formats a file path into a user-friendly display name
@@ -155,6 +157,9 @@ const AIChat: React.FC = () => {
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
+
+    const [usage, setUsage] = useState<{ remainingUsagePercentage: number; resetsIn: number } | null>(null);
+    const [isUsageExceeded, setIsUsageExceeded] = useState(false);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -225,6 +230,46 @@ const AIChat: React.FC = () => {
         incrementOnboardingOpens();
     }, []);
     /* REFACTORED CODE END [2] */
+
+    const formatResetsIn = (seconds: number): string => {
+        const days = Math.floor(seconds / 86400);
+        if (days >= 1) return `${days} day${days > 1 ? 's' : ''}`;
+        const hours = Math.floor(seconds / 3600);
+        if (hours >= 1) return `${hours} hour${hours > 1 ? 's' : ''}`;
+        const mins = Math.floor(seconds / 60);
+        return `${mins} min${mins > 1 ? 's' : ''}`;
+    };
+
+    const formatResetsInExact = (seconds: number): string => {
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const parts: string[] = [];
+        if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+        if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+        if (mins > 0) parts.push(`${mins} minute${mins > 1 ? 's' : ''}`);
+        return parts.length > 0 ? parts.join(', ') : 'less than a minute';
+    };
+
+    const fetchUsage = async () => {
+        try {
+            const result = await rpcClient.getAiPanelRpcClient().getUsage();
+            if (result) {
+                setUsage(result);
+                setIsUsageExceeded(result.resetsIn !== -1 && result.remainingUsagePercentage < USAGE_EXCEEDED_THRESHOLD_PERCENT);
+            } else {
+                setUsage(null);
+                setIsUsageExceeded(false);
+            }
+        } catch (e) {
+            console.error("Failed to fetch usage:", e);
+            // Reset on error to avoid permanently blocking the user on transient failures
+            setUsage(null);
+            setIsUsageExceeded(false);
+        }
+    };
+
+    useEffect(() => { fetchUsage(); }, []);
 
     const handleCheckpointRestore = async (checkpointId: string) => {
         try {
@@ -730,6 +775,7 @@ const AIChat: React.FC = () => {
             console.log("Received stop signal");
             setIsCodeLoading(false);
             setIsLoading(false);
+            fetchUsage();
         } else if (type === "abort") {
             console.log("Received abort signal");
             const interruptedMessage = "\n\n*[Request interrupted by user]*";
@@ -1407,9 +1453,19 @@ const AIChat: React.FC = () => {
                     )}
                     <Header>
                         <Badge>
-                            Remaining Free Usage: {"Unlimited"}
-                            <br />
-                            {/* <ResetsInBadge>{`Resets in: 30 days`}</ResetsInBadge> */}
+                            {usage ? (
+                                <>
+                                    Remaining Usage: {usage.resetsIn === -1 ? "Unlimited" : (isUsageExceeded ? "Exceeded" : `${Math.round(usage.remainingUsagePercentage)}%`)}
+                                    {usage.resetsIn !== -1 && (
+                                        <>
+                                            <br />
+                                            <ResetsInBadge title={formatResetsInExact(usage.resetsIn)}>{`Resets in: ${formatResetsIn(usage.resetsIn)}`}</ResetsInBadge>
+                                        </>
+                                    )}
+                                </>
+                            ) : (
+                                "Remaining Usage: N/A"
+                            )}
                         </Badge>
                         <HeaderButtons>
                             <Button
@@ -1784,6 +1840,7 @@ const AIChat: React.FC = () => {
                             onChangeAgentMode={isPlanModeFeatureEnabled ? handleChangeAgentMode : undefined}
                             isAutoApproveEnabled={isAutoApproveEnabled}
                             onDisableAutoApprove={handleToggleAutoApprove}
+                            disabled={isUsageExceeded}
                         />
                     )}
                 </AIChatView>
