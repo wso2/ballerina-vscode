@@ -40,6 +40,7 @@ import {
     outputChannel,
     isWindows,
     isWSL,
+    quoteShellPath,
     isSupportedVersion,
     VERSION,
     isSupportedSLVersion,
@@ -1819,7 +1820,8 @@ export class BallerinaExtension {
             debug("[VERSION] Non-Windows platform detected, no extension needed");
         }
 
-        let ballerinaCommand = distPath + 'bal' + exeExtension + ' version';
+        // Build the executable path separately so we can quote it for shell execution
+        let balExecutablePath = distPath + 'bal' + exeExtension;
 
         // Handle WSL environment - prefer native Linux installation over Windows .bat files
         if (isWSL()) {
@@ -1829,25 +1831,27 @@ export class BallerinaExtension {
                     // Check if 'bal' command is available in PATH
                     execSync('which bal', { encoding: 'utf8', timeout: 5000 });
                     // If we get here, 'bal' is available, use it instead of .bat
-                    ballerinaCommand = 'bal version';
+                    balExecutablePath = 'bal';
                     debug("[VERSION] WSL detected native 'bal' command, using it instead of .bat file");
                 } catch (error) {
                     debug("[VERSION] No native 'bal' command found in WSL, will try .bat file");
                     // If the path contains Windows-style paths, we need to handle them properly
-                    if (ballerinaCommand.includes('\\') || ballerinaCommand.match(/^[A-Za-z]:/)) {
+                    if (balExecutablePath.includes('\\') || balExecutablePath.match(/^[A-Za-z]:/)) {
                         debug("[VERSION] WSL detected with Windows path, attempting to convert to WSL path");
                         // Try to convert Windows path to WSL path
-                        const wslPath = ballerinaCommand.replace(/^([A-Za-z]):/, '/mnt/$1').replace(/\\/g, '/').toLowerCase();
-                        debug(`[VERSION] Converted Windows path to WSL path: ${wslPath}`);
-                        ballerinaCommand = wslPath;
+                        balExecutablePath = balExecutablePath.replace(/^([A-Za-z]):/, '/mnt/$1').replace(/\\/g, '/').toLowerCase();
+                        debug(`[VERSION] Converted Windows path to WSL path: ${balExecutablePath}`);
                     }
                 }
             } else {
                 // We have a native Linux installation, use it directly
-                ballerinaCommand = 'bal version';
+                balExecutablePath = 'bal';
                 debug("[VERSION] WSL detected with native Linux installation, using 'bal version'");
             }
         }
+
+        // Quote the executable path to handle spaces in directory names
+        let ballerinaCommand = `${quoteShellPath(balExecutablePath)} version`;
 
         debug(`[VERSION] Executing command: '${ballerinaCommand}'`);
 

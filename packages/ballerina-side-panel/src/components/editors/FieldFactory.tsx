@@ -53,7 +53,6 @@ type FieldFactoryProps = {
 export const FieldFactory = (props: FieldFactoryProps) => {
     const [renderingEditors, setRenderingEditors] = useState<InputType[]>(null);
     const [inputMode, setInputMode] = useState<InputMode>(InputMode.EXP);
-    const isModeSelectionDirty = useRef<boolean>(false)
 
     const formContext = useFormContext();
     const { expressionEditor } = formContext;
@@ -118,31 +117,15 @@ export const FieldFactory = (props: FieldFactoryProps) => {
             throw new Error("Field types are not defined");
         }
 
-        //TODO: Should be removed once fields with type field is fixed to
-        // update the types property correctly when changing the type.
-        if (props.recordTypeFields?.find(recordField => recordField.key === props.field.key)) {
-            setRenderingEditors([
-                { fieldType: "RECORD_MAP_EXPRESSION", selected: true } as InputType,
-                { fieldType: "EXPRESSION", selected: false } as InputType
-            ]);
-            if (!isModeSelectionDirty.current) {
-                setInputMode(InputMode.RECORD);
-                updateFieldTypesSelection(InputMode.RECORD);
-            }
-            return;
-        }
-
         const newRenderingTypes = props.field.types.length === 1
             ? [props.field.types[0]]
             : [props.field.types[0], props.field.types[props.field.types.length - 1]];
         setRenderingEditors(newRenderingTypes);
 
-        if (!isModeSelectionDirty.current) {
-            const selectedInputType = getInitialSelectedInputType();
-            const initialInputMode = getInputModeFromTypes(selectedInputType) || InputMode.EXP;
-            setInputMode(initialInputMode);
-            updateFieldTypesSelection(initialInputMode);
-        }
+        const selectedInputType = getInitialSelectedInputType();
+        const initialInputMode = getInputModeFromTypes(selectedInputType) || InputMode.EXP;
+        setInputMode(initialInputMode);
+        updateFieldTypesSelection(initialInputMode);
     }, [props.field, props.recordTypeFields]);
 
     const isModeSwitcherEnabled = useMemo(() => {
@@ -161,7 +144,6 @@ export const FieldFactory = (props: FieldFactoryProps) => {
 
     const handleModeChange = useCallback((mode: InputMode) => {
         setInputMode(mode);
-        isModeSelectionDirty.current = true;
         updateFieldTypesSelection(mode);
     }, []);
 

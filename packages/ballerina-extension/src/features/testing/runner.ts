@@ -34,6 +34,7 @@ import { BALLERINA_COMMANDS } from "../project";
 import { discoverTests, gatherTestItems } from "./discover";
 import { testController, projectRoot } from "./activator";
 import { extension } from "../../BalExtensionContext";
+import { quoteShellPath } from "../../utils/config";
 
 enum EXEC_ARG {
     TESTS = '--tests',
@@ -72,7 +73,7 @@ export function runHandler(request: TestRunRequest, cancellation: CancellationTo
             try {
                 // execute test
                 const executor = extension.ballerinaExtInstance.getBallerinaCmd();
-                const commandText = `${executor} ${BALLERINA_COMMANDS.TEST} ${EXEC_ARG.TESTS} ${testNames} ${EXEC_ARG.COVERAGE}`;
+                const commandText = `${quoteShellPath(executor)} ${BALLERINA_COMMANDS.TEST} ${EXEC_ARG.TESTS} ${testNames} ${EXEC_ARG.COVERAGE}`;
                 await runCommand(commandText, projectRoot);
 
             } catch {

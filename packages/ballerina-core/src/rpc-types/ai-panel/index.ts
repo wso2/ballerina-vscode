@@ -44,6 +44,7 @@ import {
     UIChatMessage,
     CheckpointInfo,
     AbortAIGenerationRequest,
+    UsageResponse,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -107,4 +108,5 @@ export interface AIPanelAPI {
     clearChat: () => Promise<void>;
     updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;
     getActiveTempDir: () => Promise<string>;
+    getUsage: () => Promise<UsageResponse | undefined>;
 }
