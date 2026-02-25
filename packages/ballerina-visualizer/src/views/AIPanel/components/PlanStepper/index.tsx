@@ -212,8 +212,8 @@ const NodeLabel = styled.span<{ nodeStatus: "active" | "done" }>`
 
 // Breathing dot for the active event
 const BreatheDot = styled.span<{ failed?: boolean }>`
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     flex-shrink: 0;
     background-color: ${(props: { failed?: boolean }) =>
@@ -223,15 +223,15 @@ const BreatheDot = styled.span<{ failed?: boolean }>`
 
 // Static dot for completed events
 const StaticDot = styled.span<{ failed?: boolean }>`
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     flex-shrink: 0;
     background-color: ${(props: { failed?: boolean }) =>
         props.failed
             ? "var(--vscode-errorForeground)"
-            : "var(--vscode-charts-green, #388a34)"};
-    opacity: 0.8;
+            : "var(--vscode-descriptionForeground)"};
+    opacity: 0.7;
 `;
 
 const EventLabel = styled.span<{ loading: boolean; failed?: boolean }>`
@@ -239,9 +239,9 @@ const EventLabel = styled.span<{ loading: boolean; failed?: boolean }>`
     color: ${(props: { loading: boolean; failed?: boolean }) =>
         props.failed
             ? "var(--vscode-errorForeground)"
-            : "var(--vscode-editor-foreground)"};
-    opacity: ${(props: { loading: boolean; failed?: boolean }) =>
-        props.failed || props.loading ? 1 : 0.8};
+            : props.loading
+            ? "var(--vscode-editor-foreground)"
+            : "var(--vscode-descriptionForeground)"};
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
