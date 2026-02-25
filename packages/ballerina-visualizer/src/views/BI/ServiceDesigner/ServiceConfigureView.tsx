@@ -1052,14 +1052,6 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
         onDirtyChange?.(isDirty, filePath, position);
     }
 
-    // Check if this is a legacy listener (legacy FTP listeners carry path/folderPath in listener properties)
-    const isLegacyListener =
-        listenerModel?.properties?.folderPath !== undefined ||
-        listenerModel?.properties?.path !== undefined;
-
-    // For attached listeners in new system (no folderPath in listener), show only monitoring path
-    const showMinimalConfig = isAttachedListener && !isLegacyListener;
-
     return (
         <ServiceConfigureListenerEditViewContainer>
             {!listenerModel &&
@@ -1068,7 +1060,7 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
                     <Typography variant="h3" sx={{ marginTop: '16px' }}>Loading...</Typography>
                 </LoadingContainer>
             }
-            {listenerModel && !showMinimalConfig &&
+            {listenerModel &&
                 <ListenerConfigForm
                     listenerModel={listenerModel}
                     filePath={filePath}
@@ -1078,14 +1070,6 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
                     onChange={handleListenerChange}
                     onDirtyChange={handleListenerDirtyChange}
                     onValidityChange={onValidityChange}
-                />
-            }
-            {listenerModel && showMinimalConfig &&
-                <AttachedListenerMinimalConfig
-                    listenerName={listenerName}
-                    onSave={onSubmit}
-                    isSaving={saving}
-                    savingText={savingText}
                 />
             }
         </ServiceConfigureListenerEditViewContainer>
