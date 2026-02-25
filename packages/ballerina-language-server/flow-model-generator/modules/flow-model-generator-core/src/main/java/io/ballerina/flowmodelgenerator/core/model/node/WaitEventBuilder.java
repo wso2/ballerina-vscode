@@ -23,15 +23,17 @@ import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
-import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
-import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
+import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
@@ -44,6 +46,8 @@ import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
+import io.ballerina.flowmodelgenerator.core.utils.TypeUtils;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.Document;
 import io.ballerina.tools.text.LineRange;
@@ -56,6 +60,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ANYDATA;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_PARAM_NAME;
@@ -68,22 +74,17 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_SUF
  * @since 2.0.0
  */
 public class WaitEventBuilder extends WaitBuilder {
-
-    public static final String LABEL = "Wait for Event";
-    public static final String DESCRIPTION = "Wait for a workflow event to be received";
-
-    public static final String EVENT_NAME_KEY = "eventName";
-    public static final String EVENT_NAME_LABEL = "Event Name";
-    public static final String EVENT_NAME_DOC = "Name of the event to wait for";
-
-    public static final String EVENT_TYPE_KEY = "eventType";
-    public static final String EVENT_TYPE_LABEL = "Event Data Type";
-    public static final String EVENT_TYPE_DOC = "Type of the event data";
-
-    public static final String WORKFLOW_MODULE = "workflow";
-    public static final String PROCESS_ANNOTATION = "Process";
-    private static final String TYPES_BAL = "types.bal";
+    private static final String LABEL = "Wait for Event";
+    private static final String DESCRIPTION = "Wait for a workflow event to be received";
+    private static final String EVENT_NAME_KEY = "eventName";
+    private static final String EVENT_NAME_LABEL = "Event Name";
+    private static final String EVENT_NAME_DOC = "Name of the event to wait for";
+    private static final String EVENT_TYPE_KEY = "eventType";
+    private static final String EVENT_TYPE_LABEL = "Event Data Type";
+    private static final String EVENT_TYPE_DOC = "Type of the event data to be received on successful wait";
     private static final String EVENT_RECEIVE_VAR_NAME = "Event Receive Variable Name";
+    private static final String EVENT_RECEIVE_VAR_DOC = "Variable name to receive the event data";
+    private static final String TYPES_BAL = "types.bal";
 
     @Override
     public void setConcreteConstData() {
@@ -98,7 +99,7 @@ public class WaitEventBuilder extends WaitBuilder {
                 .custom()
                     .metadata()
                         .label(EVENT_RECEIVE_VAR_NAME)
-                        .description("Variable name to receive the event data")
+                        .description(EVENT_RECEIVE_VAR_DOC)
                         .stepOut()
                     .type()
                         .fieldType(Property.ValueType.IDENTIFIER)
@@ -158,6 +159,8 @@ public class WaitEventBuilder extends WaitBuilder {
         String eventType = eventTypeProperty.get().value().toString();
         String eventName = eventNameProperty.get().value().toString();
 
+        addNewEventToWorkflow(sourceBuilder, eventType, eventName);
+
         // Build the wait statement: EventType eventReceiveVar = check wait events.eventName;
         sourceBuilder.token()
                 .name(eventType)
@@ -170,58 +173,100 @@ public class WaitEventBuilder extends WaitBuilder {
                 .endOfStatement();
         sourceBuilder.textEdit();
 
-        modifyEventsType(sourceBuilder, eventType, eventName);
-
         return sourceBuilder.build();
     }
 
-    private void modifyEventsType(SourceBuilder sourceBuilder, String eventType, String eventName) {
+    private void addNewEventToWorkflow(SourceBuilder sourceBuilder, String eventType, String eventName) {
         try {
             sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
         } catch (Exception e) {
             return;
         }
 
-        Document document = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, sourceBuilder.filePath);
         SemanticModel semanticModel = FileSystemUtils.getSemanticModel(sourceBuilder.workspaceManager,
                 sourceBuilder.filePath);
 
-        // Find the enclosing workflow process function
-        LineRange lineRange = sourceBuilder.flowNode.codedata().lineRange();
-        if (lineRange == null) {
-            return;
-        }
-
-        SyntaxTree syntaxTree = document.syntaxTree();
-        int txtPos = document.textDocument().textPositionFrom(lineRange.startLine());
-        TextRange range = TextRange.from(txtPos, 0);
-        NonTerminalNode node = ((ModulePartNode) syntaxTree.rootNode()).findNode(range);
-
-        // Find the enclosing function definition
-        FunctionDefinitionNode functionNode = findEnclosingWorkflowFunction(node);
+        FunctionDefinitionNode functionNode = WorkflowUtil.findEnclosingWorkflowFunction(sourceBuilder);
         if (functionNode == null) {
             return;
         }
 
-        String funcName = functionNode.functionName().text();
-        String eventsTypeName = funcName.substring(0, 1).toUpperCase() + funcName.substring(1)
-                + EVENTS_SUFFIX;
-
-        Optional<Symbol> existingSymbol = semanticModel.moduleSymbols().stream()
-                .filter(symbol -> symbol.nameEquals(eventsTypeName))
-                .findFirst();
-
-        if (existingSymbol.isPresent() && existingSymbol.get().kind() == SymbolKind.TYPE_DEFINITION) {
-            TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) existingSymbol.get();
-            modifyExistingEventsType(sourceBuilder, typeDefSymbol, eventType, eventName);
+        Optional<TypeSymbol> eventsTypeSymbol = getEventsParameterTypeSymbol(functionNode, semanticModel);
+        if (eventsTypeSymbol.isPresent()) {
+            modifyExistingEventsType(sourceBuilder, eventsTypeSymbol.get(), eventType, eventName);
         } else {
-            createNewEventsType(sourceBuilder, eventsTypeName, eventType, eventName, functionNode);
+            // No events parameter - create new type and add parameter
+            String funcName = functionNode.functionName().text();
+            String baseTypeName = funcName.substring(0, 1).toUpperCase() + funcName.substring(1)
+                    + EVENTS_SUFFIX;
+            String eventsTypeName = generateUniqueEventsTypeName(baseTypeName, semanticModel);
+            createNewEventsType(sourceBuilder, eventsTypeName, eventType, eventName);
+            addEventsParameterToFunction(sourceBuilder, functionNode, eventsTypeName);
         }
     }
 
+    /**
+     * Gets the events parameter from the function if it exists.
+     * The events parameter is expected to be the third parameter in a workflow process function.
+     *
+     * @param functionNode The function definition node
+     * @param semanticModel The semantic model
+     * @return Optional containing the events parameter node if present
+     */
+    private Optional<TypeSymbol> getEventsParameterTypeSymbol(FunctionDefinitionNode functionNode,
+                                                              SemanticModel semanticModel) {
+        SeparatedNodeList<ParameterNode> parameters = functionNode.functionSignature().parameters();
+        ParameterNode lastParam = parameters.get(parameters.size() - 1);
+
+        Node typeNode = null;
+        if (lastParam.kind() == SyntaxKind.REQUIRED_PARAM) {
+            typeNode = ((RequiredParameterNode) lastParam).typeName();
+        } else if (lastParam.kind() == SyntaxKind.DEFAULTABLE_PARAM) {
+            typeNode = ((DefaultableParameterNode) lastParam).typeName();
+        }
+
+        if (typeNode == null) {
+            return Optional.empty();
+        }
+
+        Optional<Symbol> symbol = semanticModel.symbol(typeNode);
+        if (symbol.isPresent() && symbol.get().kind() == SymbolKind.TYPE) {
+            TypeSymbol typeSymbol = TypeUtils.resolveTypeReference((TypeSymbol) symbol.get());
+            if (isValidEventsType(typeSymbol)) {
+                return Optional.of(typeSymbol);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Generates a unique events type name by checking existing symbols.
+     *
+     * @param baseName      The base name for the events type (e.g., "FuncNameEvents")
+     * @param semanticModel The semantic model
+     * @return A unique type name
+     */
+    private String generateUniqueEventsTypeName(String baseName, SemanticModel semanticModel) {
+        Set<String> existingNames = semanticModel.moduleSymbols().stream()
+                .flatMap(symbol -> symbol.getName().stream())
+                .collect(Collectors.toSet());
+        if (!existingNames.contains(baseName)) {
+            return baseName;
+        }
+
+        // If base name exists, append incrementing suffix
+        int counter = 1;
+        String newName = baseName + counter;
+        while (existingNames.contains(newName)) {
+            counter++;
+            newName = baseName + counter;
+        }
+        return newName;
+    }
+
     private void createNewEventsType(SourceBuilder sourceBuilder, String eventsTypeName,
-                                     String eventType, String eventName,
-                                     FunctionDefinitionNode functionNode) {
+                                     String eventType, String eventName) {
         // Create a new events type with the field
         String eventFieldType = SyntaxKind.FUTURE_KEYWORD.stringValue() + SyntaxKind.LT_TOKEN.stringValue()
                 + eventType + SyntaxKind.GT_TOKEN.stringValue();
@@ -249,60 +294,25 @@ public class WaitEventBuilder extends WaitBuilder {
                 false
         );
         sourceBuilder.acceptTypeGeneration(eventsTypeData);
-
-        // Add the events parameter to the workflow process function
-        addEventsParameterToFunction(sourceBuilder, functionNode, eventsTypeName);
     }
 
     private void addEventsParameterToFunction(SourceBuilder sourceBuilder,
                                               FunctionDefinitionNode functionNode,
                                               String eventsTypeName) {
-        // Get the position right before the closing parenthesis of the function signature
-        Token closeParenToken = functionNode.functionSignature().closeParenToken();
-        LineRange closeParenLineRange = closeParenToken.lineRange();
-
+        LineRange closeParenLineRange = functionNode.functionSignature().closeParenToken().lineRange();
+        Range insertRange = CommonUtils.toRange(closeParenLineRange.startLine());
         // Build the events parameter text: , EventsTypeName events
-        String eventsParam = ", " + eventsTypeName + " " + EVENTS_PARAM_NAME;
-
-        Range insertRange = CommonUtils.toRange(
-                io.ballerina.tools.text.LinePosition.from(
-                        closeParenLineRange.startLine().line(),
-                        closeParenLineRange.startLine().offset()));
-
-        List<TextEdit> textEdits = sourceBuilder.getTextEditsMap().computeIfAbsent(sourceBuilder.filePath,
-                k -> new ArrayList<>());
-        textEdits.add(new TextEdit(insertRange, eventsParam));
+        sourceBuilder.token()
+                .keyword(SyntaxKind.COMMA_TOKEN)
+                .name(eventsTypeName)
+                .whiteSpace()
+                .name(EVENTS_PARAM_NAME)
+                .skipFormatting().stepOut().textEdit(null, sourceBuilder.filePath, insertRange);
     }
 
-    private FunctionDefinitionNode findEnclosingWorkflowFunction(NonTerminalNode node) {
-        Node parent = node;
-        while (parent != null) {
-            if (parent.kind() == SyntaxKind.FUNCTION_DEFINITION) {
-                FunctionDefinitionNode functionNode = (FunctionDefinitionNode) parent;
-                if (functionNode.metadata().isEmpty()) {
-                    return null;
-                }
-                // Check if function has @workflow:Process annotation
-                for (AnnotationNode annotation : functionNode.metadata().get().annotations()) {
-                    if (annotation.annotReference().kind().equals(SyntaxKind.QUALIFIED_NAME_REFERENCE)) {
-                        QualifiedNameReferenceNode annotRef = (QualifiedNameReferenceNode) annotation.annotReference();
-                        if (annotRef.modulePrefix().text().equals(WORKFLOW_MODULE) &&
-                                annotRef.identifier().text().equals(PROCESS_ANNOTATION)) {
-                            return functionNode;
-                        }
-                    }
-                }
-                return null;
-            }
-            parent = parent.parent();
-        }
-        return null;
-    }
-
-    private void modifyExistingEventsType(SourceBuilder sourceBuilder, TypeDefinitionSymbol typeDefSymbol,
+    private void modifyExistingEventsType(SourceBuilder sourceBuilder, TypeSymbol eventsTypeSymbol,
                                           String eventType, String eventName) {
-        TypeSymbol typeDescriptor = typeDefSymbol.typeDescriptor();
-        RecordTypeSymbol recordType = (RecordTypeSymbol) typeDescriptor;
+        RecordTypeSymbol recordType = (RecordTypeSymbol) eventsTypeSymbol;
         Map<String, RecordFieldSymbol> existingFields = recordType.fieldDescriptors();
 
         // Check if the field already exists
@@ -310,11 +320,11 @@ public class WaitEventBuilder extends WaitBuilder {
             throw new RuntimeException("Field already exists in the events type definition with name: " + eventName);
         }
 
-        if (typeDefSymbol.getLocation().isEmpty()) {
+        if (recordType.getLocation().isEmpty()) {
             return;
         }
 
-        LineRange typeLineRange = typeDefSymbol.getLocation().get().lineRange();
+        LineRange typeLineRange = recordType.getLocation().get().lineRange();
 
         try {
             Path typesFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath).resolve(TYPES_BAL);
@@ -330,7 +340,6 @@ public class WaitEventBuilder extends WaitBuilder {
                 return;
             }
 
-            // Get the type descriptor from the syntax node
             Node typeDescNode = ((TypeDefinitionNode) typeDefNode).typeDescriptor();
             if (typeDescNode.kind() != SyntaxKind.RECORD_TYPE_DESC) {
                 return;
@@ -339,20 +348,53 @@ public class WaitEventBuilder extends WaitBuilder {
             // Get the bodyStartDelimiter location ({|)
             Token bodyStartDelimiter = ((RecordTypeDescriptorNode) typeDescNode).bodyStartDelimiter();
             LineRange delimiterLineRange = bodyStartDelimiter.lineRange();
+            Range insertRange = CommonUtils.toRange(delimiterLineRange.endLine());
 
-            int insertLine = delimiterLineRange.endLine().line() + 1;
-
-            // Build the new field to add: future<EventType> eventName;
-            String newField = String.format("\tfuture<%s> %s;%n", eventType, eventName);
-
-            Range insertRange = CommonUtils.toRange(
-                    io.ballerina.tools.text.LinePosition.from(insertLine, 0));
-
-            List<TextEdit> textEdits = sourceBuilder.getTextEditsMap().computeIfAbsent(typesFilePath,
-                    k -> new ArrayList<>());
-            textEdits.add(new TextEdit(insertRange, newField));
+            sourceBuilder.token()
+                    .name(SyntaxKind.FUTURE_KEYWORD.stringValue())
+                    .name(SyntaxKind.LT_TOKEN.stringValue())
+                    .name(eventType)
+                    .name(SyntaxKind.GT_TOKEN.stringValue())
+                    .whiteSpace()
+                    .name(eventName)
+                    .endOfStatement()
+                    .skipFormatting().stepOut().textEdit(null, typesFilePath, insertRange);
         } catch (Exception e) {
             throw new RuntimeException("Failed to modify the events type definition");
         }
+    }
+
+    private boolean isValidEventsType(TypeSymbol typeSymbol) {
+        typeSymbol = TypeUtils.resolveTypeReference(typeSymbol);
+        TypeDescKind kind = typeSymbol.typeKind();
+
+        // Must be a record type
+        if (kind != TypeDescKind.RECORD) {
+            return false;
+        }
+
+        // Check that it's a RecordTypeSymbol and all fields are future types
+        if (typeSymbol instanceof RecordTypeSymbol recordType) {
+
+            // Get all record fields and validate each is a future type
+            java.util.Map<String, io.ballerina.compiler.api.symbols.RecordFieldSymbol> fields =
+                    recordType.fieldDescriptors();
+
+            if (fields.isEmpty()) {
+                // Empty record is not a valid events record
+                return false;
+            }
+
+            for (io.ballerina.compiler.api.symbols.RecordFieldSymbol field : fields.values()) {
+                TypeSymbol fieldType = TypeUtils.resolveTypeReference(field.typeDescriptor());
+
+                // Each field must be a future type
+                if (fieldType.typeKind() != TypeDescKind.FUTURE) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }

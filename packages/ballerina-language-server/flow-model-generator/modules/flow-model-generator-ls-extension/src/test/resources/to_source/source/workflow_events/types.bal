@@ -3,7 +3,21 @@ type OrderInput record {
     string customerName;
 };
 
-// Events type for payment workflow - created by WorkflowBuilder
-type OrderWorkflowEvents record {|
-	future<string> existingEvent;
-|};
+type BookingInput record {
+    readonly string orderId;
+    string customerName;
+};
+
+type ExpenseClaimInput record {
+    readonly string orderId;
+    string customerName;
+};
+
+type BookingWorkflowEvents record {
+    future<PaymentConfirmation> paymentConfirmed;
+};
+
+type PaymentConfirmation record {
+    string confirmationId;
+    decimal amount;
+};

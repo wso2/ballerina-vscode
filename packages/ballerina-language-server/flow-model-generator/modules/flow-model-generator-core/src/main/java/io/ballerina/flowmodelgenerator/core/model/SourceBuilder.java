@@ -172,10 +172,6 @@ public class SourceBuilder {
         return tokenBuilder;
     }
 
-    public Map<Path, List<TextEdit>> getTextEditsMap() {
-        return textEditsMap;
-    }
-
     public SourceBuilder newVariable() {
         return newVariable(Property.TYPE_KEY);
     }

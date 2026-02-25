@@ -24,8 +24,15 @@ import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.projects.Document;
+import io.ballerina.tools.text.LineRange;
+import io.ballerina.tools.text.TextRange;
 
 import java.util.List;
 import java.util.Optional;
@@ -107,5 +114,32 @@ public class WorkflowUtil {
             }
         }
         return false;
+    }
+
+    public static FunctionDefinitionNode findEnclosingWorkflowFunction(SourceBuilder sourceBuilder) {
+        Document document = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, sourceBuilder.filePath);
+        SemanticModel semanticModel = FileSystemUtils.getSemanticModel(sourceBuilder.workspaceManager,
+                sourceBuilder.filePath);
+        LineRange lineRange = sourceBuilder.flowNode.codedata().lineRange();
+        if (lineRange == null) {
+            return null;
+        }
+
+        SyntaxTree syntaxTree = document.syntaxTree();
+        int txtPos = document.textDocument().textPositionFrom(lineRange.startLine());
+        TextRange range = TextRange.from(txtPos, 0);
+
+        Node parent = ((ModulePartNode) syntaxTree.rootNode()).findNode(range);
+        while (parent != null) {
+            if (parent.kind() == SyntaxKind.FUNCTION_DEFINITION &&
+                    isWorkflowFunction(semanticModel.symbol(parent).orElse(null))) {
+                return (FunctionDefinitionNode) parent;
+            } else if (parent.kind() != SyntaxKind.FUNCTION_DEFINITION) {
+                parent = parent.parent();
+            } else {
+                return null;
+            }
+        }
+        return null;
     }
 }

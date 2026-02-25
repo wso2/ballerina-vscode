@@ -1,6 +1,6 @@
 {
   "source": "workflow_events/functions.bal",
-  "description": "Wait for event - modifies existing events type to add new field right after {|",
+  "description": "Wait for event - add a new field to events type definition when events parameter exists but no ctx parameter in the function",
   "diagram": {
     "id": "1",
     "metadata": {
@@ -13,11 +13,11 @@
       "lineRange": {
         "fileName": "functions.bal",
         "startLine": {
-          "line": 6,
+          "line": 20,
           "offset": 0
         },
         "endLine": {
-          "line": 6,
+          "line": 20,
           "offset": 0
         }
       }
@@ -30,7 +30,7 @@
           "description": "Variable name to receive the event data"
         },
         "valueType": "IDENTIFIER",
-        "value": "paymentConfirm",
+        "value": "approval",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -43,7 +43,7 @@
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "anydata",
-        "value": "PaymentConfirmation",
+        "value": "ApprovalData",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -55,7 +55,7 @@
           "description": "Name of the event to wait for"
         },
         "valueType": "IDENTIFIER",
-        "value": "paymentConfirmed",
+        "value": "approvalReceived",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -69,43 +69,30 @@
       {
         "range": {
           "start": {
-            "line": 22,
-            "character": 2
+            "line": 15,
+            "character": 35
           },
           "end": {
-            "line": 22,
-            "character": 2
+            "line": 15,
+            "character": 35
           }
         },
-        "newText": "\n\n\n# Events record for workflow process function\ntype OrderWorkflowEvents record {|\n\tfuture<PaymentConfirmation> paymentConfirmed;\n|};"
+        "newText": "\nfuture<ApprovalData> approvalReceived;\n"
       }
     ],
     "workflow_events/functions.bal": [
       {
         "range": {
           "start": {
-            "line": 6,
+            "line": 20,
             "character": 0
           },
           "end": {
-            "line": 6,
+            "line": 20,
             "character": 0
           }
         },
-        "newText": "\nPaymentConfirmation paymentConfirm = check wait events.paymentConfirmed;"
-      },
-      {
-        "range": {
-          "start": {
-            "line": 5,
-            "character": 61
-          },
-          "end": {
-            "line": 5,
-            "character": 61
-          }
-        },
-        "newText": ", OrderWorkflowEvents events"
+        "newText": "\nApprovalData approval = check wait events.approvalReceived;"
       }
     ]
   }
