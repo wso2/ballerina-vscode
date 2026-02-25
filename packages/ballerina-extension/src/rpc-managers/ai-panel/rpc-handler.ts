@@ -28,10 +28,13 @@ import {
     approveTask,
     ApproveTaskRequest,
     cancelConnectorSpec,
+    cancelConfiguration,
     clearChat,
     clearInitialPrompt,
     ConnectorSpecCancelRequest,
     ConnectorSpecRequest,
+    ConfigurationCancelRequest,
+    ConfigurationProvideRequest,
     createTestDirecoryIfNotExists,
     declineChanges,
     declinePlan,
@@ -45,6 +48,7 @@ import {
     generateOpenAPI,
     GenerateOpenAPIRequest,
     getActiveTempDir,
+    getAffectedPackages,
     getAIMachineSnapshot,
     getChatMessages,
     getCheckpoints,
@@ -54,12 +58,12 @@ import {
     getGeneratedDocumentation,
     getLoginMethod,
     getSemanticDiff,
-    getAffectedPackages,
-    isWorkspaceProject,
     getServiceNames,
     isCopilotSignedIn,
     isPlanModeFeatureEnabled,
+    isPlatformExtensionAvailable,
     isUserAuthenticated,
+    isWorkspaceProject,
     markAlertShown,
     MetadataWithAttachments,
     openAIPanel,
@@ -69,6 +73,7 @@ import {
     ProcessMappingParametersRequest,
     promptGithubAuthorize,
     provideConnectorSpec,
+    provideConfiguration,
     RequirementSpecification,
     restoreCheckpoint,
     RestoreCheckpointRequest,
@@ -79,7 +84,8 @@ import {
     TaskDeclineRequest,
     updateChatMessage,
     UpdateChatMessageRequest,
-    updateRequirementSpecification
+    updateRequirementSpecification,
+    getUsage
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { AiPanelRpcManager } from "./rpc-manager";
@@ -87,6 +93,7 @@ import { AiPanelRpcManager } from "./rpc-manager";
 export function registerAiPanelRpcHandlers(messenger: Messenger) {
     const rpcManger = new AiPanelRpcManager();
     messenger.onRequest(getLoginMethod, () => rpcManger.getLoginMethod());
+    messenger.onRequest(isPlatformExtensionAvailable, () => rpcManger.isPlatformExtensionAvailable());
     messenger.onRequest(getDefaultPrompt, () => rpcManger.getDefaultPrompt());
     messenger.onRequest(getAIMachineSnapshot, () => rpcManger.getAIMachineSnapshot());
     messenger.onNotification(clearInitialPrompt, () => rpcManger.clearInitialPrompt());
@@ -123,10 +130,13 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(declineTask, (args: TaskDeclineRequest) => rpcManger.declineTask(args));
     messenger.onRequest(provideConnectorSpec, (args: ConnectorSpecRequest) => rpcManger.provideConnectorSpec(args));
     messenger.onRequest(cancelConnectorSpec, (args: ConnectorSpecCancelRequest) => rpcManger.cancelConnectorSpec(args));
+    messenger.onRequest(provideConfiguration, (args: ConfigurationProvideRequest) => rpcManger.provideConfiguration(args));
+    messenger.onRequest(cancelConfiguration, (args: ConfigurationCancelRequest) => rpcManger.cancelConfiguration(args));
     messenger.onRequest(getChatMessages, () => rpcManger.getChatMessages());
     messenger.onRequest(getCheckpoints, () => rpcManger.getCheckpoints());
     messenger.onRequest(restoreCheckpoint, (args: RestoreCheckpointRequest) => rpcManger.restoreCheckpoint(args));
     messenger.onRequest(clearChat, () => rpcManger.clearChat());
     messenger.onRequest(updateChatMessage, (args: UpdateChatMessageRequest) => rpcManger.updateChatMessage(args));
     messenger.onRequest(getActiveTempDir, () => rpcManger.getActiveTempDir());
+    messenger.onRequest(getUsage, () => rpcManger.getUsage());
 }

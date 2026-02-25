@@ -33,6 +33,7 @@ import { FormField, FormExpressionEditorProps, HelperpaneOnChangeOptions } from 
 import { useFormContext } from '../../context';
 import {
     ExpressionProperty,
+    FormDiagnostics,
     getPrimaryInputType,
     InputType,
     LineRange,
@@ -43,17 +44,17 @@ import {
 } from '@wso2/ballerina-core';
 import ReactMarkdown from 'react-markdown';
 import { FieldProvider } from "./FieldContext";
+import { useModeSwitcherContext } from "./ModeSwitcherContext";
 import ModeSwitcher from '../ModeSwitcher';
-import { ExpressionField, getEditorConfiguration } from './ExpressionField';
-import WarningPopup from '../WarningPopup';
+import { ExpressionField } from './ExpressionField';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
 import { ExpandedEditor } from './ExpandedEditor';
-import { NumberExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
     fieldKey?: string;
+    fieldInputType: InputType;
     inputTypes?: InputType[];
     placeholder?: string;
     required?: boolean;
@@ -113,6 +114,11 @@ export namespace S {
         display: flex;
         align-items: center;
         gap: 8px;
+    `;
+
+    export const ItemContainer = styled.div`
+        border: 1px solid var(--vscode-dropdown-border);
+        border-radius: 4px
     `;
 
     export const LabelContainer = styled.div({
@@ -322,6 +328,23 @@ export const DataMapperJoinClauseRhsEditor = (props: ContextAwareExpressionEdito
         return await expressionEditor.retrieveCompletions(prefixExpr + value, property, prefixExpr.length + offset, triggerCharacter);
     }
 
+    modifiedExpressionEditor.getExpressionEditorDiagnostics = async (
+        showDiagnostics: boolean,
+        expression: string,
+        key: string,
+        property: ExpressionProperty
+    ) => {
+        const varName = form.watch('name');
+        const joinExpression = form.watch('expression');
+        const prefixExpr = `from var ${varName} in ${joinExpression} select `;
+        return await expressionEditor.getExpressionEditorDiagnostics(
+            showDiagnostics,
+            prefixExpr + expression,
+            key,
+            property
+        );
+    }
+
     return (
         <ExpressionEditor
             fileName={fileName}
@@ -340,6 +363,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         autoFocus,
         control,
         field,
+        fieldInputType,
         id,
         placeholder,
         required,
@@ -373,23 +397,15 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const key = fieldKey ?? field.key;
     const [focused, setFocused] = useState<boolean>(false);
-    const [inputMode, setInputMode] = useState<InputMode>(recordTypeField ? InputMode.RECORD : InputMode.EXP);
-    const inputModeRef = useRef<InputMode>(inputMode);
     const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
-    const [showModeSwitchWarning, setShowModeSwitchWarning] = useState(false);
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
     const [isExpandedModalOpen, setIsExpandedModalOpen] = useState(false);
-    const targetInputModeRef = useRef<InputMode>(null);
 
     // Update formDiagnostics when field.diagnostics changes
     useEffect(() => {
         setFormDiagnostics(field.diagnostics);
     }, [field.diagnostics]);
 
-    // Keep inputModeRef in sync with inputMode state
-    useEffect(() => {
-        inputModeRef.current = inputMode;
-    }, [inputMode]);
 
 
     // If Form directly  calls ExpressionEditor without setting targetLineRange and fileName through context
@@ -407,14 +423,30 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const exprRef = useRef<FormExpressionEditorRef>(null);
     const anchorRef = useRef<HTMLDivElement>(null);
 
-    const { nodeInfo } = useFormContext();
+    // This guard is here because the IF form and Match forms
+    //  does not populate the context value since they use expressionEditor 
+    // component directly instead of going through the FieldFactory. 
+    // This should ideally be handled as followes.
+    //  1.) Refactor IF and Match forms to use FieldFactory component
+    //  and LS property models
+    //  2.) Remove this guard and make sure all the usages of ExpressionEditor 
+    // are wrapped with ModeSwitcherContext provider
+    const modeSwitcherContext = useModeSwitcherContext() ?? {
+        inputMode: InputMode.EXP,
+        isModeSwitcherEnabled: false,
+        isRecordTypeField: false,
+        onModeChange: () => { },
+        types: undefined
+    };
+
+    const { inputMode } = modeSwitcherContext;
 
     // Use to fetch initial diagnostics
     const previousDiagnosticsFetchContext = useRef<diagnosticsFetchContext>({
         fetchedInitialDiagnostics: false,
         diagnosticsFetchedTargetLineRange: undefined
     });
-    const fieldValue = (inputModeRef.current === InputMode.PROMPT || inputModeRef.current === InputMode.TEMPLATE) && rawExpression ? rawExpression(watch(key)) : watch(key);
+    const fieldValue = (inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) && rawExpression ? rawExpression(watch(key)) : watch(key);
 
     // Initial render
     useEffect(() => {
@@ -438,40 +470,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             );
         }
     }, [fieldValue, targetLineRange]);
-
-    const getFallBackSelectedType = (): InputType => {
-        if (
-            typeof field.value === 'string' &&
-            field.value.trim() !== ''
-        ) {
-            return field?.types[field.types.length - 1];
-        }
-        else {
-            return field?.types[0];
-        }
-    }
-
-    useEffect(() => {
-        // If recordTypeField is present, always use GUIDED mode
-        if (recordTypeField) {
-            setInputMode(InputMode.RECORD);
-            return;
-        }
-        if (field?.types.length === 0) {
-            setInputMode(InputMode.EXP);
-            return;
-        };
-        let selectedInputType = field?.types.find(type => type.selected);
-        if (!selectedInputType) {
-            selectedInputType = getFallBackSelectedType();
-        }
-        const inputMode = getInputModeFromTypes(selectedInputType);
-        if (!inputMode) {
-            setInputMode(InputMode.EXP);
-            return;
-        };
-        setInputMode(inputMode);
-    }, [field?.types, recordTypeField]);
 
     const handleFocus = async (controllerOnChange?: (value: string) => void) => {
         setFocused(true);
@@ -542,60 +540,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             recordTypeField,
             field.type === "LV_EXPRESSION",
             field.types,
-            inputModeRef.current,
+            inputMode,
         );
     };
 
     const handleExtractArgsFromFunction = async (value: string, cursorPosition: number) => {
         return await extractArgsFromFunction(value, getPropertyFromFormField(field), cursorPosition);
-    };
-
-    const isSwitchToPrimaryModeSafe = (expValue: string) => {
-        if (!expValue) return true;
-        const primaryInputType = getPrimaryInputType(field.types);
-        const primaryInputMode = getInputModeFromTypes(primaryInputType);
-        const valueConfigObject = getEditorConfiguration(primaryInputMode);
-        return valueConfigObject.getIsValueCompatible(expValue);
-    }
-
-    const handleModeChange = (value: InputMode) => {
-        const raw = watch(key);
-        const currentValue = raw && typeof raw === "string" ? raw.trim() : "";
-        if (inputMode !== InputMode.EXP) {
-            setInputMode(value);
-            return;
-        }
-        if (!isSwitchToPrimaryModeSafe(currentValue)) {
-            targetInputModeRef.current = value;
-            setShowModeSwitchWarning(true)
-            return;
-        }
-        setInputMode(value);
-    };
-
-    const handleModeSwitchWarningContinue = () => {
-        if (targetInputModeRef.current !== null) {
-            setInputMode(targetInputModeRef.current);
-            const targetMode = targetInputModeRef.current;
-            const shouldClearValue = [
-                InputMode.PROMPT,
-                InputMode.TEMPLATE,
-                InputMode.TEXT,
-                InputMode.NUMBER,
-                InputMode.BOOLEAN,
-            ]
-                .includes(targetMode) && inputMode === InputMode.EXP;
-            if (shouldClearValue) {
-                setValue(key, "");
-            }
-            targetInputModeRef.current = null;
-        }
-        setShowModeSwitchWarning(false);
-    };
-
-    const handleModeSwitchWarningCancel = () => {
-        targetInputModeRef.current = null;
-        setShowModeSwitchWarning(false);
     };
 
     const handleOpenExpandedMode = () => {
@@ -619,18 +569,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             : `${field.documentation}.`
         : '';
 
-    const isModeSwitcherRestricted = () => {
-        return !field.types || !(field.types.length > 1);
-    };
-
-    const isModeSwitcherAvailable = () => {
-        if (recordTypeField) return true;
-        if (isModeSwitcherRestricted()) return false;
-        if (!(focused || isExpressionEditorHovered)) return false;
-        if (!getInputModeFromTypes(getPrimaryInputType(field.types))) return false;
-        return true;
-    }
-
     return (
         <FieldProvider
             initialField={props.field}
@@ -638,6 +576,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         >
             <S.Container
                 id={id}
+                data-testid={`ex-editor-${field.key}`}
                 onMouseEnter={() => setIsExpressionEditorHovered(true)}
                 onMouseLeave={() => setIsExpressionEditorHovered(false)}
             >
@@ -645,32 +584,35 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     <S.Header>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '8px' }}>
                             <div>
-                                <S.HeaderContainer>
-                                    <S.LabelContainer>
-                                        <S.Label>{field.label}</S.Label>
-                                        {field.defaultValue && <S.DefaultValue style={{marginLeft: '8px'}}>{ `(Default: ${field.defaultValue}) `}</S.DefaultValue>}
+                                {field.label && (
+                                    <S.HeaderContainer>
+                                        <S.LabelContainer>
+                                            <S.Label>{field.label}</S.Label>
+                                            {field.defaultValue && <S.DefaultValue style={{marginLeft: '8px'}}>{ `(Default: ${field.defaultValue}) `}</S.DefaultValue>}
                                         {(required ?? !field.optional) && <RequiredFormInput />}
-                                        {getPrimaryInputType(field.types)?.ballerinaType && (
-                                            <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
-                                                {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
-                                            </S.Type>
-                                        )}
-                                    </S.LabelContainer>
-                                </S.HeaderContainer>
+                                            {getPrimaryInputType(field.types)?.ballerinaType && (
+                                                <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
+                                                    {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
+                                                </S.Type>
+                                            )}
+                                        </S.LabelContainer>
+                                    </S.HeaderContainer>
+                                )}
                                 <S.EditorMdContainer>
                                     {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
                                 </S.EditorMdContainer>
                             </div>
-                            <S.FieldInfoSection>
-                                {isModeSwitcherAvailable() && (
+                            {modeSwitcherContext?.isModeSwitcherEnabled && isExpressionEditorHovered && (
+                                <S.FieldInfoSection>
                                     <ModeSwitcher
-                                        value={inputMode}
-                                        isRecordTypeField={!!recordTypeField}
-                                        onChange={handleModeChange}
-                                        types={field.types}
+                                        fieldKey={field.key}
+                                        value={modeSwitcherContext.inputMode}
+                                        isRecordTypeField={modeSwitcherContext.isRecordTypeField}
+                                        onChange={modeSwitcherContext.onModeChange}
+                                        types={modeSwitcherContext.types}
                                     />
-                                )}
-                            </S.FieldInfoSection>
+                                </S.FieldInfoSection>
+                            )}
                         </div>
                     </S.Header>
                 )}
@@ -724,7 +666,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                             rules.validate = {
                                 pattern: (value: any) => {
                                     try {
-                                        const currentMode = inputModeRef.current;
+                                        const currentMode = inputMode;
 
                                         // Only validate in TEXT mode
                                         if (currentMode !== InputMode.TEXT) {
@@ -775,9 +717,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         // clear field diagnostics
                                         setFormDiagnostics([]);
                                         // Use ref to get current mode (not stale closure value)
-                                        const currentMode = inputModeRef.current;
-                                        const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) && 
-                                        rawExpression ? rawExpression(typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue)) : updatedValue;
+                                        const currentMode = inputMode;
+                                        const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) &&
+                                            rawExpression ? rawExpression(typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue)) : updatedValue;
 
                                         onChange(rawValue);
                                         if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE)) {
@@ -836,7 +778,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     formDiagnostics && formDiagnostics.length > 0 &&
                                     <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
                                 }
-                                {onOpenExpandedMode && toEditorMode(inputModeRef.current) && (
+                                {onOpenExpandedMode && toEditorMode(inputMode) && (
                                     <ExpandedEditor
                                         isOpen={isExpandedModalOpen}
                                         field={field}
@@ -846,11 +788,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                             // clear field diagnostics
                                             setFormDiagnostics([]);
                                             // Use ref to get current mode (not stale closure value)
-                                            const currentMode = inputModeRef.current;
+                                            const currentMode = inputMode;
                                             const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) && rawExpression ? rawExpression(updatedValue) : updatedValue;
 
                                             onChange(rawValue);
-                                            if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE)) {
+                                            if (getExpressionEditorDiagnostics && (inputMode === InputMode.EXP || inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE)) {
                                                 getExpressionEditorDiagnostics(
                                                     (required ?? !field.optional) || rawValue !== '',
                                                     rawValue,
@@ -883,7 +825,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                             setIsExpandedModalOpen(false)
                                         }}
                                         onSave={handleSaveExpandedMode}
-                                        mode={toEditorMode(inputModeRef.current)!}
+                                        mode={toEditorMode(inputMode)!}
                                         completions={completions}
                                         fileName={effectiveFileName}
                                         targetLineRange={effectiveTargetLineRange}
@@ -893,7 +835,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         getHelperPane={handleGetHelperPane}
                                         error={error}
                                         formDiagnostics={formDiagnostics}
-                                        inputMode={inputModeRef.current}
+                                        inputMode={inputMode}
                                     />
                                 )}
                             </div>
@@ -901,13 +843,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     }}
                 />
             </S.Container>
-            {showModeSwitchWarning && (
-                <WarningPopup
-                    isOpen={showModeSwitchWarning}
-                    onContinue={handleModeSwitchWarningContinue}
-                    onCancel={handleModeSwitchWarningCancel}
-                />
-            )}
         </FieldProvider>
     );
 };

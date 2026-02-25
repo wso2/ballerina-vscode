@@ -31,6 +31,7 @@ export interface ProjectRequest {
     workspaceName?: string;
     orgName?: string;
     version?: string;
+    isLibrary?: boolean;
 }
 
 export interface AddProjectToWorkspaceRequest {
@@ -41,6 +42,7 @@ export interface AddProjectToWorkspaceRequest {
     workspaceName?: string;
     orgName?: string;
     version?: string;
+    isLibrary?: boolean;
 }
 
 export interface WorkspacesResponse {
@@ -186,6 +188,20 @@ export enum BuildMode {
 
 export interface DevantMetadata {
     isLoggedIn?: boolean;
+    hasComponent?: boolean;
+    hasLocalChanges?: boolean;
+}
+
+export interface WorkspaceDevantMetadata {
+    isLoggedIn?: boolean;
+    hasAnyComponent?: boolean;
+    hasLocalChanges?: boolean;
+    projectsMetadata?: ProjectDevantMetadata[];
+}
+
+export interface ProjectDevantMetadata {
+    projectPath: string;
+    projectName?: string;
     hasComponent?: boolean;
     hasLocalChanges?: boolean;
 }

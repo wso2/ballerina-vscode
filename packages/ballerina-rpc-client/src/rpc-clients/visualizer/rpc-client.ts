@@ -20,11 +20,15 @@
 import {
     AddToUndoStackRequest,
     ColorThemeKind,
+    HandleApprovalPopupCloseRequest,
     HistoryEntry,
     JoinProjectPathRequest,
     JoinProjectPathResponse,
     OpenViewRequest,
+    ReopenApprovalViewRequest,
     ProjectStructureArtifactResponse,
+    SaveEvalThreadRequest,
+    SaveEvalThreadResponse,
     UndoRedoStateResponse,
     UpdatedArtifactsResponse,
     VisualizerAPI,
@@ -35,14 +39,18 @@ import {
     goBack,
     goHome,
     goSelected,
+    handleApprovalPopupClose,
     joinProjectPath,
     openView,
     redo,
+    reopenApprovalView,
     resetUndoRedoStack,
+    saveEvalThread,
     undo,
     undoRedoState,
     updateCurrentArtifactLocation,
-    reviewAccepted
+    reviewAccepted,
+    GoBackRequest
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -66,8 +74,8 @@ export class VisualizerRpcClient implements VisualizerAPI {
         return this._messenger.sendNotification(addToHistory, HOST_EXTENSION, entry);
     }
 
-    goBack(): void {
-        return this._messenger.sendNotification(goBack, HOST_EXTENSION);
+    goBack(params?: GoBackRequest): void {
+        return this._messenger.sendNotification(goBack, HOST_EXTENSION, params);
     }
 
     goHome(): void {
@@ -112,5 +120,16 @@ export class VisualizerRpcClient implements VisualizerAPI {
 
     reviewAccepted(): void {
         return this._messenger.sendNotification(reviewAccepted, HOST_EXTENSION);
+    }
+
+    handleApprovalPopupClose(params: HandleApprovalPopupCloseRequest): void {
+        return this._messenger.sendNotification(handleApprovalPopupClose, HOST_EXTENSION, params);
+    }
+
+    reopenApprovalView(params: ReopenApprovalViewRequest): void {
+        return this._messenger.sendNotification(reopenApprovalView, HOST_EXTENSION, params);
+    }
+    saveEvalThread(params: SaveEvalThreadRequest): Promise<SaveEvalThreadResponse> {
+        return this._messenger.sendRequest(saveEvalThread, HOST_EXTENSION, params);
     }
 }

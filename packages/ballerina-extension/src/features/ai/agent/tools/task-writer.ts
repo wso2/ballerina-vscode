@@ -36,7 +36,7 @@ export interface TaskWriteResult {
 export const TaskInputSchema = z.object({
     description: z.string().min(1).describe("Clear, actionable description of the task to be implemented"),
     status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED]).describe("Current status of the task. Use 'pending' for tasks not started, 'in_progress' when actively working on it, 'completed' when work is finished."),
-    type: z.enum([TaskTypes.SERVICE_DESIGN, TaskTypes.CONNECTIONS_INIT, TaskTypes.IMPLEMENTATION]).describe("Type of the implementation task. service_design will only generate the http service contract. not the implementation. connections_init will only generate the connection initializations. All of the other tasks will be of type implementation.")
+    type: z.enum([TaskTypes.SERVICE_DESIGN, TaskTypes.CONNECTIONS_INIT, TaskTypes.IMPLEMENTATION, TaskTypes.TESTING]).describe("Type of the implementation task. service_design: creates the HTTP service contract only (no implementation). connections_init: creates connection/client initializations only. implementation: all other implementation tasks. testing: writing test cases for the implemented logic — include only if the user has explicitly asked for tests.")
 });
 
 const TaskWriteInputSchema = z.object({
@@ -184,6 +184,15 @@ Rules:
                         }
                     } else if (taskCategories.inProgress.length > 0) {
                         console.log(`[TaskWrite Tool] Task in progress: ${taskCategories.inProgress[0].description}`);
+                        eventHandler({
+                            type: "tool_result",
+                            toolName: TASK_WRITE_TOOL_NAME,
+                            toolOutput: {
+                                success: true,
+                                message: `Started working on: ${taskCategories.inProgress[0].description}`,
+                                tasks: allTasks
+                            }
+                        });
                     }
                 }
 

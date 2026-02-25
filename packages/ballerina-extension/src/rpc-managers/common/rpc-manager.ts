@@ -26,44 +26,57 @@ import {
     CommonRPCAPI,
     Completion,
     CompletionParams,
+    DefaultOrgNameResponse,
     DiagnosticData,
     FileOrDirRequest,
     FileOrDirResponse,
     GoToSourceRequest,
     OpenExternalUrlRequest,
     PackageTomlValues,
+    PublishToCentralResponse,
     RunExternalCommandRequest,
     RunExternalCommandResponse,
     SampleDownloadRequest,
+    SettingsTomlValues,
     ShowErrorMessageRequest,
     SyntaxTree,
     TypeResponse,
     WorkspaceFileRequest,
     WorkspaceRootResponse,
     WorkspacesFileResponse,
-    WorkspaceTypeResponse
+    WorkspaceTypeResponse,
+    SetWebviewCacheRequestParam,
+    ShowInfoModalRequest,
+    ShowQuickPickRequest,
 } from "@wso2/ballerina-core";
 import child_process from 'child_process';
 import path from "path";
 import os from "os";
 import fs from "fs";
 import * as unzipper from 'unzipper';
-import { commands, env, MarkdownString, ProgressLocation, Uri, window, workspace } from "vscode";
+import { commands, env, MarkdownString, ProgressLocation, QuickPickItem, Uri, window, workspace } from "vscode";
 import { URI } from "vscode-uri";
+import { parse } from "@iarna/toml";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import {
     getProjectTomlValues,
     goToSource
 } from "../../utils";
+import { getUsername } from "../../utils/bi";
 import {
     askFileOrFolderPath,
     askFilePath,
     askProjectPath,
     BALLERINA_INTEGRATOR_ISSUES_URL,
     findWorkspaceTypeFromWorkspaceFolders,
+    getFirstBalaPath,
+    getPublishConfirmation,
+    getReadmeStatus,
+    getTargetProjectForPublish,
     getUpdatedSource,
     handleDownloadFile,
+    handleReadmeSetup,
     selectSampleDownloadPath
 } from "./utils";
 import { VisualizerWebview } from "../../views/visualizer/webview";
@@ -190,6 +203,28 @@ export class CommonRpcManager implements CommonRPCAPI {
                     resolve({ path: "" });
                 } else {
                     const filePath = selectedFile[0].fsPath;
+                    const projectPath = StateMachine.context().projectPath;
+                    if (projectPath && !filePath.startsWith(projectPath)) {
+                        const resp = await window.showErrorMessage('The selected file is not within your project. Do you want to move it inside the project?', { modal: true }, 'Yes');
+                        if (resp === 'Yes') {
+                            // Move the file inside the project
+                            const fileName = path.basename(filePath);
+                            const newFilePath = path.join(projectPath, fileName);
+                            // if newFilePath already exists, append a number to the file name
+                            let counter = 1;
+                            let finalFilePath = newFilePath;
+                            while (fs.existsSync(finalFilePath)) {
+                                const parsedPath = path.parse(newFilePath);
+                                finalFilePath = path.join(parsedPath.dir, `${parsedPath.name}-${counter}${parsedPath.ext}`);
+                                counter++;
+                            }
+                            fs.copyFileSync(filePath, finalFilePath);
+                            resolve({ path: finalFilePath });
+                            return;
+                        }
+                        resolve({ path: "" });
+                        return;
+                    }
                     resolve({ path: filePath });
                 }
             } else {
@@ -258,13 +293,21 @@ export class CommonRpcManager implements CommonRPCAPI {
         window.showErrorMessage(messageWithLink.value);
     }
 
+    async showInformationModal(params: ShowInfoModalRequest): Promise<string> {
+        return window.showInformationMessage(params?.message, {modal: true}, ...(params?.items || []));
+    }
+
+    async showQuickPick(params: ShowQuickPickRequest): Promise<QuickPickItem> {
+        return window.showQuickPick(params.items, params?.options);
+    }
+
     async isNPSupported(): Promise<boolean> {
         return extension.ballerinaExtInstance.isNPSupported;
     }
 
     async getCurrentProjectTomlValues(): Promise<Partial<PackageTomlValues>> {
         const tomlValues = await getProjectTomlValues(StateMachine.context().projectPath);
-        return tomlValues ?? {};  
+        return tomlValues ?? {};
     }
 
     async getWorkspaceType(): Promise<WorkspaceTypeResponse> {
@@ -414,5 +457,131 @@ export class CommonRpcManager implements CommonRPCAPI {
             );
         }
         return isSuccess;
+    }
+
+    async setWebviewCache(params: SetWebviewCacheRequestParam): Promise<void> {
+        await extension.context.workspaceState.update(params.cacheKey, params.data);
+    }
+
+    async restoreWebviewCache(cacheKey: string): Promise<unknown> {
+        return extension.context.workspaceState.get(cacheKey);
+    }
+
+    async clearWebviewCache(cacheKey: string): Promise<void> {
+        await extension.context.workspaceState.update(cacheKey, undefined);
+    }
+
+    async getDefaultOrgName(): Promise<DefaultOrgNameResponse> {
+        return { orgName: getUsername() };
+    }
+
+    async publishToCentral(): Promise<PublishToCentralResponse> {
+        const failResponse = (): PublishToCentralResponse => ({ success: false, message: '' });
+
+        const project = getTargetProjectForPublish();
+        if (!project) {
+            return failResponse();
+        }
+
+        const { projectPath, projectName, artifactType } = project;
+        const readmeStatus = await getReadmeStatus(projectPath);
+        const confirmation = getPublishConfirmation(projectName, artifactType, readmeStatus);
+
+        const confirmed = await window.showInformationMessage(
+            confirmation.message,
+            { modal: true },
+            confirmation.primaryButton
+        );
+        if (!confirmed) {
+            return failResponse();
+        }
+
+        const readmeHandled = await handleReadmeSetup(readmeStatus, projectPath, projectName, artifactType);
+        if (readmeHandled) {
+            return failResponse();
+        }
+
+        const result = await this.packAndPushToCentral(projectPath);
+        this.showPublishResult(result);
+        return result;
+    }
+
+    private async packAndPushToCentral(projectPath: string): Promise<PublishToCentralResponse> {
+        const result: PublishToCentralResponse = { success: false, message: '' };
+
+        await window.withProgress(
+            {
+                location: ProgressLocation.Notification,
+                title: 'Publishing project to Ballerina Central',
+                cancellable: false
+            },
+            async (progress) => {
+                try {
+                    progress.report({ message: 'Packing...' });
+                    const packResult = await this.runPackCommand(projectPath);
+                    if (packResult.error) {
+                        result.message = packResult.message ?? '';
+                        return;
+                    }
+
+                    progress.report({ message: 'Publishing...' });
+                    const balaFilePath = getFirstBalaPath(projectPath);
+                    if (!balaFilePath) {
+                        result.message = 'No publishable artifact found at the target/bala directory';
+                        return;
+                    }
+
+                    const pushResult = await this.runPushCommand(balaFilePath);
+                    if (pushResult.error) {
+                        result.message = pushResult.message ?? '';
+                        return;
+                    }
+                    result.success = true;
+                } catch (error) {
+                    console.error('Failed to publish project to Ballerina Central:', error);
+                }
+            }
+        );
+
+        return result;
+    }
+
+    private async runPackCommand(projectPath: string): Promise<RunExternalCommandResponse> {
+        return this.runBackgroundTerminalCommand({ command: `bal pack "${projectPath}"` });
+    }
+
+    private async runPushCommand(balaFilePath: string): Promise<RunExternalCommandResponse> {
+        return this.runBackgroundTerminalCommand({ command: `bal push "${balaFilePath}"` });
+    }
+
+    private showPublishResult(result: PublishToCentralResponse): void {
+        if (result.success) {
+            window.showInformationMessage('Project published to ballerina central successfully');
+        } else {
+            window.showErrorMessage(result.message || 'Failed to publish project to Ballerina Central');
+        }
+    }
+
+    async hasCentralPATConfigured(): Promise<boolean> {
+        // check if the central PAT is configured in the environment variable
+        const token = process.env.BALLERINA_CENTRAL_ACCESS_TOKEN;
+        if (token !== undefined && token !== '') {
+            return true;
+        }
+
+        // check if the central PAT is configured in the settings.toml
+        const settingsTomlFilePath = path.join(os.homedir(), '.ballerina', 'settings.toml');
+        if (fs.existsSync(settingsTomlFilePath)) {
+            const tomlContent = await fs.promises.readFile(settingsTomlFilePath, 'utf-8');
+            try {
+                const tomlValues = parse(tomlContent) as Partial<SettingsTomlValues>;
+                const token = tomlValues.central?.accesstoken;
+                return token !== undefined && token !== '';
+            } catch (error) {
+                return false;
+            }
+        }
+
+        return false;
     }
 }

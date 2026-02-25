@@ -133,6 +133,7 @@ interface ReviewView {
     };
     projectPath: string;
     label?: string;
+    changeType: number;
 }
 
 enum NodeKindEnum {
@@ -198,6 +199,7 @@ function convertToReviewView(diff: SemanticDiff, projectPath: string, packageNam
         },
         projectPath,
         label: changeLabel,
+        changeType: diff.changeType,
     };
 }
 
@@ -267,6 +269,7 @@ export function ReviewMode(): JSX.Element {
     const [isLoading, setIsLoading] = useState(true);
     const [currentItemMetadata, setCurrentItemMetadata] = useState<ItemMetadata | null>(null);
     const [isWorkspace, setIsWorkspace] = useState(false);
+    const [showOldVersion, setShowOldVersion] = useState(false);
 
     // Derive current view from views array and currentIndex - no separate state needed
     const currentView =
@@ -320,7 +323,7 @@ export function ReviewMode(): JSX.Element {
                 ? await fetchSemanticDiffForMultiplePackages(rpcClient, packagesToReview)
                 : await fetchSemanticDiff(rpcClient, tempDirPath);
 
-            console.log("[ReviewMode] Combined semanticDiff Response:", semanticDiffResponse);
+            console.log("[ReviewMode] Combined semanticDiff Response:", JSON.stringify(semanticDiffResponse, null, 2));
             setSemanticDiffData(semanticDiffResponse);
 
             const allViews: ReviewView[] = [];
@@ -344,6 +347,7 @@ export function ReviewMode(): JSX.Element {
                         },
                         projectPath: packagePath,
                         label: label,
+                        changeType: ChangeTypeEnum.MODIFICATION,
                     });
                 });
             }
@@ -426,6 +430,7 @@ export function ReviewMode(): JSX.Element {
             const newIndex = currentIndex - 1;
             setCurrentIndex(newIndex);
             setCurrentItemMetadata(null); // Clear metadata when navigating
+            setShowOldVersion(false); // Reset toggle when navigating
         } else {
             console.log("[Review Mode] Already at first view");
         }
@@ -436,6 +441,7 @@ export function ReviewMode(): JSX.Element {
             const newIndex = currentIndex + 1;
             setCurrentIndex(newIndex);
             setCurrentItemMetadata(null); // Clear metadata when navigating
+            setShowOldVersion(false); // Reset toggle when navigating
         } else {
             console.log("[Review Mode] Already at last view");
         }
@@ -485,6 +491,8 @@ export function ReviewMode(): JSX.Element {
         // Create a unique key for each diagram to force re-mount when switching views
         const diagramKey = `${currentView.type}-${currentIndex}-${currentView.filePath}`;
 
+        const effectiveShowOld = currentView.changeType === ChangeTypeEnum.DELETION ? true : showOldVersion;
+
         switch (currentView.type) {
             case "component":
                 // Metadata is now set by useEffect hook
@@ -494,6 +502,7 @@ export function ReviewMode(): JSX.Element {
                         projectPath={currentView.projectPath || projectPath}
                         filePath={currentView.filePath}
                         position={currentView.position}
+                        useFileSchema={effectiveShowOld}
                     />
                 );
             case "flow":
@@ -504,6 +513,7 @@ export function ReviewMode(): JSX.Element {
                         filePath={currentView.filePath}
                         position={currentView.position}
                         onModelLoaded={handleModelLoaded}
+                        useFileSchema={effectiveShowOld}
                     />
                 );
             case "type":
@@ -513,6 +523,7 @@ export function ReviewMode(): JSX.Element {
                         projectPath={currentView.projectPath || projectPath}
                         filePath={currentView.filePath}
                         onModelLoaded={handleModelLoaded}
+                        useFileSchema={effectiveShowOld}
                     />
                 );
             default:
@@ -561,6 +572,7 @@ export function ReviewMode(): JSX.Element {
 
     const canGoPrevious = currentIndex > 0;
     const canGoNext = currentIndex < views.length - 1;
+    const canToggleVersion = currentView?.changeType === ChangeTypeEnum.MODIFICATION;
     const isAutomation = currentItemMetadata?.type === "Function" && currentItemMetadata?.name === "main";
     const isResource = currentItemMetadata?.type === "Resource";
     const isType = currentItemMetadata?.type === "Type";
@@ -637,6 +649,9 @@ export function ReviewMode(): JSX.Element {
                 onReject={handleReject}
                 canGoPrevious={canGoPrevious}
                 canGoNext={canGoNext}
+                showOldVersion={currentView?.changeType === ChangeTypeEnum.DELETION ? true : showOldVersion}
+                onToggleVersion={() => setShowOldVersion((prev) => !prev)}
+                canToggleVersion={canToggleVersion}
             />
         </ReviewContainer>
     );

@@ -4,6 +4,31 @@ All notable changes to the **Ballerina** extension will be documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+
+## [Unreleased]
+
+### Added
+
+- **Persist Database Support** — Added support for persist database workflows in BI, including multiple database connections.
+- **Library Projects** — Added end-to-end support for library projects, including creation improvements, new overview page, `lib.bal` validator import, publishing to Ballerina Central, and deployment enforcement when deploying workspaces to Devant.
+- **BI Copilot** — Added new agent capabilities including library search/get tools, ConfigCollector, test-runner integration, plan-mode toggle, new/old review preview, telemetry insights, and support for agent evaluations.
+- **Data Mapper** — Added support for JSON/XML mappings, DSS query input/output mapping generation, module-level construct consolidation, and diagnostics support in clause forms.
+- **Developer Experience** — Added support for Devant connections in BI and remote server debugging improvements.
+
+### Changed
+
+- **Copilot Authentication & Config** — Migrated Copilot to the Devant auth flow, updated environment keys and pipeline inputs, and improved BI Copilot configuration handling.
+- **Editor & Forms** — Implemented new array/map editor experience, introduced dependent type editor behavior for persist forms, and improved record configuration modal UX and layout.
+- **Service Designer & Connectors** — Updated FTP service-designer flows and reordered Devant marketplace placement in connector selection views.
+
+### Fixed
+
+- **Forms & Validation** — Fixed project create-form validation regressions, if/match form behavior, response editor checkbox issues, loader styling, and form diagnostics handling edge cases.
+- **Expression & Type Editing** — Fixed SQL editor rendering for query fields, imported-type import insertion, user-defined type visibility in non-workspace projects, and function-call related create-function action visibility.
+- **Service & Resource Flows** — Fixed service designer/configurable view issues, resource header value handling, path sanitization for `.` resource paths, and XML corruption during data-service editing.
+- **Copilot & Agent Flow** — Fixed multi-turn chat state persistence, chat agent creation with listener support, config-collector placeholder handling, and login notification issues for default model provider configuration.
+- **Security** — Applied vulnerability and dependency security fixes across BI extension components.
+
 ## [5.8.1](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.7.0...ballerina-5.8.1) - 2026-02-25
 
 ### Fixed

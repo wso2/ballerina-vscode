@@ -19,8 +19,8 @@
 import React, { useState } from 'react';
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
-import { Button, Codicon, TruncatedLabel, TruncatedLabelGroup } from '@wso2/ui-toolkit';
-import { IOType, Mapping, TypeKind } from '@wso2/ballerina-core';
+import { Button, Codicon, Icon, TruncatedLabel, TruncatedLabelGroup } from '@wso2/ui-toolkit';
+import { InputCategory, IOType, Mapping, TypeKind } from '@wso2/ballerina-core';
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
@@ -30,6 +30,10 @@ import { useIONodesStyles } from '../../../styles';
 import { useDMCollapsedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { OutputSearchHighlight } from '../commons/Search';
 import { useShallow } from 'zustand/react/shallow';
+import ArrowWidget from '../commons/ArrowWidget';
+import { OBJECT_OUTPUT_TARGET_PORT_PREFIX } from '../../utils/constants';
+import { FieldActionButton } from '../commons/FieldActionButton';
+import { PayloadWidget } from '../commons/PayloadWidget';
 
 export interface ObjectOutputWidgetProps {
 	id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -40,7 +44,7 @@ export interface ObjectOutputWidgetProps {
 	getPort: (portId: string) => InputOutputPortModel;
 	context: IDataMapperContext;
 	mappings?: Mapping[];
-	valueLabel?: string;
+	valueLabel: string;
 	originalTypeName?: string;
 }
 
@@ -53,6 +57,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 		engine,
 		getPort,
 		context,
+		mappings,
 		valueLabel
 	} = props;
 	const classes = useIONodesStyles();
@@ -70,19 +75,21 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 		}))
 	);
 
-	const fields = outputType.fields.filter(t => t !== null);
-	const hasFields = fields.length > 0;
+	const fields = outputType.fields?.filter(t => t !== null);
+	const hasFields = fields?.length > 0;
 
 	const portIn = getPort(`${id}.IN`);
-	const isUnknownType = outputType.kind === TypeKind.Unknown;
+
+	const typeKind = outputType.kind;
+    const isUnknownType = typeKind === TypeKind.Unknown;
+    const isConvertibleType = (typeKind === TypeKind.Json || typeKind === TypeKind.Xml) && !outputType.fields;
+
 
 	let expanded = true;
 	if ((portIn && portIn.attributes.collapsed)) {
 		expanded = false;
 	}
 	const isDisabled = portIn?.attributes.descendantHasValue;
-
-	const indentation = (portIn && (!hasFields || !expanded)) ? 0 : 24;
 
 	const handleExpand = () => {
 		const collapsedFields = collapsedFieldsStore.fields;
@@ -106,7 +113,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 	};
 
 	const label = (
-		<TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline" }}>
+		<TruncatedLabelGroup style={{ alignItems: "baseline" }}>
 			{valueLabel && (
 				<TruncatedLabel className={classes.valueLabelHeader}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
@@ -149,16 +156,23 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 							id={"expand-or-collapse-" + id} 
 							appearance="icon"
 							tooltip="Expand/Collapse"
-							sx={{ marginLeft: indentation }}
 							onClick={handleExpand}
 							data-testid={`${id}-expand-icon-mapping-target-node`}
 						>
 							{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
 						</Button>
 						{label}
+						{outputType.category === InputCategory.ConvertedVariable && (
+							<FieldActionButton
+								id={"field-action-edit-" + id}
+								tooltip="Edit"
+								iconName="settings-gear"
+								onClick={async () => await context.createConvertedVariable(outputType.name, false, outputType.typeName)}
+							/>
+						)}
 					</span>
 				</TreeHeader>
-				{(expanded && fields) && (
+				{(expanded && hasFields) && (
 					<TreeBody>
 						{fields?.map((item, index) => {
 							return (
@@ -177,6 +191,32 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 					</TreeBody>
 				)}
 			</TreeContainer>
+			{expanded && outputType.convertedField &&
+                <>
+                    <ArrowWidget direction="up" />
+                    <ObjectOutputWidget
+						engine={engine}
+						id={`${OBJECT_OUTPUT_TARGET_PORT_PREFIX}.${outputType.convertedField.name}`}
+						outputType={outputType.convertedField}
+						typeName={outputType.convertedField.typeName}
+						value={undefined}
+						getPort={getPort}
+						context={context}
+						mappings={mappings}
+						valueLabel={outputType.convertedField.name}
+						originalTypeName={outputType.convertedField.typeName}
+					/>
+                </>
+            }
+			{expanded && isConvertibleType && !outputType.convertedField &&
+				<>
+					<ArrowWidget direction="up" />
+					<PayloadWidget
+						onClick={async () => await context.createConvertedVariable(valueLabel, false, undefined, outputType.typeName)}
+						typeName={outputType.typeName}
+					/>
+				</>
+			}
 		</>
 	);
 }

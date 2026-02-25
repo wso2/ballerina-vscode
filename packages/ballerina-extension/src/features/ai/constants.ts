@@ -28,3 +28,4 @@ export const ERROR_NO_BALLERINA_SOURCES = "No Ballerina sources";
 export const LOGIN_REQUIRED_WARNING = "Please sign in to BI Copilot to use this feature.";
 export const LOGIN_REQUIRED_WARNING_FOR_DEFAULT_MODEL = "Please sign in to BI Copilot to configure the WSO2 default model provider.";
 export const DEFAULT_PROVIDER_ADDED = "WSO2 default model provider configuration values were added to the Config.toml file.";
+export const LLM_API_BASE_PATH = "/llm-api/v1.0";

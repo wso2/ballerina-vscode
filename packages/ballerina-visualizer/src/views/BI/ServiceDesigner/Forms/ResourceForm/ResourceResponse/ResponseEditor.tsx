@@ -86,7 +86,6 @@ export function ResponseEditor(props: ParamProps) {
     const updateNewFields = (res: StatusCodeResponse, hasBody: boolean = true) => {
         const NO_BODY_TYPES = ["http:Response", "http:NoContent", "error"];
         const defaultItems = [
-            "",
             "string",
             "int",
             "boolean",
@@ -169,6 +168,7 @@ export function ResponseEditor(props: ParamProps) {
                     type: "AUTOCOMPLETE",
                     items: ["application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"],
                     key: `mediaType`,
+                    types: [{ fieldType: "AUTOCOMPLETE", selected: true }],
                     defaultValue: res.mediaType.value,
                 });
             }
@@ -183,6 +183,8 @@ export function ResponseEditor(props: ParamProps) {
                     ...convertPropertyToFormField(res.name),
                     key: `check`,
                     type: "FLAG",
+                    optional: true,
+                    types: [{ fieldType: "FLAG", selected: false }],
                     label: "Make this response reusable",
                     documentation: "Check this option to make this response reusable",
                     onValueChange: (value: string | boolean) => {

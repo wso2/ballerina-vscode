@@ -27,6 +27,8 @@ import { Suggestion, SuggestionType, useCommands } from "./hooks/useCommands";
 import { ChatBadgeType } from "../ChatBadge";
 import { Input } from "./utils/inputUtils";
 import SuggestionsList from "./SuggestionsList";
+import ModeToggle, { AgentMode } from "./ModeToggle";
+import AutoApproveChip from "./AutoApproveChip";
 import { CommandTemplates } from "../../commandTemplates/data/commandTemplates.const";
 import { Tag } from "../../commandTemplates/models/tag.model";
 import { getFirstOccurringPlaceholder, matchCommandTemplate } from "./utils/utils";
@@ -107,6 +109,7 @@ const ActionButton = styled.button`
     }
 `;
 
+
 export interface TagOptions {
     placeholderTags: PlaceholderTagMap;
     loadGeneralTags: () => Promise<Tag[]>;
@@ -125,10 +128,16 @@ interface AIChatInputProps {
     onSend: (content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) => Promise<void>;
     onStop: () => void;
     isLoading: boolean;
+    agentMode?: AgentMode;
+    onChangeAgentMode?: (mode: AgentMode) => void;
+    isAutoApproveEnabled?: boolean;
+    onDisableAutoApprove?: () => void;
+    disabled?: boolean;
 }
 
 const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
-    ({ initialCommandTemplate, tagOptions, attachmentOptions, placeholder, onSend, onStop, isLoading }, ref) => {
+    ({ initialCommandTemplate, tagOptions, attachmentOptions, placeholder, onSend, onStop, isLoading,
+       agentMode = AgentMode.Edit, onChangeAgentMode, isAutoApproveEnabled = false, onDisableAutoApprove, disabled }, ref) => {
         const [inputValue, setInputValue] = useState<{
             text: string;
             [key: string]: any;
@@ -532,8 +541,9 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                             onChange={setInputValue}
                             onKeyDown={handleKeyDown}
                             onBlur={() => completeSuggestionSelection()}
-                            placeholder={placeholder}
+                            placeholder={disabled ? "Usage limit exceeded" : placeholder}
                             onPostDOMUpdate={executeOnPostDOMUpdate}
+                            disabled={disabled}
                         />
                         {/* Attachments Display */}
                         {attachments.length > 0 && (
@@ -551,7 +561,17 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                         )}
 
                         <ActionRow>
-                            <div style={{ display: "flex" }}>
+                            <div style={{ display: "flex", alignItems: "center" }}>
+                                {onChangeAgentMode && (
+                                    <ModeToggle
+                                        mode={agentMode}
+                                        onChange={onChangeAgentMode}
+                                        disabled={isLoading}
+                                    />
+                                )}
+                                {isAutoApproveEnabled && onDisableAutoApprove && (
+                                    <AutoApproveChip onToggle={onDisableAutoApprove} />
+                                )}
                                 <ActionButton
                                     title="Chat with Command"
                                     disabled={inputValue.text !== ""}
@@ -576,7 +596,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                             <div>
                                 <ActionButton
                                     title={isLoading ? "Stop (Escape)" : "Send (Enter)"}
-                                    disabled={inputValue.text.trim() === "" && !isLoading}
+                                    disabled={(inputValue.text.trim() === "" && !isLoading) || disabled}
                                     onClick={isLoading ? handleStop : handleSend}
                                 >
                                     <span

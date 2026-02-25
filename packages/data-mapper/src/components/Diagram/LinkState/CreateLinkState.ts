@@ -25,11 +25,10 @@ import { InputOutputPortModel } from '../Port/model/InputOutputPortModel';
 import { isInputNode, isLinkModel, isOutputNode } from '../Actions/utils';
 import { DataMapperLinkModel } from '../Link/DataMapperLink';
 import { DataMapperNodeModel } from '../Node/commons/DataMapperNode';
-import { getMappingType, handleExpand, isExpandable, isPendingMappingRequired } from '../utils/common-utils';
+import { getMappingType, handleExpand, isExpandable, isPendingMappingRequired, isGroupHeaderPort, isQueryHeaderPort } from '../utils/common-utils';
 import { removePendingMappingTempLinkIfExists } from '../utils/link-utils';
 import { useDMExpressionBarStore } from '../../../store/store';
 import { IntermediatePortModel } from '../Port/IntermediatePort';
-import { isQueryHeaderPort } from '../utils/port-utils';
 import { ClauseConnectorNode, LinkConnectorNode } from '../Node';
 /**
  * This state is controlling the creation of a link.
@@ -121,7 +120,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 						this.eject();
 					} else if (element instanceof PortModel && !this.sourcePort) {
 						if (element instanceof InputOutputPortModel) {
-							if (element.attributes.portType === "OUT") {
+							if (element.attributes.portType === "OUT" && !isGroupHeaderPort(element)) {
 								this.sourcePort = element;
 								element.fireEvent({}, "mappingStartedFrom");
 								element.linkedPorts.forEach((linkedPort) => {

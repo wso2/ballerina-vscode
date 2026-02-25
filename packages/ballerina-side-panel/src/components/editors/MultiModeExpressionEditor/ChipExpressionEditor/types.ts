@@ -29,7 +29,6 @@ export enum InputMode {
   TEXT_ARRAY = "Text Array",
   PROMPT = "Prompt",
   MAP = "Map",
-  MAP_EXP = "Mapping",
   SIMPLE_TEXT = "Info"
 };
 

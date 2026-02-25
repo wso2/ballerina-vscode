@@ -19,6 +19,8 @@ import {
     AddToUndoStackRequest,
     ColorThemeKind,
     EVENT_TYPE,
+    GoBackRequest,
+    HandleApprovalPopupCloseRequest,
     HistoryEntry,
     JoinProjectPathRequest,
     JoinProjectPathResponse,
@@ -26,6 +28,9 @@ import {
     OpenViewRequest,
     PopupVisualizerLocation,
     ProjectStructureArtifactResponse,
+    ReopenApprovalViewRequest,
+    SaveEvalThreadRequest,
+    SaveEvalThreadResponse,
     SHARED_COMMANDS,
     undo,
     UndoRedoStateResponse,
@@ -34,9 +39,11 @@ import {
     VisualizerLocation
 } from "@wso2/ballerina-core";
 import fs from "fs";
+import path from "path";
 import { commands, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
 import { URI, Utils } from "vscode-uri";
 import { notifyCurrentWebview } from "../../RPCLayer";
+import { approvalViewManager } from "../../features/ai/state/ApprovalViewManager";
 import { history, openView, StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { openPopupView } from "../../stateMachinePopup";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
@@ -59,9 +66,9 @@ export class VisualizerRpcManager implements VisualizerAPI {
         });
     }
 
-    goBack(): void {
+    goBack(params: GoBackRequest): void {
         history.pop();
-        updateView();
+        updateView(false, params?.identifier);
     }
 
     async getHistory(): Promise<HistoryEntry[]> {
@@ -232,7 +239,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 return;
             }
             const filePath = Array.isArray(params.segments) ? Utils.joinPath(URI.file(projectPath), ...params.segments) : Utils.joinPath(URI.file(projectPath), params.segments);
-            resolve({ filePath: filePath.fsPath, projectPath: projectPath });
+            resolve({ filePath: filePath.fsPath, projectPath: projectPath, exists: params.checkExists ? fs.existsSync(filePath.fsPath) : undefined });
         });
     }
     async undoRedoState(): Promise<UndoRedoStateResponse> {
@@ -302,5 +309,79 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 view: MACHINE_VIEW.PackageOverview
             }
         );
+    }
+
+    handleApprovalPopupClose(params: HandleApprovalPopupCloseRequest): void {
+        approvalViewManager.handlePopupClosed(params.requestId);
+    }
+
+    reopenApprovalView(params: ReopenApprovalViewRequest): void {
+        approvalViewManager.reopenApprovalViewPopup(params.requestId);
+    }
+
+    async saveEvalThread(params: SaveEvalThreadRequest): Promise<SaveEvalThreadResponse> {
+        try {
+            const { filePath, updatedEvalSet } = params;
+
+            // Validate and canonicalize the file path to prevent path traversal attacks
+            const normalizedPath = path.normalize(filePath);
+            const resolvedPath = path.resolve(normalizedPath);
+
+            // Get workspace folders to validate the path is within an allowed workspace
+            const workspaceFolders = workspace.workspaceFolders;
+            if (!workspaceFolders || workspaceFolders.length === 0) {
+                const errorMsg = 'No workspace folder is open';
+                console.error('saveEvalThread error:', errorMsg);
+                window.showErrorMessage(`Failed to save evalset: ${errorMsg}`);
+                return { success: false, error: errorMsg };
+            }
+
+            // Check if the resolved path starts with any of the workspace roots
+            const isPathInWorkspace = workspaceFolders.some(folder => {
+                const workspaceRoot = folder.uri.fsPath;
+                const resolvedWorkspaceRoot = path.resolve(workspaceRoot);
+                return resolvedPath.startsWith(resolvedWorkspaceRoot + path.sep) ||
+                    resolvedPath === resolvedWorkspaceRoot;
+            });
+
+            if (!isPathInWorkspace) {
+                const errorMsg = `Path is outside workspace: ${resolvedPath}`;
+                console.error('saveEvalThread error:', errorMsg);
+                window.showErrorMessage(`Failed to save evalset: Path must be within workspace`);
+                return { success: false, error: errorMsg };
+            }
+
+            // Write the updated evalset back to the file using the validated path
+            await fs.promises.writeFile(
+                resolvedPath,
+                JSON.stringify(updatedEvalSet, null, 2),
+                'utf-8'
+            );
+
+            // Read back the file to get fresh data
+            const savedContent = await fs.promises.readFile(resolvedPath, 'utf-8');
+            const savedEvalSet = JSON.parse(savedContent);
+
+            // Get the current threadId from context
+            const currentContext = StateMachine.context();
+            const threadId = currentContext.evalsetData?.threadId;
+
+            // Reload the view with fresh data from disk using the validated path
+            openView(EVENT_TYPE.OPEN_VIEW, {
+                view: MACHINE_VIEW.EvalsetViewer,
+                evalsetData: {
+                    filePath: resolvedPath,
+                    content: savedEvalSet,
+                    threadId
+                }
+            });
+
+            window.showInformationMessage('Evalset saved successfully');
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving evalset:', error);
+            window.showErrorMessage(`Failed to save evalset: ${error}`);
+            return { success: false, error: String(error) };
+        }
     }
 }
