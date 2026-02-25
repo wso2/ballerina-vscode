@@ -70,7 +70,7 @@ const PipelineContainer = styled.div`
 const TaskBlock = styled.div`
     display: flex;
     flex-direction: row;
-    padding: 0 10px;
+    padding: 0 10px 0 0;
 `;
 
 // Left rail: fixed-width column that holds the dot and the vertical line.
@@ -83,11 +83,11 @@ const TaskRail = styled.div<{ isLast: boolean }>`
     width: 20px;
     flex-shrink: 0;
 
-    /* Vertical connector line — runs from below the dot to the bottom of the rail */
+    /* Vertical connector line — runs from the dot center to the bottom of the rail */
     &::before {
         content: '';
         position: absolute;
-        top: 20px;
+        top: 12px;
         bottom: ${(props: { isLast: boolean }) => props.isLast ? '6px' : '0'};
         left: 50%;
         transform: translateX(-50%);
@@ -860,7 +860,7 @@ const PlanStepper: React.FC<ExecutionStreamProps> = ({ executionStream, isLoadin
                 const isExpanded = expandedTasks[task.description] ?? true;
 
                 return (
-                    <TaskBlock key={taskIdx}>
+                    <TaskBlock key={taskIdx} style={{ marginLeft: "-7px" }}>
                         {/* Left rail: dot on top, vertical line below (via ::before) */}
                         <TaskRail isLast={isLastTask}>
                             <DotWrapper>
