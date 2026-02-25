@@ -30,10 +30,11 @@ const sonarRing = keyframes`
     100% { transform: scale(2.4); opacity: 0;   }
 `;
 
-// Event: breathing dot — solid circle pulses in/out
-const breathe = keyframes`
-    0%, 100% { transform: scale(1);   opacity: 1;   }
-    50%       { transform: scale(0.5); opacity: 0.35; }
+// Tool icon: horizontal flip for loading state
+const flip = keyframes`
+    0%   { transform: scaleX(1); }
+    50%  { transform: scaleX(-1); }
+    100% { transform: scaleX(1); }
 `;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -210,28 +211,20 @@ const NodeLabel = styled.span<{ nodeStatus: "active" | "done" }>`
 
 // ── Event indicators ──────────────────────────────────────────────────────────
 
-// Breathing dot for the active event
-const BreatheDot = styled.span<{ failed?: boolean }>`
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
+// Tool icon for tool call events
+const ToolIcon = styled.span<{ loading?: boolean; failed?: boolean }>`
+    font-size: 10px;
     flex-shrink: 0;
-    background-color: ${(props: { failed?: boolean }) =>
-        props.failed ? "var(--vscode-errorForeground)" : "var(--vscode-charts-blue)"};
-    animation: ${breathe} 1.4s ease-in-out infinite;
-`;
-
-// Static dot for completed events
-const StaticDot = styled.span<{ failed?: boolean }>`
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    background-color: ${(props: { failed?: boolean }) =>
+    display: flex;
+    align-items: center;
+    color: ${(props: { loading?: boolean; failed?: boolean }) =>
         props.failed
             ? "var(--vscode-errorForeground)"
+            : props.loading
+            ? "var(--vscode-charts-blue)"
             : "var(--vscode-descriptionForeground)"};
-    opacity: 0.7;
+    opacity: ${(props: { loading?: boolean; failed?: boolean }) => props.loading ? 1 : 0.75};
+    ${(props: { loading?: boolean; failed?: boolean }) => props.loading ? `animation: ${flip} 1.4s ease-in-out infinite;` : ""}
 `;
 
 const EventLabel = styled.span<{ loading: boolean; failed?: boolean }>`
@@ -833,11 +826,9 @@ const PlanStepper: React.FC<ExecutionStreamProps> = ({ executionStream, isLoadin
                                 const { label } = getEventDisplay(event.toolName, event.text, event.loading);
                                 return (
                                     <EventRow key={eventIdx}>
-                                        {event.loading ? (
-                                            <BreatheDot failed={event.failed} />
-                                        ) : (
-                                            <StaticDot failed={event.failed} />
-                                        )}
+                                        <ToolIcon loading={event.loading} failed={event.failed}>
+                                            <span className={"codicon codicon-symbol-property"} />
+                                        </ToolIcon>
                                         <EventLabel loading={event.loading} failed={event.failed}>
                                             {label}
                                         </EventLabel>
@@ -898,11 +889,9 @@ const PlanStepper: React.FC<ExecutionStreamProps> = ({ executionStream, isLoadin
                                             const { label } = getEventDisplay(event.toolName, event.text, event.loading);
                                             return (
                                                 <EventRow key={eventIdx}>
-                                                    {event.loading ? (
-                                                        <BreatheDot failed={event.failed} />
-                                                    ) : (
-                                                        <StaticDot failed={event.failed} />
-                                                    )}
+                                                    <ToolIcon loading={event.loading} failed={event.failed}>
+                                                        <span className={"codicon codicon-symbol-property"} />
+                                                    </ToolIcon>
                                                     <EventLabel loading={event.loading} failed={event.failed}>
                                                         {label}
                                                     </EventLabel>
