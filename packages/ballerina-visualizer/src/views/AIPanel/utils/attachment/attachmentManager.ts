@@ -40,6 +40,22 @@ const TEXT_BASED_TYPES = [
 ];
 
 /**
+ * Allowed image file types.
+ */
+const IMAGE_TYPES = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+];
+
+/**
+ * Combined text and image types for general commands.
+ */
+const TEXT_AND_IMAGE_TYPES = [...TEXT_BASED_TYPES, ...IMAGE_TYPES];
+
+/**
  * Allowed file types for commands expecting documents/images.
  */
 const DOCUMENT_TYPES = [
@@ -62,7 +78,7 @@ export const getFileTypesForCommand = (command: Command | null): string[] => {
         case Command.TypeCreator:
             return DOCUMENT_TYPES;
         default:
-            return TEXT_BASED_TYPES;
+            return TEXT_AND_IMAGE_TYPES;
     }
 };
 
@@ -71,7 +87,7 @@ export const getFileTypesForCommand = (command: Command | null): string[] => {
  */
 export const acceptResolver = (command: Command | null): string => {
     if (!command) {
-        return TEXT_BASED_TYPES.join(",");
+        return TEXT_AND_IMAGE_TYPES.join(",");
     }
     return getFileTypesForCommand(command).join(",");
 };
