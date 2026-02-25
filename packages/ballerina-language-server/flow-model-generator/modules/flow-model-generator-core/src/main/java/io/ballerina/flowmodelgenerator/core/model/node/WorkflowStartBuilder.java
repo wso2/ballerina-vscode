@@ -25,6 +25,7 @@ import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
@@ -60,7 +61,6 @@ public class WorkflowStartBuilder extends NodeBuilder {
     public static final String INPUT_LABEL = "Input";
     public static final String INPUT_DOC = "Input data for the workflow";
     private static final String CREATE_INSTANCE_METHOD = "createInstance";
-    private static final String DEFAULT_INPUT_TYPE = "anydata";
 
     @Override
     public void setConcreteConstData() {
@@ -87,7 +87,7 @@ public class WorkflowStartBuilder extends NodeBuilder {
         }
 
         // Get the input parameter type from the workflow function's second parameter
-        TypeReferenceTypeSymbol inputType = getWorkflowInputType(context, codedata);
+        TypeSymbol inputType = getWorkflowInputType(context, codedata);
 
         // Input property with the actual type from the workflow function
         properties().custom()
@@ -113,20 +113,6 @@ public class WorkflowStartBuilder extends NodeBuilder {
                 .editable(true)
                 .stepOut()
                 .addProperty(Property.VARIABLE_KEY);
-
-        // Check error property
-        properties().custom()
-                .metadata()
-                    .label("Check Error")
-                    .description("Trigger error flow")
-                    .stepOut()
-                .type(Property.ValueType.FLAG)
-                .value(true)
-                .editable(true)
-                .advanced(true)
-                .hidden(true)
-                .stepOut()
-                .addProperty(Property.CHECK_ERROR_KEY);
     }
 
     @Override
@@ -144,11 +130,8 @@ public class WorkflowStartBuilder extends NodeBuilder {
                 .keyword(SyntaxKind.STRING_KEYWORD)
                 .name(variableName)
                 .whiteSpace()
-                .keyword(SyntaxKind.EQUAL_TOKEN);
-
-        if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
-            sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
-        }
+                .keyword(SyntaxKind.EQUAL_TOKEN)
+                .keyword(SyntaxKind.CHECK_KEYWORD);
 
         // Get workflow function from codedata.symbol()
         String workflowFunction = flowNode.codedata().symbol();
@@ -173,8 +156,7 @@ public class WorkflowStartBuilder extends NodeBuilder {
                 .whiteSpace()
                 .name(input)
                 .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
-                .endOfStatement()
-                .stepOut();
+                .endOfStatement();
 
         return sourceBuilder
                 .textEdit()
@@ -184,14 +166,13 @@ public class WorkflowStartBuilder extends NodeBuilder {
 
     /**
      * Gets the input parameter type from the workflow process function.
-     * The workflow function signature is: function name(workflow:Context ctx, T input, ...) returns R|error
-     * So we need to get the type of the second parameter (index 1).
+     * The input parameter is the one whose type is a subtype of anydata.
      *
      * @param context  The template context
      * @param codedata The codedata containing the workflow function symbol
-     * @return The type of the input parameter, or "anydata" if not found
+     * @return The type of the input parameter, or null if not found
      */
-    private TypeReferenceTypeSymbol getWorkflowInputType(TemplateContext context, Codedata codedata) {
+    private TypeSymbol getWorkflowInputType(TemplateContext context, Codedata codedata) {
         if (codedata == null || codedata.symbol() == null) {
             return null;
         }
@@ -212,10 +193,13 @@ public class WorkflowStartBuilder extends NodeBuilder {
                 FunctionTypeSymbol functionType = funcSymbol.typeDescriptor();
                 Optional<List<ParameterSymbol>> params = functionType.params();
 
-                if (params.isPresent() && params.get().size() >= 2) {
-                    // Get the second parameter (index 1) - this is the input parameter
-                    ParameterSymbol inputParam = params.get().get(1);
-                    return (TypeReferenceTypeSymbol) inputParam.typeDescriptor();
+                if (params.isPresent()) {
+                    // Find the parameter whose type is a subtype of anydata
+                    for (ParameterSymbol param : params.get()) {
+                        if (param.typeDescriptor().subtypeOf(semanticModel.types().ANYDATA)) {
+                            return param.typeDescriptor();
+                        }
+                    }
                 }
             }
         }
