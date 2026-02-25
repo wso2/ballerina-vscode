@@ -18,13 +18,28 @@
 
 package io.ballerina.flowmodelgenerator.core.model.node;
 
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.ParameterNode;
+import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
-import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
+import io.ballerina.flowmodelgenerator.core.utils.TypeUtils;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
+import io.ballerina.tools.text.LineRange;
+import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -33,8 +48,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_CTX_PARAM_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
+import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowModule;
 
 /**
  * Represents a workflow activity call node.
@@ -75,6 +92,29 @@ public class ActivityCallBuilder extends CallBuilder {
                 .map(p -> p.value().toString())
                 .orElse("result");
 
+        try {
+            sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to load the project for file: " + sourceBuilder.filePath, e);
+        }
+        SemanticModel semanticModel = FileSystemUtils.getSemanticModel(sourceBuilder.workspaceManager,
+                sourceBuilder.filePath);
+
+        // Get the context param name from the enclosing workflow function parameters
+        FunctionDefinitionNode functionNode = WorkflowUtil.findEnclosingWorkflowFunction(sourceBuilder);
+        if (functionNode == null) {
+            throw new IllegalStateException("Activity call must be inside a workflow process function");
+        }
+
+        Optional<String> optCtxParamName = getContextParamName(functionNode, semanticModel);
+        String ctxParamName;
+        if (optCtxParamName.isPresent()) {
+            ctxParamName = optCtxParamName.get();
+        } else {
+            addContextParameterToFunction(sourceBuilder, functionNode);
+            ctxParamName = DEFAULT_CTX_PARAM_NAME;
+        }
+
         // Get activity function from codedata.symbol()
         String activityFunction = flowNode.codedata().symbol();
         if (activityFunction == null) {
@@ -82,18 +122,15 @@ public class ActivityCallBuilder extends CallBuilder {
         }
 
         // Generate: int result = check ctx->callActivity(myActivity, input);
+        //Todo: handle activity function from imported modules with module prefix
         sourceBuilder.token()
                 .name(resultType)
                 .whiteSpace()
                 .name(variableName)
                 .whiteSpace()
-                .keyword(SyntaxKind.EQUAL_TOKEN);
-        sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
-
-        //Todo: ctx value should be dynamic based on the context variable name
-        //Todo: handle activity function from imported modules with module prefix
-        sourceBuilder.token()
-                .name("ctx")
+                .keyword(SyntaxKind.EQUAL_TOKEN)
+                .keyword(SyntaxKind.CHECK_KEYWORD)
+                .name(ctxParamName)
                 .keyword(SyntaxKind.RIGHT_ARROW_TOKEN)
                 .name(CALL_ACTIVITY_METHOD)
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN)
@@ -135,11 +172,54 @@ public class ActivityCallBuilder extends CallBuilder {
         sourceBuilder.token()
                 .keyword(SyntaxKind.CLOSE_BRACE_TOKEN)
                 .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
-                .endOfStatement()
-                .stepOut();
+                .endOfStatement();
 
-        return sourceBuilder
-                .textEdit()
-                .build();
+        return sourceBuilder.textEdit().build();
+    }
+
+    private Optional<String> getContextParamName(FunctionDefinitionNode functionNode,
+                                                              SemanticModel semanticModel) {
+        SeparatedNodeList<ParameterNode> parameters = functionNode.functionSignature().parameters();
+        ParameterNode lastParam = parameters.get(0);
+
+        Node typeNode = null;
+        String paramName = null;
+        if (lastParam.kind() == SyntaxKind.REQUIRED_PARAM) {
+            RequiredParameterNode requiredParam = (RequiredParameterNode) lastParam;
+            typeNode = requiredParam.typeName();
+            paramName = requiredParam.paramName().get().text();
+        } else if (lastParam.kind() == SyntaxKind.DEFAULTABLE_PARAM) {
+            DefaultableParameterNode defaultableParam = (DefaultableParameterNode) lastParam;
+            typeNode = defaultableParam.typeName();
+            paramName = defaultableParam.paramName().get().text();
+        }
+
+        if (typeNode == null) {
+            return Optional.empty();
+        }
+
+        Optional<Symbol> symbol = semanticModel.symbol(typeNode);
+        if (symbol.isPresent() && symbol.get().kind() == SymbolKind.TYPE) {
+            TypeSymbol typeSymbol = TypeUtils.resolveTypeReference((TypeSymbol) symbol.get());
+            if (typeSymbol.getName().orElse("").equals(CONTEXT_CLASS_NAME) &&
+                    isWorkflowModule(typeSymbol.getModule())) {
+                return Optional.of(paramName);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private void addContextParameterToFunction(SourceBuilder sourceBuilder, FunctionDefinitionNode functionNode) {
+        LineRange closeParenLineRange = functionNode.functionSignature().openParenToken().lineRange();
+        Range insertRange = CommonUtils.toRange(closeParenLineRange.startLine());
+        sourceBuilder.token()
+                .name(WORKFLOW_MODULE)
+                .name(SyntaxKind.COLON_TOKEN.stringValue())
+                .name(CONTEXT_CLASS_NAME)
+                .whiteSpace()
+                .name(DEFAULT_CTX_PARAM_NAME)
+                .keyword(SyntaxKind.COMMA_TOKEN)
+                .skipFormatting().stepOut().textEdit(null, sourceBuilder.filePath, insertRange);
     }
 }

@@ -1,5 +1,5 @@
-
 import ballerina/io;
+import ballerina/workflow;
 
 type OrderInput record {
     readonly string orderId;
@@ -13,7 +13,7 @@ type NotificationInput record {
 
 # Process an order workflow
 @workflow:Process
-function orderWorkflow(workflow:Context ctx, OrderInput input) returns error? {
+function orderWorkflow(workflow:Context context, OrderInput input) returns error? {
 
 }
 
@@ -29,4 +29,10 @@ function sendNotification(int time, NotificationInput input) returns int|error {
 function myActivity() returns int {
     io:println("hello from activity");
     return 5;
+}
+
+# Process an order workflow
+@workflow:Process
+function orderWorkflow2(OrderInput input) returns error? {
+
 }

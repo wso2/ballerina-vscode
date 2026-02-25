@@ -1,6 +1,6 @@
 {
   "source": "workflow_function/functions.bal",
-  "description": "Generate activity call",
+  "description": "Generate activity call where there is no existing context param",
   "diagram": {
     "id": "1",
     "metadata": {
@@ -15,11 +15,11 @@
       "lineRange": {
         "fileName": "functions.bal",
         "startLine": {
-          "line": 16,
+          "line": 36,
           "offset": 0
         },
         "endLine": {
-          "line": 16,
+          "line": 36,
           "offset": 0
         }
       },
@@ -83,15 +83,28 @@
       {
         "range": {
           "start": {
-            "line": 16,
+            "line": 36,
             "character": 0
           },
           "end": {
-            "line": 16,
+            "line": 36,
             "character": 0
           }
         },
-        "newText": "\nint result = check context->callActivity(sendNotification, {time: 10, input: {message: \"Hello\", recipient: \"user@example.com\"}});"
+        "newText": "\nint result = check ctx->callActivity(sendNotification, {time: 10, input: {message: \"Hello\", recipient: \"user@example.com\"}});"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 35,
+            "character": 23
+          },
+          "end": {
+            "line": 35,
+            "character": 23
+          }
+        },
+        "newText": "workflow:Context ctx, "
       }
     ]
   }
