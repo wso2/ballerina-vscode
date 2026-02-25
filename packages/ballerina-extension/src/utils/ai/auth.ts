@@ -102,7 +102,7 @@ vscode.authentication.onDidChangeSessions(async e => {
             await extension.context.secrets.delete('GITHUB_COPILOT_TOKEN');
             await extension.context.secrets.delete('GITHUB_TOKEN');
         } else {
-            //it could be a login(which we havent captured) or a logout 
+            //it could be a login(which we havent captured) or a logout
             // vscode.window.showInformationMessage(
             //     'WSO2 Integrator: BI supports completions with GitHub Copilot.',
             //     'Login with GitHub Copilot'
@@ -179,7 +179,7 @@ export const getAccessToken = async (): Promise<AuthCredentials | undefined> => 
 
             // Priority 2: Check stored credentials
             if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim() !== "") {
-                resolve({loginMethod: LoginMethod.ANTHROPIC_KEY, secrets: {apiKey: process.env.ANTHROPIC_API_KEY.trim()}});
+                resolve({ loginMethod: LoginMethod.ANTHROPIC_KEY, secrets: { apiKey: process.env.ANTHROPIC_API_KEY.trim() } });
                 return;
             }
             const credentials = await getAuthCredentials();
@@ -256,6 +256,26 @@ export const getAwsBedrockCredentials = async (): Promise<{
     return credentials.secrets;
 };
 
+// ==================================
+// Unique user identifier for BIIntel
+// ==================================
+export const getBiIntelId = async (): Promise<string | undefined> => {
+    try {
+        const credentials = await getAuthCredentials();
+        if (!credentials || credentials.loginMethod !== LoginMethod.BI_INTEL) {
+            return undefined;
+        }
+
+        const { accessToken } = credentials.secrets;
+        const decoded = jwtDecode<JwtPayload>(accessToken);
+        return decoded.sub;
+    } catch (error) {
+        console.error('Error decoding JWT token:', error);
+        return undefined;
+    }
+};
+
+
 export const getRefreshedAccessToken = async (): Promise<string> => {
     return new Promise(async (resolve, reject) => {
         const CommonReqHeaders = {
@@ -324,7 +344,7 @@ export const exchangeStsToken = async (choreoStsToken: string): Promise<DevantEn
         });
 
         const { access_token, expires_in } = response.data;
-        const devantEnv: DevantEnvSecrets =  {
+        const devantEnv: DevantEnvSecrets = {
             accessToken: access_token,
             expiresAt: Date.now() + (expires_in * 1000) // Convert seconds to milliseconds
         };
