@@ -697,31 +697,6 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         setIsSaving(false);
     }
 
-    const refreshServicePosition = async () => {
-        if (!currentIdentifier) {
-            console.error("No current identifier available for refreshing service position");
-            return;
-        }
-
-        try {
-            const projectStructureResponse = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
-            const project = projectStructureResponse.projects.find(p => p.projectPath === props.projectPath);
-
-            if (!project) {
-                console.error("Project not found in structure response");
-                return;
-            }
-
-            const entryPoint = project
-                .directoryMap[DIRECTORY_MAP.SERVICE]
-                .find((service: ProjectStructureArtifactResponse) => service.name === currentIdentifier);
-            
-            setPosition(entryPoint.position);
-        } catch (error) {
-            console.error('Error refreshing service position:', error);
-        } 
-    };
-
     const handleSave = async () => {
         setIsSaving(true);
         const changes = Object.values(changeMap);
@@ -729,12 +704,13 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         const serviceChanges = changes.filter((c) => c.isService);
         // Listeners first, then service last
         for (const change of listenerChanges) {
-            await rpcClient.getServiceDesignerRpcClient().updateListenerSourceCode({ filePath: change.filePath, listener: change.data as ListenerModel });
-        }
-
-        // Re-fetch service position after listener changes
-        if (listenerChanges.length > 0 && serviceChanges.length === 0) {
-            await refreshServicePosition();
+            const listnerResponse = await rpcClient.getServiceDesignerRpcClient().updateListenerSourceCode({ filePath: change.filePath, listener: change.data as ListenerModel });
+            const updatedServiceArtifact = listnerResponse.artifacts.filter(artifact => artifact.name ===currentIdentifier).at(0);
+            if (!updatedServiceArtifact) {
+                console.error("No service artifact returned after updating listener");
+                continue;
+            }
+            setPosition(updatedServiceArtifact.position);
         }
 
         // Update service changes
