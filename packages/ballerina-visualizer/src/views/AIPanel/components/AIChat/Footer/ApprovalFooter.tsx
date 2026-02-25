@@ -193,7 +193,7 @@ const ApprovalFooter: React.FC<ApprovalFooterProps> = ({
 
     const primaryButtonText = approvalType === "plan"
         ? "Start building"
-        : "Continue";
+        : "Approve";
 
     const secondaryButtonText = approvalType === "plan" ? "Approve" : "Continue";
 
@@ -204,19 +204,19 @@ const ApprovalFooter: React.FC<ApprovalFooterProps> = ({
             <ApprovalContainer>
                 <PromptText>{promptText}</PromptText>
                 <ButtonsColumn>
-                    <Button
+                    {/* <Button
                         variant="primary"
                         onClick={handleApproveWithAutoApprove}
                         disabled={isSubmitting}
                     >
                         {primaryButtonText}
-                    </Button>
+                    </Button> */}
                     <Button
                         variant="secondary"
                         onClick={handleApproveManually}
                         disabled={isSubmitting}
                     >
-                        {secondaryButtonText}
+                        {primaryButtonText}
                     </Button>
                     <InputContainer>
                         <Input

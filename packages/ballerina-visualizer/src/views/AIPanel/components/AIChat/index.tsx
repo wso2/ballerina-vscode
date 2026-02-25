@@ -1745,9 +1745,9 @@ const AIChat: React.FC = () => {
                 comment: undefined
             });
             if (agentMode === AgentMode.Plan) {
-                // Remove the TodoSection from the executionStream entry — plan is approved, no longer needed
+                // Collapse TodoSection into approval summary — keep planTasks so user can expand to see them
                 setExecutionStream(prev => prev.map(t =>
-                    t.planTasks ? { ...t, planTasks: undefined, planMessage: undefined } : t
+                    t.planTasks ? { ...t, planApprovalStatus: "approved" } : t
                 ));
             } else {
                 updateLastMessage((content) => content.replace(/<todo>.*?<\/todo>/s, "").trimEnd());
@@ -1774,9 +1774,9 @@ const AIChat: React.FC = () => {
                 comment
             });
             if (agentMode === AgentMode.Plan) {
-                // Remove the TodoSection from the executionStream entry — plan is rejected, no longer needed
+                // Collapse TodoSection into revision summary — keep planTasks so user can expand to see them
                 setExecutionStream(prev => prev.map(t =>
-                    t.planTasks ? { ...t, planTasks: undefined, planMessage: undefined } : t
+                    t.planTasks ? { ...t, planApprovalStatus: "revised", planRevisionComment: comment } : t
                 ));
             }
         } else if (approvalRequest.approvalType === "completion") {
@@ -2074,13 +2074,11 @@ const AIChat: React.FC = () => {
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.Todo) {
-                                            const isLastMessage = index === otherMessages.length - 1;
                                             return (
                                                 <TodoSection
                                                     key={`todo-${i}`}
                                                     tasks={segment.tasks || []}
                                                     message={segment.message}
-                                                    isLoading={isLoading && isLastMessage}
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.SpecFetcher) {

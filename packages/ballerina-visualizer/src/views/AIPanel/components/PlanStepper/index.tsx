@@ -53,6 +53,8 @@ export interface ExecutionTask {
     events: ExecutionEvent[];
     planTasks?: any[];
     planMessage?: string;
+    planApprovalStatus?: "approved" | "revised";
+    planRevisionComment?: string;
     configData?: Record<string, any>;
     connectorData?: Record<string, any>;
 }
@@ -818,7 +820,8 @@ const PlanStepper: React.FC<ExecutionStreamProps> = ({ executionStream, isLoadin
                     const trimmed = text.trim();
                     const toolEvents = task.events.filter(e => e.type !== "text");
                     const hasPlanTasks = task.planTasks && task.planTasks.length > 0;
-                    if (!trimmed && !toolEvents.length && !hasPlanTasks && !task.configData && !task.connectorData) return null;
+                    const hasPlanApproval = !!task.planApprovalStatus;
+                    if (!trimmed && !toolEvents.length && !hasPlanTasks && !hasPlanApproval && !task.configData && !task.connectorData) return null;
                     return (
                         <TaskBlock key={taskIdx} style={{ flexDirection: "column" }}>
                             {trimmed && <MarkdownRenderer markdownContent={trimmed} />}
@@ -839,7 +842,9 @@ const PlanStepper: React.FC<ExecutionStreamProps> = ({ executionStream, isLoadin
                                 <TodoSection
                                     tasks={task.planTasks!}
                                     message={task.planMessage}
-                                    isLoading={isLoading && isLastTask}
+                                    initialExpanded={!hasPlanApproval}
+                                    approvalStatus={task.planApprovalStatus}
+                                    approvalComment={task.planRevisionComment}
                                 />
                             )}
                             {task.configData && <ConfigCard data={task.configData} rpcClient={rpcClient} />}
