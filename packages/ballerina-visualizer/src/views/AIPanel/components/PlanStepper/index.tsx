@@ -139,10 +139,10 @@ const EventsArea = styled.div<{ expanded: boolean }>`
                 opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 `;
 
-// Inner wrapper needed for grid-template-rows collapse trick
 const EventsInner = styled.div`
     display: flex;
     flex-direction: column;
+    min-height: 0;
     overflow: hidden;
     padding-bottom: 4px;
 `;
@@ -748,6 +748,9 @@ const PlanStepper: React.FC<ExecutionStreamProps> = ({ executionStream, isLoadin
     // Track which tasks are expanded — key is task description
     const [expandedTasks, setExpandedTasks] = useState<Record<string, boolean>>({});
     const collapseTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+    const eventsInnerRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    // Tasks that have already been auto-collapsed once — never auto-collapse again
+    const autoCollapsedTasks = useRef<Set<string>>(new Set());
 
     useEffect(() => {
         executionStream.forEach((task, taskIdx) => {
@@ -763,10 +766,11 @@ const PlanStepper: React.FC<ExecutionStreamProps> = ({ executionStream, isLoadin
                     delete collapseTimers.current[key];
                 }
                 setExpandedTasks(prev => prev[key] === true ? prev : { ...prev, [key]: true });
-            } else if (nodeStatus === "done") {
-                // Task just completed — schedule collapse after delay, unless already collapsed
+            } else if (nodeStatus === "done" && !autoCollapsedTasks.current.has(key)) {
+                // Task just completed — collapse once after delay, then never auto-collapse again
                 if (!collapseTimers.current[key]) {
                     collapseTimers.current[key] = setTimeout(() => {
+                        autoCollapsedTasks.current.add(key);
                         setExpandedTasks(prev => ({ ...prev, [key]: false }));
                         delete collapseTimers.current[key];
                     }, COLLAPSE_DELAY_MS);
@@ -774,6 +778,18 @@ const PlanStepper: React.FC<ExecutionStreamProps> = ({ executionStream, isLoadin
             }
         });
     }, [executionStream, isLoading]);
+
+    // Scroll to bottom when events change
+    useEffect(() => {
+        executionStream.forEach(task => {
+            if (!task.description) return;
+            const el = eventsInnerRefs.current[task.description];
+            if (!el) return;
+            if (expandedTasks[task.description]) {
+                el.scrollTop = el.scrollHeight;
+            }
+        });
+    }, [executionStream, expandedTasks]);
 
     // Clean up timers on unmount
     useEffect(() => {
@@ -866,7 +882,7 @@ const PlanStepper: React.FC<ExecutionStreamProps> = ({ executionStream, isLoadin
                             </TaskRow>
                             {hasEvents && (
                                 <EventsArea expanded={isExpanded}>
-                                    <EventsInner>
+                                    <EventsInner ref={el => { eventsInnerRefs.current[task.description] = el; }}>
                                         {task.events.map((event, eventIdx) => {
                                             if (event.type === "text") {
                                                 const trimmed = event.text.trim();
