@@ -32,14 +32,13 @@ import { getAnthropicClient, ANTHROPIC_HAIKU } from "../ai-client";
 import { GenerationType } from "./libraries";
 // import { getRequiredTypesFromLibJson } from "../healthcare/healthcare";
 import { langClient } from "../../activator";
-import { getGenerationMode } from "../ai-utils";
 
 // Constants for type definitions
 const TYPE_RECORD = 'Record';
 const TYPE_CONSTRUCTOR = 'Constructor';
 
 export async function selectRequiredFunctions(prompt: string, selectedLibNames: string[], generationType: GenerationType): Promise<Library[]> {
-    const selectedLibs: Library[] = await getMaximizedSelectedLibs(selectedLibNames, generationType);
+    const selectedLibs: Library[] = await getMaximizedSelectedLibs(selectedLibNames);
     const functionsResponse: GetFunctionResponse[] = await getRequiredFunctions(selectedLibNames, prompt, selectedLibs, generationType);
     let typeLibraries: Library[] = [];
     if (generationType === GenerationType.HEALTHCARE_GENERATION) {
@@ -201,9 +200,11 @@ async function getSuggestedFunctions(
 
     const getLibSystemPrompt = `You are an AI assistant tasked with filtering and removing unwanted functions and clients from a provided set of libraries and clients based on a user query. The provided libraries are a subset of the full requirements for the query. Your goal is to return ONLY the relevant libraries, clients, and functions from the provided context that match the user's needs.
 
-Rules:
-1. Use ONLY the libraries listed in Library_Context_JSON.
-2. Do NOT create or infer new libraries or functions.`;
+CRITICAL RULES:
+1. Use ONLY items from Library_Context_JSON - do not create or infer new ones.
+2. Your ONLY task is selection - include or exclude items, NEVER modify field values.
+3. Copy all field values EXACTLY as provided - preserve every character including backslashes and special characters.
+4. For resource functions: "accessor" and "paths" are SEPARATE fields - NEVER combine them.`;
 
     const getLibUserPrompt = `You will be provided with a list of libraries, clients, and their functions, and a user query.
 
@@ -221,8 +222,15 @@ To process the user query and filter the libraries, clients, and functions, foll
 2. Review the provided libraries, clients, and functions in Library_Context_JSON.
 3. Select only the libraries, clients, and functions that directly match the query's needs.
 4. Exclude any irrelevant libraries, clients, or functions.
-5. If no relevant functions are found, return an empty array for the libraries.
+5. If no relevant functions are found, return an empty array for libraries.
 6. Organize the remaining relevant information.
+
+CRITICAL - Field Preservation:
+- For resource functions: "accessor" contains ONLY the HTTP method (e.g., "post", "get") - do NOT put path info in it.
+- The "paths" field is separate - do NOT merge with accessor.
+- Copy all values exactly - preserve backslashes, dots, and special characters.
+
+Return the filtered subset with IDENTICAL field values.
 
 Now, based on the provided libraries, clients, and functions, and the user query, please filter and return the relevant information.
 `;
@@ -239,6 +247,9 @@ Now, based on the provided libraries, clients, and functions, and the user query
             messages: messages,
             schema: getFunctionsResponseSchema,
             abortSignal: new AbortController().signal,
+            providerOptions: {
+                anthropic: { structuredOutputMode: 'jsonTool' },
+            },
         });
 
         const libList = object as GetFunctionsResponse;
@@ -329,12 +340,22 @@ function filteredNormalFunctions(functions?: RemoteFunction[], generationType?: 
     }));
 }
 
-export async function getMaximizedSelectedLibs(libNames: string[], generationType: GenerationType): Promise<Library[]> {
+export async function getMaximizedSelectedLibs(libNames: string[]): Promise<Library[]> {
     const result = (await langClient.getCopilotFilteredLibraries({
-        libNames: libNames,
-        mode: getGenerationMode(generationType),
+        libNames: libNames
     })) as { libraries: Library[] };
-    return result.libraries as Library[];
+    const normalizedLibraries: Library[] = result.libraries.map(lib => {
+            return {
+                name: lib.name,
+                description: lib.description,
+                clients: lib.clients ? lib.clients : [],
+                functions: lib.functions ? lib.functions : [],
+                typeDefs: lib.typeDefs ? lib.typeDefs : [],
+                services: lib.services ? lib.services : [],
+            };
+        });
+
+    return normalizedLibraries;
 }
 
 export async function toMaximizedLibrariesFromLibJson(
@@ -708,8 +729,7 @@ async function getExternalRecords(
         if (!library) {
             console.warn(`Library ${libName} is not found in the context. Fetching library details.`);
             const result = (await langClient.getCopilotFilteredLibraries({
-                libNames: [libName],
-                mode: getGenerationMode(GenerationType.CODE_GENERATION),
+                libNames: [libName]
             })) as { libraries: Library[] };
             if (result.libraries && result.libraries.length > 0) {
                 library = result.libraries[0];
@@ -819,6 +839,9 @@ Think step-by-step to choose the required types in order to solve the given ques
             messages: messages,
             schema: getTypesResponseSchema,
             abortSignal: new AbortController().signal,
+            providerOptions: {
+                anthropic: { structuredOutputMode: 'jsonTool' },
+            },
         });
 
         const libList = object as GetTypesResponse;

@@ -32,7 +32,8 @@ import {
     ExpandModelOptions,
     ExpandedDMModel,
     MACHINE_VIEW,
-    IntermediateClauseType
+    IntermediateClauseType,
+    InputCategory
 } from "@wso2/ballerina-core";
 import { updateSourceCode, UpdateSourceCodeRequest } from "../../utils";
 import { StateMachine, updateDataMapperView } from "../../stateMachine";
@@ -114,7 +115,7 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
     const filePaths = Object.keys(textEdits);
 
     if (filePaths.length == 1) {
-        return await updateSourceCode({ ...updateSourceCodeRequest, description: 'Data Mapper Update' });
+        return await updateSourceCode({ ...updateSourceCodeRequest, description: 'Data Mapper Update' }, undefined, true);
     }
 
     // TODO: Remove this once the designModelService/publishArtifacts API supports simultaneous file changes
@@ -137,7 +138,7 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
 
     let updatedArtifacts: ProjectStructureArtifactResponse[];
     for (const request of requests) {
-        updatedArtifacts = await updateSourceCode({ ...request, description: 'Data Mapper Update' });
+        updatedArtifacts = await updateSourceCode({ ...request, description: 'Data Mapper Update' }, undefined, true);
     }
 
     return updatedArtifacts;
@@ -215,7 +216,7 @@ export async function updateSubMappingSource(
     name: string
 ): Promise<CodeData> {
     try {
-        await updateSourceCode({ textEdits: textEdits, description: 'Sub Mapping Update' });
+        await updateSourceCode({ textEdits: textEdits, description: 'Sub Mapping Update' }, undefined, true);
         return await fetchSubMappingCodeData(filePath, codedata, name);
     } catch (error) {
         console.error(`Failed to update source for sub mapping "${name}" in ${filePath}:`, error);
@@ -481,10 +482,13 @@ export function expandDMModel(
  */
 function processInputRoots(model: DMModel): IOType[] {
     const inputs: IORoot[] = [];
+    const moduleLevelInputs: IORoot[] = [];
     const focusInputs: Record<string, IOTypeField> = {};
     for (const input of model.inputs) {
         if (input.focusExpression && (input.isIterationVariable || input.isSeq || input.isGroupingKey)) {
             focusInputs[input.focusExpression] = input as IOTypeField;
+        } else if (isModuleLevelInput(input)) {
+            moduleLevelInputs.push(input);
         } else {
             inputs.push(input);
         }
@@ -497,10 +501,45 @@ function processInputRoots(model: DMModel): IOType[] {
         focusInputs
     };
 
-    return inputs.map(input => {
+    const processedInputs = inputs.map(input => {
         preProcessedModel.traversingRoot = input.name;
         return processIORoot(input, preProcessedModel);
     });
+
+    return moduleLevelInputs.length
+        ? [buildModuleLevelInputsGroup(moduleLevelInputs, preProcessedModel), ...processedInputs]
+        : processedInputs;
+}
+
+/** 
+ * Checks if the given input is a module level input
+ */
+function isModuleLevelInput(input: IORoot): boolean {
+    return input.category === InputCategory.Constant
+        || input.category === InputCategory.Configurable
+        || input.category === InputCategory.ModuleVariable
+        || input.category === InputCategory.Enum;
+}
+
+/**
+ * Builds an IOType to group module level inputs
+ */
+function buildModuleLevelInputsGroup(moduleLevelInputs: IORoot[], model: DMModel): IOType {
+    
+    const id = "MODULE_LEVEL_INPUTS$"; // Suffix $ to avoid conflicts with user defined names and special case port handling
+    model.traversingRoot = id;
+    const fields = moduleLevelInputs.map(input => {
+        model.focusInputRootMap[input.name] = model.traversingRoot;
+        return processIORoot(input, model);
+    });
+
+    return {
+        id,
+        name: id,
+        displayName: "Global Inputs",
+        kind: TypeKind.Record,
+        fields
+    };
 }
 
 /**
@@ -542,6 +581,17 @@ function processTypeKind(
                 return processTypeReference(type.ref, parentId, model, visitedRefs);
             }
             break;
+        case TypeKind.Json:
+        case TypeKind.Xml:
+            if (type.convertedVariable) {
+                return {
+                    convertedField: processConvertedVariable(type.convertedVariable, model, visitedRefs)
+                };
+            } else if (type.fields) {
+                return {
+                    fields: processTypeFields(type as RecordType, parentId, model, visitedRefs)
+                };
+            }
     }
     return {};
 }
@@ -683,6 +733,34 @@ function processUnion(
 }
 
 /**
+ * Processes a converted variable for JSON/XML types
+ */
+function processConvertedVariable(
+    convertedVariable: IORoot,
+    model: DMModel,
+    visitedRefs: Set<string>
+): IOType {
+    const fieldId = convertedVariable.name;
+
+    if (model.traversingRoot) {
+        model.focusInputRootMap[fieldId] = model.traversingRoot;
+    }
+    
+    return {
+        id: fieldId,
+        name: fieldId,
+        displayName: convertedVariable.displayName,
+        typeName: convertedVariable.typeName,
+        kind: convertedVariable.kind,
+        category: convertedVariable.category,
+        isFocused: true,
+        ...(convertedVariable.optional && { optional: convertedVariable.optional }),
+        ...(convertedVariable.typeInfo && { typeInfo: convertedVariable.typeInfo }),
+        ...processTypeKind(convertedVariable, fieldId, model, visitedRefs)
+    };
+}
+
+/**
  * Processes a type reference and returns the appropriate IOType structure
  */
 export function processTypeReference(
@@ -787,4 +865,3 @@ function processEnum(
         ...(member.optional && { optional: member.optional })
     }));
 }
-

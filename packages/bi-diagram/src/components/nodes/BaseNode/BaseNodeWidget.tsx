@@ -26,7 +26,7 @@ import {
     NODE_PADDING,
     NODE_WIDTH,
 } from "../../../resources/constants";
-import { Button, Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
 import { MoreVertIcon } from "../../../resources";
 import NodeIcon from "../../NodeIcon";
 import { useDiagramContext } from "../../DiagramContext";
@@ -195,6 +195,10 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     const isMenuOpen = Boolean(menuAnchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
+    const canViewFunction =
+        model.node.codedata.node === "FUNCTION_CALL" &&
+        model.node.codedata.org === project?.org &&
+        Boolean(model.node.properties?.view?.value);
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
         if (readOnly) {
@@ -257,6 +261,13 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
         setIsHovered(false);
     };
 
+    const handleOnViewFunctionClick = () => {
+        if (readOnly) {
+            return;
+        }
+        viewFunction();
+    };
+
     const openDataMapper = async () => {
         if (!model.node.properties?.view?.value) {
             return;
@@ -315,7 +326,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
         });
     }
 
-    if (model.node.codedata.node === "FUNCTION_CALL" && model.node.codedata.org === project?.org) {
+    if (canViewFunction) {
         menuItems.splice(1, 0, {
             id: "viewFunction",
             label: "View",
@@ -383,6 +394,21 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
                     </NodeStyles.Header>
                     <NodeStyles.ActionButtonGroup>
                         {hasError && <DiagnosticsPopUp node={model.node} />}
+                        {canViewFunction && (
+                            <Tooltip content="View function flow">
+                                <NodeStyles.MenuButton
+                                    buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                                    appearance="icon"
+                                    onClick={handleOnViewFunctionClick}
+                                >
+                                    <Icon
+                                        name="bi-function-flow"
+                                        sx={{ width: 16, height: 16 }}
+                                        iconSx={{ fontSize: 16 }}
+                                    />
+                                </NodeStyles.MenuButton>
+                            </Tooltip>
+                        )}
                         <NodeStyles.MenuButton
                             ref={setMenuButtonElement}
                             buttonSx={readOnly ? { cursor: "not-allowed" } : {}}

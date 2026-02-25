@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -17,8 +17,9 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ExpressionFieldProps } from "../../ExpressionField";
-import { Codicon } from '@wso2/ui-toolkit';
+import { Codicon } from "@wso2/ui-toolkit";
+
+import type { ExpressionFieldProps } from "../../ExpressionField";
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
 import { useFormContext } from "../../../../context";
 import { S } from "../styles";
@@ -45,7 +46,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
     const expressionSetType = expressionFieldProps.field.types.find(t => t.fieldType === "EXPRESSION_SET" || t.fieldType === "TEXT_SET");
     const minItems = expressionSetType?.minItems ?? 1;
     const defaultItems = expressionSetType?.defaultItems ?? 1;
-    
+
     const [isInitialized, setIsInitialized] = useState(false);
     const currentValuesRef = useRef<string[]>([]);
     const paddedRef = useRef(false);

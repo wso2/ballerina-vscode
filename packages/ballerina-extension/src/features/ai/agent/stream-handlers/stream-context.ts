@@ -38,6 +38,13 @@ export interface StreamContext {
     // Response promise (for message history and abort/finish handling)
     response: StreamTextResult<any, any>['response'];
 
+    // Token usage promise (for telemetry)
+    usage: StreamTextResult<any, any>['usage'];
+
     // Execution context (for workspace integration)
     ctx: ExecutionContext;
+
+    // Telemetry tracking
+    generationStartTime: number;
+    projectId: string;
 }

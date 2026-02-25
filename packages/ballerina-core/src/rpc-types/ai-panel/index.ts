@@ -39,9 +39,12 @@ import {
     TaskDeclineRequest,
     ConnectorSpecRequest,
     ConnectorSpecCancelRequest,
+    ConfigurationProvideRequest,
+    ConfigurationCancelRequest,
     UIChatMessage,
     CheckpointInfo,
     AbortAIGenerationRequest,
+    UsageResponse,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -49,6 +52,7 @@ export interface AIPanelAPI {
     // General Functions
     // ==================================
     getLoginMethod: () => Promise<LoginMethod>;
+    isPlatformExtensionAvailable: () => Promise<boolean>;
     getDefaultPrompt: () => Promise<AIPanelPrompt>; //starting args
     getAIMachineSnapshot: () => Promise<AIMachineSnapshot>; //login state machine
     clearInitialPrompt: () => void; //starting args
@@ -93,6 +97,8 @@ export interface AIPanelAPI {
     declineTask: (params: TaskDeclineRequest) => Promise<void>;
     provideConnectorSpec: (params: ConnectorSpecRequest) => Promise<void>;
     cancelConnectorSpec: (params: ConnectorSpecCancelRequest) => Promise<void>;
+    provideConfiguration: (params: ConfigurationProvideRequest) => Promise<void>;
+    cancelConfiguration: (params: ConfigurationCancelRequest) => Promise<void>;
     // ==================================
     // Chat State Management
     // ==================================
@@ -102,4 +108,5 @@ export interface AIPanelAPI {
     clearChat: () => Promise<void>;
     updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;
     getActiveTempDir: () => Promise<string>;
+    getUsage: () => Promise<UsageResponse | undefined>;
 }

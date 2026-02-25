@@ -16,31 +16,32 @@
  * under the License.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
     ProjectStructure,
     EVENT_TYPE,
     MACHINE_VIEW,
     BuildMode,
     BI_COMMANDS,
-    DevantMetadata,
     SHARED_COMMANDS,
-    DIRECTORY_MAP
+    DIRECTORY_MAP,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox } from "@wso2/ui-toolkit";
+import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox, ProgressIndicator, Overlay, Dropdown } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { ThemeColors } from "@wso2/ui-toolkit";
 import ComponentDiagram from "../ComponentDiagram";
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
 import ReactMarkdown from "react-markdown";
-import { useQuery } from '@tanstack/react-query'
 import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { getIntegrationTypes } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
+import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
+import { PublishToCentralButton } from "./PublishToCentralButton";
+import { LibraryOverview } from "./LibraryOverview";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -99,12 +100,13 @@ const HeaderControls = styled.div`
     display: flex;
     gap: 8px;
     margin-right: 16px;
+    align-items: center;
 `;
 
-const MainContent = styled.div`
+const MainContent = styled.div<{ fullWidth?: boolean }>`
     padding: 16px;
     display: grid;
-    grid-template-columns: 3fr 1fr;
+    grid-template-columns: ${(props: { fullWidth?: boolean }) => props.fullWidth ? '1fr' : '3fr 1fr'};
     min-height: 0; // Prevents grid blowout
     overflow: auto;
     max-height: calc(100vh - 90px); // Adjust based on header and any margins
@@ -153,12 +155,58 @@ const EmptyReadmeContainer = styled.div`
     height: 100%;
 `;
 
-const DiagramHeaderContainer = styled.div<{ withPadding?: boolean }>`
+const DiagramHeaderContainer = styled.div<{ withPadding?: boolean, isLibrary?: boolean }>`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: ${(props: { isLibrary?: boolean }) => props.isLibrary ? "0" : "16px"};
     padding: ${(props: { withPadding: boolean; }) => (props.withPadding ? "16px 16px 0 16px" : "0")};
+`;
+
+const LibrarySearchBar = styled.div`
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: clamp(160px, 35vw, 400px);
+`;
+
+const LibrarySearchInput = styled.input`
+    width: 100%;
+    padding: 6px 24px 6px 28px;
+    background: var(--vscode-input-background);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 4px;
+    color: var(--vscode-input-foreground);
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+    &:focus {
+        outline: none;
+        border-color: var(--vscode-focusBorder);
+    }
+    &::placeholder {
+        color: var(--vscode-input-placeholderForeground);
+    }
+`;
+
+const LibrarySearchIcon = styled.div`
+    position: absolute;
+    left: 8px;
+    color: var(--vscode-input-placeholderForeground);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+`;
+
+const LibrarySearchClearButton = styled.div`
+    position: absolute;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--vscode-input-placeholderForeground);
+    &:hover {
+        color: var(--vscode-input-foreground);
+    }
 `;
 
 const DiagramContent = styled.div`
@@ -296,7 +344,14 @@ const DeploymentHeader = styled.div`
         font-size: 13px;
         font-weight: 600;
         margin: 0;
+        width: 100%;
     }
+`;
+
+const DevantHeaderWrap = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 `;
 
 interface DeploymentBodyProps {
@@ -311,7 +366,7 @@ const DeploymentBody = styled.div<DeploymentBodyProps>`
 `;
 
 interface DeploymentOptionProps {
-    title: string;
+    title: ReactNode;
     description: string;
     buttonText: string;
     isExpanded: boolean;
@@ -403,7 +458,6 @@ interface DeploymentOptionsProps {
     handleJarBuild: () => void;
     handleDeploy: () => Promise<void>;
     goToDevant: () => void;
-    devantMetadata: DevantMetadata | undefined;
     hasDeployableIntegration: boolean;
 }
 
@@ -412,11 +466,11 @@ function DeploymentOptions({
     handleJarBuild,
     handleDeploy,
     goToDevant,
-    devantMetadata,
     hasDeployableIntegration
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud', 'devant']));
     const { rpcClient } = useRpcContext();
+    const { platformExtState } = usePlatformExtContext();
 
     const toggleOption = (option: string) => {
         setExpandedOptions(prev => {
@@ -430,6 +484,7 @@ function DeploymentOptions({
         });
     };
 
+    const isDeployed = platformExtState?.isLoggedIn ? !!platformExtState?.selectedComponent : platformExtState?.hasPossibleComponent;
 
     return (
         <>
@@ -437,20 +492,39 @@ function DeploymentOptions({
                 <Title variant="h3">Deployment Options</Title>
 
                 <DeploymentOption
-                    title={devantMetadata?.hasComponent ? "Deployed in Devant" : "Deploy to Devant"}
+                    title={
+                        isDeployed ? (
+                            <DevantHeaderWrap>
+                                <span>Deployed in Devant</span>
+                                <Button
+                                    appearance="icon"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        rpcClient.getCommonRpcClient().executeCommand({
+                                            commands: [PlatformExtCommandIds.RefreshDirectoryContext],
+                                        });
+                                    }}
+                                >
+                                    <Codicon name="refresh" />
+                                </Button>
+                            </DevantHeaderWrap>
+                        ) : (
+                            "Deploy to Devant"
+                        )
+                    }
                     description={
-                        devantMetadata?.hasComponent
+                        isDeployed
                             ? "This integration is already deployed in Devant."
                             : "Deploy your integration to the cloud using Devant by WSO2."
                     }
-                    buttonText={devantMetadata?.hasComponent ? "View in Devant" : "Deploy"}
+                    buttonText={isDeployed ? "View in Devant" : "Deploy"}
                     isExpanded={expandedOptions.has("devant")}
                     onToggle={() => toggleOption("devant")}
-                    onDeploy={devantMetadata?.hasComponent ? () => goToDevant() : handleDeploy}
+                    onDeploy={isDeployed? () => goToDevant() : handleDeploy}
                     learnMoreLink={"https://wso2.com/devant/docs"}
                     hasDeployableIntegration={hasDeployableIntegration}
                     secondaryAction={
-                        devantMetadata?.hasComponent && devantMetadata?.hasLocalChanges
+                        isDeployed && platformExtState?.hasLocalChanges
                             ? {
                                 description: "To redeploy in Devant, please commit and push your changes.",
                                 buttonText: "Open Source Control",
@@ -518,8 +592,9 @@ function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlane
     );
 }
 
-function DevantDashboard({ projectStructure, handleDeploy, goToDevant, devantMetadata }: { projectStructure: ProjectStructure, handleDeploy: () => void, goToDevant: () => void, devantMetadata: DevantMetadata }) {
+function DevantDashboard({ projectStructure, handleDeploy, goToDevant }: { projectStructure: ProjectStructure, handleDeploy: () => void, goToDevant: () => void }) {
     const { rpcClient } = useRpcContext();
+    const { platformExtState } = usePlatformExtContext();
 
     const handleSaveAndDeployToDevant = () => {
         handleDeploy();
@@ -535,25 +610,23 @@ function DevantDashboard({ projectStructure, handleDeploy, goToDevant, devantMet
         (projectStructure.directoryMap.SERVICE && projectStructure.directoryMap.SERVICE.length > 0)
     );
 
-    console.log(">>> devantMetadata", devantMetadata);
-
     return (
         <React.Fragment>
-            {devantMetadata?.hasComponent ? <Title variant="h3">Deployed in Devant</Title> : <Title variant="h3">Deploy to Devant</Title>}
+            {platformExtState?.selectedComponent ? <Title variant="h3">Deployed in Devant</Title> : <Title variant="h3">Deploy to Devant</Title>}
             {!hasAutomationOrService ? (
                 <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
                     Before you can deploy your integration to Devant, please add an artifact (such as a Service or Automation) to your project.
                 </Typography>
             ) : (
                 <>
-                    {devantMetadata?.hasComponent ? (
+                    {platformExtState?.selectedComponent ? (
                         <>
                             <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
                                 This integration is deployed in Devant.
                             </Typography>
                             <Button
                                 appearance="secondary"
-                                disabled={!devantMetadata?.hasLocalChanges}
+                                disabled={!platformExtState?.hasLocalChanges}
                                 onClick={handlePushChanges}
                                 sx={{
                                     display: "flex",
@@ -614,17 +687,16 @@ interface PackageOverviewProps {
 export function PackageOverview(props: PackageOverviewProps) {
     const { projectPath, isInDevant } = props;
     const { rpcClient } = useRpcContext();
-    const [readmeContent, setReadmeContent] = useState<string>("");
+    const [readmeContent, setReadmeContent] = React.useState<string>("");
+    const { platformExtState } = usePlatformExtContext();
+    const [enabled, setEnableICP] = useState(false);
+    const [showAlert, setShowAlert] = React.useState(false);
     const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
     const [isWorkspace, setIsWorkspace] = useState(false);
+    const [isLibrary, setIsLibrary] = useState<boolean>(false);
 
-    const [enabled, setEnableICP] = useState(false);
-    const { data: devantMetadata } = useQuery({
-        queryKey: ["devant-metadata", projectPath],
-        queryFn: () => rpcClient.getBIDiagramRpcClient().getDevantMetadata(),
-        refetchInterval: 5000
-    });
-    const [showAlert, setShowAlert] = useState(false);
+    const [librarySearchQuery, setLibrarySearchQuery] = useState("");
+    const librarySearchRef = useRef<HTMLInputElement>(null);
 
     const fetchContext = () => {
         rpcClient
@@ -635,6 +707,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                 setIsWorkspace(res.workspaceName !== undefined);
                 if (project) {
                     setProjectStructure(project);
+                    setIsLibrary(project.isLibrary ?? false);
                 }
             });
 
@@ -785,6 +858,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                 {
                     extName: "Devant",
                     componentFsPath: projectPath,
+                    component: platformExtState?.selectedComponent,
                     newComponentParams: { buildPackLang: "ballerina" }
                 } as IOpenInConsoleCmdParams]
         })
@@ -826,12 +900,19 @@ export function PackageOverview(props: PackageOverviewProps) {
                 />
                 Configure
             </Button>
-            <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
-                <Codicon name="play" sx={{ marginRight: 5 }} /> Run
-            </Button>
-            <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
-                <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
-            </Button>
+            {!isLibrary && (
+                <>
+                    <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
+                        <Codicon name="play" sx={{ marginRight: 5 }} /> Run
+                    </Button>
+                    <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
+                        <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
+                    </Button>
+                </>
+            )}
+            {isLibrary && (
+                <PublishToCentralButton />
+            )}
         </>
     );
 
@@ -842,7 +923,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                 {isWorkspace ? (
                     <TitleBar
                         title={projectName}
-                        subtitle="Integration"
+                        subtitle={isLibrary ? "Library" : "Integration"}
                         onBack={handleBack}
                         actions={headerActions}
                     />
@@ -858,7 +939,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                         </HeaderControls>
                     </HeaderRow>
                 )}
-                <MainContent>
+                <MainContent fullWidth={isLibrary}>
                     <LeftContent>
                         <DiagramPanel noPadding={true}>
                             {showAlert && (
@@ -879,9 +960,9 @@ export function PackageOverview(props: PackageOverviewProps) {
                                     btn2Id="Close"
                                 />
                             )}
-                            <DiagramHeaderContainer withPadding={true}>
-                                <Title variant="h2">Design</Title>
-                                {!isEmptyProject() && (<ActionContainer>
+                            <DiagramHeaderContainer withPadding={true} isLibrary={isLibrary}>
+                                <Title variant="h2">{isLibrary ? "Artifacts" : "Design"}</Title>
+                                {!isEmptyProject() && !isLibrary && (<ActionContainer>
                                     <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
                                         <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate
                                     </Button>
@@ -889,32 +970,61 @@ export function PackageOverview(props: PackageOverviewProps) {
                                         <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
                                     </Button>
                                 </ActionContainer>)}
-                            </DiagramHeaderContainer>
-                            <DiagramContent>
-                                {isEmptyProject() ? (
-                                    <EmptyStateContainer>
-                                        <Typography variant="h3" sx={{ marginBottom: "16px" }}>
-                                            Your integration is empty
-                                        </Typography>
-                                        <Typography
-                                            variant="body1"
-                                            sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
-                                        >
-                                            Start by adding artifacts or use AI to generate your integration structure
-                                        </Typography>
-                                        <ButtonContainer>
-                                            <Button appearance="primary" onClick={handleAddConstruct}>
-                                                <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
-                                            </Button>
-                                            <Button appearance="secondary" onClick={handleGenerate}>
-                                                <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
-                                            </Button>
-                                        </ButtonContainer>
-                                    </EmptyStateContainer>
-                                ) : (
-                                    <ComponentDiagram projectStructure={projectStructure} />
+                                {isLibrary && (
+                                    <ActionContainer>
+                                        <LibrarySearchBar>
+                                            <LibrarySearchIcon>
+                                                <Codicon name="search" iconSx={{ fontSize: 12 }} />
+                                            </LibrarySearchIcon>
+                                            <LibrarySearchInput
+                                                ref={librarySearchRef}
+                                                type="text"
+                                                placeholder="Search Artifacts"
+                                                value={librarySearchQuery}
+                                                onChange={(e) => setLibrarySearchQuery(e.target.value)}
+                                            />
+                                            {librarySearchQuery.trim().length > 0 && (
+                                                <LibrarySearchClearButton
+                                                    onClick={() => {
+                                                        setLibrarySearchQuery("");
+                                                        librarySearchRef.current?.focus();
+                                                    }}
+                                                >
+                                                    <Codicon name="close" iconSx={{ fontSize: 12 }} />
+                                                </LibrarySearchClearButton>
+                                            )}
+                                        </LibrarySearchBar>
+                                    </ActionContainer>
                                 )}
-                            </DiagramContent>
+                            </DiagramHeaderContainer>
+                            {isLibrary && <LibraryOverview projectStructure={projectStructure} searchQuery={librarySearchQuery} />}
+                            {!isLibrary && (
+                                <DiagramContent>
+                                    {isEmptyProject() ? (
+                                        <EmptyStateContainer>
+                                            <Typography variant="h3" sx={{ marginBottom: "16px" }}>
+                                                Your integration is empty
+                                            </Typography>
+                                            <Typography
+                                                variant="body1"
+                                                sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
+                                            >
+                                                Start by adding artifacts or use AI to generate your integration structure
+                                            </Typography>
+                                            <ButtonContainer>
+                                                <Button appearance="primary" onClick={handleAddConstruct}>
+                                                    <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
+                                                </Button>
+                                                <Button appearance="secondary" onClick={handleGenerate}>
+                                                    <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
+                                                </Button>
+                                            </ButtonContainer>
+                                        </EmptyStateContainer>
+                                    ) : (
+                                        <ComponentDiagram projectStructure={projectStructure} />
+                                    )}
+                                </DiagramContent>
+                            )}
                         </DiagramPanel>
                         <FooterPanel>
                             <ReadmeHeaderContainer>
@@ -944,30 +1054,30 @@ export function PackageOverview(props: PackageOverviewProps) {
                             </ReadmeContent>
                         </FooterPanel>
                     </LeftContent>
-                    <SidePanel>
-                        {!isInDevant &&
-                            <>
-                                <DeploymentOptions
-                                    handleDockerBuild={handleDockerBuild}
-                                    handleJarBuild={handleJarBuild}
+                    {!isLibrary && (
+                        <SidePanel>
+                            {!isInDevant &&
+                                <>
+                                    <DeploymentOptions
+                                        handleDockerBuild={handleDockerBuild}
+                                        handleJarBuild={handleJarBuild}
+                                        handleDeploy={handleDeploy}
+                                        goToDevant={goToDevant}
+                                        hasDeployableIntegration={deployableIntegrationTypes.length > 0}
+                                    />
+                                    <Divider sx={{ margin: "16px 0" }} />
+                                    <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
+                                </>
+                            }
+                            {isInDevant &&
+                                <DevantDashboard
+                                    projectStructure={projectStructure}
                                     handleDeploy={handleDeploy}
                                     goToDevant={goToDevant}
-                                    devantMetadata={devantMetadata}
-                                    hasDeployableIntegration={deployableIntegrationTypes.length > 0}
                                 />
-                                <Divider sx={{ margin: "16px 0" }} />
-                                <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
-                            </>
-                        }
-                        {isInDevant &&
-                            <DevantDashboard
-                                projectStructure={projectStructure}
-                                handleDeploy={handleDeploy}
-                                goToDevant={goToDevant}
-                                devantMetadata={devantMetadata}
-                            />
-                        }
-                    </SidePanel>
+                            }
+                        </SidePanel>
+                    )}
                 </MainContent>
             </PageLayout>
         </>

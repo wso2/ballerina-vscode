@@ -107,10 +107,13 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [listener, setListener] = useState("");
     const [parentMetadata, setParentMetadata] = useState<ParentMetadata>();
     const [currentPosition, setCurrentPosition] = useState<NodePosition>();
+    const [parentCodedata, setParentCodedata] = useState<CodeData>();
 
     const [functionModel, setFunctionModel] = useState<FunctionModel>();
     const [servicePosition, setServicePosition] = useState<NodePosition>();
     const [isSaving, setIsSaving] = useState(false);
+    const [isTracingEnabled, setIsTracingEnabled] = useState(false);
+    const [isToggling, setIsToggling] = useState(false);
 
     useEffect(() => {
         rpcClient.getVisualizerLocation().then((location) => {
@@ -164,6 +167,37 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     }, [rpcClient]);
 
 
+    useEffect(() => {
+        checkTracingStatus();
+    }, []);
+
+    const checkTracingStatus = async () => {
+        try {
+            const status = await rpcClient.getAgentChatRpcClient().getTracingStatus();
+            setIsTracingEnabled(status.enabled);
+        } catch (error) {
+            setIsTracingEnabled(false);
+        }
+    };
+
+    const handleToggleTracing = async () => {
+        if (isToggling) {
+            return;
+        }
+
+        setIsToggling(true);
+        try {
+            const command = isTracingEnabled ? "ballerina.disableTracing" : "ballerina.enableTracing";
+            await rpcClient.getCommonRpcClient().executeCommand({ commands: [command] });
+            await checkTracingStatus();
+        } catch (error) {
+            console.error("Failed to toggle tracing:", error);
+            throw error;
+        } finally {
+            setIsToggling(false);
+        }
+    };
+
     const handleFunctionClose = () => {
         setFunctionModel(undefined);
     };
@@ -176,7 +210,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         setLoadingDiagram(true);
     };
 
-    const handleReadyDiagram = (fileName?: string, parentMetadata?: ParentMetadata, position?: NodePosition) => {
+    const handleReadyDiagram = (fileName?: string, parentMetadata?: ParentMetadata, position?: NodePosition, parentCodedata?: CodeData) => {
         setLoadingDiagram(false);
         if (fileName) {
             setFileName(fileName);
@@ -186,6 +220,9 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         }
         if (position) {
             setCurrentPosition(position);
+        }
+        if (parentCodedata) {
+            setParentCodedata(parentCodedata);
         }
     };
 
@@ -227,6 +264,35 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     };
 
     const handleEdit = (fileUri?: string, position?: NodePosition) => {
+        const isTestFunction = parentCodedata?.sourceCode.includes("@test:Config");
+        const isAIEvaluation = isTestFunction && parentCodedata?.sourceCode.includes('"evaluations"');
+
+        if (isAIEvaluation) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.BIAIEvaluationForm,
+                    identifier: parentMetadata?.label || "",
+                    documentUri: fileUri,
+                    serviceType: 'UPDATE_TEST',
+                }
+            });
+            return;
+        }
+
+        if (isTestFunction) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.BITestFunctionForm,
+                    identifier: parentMetadata?.label || "",
+                    documentUri: fileUri,
+                    serviceType: 'UPDATE_TEST',
+                }
+            });
+            return;
+        }
+
         const context: VisualizerLocation = {
             view:
                 view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION
@@ -256,6 +322,9 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const getTitle = () => {
         if (isNPFunction) return "Natural Function";
         if (isAutomation) return "Automation";
+        if (parentCodedata?.sourceCode.includes("@ai:AgentTool")) return "Agent Tool";
+        if ((parentCodedata?.sourceCode.includes("@test:Config")) && parentCodedata?.sourceCode.includes("\"evaluations\"")) return "AI Evaluation";
+        if (parentCodedata?.sourceCode.includes("@test:Config")) return "Test";
         return parentMetadata?.kind || "";
     };
 
@@ -269,19 +338,37 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
 
     // Calculate actions based on conditions
     const getActions = () => {
+        const tracingButton = (
+            <ActionButton
+                appearance={isTracingEnabled ? "primary" : "secondary"}
+                onClick={handleToggleTracing}
+                disabled={isToggling}
+            >
+                <Icon
+                    name={isTracingEnabled ? "telescope" : "circle-slash"}
+                    isCodicon={true}
+                    sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
+                />
+                {isTracingEnabled ? "Tracing: On" : "Tracing: Off"}
+            </ActionButton>
+        );
+
         if (isAgent) {
             return (
-                <ActionButton
-                    appearance="secondary"
-                    onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
-                >
-                    <Icon
-                        name="comment-discussion"
-                        isCodicon={true}
-                        sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
-                    />
-                    Chat
-                </ActionButton>
+                <>
+                    {tracingButton}
+                    <ActionButton
+                        appearance="secondary"
+                        onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
+                    >
+                        <Icon
+                            name="comment-discussion"
+                            isCodicon={true}
+                            sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
+                        />
+                        Chat
+                    </ActionButton>
+                </>
             );
         }
 

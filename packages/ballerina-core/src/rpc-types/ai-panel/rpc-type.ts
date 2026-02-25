@@ -41,14 +41,18 @@ import {
     TaskDeclineRequest,
     ConnectorSpecRequest,
     ConnectorSpecCancelRequest,
+    ConfigurationProvideRequest,
+    ConfigurationCancelRequest,
     UIChatMessage,
     CheckpointInfo,
     AbortAIGenerationRequest,
+    UsageResponse,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "ai-panel";
 export const getLoginMethod: RequestType<void, LoginMethod> = { method: `${_preFix}/getLoginMethod` };
+export const isPlatformExtensionAvailable: RequestType<void, boolean> = { method: `${_preFix}/isPlatformExtensionAvailable` };
 export const getDefaultPrompt: RequestType<void, AIPanelPrompt> = { method: `${_preFix}/getDefaultPrompt` };
 export const getAIMachineSnapshot: RequestType<void, AIMachineSnapshot> = { method: `${_preFix}/getAIMachineSnapshot` };
 export const clearInitialPrompt: NotificationType<void> = { method: `${_preFix}/clearInitialPrompt` };
@@ -75,7 +79,7 @@ export const isUserAuthenticated: RequestType<void, boolean> = { method: `${_pre
 export const openAIPanel: RequestType<AIPanelPrompt, void> = { method: `${_preFix}/openAIPanel` };
 export const isPlanModeFeatureEnabled: RequestType<void, boolean> = { method: `${_preFix}/isPlanModeFeatureEnabled` };
 export const getSemanticDiff: RequestType<SemanticDiffRequest, SemanticDiffResponse> = { method: `${_preFix}/getSemanticDiff` };
-export const getAffectedPackages: RequestType<void, string[]> = { method: `${_preFix}/getAffectedPackages` };
+export const getAffectedPackages: NotificationType<void> = { method: `${_preFix}/getAffectedPackages` };
 export const isWorkspaceProject: RequestType<void, boolean> = { method: `${_preFix}/isWorkspaceProject` };
 export const acceptChanges: RequestType<void, void> = { method: `${_preFix}/acceptChanges` };
 export const declineChanges: RequestType<void, void> = { method: `${_preFix}/declineChanges` };
@@ -85,9 +89,12 @@ export const approveTask: RequestType<ApproveTaskRequest, void> = { method: `${_
 export const declineTask: RequestType<TaskDeclineRequest, void> = { method: `${_preFix}/declineTask` };
 export const provideConnectorSpec: RequestType<ConnectorSpecRequest, void> = { method: `${_preFix}/provideConnectorSpec` };
 export const cancelConnectorSpec: RequestType<ConnectorSpecCancelRequest, void> = { method: `${_preFix}/cancelConnectorSpec` };
+export const provideConfiguration: RequestType<ConfigurationProvideRequest, void> = { method: `${_preFix}/provideConfiguration` };
+export const cancelConfiguration: RequestType<ConfigurationCancelRequest, void> = { method: `${_preFix}/cancelConfiguration` };
 export const getChatMessages: NotificationType<void> = { method: `${_preFix}/getChatMessages` };
 export const getCheckpoints: NotificationType<void> = { method: `${_preFix}/getCheckpoints` };
 export const restoreCheckpoint: RequestType<RestoreCheckpointRequest, void> = { method: `${_preFix}/restoreCheckpoint` };
 export const clearChat: RequestType<void, void> = { method: `${_preFix}/clearChat` };
 export const updateChatMessage: RequestType<UpdateChatMessageRequest, void> = { method: `${_preFix}/updateChatMessage` };
 export const getActiveTempDir: RequestType<void, string> = { method: `${_preFix}/getActiveTempDir` };
+export const getUsage: RequestType<void, UsageResponse | undefined> = { method: `${_preFix}/getUsage` };

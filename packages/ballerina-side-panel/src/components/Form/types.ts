@@ -70,6 +70,14 @@ export type FormField = {
     actionCallback?: () => void;
     onValueChange?: (value: string | boolean) => void;
     isGraphqlId?: boolean;
+    sliderProps?: {
+        min?: number;
+        max?: number;
+        step?: number;
+        showValue?: boolean;
+        showMarkers?: boolean;
+        valueFormatter?: (value: number) => string;
+    };
 };
 
 export type ParameterValue = {
@@ -188,7 +196,7 @@ type FormHelperPaneConditionalProps = {
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string,  options?: HelperpaneOnChangeOptions) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
@@ -248,13 +256,19 @@ type SanitizedExpressionEditorProps = {
     sanitizedExpression?: (expression: string) => string; // sanitized expression that will be rendered in the editor
 }
 
+export type ExpressionEditorDevantProps = {
+    devantConfigs?: string[];
+    onAddDevantConfig?: (name: string, value: string, isSecret: boolean) => Promise<void>;
+}
+
 export type FormExpressionEditorProps =
     FormCompletionConditionalProps &
     FormTypeConditionalProps &
     FormHelperPaneConditionalProps &
     FormExpressionEditorBaseProps &
     ExpressionEditorFormProps &
-    SanitizedExpressionEditorProps;
+    SanitizedExpressionEditorProps &
+    ExpressionEditorDevantProps;
 
 export type FormImports = {
     [fieldKey: string]: Imports;

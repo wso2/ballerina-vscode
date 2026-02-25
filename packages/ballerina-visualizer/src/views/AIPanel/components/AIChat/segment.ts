@@ -11,6 +11,7 @@ export enum SegmentType {
     TestScenario = "TestScenario",
     Button = "Button",
     SpecFetcher = "SpecFetcher",
+    ConfigurationCollector = "ConfigurationCollector",
     ReviewActions = "ReviewActions",
 }
 
@@ -86,7 +87,7 @@ export function splitContent(content: string): Segment[] {
     // Combined regex to capture either <code ...>```<language> code ```</code> or <progress>Text</progress>
     // Using matchAll for stateless iteration to avoid regex lastIndex corruption during streaming
     const regexPattern =
-        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall>([\s\S]*?)<\/toolcall>|<toolresult>([\s\S]*?)<\/toolresult>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>|<reviewactions>([\s\S]*?)<\/reviewactions>/g;
+        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall(?:\s+[^>]*)?>([\s\S]*?)<\/toolcall>|<toolresult(?:\s+[^>]*)?>([\s\S]*?)<\/toolresult>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>|<reviewactions>([\s\S]*?)<\/reviewactions>|<configurationcollector>([\s\S]*?)<\/configurationcollector>/g;
 
     // Convert to array to avoid stateful regex iteration issues
     const matches = Array.from(content.matchAll(regexPattern));
@@ -94,7 +95,7 @@ export function splitContent(content: string): Segment[] {
 
     function updateLastProgressSegmentLoading(failed: boolean = false) {
         const lastSegment = segments[segments.length - 1];
-        if (lastSegment && (lastSegment.type === SegmentType.Progress || lastSegment.type === SegmentType.ToolCall)) {
+        if (lastSegment && (lastSegment.type === SegmentType.Progress)) {
             lastSegment.loading = false;
             lastSegment.failed = failed;
         }
@@ -137,22 +138,26 @@ export function splitContent(content: string): Segment[] {
         } else if (match[6]) {
             // <toolcall> block matched
             const toolcallText = match[6];
+            const toolName = match[0].match(/tool="([^"]+)"/)?.[1];
 
             updateLastProgressSegmentLoading();
             segments.push({
                 type: SegmentType.ToolCall,
                 loading: true,
                 text: toolcallText,
+                toolName,
             });
         } else if (match[7]) {
             // <toolresult> block matched
             const toolresultText = match[7];
+            const toolName = match[0].match(/tool="([^"]+)"/)?.[1];
 
             updateLastProgressSegmentLoading();
             segments.push({
                 type: SegmentType.ToolCall,
                 loading: false,
                 text: toolresultText,
+                toolName,
             });
         } else if (match[8]) {
             // <todo> block matched
@@ -248,6 +253,22 @@ export function splitContent(content: string): Segment[] {
                 loading: false,
                 text: "",
             });
+        } else if (match[17]) {
+            // <configurationcollector> block matched
+            const configurationData = match[17];
+
+            updateLastProgressSegmentLoading();
+            try {
+                const parsedData = JSON.parse(configurationData);
+                segments.push({
+                    type: SegmentType.ConfigurationCollector,
+                    loading: false,
+                    text: "",
+                    configurationData: parsedData
+                });
+            } catch (error) {
+                console.error("Failed to parse configuration collector data:", error);
+            }
         }
 
         // Update lastIndex to the end of the current match

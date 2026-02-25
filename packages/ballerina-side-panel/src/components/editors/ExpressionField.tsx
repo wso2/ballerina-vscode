@@ -27,7 +27,7 @@ import {
 } from '@wso2/ui-toolkit';
 import { S } from './ExpressionEditor';
 import TextModeEditor from './MultiModeExpressionEditor/TextExpressionEditor/TextModeEditor';
-import { InputMode, TokenType } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
+import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { FormField, HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
@@ -38,10 +38,8 @@ import { EnumEditor } from './MultiModeExpressionEditor/EnumEditor/EnumEditor';
 import { SQLExpressionEditor } from './MultiModeExpressionEditor/SqlExpressionEditor/SqlExpressionEditor';
 import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
 import { getPrimaryInputType, isDropDownType } from '@wso2/ballerina-core';
-import { DynamicArrayBuilder } from './MultiModeExpressionEditor/DynamicArrayBuilder/DynamicArrayBuilder';
 import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig';
-import MappingConstructor from './MultiModeExpressionEditor/MappingConstructor/MappingConstructor';
-import MappingObjectConstructor from './MultiModeExpressionEditor/MappingObjectConstructor/MappingObjectConstructor';
+import { DynamicArrayBuilder } from './MultiModeExpressionEditor/DynamicArrayBuilder/DynamicArrayBuilder';
 import { isRecord } from './utils';
 
 export interface ExpressionFieldProps {
@@ -153,41 +151,18 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
         isInExpandedMode
     } = props;
 
-    if (inputMode === InputMode.MAP_EXP) {
-        return (
-            <MappingObjectConstructor
-                value={value as Record<string, unknown>}
-                label={field.label}
-                onChange={(val) => onChange(val, JSON.stringify(val).length)}
-                expressionFieldProps={props}
-            />
-        );
-    }
-
     //below editors cannot have input value in record type
     if (isRecord(value)) return null;
-
     if (inputMode === InputMode.ARRAY || inputMode === InputMode.TEXT_ARRAY) {
         return (
             <DynamicArrayBuilder
+                label={field.label}
                 value={value}
-                label={field.label}
                 onChange={(val) => onChange(val, val.length)}
                 expressionFieldProps={props}
             />
         );
     }
-    if (inputMode === InputMode.MAP) {
-        return (
-            <MappingConstructor
-                value={value as any[]}
-                label={field.label}
-                onChange={(val) => onChange(val, val.length)}
-                expressionFieldProps={props}
-            />
-        );
-    }
-
     //below editors cannot have input value in array type
     if (Array.isArray(value)) return null;
 
@@ -352,6 +327,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             isExpandedVersion={false}
             completions={completions}
             onChange={onChange}
+            onBlur={onBlur}
             value={value}
             sanitizedExpression={sanitizedExpression}
             rawExpression={rawExpression}

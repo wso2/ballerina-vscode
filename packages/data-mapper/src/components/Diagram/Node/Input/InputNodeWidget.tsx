@@ -18,31 +18,37 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useState } from "react";
 
-import { Button, Codicon, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
 import { DiagramEngine } from '@projectstorm/react-diagrams';
-import { IOType, TypeKind } from "@wso2/ballerina-core";
+import { InputCategory, IOType, TypeKind } from "@wso2/ballerina-core";
 
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
 import { InputSearchHighlight } from '../commons/Search';
 import { TreeBody, TreeContainer, TreeHeader } from '../commons/Tree/Tree';
+import { FieldActionButton } from '../commons/FieldActionButton';
 import { InputNodeTreeItemWidget } from "./InputNodeTreeItemWidget";
 import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
 import { useShallow } from "zustand/react/shallow";
 import { InputCategoryIcon } from "./InputCategoryIcon";
+import { isGroupHeaderPort } from "../../utils/common-utils";
+import ArrowWidget from "../commons/ArrowWidget";
+import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
+import { PayloadWidget } from "../commons/PayloadWidget";
 
 export interface InputNodeWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
     dmType: IOType;
     engine: DiagramEngine;
     getPort: (portId: string) => InputOutputPortModel;
+	context: IDataMapperContext;
     valueLabel?: string;
     focusedInputs?: string[];
 }
 
 export function InputNodeWidget(props: InputNodeWidgetProps) {
-    const { engine, dmType, id, getPort, valueLabel, focusedInputs } = props;
+    const { engine, dmType, id, getPort, context, valueLabel, focusedInputs } = props;
     
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
     const [isHovered, setIsHovered] = useState(false);
@@ -62,15 +68,18 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
     const typeName = getTypeName(dmType);
 
     const portOut = getPort(`${id}.OUT`);
-    const isUnknownType = dmType.kind === TypeKind.Unknown;
+    
+    const typeKind = dmType.kind;
+    const isUnknownType = typeKind === TypeKind.Unknown;
+    const isConvertibleType = (typeKind === TypeKind.Json || typeKind === TypeKind.Xml) && !dmType.fields;
 
     let fields: IOType[];
 
-    if (dmType.kind === TypeKind.Record) {
+    if (typeKind === TypeKind.Record || typeKind === TypeKind.Json || typeKind === TypeKind.Xml) {
         fields = dmType.fields;
-    } else if (dmType.kind === TypeKind.Array) {
+    } else if (typeKind === TypeKind.Array) {
         fields = [ dmType.member ];
-    } else if (dmType.kind === TypeKind.Enum) {
+    } else if (typeKind === TypeKind.Enum) {
         fields = dmType.members;
     }
 
@@ -79,12 +88,15 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
         expanded = false;
     }
 
+    const isNotGroupHeaderPort = !(portOut && isGroupHeaderPort(portOut));
+
+    const headerLabel = valueLabel || dmType.displayName || dmType.name || id;
     const label = (
         <TruncatedLabelGroup style={{ alignItems: "baseline" }}>
             <TruncatedLabel className={classes.valueLabelHeader}>
-                <InputSearchHighlight>{valueLabel ? valueLabel : id}</InputSearchHighlight>
+                <InputSearchHighlight>{headerLabel}</InputSearchHighlight>
             </TruncatedLabel>
-            {typeName && (
+            {typeName && isNotGroupHeaderPort && (
                 <TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
                     {typeName}
                 </TruncatedLabel>
@@ -128,56 +140,90 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
     };
 
     return (
-        <TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick}>
-            <TreeHeader
-                id={"recordfield-" + id}
-                isSelected={portState !== PortState.Unselected}
-                onMouseEnter={onMouseEnter}
-                onMouseLeave={onMouseLeave}
-            >
-                <span className={classes.label}>
-                    {fields && (
-                        <Button
-                            id={"expand-or-collapse-" + id} 
-                            appearance="icon"
-                            tooltip="Expand/Collapse"
-                            onClick={handleExpand}
-                            data-testid={`${id}-expand-icon-record-source-node`}
-                        >
-                            {expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
-                        </Button>
-                    )}
-                    {label}
-                    <InputCategoryIcon category={dmType.category} />
-                </span>
-                <span className={classes.outPort}>
-                    {portOut &&
-                        <DataMapperPortWidget engine={engine} port={portOut} handlePortState={handlePortState} />
-                    }
-                </span>
-            </TreeHeader>
-            {expanded && fields && (
-                <TreeBody>
-                    {
-                        fields
-                            ?.filter(f => !!f)
-                            .map((field, index) => {
-                            return (
-                                <InputNodeTreeItemWidget
-                                    key={index}
-                                    engine={engine}
-                                    dmType={field}
-                                    getPort={getPort}
-                                    parentId={id}
-                                    treeDepth={0}
-                                    hasHoveredParent={isHovered}
-                                    focusedInputs={focusedInputs}
-                                />
-                            );
-                        })
-                    }
-                </TreeBody>
-            )}
-        </TreeContainer>
+        <>
+            <TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick}>
+                <TreeHeader
+                    id={"recordfield-" + id}
+                    isSelected={portState !== PortState.Unselected}
+                    onMouseEnter={onMouseEnter}
+                    onMouseLeave={onMouseLeave}
+                >
+                    <span className={classes.label}>
+                        {(fields || dmType.convertedField || isConvertibleType) && (
+                            <Button
+                                id={"expand-or-collapse-" + id}
+                                appearance="icon"
+                                tooltip="Expand/Collapse"
+                                onClick={handleExpand}
+                                data-testid={`${id}-expand-icon-record-source-node`}
+                            >
+                                {expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
+                            </Button>
+                        )}
+                        {label}
+                        {dmType.category !== InputCategory.ConvertedVariable ? (
+                            <InputCategoryIcon category={dmType.category} />
+                        ) : (
+                            <FieldActionButton
+                                id={"field-action-edit-" + id}
+                                tooltip="Edit"
+                                iconName="settings-gear"
+                                onClick={async () => await context.createConvertedVariable(dmType.name, true, dmType.typeName)}
+                            />
+                        )}
+                    </span>
+                    <span className={classes.outPort}>
+                        {portOut && (isNotGroupHeaderPort || !expanded && portOut.linkedPorts.length > 0) &&
+                            <DataMapperPortWidget engine={engine} port={portOut} handlePortState={handlePortState} />
+                        }
+                    </span>
+                </TreeHeader>
+                {expanded && fields && (
+                    <TreeBody>
+                        {
+                            fields
+                                ?.filter(f => !!f)
+                                .map((field, index) => {
+                                    return (
+                                        <InputNodeTreeItemWidget
+                                            key={index}
+                                            engine={engine}
+                                            dmType={field}
+                                            getPort={getPort}
+                                            parentId={id}
+                                            treeDepth={0}
+                                            hasHoveredParent={isHovered}
+                                            focusedInputs={focusedInputs}
+                                        />
+                                    );
+                                })
+                        }
+                    </TreeBody>
+                )}
+            </TreeContainer>
+            {expanded && dmType.convertedField &&
+                <>
+                    <ArrowWidget direction="down" />
+                    <InputNodeWidget
+                        id={dmType.convertedField.name}
+                        dmType={dmType.convertedField}
+                        engine={engine}
+                        getPort={getPort}
+                        context={context}
+                        valueLabel={dmType.convertedField.name}
+                        focusedInputs={focusedInputs}
+                    />
+                </>
+            }
+            {expanded && isConvertibleType && !dmType.convertedField &&
+                <>
+                    <ArrowWidget direction="down" />
+                    <PayloadWidget
+                        onClick={async () => await context.createConvertedVariable(headerLabel, true, undefined, dmType.typeName)}
+                        typeName={dmType.typeName}
+                    />
+                </>
+            }
+        </>
     );
 }

@@ -306,7 +306,7 @@ export interface GenerateAgentCodeRequest {
     codeContext?: CodeContext;
 }
 
-export type LibraryMode = "CORE" | "HEALTHCARE";
+export type LibraryMode = "CORE" | "HEALTHCARE" | "ALL";
 
 export interface CopilotAllLibrariesRequest {
     mode: LibraryMode;
@@ -321,11 +321,18 @@ export interface CopilotCompactLibrariesResponse {
 
 export interface CopilotFilterLibrariesRequest {
     libNames: string[];
-    mode: LibraryMode;
 }
 
 export interface CopilotFilterLibrariesResponse {
     libraries: any[];
+}
+
+export interface CopilotSearchLibrariesBySearchRequest {
+    keywords: string[];
+}
+
+export interface CopilotSearchLibrariesBySearchResponse {
+    libraries: MinifiedLibrary[];
 }
 
 // ==================================
@@ -377,8 +384,9 @@ export interface SemanticDiffRequest {
 // Numeric enum values from the API
 export enum ChangeTypeEnum {
     ADDITION = 0,
-    MODIFICATION = 1,
-    DELETION = 2
+    DELETION = 1,
+    MODIFICATION = 2,
+
 }
 
 export type ChangeType = "ADDITION" | "MODIFICATION" | "DELETION";
@@ -429,6 +437,16 @@ export interface ConnectorSpecCancelRequest {
     comment?: string;
 }
 
+export interface ConfigurationProvideRequest {
+    requestId: string;
+    configValues: Record<string, string>;
+}
+
+export interface ConfigurationCancelRequest {
+    requestId: string;
+    comment?: string;
+}
+
 export type ErrorCode = {
     code: number;
     message: string;
@@ -467,4 +485,9 @@ export interface AbortAIGenerationRequest {
     workspaceId?: string;
     /** Thread identifier (defaults to 'default') */
     threadId?: string;
+}
+
+export interface UsageResponse {
+    remainingUsagePercentage: number;
+    resetsIn: number; // in seconds
 }
