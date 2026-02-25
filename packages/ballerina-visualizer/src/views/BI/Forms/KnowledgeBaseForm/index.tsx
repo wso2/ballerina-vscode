@@ -165,6 +165,7 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
             const originalName = field?.codedata?.originalName;
             if (actionFields.includes(originalName)) {
                 field.type = "ACTION_EXPRESSION";
+                field.types = [{ fieldType: "ACTION_EXPRESSION", selected: false }];
                 field.advanced = false;
                 field.actionCallback = () => {
                     props.navigateToPanel?.(SidePanelView.CONNECTION_SELECT, getConnectionKind(originalName));

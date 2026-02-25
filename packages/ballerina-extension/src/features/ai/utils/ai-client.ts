@@ -134,7 +134,7 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         // Handle usage limit exceeded
         if (response.status === 429) {
             console.log("Usage limit exceeded (429)");
-            const error = new Error("Usage limit exceeded. Please try again later.");
+            const error = new Error("Usage limit exceeded.");
             error.name = "UsageLimitError";
             (error as any).statusCode = 429;
             throw error;

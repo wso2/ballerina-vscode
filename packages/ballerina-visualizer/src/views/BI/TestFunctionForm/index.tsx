@@ -61,6 +61,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
     const [testFunction, setTestFunction] = useState<TestFunction>();
     const [formTitle, setFormTitle] = useState<string>('Create New Test Case');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
+    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     const updateTargetLineRange = () => {
         rpcClient
@@ -102,6 +103,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
     }
 
     const onFormSubmit = async (data: FormValues, formImports: FormImports) => {
+        setIsSaving(true);
         console.log("Test Function Form Data: ", data);
         const updatedTestFunction = fillFunctionModel(data, formImports);
         console.log("Test Function: ", updatedTestFunction);
@@ -110,17 +112,21 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         } else {
             await rpcClient.getTestManagerRpcClient().addTestFunction({ function: updatedTestFunction, filePath });
         }
-        const res = await rpcClient.getTestManagerRpcClient().getTestFunction(
-            { functionName: updatedTestFunction.functionName.value, filePath });
-        const nodePosition = {
-            startLine: res.function.codedata.lineRange.startLine.line,
-            startColumn: res.function.codedata.lineRange.startLine.offset,
-            endLine: res.function.codedata.lineRange.endLine.line,
-            endColumn: res.function.codedata.lineRange.endLine.offset
-        };
-        console.log("Node Position: ", nodePosition);
-        await rpcClient.getVisualizerRpcClient().openView(
-            { type: EVENT_TYPE.OPEN_VIEW, location: { position: nodePosition, documentUri: filePath } })
+        try {
+            const res = await rpcClient.getTestManagerRpcClient().getTestFunction(
+                { functionName: updatedTestFunction.functionName.value, filePath });
+            const nodePosition = {
+                startLine: res.function.codedata.lineRange.startLine.line,
+                startColumn: res.function.codedata.lineRange.startLine.offset,
+                endLine: res.function.codedata.lineRange.endLine.line,
+                endColumn: res.function.codedata.lineRange.endLine.offset
+            };
+            await rpcClient.getVisualizerRpcClient().openView(
+                { type: EVENT_TYPE.OPEN_VIEW, location: { position: nodePosition, documentUri: filePath } })
+        } catch (error) {
+            console.error("Error opening test function in editor: ", error);
+            setIsSaving(false);
+        }
     };
 
     // Helper function to modify and set the visual information
@@ -173,6 +179,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                     fields.push({
                         ...generatedField,
                         type: 'SLIDER',
+                        types: [{ fieldType: 'SLIDER', selected: false }],
                         advanced: true,
                         sliderProps: {
                             min: 0,
@@ -603,6 +610,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                                 targetLineRange={targetLineRange}
                                 onSubmit={onFormSubmit}
                                 preserveFieldOrder={true}
+                                isSaving={isSaving}
                             />
                         )}
                     </FormContainer>
