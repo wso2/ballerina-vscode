@@ -171,7 +171,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ListenerSourceCodeResponse = await context.langClient.updateListenerSourceCode(params);
-                const artifacts = await updateSourceCode({ textEdits: res.textEdits, artifactData: { artifactType: DIRECTORY_MAP.LISTENER }, description: params.listener.name + ' Update' });
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, description: params.listener.name + ' Update' });
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };
