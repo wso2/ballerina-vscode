@@ -383,6 +383,11 @@
         ],
         "commands": [
             {
+                "command": "BI.project.createBIProjectPure",
+                "title": "Create New Project",
+                "category": "Ballerina"
+            },
+            {
                 "command": "ballerina.project.build",
                 "title": "Build",
                 "category": "Ballerina"
@@ -1032,6 +1037,10 @@
                 }
             ],
             "commandPalette": [
+                {
+                    "command": "BI.project.createBIProjectPure",
+                    "when": "false"
+                },
                 {
                     "command": "BI.test.edit.function.def",
                     "when": "false"
