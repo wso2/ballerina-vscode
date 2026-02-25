@@ -64,7 +64,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ANYDATA;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_PARAM_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_EVENTS_PARAM_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_SUFFIX;
 
 /**
@@ -169,7 +169,7 @@ public class WaitEventBuilder extends WaitBuilder {
                 .keyword(SyntaxKind.EQUAL_TOKEN)
                 .keyword(SyntaxKind.CHECK_KEYWORD)
                 .keyword(SyntaxKind.WAIT_KEYWORD)
-                .name(EVENTS_PARAM_NAME + "." + eventName)
+                .name(DEFAULT_EVENTS_PARAM_NAME + "." + eventName)
                 .endOfStatement();
         sourceBuilder.textEdit();
 
@@ -306,7 +306,7 @@ public class WaitEventBuilder extends WaitBuilder {
                 .keyword(SyntaxKind.COMMA_TOKEN)
                 .name(eventsTypeName)
                 .whiteSpace()
-                .name(EVENTS_PARAM_NAME)
+                .name(DEFAULT_EVENTS_PARAM_NAME)
                 .skipFormatting().stepOut().textEdit(null, sourceBuilder.filePath, insertRange);
     }
 

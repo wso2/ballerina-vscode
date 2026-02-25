@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_INPUT_PARAM_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
@@ -111,9 +112,6 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                 .name(funcName)
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
 
-        // Always add workflow:Context ctx as the first parameter
-        StringBuilder paramsBuilder = new StringBuilder("workflow:Context ctx");
-
         // Build additional parameters from inputType property (only contains the type)
         Optional<Property> inputProperty = sourceBuilder.getProperty(INPUT_KEY);
         if (inputProperty.isPresent()) {
@@ -127,14 +125,14 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                         String actualTypeName = sourceBuilder.acceptTypeGeneration(typeModel);
                         if (actualTypeName != null) {
                             inputType = actualTypeName;
+                            sourceBuilder.token()
+                                    .name(inputType)
+                                    .whiteSpace()
+                                    .name(DEFAULT_INPUT_PARAM_NAME);
                         }
                     }
             }
-
-            paramsBuilder.append(", ").append(inputType).append(" input");
         }
-
-        sourceBuilder.token().name(paramsBuilder.toString());
 
         sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
 

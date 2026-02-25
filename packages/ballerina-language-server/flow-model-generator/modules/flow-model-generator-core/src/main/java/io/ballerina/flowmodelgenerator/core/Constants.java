@@ -118,7 +118,8 @@ public class Constants {
         public static final String PROCESS_ANNOTATION = "Process";
         public static final String ACTIVITY_ANNOTATION = "Activity";
         public static final String DEFAULT_CTX_PARAM_NAME = "ctx";
-        public static final String EVENTS_PARAM_NAME = "events";
+        public static final String DEFAULT_EVENTS_PARAM_NAME = "events";
+        public static final String DEFAULT_INPUT_PARAM_NAME = "input";
         public static final String EVENTS_SUFFIX = "Events";
         public static final String ANYDATA = "anydata";
     }

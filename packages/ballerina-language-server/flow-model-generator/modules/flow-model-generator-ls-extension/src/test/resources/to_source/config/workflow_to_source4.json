@@ -1,6 +1,6 @@
 {
-  "source": "workflow_function/functions.bal",
-  "description": "Create a new workflow process function with input parameter",
+  "source": "workflow_function_empty/functions.bal",
+  "description": "Create a workflow process function in a fresh project with a user defined record type as input",
   "diagram": {
     "metadata": {
       "label": "Workflow Process Function",
@@ -21,7 +21,7 @@
         },
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "Global",
-        "value": "orderWorkflow",
+        "value": "processWithActivity",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -33,7 +33,7 @@
           "description": "Description of the function"
         },
         "valueType": "TEXT",
-        "value": "Process an order workflow",
+        "value": "Workflow that calls activities",
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -50,10 +50,10 @@
             "ballerinaType": "anydata",
             "selected": false,
             "typeModel": {
-              "name": "OrderInput",
+              "name": "User1",
               "editable": true,
               "metadata": {
-                "label": "OrderInput",
+                "label": "User1",
                 "description": "Record with readonly field"
               },
               "codedata": {
@@ -125,8 +125,8 @@
                 {
                   "kind": "FIELD",
                   "refs": [],
-                  "type": "string",
-                  "name": "orderId",
+                  "type": "int",
+                  "name": "uuid",
                   "optional": false,
                   "readonly": true,
                   "docs": ""
@@ -135,9 +135,9 @@
                   "kind": "FIELD",
                   "refs": [],
                   "type": "string",
-                  "name": "customerName",
+                  "name": "name",
                   "optional": false,
-                  "readonly": false,
+                  "readonly": true,
                   "docs": ""
                 }
               ],
@@ -146,7 +146,7 @@
             }
           }
         ],
-        "value": "",
+        "value": "record {| string id; string name; |}",
         "optional": false,
         "editable": false,
         "advanced": false,
@@ -158,7 +158,7 @@
           "description": "Type of the return value"
         },
         "valueType": "TYPE",
-        "value": "error?",
+        "value": "string|error",
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -170,7 +170,7 @@
           "description": "Description of the return value"
         },
         "valueType": "TEXT",
-        "value": "",
+        "value": "Result of the workflow",
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -180,19 +180,47 @@
     "flags": 0
   },
   "output": {
-    "workflow_function/functions.bal": [
+    "workflow_function_empty/functions.bal": [
       {
         "range": {
           "start": {
-            "line": 37,
-            "character": 1
+            "line": 0,
+            "character": 0
           },
           "end": {
-            "line": 37,
-            "character": 1
+            "line": 0,
+            "character": 0
           }
         },
-        "newText": "\n# Process an order workflow\n@workflow:Process\nfunction orderWorkflow(OrderInput input) returns error? {\n}"
+        "newText": "import ballerina/workflow;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "# Workflow that calls activities\n@workflow:Process\nfunction processWithActivity(User1 input) returns string|error {\n}"
+      }
+    ],
+    "workflow_function_empty/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 1,
+            "character": 0
+          }
+        },
+        "newText": "\n\n\n# Record with readonly field\ntype User1 record {|\n\treadonly int uuid;\n\treadonly string name;\n|};"
       }
     ]
   }

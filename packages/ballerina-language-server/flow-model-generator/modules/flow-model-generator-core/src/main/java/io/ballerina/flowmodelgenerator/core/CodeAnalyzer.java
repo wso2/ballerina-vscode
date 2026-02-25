@@ -770,7 +770,7 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         SimpleNameReferenceNode nameRef = (SimpleNameReferenceNode) expression;
-        if (!nameRef.name().text().equals(Constants.Workflow.EVENTS_PARAM_NAME)) {
+        if (!nameRef.name().text().equals(Constants.Workflow.DEFAULT_EVENTS_PARAM_NAME)) {
             return false;
         }
 
