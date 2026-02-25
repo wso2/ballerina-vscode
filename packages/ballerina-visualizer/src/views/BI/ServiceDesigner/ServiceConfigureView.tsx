@@ -715,7 +715,19 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
         // Update service changes
         for (const change of serviceChanges) {
-            const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: change.filePath, service: change.data as ServiceModel });
+            // TODO: The backend needs to be refactored to support this types model
+            const service = change.data as ServiceModel;
+            const updatedService = {
+                ...serviceModel,
+                properties: {
+                    ...serviceModel.properties,
+                    listener: {
+                        ...serviceModel.properties.listener,
+                        value: service.properties.listener?.values[0] || service.properties.listener?.value || "",
+                    }
+                }
+            };
+            const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: change.filePath, service: updatedService });
             const updatedArtifact = res.artifacts.at(0);
             if (!updatedArtifact) {
                 console.error("No artifact returned after saving service changes");
