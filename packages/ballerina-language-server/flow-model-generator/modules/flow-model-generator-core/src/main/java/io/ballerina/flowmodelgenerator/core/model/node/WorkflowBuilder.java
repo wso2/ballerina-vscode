@@ -18,19 +18,35 @@
 
 package io.ballerina.flowmodelgenerator.core.model.node;
 
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Qualifier;
+import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
+import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.flowmodelgenerator.core.model.Member;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.PropertyType;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.model.TypeData;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_INPUT_PARAM_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
@@ -115,22 +131,18 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
         // Build additional parameters from inputType property (only contains the type)
         Optional<Property> inputProperty = sourceBuilder.getProperty(INPUT_KEY);
         if (inputProperty.isPresent()) {
-            String inputType = "";
             // Check if there's a typeModel in the types array that needs to be generated
             List<PropertyType> types = inputProperty.get().types();
             if (types != null && !types.isEmpty()) {
-                    TypeData typeModel = types.getFirst().typeModel();
-                    if (typeModel != null) {
-                        // Accept type generation and get the actual type name to use
-                        String actualTypeName = sourceBuilder.acceptTypeGeneration(typeModel);
-                        if (actualTypeName != null) {
-                            inputType = actualTypeName;
-                            sourceBuilder.token()
-                                    .name(inputType)
-                                    .whiteSpace()
-                                    .name(DEFAULT_INPUT_PARAM_NAME);
-                        }
-                    }
+                TypeData typeModel = types.getFirst().typeModel();
+                if (typeModel != null) {
+                    // Process the type model with workflow-specific logic
+                    String typeName = processTypeModelAndGetTypeName(sourceBuilder, typeModel);
+                    sourceBuilder.token()
+                            .name(typeName)
+                            .whiteSpace()
+                            .name(DEFAULT_INPUT_PARAM_NAME);
+                }
             }
         }
 
@@ -162,5 +174,145 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
         }
 
         return sourceBuilder.build();
+    }
+
+    /**
+     * Processes the type model and get the type name and generate the new type if needed.
+     *
+     * @param sourceBuilder The source builder
+     * @param typeModel     The TypeData to process
+     * @return The processed TypeData, or null if type already exists and is compatible
+     */
+    private String processTypeModelAndGetTypeName(SourceBuilder sourceBuilder, TypeData typeModel) {
+        if (typeModel == null || typeModel.name() == null || typeModel.name().isEmpty()) {
+            return null;
+        }
+
+        try {
+            sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
+        } catch (WorkspaceDocumentException | EventSyncException e) {
+            return typeModel.name();
+        }
+
+        SemanticModel semanticModel = FileSystemUtils.getSemanticModel(sourceBuilder.workspaceManager,
+                sourceBuilder.filePath);
+        String typeName = typeModel.name();
+
+        Optional<Symbol> existingSymbol = semanticModel.moduleSymbols().stream()
+                .filter(symbol -> symbol.nameEquals(typeName))
+                .findFirst();
+
+        if (existingSymbol.isEmpty()) {
+            sourceBuilder.acceptTypeGeneration(typeModel);
+            return typeName;
+        }
+
+        Symbol symbol = existingSymbol.get();
+        if (symbol.kind() == SymbolKind.TYPE_DEFINITION) {
+            TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) symbol;
+            TypeSymbol typeDescriptor = typeDefSymbol.typeDescriptor();
+
+            if (typeDescriptor.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+                typeDescriptor = ((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor();
+            }
+
+            if (typeDescriptor.typeKind() == TypeDescKind.RECORD) {
+                RecordTypeSymbol existingRecord = (RecordTypeSymbol) typeDescriptor;
+                if (areFieldsCompatible(existingRecord, typeModel)) {
+                    // Fields are compatible, no need to generate
+                    return typeName;
+                }
+            }
+        }
+        String newName = generateUniqueTypeName(typeName, semanticModel);
+        sourceBuilder.acceptTypeGeneration(createTypeDataWithNewName(typeModel, newName));
+        return newName;
+    }
+
+    /**
+     * Checks if the existing record fields are compatible with the type model members.
+     * This includes checking readonly qualifiers and type compatibility.
+     *
+     * @param existingRecord The existing record type symbol
+     * @param typeModel      The type model to compare
+     * @return true if fields are compatible, false otherwise
+     */
+    private boolean areFieldsCompatible(RecordTypeSymbol existingRecord, TypeData typeModel) {
+        Map<String, RecordFieldSymbol> existingFields = existingRecord.fieldDescriptors();
+        List<Member> typeModelMembers = typeModel.members();
+
+        if (typeModelMembers == null) {
+            return existingFields.isEmpty();
+        }
+
+        if (existingFields.size() != typeModelMembers.size()) {
+            return false;
+        }
+
+        for (Member member : typeModelMembers) {
+            RecordFieldSymbol existingField = existingFields.get(member.name());
+            if (existingField == null) {
+                return false;
+            }
+
+            // Check readonly compatibility
+            if (existingField.qualifiers().contains(Qualifier.READONLY) != member.readonly()) {
+                return false;
+            }
+
+            // Check type compatibility (basic check - just compare type names)
+            String existingTypeName = existingField.typeDescriptor().signature();
+            String memberTypeName = member.type() instanceof String ? (String) member.type() :
+                    member.type() instanceof TypeData ? ((TypeData) member.type()).name() : null;
+            if (memberTypeName != null && !existingTypeName.contains(memberTypeName)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Generates a unique type name by checking existing symbols in the semantic model.
+     *
+     * @param baseName      The base name for the type
+     * @param semanticModel The semantic model
+     * @return A unique type name
+     */
+    private String generateUniqueTypeName(String baseName, SemanticModel semanticModel) {
+        Set<String> existingNames = semanticModel.moduleSymbols().stream()
+                .flatMap(symbol -> symbol.getName().stream())
+                .collect(Collectors.toSet());
+
+        int counter = 1;
+        String newName = baseName + counter;
+        while (existingNames.contains(newName)) {
+            counter++;
+            newName = baseName + counter;
+        }
+        return newName;
+    }
+
+    /**
+     * Creates a new TypeData with a different name.
+     *
+     * @param original The original TypeData
+     * @param newName  The new name
+     * @return A new TypeData with the updated name
+     */
+    private TypeData createTypeDataWithNewName(TypeData original, String newName) {
+        return new TypeData(
+                newName,
+                original.editable(),
+                original.metadata(),
+                original.codedata(),
+                original.properties(),
+                original.members(),
+                original.restMember(),
+                original.includes(),
+                original.functions(),
+                original.annotationAttachments(),
+                original.allowAdditionalFields()
+        );
     }
 }

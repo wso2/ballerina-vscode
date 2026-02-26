@@ -19,11 +19,8 @@
 package io.ballerina.flowmodelgenerator.core.model;
 
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.Qualifier;
-import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
@@ -296,134 +293,19 @@ public class SourceBuilder {
     }
 
     /**
-     * Accepts a type model for generation. Checks if a type with the same name already exists:
-     * - If no symbol found: generate type with typeModel.name
-     * - If symbol found and is a record type with same fields (including readonly): skip generation
-     * - If symbol found but fields differ (e.g., readonly mismatch): generate with a new name prefixed with
-     *   typeModel.name
+     * Accepts a type model for generation. Simply adds the type to the typesToGenerate list.
+     * Case-specific logic (checking existing types, readonly fields, etc.) should be handled
+     * by the specific builder classes (e.g., WorkflowBuilder).
      *
      * @param typeModel The TypeData to generate
-     * @return The actual type name to use (original or generated)
+     * @return The type name, or null if typeModel is invalid
      */
     public String acceptTypeGeneration(TypeData typeModel) {
-        // ToDo: We should not have case specific logic here. Simplify just to add to typesToGenerate and
-        //  handle the rest in the WorkflowBuilder.
         if (typeModel == null || typeModel.name() == null || typeModel.name().isEmpty()) {
             return null;
         }
-
-        try {
-            this.workspaceManager.loadProject(filePath);
-        } catch (WorkspaceDocumentException | EventSyncException e) {
-            // If loading fails, still add the type to generate
-            typesToGenerate.add(typeModel);
-            return typeModel.name();
-        }
-
-        SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
-        String typeName = typeModel.name();
-
-        // Check if a symbol with the same name already exists
-        Optional<Symbol> existingSymbol = semanticModel.moduleSymbols().stream()
-                .filter(symbol -> symbol.nameEquals(typeName))
-                .findFirst();
-
-        if (existingSymbol.isEmpty()) {
-            // No symbol found, generate the type with the original name
-            typesToGenerate.add(typeModel);
-            return typeName;
-        }
-
-        Symbol symbol = existingSymbol.get();
-        if (symbol.kind() == SymbolKind.TYPE_DEFINITION) {
-            TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) symbol;
-            TypeSymbol typeDescriptor = typeDefSymbol.typeDescriptor();
-
-            if (typeDescriptor.typeKind() == TypeDescKind.TYPE_REFERENCE) {
-                typeDescriptor = ((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor();
-            }
-
-            if (typeDescriptor.typeKind() == TypeDescKind.RECORD) {
-                // Compare fields
-                RecordTypeSymbol existingRecord = (RecordTypeSymbol) typeDescriptor;
-                if (areFieldsCompatible(existingRecord, typeModel)) {
-                    // Fields are compatible, no need to generate
-                    return typeName;
-                }
-
-                // Fields are different, generate with a new name
-                String newName = generateUniqueTypeName(typeName, semanticModel);
-                TypeData modifiedTypeModel = createTypeDataWithNewName(typeModel, newName);
-                typesToGenerate.add(modifiedTypeModel);
-                return newName;
-            }
-        }
-        return null;
-    }
-
-    private String generateUniqueTypeName(String baseName, SemanticModel semanticModel) {
-        Set<String> existingNames = semanticModel.moduleSymbols().stream()
-                .flatMap(symbol -> symbol.getName().stream())
-                .collect(Collectors.toSet());
-
-        int counter = 1;
-        String newName = baseName + counter;
-        while (existingNames.contains(newName)) {
-            counter++;
-            newName = baseName + counter;
-        }
-        return newName;
-    }
-
-    private TypeData createTypeDataWithNewName(TypeData original, String newName) {
-        return new TypeData(
-                newName,
-                original.editable(),
-                original.metadata(),
-                original.codedata(),
-                original.properties(),
-                original.members(),
-                original.restMember(),
-                original.includes(),
-                original.functions(),
-                original.annotationAttachments(),
-                original.allowAdditionalFields()
-        );
-    }
-
-    private boolean areFieldsCompatible(RecordTypeSymbol existingRecord, TypeData typeModel) {
-        Map<String, RecordFieldSymbol> existingFields = existingRecord.fieldDescriptors();
-        List<Member> typeModelMembers = typeModel.members();
-
-        if (typeModelMembers == null) {
-            return existingFields.isEmpty();
-        }
-
-        if (existingFields.size() != typeModelMembers.size()) {
-            return false;
-        }
-
-        for (Member member : typeModelMembers) {
-            RecordFieldSymbol existingField = existingFields.get(member.name());
-            if (existingField == null) {
-                return false;
-            }
-
-            // Check readonly compatibility
-            if (existingField.qualifiers().contains(Qualifier.READONLY) != member.readonly()) {
-                return false;
-            }
-
-            // Check type compatibility (basic check - just compare type names)
-            String existingTypeName = existingField.typeDescriptor().signature();
-            String memberTypeName = member.type() instanceof String ? (String) member.type() :
-                    member.type() instanceof TypeData ? ((TypeData) member.type()).name() : null;
-            if (memberTypeName != null && !existingTypeName.contains(memberTypeName)) {
-                return false;
-            }
-        }
-
-        return true;
+        typesToGenerate.add(typeModel);
+        return typeModel.name();
     }
 
     public Optional<String> getExpressionBodyText(String typeName, Map<String, String> imports) {
