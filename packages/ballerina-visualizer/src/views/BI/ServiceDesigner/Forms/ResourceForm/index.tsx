@@ -118,10 +118,12 @@ export function ResourceForm(props: ResourceFormProps) {
 			statusCode: { ...model.returnType.responses[0].statusCode, value: defaultStatusCode }
 		}
 
+		const updatedResponses = [updatedResponse, ...model.returnType.responses.slice(1)];
+
 		const updatedFunctionModel = {
 			...model,
 			accessor: { ...model.accessor, value: method },
-			returnType: { ...model.returnType, responses: [updatedResponse] },
+			returnType: { ...model.returnType, responses: updatedResponses },
 		};
 		setFunctionModel(updatedFunctionModel as FunctionModel);
 	}
