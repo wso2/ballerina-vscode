@@ -491,20 +491,26 @@ public class SourceCodeGenerator {
 
         String rawName = member.name();
         String fieldName;
-        if (rawName != null && (rawName.startsWith("'") || rawName.startsWith("\\"))) {
+
+        if (rawName == null) {
+            fieldName = null;
+        } else if (rawName.startsWith("'") || rawName.startsWith("\\")) {
             fieldName = rawName;
         } else {
-            assert rawName != null;
             fieldName = escapeIdentifier(rawName);
         }
-        if (member.optional()) {
+
+        if (member.optional() && fieldName != null) {
             fieldName = fieldName + "?";
         }
 
-        return template.formatted(typeDescriptor,
+        return template.formatted(
+                typeDescriptor,
                 fieldName,
-                (withDefaultValue && member.defaultValue() != null && !member.defaultValue().isEmpty()) ?
-                        " = " + member.defaultValue() : "");
+                (withDefaultValue && member.defaultValue() != null && !member.defaultValue().isEmpty())
+                        ? " = " + member.defaultValue()
+                        : ""
+        );
     }
 
     private String generateResourceFunction(Function function) {
