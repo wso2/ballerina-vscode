@@ -1,6 +1,6 @@
 {
-  "description": "MySQL database introspection test - invalid port",
-  "testProjectFolder": "sample-project",
+  "description": "MySQL database introspection - marks tables as selected and existing when they match records in the model file",
+  "testProjectFolder": "sample-project-with-model",
   "data": {
     "metadata": {
       "label": "testdb",
@@ -34,7 +34,7 @@
           "label": "Port",
           "description": "Database server port number"
         },
-        "value": "9999",
+        "value": "3307",
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -73,8 +73,15 @@
         "optional": false,
         "advanced": false
       }
-    }
+    },
+    "modelFilePath": "persist/model.bal"
   },
-  "expectError": true,
-  "expectedErrorMessage": "failed to connect"
+  "output": {
+    "tables": [
+      {"table": "employees", "selected": true, "existing": true},
+      {"table": "departments", "selected": true, "existing": true},
+      {"table": "projects", "selected": false, "existing": false},
+      {"table": "no_pk_table", "selected": false, "existing": false}
+    ]
+  }
 }

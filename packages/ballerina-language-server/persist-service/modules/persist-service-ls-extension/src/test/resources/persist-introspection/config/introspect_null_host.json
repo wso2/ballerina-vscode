@@ -1,13 +1,79 @@
 {
   "description": "Database introspection test - null host",
   "testProjectFolder": "sample-project",
-  "name": "testdb",
-  "dbSystem": "mysql",
-  "host": "",
-  "port": 3307,
-  "user": "root",
-  "password": "Test123#",
-  "database": "testdb",
+  "data": {
+    "metadata": {
+      "label": "testdb",
+      "description": "mysql connection"
+    },
+    "properties": {
+      "Database System": {
+        "metadata": {
+          "label": "Database System",
+          "description": "The database system type (e.g., mysql, postgresql, mssql)"
+        },
+        "value": "mysql",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "Host": {
+        "metadata": {
+          "label": "Host",
+          "description": "Database server host address"
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "Port": {
+        "metadata": {
+          "label": "Port",
+          "description": "Database server port number"
+        },
+        "value": "3307",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "User": {
+        "metadata": {
+          "label": "User",
+          "description": "Database username"
+        },
+        "value": "root",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "Password": {
+        "metadata": {
+          "label": "Password",
+          "description": "Database user password"
+        },
+        "value": "Test123#",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "Database": {
+        "metadata": {
+          "label": "Database",
+          "description": "Name of the database to connect"
+        },
+        "value": "testdb",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    }
+  },
   "expectError": true,
   "expectedErrorMessage": "host"
 }
