@@ -220,8 +220,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const [initFunction, setInitFunction] = useState<FunctionModel>(undefined);
     const [selectedFTPHandler, setSelectedFTPHandler] = useState<string>(undefined);
-
-
     const [addMore, setAddMore] = useState<boolean>(false);
 
     const handleCloseInitFunction = () => {
