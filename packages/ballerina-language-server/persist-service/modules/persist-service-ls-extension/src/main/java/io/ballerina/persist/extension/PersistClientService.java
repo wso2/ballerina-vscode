@@ -85,6 +85,37 @@ public class PersistClientService implements ExtendedLanguageServerService {
     }
 
     /**
+     * Introspect credentials for an existing persist client connection.
+     * <p>
+     * Read find the client declaration, resolves the configurable default
+     * values, and enriches a credential model with the discovered values.
+     *
+     * @param request The request containing the project path and an optional connection name
+     * @return CompletableFuture containing the response with credential data or error information
+     */
+    @JsonRequest
+    public CompletableFuture<IntrospectCredentialsResponse> introspectCredentials(
+            IntrospectCredentialsRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            IntrospectCredentialsResponse response = new IntrospectCredentialsResponse();
+            try {
+                this.workspaceManager.loadProject(Path.of(request.getProjectPath()));
+
+                CredentialsIntrospector introspector = new CredentialsIntrospector(
+                        Path.of(request.getProjectPath()),
+                        request.getConnection(),
+                        this.workspaceManager);
+
+                IntrospectCredentialsResponse.CredentialsData data = introspector.introspect();
+                response.setData(data);
+            } catch (Exception e) {
+                response.setError(e);
+            }
+            return response;
+        });
+    }
+
+    /**
      * Generate Ballerina persist client from database introspection.
      *
      * @param request The persist client generator request containing connection details and selected tables
