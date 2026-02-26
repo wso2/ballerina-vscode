@@ -77,10 +77,10 @@ export class ConvertibleOutputNode extends DataMapperNodeModel {
                 isPreview: true
             });
 
-            const convertedField = this.filteredOutputType.convertedField;
+            const mainField = this.filteredOutputType.convertedField || this.filteredOutputType;
 
-            const convertedFieldPort = this.addPortsForHeader({
-                dmType: convertedField,
+            const mainFieldPort = this.addPortsForHeader({
+                dmType: mainField,
                 name: this.rootName,
                 portType: "IN",
                 portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
@@ -90,15 +90,15 @@ export class ConvertibleOutputNode extends DataMapperNodeModel {
             });
 
             await this.processOutputFieldKind({
-                field: convertedField,
+                field: mainField,
                 type: "IN",
                 parentId: this.rootName,
                 mappings: this.context.model.mappings,
                 portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
-                parent: convertedFieldPort,
+                parent: mainFieldPort,
                 collapsedFields,
                 expandedFields,
-                hidden: convertedFieldPort.attributes.collapsed
+                hidden: mainFieldPort.attributes.collapsed
             });
 
            
