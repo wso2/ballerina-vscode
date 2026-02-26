@@ -1672,6 +1672,21 @@ const AIChat: React.FC = () => {
     };
 
     const handleChangeAgentMode = (mode: AgentMode) => {
+        // When switching away from Plan mode, persist any unsaved execution stream
+        // so previously rendered assistant messages continue to show.
+        if (agentMode === AgentMode.Plan && mode !== AgentMode.Plan && executionStream.length > 0) {
+            setMessages((prevMessages) => {
+                const lastAssistantIdx = [...prevMessages].map(m => m.role).lastIndexOf("Copilot");
+                if (lastAssistantIdx === -1) return prevMessages;
+                if (prevMessages[lastAssistantIdx].content) return prevMessages; // already saved
+                const updated = [...prevMessages];
+                updated[lastAssistantIdx] = {
+                    ...updated[lastAssistantIdx],
+                    content: serializeExecutionStream(executionStream),
+                };
+                return updated;
+            });
+        }
         setAgentMode(mode);
     };
 
@@ -1932,7 +1947,7 @@ const AIChat: React.FC = () => {
                                             title={message.role}
                                         />
                                     )}
-                                    {!(agentMode === AgentMode.Plan && isAssistantMessage && isLatestAssistantMessage) && segmentedContent.map((segment, i) => {
+                                    {!(agentMode === AgentMode.Plan && isLoading && isAssistantMessage && isLatestAssistantMessage) && segmentedContent.map((segment, i) => {
                                         if (segment.type === SegmentType.ExecutionStream) {
                                             return (
                                                 <PlanStepper
