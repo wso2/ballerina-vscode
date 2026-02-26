@@ -212,7 +212,7 @@ public class ActivityCallBuilder extends CallBuilder {
 
     private void addContextParameterToFunction(SourceBuilder sourceBuilder, FunctionDefinitionNode functionNode) {
         LineRange closeParenLineRange = functionNode.functionSignature().openParenToken().lineRange();
-        Range insertRange = CommonUtils.toRange(closeParenLineRange.startLine());
+        Range insertRange = CommonUtils.toRange(closeParenLineRange.endLine());
         sourceBuilder.token()
                 .name(WORKFLOW_MODULE)
                 .name(SyntaxKind.COLON_TOKEN.stringValue())
