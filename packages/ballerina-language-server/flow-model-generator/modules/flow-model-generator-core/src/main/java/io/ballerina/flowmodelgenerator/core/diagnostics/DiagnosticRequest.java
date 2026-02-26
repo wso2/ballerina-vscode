@@ -187,9 +187,12 @@ public class DiagnosticRequest implements Callable<JsonElement> {
         FlowNode resultNode = flowNodes.getFirst();
 
         // Aggregate all diagnostics from the promoted node and remap them onto the "expression"
-        if (flowNodeObj.codedata().node() == NodeKind.VARIABLE
-                && resultNode.codedata() != null
-                && resultNode.codedata().node() != NodeKind.VARIABLE) {
+        NodeKind flowKind = flowNodeObj.codedata().node();
+        NodeKind resultKind = resultNode.codedata() != null ? resultNode.codedata().node() : null;
+        if ((flowKind == NodeKind.VARIABLE || flowKind == NodeKind.ASSIGN)
+                && resultKind != null
+                && resultKind != NodeKind.VARIABLE
+                && resultKind != NodeKind.ASSIGN) {
             return remapDiagnosticsToVariableExpression(resultNode);
         }
 
@@ -206,6 +209,9 @@ public class DiagnosticRequest implements Callable<JsonElement> {
     private JsonElement remapDiagnosticsToVariableExpression(FlowNode resultNode) {
         List<Diagnostics.Info> allDiagnostics = new ArrayList<>();
         boolean hasDiagnostics = resultNode.diagnostics() != null && resultNode.diagnostics().hasDiagnostics();
+        if (hasDiagnostics && resultNode.diagnostics().diagnostics() != null) {
+            allDiagnostics.addAll(resultNode.diagnostics().diagnostics());
+        }
         if (resultNode.properties() != null) {
             for (Property prop : resultNode.properties().values()) {
                 if (prop.diagnostics() != null && prop.diagnostics().hasDiagnostics()) {
