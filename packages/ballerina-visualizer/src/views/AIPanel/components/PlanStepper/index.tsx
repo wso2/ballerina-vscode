@@ -246,58 +246,51 @@ const EventLabel = styled.span<{ loading: boolean; failed?: boolean }>`
 // ── Inline card (config / connector) ──────────────────────────────────────────
 
 const InlineCard = styled.div<{ status?: "active" | "done" | "error" }>`
-    border: 1px solid ${(props: { status?: string }) =>
-        props.status === "error"
-            ? "var(--vscode-inputValidation-errorBorder)"
-            : props.status === "done"
-            ? "var(--vscode-testing-iconPassed, #388a34)"
-            : "var(--vscode-focusBorder)"};
-    border-radius: 6px;
-    padding: 10px 12px;
-    margin: 4px 0 6px 0;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    padding: 3px 6px;
+    margin: 0 0 4px 0;
     font-family: var(--vscode-font-family);
-    background-color: var(--vscode-editor-background);
 `;
 
 const InlineCardHeader = styled.div`
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 6px;
+    min-height: 24px;
 `;
 
 const InlineCardIcon = styled.span`
     display: flex;
     align-items: center;
-    font-size: 14px;
+    font-size: 12px;
     flex-shrink: 0;
     color: var(--vscode-descriptionForeground);
 `;
 
 const InlineCardTitle = styled.span`
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--vscode-editor-foreground);
     flex: 1;
 `;
 
 const InlineCardSubtitle = styled.span`
-    font-size: 11px;
+    font-size: 12px;
     color: var(--vscode-descriptionForeground);
-    margin-top: 1px;
 `;
 
 const InlineCardActions = styled.div`
     display: flex;
     gap: 6px;
-    margin-top: 8px;
+    margin: 4px 0 2px 0;
 `;
 
 const InlineButton = styled.button<{ variant?: "primary" | "secondary" }>`
-    padding: 4px 12px;
+    padding: 3px 10px;
     font-size: 12px;
     font-weight: 500;
-    border-radius: 4px;
+    border-radius: 3px;
     border: none;
     cursor: pointer;
     font-family: var(--vscode-font-family);
@@ -321,15 +314,15 @@ const InlineButton = styled.button<{ variant?: "primary" | "secondary" }>`
 const InlineInput = styled.textarea`
     width: 100%;
     box-sizing: border-box;
-    padding: 6px 8px;
+    padding: 4px 6px;
     font-size: 12px;
     font-family: var(--vscode-font-family);
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
+    border-radius: 3px;
     resize: vertical;
-    min-height: 80px;
+    min-height: 72px;
     &:focus {
         outline: none;
         border-color: var(--vscode-focusBorder);
@@ -340,17 +333,18 @@ const InlineUrlRow = styled.div`
     display: flex;
     gap: 6px;
     align-items: center;
+    margin: 4px 0 2px 0;
 `;
 
 const InlineUrlInput = styled.input`
     flex: 1;
-    padding: 5px 8px;
+    padding: 3px 6px;
     font-size: 12px;
     font-family: var(--vscode-font-family);
     background-color: var(--vscode-input-background);
     color: var(--vscode-input-foreground);
     border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
+    border-radius: 3px;
     &:focus {
         outline: none;
         border-color: var(--vscode-focusBorder);
@@ -360,12 +354,12 @@ const InlineUrlInput = styled.input`
 const InlineTabRow = styled.div`
     display: flex;
     gap: 2px;
-    margin-bottom: 8px;
+    margin: 2px 0 6px 0;
     border-bottom: 1px solid var(--vscode-panel-border);
 `;
 
 const InlineTab = styled.button<{ active: boolean }>`
-    padding: 4px 10px;
+    padding: 3px 8px;
     font-size: 11px;
     font-family: var(--vscode-font-family);
     background: transparent;
@@ -379,7 +373,7 @@ const InlineTab = styled.button<{ active: boolean }>`
 const InlineErrorText = styled.span`
     font-size: 11px;
     color: var(--vscode-inputValidation-errorForeground);
-    margin-top: 4px;
+    margin-top: 2px;
     display: block;
 `;
 
@@ -389,24 +383,45 @@ const InlineStatusRow = styled.div`
     gap: 6px;
     font-size: 12px;
     color: var(--vscode-descriptionForeground);
+    padding: 1px 0 2px 0;
 `;
 
 const InlineDetailRow = styled.div`
     display: flex;
     gap: 6px;
     font-size: 11px;
-    margin-top: 2px;
+    padding: 1px 0;
 `;
 
 const InlineDetailLabel = styled.span`
     color: var(--vscode-descriptionForeground);
-    min-width: 60px;
+    min-width: 56px;
     flex-shrink: 0;
 `;
 
 const InlineDetailValue = styled.span`
     color: var(--vscode-editor-foreground);
     word-break: break-all;
+`;
+
+const InlineDetailsBlock = styled.div`
+    display: flex;
+    flex-direction: column;
+    padding: 1px 0 2px 0;
+`;
+
+const InlineDivider = styled.div`
+    height: 1px;
+    background-color: var(--vscode-panel-border);
+    margin: 4px 0 2px 0;
+    opacity: 0.7;
+`;
+
+const InlineHint = styled.span`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    opacity: 0.7;
+    align-self: center;
 `;
 
 // ── ConfigCard ─────────────────────────────────────────────────────────────────
@@ -565,49 +580,74 @@ const ConnectorCard: React.FC<ConnectorCardProps> = ({ data, rpcClient }) => {
 
     if (stage === "requesting_input") {
         return (
-            <InlineCard status="active">
+            <InlineCard>
+                {/* Header */}
                 <InlineCardHeader>
                     <InlineCardIcon><span className="codicon codicon-plug" /></InlineCardIcon>
-                    <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-                        <InlineCardTitle>Generate Connector{data.serviceName ? `: ${data.serviceName}` : ""}</InlineCardTitle>
-                        {data.serviceDescription && <InlineCardSubtitle>{data.serviceDescription}</InlineCardSubtitle>}
+                    <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
+                        <InlineCardTitle>
+                            Generate Connector{data.serviceName ? `: ${data.serviceName}` : ""}
+                        </InlineCardTitle>
+                        {data.serviceDescription && (
+                            <InlineCardSubtitle>{data.serviceDescription}</InlineCardSubtitle>
+                        )}
                     </div>
                 </InlineCardHeader>
 
+                {/* Input method tabs */}
                 <InlineTabRow>
                     {(["file", "url", "paste"] as const).map(m => (
-                        <InlineTab key={m} active={inputMethod === m} onClick={() => { setInputMethod(m); setValidationError(null); }}>
-                            {m === "file" ? "Upload File" : m === "url" ? "From URL" : "Paste"}
+                        <InlineTab
+                            key={m}
+                            active={inputMethod === m}
+                            onClick={() => { setInputMethod(m); setValidationError(null); }}
+                        >
+                            {m === "file" ? "Upload File" : m === "url" ? "From URL" : "Paste Spec"}
                         </InlineTab>
                     ))}
                 </InlineTabRow>
 
+                {/* File upload */}
+                {inputMethod === "file" && (
+                    <InlineCardActions>
+                        <label style={{ display: "contents" }}>
+                            <input
+                                type="file"
+                                accept=".json,.yaml,.yml"
+                                style={{ display: "none" }}
+                                onChange={handleFileUpload}
+                                disabled={isProcessing}
+                            />
+                            <InlineButton as="span" variant="primary" style={{ cursor: isProcessing ? "not-allowed" : "pointer", opacity: isProcessing ? 0.45 : 1 }}>
+                                <span className="codicon codicon-cloud-upload" style={{ marginRight: 5, fontSize: 11 }} />
+                                {isProcessing ? "Processing..." : "Choose File"}
+                            </InlineButton>
+                        </label>
+                        <InlineHint>.json, .yaml, .yml</InlineHint>
+                    </InlineCardActions>
+                )}
+
+                {/* Paste spec */}
                 {inputMethod === "paste" && (
                     <>
                         <InlineInput
-                            placeholder="Paste your OpenAPI/Swagger spec here (JSON or YAML)..."
+                            placeholder="Paste your OpenAPI / Swagger spec (JSON or YAML)..."
                             value={specContent}
                             onChange={e => { setSpecContent(e.target.value); setValidationError(null); }}
                         />
                         <InlineCardActions>
-                            <InlineButton variant="primary" onClick={handleSubmitPaste} disabled={!specContent.trim() || isProcessing}>
+                            <InlineButton
+                                variant="primary"
+                                onClick={handleSubmitPaste}
+                                disabled={!specContent.trim() || isProcessing}
+                            >
                                 {isProcessing ? "Processing..." : "Submit"}
                             </InlineButton>
                         </InlineCardActions>
                     </>
                 )}
 
-                {inputMethod === "file" && (
-                    <InlineCardActions>
-                        <label>
-                            <input type="file" accept=".json,.yaml,.yml" style={{ display: "none" }} onChange={handleFileUpload} disabled={isProcessing} />
-                            <InlineButton as="span" variant="primary" style={{ cursor: "pointer" }}>
-                                {isProcessing ? "Processing..." : "Choose File (.json, .yaml)"}
-                            </InlineButton>
-                        </label>
-                    </InlineCardActions>
-                )}
-
+                {/* From URL */}
                 {inputMethod === "url" && (
                     <InlineUrlRow>
                         <InlineUrlInput
@@ -616,7 +656,11 @@ const ConnectorCard: React.FC<ConnectorCardProps> = ({ data, rpcClient }) => {
                             value={specUrl}
                             onChange={e => { setSpecUrl(e.target.value); setValidationError(null); }}
                         />
-                        <InlineButton variant="primary" onClick={handleSubmitUrl} disabled={!specUrl.trim() || isProcessing}>
+                        <InlineButton
+                            variant="primary"
+                            onClick={handleSubmitUrl}
+                            disabled={!specUrl.trim() || isProcessing}
+                        >
                             {isProcessing ? "Fetching..." : "Fetch"}
                         </InlineButton>
                     </InlineUrlRow>
@@ -624,14 +668,19 @@ const ConnectorCard: React.FC<ConnectorCardProps> = ({ data, rpcClient }) => {
 
                 {validationError && <InlineErrorText>{validationError}</InlineErrorText>}
 
-                <InlineCardActions style={{ marginTop: "6px" }}>
-                    {!showSkipConfirm
-                        ? <InlineButton variant="secondary" onClick={() => setShowSkipConfirm(true)} disabled={isProcessing}>Skip</InlineButton>
-                        : <>
+                {/* Skip row */}
+                <InlineDivider />
+                <InlineCardActions>
+                    {!showSkipConfirm ? (
+                        <InlineButton variant="secondary" onClick={() => setShowSkipConfirm(true)} disabled={isProcessing}>
+                            Skip
+                        </InlineButton>
+                    ) : (
+                        <>
                             <InlineButton variant="secondary" onClick={() => setShowSkipConfirm(false)}>Cancel</InlineButton>
                             <InlineButton variant="primary" onClick={handleSkip}>Confirm Skip</InlineButton>
-                          </>
-                    }
+                        </>
+                    )}
                 </InlineCardActions>
             </InlineCard>
         );
@@ -639,10 +688,13 @@ const ConnectorCard: React.FC<ConnectorCardProps> = ({ data, rpcClient }) => {
 
     if (stage === "generating") {
         return (
-            <InlineCard status="active">
+            <InlineCard>
                 <InlineCardHeader>
-                    <InlineCardIcon><span className="codicon codicon-loading codicon-modifier-spin" /></InlineCardIcon>
-                    <InlineCardTitle>Generating connector{data.spec?.title ? ` for ${data.spec.title}` : "..."}
+                    <InlineCardIcon>
+                        <span className="codicon codicon-loading codicon-modifier-spin" />
+                    </InlineCardIcon>
+                    <InlineCardTitle>
+                        Generating connector{data.spec?.title ? ` for ${data.spec.title}` : "..."}
                     </InlineCardTitle>
                 </InlineCardHeader>
             </InlineCard>
@@ -651,28 +703,36 @@ const ConnectorCard: React.FC<ConnectorCardProps> = ({ data, rpcClient }) => {
 
     if (stage === "generated") {
         return (
-            <InlineCard status="done">
+            <InlineCard>
                 <InlineCardHeader>
-                    <InlineCardIcon><span className="codicon codicon-pass" /></InlineCardIcon>
-                    <InlineCardTitle>Connector ready{data.spec?.title ? `: ${data.spec.title}` : (data.serviceName ? `: ${data.serviceName}` : "")}</InlineCardTitle>
+                    <InlineCardIcon style={{ color: "var(--vscode-charts-green, #388a34)" }}>
+                        <span className="codicon codicon-pass" />
+                    </InlineCardIcon>
+                    <InlineCardTitle>
+                        Connector ready{data.spec?.title ? `: ${data.spec.title}` : (data.serviceName ? `: ${data.serviceName}` : "")}
+                    </InlineCardTitle>
                 </InlineCardHeader>
-                {data.connector && (
-                    <>
-                        <InlineDetailRow>
-                            <InlineDetailLabel>Module</InlineDetailLabel>
-                            <InlineDetailValue>{data.connector.moduleName}</InlineDetailValue>
-                        </InlineDetailRow>
-                        <InlineDetailRow>
-                            <InlineDetailLabel>Import</InlineDetailLabel>
-                            <InlineDetailValue>{data.connector.importStatement}</InlineDetailValue>
-                        </InlineDetailRow>
-                    </>
-                )}
-                {data.spec && (
-                    <InlineDetailRow>
-                        <InlineDetailLabel>Endpoints</InlineDetailLabel>
-                        <InlineDetailValue>{data.spec.endpointCount}</InlineDetailValue>
-                    </InlineDetailRow>
+                {(data.connector || data.spec) && (
+                    <InlineDetailsBlock>
+                        {data.connector && (
+                            <>
+                                <InlineDetailRow>
+                                    <InlineDetailLabel>Module</InlineDetailLabel>
+                                    <InlineDetailValue>{data.connector.moduleName}</InlineDetailValue>
+                                </InlineDetailRow>
+                                <InlineDetailRow>
+                                    <InlineDetailLabel>Import</InlineDetailLabel>
+                                    <InlineDetailValue>{data.connector.importStatement}</InlineDetailValue>
+                                </InlineDetailRow>
+                            </>
+                        )}
+                        {data.spec?.endpointCount !== undefined && (
+                            <InlineDetailRow>
+                                <InlineDetailLabel>Endpoints</InlineDetailLabel>
+                                <InlineDetailValue>{data.spec.endpointCount}</InlineDetailValue>
+                            </InlineDetailRow>
+                        )}
+                    </InlineDetailsBlock>
                 )}
             </InlineCard>
         );
@@ -680,10 +740,14 @@ const ConnectorCard: React.FC<ConnectorCardProps> = ({ data, rpcClient }) => {
 
     if (stage === "skipped") {
         return (
-            <InlineCard status="done">
+            <InlineCard>
                 <InlineCardHeader>
-                    <InlineCardIcon><span className="codicon codicon-circle-slash" /></InlineCardIcon>
-                    <InlineCardTitle>Connector generation skipped{data.serviceName ? `: ${data.serviceName}` : ""}</InlineCardTitle>
+                    <InlineCardIcon>
+                        <span className="codicon codicon-circle-slash" />
+                    </InlineCardIcon>
+                    <InlineCardTitle>
+                        Connector generation skipped{data.serviceName ? `: ${data.serviceName}` : ""}
+                    </InlineCardTitle>
                 </InlineCardHeader>
             </InlineCard>
         );
@@ -691,9 +755,11 @@ const ConnectorCard: React.FC<ConnectorCardProps> = ({ data, rpcClient }) => {
 
     if (stage === "error" && data.error) {
         return (
-            <InlineCard status="error">
+            <InlineCard>
                 <InlineCardHeader>
-                    <InlineCardIcon><span className="codicon codicon-warning" /></InlineCardIcon>
+                    <InlineCardIcon style={{ color: "var(--vscode-errorForeground)" }}>
+                        <span className="codicon codicon-warning" />
+                    </InlineCardIcon>
                     <InlineCardTitle>Connector generation failed</InlineCardTitle>
                 </InlineCardHeader>
                 <InlineStatusRow>{data.error.message}</InlineStatusRow>
