@@ -1,0 +1,24 @@
+[package]
+org = "pasindufernando"
+name = "ff"
+version = "0.1.0"
+distribution = "2201.13.1"
+title = "ff"
+
+[build-options]
+sticky = true
+
+
+[[tool.persist]]
+id = "ff.testDB"
+targetModule = "ff.testDB"
+filePath = "persist/testDB/model.bal"
+options.datastore = "mysql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[dependency]]
+org = "ballerina"
+name = "tool.persist"
+version = "1.9.0"
+
