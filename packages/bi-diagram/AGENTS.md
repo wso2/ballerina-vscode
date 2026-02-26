@@ -72,6 +72,7 @@ Each node type consists of three files following react-diagrams pattern:
 - **`CommentNode`**: Documentation annotations
 - **`ButtonNode`**: Interactive action buttons
 - **`ErrorNode`**: Error handling display
+- **`WaitEventNode`**: Workflow wait/pause node (circle + external dashed arrow + details)
 
 ### 4. Links and Ports (`src/components/NodePort/`, `src/components/NodeLink/`)
 - **NodePort**: Connection points on nodes (input/output)
@@ -126,6 +127,67 @@ Each node type consists of three files following react-diagrams pattern:
 - Custom positioning for complex node types
 - Zoom and pan persistence
 - Responsive node sizing based on content
+
+## Node Sizing & Layout System
+
+### ViewState Properties
+Every node has a `viewState` object populated by `SizingVisitor` and consumed by `PositionVisitor`:
+```typescript
+viewState.lw  // left width: distance from flow center to left edge of the node
+viewState.rw  // right width: distance from flow center to right edge of the node
+viewState.h   // height of the node content
+viewState.clw // container left width (includes external elements like arrows)
+viewState.crw // container right width (includes external elements like labels)
+viewState.ch  // container height
+```
+
+The **flow center** is the vertical axis where incoming/outgoing links connect (ports). `lw` is the space to the left of that axis and `rw` is the space to the right. Container widths (`clw`/`crw`) encompass the full visual extent including arrows, labels, and connection circles.
+
+### How to Change a Node's Visual Width
+When changing the visual width of a node widget (e.g., making an arrow wider, adding a side element):
+
+1. **Update constants** in `src/resources/constants.ts` — add or modify the relevant constant
+2. **Update `SizingVisitor`** — adjust `lw`/`rw`/`clw`/`crw` in the node's `create*Node()` method so the layout engine reserves the correct space
+3. **Update the widget** — use the same constants to size SVG/HTML elements, deriving widths from `model.node.viewState.lw`/`rw` when available
+
+**Example (ApiCallNode):**
+- `lw` = half of `NODE_WIDTH` (the box)
+- `crw` = `halfNodeWidth + NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT` (box + arrow + circle + label)
+- Widget renders a flex row: `[Box]` + `[SVG with arrow + circle + label]`
+
+**Example (WaitEventNode):**
+- `lw` = `halfCircle + WAIT_EVENT_ARROW_WIDTH` (circle center + arrow SVG)
+- `rw` = `halfCircle` (just the right half of the circle)
+- `crw` = `halfCircle + WAIT_EVENT_DETAILS_GAP + WAIT_EVENT_DETAILS_WIDTH` (circle + gap + text/menu)
+- Widget renders a flex row: `[SVG arrow]` + `[CircleColumn with ports]` + `[Details with text + menu]`
+
+### Node Widget Layout Patterns
+
+#### Box + Side SVG Pattern (ApiCallNode)
+Used for nodes that have a rectangular box on the left and a connection circle on the right:
+```
+[Box (icon, title, subtitle, menu)] → [SVG (arrow + circle + label)]
+```
+- Flex row layout, `align-items: flex-start`
+- Box is a styled div with border, the SVG contains the arrow line, circle, and endpoint label
+- `NODE_GAP_X` controls spacing between box and circle
+
+#### Circle + Details Pattern (WaitEventNode)
+Used for circular nodes with external input and side details:
+```
+[SVG (dot + dashed arrow)] → [CircleColumn (port-in, circle, port-out)] → [Details (title, subtitle, menu)]
+```
+- Flex row layout, `align-items: center`
+- The SVG arrow width is derived from `viewState.lw - circleRadius`
+- Ports are above/below the circle in a flex column
+- The Icon component should use `sx` prop for sizing: `<Icon name="bi-pause" sx={{ fontSize: 32, width: 32, height: 32 }} />`
+
+### Font Icons
+- Font icons are from `@wso2/font-wso2-vscode` (source in `common-libs/font-wso2-vscode/`)
+- Each extension bundles its own copy under `resources/font-wso2-vscode/dist/`
+- Icons are used via `<Icon name="bi-xxx" />` from `@wso2/ui-toolkit`
+- To center an icon inside a container, use `sx` with explicit `fontSize`, `width`, `height` (see `NodeIcon/index.tsx` for examples)
+- If adding a new icon that doesn't exist in the extension's font bundle, it must be added to the font build
 
 ## Constants and Configuration
 

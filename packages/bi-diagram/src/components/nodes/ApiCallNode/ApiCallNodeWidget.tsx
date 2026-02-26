@@ -225,6 +225,12 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const isActiveBreakpoint = model.isActiveBreakpoint();
     // show dash line if the node is a class call
     const isClassCall = model.node.codedata.node === "KNOWLEDGE_BASE_CALL";
+    const connectionProperty = model.node.properties?.connection;
+    const processFunctionProperty = (model.node.properties as any)?.processFunction;
+    const connectionValue = connectionProperty?.value as string | undefined;
+    const fallbackEndpointValue = processFunctionProperty?.value as string | undefined;
+    const endpointLabel = connectionValue ?? fallbackEndpointValue ?? "";
+    const connectorType = (connectionProperty?.metadata?.data as NodeMetadata | undefined)?.connectorType;
 
     useEffect(() => {
         if (model.node.suggested) {
@@ -257,7 +263,11 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
         if (readOnly) {
             return;
         }
-        onConnectionSelect && onConnectionSelect(model.node.properties?.connection?.value as string);
+        if (connectionValue && onConnectionSelect) {
+            onConnectionSelect(connectionValue);
+        } else {
+            onNodeClick();
+        }
         setAnchorEl(null);
     };
 
@@ -419,9 +429,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                     fontSize="14px"
                     fontFamily="GilmerRegular"
                 >
-                    {(model.node.properties.connection.value as string)?.length > 16
-                        ? `${(model.node.properties.connection.value as string).slice(0, 16)}...`
-                        : (model.node.properties.connection.value as ReactNode)}
+                    {endpointLabel.length > 16 ? `${endpointLabel.slice(0, 16)}...` : endpointLabel}
                 </text>
                 <foreignObject x="68" y="12" width="24" height="24" fill={ThemeColors.ON_SURFACE}>
                     <ConnectorIcon
@@ -434,7 +442,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                             pointerEvents: readOnly ? "none" : "auto",
                         }}
                         codedata={model.node?.codedata}
-                        connectorType={(model.node.properties.connection.metadata?.data as NodeMetadata)?.connectorType}
+                        connectorType={connectorType}
                     />
                 </foreignObject>
                 <line
