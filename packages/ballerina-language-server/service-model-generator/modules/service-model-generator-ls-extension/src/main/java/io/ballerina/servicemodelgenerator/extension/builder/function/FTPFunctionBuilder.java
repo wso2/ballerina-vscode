@@ -302,10 +302,22 @@ public final class FTPFunctionBuilder extends AbstractFunctionBuilder {
             }
 
             Value moveToValue = moveProperties.get(MOVE_TO);
-            String moveTo = moveToValue != null && moveToValue.getValue() != null
-                    ? moveToValue.getValue() : "";
+            String moveTo = "";
+            if (moveToValue != null) {
+                String valueString = moveToValue.getValueString();
+                if (valueString != null && !valueString.isEmpty()) {
+                    moveTo = valueString;
+                } else if (moveToValue.getValue() != null) {
+                    moveTo = moveToValue.getValue();
+                }
+            }
+
             String trimmedMoveTo = moveTo.trim();
-            if (trimmedMoveTo.isEmpty() || "\"\"".equals(trimmedMoveTo)) {
+            if (trimmedMoveTo.isEmpty() || "\"\"".equals(trimmedMoveTo) || "''".equals(trimmedMoveTo)) {
+                return "";
+            }
+            String templateContent = trimmedMoveTo.replaceFirst("^string\\s*`([\\s\\S]*)`$", "$1");
+            if (!templateContent.equals(trimmedMoveTo) && templateContent.trim().isEmpty()) {
                 return "";
             }
 

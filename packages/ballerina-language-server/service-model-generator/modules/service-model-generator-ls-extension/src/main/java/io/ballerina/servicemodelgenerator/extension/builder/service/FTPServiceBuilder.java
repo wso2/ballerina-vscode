@@ -435,8 +435,24 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
      */
     private String getPropertyValueLiteralValue(Map<String, Value> properties, String key, String defaultValue) {
         Value property = properties.get(key);
-        if (property != null && property.getLiteralValue() != null && !property.getLiteralValue().isEmpty()) {
-            return property.getLiteralValue();
+        if (property == null) {
+            return defaultValue;
+        }
+
+        String value;
+        if (property.getTypes() == null || property.getTypes().isEmpty()) {
+            value = property.getLiteralValue();
+        } else {
+            Value.FieldType selectedType = property.getTypes().stream()
+                    .filter(type -> type.selected())
+                    .findFirst()
+                    .map(type -> type.fieldType())
+                    .orElse(property.getTypes().getFirst().fieldType());
+            value = selectedType == Value.FieldType.TEXT ? property.getLiteralValue() : property.getValue();
+        }
+
+        if (value != null && !value.isEmpty()) {
+            return value;
         }
         return defaultValue;
     }
