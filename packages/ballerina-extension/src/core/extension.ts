@@ -88,6 +88,7 @@ const SWAN_LAKE_REGEX = /(s|S)wan( |-)(l|L)ake/g;
 
 export const EXTENSION_ID = 'wso2.ballerina';
 const PREV_EXTENSION_ID = 'ballerina.ballerina';
+const WI_EXTENSION_ID = 'wso2.wso2-integrator';
 export enum LANGUAGE {
     BALLERINA = 'ballerina',
     TOML = 'toml'
@@ -2303,6 +2304,11 @@ export class BallerinaExtension {
     private checkMultipleBallerinaInstallations(): void {
         debug("[MULTI_BAL_CHECK] Checking for multiple Ballerina installations in PATH...");
 
+        if (this.isWSO2IntegratorPresent()) {
+            debug("[MULTI_BAL_CHECK] Skipping multiple installation warning in WSO2 Integrator environment");
+            return;
+        }
+
         const MULTIPLE_INSTALLATIONS_WARNING = 'Multiple Ballerina installations detected. This may cause unpredictable behavior.';
         const RESOLUTION_ADVICE = 'Consider removing duplicate installations or adjusting your PATH to avoid version conflicts.';
 
@@ -2371,6 +2377,10 @@ export class BallerinaExtension {
             // No need to throw. This is a non-critical check.
             debug(`[MULTI_BAL_CHECK] Error checking for multiple installations: ${error}`);
         }
+    }
+
+    private isWSO2IntegratorPresent(): boolean {
+        return !!extensions.getExtension(WI_EXTENSION_ID);
     }
 
     public overrideBallerinaHome(): boolean {
