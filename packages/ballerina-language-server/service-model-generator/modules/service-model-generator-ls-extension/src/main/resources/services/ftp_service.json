@@ -1955,11 +1955,11 @@
           "name": {
             "enabled": true,
             "editable": true,
-            "value": "err",
+            "value": "ftpError",
             "valueType": "IDENTIFIER",
             "valueTypeConstraint": "string",
             "isType": false,
-            "placeholder": "err",
+            "placeholder": "ftpError",
             "optional": false,
             "advanced": false
           },

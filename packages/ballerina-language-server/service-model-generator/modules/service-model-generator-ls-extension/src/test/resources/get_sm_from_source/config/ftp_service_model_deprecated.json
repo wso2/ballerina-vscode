@@ -1680,8 +1680,8 @@
               "advanced": false
             },
             "name": {
-              "placeholder": "err",
-              "value": "err",
+              "placeholder": "ftpError",
+              "value": "ftpError",
               "enabled": true,
               "editable": true,
               "optional": false,
