@@ -62,6 +62,7 @@ import {
     convertEmbeddingProviderCategoriesToSidePanelCategories,
     convertDataLoaderCategoriesToSidePanelCategories,
     convertChunkerCategoriesToSidePanelCategories,
+    enrichCategoryWithDevant,
     convertKnowledgeBaseCategoriesToSidePanelCategories,
 } from "../../../utils/bi";
 import { useDraftNodeManager } from "./hooks/useDraftNodeManager";
@@ -78,11 +79,12 @@ import { ConnectionKind } from "../../../components/ConnectionSelector";
 import {
     findFlowNodeByModuleVarName,
     getAgentFilePath,
-    removeAgentNode,
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
 import { DiagramSkeleton } from "../../../components/Skeletons";
 import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, GET_DEFAULT_MODEL_PROVIDER, LOADING_MESSAGE } from "../../../constants";
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
+import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 
 const Container = styled.div`
     width: 100%;
@@ -94,7 +96,7 @@ export interface BIFlowDiagramProps {
     breakpointState?: number;
     syntaxTree?: STNode;
     onUpdate: () => void;
-    onReady: (fileName: string, parentMetadata?: ParentMetadata, position?: NodePosition) => void;
+    onReady: (fileName: string, parentMetadata?: ParentMetadata, position?: NodePosition, parentCodedata?: CodeData) => void;
     onSave?: () => void;
 }
 
@@ -120,7 +122,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [suggestedModel, setSuggestedModel] = useState<Flow>();
     const [showSidePanel, setShowSidePanel] = useState(false);
     const [sidePanelView, setSidePanelView] = useState<SidePanelView>(SidePanelView.NODE_LIST);
-    const [categories, setCategories] = useState<PanelCategory[]>([]);
+    const [categories, setCategories] = useState<PanelCategory[]>([]); //
     const [fetchingAiSuggestions, setFetchingAiSuggestions] = useState(false);
     const [showProgressIndicator, setShowProgressIndicator] = useState(false);
     const [showProgressSpinner, setShowProgressSpinner] = useState<boolean>(false);
@@ -131,6 +133,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [selectedMcpToolkitName, setSelectedMcpToolkitName] = useState<string | undefined>(undefined);
     const [selectedConnectionKind, setSelectedConnectionKind] = useState<ConnectionKind>();
     const [selectedNodeId, setSelectedNodeId] = useState<string>();
+    const [importingConn, setImportingConn] = useState<ConnectionListItem>();
     const [projectOrg, setProjectOrg] = useState<string>("");
     const [isUserAuthenticated, setIsUserAuthenticated] = useState<boolean>(false);
 
@@ -171,6 +174,25 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewChunker = useRef<boolean>(false);
     const isCreatingNewActivity = useRef<boolean>(false);
 
+    const { platformExtState, platformRpcClient, onLinkDevantProject,  importConnection: importDevantConn } = usePlatformExtContext()
+
+    const enrichedCategories = useMemo(()=>{
+         return  enrichCategoryWithDevant(platformExtState?.devantConns?.list, categories, importingConn)
+    },[platformExtState, categories, importingConn])
+
+    const handleClickImportDevantConn = (data: ConnectionListItem) => {
+        rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: {
+                view: MACHINE_VIEW.AddConnectionWizard,
+                documentUri: model.fileName,
+                metadata: { target: targetRef.current.startLine },
+            },
+            isPopup: true,
+        });
+        importDevantConn.setConnection(data)
+    }
+
     useEffect(() => {
         debouncedGetFlowModelForBreakpoints();
     }, [breakpointState]);
@@ -203,6 +225,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setShowProgressIndicator(true);
                 if (parent.artifactType === DIRECTORY_MAP.CONNECTION) {
                     updateConnectionWithNewItem(parent.recentIdentifier);
+                    platformRpcClient?.refreshConnectionList();
                 }
                 fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false);
             }
@@ -557,13 +580,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             }
                             updateAgentModelTypes(model?.flowModel);
                             setModel(model.flowModel);
-                            const eventStartNode = model.flowModel.nodes.find(
-                                (node) => node.codedata.node === "EVENT_START"
-                            );
-                            const eventStartMetadata = eventStartNode?.metadata.data as ParentMetadata | undefined;
-                            const parentMetadata = eventStartMetadata
-                                ? { ...eventStartMetadata, sourceCode: eventStartNode?.codedata?.sourceCode }
-                                : undefined;
+                            const eventStartNode = model.flowModel.nodes.find((node) => node.codedata.node === "EVENT_START");
+                            const parentMetadata = eventStartNode?.metadata.data as ParentMetadata | undefined;
+                            const parentCodedata = eventStartNode?.codedata;
                             if (shouldUpdateLineRangeRef.current) {
                                 const varName = typeof updatedNodeRef.current?.properties?.variable?.value === "string"
                                     ? updatedNodeRef.current.properties.variable.value
@@ -577,7 +596,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             // Get visualizer location and pass position to onReady
                             rpcClient.getVisualizerLocation().then((location: VisualizerLocation) => {
                                 console.log(">>> Visualizer location", location?.position);
-                                onReady(model.flowModel.fileName, parentMetadata, location?.position);
+                                onReady(model.flowModel.fileName, parentMetadata, location?.position, parentCodedata);
                             });
                         }
                     })
@@ -2899,7 +2918,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 showSidePanel={showSidePanel}
                 sidePanelView={sidePanelView}
                 subPanel={subPanel}
-                categories={categories}
+                categories={enrichedCategories}
                 selectedNode={selectedNodeRef.current}
                 parentNode={parentNodeRef.current}
                 nodeFormTemplate={nodeTemplateRef.current}
@@ -2960,6 +2979,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onSelectNewConnection={handleOnSelectNewConnection}
                 selectedMcpToolkitName={selectedMcpToolkitName}
                 onNavigateToPanel={handleOnNavigateToPanel}
+                // Devant specific callbacks
+                onImportDevantConn={handleClickImportDevantConn}
+                onLinkDevantProject={!platformExtState?.selectedContext?.project ? onLinkDevantProject : undefined}
+                onRefreshDevantConnections={
+                    platformExtState?.selectedContext?.project && !platformExtState?.devantConns?.loading
+                        ? () => platformRpcClient?.refreshConnectionList()
+                        : undefined
+                }
             />
 
             <PanelOverlayRenderer />

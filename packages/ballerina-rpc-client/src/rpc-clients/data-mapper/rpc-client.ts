@@ -27,6 +27,7 @@ import {
     ConvertExpressionRequest,
     ConvertExpressionResponse,
     ConvertToQueryRequest,
+    CreateConvertedVariableRequest,
     DMModelRequest,
     DataMapperAPI,
     DataMapperModelRequest,
@@ -55,6 +56,7 @@ import {
     addSubMapping,
     clearTypeCache,
     convertToQuery,
+    createConvertedVariable,
     deleteClause,
     deleteMapping,
     deleteSubMapping,
@@ -165,6 +167,10 @@ export class DataMapperRpcClient implements DataMapperAPI {
 
     getConvertedExpression(params: ConvertExpressionRequest): Promise<ConvertExpressionResponse> {
         return this._messenger.sendRequest(getConvertedExpression, HOST_EXTENSION, params);
+    }
+
+    createConvertedVariable(params: CreateConvertedVariableRequest): Promise<DataMapperSourceResponse> {
+        return this._messenger.sendRequest(createConvertedVariable, HOST_EXTENSION, params);
     }
 
     clearTypeCache(): Promise<ClearTypeCacheResponse> {

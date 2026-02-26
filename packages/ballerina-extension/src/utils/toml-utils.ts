@@ -22,6 +22,7 @@ export interface ConfigVariable {
     name: string;
     description: string;
     type?: "string" | "int";
+    secret?: boolean;
 }
 
 // Cache regex for performance
@@ -83,91 +84,6 @@ export function getAllConfigStatus(
 /**
  * Create or update Config.toml with placeholder variables
  */
-export function createConfigWithPlaceholders(
-    configPath: string,
-    variables: ConfigVariable[],
-    overwrite: boolean = false
-): void {
-    let config: Record<string, any> = {};
-
-    // Read existing config if exists
-    if (fs.existsSync(configPath)) {
-        try {
-            const content = fs.readFileSync(configPath, "utf-8");
-            config = parse(content) as Record<string, any>;
-        } catch (error) {
-            console.error(`[TOML Utils] Error reading existing config:`, error);
-            throw error;
-        }
-    }
-
-    // Add placeholder variables (convert API_KEY to apikey)
-    for (const variable of variables) {
-        const tomlKey = toTomlKey(variable.name);
-
-        if (!Object.prototype.hasOwnProperty.call(config, tomlKey) || overwrite) {
-            config[tomlKey] = `\${${variable.name}}`;
-        }
-    }
-
-    // Write back to file
-    try {
-        const dirPath = path.dirname(configPath);
-        if (!fs.existsSync(dirPath)) {
-            fs.mkdirSync(dirPath, { recursive: true });
-        }
-
-        const tomlContent = stringify(config);
-        fs.writeFileSync(configPath, tomlContent, "utf-8");
-
-        console.log(`[TOML Utils] Created/updated Config.toml with ${variables.length} placeholder(s)`);
-    } catch (error) {
-        console.error(`[TOML Utils] Error writing config:`, error);
-        throw error;
-    }
-}
-
-/**
- * Check configuration value status - returns metadata only, never actual values
- */
-export function checkConfigurationStatus(
-    configPath: string,
-    variableNames: string[]
-): Record<string, "filled" | "missing"> {
-    const status: Record<string, "filled" | "missing"> = {};
-
-    if (!fs.existsSync(configPath)) {
-        for (const name of variableNames) {
-            status[name] = "missing";
-        }
-        return status;
-    }
-
-    try {
-        const content = fs.readFileSync(configPath, "utf-8");
-        const config = parse(content) as Record<string, any>;
-
-        for (const name of variableNames) {
-            const tomlKey = toTomlKey(name);
-            const value = getNestedValue(config, tomlKey);
-
-            if (value === undefined || value === null) {
-                status[name] = "missing";
-            } else if (typeof value === "string" && value.startsWith("${")) {
-                status[name] = "missing";
-            } else {
-                status[name] = "filled";
-            }
-        }
-    } catch (error) {
-        console.error(`[TOML Utils] Error checking configuration status:`, error);
-        for (const name of variableNames) {
-            status[name] = "missing";
-        }
-    }
-
-    return status;
-}
 
 /**
  * Write configuration values to Config.toml - SECURITY: never logs values
@@ -197,10 +113,9 @@ export function writeConfigValuesToConfig(
         }
     }
 
-    // Replace placeholders with actual values (convert API_KEY to apikey)
     const intKeys = new Set<string>();
     for (const [variableName, value] of Object.entries(configValues)) {
-        const tomlKey = toTomlKey(variableName);
+        const tomlKey = variableName;
         const varType = typeMap.get(variableName) || "string";
 
         // Convert value based on type
@@ -263,15 +178,7 @@ function getNestedValue(obj: any, key: string): any {
 }
 
 export function validateVariableName(name: string): boolean {
-    return /^[A-Z_0-9]+$/.test(name);
-}
-
-/**
- * Converts configuration variable name to TOML key format
- * Example: API_KEY -> apikey, DB_HOST -> dbhost
- */
-export function toTomlKey(variableName: string): string {
-    return variableName.toLowerCase().replace(/_/g, "");
+    return /^[a-zA-Z][a-zA-Z0-9]*$/.test(name);
 }
 
 /**
@@ -293,7 +200,7 @@ export function readExistingConfigValues(
         const config = parse(content) as Record<string, any>;
 
         for (const name of variableNames) {
-            const tomlKey = toTomlKey(name);
+            const tomlKey = name;
             const value = getNestedValue(config, tomlKey);
 
             // Include the value if it exists and is not a placeholder

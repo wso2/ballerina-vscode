@@ -62,14 +62,22 @@ const FieldDescription = styled.span`
     font-weight: normal;
 `;
 
-const FieldInput = styled.input<{ hasError: boolean }>`
-    padding: 10px 12px;
+const FieldInputWrapper = styled.div`
+    position: relative;
+    display: flex;
+    align-items: center;
+`;
+
+const FieldInput = styled.input<{ hasError: boolean; hasToggle?: boolean }>`
+    width: 100%;
+    padding: 10px ${(props: { hasError: boolean; hasToggle?: boolean }) => props.hasToggle ? "36px" : "12px"} 10px 12px;
     background-color: ${ThemeColors.SURFACE_DIM};
     color: ${ThemeColors.ON_SURFACE};
-    border: 1px solid ${(props: { hasError: boolean }) =>
+    border: 1px solid ${(props: { hasError: boolean; hasToggle?: boolean }) =>
         props.hasError ? ThemeColors.ERROR : ThemeColors.OUTLINE_VARIANT};
     border-radius: 6px;
     font-size: 13px;
+    box-sizing: border-box;
 
     &:focus {
         outline: none;
@@ -78,6 +86,22 @@ const FieldInput = styled.input<{ hasError: boolean }>`
 
     &::placeholder {
         color: ${ThemeColors.ON_SURFACE_VARIANT};
+    }
+`;
+
+const ToggleVisibilityButton = styled.button`
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    display: flex;
+    align-items: center;
+
+    &:hover {
+        color: ${ThemeColors.ON_SURFACE};
     }
 `;
 
@@ -106,6 +130,11 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
     const [configValues, setConfigValues] = useState<Record<string, string>>(data?.existingValues || {});
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isProcessing, setIsProcessing] = useState(false);
+    const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({});
+
+    const toggleVisibility = (name: string) => {
+        setVisibleFields((prev) => ({ ...prev, [name]: !prev[name] }));
+    };
 
     // Initialize configuration values when data prop changes
     useEffect(() => {
@@ -239,27 +268,44 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
                 </PopupHeader>
                 <PopupContent>
                     <FormSection>
-                        {data.variables?.map((variable) => (
-                            <ConfigurationField key={variable.name}>
-                                <FieldLabel>
-                                    {variable.name}
-                                    {variable.description && (
-                                        <FieldDescription>- {variable.description}</FieldDescription>
-                                    )}
-                                </FieldLabel>
-                                <FieldInput
-                                    type={variable.type === "int" ? "number" : "text"}
-                                    placeholder={
-                                        variable.type === "int" ? "Enter number" : "Enter value"
-                                    }
-                                    value={configValues[variable.name] || ""}
-                                    onChange={(e) => handleInputChange(variable.name, e.target.value)}
-                                    onKeyDown={handleKeyDown}
-                                    hasError={!!errors[variable.name]}
-                                />
-                                {errors[variable.name] && <FieldError>{errors[variable.name]}</FieldError>}
-                            </ConfigurationField>
-                        ))}
+                        {data.variables?.map((variable) => {
+                            const isSecret = variable.secret === true;
+                            const isVisible = visibleFields[variable.name];
+                            const inputType = isSecret
+                                ? (isVisible ? "text" : "password")
+                                : (variable.type === "int" ? "number" : "text");
+                            return (
+                                <ConfigurationField key={variable.name}>
+                                    <FieldLabel>
+                                        {variable.name}
+                                        {variable.description && (
+                                            <FieldDescription>- {variable.description}</FieldDescription>
+                                        )}
+                                    </FieldLabel>
+                                    <FieldInputWrapper>
+                                        <FieldInput
+                                            type={inputType}
+                                            placeholder={variable.type === "int" ? "Enter number" : "Enter value"}
+                                            value={configValues[variable.name] || ""}
+                                            onChange={(e) => handleInputChange(variable.name, e.target.value)}
+                                            onKeyDown={handleKeyDown}
+                                            hasError={!!errors[variable.name]}
+                                            hasToggle={isSecret}
+                                        />
+                                        {isSecret && (
+                                            <ToggleVisibilityButton
+                                                type="button"
+                                                onClick={() => toggleVisibility(variable.name)}
+                                                title={isVisible ? "Hide value" : "Show value"}
+                                            >
+                                                <Codicon name={isVisible ? "eye-closed" : "eye"} />
+                                            </ToggleVisibilityButton>
+                                        )}
+                                    </FieldInputWrapper>
+                                    {errors[variable.name] && <FieldError>{errors[variable.name]}</FieldError>}
+                                </ConfigurationField>
+                            );
+                        })}
                     </FormSection>
                 </PopupContent>
                 <PopupFooter>

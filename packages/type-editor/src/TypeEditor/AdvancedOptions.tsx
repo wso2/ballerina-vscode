@@ -37,32 +37,50 @@ export function AdvancedOptions({ type, onChange }: AdvancedOptionsProps) {
             </div>
             {isExpanded && (
                 <>
-                {type.codedata.node===TypeNodeKind.RECORD && <CheckBox
-                    sx={{ border: 'none', padding: '5px' }}
-                    label="Allow Additional Fields"
-                    checked={type?.allowAdditionalFields === true}
-                    onChange={(checked: boolean) => {
-                        onChange({ ...type, allowAdditionalFields: checked });
-                    }}
-                />}
-                <CheckBox
-                    sx={{ border: 'none', padding: '5px' }}
-                    label="Is Readonly Type"
-                    checked={type?.properties?.isReadOnly?.value === "true"}
-                    onChange={(checked: boolean) => {
-                        // Match the same pattern used in the working checkbox
-                        onChange({
-                            ...type,
-                            properties: {
-                                ...type.properties,
-                                isReadOnly: {
-                                    ...type.properties?.isReadOnly,
-                                    value: checked ? "true" : "false"
+                    {type.codedata.node === TypeNodeKind.RECORD && <CheckBox
+                        sx={{ border: 'none', padding: '5px' }}
+                        label="Allow Additional Fields"
+                        checked={type?.allowAdditionalFields === true}
+                        onChange={(checked: boolean) => {
+                            onChange({ ...type, allowAdditionalFields: checked });
+                        }}
+                    />}
+                    <CheckBox
+                        sx={{ border: 'none', padding: '5px' }}
+                        label="Is Readonly Type"
+                        checked={type?.properties?.isReadOnly?.value === "true"}
+                        onChange={(checked: boolean) => {
+                            // Match the same pattern used in the working checkbox
+                            onChange({
+                                ...type,
+                                properties: {
+                                    ...type.properties,
+                                    isReadOnly: {
+                                        ...type.properties?.isReadOnly,
+                                        value: checked ? "true" : "false"
+                                    }
                                 }
-                            }
-                        });
-                    }}
-                />
+                            });
+                        }}
+                    />
+                    <CheckBox
+                        sx={{ border: 'none', padding: '5px' }}
+                        label="Accessible by Other Integrations"
+                        checked={type?.properties?.isPublic?.value === "true"}
+                        onChange={(checked: boolean) => {
+                            // Match the same pattern used in the working checkbox
+                            onChange({
+                                ...type,
+                                properties: {
+                                    ...type.properties,
+                                    isPublic: {
+                                        ...type.properties?.isPublic,
+                                        value: checked ? "true" : "false"
+                                    }
+                                }
+                            });
+                        }}
+                    />
                 </>
             )}
         </div>

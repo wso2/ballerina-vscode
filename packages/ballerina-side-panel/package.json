@@ -45,6 +45,7 @@
         "react": "18.2.0",
         "react-dom": "18.2.0",
         "react-hook-form": "7.56.4",
+        "@wso2/wso2-platform-core": "workspace:*",
         "react-markdown": "10.1.0",
         "rehype-raw": "7.0.0",
         "remark-gfm": "4.0.1",

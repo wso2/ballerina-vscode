@@ -41,7 +41,7 @@ export class IONodeInitVisitor implements BaseVisitor {
         // Create output node
         if (parent?.query) {
             this.outputNode = new QueryOutputNode(this.context, node);
-        } else if (node.kind === TypeKind.Record) {
+        } else if (node.kind === TypeKind.Record || node.kind === TypeKind.Json || node.kind === TypeKind.Xml) {
             this.outputNode = new ObjectOutputNode(this.context, node);
         } else if (node.kind === TypeKind.Array) {
             this.outputNode = new ArrayOutputNode(this.context, node);

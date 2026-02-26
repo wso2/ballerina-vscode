@@ -41,7 +41,8 @@ import {
     SubmitFeedbackRequest,
     TestGenerationMentions,
     UIChatMessage,
-    UpdateChatMessageRequest
+    UpdateChatMessageRequest,
+    UsageResponse
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";
@@ -65,12 +66,14 @@ import { refreshDataMapper } from "../data-mapper/utils";
 import {
     TEST_DIR_NAME
 } from "./constants";
+import { fetchWithAuth } from "../../features/ai/utils/ai-client";
+import { BACKEND_URL } from "../../features/ai/utils";
 import { addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
 
 import { onHideReviewActions } from '@wso2/ballerina-core';
 import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent } from '../../features/ai/agent/index';
 import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
-import { WI_EXTENSION_ID } from "../../features/ai/constants";
+import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
 import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
 import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/InlineMappingExecutor';
@@ -698,5 +701,25 @@ export class AiPanelRpcManager implements AIPanelAPI {
         const projectPath = pendingReview.reviewState.tempProjectPath;
         console.log(">>> active temp project path", projectPath);
         return projectPath;
+    }
+
+    async getUsage(): Promise<UsageResponse | undefined> {
+        const loginMethod = await getLoginMethod();
+        if (loginMethod !== LoginMethod.BI_INTEL) {
+            return undefined;
+        }
+        try {
+            const url = BACKEND_URL + LLM_API_BASE_PATH + "/usage";
+            const response = await fetchWithAuth(url, { method: "GET" });
+            if (response && response.ok) {
+                const data = await response.json();
+                return data as UsageResponse;
+            }
+            console.error("Failed to fetch usage: ", response?.status, response?.statusText);
+            return undefined;
+        } catch (error) {
+            console.error("Failed to fetch usage:", error);
+            return undefined;
+        }
     }
 }

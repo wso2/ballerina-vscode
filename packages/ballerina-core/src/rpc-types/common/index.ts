@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import { QuickPickItem } from "vscode";
 import {
     BallerinaDiagnosticsRequest,
     BallerinaDiagnosticsResponse,
@@ -33,8 +34,12 @@ import {
     WorkspaceRootResponse,
     ShowErrorMessageRequest,
     WorkspaceTypeResponse,
+    SetWebviewCacheRequestParam,
+    ShowInfoModalRequest,
     SampleDownloadRequest,
-    DefaultOrgNameResponse
+    ShowQuickPickRequest,
+    DefaultOrgNameResponse,
+    PublishToCentralResponse
 } from "./interfaces";
 
 export interface CommonRPCAPI {
@@ -51,8 +56,15 @@ export interface CommonRPCAPI {
     isNPSupported: () => Promise<boolean>;
     getWorkspaceRoot: () => Promise<WorkspaceRootResponse>;
     showErrorMessage: (params: ShowErrorMessageRequest) => void;
+    showInformationModal: (params: ShowInfoModalRequest) => Promise<string>;
+    showQuickPick: (params: ShowQuickPickRequest) => Promise<QuickPickItem | undefined>;
     getCurrentProjectTomlValues: () => Promise<Record<string, any>>;
     getWorkspaceType: () => Promise<WorkspaceTypeResponse>;
+    setWebviewCache: (params: SetWebviewCacheRequestParam) => void;
+    restoreWebviewCache: (params: IDBValidKey) => unknown;
+    clearWebviewCache: (params: IDBValidKey) => void;
     downloadSelectedSampleFromGithub: (params: SampleDownloadRequest) => Promise<boolean>;
     getDefaultOrgName: () => Promise<DefaultOrgNameResponse>;
+    publishToCentral: () => Promise<PublishToCentralResponse>;
+    hasCentralPATConfigured: () => Promise<boolean>;
 }

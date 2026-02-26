@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import React, { useState } from "react";
 import styled, { CSSObject } from "@emotion/styled";
 import { ParameterModel } from "@wso2/ballerina-core";
 import { Codicon } from "@wso2/ui-toolkit";
@@ -27,11 +28,12 @@ import {
     disabledHeaderLabel,
     headerLabelStyles,
 } from "../../../styles";
+import { ParamEditor } from "./ParamEditor";
 
 export interface ParametersProps {
     parameters: ParameterModel[];
     onChange: (parameters: ParameterModel[]) => void;
-    onEditClick: (param: ParameterModel) => void;
+    onEditClick?: (param: ParameterModel) => void;
     showPayload: boolean;
     streamEnabled?: boolean;
 }
@@ -41,20 +43,25 @@ const ParamLabelContainer = styled.div`
     align-items: center;
     gap: 12px;
     font-family: var(--vscode-font-family);
+    flex: 1;
 `;
 
+const ParamName = styled.span`
+    color: var(--vscode-editor-foreground, #222);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--vscode-font-family);
+`;
 
 const ParamType = styled.span`
-    font-size: 12px;
+    font-size: 13px;
     color: var(--vscode-descriptionForeground, #888);
     background: var(--vscode-editorWidget-background, #f5f5f5);
     border-radius: 4px;
     padding: 2px 8px;
     letter-spacing: 0.1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
 `;
 
 const HeaderLabel = styled.div<CSSObject>`
@@ -69,13 +76,62 @@ const HeaderLabel = styled.div<CSSObject>`
 `;
 
 export function Parameters(props: ParametersProps) {
-    const { parameters, onChange, onEditClick, showPayload, streamEnabled } = props;
+    const { parameters, onChange, onEditClick, showPayload } = props;
+
+    const [editModel, setEditModel] = useState<ParameterModel | undefined>(undefined);
+    const [editingIndex, setEditingIndex] = useState<number>(-1);
 
     const onDelete = (param: ParameterModel) => {
         const updatedParameters = parameters.filter(
             (p) => p.metadata.label !== param.metadata.label || p.name.value !== param.name.value
         );
         onChange(updatedParameters);
+        setEditModel(undefined);
+        setEditingIndex(-1);
+    };
+
+    const handleEdit = (param: ParameterModel) => {
+        if (param.editable === false) {
+            return;
+        }
+
+        if (onEditClick) {
+            onEditClick(param);
+            return;
+        }
+
+        setEditModel(param);
+        const index = parameters.findIndex(p =>
+            p.metadata?.label === param.metadata?.label &&
+            p.name?.value === param.name?.value
+        );
+        setEditingIndex(index);
+    };
+
+    const onChangeParam = (param: ParameterModel) => {
+        setEditModel(param);
+        // Update the parameters array in real-time for existing parameters
+        if (editingIndex >= 0) {
+            const updatedParameters = [...parameters];
+            updatedParameters[editingIndex] = param;
+            onChange(updatedParameters);
+        }
+    };
+
+    const onSaveParam = (param: ParameterModel) => {
+        const updatedParam = { ...param, enabled: true };
+        if (editingIndex >= 0) {
+            const updatedParameters = [...parameters];
+            updatedParameters[editingIndex] = updatedParam;
+            onChange(updatedParameters);
+        }
+        setEditModel(undefined);
+        setEditingIndex(-1);
+    };
+
+    const onParamEditCancel = () => {
+        setEditModel(undefined);
+        setEditingIndex(-1);
     };
 
     return (
@@ -88,7 +144,12 @@ export function Parameters(props: ParametersProps) {
 
                         const label = (
                             <ParamLabelContainer>
-                                <ParamType>{formattedTypeValue}</ParamType>
+                                <ParamType>
+                                    {formattedTypeValue}
+                                </ParamType>
+                                {param.name?.value && (
+                                    <ParamName>{param.name.value}</ParamName>
+                                )}
                             </ParamLabelContainer>
                         );
 
@@ -98,24 +159,32 @@ export function Parameters(props: ParametersProps) {
                                     <div
                                         data-test-id={`${param.name.value}-param`}
                                         className={readonly ? disabledHeaderLabel : headerLabelStyles}
-                                        onClick={() => !readonly && onEditClick(param)}
+                                        onClick={() => handleEdit(param)}
                                     >
                                         {label}
                                     </div>
-                                    <ActionIconWrapper>
-                                        {!readonly && (
+                                    {!readonly && (
+                                        <ActionIconWrapper>
                                             <EditIconWrapper>
-                                                <Codicon name="edit" onClick={() => onEditClick(param)} />
+                                                <Codicon name="edit" onClick={() => handleEdit(param)} />
                                             </EditIconWrapper>
-                                        )}
-                                        <DeleteIconWrapper>
-                                            <Codicon name="trash" onClick={() => onDelete(param)} />
-                                        </DeleteIconWrapper>
-                                    </ActionIconWrapper>
+                                            <DeleteIconWrapper>
+                                                <Codicon name="trash" onClick={() => onDelete(param)} />
+                                            </DeleteIconWrapper>
+                                        </ActionIconWrapper>
+                                    )}
                                 </ContentSection>
                             </HeaderLabel>
                         );
                     })}
+                    {editModel && !onEditClick && (
+                        <ParamEditor
+                            param={editModel}
+                            onChange={onChangeParam}
+                            onSave={onSaveParam}
+                            onCancel={onParamEditCancel}
+                        />
+                    )}
                 </>
             )}
         </div>

@@ -36,7 +36,8 @@ export function FunctionConfigForm(props: FunctionConfigFormProps) {
 
     const events = [
         { name: 'onCreate', description: 'Triggered when a new file is created' },
-        { name: 'onDelete', description: 'Triggered when a file is deleted' }
+        { name: 'onDelete', description: 'Triggered when a file is deleted' },
+        { name: 'onError', description: 'Triggered when an error occurs during file processing' }
     ];
 
     // Check if all functions with a specific metadata.label are enabled

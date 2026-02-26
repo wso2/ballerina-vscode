@@ -57,6 +57,7 @@ export enum SCOPE {
     EVENT_INTEGRATION = "event-integration",
     FILE_INTEGRATION = "file-integration",
     AI_AGENT = "ai-agent",
+    LIBRARY = "library",
     ANY = "any"
 }
 
@@ -176,6 +177,7 @@ export interface ConfigurationCollectorMetadata {
         name: string;
         description: string;
         type?: "string" | "int";
+        secret?: boolean;
     }>;
     existingValues?: Record<string, string>;
     message: string;
@@ -470,6 +472,7 @@ export interface ConfigurationCollectionEvent {
         name: string;
         description: string;
         type?: "string" | "int";
+        secret?: boolean;
     }>;
     existingValues?: Record<string, string>;
     message: string;
@@ -701,7 +704,8 @@ export enum TaskStatus {
 export enum TaskTypes {
     SERVICE_DESIGN = "service_design",
     CONNECTIONS_INIT = "connections_init",
-    IMPLEMENTATION = "implementation"
+    IMPLEMENTATION = "implementation",
+    TESTING = "testing"
 }
 
 /**

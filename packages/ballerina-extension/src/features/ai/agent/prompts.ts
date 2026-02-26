@@ -21,6 +21,7 @@ import { TASK_WRITE_TOOL_NAME } from "./tools/task-writer";
 import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "./tools/text-editor";
 import { CONNECTOR_GENERATOR_TOOL } from "./tools/connector-generator";
 import { CONFIG_COLLECTOR_TOOL } from "./tools/config-collector";
+import { TEST_RUNNER_TOOL_NAME } from "./tools/test-runner";
 import { getLanglibInstructions } from "../utils/libs/langlibs";
 import { formatCodebaseStructure, formatCodeContext } from "./utils";
 import { GenerateAgentCodeRequest, OperationType, ProjectSource } from "@wso2/ballerina-core";
@@ -72,6 +73,9 @@ This plan will be visible to the user and the execution will be guided on the ta
 - This step should only contain the Client initialization.
 3. 'implementation'
 - for all the other implementations. Have resource function implementations in its own task.
+4. 'testing'
+- Responsible for writing test cases that cover the core logic of the implementation.
+- Include this task only if the user has explicitly asked for tests. Skip it otherwise.
 
 #### Task Breakdown Example
 1. Create the HTTP service contract
@@ -97,7 +101,8 @@ This plan will be visible to the user and the execution will be guided on the ta
      - First use ${LIBRARY_SEARCH_TOOL} with relevant keywords to discover available libraries
      - Then use ${LIBRARY_GET_TOOL} to fetch full details for the discovered libraries
      - If NO suitable library is found, call ${CONNECTOR_GENERATOR_TOOL} to generate connector from OpenAPI spec
-   - Before marking the task as completed, use the ${DIAGNOSTICS_TOOL_NAME} tool to check for compilation errors and fix them. Introduce a a new subtask if needed to fix errors.
+   - Before marking the task as completed, use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them. Introduce a new subtask if needed.
+   - Once compilation is clean and the project contains test cases, run the tests.
    - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
    - The tool will wait for TASK COMPLETION APPROVAL from the user
    - Once approved (success: true), immediately start the next task
@@ -109,6 +114,12 @@ This plan will be visible to the user and the execution will be guided on the ta
 - Using the task_write tool will automatically show progress to the user via a task list
 - Keep language simple and non-technical when responding
 - No need to add manual progress indicators - the task list shows what you're working on
+
+## Test Runner
+When running tests:
+1. Tell the user what is being tested in one line.
+2. Use ${TEST_RUNNER_TOOL_NAME} to run the test suite.
+3. Only if there are failures or errors, briefly mention what failed and fix them, then re-run.
 
 ## Edit Mode
 In the <system-reminder> tags, you will see if Edit mode is enabled. When its enabled, you must follow the below instructions strictly.
@@ -123,9 +134,9 @@ Identify the libraries required to implement the user requirement. Use ${LIBRARY
 Write/modify the Ballerina code to implement the user requirement. Use the ${FILE_BATCH_EDIT_TOOL_NAME}, ${FILE_SINGLE_EDIT_TOOL_NAME}, ${FILE_WRITE_TOOL_NAME} tools to write/modify the code. 
 
 ### Step 4: Validate the code
-Once the task is done, Always use ${DIAGNOSTICS_TOOL_NAME} tool to check for compilation errors and fix them. 
-You can use this tool multiple times after making changes to ensure there are no compilation errors.
-If you think you can't fix the error after multiple attempts, make sure to keep bring the code into a good state and finish off the task.
+Once the code is written, always use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them. You may call it multiple times after making changes.
+If errors cannot be resolved after multiple attempts, bring the code to a good state and finish the task.
+Once compilation is clean and the project contains test cases, run the tests.
 
 ### Step 5: Provide a consise summary
 Once the code is written and validated, provide a very concise summary of the overall changes made. Avoid adding detailed explanations and NEVER create documentations files via ${FILE_WRITE_TOOL_NAME}.
@@ -146,6 +157,7 @@ When generating Ballerina code strictly follow these syntax and structure guidel
 - Some libaries has instructions field in their API documentation. Follow those instructions strictly when using those libraries.
 - You should only generate tests if the user explicitly asks for them in the query. You must use the 'ballerina/test' and whatever services associated when writing tests. Respect the instructions field in ballerina/test library and testGenerationInstruction field in whatever library associated with the service in the library API documentation when writing tests.
 - For workflow-based requirements involving long-running processes, state management, or orchestration of multiple steps, use the 'ballerina/workflow' module.
+- When writing tests, use the 'ballerina/test' module and any service-specific test libraries. Respect the instructions field in ballerina/test library and the testGenerationInstruction field in the associated service library API documentation when writing tests.
 
 ${getLanglibInstructions()}
 
@@ -153,12 +165,9 @@ ${getLanglibInstructions()}
 - If the codebase structure shows connector modules in generated/moduleName, import using: import packageName.moduleName
 
 ## Code Structure
-- Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables.
-- For sensitive configuration values (API keys, tokens, passwords), use ${CONFIG_COLLECTOR_TOOL} in COLLECT mode. Variable names are converted to lowercase without underscores in Config.toml. You MUST use the exact Config.toml names in your Ballerina configurables to avoid runtime errors.
-- When generating tests that need configuration values:
-  - Use COLLECT mode with isTestConfig: true
-  - The tool will automatically read existing values from Config.toml (if exists), ask user to reuse or modify for testing, and save to tests/Config.toml
-  - Example: { mode: "collect", variables: [...], isTestConfig: true }
+- Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables. Never assign hardcoded default values to configurables.
+- For sensitive configuration values (API keys, tokens, passwords), declare them as Ballerina configurables in the code. Use camelCase names that match exactly between the configurable declaration and Config.toml.
+- Use ${CONFIG_COLLECTOR_TOOL} in COLLECT mode only immediately before running or testing — never during code writing. When running tests, use isTestConfig: true.
 - Initialize any necessary clients with the correct configuration based on the retrieved libraries at the module level (before any function or service declarations).
 - Implement the main function OR service to address the query requirements.
 
@@ -189,6 +198,7 @@ ${getLanglibInstructions()}
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.
 - Do not manually add/modify toml files (Ballerina.toml/Dependencies.toml). For Config.toml configuration management, use ${CONFIG_COLLECTOR_TOOL}.
+- NEVER read Config.toml or tests/Config.toml directly. Use ${CONFIG_COLLECTOR_TOOL} CHECK mode to inspect configuration status — actual values must never be visible to you.
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
 
 ${getNPSuffix(projects, op)}

@@ -36,7 +36,7 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectPath: string = context.projectPath;
+                const projectPath: string = params.projectPath || context.projectPath;
                 const param = { projectPath };
                 const res: TestSourceEditResponse = await context.langClient.addICP(param);
                 await updateSourceCode({ textEdits: res.textEdits, description: 'ICP Creation' });
@@ -52,7 +52,7 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectPath: string = context.projectPath;
+                const projectPath: string = params.projectPath || context.projectPath;
                 const param = { projectPath };
                 const res: TestSourceEditResponse = await context.langClient.disableICP(param);
                 await updateSourceCode({ textEdits: res.textEdits, description: 'ICP Disable' });
@@ -69,7 +69,7 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
             try {
-                const projectPath: string = context.projectPath;
+                const projectPath: string = params.projectPath || context.projectPath;
                 const param = { projectPath };
                 const res: ICPEnabledResponse = await context.langClient.isIcpEnabled(param);
                 resolve(res);
