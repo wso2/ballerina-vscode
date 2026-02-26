@@ -45,6 +45,7 @@ import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ProjectException;
@@ -161,7 +162,7 @@ public abstract class CallBuilder extends NodeBuilder {
      *                       (may be {@code null} if no target variable is available)
      */
     public static void buildInferredTypeProperty(NodeBuilder nodeBuilder, ParameterData paramData, String value,
-                                                 Module module, TypeSymbol targetVarType) {
+                                                 Module module, TypeSymbol targetVarType, Node callNode) {
         String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramData.name());
         String label = paramData.label();
         // If the inferredType is a record type, add it as the value of the property if the value is not provided
@@ -195,7 +196,7 @@ public abstract class CallBuilder extends NodeBuilder {
             customPropBuilder.type(Property.ValueType.TYPE, paramData.type());
         }
 
-        customPropBuilder.stepOut().addProperty(unescapedParamName);
+        customPropBuilder.stepOut().addProperty(unescapedParamName, callNode);
     }
 
     private static void addRecordFieldSelector(ParameterData paramData, Module module, TypeSymbol targetVarType,
@@ -258,7 +259,7 @@ public abstract class CallBuilder extends NodeBuilder {
      */
     public static void buildInferredTypeProperty(NodeBuilder nodeBuilder, ParameterData paramData, String value,
                                                  Module module) {
-        buildInferredTypeProperty(nodeBuilder, paramData, value, module, null);
+        buildInferredTypeProperty(nodeBuilder, paramData, value, module, null, null);
     }
 
     protected void setParameterProperties(FunctionData function, io.ballerina.projects.Module module) {
