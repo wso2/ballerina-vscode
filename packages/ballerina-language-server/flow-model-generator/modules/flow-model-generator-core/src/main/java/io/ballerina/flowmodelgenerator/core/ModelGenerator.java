@@ -38,6 +38,7 @@ import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
@@ -53,6 +54,7 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectKind;
 import io.ballerina.tools.diagnostics.Location;
@@ -129,7 +131,7 @@ public class ModelGenerator {
         // Obtain the connections visible at the module-level
         List<FlowNode> moduleConnections =
                 semanticModel.visibleSymbols(document, canvasNode.lineRange().startLine()).stream()
-                        .flatMap(symbol -> buildConnection(symbol).stream())
+                        .flatMap(symbol -> buildConnection(symbol, semanticModel).stream())
                         .sorted(Comparator.comparing(
                                 node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
                                         .map(property -> property.value().toString())
@@ -178,21 +180,60 @@ public class ModelGenerator {
     public JsonElement getModuleNodes() {
         List<FlowNode> connectionsList = new ArrayList<>();
         List<FlowNode> variablesList = new ArrayList<>();
-        List<Symbol> symbols = semanticModel.moduleSymbols();
 
-        for (Symbol symbol : symbols) {
-            buildConnection(symbol).ifPresent(connectionsList::add);
+        for (Symbol symbol : semanticModel.moduleSymbols()) {
+            buildConnection(symbol, semanticModel).ifPresent(connectionsList::add);
             if (symbol instanceof VariableSymbol) {
-                buildVariables(symbol).ifPresent(variablesList::add);
+                buildVariables(symbol, semanticModel).ifPresent(variablesList::add);
             }
         }
-        Comparator<FlowNode> comparator = Comparator.comparing(
-                node -> Optional.ofNullable(node.properties().get(Property.VARIABLE_KEY))
-                        .map(property -> property.value().toString())
-                        .orElse("")
-        );
-        connectionsList.sort(comparator);
-        variablesList.sort(comparator);
+
+        // TODO: Going with the following approach since the semantic model for the `tests` directory cannot be
+        //  obtained.
+        // Check for symbols in the tests folder by directly analyzing test document syntax trees
+        Module defaultModule = project.currentPackage().getDefaultModule();
+        for (DocumentId testDocId : defaultModule.testDocumentIds()) {
+            Document testDoc = defaultModule.document(testDocId);
+            Optional<Path> testDocPathOpt = project.documentPath(testDocId);
+            if (testDocPathOpt.isEmpty()) {
+                continue;
+            }
+            Path testDocPath = testDocPathOpt.get();
+            SyntaxTree syntaxTree = testDoc.syntaxTree();
+            ModulePartNode modulePartNode = syntaxTree.rootNode();
+            for (ModuleMemberDeclarationNode member : modulePartNode.members()) {
+                if (member.kind() != SyntaxKind.MODULE_VAR_DECL) {
+                    continue;
+                }
+                Optional<Symbol> symbolOpt = semanticModel.symbol(
+                        ((ModuleVariableDeclarationNode) member).typedBindingPattern().bindingPattern());
+                if (!(symbolOpt.orElse(null) instanceof VariableSymbol varSymbol)) {
+                    continue;
+                }
+                boolean isConnection;
+                try {
+                    isConnection = isClassOrObject(
+                            ((TypeReferenceTypeSymbol) varSymbol.typeDescriptor()).typeDescriptor());
+                } catch (RuntimeException ignored) {
+                    isConnection = false;
+                }
+                CodeAnalyzer codeAnalyzer = new CodeAnalyzer(
+                        project, semanticModel, Property.GLOBAL_SCOPE, Map.of(), Map.of(),
+                        syntaxTree.textDocument(), ModuleInfo.from(testDoc.module().descriptor()),
+                        false, workspaceManager, testDocPath);
+                member.accept(codeAnalyzer);
+                for (FlowNode node : codeAnalyzer.getFlowNodes()) {
+                    if (isConnection) {
+                        connectionsList.add(node);
+                    } else {
+                        variablesList.add(node);
+                    }
+                }
+            }
+        }
+
+        connectionsList.sort(FLOW_NODE_COMPARATOR);
+        variablesList.sort(FLOW_NODE_COMPARATOR);
 
         ExtendedDiagram diagram = new ExtendedDiagram(filePath.toString(), List.of(), connectionsList, variablesList);
         return gson.toJsonTree(diagram);
@@ -318,7 +359,7 @@ public class ModelGenerator {
      *
      * @return the client if the type symbol is a client, otherwise empty
      */
-    private Optional<FlowNode> buildConnection(Symbol symbol) {
+    private Optional<FlowNode> buildConnection(Symbol symbol, SemanticModel sm) {
         Function<NonTerminalNode, NonTerminalNode> getStatementNode;
         NonTerminalNode statementNode;
         TypeSymbol typeSymbol;
@@ -361,7 +402,7 @@ public class ModelGenerator {
         if (statementNode == null) {
             return Optional.empty();
         }
-        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
+        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, sm, scope, Map.of(), Map.of(),
                 document.textDocument(), ModuleInfo.from(document.module().descriptor()), false,
                 workspaceManager, docFilePath);
         statementNode.accept(codeAnalyzer);
@@ -369,7 +410,7 @@ public class ModelGenerator {
         return connections.stream().findFirst();
     }
 
-    private Optional<FlowNode> buildVariables(Symbol symbol) {
+    private Optional<FlowNode> buildVariables(Symbol symbol, SemanticModel sm) {
         Function<NonTerminalNode, NonTerminalNode> getStatementNode;
         NonTerminalNode statementNode;
         TypeSymbol typeSymbol;
@@ -412,7 +453,7 @@ public class ModelGenerator {
         if (statementNode == null) {
             return Optional.empty();
         }
-        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
+        CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, sm, scope, Map.of(), Map.of(),
                 document.textDocument(), ModuleInfo.from(document.module().descriptor()),
                 false, workspaceManager, docFilePath);
         statementNode.accept(codeAnalyzer);
