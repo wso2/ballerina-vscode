@@ -45,7 +45,7 @@ import {
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";
-import { extensions, workspace } from 'vscode';
+import { workspace } from 'vscode';
 
 import { isNumber } from "lodash";
 import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
@@ -59,6 +59,7 @@ import { submitFeedback as submitFeedbackUtil } from "../../features/ai/utils/fe
 import { sendGenerationKeptTelemetry, sendGenerationDiscardTelemetry } from "../../features/ai/utils/generation-response";
 import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
+import { isInWI } from "../../utils";
 import { getLoginMethod, isPlatformExtensionAvailable, loginGithubCopilot } from "../../utils/ai/auth";
 import { normalizeCodeContext } from "../../views/ai-panel/codeContextUtils";
 import { refreshDataMapper } from "../data-mapper/utils";
@@ -70,7 +71,6 @@ import { addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "
 import { onHideReviewActions } from '@wso2/ballerina-core';
 import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent } from '../../features/ai/agent/index';
 import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
-import { WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
 import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
 import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/InlineMappingExecutor';
@@ -161,8 +161,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async showSignInAlert(): Promise<boolean> {
         // Don't show alert in WI environment (WSO2 Integrator extension is installed)
-        const isInWI = !!extensions.getExtension(WI_EXTENSION_ID);
-        if (isInWI) {
+        const inWI = isInWI();
+        if (inWI) {
             return false;
         }
 
