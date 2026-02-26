@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { ArrayOutputNode, EmptyInputsNode, InputNode, ObjectOutputNode, PrimitiveOutputNode, QueryOutputNode } from "../components/Diagram/Node";
+import { ArrayOutputNode, ConvertibleOutputNode, EmptyInputsNode, InputNode, ObjectOutputNode, PrimitiveOutputNode, QueryOutputNode } from "../components/Diagram/Node";
 import { DataMapperNodeModel } from "../components/Diagram/Node/commons/DataMapperNode";
 import { DataMapperContext } from "../utils/DataMapperContext/DataMapperContext";
 import { ExpandedDMModel, IOType, TypeKind } from "@wso2/ballerina-core";
@@ -41,6 +41,8 @@ export class IONodeInitVisitor implements BaseVisitor {
         // Create output node
         if (parent?.query) {
             this.outputNode = new QueryOutputNode(this.context, node);
+        } else if ((node.kind === TypeKind.Json || node.kind === TypeKind.Xml) && !node.fields) {
+            this.outputNode = new ConvertibleOutputNode(this.context, node);
         } else if (node.kind === TypeKind.Record || node.kind === TypeKind.Json || node.kind === TypeKind.Xml) {
             this.outputNode = new ObjectOutputNode(this.context, node);
         } else if (node.kind === TypeKind.Array) {
