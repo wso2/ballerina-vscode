@@ -1314,6 +1314,20 @@ const AIChat: React.FC = () => {
         setMessages((prevMessages) => prevMessages.filter((message, index) => message.type !== "question"));
         setIsLoading(true);
         isErrorChunkReceivedRef.current = false;
+        // In plan mode, persist the current execution stream into the last assistant message
+        // so it continues to render after executionStream is cleared for the new query.
+        if (agentMode === AgentMode.Plan && executionStream.length > 0) {
+            setMessages((prevMessages) => {
+                const lastAssistantIdx = [...prevMessages].map(m => m.role).lastIndexOf("Copilot");
+                if (lastAssistantIdx === -1) return prevMessages;
+                const updated = [...prevMessages];
+                updated[lastAssistantIdx] = {
+                    ...updated[lastAssistantIdx],
+                    content: serializeExecutionStream(executionStream),
+                };
+                return updated;
+            });
+        }
         // Reset plan mode execution stream for each new generation
         setExecutionStream([]);
         currentTaskDescriptionRef.current = null;
