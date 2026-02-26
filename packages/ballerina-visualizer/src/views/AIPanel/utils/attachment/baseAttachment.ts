@@ -18,7 +18,7 @@
 
 import { AttachmentHandler } from "./attachmentHandler";
 import { Attachment, AttachmentStatus } from "@wso2/ballerina-core";
-import { readFileAsText, validateFileSize, validateFileType } from "./attachmentUtils";
+import { readFileAsText, readFileAsBase64, validateFileSize, validateFileType } from "./attachmentUtils";
 
 /**
  * Abstract base class that provides common file-attachment handling logic.
@@ -64,6 +64,7 @@ export abstract class BaseAttachment implements AttachmentHandler {
                     name: file.name,
                     content,
                     status: AttachmentStatus.Success,
+                    mimeType: file.type,
                 });
             } catch {
                 results.push({
@@ -79,10 +80,14 @@ export abstract class BaseAttachment implements AttachmentHandler {
     }
 
     /**
-     * Default method to read file content as text.
-     * Subclasses can override this to do something else (e.g., read as Base64).
+     * Default method to read file content.
+     * Images are read as base64, text files as plain text.
+     * Subclasses can override this if needed.
      */
-    protected readFileContent(file: File): Promise<string> {
+    protected async readFileContent(file: File): Promise<string> {
+        if (file.type.startsWith('image/')) {
+            return readFileAsBase64(file);
+        }
         return readFileAsText(file);
     }
 }
