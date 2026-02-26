@@ -95,11 +95,13 @@ import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
 import io.ballerina.compiler.syntax.tree.OnFailClauseNode;
 import io.ballerina.compiler.syntax.tree.PanicStatementNode;
+import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.QueryActionNode;
 import io.ballerina.compiler.syntax.tree.RemoteMethodCallActionNode;
+import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.RetryStatementNode;
 import io.ballerina.compiler.syntax.tree.ReturnStatementNode;
 import io.ballerina.compiler.syntax.tree.ReturnTypeDescriptorNode;
@@ -191,7 +193,7 @@ import java.util.Stack;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isInsideWorkflowProcessFunction;
+import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowFunction;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINA_ORG_NAME;
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
@@ -769,13 +771,25 @@ public class CodeAnalyzer extends NodeVisitor {
             return false;
         }
 
-        SimpleNameReferenceNode nameRef = (SimpleNameReferenceNode) expression;
-        if (!nameRef.name().text().equals(Constants.Workflow.DEFAULT_EVENTS_PARAM_NAME)) {
-            return false;
+        Node parent = waitActionNode.parent();
+        while (parent != null) {
+            if (parent.kind() == SyntaxKind.FUNCTION_DEFINITION) {
+                if (isWorkflowFunction(semanticModel.symbol(parent).orElse(null))) {
+                    SeparatedNodeList<ParameterNode> parameters =
+                            ((FunctionDefinitionNode) parent).functionSignature().parameters();
+                    ParameterNode lastParam = parameters.get(parameters.size() - 1);
+                    if (lastParam.kind() == SyntaxKind.REQUIRED_PARAM) {
+                        RequiredParameterNode requiredParameterNode = (RequiredParameterNode) lastParam;
+                        SimpleNameReferenceNode nameRef = (SimpleNameReferenceNode) expression;
+                        Optional<Token> paramName = requiredParameterNode.paramName();
+                        return paramName.isPresent() && paramName.get().text().equals(nameRef.name().text());
+                    }
+                }
+                return false;
+            }
+            parent = parent.parent();
         }
-
-        // Check if we are inside a @workflow:Process annotated function
-        return isInsideWorkflowProcessFunction(this.semanticModel, waitActionNode);
+        return false;
     }
 
     private boolean isClassField(ExpressionNode expr) {
