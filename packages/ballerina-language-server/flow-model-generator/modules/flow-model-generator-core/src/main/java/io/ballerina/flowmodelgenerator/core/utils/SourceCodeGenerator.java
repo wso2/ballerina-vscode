@@ -36,6 +36,8 @@ import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.escapeIdentifier;
+
 /**
  * Code snippet generator.
  *
@@ -487,15 +489,28 @@ public class SourceCodeGenerator {
 
         String template = "%s %s%s"; // <type descriptor> <identifier> [= <default value>]
 
-        String fieldName = CommonUtil.escapeReservedKeyword(member.name());
-        if (member.optional()) {
+        String rawName = member.name();
+        String fieldName;
+
+        if (rawName == null) {
+            fieldName = null;
+        } else if (rawName.startsWith("'") || rawName.startsWith("\\")) {
+            fieldName = rawName;
+        } else {
+            fieldName = escapeIdentifier(rawName);
+        }
+
+        if (member.optional() && fieldName != null) {
             fieldName = fieldName + "?";
         }
 
-        return template.formatted(typeDescriptor,
+        return template.formatted(
+                typeDescriptor,
                 fieldName,
-                (withDefaultValue && member.defaultValue() != null && !member.defaultValue().isEmpty()) ?
-                        " = " + member.defaultValue() : "");
+                (withDefaultValue && member.defaultValue() != null && !member.defaultValue().isEmpty())
+                        ? " = " + member.defaultValue()
+                        : ""
+        );
     }
 
     private String generateResourceFunction(Function function) {
