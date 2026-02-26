@@ -160,6 +160,7 @@ public abstract class CallBuilder extends NodeBuilder {
      * @param module         the Ballerina {@link Module} used to create the {@link TypesManager} for type resolution
      * @param targetVarType  the type of the target variable being assigned to, used to pre-select fields
      *                       (may be {@code null} if no target variable is available)
+     * @param callNode       the syntax tree node of the function call, used for error reporting in type resolution
      */
     public static void buildInferredTypeProperty(NodeBuilder nodeBuilder, ParameterData paramData, String value,
                                                  Module module, TypeSymbol targetVarType, Node callNode) {
