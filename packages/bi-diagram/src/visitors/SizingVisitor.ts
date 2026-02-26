@@ -36,6 +36,11 @@ import {
     NODE_WIDTH,
     PROMPT_NODE_HEIGHT,
     PROMPT_NODE_WIDTH,
+    WAIT_EVENT_CORE_HEIGHT,
+    WAIT_EVENT_CORE_WIDTH,
+    WAIT_EVENT_ARROW_WIDTH,
+    WAIT_EVENT_DETAILS_GAP,
+    WAIT_EVENT_DETAILS_WIDTH,
     WHILE_NODE_WIDTH,
 } from "../resources/constants";
 import { reverseCustomNodeId } from "../utils/node";
@@ -98,6 +103,23 @@ export class SizingVisitor implements BaseVisitor {
         }
 
         this.setNodeSize(node, containerLeftWidth, containerRightWidth, containerHeight);
+    }
+
+    private createWaitEventNode(node: FlowNode): void {
+        const halfCircle = WAIT_EVENT_CORE_WIDTH / 2;
+        const leftWidth = halfCircle + WAIT_EVENT_ARROW_WIDTH;
+        const containerLeftWidth = leftWidth;
+        const containerRightWidth = halfCircle + WAIT_EVENT_DETAILS_GAP + WAIT_EVENT_DETAILS_WIDTH;
+        const containerHeight = WAIT_EVENT_CORE_HEIGHT;
+        this.setNodeSize(
+            node,
+            leftWidth,
+            halfCircle,
+            containerHeight,
+            containerLeftWidth,
+            containerRightWidth,
+            containerHeight
+        );
     }
 
     private createBlockNode(node: Branch): void {
@@ -241,6 +263,21 @@ export class SizingVisitor implements BaseVisitor {
     }
 
     endVisitVectorKnowledgeBaseCall(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        this.createApiCallNode(node);
+    }
+
+    endVisitWorkflowStart(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        this.createBaseNode(node);
+    }
+
+    endVisitActivityCall(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        this.createBaseNode(node);
+    }
+
+    endVisitSendEvent(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         this.createApiCallNode(node);
     }
@@ -452,6 +489,11 @@ export class SizingVisitor implements BaseVisitor {
     endVisitWorker(node: Branch, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         this.createBlockNode(node);
+    }
+
+    endVisitWaitEvent(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        this.createWaitEventNode(node);
     }
 
     endVisitNpFunction(node: FlowNode, parent?: FlowNode): void {

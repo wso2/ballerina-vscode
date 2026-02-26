@@ -17,199 +17,34 @@
  */
 
 import React, { ReactNode, useEffect, useState } from "react";
-import styled from "@emotion/styled";
-import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
-import { ApiCallNodeModel } from "./ApiCallNodeModel";
-import {
-    DRAFT_NODE_BORDER_WIDTH,
-    LABEL_HEIGHT,
-    NODE_BORDER_WIDTH,
-    NODE_GAP_X,
-    NODE_HEIGHT,
-    NODE_PADDING,
-    NODE_WIDTH,
-} from "../../../resources/constants";
-import { Button, Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
-import { MoreVertIcon } from "../../../resources";
+import { DiagramEngine } from "@projectstorm/react-diagrams-core";
+import { Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
+import { SendEventNodeModel } from "./SendEventNodeModel";
 import { FlowNode } from "../../../utils/types";
+import { MoreVertIcon } from "../../../resources";
 import NodeIcon from "../../NodeIcon";
-import ConnectorIcon from "../../ConnectorIcon";
 import { useDiagramContext } from "../../DiagramContext";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { getNodeTitle, nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
-import { NodeMetadata } from "@wso2/ballerina-core";
+import { NodeStyles } from "../ApiCallNode/ApiCallNodeWidget";
+import {
+    LABEL_HEIGHT,
+    NODE_GAP_X,
+    NODE_HEIGHT,
+} from "../../../resources/constants";
 
-export namespace NodeStyles {
-    export const Node = styled.div<{ readOnly: boolean }>`
-        display: flex;
-        flex-direction: row;
-        align-items: flex-start;
-        cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
-    `;
+// External dot dimensions (matching WaitEventNode's input dot)
+const DOT_RADIUS = 5;
+const DOT_STROKE = 2.5;
 
-    export type NodeStyleProp = {
-        disabled: boolean;
-        hovered: boolean;
-        hasError: boolean;
-        readOnly: boolean;
-        isActiveBreakpoint: boolean;
-        isSelected?: boolean;
-    };
-    export const Box = styled.div<NodeStyleProp>`
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        width: ${NODE_WIDTH}px;
-        min-height: ${NODE_HEIGHT}px;
-        padding: 0 ${NODE_PADDING}px;
-        opacity: ${(props: NodeStyleProp) => (props.disabled ? 0.7 : 1)};
-        border: ${(props: NodeStyleProp) => (props.disabled ? DRAFT_NODE_BORDER_WIDTH : NODE_BORDER_WIDTH)}px;
-        border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
-        border-color: ${(props: NodeStyleProp) =>
-            props.hasError
-                ? ThemeColors.ERROR
-                : props.isSelected && !props.disabled
-                ? ThemeColors.SECONDARY
-                : props.hovered && !props.disabled && !props.readOnly
-                ? ThemeColors.SECONDARY
-                : ThemeColors.OUTLINE_VARIANT};
-        border-radius: 10px;
-        background-color: ${(props: NodeStyleProp) =>
-            props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
-        color: ${ThemeColors.ON_SURFACE};
-        cursor: ${(props: NodeStyleProp) => (props.readOnly ? "default" : "pointer")};
-    `;
-
-    export const Header = styled.div<{}>`
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: flex-start;
-        gap: 2px;
-        flex: 1;
-        min-width: 0;
-        padding: 8px;
-    `;
-
-    export const StyledButton = styled(Button)`
-        border-radius: 5px;
-        position: absolute;
-        right: 136px;
-    `;
-
-    export const TopPortWidget = styled(PortWidget)`
-        margin-top: -3px;
-    `;
-
-    export const BottomPortWidget = styled(PortWidget)`
-        margin-bottom: -2px;
-    `;
-
-    export const StyledText = styled.div`
-        font-size: 14px;
-    `;
-
-    export const Icon = styled.div`
-        padding: 4px;
-        svg {
-            fill: ${ThemeColors.ON_SURFACE};
-        }
-    `;
-
-    export const Title = styled(StyledText)`
-        max-width: ${NODE_WIDTH - 80}px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-family: "GilmerMedium";
-    `;
-
-    export const Description = styled(StyledText)`
-        font-size: 12px;
-        width: 100%;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-family: monospace;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        word-break: break-all;
-        color: ${ThemeColors.ON_SURFACE};
-        opacity: 0.7;
-    `;
-
-    export const Row = styled.div`
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-    `;
-
-    export const ActionButtonGroup = styled.div`
-        display: flex;
-        flex-direction: row;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 2px;
-    `;
-
-    export const MenuButton = styled(Button)`
-        border-radius: 5px;
-    `;
-
-    export const ErrorIcon = styled.div`
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
-        color: ${ThemeColors.ERROR};
-    `;
-
-    export const Hr = styled.hr`
-        width: 100%;
-    `;
-
-    export const Footer = styled(StyledText)`
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    `;
-
-    export type PillStyleProp = {
-        color: string;
-    };
-    export const Pill = styled.div<PillStyleProp>`
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        color: ${(props: PillStyleProp) => props.color};
-        padding: 2px 4px;
-        border-radius: 20px;
-        border: 1px solid ${(props: PillStyleProp) => props.color};
-        font-size: 12px;
-        font-family: monospace;
-        svg {
-            fill: ${(props: PillStyleProp) => props.color};
-            stroke: ${(props: PillStyleProp) => props.color};
-            height: 12px;
-            width: 12px;
-        }
-    `;
-}
-
-interface ApiCallNodeWidgetProps {
-    model: ApiCallNodeModel;
+interface SendEventNodeWidgetProps {
+    model: SendEventNodeModel;
     engine: DiagramEngine;
     onClick?: (node: FlowNode) => void;
 }
 
-export interface NodeWidgetProps extends Omit<ApiCallNodeWidgetProps, "children"> {}
-
-export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
+export function SendEventNodeWidget(props: SendEventNodeWidgetProps) {
     const { model, engine, onClick } = props;
     const { onNodeSelect, onConnectionSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly, selectedNodeId } =
         useDiagramContext();
@@ -217,20 +52,17 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const isSelected = selectedNodeId === model.node.id;
 
     const [isBoxHovered, setIsBoxHovered] = useState(false);
-    const [isCircleHovered, setIsCircleHovered] = useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(anchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
-    // show dash line if the node is a class call
-    const isClassCall = model.node.codedata.node === "KNOWLEDGE_BASE_CALL";
+
     const connectionProperty = model.node.properties?.connection;
     const processFunctionProperty = (model.node.properties as any)?.processFunction;
     const connectionValue = connectionProperty?.value as string | undefined;
     const fallbackEndpointValue = processFunctionProperty?.value as string | undefined;
     const endpointLabel = connectionValue ?? fallbackEndpointValue ?? "";
-    const connectorType = (connectionProperty?.metadata?.data as NodeMetadata | undefined)?.connectorType;
 
     useEffect(() => {
         if (model.node.suggested) {
@@ -325,6 +157,14 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const arrowColor =
         disabled || readOnly ? ThemeColors.ON_SURFACE : isBoxHovered ? ThemeColors.SECONDARY : ThemeColors.ON_SURFACE;
 
+    // SVG layout: dashed arrow → small open circle + label below
+    const SEND_ARROW_LENGTH = 60;
+    const svgWidth = NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT;
+    const svgHeight = NODE_HEIGHT + LABEL_HEIGHT;
+    const dotCx = SEND_ARROW_LENGTH + DOT_RADIUS + DOT_STROKE;
+    const lineY = 25;
+    const lineEndX = dotCx - DOT_RADIUS - 4;
+
     return (
         <NodeStyles.Node readOnly={readOnly}>
             <NodeStyles.Box
@@ -353,7 +193,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                 <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
                 <NodeStyles.Row>
                     <NodeStyles.Icon onClick={handleOnClick}>
-                        <NodeIcon type={model.node.codedata.node} />
+                        <NodeIcon type={model.node.codedata.node} size={24} />
                     </NodeStyles.Icon>
                     <NodeStyles.Row>
                         <NodeStyles.Header onClick={handleOnClick}>
@@ -374,9 +214,6 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                             </NodeStyles.MenuButton>
                         </NodeStyles.ActionButtonGroup>
                     </NodeStyles.Row>
-                    {/* <NodeStyles.StyledButton appearance="icon" onClick={handleOnMenuClick}>
-                        <MoreVertIcon />
-                    </NodeStyles.StyledButton> */}
                     <Popover
                         open={isMenuOpen}
                         anchorEl={anchorEl}
@@ -404,26 +241,36 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
             </NodeStyles.Box>
 
             <svg
-                width={NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT}
-                height={NODE_HEIGHT + LABEL_HEIGHT}
-                viewBox="0 0 130 70"
+                width={svgWidth}
+                height={svgHeight}
+                viewBox={`0 0 ${svgWidth} ${svgHeight}`}
                 onClick={onConnectionClick}
-                onMouseEnter={() => !readOnly && setIsCircleHovered(true)}
-                onMouseLeave={() => setIsCircleHovered(false)}
+                style={{ cursor: readOnly ? "default" : "pointer" }}
             >
-                <circle
-                    cx="80"
-                    cy="24"
-                    r="22"
-                    fill={ThemeColors.SURFACE_DIM}
-                    stroke={isCircleHovered && !disabled ? ThemeColors.SECONDARY : ThemeColors.OUTLINE_VARIANT}
+                {/* Dashed arrow line */}
+                <line
+                    x1="0"
+                    y1={lineY}
+                    x2={lineEndX}
+                    y2={lineY}
+                    stroke={arrowColor}
                     strokeWidth={1.5}
-                    strokeDasharray={disabled ? "5 5" : "none"}
-                    opacity={disabled ? 0.7 : 1}
+                    strokeDasharray="5 3"
+                    markerEnd={`url(#${model.node.id}-send-arrow)`}
                 />
+                {/* Small open circle (matching WaitEvent input dot) */}
+                <circle
+                    cx={dotCx}
+                    cy={lineY}
+                    r={DOT_RADIUS}
+                    fill="none"
+                    stroke={arrowColor}
+                    strokeWidth={DOT_STROKE}
+                />
+                {/* Endpoint label below */}
                 <text
-                    x="80"
-                    y="66"
+                    x={dotCx}
+                    y={svgHeight - 2}
                     textAnchor="middle"
                     fill={ThemeColors.ON_SURFACE}
                     fontSize="14px"
@@ -431,43 +278,17 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                 >
                     {endpointLabel.length > 16 ? `${endpointLabel.slice(0, 16)}...` : endpointLabel}
                 </text>
-                <foreignObject x="68" y="12" width="24" height="24" fill={ThemeColors.ON_SURFACE}>
-                    <ConnectorIcon
-                        url={model.node.metadata.icon}
-                        style={{
-                            width: 24,
-                            height: 24,
-                            fontSize: 24,
-                            cursor: readOnly ? "default" : "pointer",
-                            pointerEvents: readOnly ? "none" : "auto",
-                        }}
-                        codedata={model.node?.codedata}
-                        connectorType={connectorType}
-                    />
-                </foreignObject>
-                <line
-                    x1="0"
-                    y1="25"
-                    x2="57"
-                    y2="25"
-                    style={{
-                        stroke: arrowColor,
-                        strokeWidth: 1.5,
-                        strokeDasharray: isClassCall ? "5 5" : "none",
-                        markerEnd: isClassCall ? "none" : `url(#${model.node.id}-arrow-head)`,
-                    }}
-                />
                 <defs>
                     <marker
+                        id={`${model.node.id}-send-arrow`}
                         markerWidth="4"
                         markerHeight="4"
                         refX="3"
                         refY="2"
                         viewBox="0 0 4 4"
                         orient="auto"
-                        id={`${model.node.id}-arrow-head`}
                     >
-                        <polygon points="0,4 0,0 4,2" fill={arrowColor}></polygon>
+                        <polygon points="0,4 0,0 4,2" fill={arrowColor} />
                     </marker>
                 </defs>
             </svg>

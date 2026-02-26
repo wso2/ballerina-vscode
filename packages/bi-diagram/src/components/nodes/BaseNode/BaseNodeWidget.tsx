@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { ReactNode, useState, useEffect } from "react";
+import React, { ReactNode, useState } from "react";
 import styled from "@emotion/styled";
 import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
 import {
@@ -28,7 +28,7 @@ import {
 } from "../../../resources/constants";
 import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
 import { MoreVertIcon } from "../../../resources";
-import NodeIcon, { getNodeChartColor } from "../../NodeIcon";
+import NodeIcon from "../../NodeIcon";
 import { useDiagramContext } from "../../DiagramContext";
 import { BaseNodeModel } from "./BaseNodeModel";
 import { ELineRange, FlowNode } from "@wso2/ballerina-core";
@@ -195,43 +195,37 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     const isMenuOpen = Boolean(menuAnchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
-    const isWorkflowActivityCall =
-        model.node.codedata.node === "REMOTE_ACTION_CALL" &&
-        model.node.codedata.org === "ballerina" &&
-        model.node.codedata.module === "workflow" &&
-        model.node.codedata.object === "Context" &&
-        model.node.codedata.symbol === "callActivity";
-    const isWorkflowInitCall =
-        model.node.codedata.node === "FUNCTION_CALL" &&
-        model.node.codedata.org === "ballerina" &&
-        model.node.codedata.module === "workflow" &&
-        model.node.codedata.symbol === "createInstance";
-    const workflowTargetFunctionName =
-        isWorkflowActivityCall
-            ? (typeof model.node.properties?.["activityFunction"]?.value === "string"
-                ? model.node.properties?.["activityFunction"]?.value.trim()
-                : undefined)
-            : (isWorkflowInitCall
-                ? (typeof model.node.properties?.["processFunction"]?.value === "string"
-                    ? model.node.properties?.["processFunction"]?.value.trim()
-                    : undefined)
-                : undefined);
-    const functionViewRange =
-        (model.node.properties?.view?.value as ELineRange | undefined) ||
-        (isWorkflowActivityCall
-            ? (model.node.properties?.["activityFunction"]?.codedata?.lineRange as ELineRange | undefined)
-            : undefined) ||
-        (isWorkflowInitCall
-            ? (model.node.properties?.["processFunction"]?.codedata?.lineRange as ELineRange | undefined)
-            : undefined);
+    const functionViewRange = model.node.properties?.view?.value as ELineRange | undefined;
     const hasViewRange = Boolean(functionViewRange);
-    const canViewFunction =
-        (hasViewRange || Boolean(workflowTargetFunctionName)) &&
-        (
-            (model.node.codedata.node === "FUNCTION_CALL" && model.node.codedata.org === project?.org) ||
-            isWorkflowActivityCall ||
-            isWorkflowInitCall
-        );
+    const processFunctionValue = (model.node.properties as any)?.processFunction?.value as string | undefined;
+    const activityFunctionValue = (model.node.properties as any)?.activityFunction?.value as string | undefined;
+    const workflowStartFunctionName =
+        typeof processFunctionValue === "string"
+            ? processFunctionValue
+                .trim()
+                .replace(/^["']|["']$/g, "")
+                .split(":")
+                .pop()
+                ?.split("(")[0]
+                ?.trim()
+            : undefined;
+    const activityFunctionName =
+        typeof activityFunctionValue === "string"
+            ? activityFunctionValue
+                .trim()
+                .replace(/^["']|["']$/g, "")
+                .split(":")
+                .pop()
+                ?.split("(")[0]
+                ?.trim()
+            : undefined;
+    const canViewProjectFunction =
+        hasViewRange &&
+        model.node.codedata.node === "FUNCTION_CALL" &&
+        model.node.codedata.org === project?.org;
+    const canViewWorkflowStartFunction = model.node.codedata.node === "WORKFLOW_START" && Boolean(workflowStartFunctionName);
+    const canViewActivityFunction = model.node.codedata.node === "ACTIVITY_CALL" && Boolean(activityFunctionName);
+    const canViewFunction = canViewProjectFunction || canViewWorkflowStartFunction || canViewActivityFunction;
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
         if (readOnly) {
@@ -321,10 +315,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     };
 
     const viewFunction = async () => {
-        if (!functionViewRange && !workflowTargetFunctionName) {
-            return;
-        }
-        if (functionViewRange) {
+        if (canViewProjectFunction && functionViewRange) {
             const { fileName, startLine, endLine } = functionViewRange;
             const response = await project?.getProjectPath?.({ segments: [fileName], codeData: model.node.codedata });
             openView &&
@@ -341,8 +332,16 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             return;
         }
 
-        if (workflowTargetFunctionName && project?.getFunctionLocation) {
-            const functionLocation = await project.getFunctionLocation(workflowTargetFunctionName);
+        if (canViewWorkflowStartFunction && workflowStartFunctionName) {
+            const functionLocation = await project?.getFunctionLocation?.(workflowStartFunctionName);
+            if (functionLocation) {
+                openView && openView(functionLocation);
+            }
+            return;
+        }
+
+        if (canViewActivityFunction && activityFunctionName) {
+            const functionLocation = await project?.getFunctionLocation?.(activityFunctionName);
             if (functionLocation) {
                 openView && openView(functionLocation);
             }
@@ -425,19 +424,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
             <NodeStyles.Row>
                 <NodeStyles.Icon onClick={handleOnClick}>
-                    {isWorkflowInitCall ? (
-                        <Icon
-                            name="bi-workflow"
-                            sx={{
-                                fontSize: 24,
-                                width: 24,
-                                height: 24,
-                                color: getNodeChartColor(model.node.codedata.node),
-                            }}
-                        />
-                    ) : (
-                        <NodeIcon type={model.node.codedata.node} size={24} />
-                    )}
+                    <NodeIcon type={model.node.codedata.node} size={24} />
                     {/* {model.node.properties.variable?.value && (
                         <NodeStyles.Description>{model.node.properties.variable.value}</NodeStyles.Description>
                     )} */}

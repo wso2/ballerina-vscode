@@ -101,4 +101,16 @@ export interface BaseVisitor {
 
     beginVisitVariable?(node: FlowNode, parent?: FlowNode): void;
     endVisitVariable?(node: FlowNode, parent?: FlowNode): void;
+
+    beginVisitWorkflowStart?(node: FlowNode, parent?: FlowNode): void;
+    endVisitWorkflowStart?(node: FlowNode, parent?: FlowNode): void;
+
+    beginVisitActivityCall?(node: FlowNode, parent?: FlowNode): void;
+    endVisitActivityCall?(node: FlowNode, parent?: FlowNode): void;
+
+    beginVisitSendEvent?(node: FlowNode, parent?: FlowNode): void;
+    endVisitSendEvent?(node: FlowNode, parent?: FlowNode): void;
+
+    beginVisitWaitEvent?(node: FlowNode, parent?: FlowNode): void;
+    endVisitWaitEvent?(node: FlowNode, parent?: FlowNode): void;
 }

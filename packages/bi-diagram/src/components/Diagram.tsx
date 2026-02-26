@@ -343,7 +343,11 @@ export function Diagram(props: DiagramProps) {
                 node.getType() === NodeTypes.BASE_NODE ||
                 node.getType() === NodeTypes.WHILE_NODE ||
                 node.getType() === NodeTypes.IF_NODE ||
-                node.getType() === NodeTypes.API_CALL_NODE;
+                node.getType() === NodeTypes.API_CALL_NODE ||
+                node.getType() === NodeTypes.WORKFLOW_START_NODE ||
+                node.getType() === NodeTypes.CALL_ACTIVITY_NODE ||
+                node.getType() === NodeTypes.SEND_EVENT_NODE ||
+                node.getType() === NodeTypes.WAIT_EVENT_NODE;
             return isValidType && (node as BaseNodeModel).isActiveBreakpoint();
         });
 

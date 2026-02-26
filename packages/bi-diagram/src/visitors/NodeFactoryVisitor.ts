@@ -21,11 +21,15 @@ import { NodeLinkModel, NodeLinkModelOptions } from "../components/NodeLink";
 import { ApiCallNodeModel } from "../components/nodes/ApiCallNode";
 import { BaseNodeModel } from "../components/nodes/BaseNode";
 import { ButtonNodeModel } from "../components/nodes/ButtonNode";
+import { CallActivityNodeModel } from "../components/nodes/CallActivityNode";
 import { CommentNodeModel } from "../components/nodes/CommentNode";
 import { DraftNodeModel } from "../components/nodes/DraftNode/DraftNodeModel";
 import { EmptyNodeModel } from "../components/nodes/EmptyNode";
 import { IfNodeModel } from "../components/nodes/IfNode/IfNodeModel";
+import { SendEventNodeModel } from "../components/nodes/SendEventNode";
 import { StartNodeModel } from "../components/nodes/StartNode/StartNodeModel";
+import { WaitEventNodeModel } from "../components/nodes/WaitEventNode";
+import { WorkflowStartNodeModel } from "../components/nodes/WorkflowStartNode";
 import { WhileNodeModel } from "../components/nodes/WhileNode";
 import {
     BUTTON_NODE_HEIGHT,
@@ -33,7 +37,6 @@ import {
     END_CONTAINER,
     LAST_NODE,
     NODE_GAP_X,
-    NodeTypes,
     START_CONTAINER,
     WHILE_NODE_WIDTH,
 } from "../resources/constants";
@@ -102,14 +105,32 @@ export class NodeFactoryVisitor implements BaseVisitor {
         return nodeModel;
     }
 
-    private isWorkflowActivityCallNode(node: FlowNode): boolean {
-        return (
-            node.codedata.node === "REMOTE_ACTION_CALL" &&
-            node.codedata.org === "ballerina" &&
-            node.codedata.module === "workflow" &&
-            node.codedata.object === "Context" &&
-            node.codedata.symbol === "callActivity"
-        );
+    private createCallActivityNode(node: FlowNode): NodeModel {
+        const nodeModel = new CallActivityNodeModel(node);
+        this.nodes.push(nodeModel);
+        this.updateNodeLinks(node, nodeModel);
+        return nodeModel;
+    }
+
+    private createWorkflowStartNode(node: FlowNode): NodeModel {
+        const nodeModel = new WorkflowStartNodeModel(node);
+        this.nodes.push(nodeModel);
+        this.updateNodeLinks(node, nodeModel);
+        return nodeModel;
+    }
+
+    private createSendEventNode(node: FlowNode): NodeModel {
+        const nodeModel = new SendEventNodeModel(node);
+        this.nodes.push(nodeModel);
+        this.updateNodeLinks(node, nodeModel);
+        return nodeModel;
+    }
+
+    private createWaitEventNode(node: FlowNode): NodeModel {
+        const nodeModel = new WaitEventNodeModel(node);
+        this.nodes.push(nodeModel);
+        this.updateNodeLinks(node, nodeModel);
+        return nodeModel;
     }
 
     private createEmptyNode(id: string, x: number, y: number, visible = true, showButton = false): EmptyNodeModel {
@@ -610,11 +631,39 @@ export class NodeFactoryVisitor implements BaseVisitor {
     beginVisitRemoteActionCall(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         if (node.id) {
-            if (this.isWorkflowActivityCallNode(node)) {
-                this.createBaseNode(node);
-            } else {
-                this.createApiCallNode(node);
-            }
+            this.createApiCallNode(node);
+            this.addSuggestionsButton(node);
+        }
+    }
+
+    beginVisitActivityCall(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        if (node.id) {
+            this.createCallActivityNode(node);
+            this.addSuggestionsButton(node);
+        }
+    }
+
+    beginVisitWorkflowStart(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        if (node.id) {
+            this.createWorkflowStartNode(node);
+            this.addSuggestionsButton(node);
+        }
+    }
+
+    beginVisitSendEvent(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        if (node.id) {
+            this.createSendEventNode(node);
+            this.addSuggestionsButton(node);
+        }
+    }
+
+    beginVisitWaitEvent(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        if (node.id) {
+            this.createWaitEventNode(node);
             this.addSuggestionsButton(node);
         }
     }

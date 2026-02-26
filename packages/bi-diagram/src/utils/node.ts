@@ -90,27 +90,6 @@ export function getNodeTitle(node: FlowNode) {
         return typeof value === "string" ? value.trim() : undefined;
     };
 
-    const isWorkflowInitCall =
-        node.codedata?.node === "FUNCTION_CALL" &&
-        node.codedata?.org === "ballerina" &&
-        node.codedata?.module === "workflow" &&
-        node.codedata?.symbol === "createInstance";
-    if (isWorkflowInitCall) {
-        const processFunction = getPropertyString("processFunction");
-        return processFunction ? `workflow : ${processFunction}` : "workflow";
-    }
-
-    const isWorkflowActivityCall =
-        node.codedata?.node === "REMOTE_ACTION_CALL" &&
-        node.codedata?.org === "ballerina" &&
-        node.codedata?.module === "workflow" &&
-        node.codedata?.object === "Context" &&
-        node.codedata?.symbol === "callActivity";
-    if (isWorkflowActivityCall) {
-        const activityFunction = getPropertyString("activityFunction");
-        return activityFunction ? `callActivity : ${activityFunction}` : "callActivity";
-    }
-
     if (node.codedata?.node === "WAIT") {
         const directExpression = getPropertyString("expression");
         if (directExpression) {

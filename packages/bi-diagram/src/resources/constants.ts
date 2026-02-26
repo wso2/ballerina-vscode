@@ -31,6 +31,10 @@ export enum NodeTypes {
     ERROR_NODE = "error-node",
     AGENT_CALL_NODE = "agent-call-node",
     PROMPT_NODE = "prompt-node",
+    WORKFLOW_START_NODE = "workflow-start-node",
+    CALL_ACTIVITY_NODE = "call-activity-node",
+    SEND_EVENT_NODE = "send-event-node",
+    WAIT_EVENT_NODE = "wait-event-node",
 }
 
 export const NODE_LINK = "node-link";
@@ -93,3 +97,11 @@ export const AGENT_NODE_ADD_TOOL_BUTTON_WIDTH = 20;
 // prompt node
 export const PROMPT_NODE_WIDTH = 350;
 export const PROMPT_NODE_HEIGHT = 300;
+
+// wait event node
+export const WAIT_EVENT_CORE_WIDTH = 140;
+export const WAIT_EVENT_CORE_HEIGHT = 72;
+export const WAIT_EVENT_DETAILS_WIDTH = 140;
+export const WAIT_EVENT_DETAILS_GAP = 12;
+export const WAIT_EVENT_CIRCLE_SIZE = 56;
+export const WAIT_EVENT_ARROW_WIDTH = 60;
