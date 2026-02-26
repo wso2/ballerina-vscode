@@ -18,6 +18,8 @@
 
 package io.ballerina.persist.extension;
 
+import java.util.List;
+
 /**
  * Represents a request to generate Ballerina persist client from database introspection.
  *
@@ -25,46 +27,11 @@ package io.ballerina.persist.extension;
  */
 public class PersistClientGeneratorRequest {
     private String projectPath;
-    private String name;
-    private String dbSystem;
-    private String host;
-    private Integer port;
-    private String user;
-    private String password;
-    private String database;
-    private String[] selectedTables;
-    private String module;
+    private String targetModule;
+    private String modelFilePath;
+    private List<TableEntry> tables;
 
     public PersistClientGeneratorRequest() {
-    }
-
-    /**
-     * Constructor for PersistClientGeneratorRequest.
-     *
-     * @param projectPath    The project path
-     * @param name           Name of the database connector
-     * @param dbSystem       Database system type (mysql, postgresql, mssql)
-     * @param host           Database host address
-     * @param port           Database port number
-     * @param user           Database user name
-     * @param password       Database user password
-     * @param database       Name of the database to connect
-     * @param selectedTables Selected tables to generate entities for
-     * @param module         The target module name for generated client
-     */
-    public PersistClientGeneratorRequest(String projectPath, String name, String dbSystem, String host,
-                                         Integer port, String user, String password, String database,
-                                         String[] selectedTables, String module) {
-        this.projectPath = projectPath;
-        this.name = name;
-        this.dbSystem = dbSystem;
-        this.host = host;
-        this.port = port;
-        this.user = user;
-        this.password = password;
-        this.database = database;
-        this.selectedTables = selectedTables;
-        this.module = module;
     }
 
     public String getProjectPath() {
@@ -75,75 +42,38 @@ public class PersistClientGeneratorRequest {
         this.projectPath = projectPath;
     }
 
-    public String getName() {
-        return name;
+    public String getTargetModule() {
+        return targetModule;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTargetModule(String targetModule) {
+        this.targetModule = targetModule;
     }
 
-    public String getDbSystem() {
-        return dbSystem;
+    public String getModelFilePath() {
+        return modelFilePath;
     }
 
-    public void setDbSystem(String dbSystem) {
-        this.dbSystem = dbSystem;
+    public void setModelFilePath(String modelFilePath) {
+        this.modelFilePath = modelFilePath;
     }
 
-    public String getHost() {
-        return host;
+    public List<TableEntry> getTables() {
+        return tables;
     }
 
-    public void setHost(String host) {
-        this.host = host;
+    public void setTables(List<TableEntry> tables) {
+        this.tables = tables;
     }
 
-    public Integer getPort() {
-        return port;
-    }
-
-    public void setPort(Integer port) {
-        this.port = port;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
-    public String[] getSelectedTables() {
-        return selectedTables;
-    }
-
-    public void setSelectedTables(String[] selectedTables) {
-        this.selectedTables = selectedTables;
-    }
-
-    public String getModule() {
-        return module;
-    }
-
-    public void setModule(String module) {
-        this.module = module;
+    /**
+     * Represents a single table entry in the generation request, combining the table name
+     * with the flags that were set during the introspection step.
+     *
+     * @param table    The database table name.
+     * @param selected {@code true} if the user selected this table for client generation.
+     * @param existing {@code true} if a corresponding record type already exists in the model file.
+     */
+    public record TableEntry(String table, boolean selected, boolean existing) {
     }
 }

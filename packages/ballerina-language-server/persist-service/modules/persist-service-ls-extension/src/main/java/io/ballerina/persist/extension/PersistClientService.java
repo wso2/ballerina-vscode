@@ -137,8 +137,13 @@ public class PersistClientService implements ExtendedLanguageServerService {
 
     /**
      * Generate Ballerina persist client from database introspection.
+     * <p>
+     * When {@code targetModule} and {@code modelFilePath} are both non-empty the module already
+     * exists: only the generated client source files are (re)generated and Ballerina.toml /
+     * config / connections changes are skipped. When {@code targetModule} is {@code null} or
+     * empty the full setup flow is executed (requires database credentials to be available).
      *
-     * @param request The persist client generator request containing connection details and selected tables
+     * @param request The persist client generator request
      * @return CompletableFuture containing the response with source (text edits map) or error information
      */
     @JsonRequest
@@ -149,23 +154,27 @@ public class PersistClientService implements ExtendedLanguageServerService {
             try {
                 this.workspaceManager.loadProject(Path.of(request.getProjectPath()));
 
+                String targetModule = request.getTargetModule();
+                String modelFilePath = request.getModelFilePath();
+                boolean hasExistingModule = targetModule != null && !targetModule.isEmpty()
+                        && modelFilePath != null && !modelFilePath.isEmpty();
+
+                // Derive the short module name (last segment of the fully-qualified targetModule)
+                String module = targetModule != null && targetModule.contains(".")
+                        ? targetModule.substring(targetModule.lastIndexOf('.') + 1)
+                        : targetModule;
+
+                String[] selectedTables = request.getTables() == null ? new String[0]
+                        : request.getTables().stream()
+                                .filter(PersistClientGeneratorRequest.TableEntry::selected)
+                                .map(PersistClientGeneratorRequest.TableEntry::table)
+                                .toArray(String[]::new);
+
                 PersistClient generator = new PersistClient(
-                        request.getProjectPath(),
-                        request.getName(),
-                        request.getDbSystem(),
-                        request.getHost(),
-                        request.getPort(),
-                        request.getUser(),
-                        request.getPassword(),
-                        request.getDatabase(),
-                        this.workspaceManager
-                );
+                        request.getProjectPath(), module, this.workspaceManager);
 
                 JsonElement source = generator.generateClient(
-                        request.getSelectedTables(),
-                        request.getModule(),
-                        request.getName()
-                );
+                        selectedTables, module, module, hasExistingModule, modelFilePath);
                 response.setSource(source);
             } catch (Exception e) {
                 response.setError(e);
