@@ -27,7 +27,7 @@ import { Task } from "@wso2/ballerina-core";
 const Container = styled.div`
     display: flex;
     flex-direction: column;
-    margin: 4px 0;
+    margin: 0 0 4px 0;
     font-family: var(--vscode-font-family);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 4px;
@@ -101,10 +101,10 @@ const ApprovalComment = styled.span`
 const TaskList = styled.div`
     display: flex;
     flex-direction: column;
-    margin-left: 2px;
+    margin-left: 8px;
     overflow-y: auto;
     max-height: 200px;
-    padding-bottom: 1px;
+    padding-bottom: 4px;
 `;
 
 const TaskBlock = styled.div`
@@ -168,8 +168,8 @@ const Bullet = styled.span`
     height: 6px;
     border-radius: 50%;
     flex-shrink: 0;
-    background-color: var(--vscode-panel-border);
-    opacity: 0.9;
+    background-color: var(--vscode-descriptionForeground);
+    opacity: 0.85;
 `;
 
 // ── Component ─────────────────────────────────────────────────────────────────
