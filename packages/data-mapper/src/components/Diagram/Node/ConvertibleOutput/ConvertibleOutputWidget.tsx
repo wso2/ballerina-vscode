@@ -74,14 +74,15 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
         }))
     );
 
-    const typeKind = outputType.kind;
-    const isUnknownType = typeKind === TypeKind.Unknown;
-    const isConvertibleType = (typeKind === TypeKind.Json || typeKind === TypeKind.Xml) && !outputType.fields;
-
     const fields = outputType.fields?.filter(t => t !== null);
     const hasFields = fields?.length > 0;
 
     const portIn = getPort(`${id}.IN`);
+
+    const typeKind = outputType.kind;
+    const isUnknownType = typeKind === TypeKind.Unknown;
+    const isConvertibleType = (typeKind === TypeKind.Json || typeKind === TypeKind.Xml) && !outputType.fields;
+
 
     let expanded = true;
     if (portIn && portIn.attributes.collapsed) {

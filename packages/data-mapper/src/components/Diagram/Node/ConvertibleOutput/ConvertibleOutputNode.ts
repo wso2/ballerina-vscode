@@ -66,29 +66,42 @@ export class ConvertibleOutputNode extends DataMapperNodeModel {
 
             this.hasNoMatchingFields = hasNoOutputMatchFound(this.outputType, this.filteredOutputType);
 
-            const headerPort = this.addPortsForHeader({
+            this.addPortsForHeader({
                 dmType: this.filteredOutputType,
-                name: this.rootName,
+                name: this.rootName + ".$",
                 portType: "IN",
                 portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
                 mappings: this.context.model.mappings,
                 collapsedFields,
                 expandedFields,
+                isPreview: true
             });
 
-            const parentField = this.filteredOutputType.convertedField || this.filteredOutputType;
+            const convertedField = this.filteredOutputType.convertedField;
+
+            const convertedFieldPort = this.addPortsForHeader({
+                dmType: convertedField,
+                name: this.rootName,
+                portType: "IN",
+                portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
+                mappings: this.context.model.mappings,
+                collapsedFields,
+                expandedFields
+            });
 
             await this.processOutputFieldKind({
-                field: parentField,
+                field: convertedField,
                 type: "IN",
                 parentId: this.rootName,
                 mappings: this.context.model.mappings,
                 portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
-                parent: headerPort,
+                parent: convertedFieldPort,
                 collapsedFields,
                 expandedFields,
-                hidden: headerPort.attributes.collapsed
+                hidden: convertedFieldPort.attributes.collapsed
             });
+
+           
         }
     }
 
@@ -100,10 +113,12 @@ export class ConvertibleOutputNode extends DataMapperNodeModel {
     }
 
     private createLinks(mappings: Mapping[]) {
+
         const views = this.context.views;
         const lastViewIndex = views.length - 1;
 
         mappings.forEach((mapping) => {
+
             const { isComplex, isQueryExpression, isFunctionCall, inputs, output, expression, diagnostics } = mapping;
             if (isComplex || isQueryExpression || isFunctionCall || inputs.length !== 1) {
                 // Complex mappings are handled in the LinkConnectorNode
