@@ -20,21 +20,31 @@ package io.ballerina.persist.extension;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.CaptureBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NewExpressionNode;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.persist.BalException;
@@ -68,10 +78,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createIdentifierToken;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
@@ -179,6 +191,117 @@ public class PersistClient {
         } catch (BalException e) {
             throw new PersistClientException("Error introspecting database tables: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Introspects the database and returns a list of {@link DatabaseIntrospectionResponse.TableInfo} entries,
+     * each annotated with {@code selected} and {@code existing} flags derived from the persist model file.
+     *
+     * @param modelFilePath Relative path to the model file (e.g. {@code persist/testdb/model.bal}),
+     *                      or {@code null} / empty when no model file exists yet
+     * @return List of table info entries for every table found in the database
+     * @throws PersistClientException if an error occurs during introspection
+     */
+    public List<DatabaseIntrospectionResponse.TableInfo> introspectDatabase(String modelFilePath)
+            throws PersistClientException {
+        String[] dbTables = introspectDatabaseTables();
+        Set<String> modelTableNames = extractModelTableNames(modelFilePath);
+
+        List<DatabaseIntrospectionResponse.TableInfo> tableInfos = new ArrayList<>();
+        for (String table : dbTables) {
+            boolean inModel = modelTableNames.contains(table);
+            tableInfos.add(new DatabaseIntrospectionResponse.TableInfo(table, inModel, inModel));
+        }
+        return tableInfos;
+    }
+
+    /**
+     * Parses the persist model file at {@code projectPath/modelFilePath} and returns
+     * the set of table names that already have a corresponding record type definition.
+     * <p>
+     * For each {@code public type Foo record {| ... |}} definition:
+     * <ol>
+     *   <li>If a {@code @sql:Name {value: "tableName"}} annotation is present, its
+     *       {@code value} field is used as the table name.</li>
+     *   <li>Otherwise, the record type name itself is used.</li>
+     * </ol>
+     *
+     * @param modelFilePath Relative path to the model file (e.g. {@code persist/testdb/model.bal})
+     * @return Set of table names found in the model; empty when the file is absent or unreadable
+     */
+    private Set<String> extractModelTableNames(String modelFilePath) {
+        if (modelFilePath == null || modelFilePath.isEmpty()) {
+            return Set.of();
+        }
+        Path fullPath = this.projectPath.resolve(modelFilePath);
+        Optional<Document> document = workspaceManager.document(fullPath);
+        if (document.isEmpty()) {
+            return Set.of();
+        }
+        ModulePartNode rootNode = document.get().syntaxTree().rootNode();
+
+        Set<String> tableNames = new HashSet<>();
+        for (ModuleMemberDeclarationNode member : rootNode.members()) {
+            if (!(member instanceof TypeDefinitionNode typeDef)) {
+                continue;
+            }
+            if (!(typeDef.typeDescriptor() instanceof RecordTypeDescriptorNode)) {
+                continue;
+            }
+            String sqlName = extractSqlAnnotationName(typeDef);
+            tableNames.add(sqlName != null ? sqlName : typeDef.typeName().text());
+        }
+        return tableNames;
+    }
+
+    /**
+     * Scans the metadata annotations of a type definition for a {@code @sql:Name}
+     * annotation and returns its {@code value} field text when found.
+     *
+     * @param typeDef The type definition node to inspect
+     * @return The annotation {@code value} string, or {@code null} when not present
+     */
+    private String extractSqlAnnotationName(TypeDefinitionNode typeDef) {
+        Optional<MetadataNode> metadataOpt = typeDef.metadata();
+        if (metadataOpt.isEmpty()) {
+            return null;
+        }
+        for (AnnotationNode annotation : metadataOpt.get().annotations()) {
+            Node annotRef = annotation.annotReference();
+            if (!(annotRef instanceof QualifiedNameReferenceNode qualRef)) {
+                continue;
+            }
+            if (!"sql".equals(qualRef.modulePrefix().text())
+                    || !"Name".equals(qualRef.identifier().text())) {
+                continue;
+            }
+            Optional<MappingConstructorExpressionNode> annotValueOpt = annotation.annotValue();
+            if (annotValueOpt.isEmpty()) {
+                continue;
+            }
+            for (MappingFieldNode field : annotValueOpt.get().fields()) {
+                if (!(field instanceof SpecificFieldNode specificField)) {
+                    continue;
+                }
+                if (!"value".equals(specificField.fieldName().toSourceCode().trim())) {
+                    continue;
+                }
+                Optional<ExpressionNode> valueExprOpt = specificField.valueExpr();
+                if (valueExprOpt.isPresent()
+                        && valueExprOpt.get() instanceof BasicLiteralNode literal) {
+                    return stripQuotes(literal.literalToken().text());
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String stripQuotes(String value) {
+        if (value != null && value.length() >= 2
+                && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
+            return value.substring(1, value.length() - 1);
+        }
+        return value;
     }
 
     /**
