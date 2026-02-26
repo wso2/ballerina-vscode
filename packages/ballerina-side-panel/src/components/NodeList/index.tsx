@@ -641,9 +641,9 @@ export function NodeList(props: NodeListProps) {
                     // If subcategory is inside "Current Workspace", show "Current Integration" actions instead of 
                     // the subcategory title when the subcategory referes to the current integration
                     const categoryActions = parentCategoryTitle === "Current Workspace" ?  
-                       ( group.title?.includes("(current)") ? getCategoryActions("Current Integration") : getCategoryActions(group.title)) 
+                       ( group.title?.includes("(current)") ? getCategoryActions("Current Integration", title) : getCategoryActions(group.title, title)) 
                     : 
-                    getCategoryActions(group.title);
+                    getCategoryActions(group.title, title);
                     const config = categoryConfig[group.title] || { hasBackground: true };
                     const shouldShowSeparator = config.showSeparatorBefore;
 
