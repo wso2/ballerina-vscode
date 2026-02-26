@@ -672,7 +672,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async validateProjectPath(params: ValidateProjectFormRequest): Promise<ValidateProjectFormResponse> {
-        return validateProjectPath(params.projectPath, params.projectName, params.createDirectory);
+        return validateProjectPath(params.projectPath, params.projectName, params.createDirectory, params.createAsWorkspace);
     }
 
     async deleteProject(params: DeleteProjectRequest): Promise<void> {
