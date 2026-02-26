@@ -1,0 +1,82 @@
+{
+  "description": "Introspect credentials for the mysql connection when multiple connections exist",
+  "testProjectFolder": "sample-project-multiple-connections",
+  "connection": "mysqldb",
+  "output": {
+    "metadata": {
+      "label": "mysqldb",
+      "description": "mysql connection"
+    },
+    "properties": [
+      {
+        "metadata": {
+          "label": "Database System",
+          "description": "The database system type (e.g., mysql, postgresql, mssql)"
+        },
+        "value": "mysql",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Host",
+          "description": "Database server host address"
+        },
+        "value": "localhost",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Port",
+          "description": "Database server port number"
+        },
+        "value": "3306",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "User",
+          "description": "Database username"
+        },
+        "value": "root",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Password",
+          "description": "Database user password"
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Database",
+          "description": "Name of the database to connect"
+        },
+        "value": "mysqldb",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    ],
+    "targetModule": "sample_project_multiple_connections.mysqldb",
+    "modelFilePath": "persist/mysqldb/model.bal"
+  },
+  "expectError": false,
+  "expectedErrorMessage": ""
+}

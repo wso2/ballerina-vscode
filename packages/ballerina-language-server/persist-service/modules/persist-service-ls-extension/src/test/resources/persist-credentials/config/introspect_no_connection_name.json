@@ -1,0 +1,72 @@
+{
+  "description": "When the connection field is null, an empty credential model is returned immediately without reading any project files",
+  "testProjectFolder": "sample-project-with-persist",
+  "output": {
+    "metadata": {
+      "label": "",
+      "description": ""
+    },
+    "properties": [
+      {
+        "metadata": {
+          "label": "Database System",
+          "description": "The database system type (e.g., mysql, postgresql, mssql)"
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Host",
+          "description": "Database server host address"
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Port",
+          "description": "Database server port number"
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "User",
+          "description": "Database username"
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Password",
+          "description": "Database user password"
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Database",
+          "description": "Name of the database to connect"
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    ]
+  }
+}

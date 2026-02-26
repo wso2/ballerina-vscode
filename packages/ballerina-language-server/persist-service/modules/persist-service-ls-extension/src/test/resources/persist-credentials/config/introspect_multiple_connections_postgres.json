@@ -1,0 +1,82 @@
+{
+  "description": "Introspect credentials for the postgresql connection when multiple connections exist",
+  "testProjectFolder": "sample-project-multiple-connections",
+  "connection": "postgresdb",
+  "output": {
+    "metadata": {
+      "label": "postgresdb",
+      "description": "postgresql connection"
+    },
+    "properties": [
+      {
+        "metadata": {
+          "label": "Database System",
+          "description": "The database system type (e.g., mysql, postgresql, mssql)"
+        },
+        "value": "postgresql",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Host",
+          "description": "Database server host address"
+        },
+        "value": "db.example.com",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Port",
+          "description": "Database server port number"
+        },
+        "value": "5432",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "User",
+          "description": "Database username"
+        },
+        "value": "postgres",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Password",
+          "description": "Database user password"
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Database",
+          "description": "Name of the database to connect"
+        },
+        "value": "postgresdb",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    ],
+    "targetModule": "sample_project_multiple_connections.postgresdb",
+    "modelFilePath": "persist/postgresdb/model.bal"
+  },
+  "expectError": false,
+  "expectedErrorMessage": ""
+}

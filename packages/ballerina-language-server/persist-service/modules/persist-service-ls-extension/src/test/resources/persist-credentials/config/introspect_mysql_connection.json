@@ -1,0 +1,82 @@
+{
+  "description": "Introspect credentials for a named mysql persist connection",
+  "testProjectFolder": "sample-project-with-persist",
+  "connection": "testdb",
+  "output": {
+    "metadata": {
+      "label": "testdb",
+      "description": "mysql connection"
+    },
+    "properties": [
+      {
+        "metadata": {
+          "label": "Database System",
+          "description": "The database system type (e.g., mysql, postgresql, mssql)"
+        },
+        "value": "mysql",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Host",
+          "description": "Database server host address"
+        },
+        "value": "localhost",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Port",
+          "description": "Database server port number"
+        },
+        "value": "3306",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "User",
+          "description": "Database username"
+        },
+        "value": "root",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Password",
+          "description": "Database user password"
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      {
+        "metadata": {
+          "label": "Database",
+          "description": "Name of the database to connect"
+        },
+        "value": "testdb",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    ],
+    "targetModule": "sample_project_with_persist.testdb",
+    "modelFilePath": "persist/testdb/model.bal"
+  },
+  "expectError": false,
+  "expectedErrorMessage": ""
+}
