@@ -1110,23 +1110,48 @@ const AIChat: React.FC = () => {
             setIsCodeLoading(false);
             setIsLoading(false);
             fetchUsage();
-            // Stream ended — clear task ref so any subsequent content renders normally
             currentTaskDescriptionRef.current = null;
+            // Persist finished execution stream into the last assistant message immediately
+            if (agentMode === AgentMode.Plan) {
+                setExecutionStream(prev => {
+                    if (prev.length > 0) {
+                        setMessages(prevMessages => {
+                            const lastIdx = [...prevMessages].map(m => m.role).lastIndexOf("Copilot");
+                            if (lastIdx === -1) return prevMessages;
+                            const updated = [...prevMessages];
+                            updated[lastIdx] = { ...updated[lastIdx], content: serializeExecutionStream(prev) };
+                            return updated;
+                        });
+                    }
+                    return prev;
+                });
+            }
         } else if (type === "abort") {
             console.log("Received abort signal");
             const interruptedMessage = "*[Request interrupted by user]*";
             if (agentMode === AgentMode.Plan) {
-                // In plan mode, route abort message to executionStream
+                // In plan mode, route abort message to executionStream then persist
                 setExecutionStream(prev => {
                     const abortEvent = { type: "text" as const, text: interruptedMessage, loading: false };
+                    let updated: typeof prev;
                     if (prev.length === 0) {
-                        return [{ description: "", events: [abortEvent] }];
+                        updated = [{ description: "", events: [abortEvent] }];
+                    } else {
+                        const last = prev[prev.length - 1];
+                        if (last.description === "") {
+                            updated = [...prev.slice(0, -1), { ...last, events: [...last.events, abortEvent] }];
+                        } else {
+                            updated = [...prev, { description: "", events: [abortEvent] }];
+                        }
                     }
-                    const last = prev[prev.length - 1];
-                    if (last.description === "") {
-                        return [...prev.slice(0, -1), { ...last, events: [...last.events, abortEvent] }];
-                    }
-                    return [...prev, { description: "", events: [abortEvent] }];
+                    setMessages(prevMessages => {
+                        const lastIdx = [...prevMessages].map(m => m.role).lastIndexOf("Copilot");
+                        if (lastIdx === -1) return prevMessages;
+                        const updatedMessages = [...prevMessages];
+                        updatedMessages[lastIdx] = { ...updatedMessages[lastIdx], content: serializeExecutionStream(updated) };
+                        return updatedMessages;
+                    });
+                    return updated;
                 });
             } else {
                 setMessages((prevMessages) => {
