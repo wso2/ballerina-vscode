@@ -46,7 +46,7 @@ import {
     isSupportedSLVersion,
     createVersionNumber,
     checkIsBallerinaWorkspace,
-    isWSO2IntegratorPresent
+    isInWI
 } from '../utils';
 import { AssertionError } from "assert";
 import {
@@ -2304,7 +2304,7 @@ export class BallerinaExtension {
     private checkMultipleBallerinaInstallations(): void {
         debug("[MULTI_BAL_CHECK] Checking for multiple Ballerina installations in PATH...");
 
-        if (isWSO2IntegratorPresent()) {
+        if (isInWI()) {
             debug("[MULTI_BAL_CHECK] Skipping multiple installation warning in WSO2 Integrator environment");
             return;
         }

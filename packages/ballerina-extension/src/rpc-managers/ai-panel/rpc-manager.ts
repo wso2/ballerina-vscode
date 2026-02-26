@@ -59,7 +59,7 @@ import { submitFeedback as submitFeedbackUtil } from "../../features/ai/utils/fe
 import { sendGenerationKeptTelemetry, sendGenerationDiscardTelemetry } from "../../features/ai/utils/generation-response";
 import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
-import { isWSO2IntegratorPresent } from "../../utils";
+import { isInWI } from "../../utils";
 import { getLoginMethod, isPlatformExtensionAvailable, loginGithubCopilot } from "../../utils/ai/auth";
 import { normalizeCodeContext } from "../../views/ai-panel/codeContextUtils";
 import { refreshDataMapper } from "../data-mapper/utils";
@@ -161,8 +161,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async showSignInAlert(): Promise<boolean> {
         // Don't show alert in WI environment (WSO2 Integrator extension is installed)
-        const isInWI = isWSO2IntegratorPresent();
-        if (isInWI) {
+        const inWI = isInWI();
+        if (inWI) {
             return false;
         }
 
