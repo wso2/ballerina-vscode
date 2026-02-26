@@ -210,7 +210,7 @@ export function isSupportedSLVersion(
 }
 
 export function checkIsBI(uri: Uri): boolean {
-    if (isWSO2IntegratorPresent()) {
+    if (isInWI()) {
         return true;
     }
 
@@ -228,7 +228,7 @@ export function checkIsBI(uri: Uri): boolean {
     return false; // Return false if isBI is not set
 }
 
-export function isWSO2IntegratorPresent(): boolean {
+export function isInWI(): boolean {
     return !!extensions.getExtension(WI_EXTENSION_ID);
 }
 
