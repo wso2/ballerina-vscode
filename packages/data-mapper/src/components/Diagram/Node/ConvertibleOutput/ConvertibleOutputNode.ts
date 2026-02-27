@@ -66,41 +66,40 @@ export class ConvertibleOutputNode extends DataMapperNodeModel {
 
             this.hasNoMatchingFields = hasNoOutputMatchFound(this.outputType, this.filteredOutputType);
 
-            this.addPortsForHeader({
-                dmType: this.filteredOutputType,
-                name: this.rootName + ".C#",
-                portType: "IN",
-                portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
-                mappings: this.context.model.mappings,
-                collapsedFields,
-                expandedFields,
-            });
+            if (this.filteredOutputType.convertedField) {
 
-            const mainField = this.filteredOutputType.convertedField || this.filteredOutputType;
+                const headerPort = this.addPortsForHeader({
+                    dmType: this.filteredOutputType,
+                    name: this.rootName + ".C#",
+                    portType: "IN",
+                    portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
+                    mappings: this.context.model.mappings,
+                    collapsedFields,
+                    expandedFields,
+                });
 
-            const mainFieldPort = this.addPortsForHeader({
-                dmType: mainField,
-                name: this.rootName,
-                portType: "IN",
-                portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
-                mappings: this.context.model.mappings,
-                collapsedFields,
-                expandedFields
-            });
-
-            await this.processOutputFieldKind({
-                field: mainField,
-                type: "IN",
-                parentId: this.rootName,
-                mappings: this.context.model.mappings,
-                portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
-                parent: mainFieldPort,
-                collapsedFields,
-                expandedFields,
-                hidden: mainFieldPort.attributes.collapsed
-            });
-
-           
+                await this.addPortsForOutputField({
+                    field: this.filteredOutputType.convertedField,
+                    type: "IN",
+                    parentId: "",
+                    mappings: this.context.model.mappings,
+                    portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
+                    parent: headerPort,
+                    collapsedFields,
+                    expandedFields,
+                    hidden: headerPort.attributes.collapsed
+                });
+            } else {
+                const headerPort = this.addPortsForHeader({
+                    dmType: this.filteredOutputType,
+                    name: this.rootName,
+                    portType: "IN",
+                    portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
+                    mappings: this.context.model.mappings,
+                    collapsedFields,
+                    expandedFields
+                });
+            }
         }
     }
 
