@@ -23,6 +23,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import io.ballerina.servicemodelgenerator.extension.model.Value;
 import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.TextEdit;
 import org.testng.Assert;
@@ -69,6 +70,8 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
         request.setProjectPath(sourceDir.resolve(testConfig.testProjectFolder()).toAbsolutePath().toString());
         request.setTargetModule(testConfig.targetModule());
         request.setModelFilePath(testConfig.modelFilePath());
+        request.setConnection(testConfig.connection());
+        request.setProperties(testConfig.properties());
         request.setTables(testConfig.tables());
 
         // Handle negative test cases
@@ -152,6 +155,8 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
                         testConfig.testProjectFolder(),
                         testConfig.targetModule(),
                         testConfig.modelFilePath(),
+                        testConfig.connection(),
+                        testConfig.properties(),
                         testConfig.tables(),
                         newMap,
                         testConfig.expectError(),
@@ -193,6 +198,12 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
      * @param testProjectFolder    The test project folder path.
      * @param targetModule         The fully-qualified target module name (e.g. "sample_project.testdb").
      * @param modelFilePath        Relative path to the existing model file (e.g. "persist/testdb/model.bal").
+     * @param connection           Optional connection name used as variable name prefix for configurable
+     *                             variables and the persist client declaration. When {@code null} or empty,
+     *                             config.bal and connections.bal entries are skipped.
+     * @param properties           Optional map of DB credential values (Database System, Host, Port, User,
+     *                             Password, Database). Required when {@code connection} is provided and
+     *                             the module does not already exist.
      * @param tables               The table entries with selection flags from the introspection step.
      * @param output               The expected text edits output.
      * @param expectError          Flag to indicate if an error is expected.
@@ -200,6 +211,7 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
      */
     private record TestConfig(String description, String testProjectFolder,
             String targetModule, String modelFilePath,
+            String connection, Map<String, Value> properties,
             List<TableEntry> tables,
             Map<String, List<TextEdit>> output, Boolean expectError, String expectedErrorMessage) {
 

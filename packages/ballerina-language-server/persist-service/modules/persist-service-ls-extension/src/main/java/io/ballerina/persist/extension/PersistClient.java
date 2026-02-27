@@ -337,17 +337,20 @@ public class PersistClient {
      * setup flow is executed, which requires database credentials to be available via the
      * full constructor.
      *
-     * @param selectedTables The tables to generate entities for
-     * @param module         The short module name (e.g. {@code "testdb"})
-     * @param name           The database connector variable name
-     * @param skipTomlEdits  {@code true} to skip Ballerina.toml / config / connections edits
-     * @param modelFilePath  Relative path to the existing model file; used when
-     *                       {@code skipTomlEdits} is {@code true}
+     * @param selectedTables       The tables to generate entities for
+     * @param module               The short module name (e.g. {@code "testdb"})
+     * @param name                 The database connector variable name
+     * @param skipTomlEdits        {@code true} to skip Ballerina.toml / config / connections edits
+     * @param modelFilePath        Relative path to the existing model file; used when
+     *                             {@code skipTomlEdits} is {@code true}
+     * @param skipConnectionFiles  {@code true} to skip generating config.bal and connections.bal entries;
+     *                             set when no connection name is provided
      * @return JsonElement containing the PersistClientResponse with text edits map
      * @throws PersistClientException if an error occurs during generation
      */
     public JsonElement generateClient(String[] selectedTables, String module, String name,
-                                      boolean skipTomlEdits, String modelFilePath)
+                                      boolean skipTomlEdits, String modelFilePath,
+                                      boolean skipConnectionFiles)
             throws PersistClientException {
         if (skipTomlEdits) {
             return generateClientFromModel(module, modelFilePath, name);
@@ -383,8 +386,10 @@ public class PersistClient {
             // and other details
             entityModule = getEntities(module, dataModels);
             addTextEditsForClientModuleSources(module, textEditsMap, entityModule, false);
-            addTextEditForConfigurations(textEditsMap);
-            addTextEditForConnectionClient(packageName, module, textEditsMap);
+            if (!skipConnectionFiles) {
+                addTextEditForConfigurations(textEditsMap);
+                addTextEditForConnectionClient(packageName, module, textEditsMap);
+            }
             return gson.toJsonTree(new PersistClientResponse(isModuleExists, textEditsMap));
         } catch (BalException | IOException | FormatterException | WorkspaceDocumentException | EventSyncException e) {
             throw new PersistClientException("Error introspecting database: " + e.getMessage(), e);

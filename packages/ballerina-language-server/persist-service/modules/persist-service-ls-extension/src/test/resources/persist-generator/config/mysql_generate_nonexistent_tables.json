@@ -1,6 +1,51 @@
 {
   "description": "MySQL persist client generation - nonexistent tables",
   "testProjectFolder": "sample-project",
+  "targetModule": "sample_project.testdb",
+  "properties": {
+    "Database System": {
+      "value": "mysql",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "Host": {
+      "value": "invalid-host-name-12345",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "Port": {
+      "value": "3307",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "User": {
+      "value": "root",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "Password": {
+      "value": "Test123#",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "Database": {
+      "value": "testdb",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    }
+  },
   "tables": [
     {
       "table": "nonexistent_table1",
@@ -14,5 +59,5 @@
     }
   ],
   "expectError": true,
-  "expectedErrorMessage": "database system"
+  "expectedErrorMessage": "Error introspecting database"
 }

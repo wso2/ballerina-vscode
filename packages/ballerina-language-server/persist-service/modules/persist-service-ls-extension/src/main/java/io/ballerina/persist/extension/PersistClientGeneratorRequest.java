@@ -18,7 +18,10 @@
 
 package io.ballerina.persist.extension;
 
+import io.ballerina.servicemodelgenerator.extension.model.Value;
+
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a request to generate Ballerina persist client from database introspection.
@@ -29,6 +32,8 @@ public class PersistClientGeneratorRequest {
     private String projectPath;
     private String targetModule;
     private String modelFilePath;
+    private String connection;
+    private Map<String, Value> properties;
     private List<TableEntry> tables;
 
     public PersistClientGeneratorRequest() {
@@ -56,6 +61,22 @@ public class PersistClientGeneratorRequest {
 
     public void setModelFilePath(String modelFilePath) {
         this.modelFilePath = modelFilePath;
+    }
+
+    public String getConnection() {
+        return connection;
+    }
+
+    public void setConnection(String connection) {
+        this.connection = connection;
+    }
+
+    public Map<String, Value> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, Value> properties) {
+        this.properties = properties;
     }
 
     public List<TableEntry> getTables() {

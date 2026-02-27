@@ -1,6 +1,51 @@
 {
   "description": "Persist client generation - unsupported database system",
   "testProjectFolder": "sample-project",
+  "targetModule": "sample_project.testdb",
+  "properties": {
+    "Database System": {
+      "value": "oracle",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "Host": {
+      "value": "localhost",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "Port": {
+      "value": "1521",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "User": {
+      "value": "root",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "Password": {
+      "value": "Test123#",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "Database": {
+      "value": "testdb",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    }
+  },
   "tables": [
     {
       "table": "employees",
@@ -9,5 +54,5 @@
     }
   ],
   "expectError": true,
-  "expectedErrorMessage": "database system"
+  "expectedErrorMessage": "Invalid database system"
 }

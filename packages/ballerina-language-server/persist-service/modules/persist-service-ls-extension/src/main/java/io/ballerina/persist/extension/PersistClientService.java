@@ -141,7 +141,11 @@ public class PersistClientService implements ExtendedLanguageServerService {
      * When {@code targetModule} and {@code modelFilePath} are both non-empty the module already
      * exists: only the generated client source files are (re)generated and Ballerina.toml /
      * config / connections changes are skipped. When {@code targetModule} is {@code null} or
-     * empty the full setup flow is executed (requires database credentials to be available).
+     * empty the full setup flow is executed (requires database credentials in {@code properties}).
+     * <p>
+     * When {@code connection} is non-empty, the connection name is used as the variable name
+     * prefix for configurable variables and the persist client declaration (config.bal and
+     * connections.bal are generated). When {@code connection} is empty, those files are skipped.
      *
      * @param request The persist client generator request
      * @return CompletableFuture containing the response with source (text edits map) or error information
@@ -164,20 +168,51 @@ public class PersistClientService implements ExtendedLanguageServerService {
                         ? targetModule.substring(targetModule.lastIndexOf('.') + 1)
                         : targetModule;
 
+                String connection = request.getConnection();
+                boolean hasConnection = connection != null && !connection.isEmpty();
+
+                // The connector variable name: use explicit connection name when provided,
+                // otherwise fall back to the short module name.
+                String connectorName = hasConnection ? connection : module;
+
                 String[] selectedTables = request.getTables() == null ? new String[0]
                         : request.getTables().stream()
                                 .filter(PersistClientGeneratorRequest.TableEntry::selected)
                                 .map(PersistClientGeneratorRequest.TableEntry::table)
                                 .toArray(String[]::new);
 
-                PersistClient generator = new PersistClient(
-                        request.getProjectPath(), module, this.workspaceManager);
+                PersistClient generator;
+                if (hasExistingModule) {
+                    // Lightweight constructor: no DB credentials needed for regeneration.
+                    generator = new PersistClient(
+                            request.getProjectPath(), module, this.workspaceManager);
+                } else {
+                    // Full constructor: DB credentials are required for database introspection.
+                    Map<String, Value> properties = request.getProperties();
+                    String dbSystem = findPropertyValue(properties, "Database System");
+                    String host = findPropertyValue(properties, "Host");
+                    String portStr = findPropertyValue(properties, "Port");
+                    String user = findPropertyValue(properties, "User");
+                    String password = findPropertyValue(properties, "Password");
+                    String database = findPropertyValue(properties, "Database");
+                    Integer port = parsePort(portStr);
+                    generator = new PersistClient(
+                            request.getProjectPath(),
+                            connectorName,
+                            dbSystem,
+                            host,
+                            port,
+                            user,
+                            password,
+                            database,
+                            this.workspaceManager);
+                }
 
                 // For re-generation (hasExistingModule=true), pass the full targetModule so that
                 // PersistClient can read options.datastore from Ballerina.toml.
-                String nameParam = hasExistingModule ? targetModule : module;
+                String nameParam = hasExistingModule ? targetModule : connectorName;
                 JsonElement source = generator.generateClient(
-                        selectedTables, module, nameParam, hasExistingModule, modelFilePath);
+                        selectedTables, module, nameParam, hasExistingModule, modelFilePath, !hasConnection);
                 response.setSource(source);
             } catch (Exception e) {
                 response.setError(e);
