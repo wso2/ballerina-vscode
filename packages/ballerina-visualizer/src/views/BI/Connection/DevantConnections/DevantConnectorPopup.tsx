@@ -74,7 +74,6 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
     const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
     const [devantConfigs, setDevantConfigs] = useState<DevantTempConfig[]>([]);
     const [availableNode, setAvailableNode] = useState<AvailableNode>();
-    const [showDevantMarketplace, setShowDevantMarketplace] = useState<boolean>(false);
     const [IDLFilePath, setIDLFilePath] = useState<string>("");
     const [oasConnectorName, setOasConnectorName] = useState<string>("");
     const [importingConn, setImportingConn] = useState<ConnectionListItem>();
@@ -223,9 +222,9 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
             setOasConnectorName("");
             setIDLFilePath("");
 
-            if (showDevantMarketplace && !selectedFlow) {
-                setShowDevantMarketplace(false);
-            }
+            // if (showDevantMarketplace && !selectedFlow) {
+            //     setShowDevantMarketplace(false);
+            // }
         }
     };
 
@@ -365,9 +364,6 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
     });
 
     let title: string = isCreating ? "Add Connection" : "Import Connection";
-    if (showDevantMarketplace) {
-        title = "Devant Marketplace";
-    }
 
     let subTitle: string = "";
     if (selectedFlow && DevantConnectionFlowTitles[selectedFlow]) {
@@ -382,7 +378,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
             <PopupOverlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }} />
             <PopupContainer>
                 <PopupHeader>
-                    {(isCreating ? selectedFlow || showDevantMarketplace : currentStepIndex > 0) && (
+                    {(isCreating ? selectedFlow : currentStepIndex > 0) && (
                         <BackButton appearance="icon" onClick={handleBackButtonClick}>
                             <Codicon name="chevron-left" />
                         </BackButton>
@@ -523,8 +519,20 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                                     )}
                                 </>
                             ) : (
-                                <>
-                                    {showDevantMarketplace ? (
+                                <AddConnectionPopupContent
+                                    {...props}
+                                    handleSelectConnector={(availableNode, _) => {
+                                        setAvailableNode(availableNode);
+                                        setSelectedFlow(
+                                            DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR,
+                                        );
+                                    }}
+                                    handleApiSpecConnection={() => {
+                                        setSelectedFlow(
+                                            DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS,
+                                        );
+                                    }}
+                                    DevantServicesSection={({ searchText }) => (
                                         <DevantConnectorList
                                             fileName={fileName}
                                             target={target}
@@ -533,25 +541,10 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                                                 setSelectedMarketplaceItem(item);
                                                 setAvailableNode(availableNode);
                                             }}
-                                        />
-                                    ) : (
-                                        <AddConnectionPopupContent
-                                            {...props}
-                                            handleSelectConnector={(availableNode, _) => {
-                                                setAvailableNode(availableNode);
-                                                setSelectedFlow(
-                                                    DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR,
-                                                );
-                                            }}
-                                            handleApiSpecConnection={() => {
-                                                setSelectedFlow(
-                                                    DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS,
-                                                );
-                                            }}
-                                            handleDevantMarketplace={() => setShowDevantMarketplace(true)}
+                                            searchText={searchText}
                                         />
                                     )}
-                                </>
+                                />
                             )}
                         </>
                     )}

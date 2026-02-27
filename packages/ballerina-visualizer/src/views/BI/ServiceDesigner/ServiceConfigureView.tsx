@@ -214,6 +214,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     const [currentIdentifier, setCurrentIdentifier] = useState<string | null>(null);
 
     const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [position, setPosition] = useState<NodePosition>(props.position);
     const [existingListenerType, setExistingListenerType] = useState<string>(""); // Example: "Listener", "CdcListener"
 
     const [selectedListener, setSelectedListener] = useState<string | null>(null);
@@ -296,8 +297,8 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
     }, []);
 
     useEffect(() => {
-        fetchService(props.position);
-    }, [props.position]);
+        fetchService(position);
+    }, [position]);
 
     useEffect(() => {
         if (props.listenerName) {
@@ -475,6 +476,10 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                     // Set the service model
                     setServiceModel(res.service);
                     setConfigTitle(`${getDisplayServiceName(res.service)} Configuration`);
+                    // Set the current identifier from the service name
+                    if (res.service.name && !currentIdentifier) {
+                        setCurrentIdentifier(res.service.name);
+                    }
                     // Set the service listeners
                     setServiceListeners(res.service);
                     // Find the listener type
@@ -656,6 +661,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             console.error("No artifact returned after detaching listener");
             return;
         }
+        setPosition(updatedArtifact.position);
         setCurrentIdentifier(updatedArtifact.name);
         await fetchService(updatedArtifact.position);
         setChangeMap({});
@@ -698,16 +704,37 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         const serviceChanges = changes.filter((c) => c.isService);
         // Listeners first, then service last
         for (const change of listenerChanges) {
-            await rpcClient.getServiceDesignerRpcClient().updateListenerSourceCode({ filePath: change.filePath, listener: change.data as ListenerModel });
+            const listnerResponse = await rpcClient.getServiceDesignerRpcClient().updateListenerSourceCode({ filePath: change.filePath, listener: change.data as ListenerModel });
+            const updatedServiceArtifact = listnerResponse.artifacts.filter(artifact => artifact.name ===currentIdentifier).at(0);
+            if (!updatedServiceArtifact) {
+                console.error("No service artifact returned after updating listener");
+                continue;
+            }
+            setPosition(updatedServiceArtifact.position);
         }
+
+        // Update service changes
         for (const change of serviceChanges) {
-            const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: change.filePath, service: change.data as ServiceModel });
+            // TODO: The backend needs to be refactored to support this types model
+            const service = change.data as ServiceModel;
+            const updatedService = {
+                ...serviceModel,
+                properties: {
+                    ...serviceModel.properties,
+                    listener: {
+                        ...serviceModel.properties.listener,
+                        value: service.properties.listener?.values[0] || service.properties.listener?.value || "",
+                    }
+                }
+            };
+            const res = await rpcClient.getServiceDesignerRpcClient().updateServiceSourceCode({ filePath: change.filePath, service: updatedService });
             const updatedArtifact = res.artifacts.at(0);
             if (!updatedArtifact) {
                 console.error("No artifact returned after saving service changes");
                 continue;
             }
             setCurrentIdentifier(updatedArtifact.name);
+            setPosition(updatedArtifact.position);
             await fetchService(updatedArtifact.position);
         }
         setChangeMap({});
@@ -1013,14 +1040,6 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
         onDirtyChange?.(isDirty, filePath, position);
     }
 
-    // Check if this is a legacy listener (legacy FTP listeners carry path/folderPath in listener properties)
-    const isLegacyListener =
-        listenerModel?.properties?.folderPath !== undefined ||
-        listenerModel?.properties?.path !== undefined;
-
-    // For attached listeners in new system (no folderPath in listener), show only monitoring path
-    const showMinimalConfig = isAttachedListener && !isLegacyListener;
-
     return (
         <ServiceConfigureListenerEditViewContainer>
             {!listenerModel &&
@@ -1029,7 +1048,7 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
                     <Typography variant="h3" sx={{ marginTop: '16px' }}>Loading...</Typography>
                 </LoadingContainer>
             }
-            {listenerModel && !showMinimalConfig &&
+            {listenerModel &&
                 <ListenerConfigForm
                     listenerModel={listenerModel}
                     filePath={filePath}
@@ -1039,14 +1058,6 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
                     onChange={handleListenerChange}
                     onDirtyChange={handleListenerDirtyChange}
                     onValidityChange={onValidityChange}
-                />
-            }
-            {listenerModel && showMinimalConfig &&
-                <AttachedListenerMinimalConfig
-                    listenerName={listenerName}
-                    onSave={onSubmit}
-                    isSaving={saving}
-                    savingText={savingText}
                 />
             }
         </ServiceConfigureListenerEditViewContainer>

@@ -63,6 +63,9 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
         const sanitized = sanitizePackageName(value);
         onFormDataChange({ packageName: sanitized });
         setPackageNameTouched(value.length > 0);
+        if (packageNameError) {
+            setPackageNameError(null);
+        }
     };
 
     const handleProjectDirSelection = async () => {
@@ -73,6 +76,10 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
     const handleProjectStructureToggle = () => {
         setIsProjectStructureExpanded(!isProjectStructureExpanded);
     };
+
+    const projectTypeNote = formData.createAsWorkspace
+        ? "This sets the type for your first project. You can add more projects or libraries to this workspace later."
+        : undefined;
 
     useEffect(() => {
         (async () => {
@@ -105,6 +112,11 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
         })();
     }, []);
 
+    useEffect(() => {
+        const error = validatePackageName(formData.packageName, formData.integrationName);
+        setPackageNameError(error);
+    }, [formData.packageName, formData.integrationName]);
+
     // Validation effect for org name
     useEffect(() => {
         const orgError = validateOrgName(formData.orgName);
@@ -132,7 +144,7 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
                     value={formData.packageName}
                     label="Package Name"
                     description="This will be used as the Ballerina package name for the integration."
-                    errorMsg={packageNameValidationError || ""}
+                    errorMsg={packageNameValidationError || packageNameError || ""}
                 />
             </FieldGroup>
 
@@ -157,6 +169,14 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
                 </CheckboxContainer>
             </FieldGroup>
 
+            <FieldGroup>
+                <ProjectTypeSelector
+                    value={formData.isLibrary}
+                    onChange={(isLibrary) => onFormDataChange({ isLibrary })}
+                    note={projectTypeNote}
+                />
+            </FieldGroup>
+
             <SectionDivider />
             <OptionalSectionsLabel>Optional Configurations</OptionalSectionsLabel>
 
@@ -179,23 +199,15 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
                         </Description>
                     </CheckboxContainer>
                     {formData.createAsWorkspace && (
-                        <>
-                            <FieldGroup>
-                                <TextField
-                                    onTextChange={(value) => onFormDataChange({ workspaceName: value })}
-                                    value={formData.workspaceName}
-                                    label="Workspace Name"
-                                    placeholder="Enter workspace name"
-                                    required={true}
-                                />
-                            </FieldGroup>
-
-                            <ProjectTypeSelector
-                                value={formData.isLibrary}
-                                onChange={(isLibrary) => onFormDataChange({ isLibrary })}
-                                note="This sets the type for your first project. You can add more projects or libraries to this workspace later."
+                        <FieldGroup>
+                            <TextField
+                                onTextChange={(value) => onFormDataChange({ workspaceName: value })}
+                                value={formData.workspaceName}
+                                label="Workspace Name"
+                                placeholder="Enter workspace name"
+                                required={true}
                             />
-                        </>
+                        </FieldGroup>
                     )}
                 </CollapsibleSection>
             )}

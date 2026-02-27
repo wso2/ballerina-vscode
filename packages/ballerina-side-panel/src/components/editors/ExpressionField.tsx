@@ -39,6 +39,7 @@ import { SQLExpressionEditor } from './MultiModeExpressionEditor/SqlExpressionEd
 import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
 import { getPrimaryInputType, isDropDownType } from '@wso2/ballerina-core';
 import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig';
+import { DynamicArrayBuilder } from './MultiModeExpressionEditor/DynamicArrayBuilder/DynamicArrayBuilder';
 import { isRecord } from './utils';
 
 export interface ExpressionFieldProps {
@@ -152,6 +153,16 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
 
     //below editors cannot have input value in record type
     if (isRecord(value)) return null;
+    if (inputMode === InputMode.ARRAY || inputMode === InputMode.TEXT_ARRAY) {
+        return (
+            <DynamicArrayBuilder
+                label={field.label}
+                value={value}
+                onChange={(val) => onChange(val, val.length)}
+                expressionFieldProps={props}
+            />
+        );
+    }
     //below editors cannot have input value in array type
     if (Array.isArray(value)) return null;
 
