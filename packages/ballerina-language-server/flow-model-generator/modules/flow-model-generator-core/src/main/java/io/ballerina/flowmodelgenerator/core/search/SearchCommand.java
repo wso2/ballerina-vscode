@@ -79,6 +79,7 @@ public abstract class SearchCommand {
             case MEMORY_STORE -> new MemoryStoreSearchCommand(module, position, queryMap);
             case AGENT_TOOL -> new AgentToolSearchCommand(module, position, queryMap);
             case KNOWLEDGE_BASE -> new KnowledgeBaseSearchCommand(module, position, queryMap);
+            case ALL -> new AllTypesSearchCommand(module, position, queryMap, functionsDoc);
         };
     }
 
@@ -208,6 +209,7 @@ public abstract class SearchCommand {
         MEMORY,
         MEMORY_STORE,
         AGENT_TOOL,
-        KNOWLEDGE_BASE
+        KNOWLEDGE_BASE,
+        ALL
     }
 }

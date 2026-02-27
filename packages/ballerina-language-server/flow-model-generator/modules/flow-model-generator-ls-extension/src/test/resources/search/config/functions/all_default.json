@@ -1,0 +1,1361 @@
+{
+  "description": "ALL search type - default view",
+  "kind": "ALL",
+  "source": "empty.bal",
+  "position": {
+    "startLine": {
+      "line": 1,
+      "offset": 1
+    },
+    "endLine": {
+      "line": 1,
+      "offset": 1
+    }
+  },
+  "queryMap": {
+    "q": ""
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Imported Types",
+        "description": "Types imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Type",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Agents"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "AI Agent",
+            "description": "An AI agent that can interact, process inputs, and provide responses using various AI capabilities."
+          },
+          "codedata": {
+            "node": "AGENT",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "Agent",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "AI Agent",
+            "description": "An AI agent that can interact, process inputs, and provide responses using various AI capabilities."
+          },
+          "codedata": {
+            "node": "AGENT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "Agent",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "io",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "fileReadJson",
+                "description": "Reads file content as a JSON.\n```ballerina\njson|io:Error content = io:fileReadJson(\"./resources/myfile.json\");\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "fileReadJson",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fileReadString",
+                "description": "Reads the entire file content as a `string`.\nThe resulting string output does not contain the terminal carriage (e.g., `\\r` or `\\n`).\n```ballerina\nstring|io:Error content = io:fileReadString(\"./resources/myfile.txt\");\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "fileReadString",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fileWriteJson",
+                "description": "Write a JSON to a file.\n```ballerina\njson content = {\"name\": \"Anne\", \"age\": 30};\nio:Error? result = io:fileWriteJson(\"./resources/myfile.json\", content);\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "fileWriteJson",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fileWriteString",
+                "description": "Write a string content to a file.\n```ballerina\nstring content = \"Hello Universe..!!\";\nio:Error? result = io:fileWriteString(\"./resources/myfile.txt\", content);\n```",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "fileWriteString",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "print",
+                "description": "Prints `any`, `error`, or string templates (such as `The respective int value is ${val}`) value(s) to the `STDOUT`.\n```ballerina\nio:print(\"Start processing the CSV file from \", srcFileName);\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "io",
+                "packageName": "io",
+                "symbol": "print",
+                "version": "1.8.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Database"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "MySQL",
+            "description": "MySQL database client that enables interaction with MySQL servers and supports standard SQL operations.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.1.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "mysql",
+            "packageName": "mysql",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.16.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "MongoDB",
+            "description": "Represents a MongoDB client that can be used to interact with a MongoDB server.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.3.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "mongodb",
+            "packageName": "mongodb",
+            "object": "Client",
+            "symbol": "init",
+            "version": "5.2.3",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "PostgreSQL",
+            "description": "Represents a PostgreSQL database client.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.16.2.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "postgresql",
+            "packageName": "postgresql",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.16.2",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "MS SQL",
+            "description": "MSSQL (Microsoft SQL) client that enables interaction with MSSQL servers and supports standard SQL operations.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.2.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "mssql",
+            "packageName": "mssql",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.16.2",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Redis",
+            "description": "Ballerina Redis connector provides the capability to access Redis cache.\nThis connector lets you to perform operations to access and manipulate key-value data stored in a Redis database. \n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "redis",
+            "packageName": "redis",
+            "object": "Client",
+            "symbol": "init",
+            "version": "3.1.0",
+            "isGenerated": false
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "SaaS"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Salesforce",
+            "description": "Ballerina Salesforce connector provides the capability to access Salesforce REST API.\nThis connector lets you to perform operations for SObjects, query using SOQL, search using SOSL, and describe SObjects\nand organizational data.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "salesforce",
+            "packageName": "salesforce",
+            "object": "Client",
+            "symbol": "init",
+            "version": "8.2.0",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Slack",
+            "description": "One way to interact with the Slack platform is its HTTP RPC-based Web API, a collection of methods requiring OAuth 2.0-based user, bot, or workspace tokens blessed with related OAuth scopes.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_slack_5.0.0.png",
+            "data": {
+              "isAgentSupport": true
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "slack",
+            "packageName": "slack",
+            "object": "Client",
+            "symbol": "init",
+            "version": "5.0.0",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Twilio",
+            "description": "This is the public Twilio REST API.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_twilio_5.0.1.png",
+            "data": {
+              "isAgentSupport": true
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "twilio",
+            "packageName": "twilio",
+            "object": "Client",
+            "symbol": "init",
+            "version": "5.0.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Github",
+            "description": "GitHub's v3 REST API.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png",
+            "data": {
+              "isAgentSupport": true
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "github",
+            "packageName": "github",
+            "object": "Client",
+            "symbol": "init",
+            "version": "5.1.0",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Stripe",
+            "description": "The Stripe REST API. Please see https://stripe.com/docs/api for more details.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png",
+            "data": {
+              "isAgentSupport": true
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "stripe",
+            "packageName": "stripe",
+            "object": "Client",
+            "symbol": "init",
+            "version": "2.0.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Knowledge Bases"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Vector Knowledge Base",
+            "description": "An AI knowledge base that manages document embeddings in a vector store for efficient semantic retrieval and RAG workflows."
+          },
+          "codedata": {
+            "node": "KNOWLEDGE_BASE",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "VectorKnowledgeBase",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Azure AI Search Knowledge Base",
+            "description": "An AI knowledge base powered by Azure AI Search, supporting document ingestion, and semantic retrieval for RAG workflows."
+          },
+          "codedata": {
+            "node": "KNOWLEDGE_BASE",
+            "org": "ballerinax",
+            "module": "ai.azure",
+            "packageName": "ai.azure",
+            "object": "AiSearchKnowledgeBase",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Model Providers"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Default Model Provider (WSO2)",
+            "description": "WSO2 model provider implementation that provides chat completion capabilities using WSO2's AI services."
+          },
+          "codedata": {
+            "node": "MODEL_PROVIDER",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "symbol": "getDefaultModelProvider"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Anthropic Model Provider",
+            "description": "Provider is a client class that provides an interface for interacting with Anthropic Large Language Models."
+          },
+          "codedata": {
+            "node": "MODEL_PROVIDER",
+            "org": "ballerinax",
+            "module": "ai.anthropic",
+            "packageName": "ai.anthropic",
+            "object": "ModelProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Azure OpenAI Model Provider",
+            "description": "OpenAiProvider is a client class that provides an interface for interacting with Azure-hosted OpenAI language models."
+          },
+          "codedata": {
+            "node": "MODEL_PROVIDER",
+            "org": "ballerinax",
+            "module": "ai.azure",
+            "packageName": "ai.azure",
+            "object": "OpenAiModelProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Deepseek Model Provider",
+            "description": "Deepseek is a client class that provides an interface for interacting with Deepseek Large Language Models."
+          },
+          "codedata": {
+            "node": "MODEL_PROVIDER",
+            "org": "ballerinax",
+            "module": "ai.deepseek",
+            "packageName": "ai.deepseek",
+            "object": "ModelProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Mistral Model Provider",
+            "description": "MistralAiProvider is a client class that provides an interface for interacting with Mistral AI Large Language Models."
+          },
+          "codedata": {
+            "node": "MODEL_PROVIDER",
+            "org": "ballerinax",
+            "module": "ai.mistral",
+            "packageName": "ai.mistral",
+            "object": "ModelProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Ollama Model Provider",
+            "description": "Provider represents a client for interacting with an Ollama language models."
+          },
+          "codedata": {
+            "node": "MODEL_PROVIDER",
+            "org": "ballerinax",
+            "module": "ai.ollama",
+            "packageName": "ai.ollama",
+            "object": "ModelProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "OpenAI Model Provider",
+            "description": "ModelProvider is a client class that provides an interface for interacting with OpenAI Large Language Models."
+          },
+          "codedata": {
+            "node": "MODEL_PROVIDER",
+            "org": "ballerinax",
+            "module": "ai.openai",
+            "packageName": "ai.openai",
+            "object": "ModelProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Cloud"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "S3",
+            "description": "Ballerina Amazon S3 connector provides the capability to access AWS S3 API.\nThis connector lets you to get authorized access to AWS S3 buckets and objects.\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.s3_3.5.1.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "aws.s3",
+            "packageName": "aws.s3",
+            "object": "Client",
+            "symbol": "init",
+            "version": "3.5.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "SQS",
+            "description": "The Amazon SQS API Client.\n\nProvides access to Amazon Simple Queue Service (SQS) using the AWS SDK for Java V2.\nSupports static and profile-based credential configurations.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.sqs_4.0.1.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "aws.sqs",
+            "packageName": "aws.sqs",
+            "object": "Client",
+            "symbol": "init",
+            "version": "4.0.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "DynamoDB",
+            "description": "The Ballerina AWS DynamoDB connector provides the capability to access AWS Simple Email Service related operations.\nThis connector lets you to to send email messages to your customers.\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.dynamodb_2.3.0.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "aws.dynamodb",
+            "packageName": "aws.dynamodb",
+            "object": "Client",
+            "symbol": "init",
+            "version": "2.3.0",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Gmail",
+            "description": "The Gmail API lets you view and manage Gmail mailbox data like threads, messages, and labels.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.gmail_4.1.0.png",
+            "data": {
+              "isAgentSupport": true
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "googleapis.gmail",
+            "packageName": "googleapis.gmail",
+            "object": "Client",
+            "symbol": "init",
+            "version": "4.1.0",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Gcalendar",
+            "description": "Manipulates events and other calendar data.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.gcalendar_4.0.1.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "googleapis.gcalendar",
+            "packageName": "googleapis.gcalendar",
+            "object": "Client",
+            "symbol": "init",
+            "version": "4.0.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Memory Stores"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "In-Memory Short Term Memory Store",
+            "description": "Provides an in-memory chat message store."
+          },
+          "codedata": {
+            "node": "MEMORY_STORE",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "InMemoryShortTermMemoryStore",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "MSSQL Short Term Memory Store",
+            "description": "Provides an MSSQL-backed chat message store."
+          },
+          "codedata": {
+            "node": "MEMORY_STORE",
+            "org": "ballerinax",
+            "module": "ai.memory.mssql",
+            "packageName": "ai.memory.mssql",
+            "object": "ShortTermMemoryStore",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "AI"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Stabilityai",
+            "description": "Welcome to the Stability.ai REST API!\n\nYour DreamStudio API key will be required for authentication: [How to find your API key](https://platform.stability.ai/docs/getting-started/authentication)\n\nAPI operations use the following versioning scheme:\n- `/v*` interface is stable and ready for production workloads\n- `/v*beta*`: interface is stable, preparing for production release\n- `/v*alpha*`: under development and the interface is subject to change\n\nNOTE: The v1alpha and v1beta endpoints from the developer preview are still available, but they\nwill disabled on May 1st, 2023.  Please migrate to the v1 endpoints as soon as possible.\n\nIf you have feedback or encounter any issues with the API, please reach out:\n- [https://github.com/Stability-AI/REST-API](https://github.com/Stability-AI/REST-API)\n- [https://discord.gg/stablediffusion #API channel](https://discord.com/channels/1002292111942635562/1042896447311454361)",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stabilityai_1.0.1.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "stabilityai",
+            "packageName": "stabilityai",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.0.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Mistral",
+            "description": "Our Chat Completion and Embeddings APIs specification. Create your account on [La Plateforme](https://console.mistral.ai) to get access and read the [docs](https://docs.mistral.ai) to learn how to use it.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mistral_1.0.1.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "mistral",
+            "packageName": "mistral",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.0.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Ai",
+            "description": "This is a generated connector for [WebScraping.AI API v2.0.4](https://webscraping.ai/docs) OpenAPI specification.\nIt provides a web scaping automation API with Chrome JS rendering, rotating proxies and builtin HTML parsing.\nMore information about the WebScraping.AI API can be found at https://webscraping.ai.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_webscraping.ai_1.5.1.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "webscraping.ai",
+            "packageName": "webscraping.ai",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.5.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Index",
+            "description": "This is a generated connector for the `Index Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) OpenAPI specification. Pinecone is a fully managed vector database which supports building developer-friendly, easily scalable, and high-performance vector search applications without infrastructure hassles.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.index_1.0.2.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "pinecone.index",
+            "packageName": "pinecone.index",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.0.2",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Weaviate",
+            "description": "This is a generated connector for [Weaviate Vector Search Engine API](https://weaviate.io/developers/weaviate/api) OpenAPI specification.\nWeaviate API provide access to the manipulations of weaviate schema, objects and search vectors based on various criterias.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_weaviate_1.0.2.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "weaviate",
+            "packageName": "weaviate",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.0.2",
+            "isGenerated": false
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Agent Tools",
+        "description": "Functions used as agent tools",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Data Loaders"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Text Data Loader",
+            "description": "Dataloader that can be used to load supported file types as `TextDocument`s.\nCurrently only supports `pdf`, `docx`, `markdown`, `html`, and `pptx` file types."
+          },
+          "codedata": {
+            "node": "DATA_LOADER",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "TextDataLoader",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Devant Binary Data Loader",
+            "description": "Loads documents as `ai:BinaryDocument` instances from a specified file or directory path.\nThis loader can handle either a single file or a directory containing multiple files.\nTypically used in conjunction with `devant:Chunker` to split documents into chunks for processing."
+          },
+          "codedata": {
+            "node": "DATA_LOADER",
+            "org": "ballerinax",
+            "module": "ai.devant",
+            "packageName": "ai.devant",
+            "object": "BinaryDataLoader",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Class Initializers"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "OpenAI Provider",
+            "description": "Initializes the OpenAI LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "OpenAiProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Azure OpenAI Provider",
+            "description": "Initializes the Azure OpenAI LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "AzureOpenAiProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Anthropic Provider",
+            "description": "Initializes the Anthropic LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "AnthropicProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Mistral AI Provider",
+            "description": "Initializes the Mistral AI LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "MistralAiProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Deepseek Provider",
+            "description": "Initializes the Deepseek LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "DeepseekProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Ollama Provider",
+            "description": "Initializes the Ollama LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "OllamaProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Memory"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Short Term Memory",
+            "description": "A short-term memory implementation to manage recent interactions, with support to customize overflow handling and integrate stores for persistence.",
+            "data": {
+              "minVersion": "1.6.0"
+            }
+          },
+          "codedata": {
+            "node": "MEMORY",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "ShortTermMemory",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Message Window Chat Memory",
+            "description": "A memory implementation that stores chat messages in a window format, allowing for efficient retrieval and management of recent interactions."
+          },
+          "codedata": {
+            "node": "MEMORY",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "MessageWindowChatMemory",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Message Window Chat Memory (ballerinax)",
+            "description": "A memory implementation that stores chat messages in a window format, allowing for efficient retrieval and management of recent interactions."
+          },
+          "codedata": {
+            "node": "MEMORY",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "MessageWindowChatMemory",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Vector Stores"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "InMemory Vector Store",
+            "description": "An in-memory vector store implementation that provides simple storage for vector entries."
+          },
+          "codedata": {
+            "node": "VECTOR_STORE",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "InMemoryVectorStore",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Milvus Vector Store",
+            "description": "Milvus Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Milvus vector database\nto provide functionality for vector upsert, query, and deletion.\n"
+          },
+          "codedata": {
+            "node": "VECTOR_STORE",
+            "org": "ballerinax",
+            "module": "ai.milvus",
+            "packageName": "ai.milvus",
+            "object": "VectorStore",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Pgvector Vector Store",
+            "description": "Pgvector Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Pgvector vector database\nto provide functionality for vector upsert, query, and deletion.\n"
+          },
+          "codedata": {
+            "node": "VECTOR_STORE",
+            "org": "ballerinax",
+            "module": "ai.pgvector",
+            "packageName": "ai.pgvector",
+            "object": "VectorStore",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Pinecone Vector Store",
+            "description": "Pinecone Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Pinecone vector database\nto provide functionality for vector upsert, query, and deletion.\n\n- pineconeClient: Underlying client used to communicate with Pinecone\n- queryMode: The search mode (DENSE, SPARSE, or HYBRID)\n- namespace: Optional namespace to isolate vectors within Pinecone\n- filters: Metadata filters applied during search\n- similarityTopK: Number of top similar vectors to return in queries\n- id: Unique identifier for the vector store instance"
+          },
+          "codedata": {
+            "node": "VECTOR_STORE",
+            "org": "ballerinax",
+            "module": "ai.pinecone",
+            "packageName": "ai.pinecone",
+            "object": "VectorStore",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Weaviate Vector Store",
+            "description": "Weaviate Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Weaviate vector database\nto provide functionality for vector upsert, query, and deletion.\n"
+          },
+          "codedata": {
+            "node": "VECTOR_STORE",
+            "org": "ballerinax",
+            "module": "ai.weaviate",
+            "packageName": "ai.weaviate",
+            "object": "VectorStore",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Network"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "HTTP",
+            "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerina",
+            "module": "http",
+            "packageName": "http",
+            "object": "Client",
+            "symbol": "init",
+            "version": "2.15.4",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "GraphQL",
+            "description": "The Ballerina GraphQL client that can be used to communicate with GraphQL APIs.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.17.0.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerina",
+            "module": "graphql",
+            "packageName": "graphql",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.17.0",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Websocket",
+            "description": "Represents a WebSocket synchronous client endpoint.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_websocket_2.15.1.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerina",
+            "module": "websocket",
+            "packageName": "websocket",
+            "object": "Client",
+            "symbol": "init",
+            "version": "2.15.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "UDP",
+            "description": "Initializes the UDP connectionless client based on the provided configurations.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_udp_1.13.3.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerina",
+            "module": "udp",
+            "packageName": "udp",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.13.3",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "FTP",
+            "description": "FTP client for connecting to and managing FTP/SFTP servers.\nSupports reading files in various formats (text, JSON, XML, CSV, bytes) and writing files with overwrite or append options.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.16.0.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerina",
+            "module": "ftp",
+            "packageName": "ftp",
+            "object": "Client",
+            "symbol": "init",
+            "version": "2.16.0",
+            "isGenerated": false
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Messaging"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Kafka Consumer",
+            "description": "Represents a Kafka consumer endpoint.\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.3.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "kafka",
+            "packageName": "kafka",
+            "object": "Consumer",
+            "symbol": "init",
+            "version": "4.6.3",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Kafka Producer",
+            "description": "Represents a Kafka producer endpoint.\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.3.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "kafka",
+            "packageName": "kafka",
+            "object": "Producer",
+            "symbol": "init",
+            "version": "4.6.3",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "RabbitMQ",
+            "description": "The Ballerina interface to provide AMQP Channel related functionality.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.3.1.png",
+            "data": {
+              "isAgentSupport": false
+            }
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "rabbitmq",
+            "packageName": "rabbitmq",
+            "object": "Client",
+            "symbol": "init",
+            "version": "3.3.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Chunkers"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Generic Recursive Chunker",
+            "description": "Represents a Genereric document chunker.\nProvides functionality to recursively chunk a text document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to\nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content\nbetween chunks can be controlled using `maxOverlapSize`."
+          },
+          "codedata": {
+            "node": "CHUNKER",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "GenericRecursiveChunker",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Markdown Chunker",
+            "description": "Represents a Markdown document chunker.\nProvides functionality to recursively chunk a markdown document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to\nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content\nbetween chunks can be controlled using `maxOverlapSize`."
+          },
+          "codedata": {
+            "node": "CHUNKER",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "MarkdownChunker",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Html Chunker",
+            "description": "Represents an HTML document chunker.\nProvides functionality to recursively chunk a HTML document using a configurable strategy.\n\nThe chunking process begins with the specified strategy and recursively falls back to\nfiner-grained strategies if the content exceeds the configured `maxChunkSize`. Overlapping content\nbetween chunks can be controlled using `maxOverlapSize`."
+          },
+          "codedata": {
+            "node": "CHUNKER",
+            "org": "ballerina",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "HtmlChunker",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Devant Chunker",
+            "description": "Splits documents loaded by the `devant:BinaryDataLoader` into smaller chunks \nusing the Devant AI service."
+          },
+          "codedata": {
+            "node": "CHUNKER",
+            "org": "ballerinax",
+            "module": "ai.devant",
+            "packageName": "ai.devant",
+            "object": "Chunker",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Imported Functions",
+        "description": "Functions imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    }
+  ]
+}
