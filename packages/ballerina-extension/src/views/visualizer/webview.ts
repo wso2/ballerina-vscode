@@ -100,6 +100,16 @@ export class VisualizerWebview {
             }
         }, extension.context);
 
+        vscode.workspace.onDidSaveTextDocument((document) => {
+            const configTomlSaved = document.languageId === LANGUAGE.TOML &&
+                document.fileName.endsWith("Config.toml");
+            const state = StateMachine.state();
+            const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
+            if (configTomlSaved && machineReady) {
+                sendUpdateNotificationToWebview(true);
+            }
+        }, extension.context);
+
         vscode.workspace.onDidDeleteFiles(() => {
             sendUpdateNotificationToWebview();
         });

@@ -103,6 +103,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         fieldInputType.fieldType === "RECORD_MAP_EXPRESSION" ||
         fieldInputType.fieldType === "SQL_QUERY" ||
         fieldInputType.fieldType === "NUMBER" ||
+        fieldInputType.fieldType === "PROMPT" ||
         (fieldInputType.fieldType === "FLAG" && field.types?.length > 1)
     )
 

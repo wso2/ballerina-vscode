@@ -72,6 +72,9 @@ import {
     GetRecordModelFromSourceRequest,
     UpdateTypesRequest,
     UpdateTypesResponse,
+    DeploymentRequest,
+    WorkspaceDeploymentRequest,
+    DeploymentResponse,
     OpenAPIClientGenerationRequest,
     OpenAPIGeneratedModulesRequest,
     OpenAPIGeneratedModulesResponse,
@@ -115,6 +118,8 @@ import {
     EndOfFileRequest,
     RecordsInWorkspaceMentions,
     BuildMode,
+    DevantMetadata,
+    WorkspaceDevantMetadata,
     GeneratedClientSaveResponse,
     AddProjectToWorkspaceRequest,
     DeleteProjectRequest,
@@ -159,6 +164,8 @@ export interface BIDiagramAPI {
     getReadmeContent: (params: ReadmeContentRequest) => Promise<ReadmeContentResponse>;
     openReadme: (params: OpenReadmeRequest) => void;
     renameIdentifier: (params: RenameIdentifierRequest) => Promise<void>;
+    deployProject: (params: DeploymentRequest) => Promise<DeploymentResponse>;
+    deployWorkspace: (params: WorkspaceDeploymentRequest) => Promise<DeploymentResponse>;
     openAIChat: (params: AIChatRequest) => void;
     getSignatureHelp: (params: SignatureHelpRequest) => Promise<SignatureHelpResponse>;
     buildProject: (mode: BuildMode) => void;
@@ -196,7 +203,9 @@ export interface BIDiagramAPI {
     searchNodes: (params: BISearchNodesRequest) => Promise<BISearchNodesResponse>;
     getRecordNames: () => Promise<RecordsInWorkspaceMentions>;
     getFunctionNames: () => Promise<RecordsInWorkspaceMentions>;
-    generateOpenApiClient: (params: OpenAPIClientGenerationRequest) => Promise<GeneratedClientSaveResponse>;//
+    getDevantMetadata: () => Promise<DevantMetadata | undefined>;
+    getWorkspaceDevantMetadata: () => Promise<WorkspaceDevantMetadata | undefined>;
+    generateOpenApiClient: (params: OpenAPIClientGenerationRequest) => Promise<GeneratedClientSaveResponse>;
     getOpenApiGeneratedModules: (params: OpenAPIGeneratedModulesRequest) => Promise<OpenAPIGeneratedModulesResponse>;
     deleteOpenApiGeneratedModules: (params: OpenAPIClientDeleteRequest) => Promise<OpenAPIClientDeleteResponse>;
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;

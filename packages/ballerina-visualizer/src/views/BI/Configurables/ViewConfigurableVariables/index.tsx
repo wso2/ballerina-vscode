@@ -20,7 +20,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from "react"
 import styled from "@emotion/styled";
 import { ConfigVariable } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, ErrorBanner, Icon, SplitView, TextField, Tooltip, TreeView, TreeViewItem, Typography, View, ViewContent } from "@wso2/ui-toolkit";
+import { Button, Codicon, Dropdown, ErrorBanner, Icon, SplitView, TextField, Tooltip, TreeView, TreeViewItem, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { AddForm } from "../AddConfigurableVariables";
 import { TopNavigationBar } from "../../../../components/TopNavigationBar";
 import { TitleBar } from "../../../../components/TitleBar";
@@ -80,6 +80,7 @@ const searchIcon = (<Codicon name="search" sx={{ cursor: "auto" }} />);
 export interface ConfigProps {
     projectPath: string;
     fileName: string;
+    testsConfigTomlPath?: string;
     org: string;
     addNew?: boolean;
 }
@@ -108,6 +109,16 @@ const Overlay = styled.div`
     z-index: 1000;
 `;
 
+enum Environment {
+    Application = 'Application',
+    Test = 'Test',
+}
+
+const environmentOptions = [
+    { content: Environment.Application, id: Environment.Application, value: Environment.Application },
+    { content: Environment.Test, id: Environment.Test, value: Environment.Test },
+];
+
 export function ViewConfigurableVariables(props?: ConfigProps) {
 
     const { rpcClient } = useRpcContext();
@@ -119,6 +130,10 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     const [selectedModule, setSelectedModule] = useState<PackageModuleState>(null);
     const integrationCategory = useRef<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isTestsContext, setIsTestsContext] = useState<boolean>(false);
+    const isTestsContextRef = useRef<boolean>(false);
+    const [testConfigVariables, setTestConfigVariables] = useState<ConfigVariablesState>({});
+    const [testCategoriesWithModules, setTestCategoriesWithModules] = useState<CategoryWithModules[]>([]);
 
     useEffect(() => {
         rpcClient
@@ -134,35 +149,46 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     }, [props.projectPath]);
 
     useEffect(() => {
-        if (categoriesWithModules.length > 0 && !selectedModule) {
+        isTestsContextRef.current = isTestsContext;
+    }, [isTestsContext]);
+
+    useEffect(() => {
+        rpcClient.onProjectContentUpdated(() => {
+            if (isTestsContextRef.current) {
+                getTestConfigVariables();
+            } else {
+                getConfigVariables();
+            }
+        });
+    }, []);
+
+    useEffect(() => {
+        if (categoriesWithModules.length > 0 && !selectedModule && !isTestsContext) {
             const initialCategory = categoriesWithModules[0];
             const initialModule = initialCategory.modules[0];
 
-            // Only set initial module if none is selected
+            // Only set initial module if none is selected and not in tests context
             setSelectedModule({
                 category: initialCategory.name,
                 module: initialModule
             });
         }
-    }, [categoriesWithModules, selectedModule]);
+    }, [categoriesWithModules, selectedModule, isTestsContext]);
 
-    const getFilteredConfigVariables = useCallback(() => {
+    const getFilteredVariables = useCallback((variables: ConfigVariablesState) => {
         if (!searchValue || searchValue.trim() === '') {
-            return configVariables;
+            return variables;
         }
 
         const searchLower = searchValue.toLowerCase();
         const filteredData: ConfigVariablesState = {};
 
-        // Filter through all categories and modules
-        Object.keys(configVariables).forEach(category => {
+        Object.keys(variables).forEach(category => {
             const categoryModules: { [module: string]: ConfigVariable[] } = {};
 
-            Object.keys(configVariables[category]).forEach(module => {
-                // Filter variables that match the search term
-                const filteredVariables = configVariables[category][module].filter(variable =>
-                    // Match by variable name
-                    (variable.properties.variable.value?.toString().toLowerCase().includes(searchLower))
+            Object.keys(variables[category]).forEach(module => {
+                const filteredVariables = variables[category][module].filter(variable =>
+                    variable.properties.variable.value?.toString().toLowerCase().includes(searchLower)
                 );
 
                 if (filteredVariables.length > 0) {
@@ -176,9 +202,10 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         });
 
         return filteredData;
-    }, [configVariables, searchValue]);
+    }, [searchValue]);
 
-    const filteredConfigVariables = useMemo(() => getFilteredConfigVariables(), [getFilteredConfigVariables]);
+    const filteredConfigVariables = useMemo(() => getFilteredVariables(configVariables), [getFilteredVariables, configVariables]);
+    const filteredTestConfigVariables = useMemo(() => getFilteredVariables(testConfigVariables), [getFilteredVariables, testConfigVariables]);
 
     const filteredCategoriesWithModules = useMemo(() => {
         return Object.keys(filteredConfigVariables).map(category => ({
@@ -187,17 +214,25 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         }));
     }, [filteredConfigVariables]);
 
+    const filteredTestCategoriesWithModules = useMemo(() => {
+        return Object.keys(filteredTestConfigVariables).map(category => ({
+            name: category,
+            modules: Object.keys(filteredTestConfigVariables[category])
+        }));
+    }, [filteredTestConfigVariables]);
+
     // Set selected module to first module in filtered results when search changes
     useEffect(() => {
-        if (searchValue && filteredCategoriesWithModules.length > 0 && filteredCategoriesWithModules[0].modules.length > 0) {
-            const firstCategory = filteredCategoriesWithModules[0];
+        const filtered = isTestsContext ? filteredTestCategoriesWithModules : filteredCategoriesWithModules;
+        if (searchValue && filtered.length > 0 && filtered[0].modules.length > 0) {
+            const firstCategory = filtered[0];
             const firstModule = firstCategory.modules[0];
             setSelectedModule({
                 category: firstCategory.name,
                 module: firstModule
             });
         }
-    }, [filteredCategoriesWithModules, searchValue]);
+    }, [filteredCategoriesWithModules, filteredTestCategoriesWithModules, searchValue, isTestsContext]);
 
     const moduleWarningCount = useCallback((category: string, module: string) => {
         if (!configVariables?.[category]?.[module]) {
@@ -228,10 +263,29 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         setSelectedModule({ category, module });
     };
 
+    const handleEnvironmentChange = (value: string) => {
+        if (value === Environment.Test) {
+            setIsTestsContext(true);
+            getTestConfigVariables();
+        } else {
+            setIsTestsContext(false);
+            if (categoriesWithModules.length > 0) {
+                const firstCat = categoriesWithModules[0];
+                setSelectedModule({ category: firstCat.name, module: firstCat.modules[0] });
+            }
+        }
+    };
+
     const handleOpenConfigFile = () => {
-        rpcClient
-            .getBIDiagramRpcClient()
-            .OpenConfigTomlRequest({ filePath: props.fileName });
+        let filePath: string;
+        if (isTestsContext && props.testsConfigTomlPath) {
+            // Pass the tests/ directory (strip the trailing "/Config.toml")
+            filePath = props.testsConfigTomlPath.substring(0, props.testsConfigTomlPath.lastIndexOf('/'));
+        } else {
+            // openConfigToml expects a directory; projectPath is the project root
+            filePath = props.projectPath;
+        }
+        rpcClient.getBIDiagramRpcClient().OpenConfigTomlRequest({ filePath });
     }
 
     const handleAddConfigVariableFormOpen = () => {
@@ -243,15 +297,21 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     };
 
     const handleFormSubmit = async () => {
-        getConfigVariables();
+        if (isTestsContext) {
+            getTestConfigVariables();
+        } else {
+            getConfigVariables();
+        }
     }
 
     const handleOnDeleteConfigVariable = async (index: number) => {
         if (!selectedModule) return;
 
+        const activeVariables = isTestsContext ? testConfigVariables : configVariables;
+        const activeFiltered = isTestsContext ? filteredTestConfigVariables : filteredConfigVariables;
         const variables = searchValue ?
-            filteredConfigVariables[selectedModule.category]?.[selectedModule.module] :
-            configVariables[selectedModule.category]?.[selectedModule.module];
+            activeFiltered[selectedModule.category]?.[selectedModule.module] :
+            activeVariables[selectedModule.category]?.[selectedModule.module];
 
         const variable = variables?.[index];
         if (!variable) return;
@@ -272,7 +332,11 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                 }
             })
             .finally(() => {
-                getConfigVariables();
+                if (isTestsContext) {
+                    getTestConfigVariables();
+                } else {
+                    getConfigVariables();
+                }
             });
     };
 
@@ -287,8 +351,22 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                 projectPath: ''
             })
             .then((variables) => {
-                data = (variables as any).configVariables;
+                const raw = (variables as any).configVariables as ConfigVariablesState;
                 errorMsg = (variables as any).errorMsg;
+                // Exclude variables that have 'isTestConfig' in codedata.data — those belong to Tests only.
+                // Modules and categories are always preserved even if all variables are filtered out,
+                // so submodules appear in both Application and Test environments.
+                const filtered: ConfigVariablesState = {};
+                Object.keys(raw || {}).forEach(category => {
+                    const filteredModules: { [module: string]: ConfigVariable[] } = {};
+                    Object.keys(raw[category]).forEach(module => {
+                        filteredModules[module] = raw[category][module].filter(
+                            variable => !('isTestConfig' in (variable.codedata?.data || {}))
+                        );
+                    });
+                    filtered[category] = filteredModules;
+                });
+                data = filtered;
             })
 
         setConfigVariables(data);
@@ -313,23 +391,58 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         setIsLoading(false);
     };
 
+    const getTestConfigVariables = async () => {
+        setIsLoading(true);
+        const variables = await rpcClient
+            .getBIDiagramRpcClient()
+            .getConfigVariablesV2({
+                projectPath: ''
+            });
+        const data = (variables as any).configVariables as ConfigVariablesState;
+        setTestConfigVariables(data || {});
+        const categories = Object.keys(data || {}).map(category => ({
+            name: category,
+            modules: Object.keys(data[category])
+        }));
+        setTestCategoriesWithModules(categories);
+        if (categories.length > 0) {
+            const firstCat = categories[0];
+            setSelectedModule({ category: firstCat.name, module: firstCat.modules[0] });
+        }
+        setIsLoading(false);
+    };
+
     const updateErrorMessage = (message: string) => {
         setErrorMessage(message);
     };
 
-    const categoryDisplay = selectedModule?.category === integrationCategory.current ? 'Integration' : selectedModule?.category;
-    const title = selectedModule?.module ? `${categoryDisplay} : ${selectedModule?.module}` : categoryDisplay;
+    const isTestsIntegrationModule = isTestsContext && selectedModule?.category === integrationCategory.current;
+    const isTestsImportedLib = isTestsContext && selectedModule?.category && selectedModule.category !== integrationCategory.current;
 
-    let renderVariables: ConfigVariablesState = configVariables;
+    const categoryDisplay = !isTestsContext
+        ? (selectedModule?.category === integrationCategory.current ? 'Integration' : selectedModule?.category)
+        : isTestsIntegrationModule ? 'Tests : Integration'
+            : isTestsImportedLib ? `Tests : ${selectedModule?.category}`
+                : 'Tests';
+
+    const title = selectedModule?.module
+        ? `${categoryDisplay} : ${selectedModule.module}`
+        : categoryDisplay;
+
+    let renderVariables: ConfigVariablesState = isTestsContext ? testConfigVariables : configVariables;
     if (searchValue) {
-        renderVariables = getFilteredConfigVariables();
+        renderVariables = isTestsContext ? filteredTestConfigVariables : filteredConfigVariables;
     }
+
+    const activeCategories = isTestsContext
+        ? (searchValue ? filteredTestCategoriesWithModules : testCategoriesWithModules)
+        : (searchValue ? filteredCategoriesWithModules : categoriesWithModules);
 
     return (
         <View>
             <TopNavigationBar projectPath={props.projectPath} />
             <TitleBar title="Configurable Variables" subtitle="View and manage configurable variables" actions={
-                <div style={{ display: "flex", gap: '12px', alignItems: 'center' }}>
+                <div style={{ display: "flex", gap: '8px', alignItems: 'center' }}>
                     {errorMessage &&
                         <Tooltip content={errorMessage}>
                             <Codicon name="error"
@@ -344,8 +457,17 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                         </Tooltip>
                     }
                     <Button appearance="secondary" onClick={handleOpenConfigFile}>
-                        <Icon sx={{ marginRight: 5, paddingTop: '2px' }} name="editIcon" />Edit in Config.toml
+                        <Icon sx={{ marginRight: 5, paddingTop: '2px' }} name="editIcon" />Edit {isTestsContext ? 'tests/Config.toml' : 'Config.toml'}
                     </Button>
+                    {props.testsConfigTomlPath && (
+                        <Dropdown
+                            id="environment-selector"
+                            items={environmentOptions}
+                            value={isTestsContext ? Environment.Test : Environment.Application}
+                            onValueChange={handleEnvironmentChange}
+                            sx={{ width: 120 }}
+                        />
+                    )}
                 </div>
             } />
             {isAddConfigVariableFormOpen && <Overlay data-testid="config-overlay" />}
@@ -366,14 +488,14 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                         />
                     </SearchContainer>
                     <div style={{ width: "auto" }}>
-                        {isLoading && <RelativeLoader message="Loading configurable variables..." />}
+                        {isLoading && <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "calc(100vh - 220px)" }}><RelativeLoader message="Loading configurable variables..." /></div>}
                         {!isLoading && <SplitView defaultWidths={[20, 80]}>
                             {/* Left side tree view */}
                             <div id={`package-treeview`} style={{ padding: "10px 0 50px 0" }}>
                                 {/* Display integration category first */}
-                                {(searchValue ? filteredCategoriesWithModules : categoriesWithModules)
+                                {activeCategories
                                     .filter(category => category.name === integrationCategory.current)
-                                    .map((category, index) => (
+                                    .map((category) => (
                                         <TreeView
                                             key={category.name}
                                             rootTreeView
@@ -480,7 +602,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                     ))}
 
                                 {/* Group all other categories under "Imported libraries" */}
-                                {(searchValue ? filteredCategoriesWithModules : categoriesWithModules)
+                                {activeCategories
                                     .filter(category => category.name !== integrationCategory.current).length > 0 && (
                                         <TreeView
                                             rootTreeView
@@ -505,9 +627,9 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                             }
                                         >
                                             {/* Map all non-integration categories */}
-                                            {(searchValue ? filteredCategoriesWithModules : categoriesWithModules)
+                                            {activeCategories
                                                 .filter(category => category.name !== integrationCategory.current)
-                                                .map((category, index) => (
+                                                .map((category) => (
                                                     <TreeViewItem
                                                         key={category.name}
                                                         id={category.name}
@@ -576,7 +698,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                 <>
                                     {!renderVariables ?
                                         <ErrorBanner errorMsg={"Error fetching config variables"} />
-                                        : searchValue && filteredCategoriesWithModules.length === 0 ?
+                                        : searchValue && activeCategories.length === 0 ?
                                             <EmptyReadmeContainer>
                                                 <Icon
                                                     name="searchIcon"
@@ -612,7 +734,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                         {/* Only show Add Config button at the top when the module has configurations */}
                                                         {selectedModule &&
                                                             renderVariables[selectedModule?.category]?.[selectedModule?.module]?.length > 0 &&
-                                                            selectedModule.category === integrationCategory.current && (
+                                                            (selectedModule.category === integrationCategory.current) && (
                                                                 <Button
                                                                     sx={{ display: 'flex', justifySelf: 'flex-end' }}
                                                                     appearance="primary"
@@ -642,6 +764,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                                     moduleName={selectedModule.module}
                                                                                     index={index}
                                                                                     fileName={props.fileName}
+                                                                                    isTestsContext={isTestsContext}
                                                                                     onDeleteConfigVariable={handleOnDeleteConfigVariable}
                                                                                     onFormSubmit={handleFormSubmit}
                                                                                     updateErrorMessage={updateErrorMessage}
@@ -653,12 +776,14 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                                                                 <Description variant="body2">
                                                                                     No configurable variables found in this module
                                                                                 </Description>
-                                                                                <Button
-                                                                                    appearance="primary"
-                                                                                    onClick={handleAddConfigVariableFormOpen}>
-                                                                                    <Codicon name="add" sx={{ marginRight: 5 }} />
-                                                                                    Add Config
-                                                                                </Button>
+                                                                                {selectedModule.category === integrationCategory.current && (
+                                                                                    <Button
+                                                                                        appearance="primary"
+                                                                                        onClick={handleAddConfigVariableFormOpen}>
+                                                                                        <Codicon name="add" sx={{ marginRight: 5 }} />
+                                                                                        Add Config
+                                                                                    </Button>
+                                                                                )}
                                                                             </EmptyReadmeContainer>
                                                                         )}
                                                                     </div>

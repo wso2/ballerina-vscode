@@ -173,7 +173,9 @@ export function ResourceForm(props: ResourceFormProps) {
 		if (createMore) {
 			closeMethod();
 		}
-		functionModel.name.value = sanitizedHttpPath(functionModel.name.value as string);
+		if (functionModel.name.value !== ".") {
+			functionModel.name.value = sanitizedHttpPath(functionModel.name.value as string);
+		}
 		onSave(functionModel, !createMore);
 	}
 
