@@ -585,7 +585,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     <S.HeaderContainer>
                                         <S.LabelContainer>
                                             <S.Label>{field.label}</S.Label>
-                                            {field.defaultValue && <S.DefaultValue style={{marginLeft: '8px'}}>{ `(Default: ${field.defaultValue}) `}</S.DefaultValue>}
+                                            {(field.defaultValue && field.defaultValue?.trim() !== "()") && <S.DefaultValue style={{marginLeft: '8px'}}>{ `(Default: ${field.defaultValue}) `}</S.DefaultValue>}
                                         {(required ?? !field.optional) && <RequiredFormInput />}
                                             {getPrimaryInputType(field.types)?.ballerinaType && (
                                                 <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
