@@ -1,48 +1,16 @@
 {
   "description": "MySQL persist client generation - append to existing config.bal with existing configuration",
   "testProjectFolder": "sample-project-with-config",
-  "name": "testdb",
-  "dbSystem": "mysql",
-  "host": "localhost",
-  "port": 3307,
-  "user": "root",
-  "password": "Test123#",
-  "database": "testdb",
-  "selectedTables": [
-    "employees"
+  "targetModule": "sample_project_with_config.employees",
+  "modelFilePath": "persist/employees/model.bal",
+  "tables": [
+    {
+      "table": "employees",
+      "selected": true,
+      "existing": false
+    }
   ],
-  "module": "employees",
   "output": {
-    "sample-project-with-config/Ballerina.toml": [
-      {
-        "range": {
-          "start": {
-            "line": 4,
-            "character": 0
-          },
-          "end": {
-            "line": 4,
-            "character": 0
-          }
-        },
-        "newText": "\n[[tool.persist]]\nid = \"sample_project_with_config.employees\"\ntargetModule = \"sample_project_with_config.employees\"\nfilePath = \"persist/testdb/model.bal\"\noptions.datastore = \"mysql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.9.0\"\n"
-      }
-    ],
-    "sample-project-with-config/persist/testdb/model.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 0,
-            "character": 0
-          },
-          "end": {
-            "line": 0,
-            "character": 0
-          }
-        },
-        "newText": "import ballerina/persist as _;\nimport ballerina/time;\nimport ballerinax/persist.sql;\n\n@sql:Name {value: \"employees\"}\npublic type Employee record {|\n    @sql:Generated\n    readonly int id;\n    @sql:Name {value: \"first_name\"}\n    @sql:Varchar {length: 100}\n    string firstName;\n    @sql:Name {value: \"last_name\"}\n    @sql:Varchar {length: 100}\n    string lastName;\n    @sql:Varchar {length: 255}\n    @sql:UniqueIndex {name: \"email\"}\n    string email;\n    @sql:Varchar {length: 100}\n    string? department;\n    @sql:Decimal {precision: [10, 2]}\n    decimal? salary;\n    @sql:Name {value: \"hire_date\"}\n    time:Date? hireDate;\n    @sql:Name {value: \"created_at\"}\n    time:Utc? createdAt;\n|};\n"
-      }
-    ],
     "sample-project-with-config/generated/employees/persist_types.bal": [
       {
         "range": {
@@ -56,36 +24,6 @@
           }
         },
         "newText": "// AUTO-GENERATED FILE. DO NOT MODIFY.\n\n// This file is an auto-generated file by Ballerina persistence layer for employees.\n// It should not be modified by hand.\n\nimport ballerina/time;\n\npublic type Employee record {|\n    readonly int id;\n    string firstName;\n    string lastName;\n    string email;\n    string? department;\n    decimal? salary;\n    time:Date? hireDate;\n    time:Utc? createdAt;\n|};\n\npublic type EmployeeOptionalized record {|\n    int id?;\n    string firstName?;\n    string lastName?;\n    string email?;\n    string? department?;\n    decimal? salary?;\n    time:Date? hireDate?;\n    time:Utc? createdAt?;\n|};\n\npublic type EmployeeTargetType typedesc<EmployeeOptionalized>;\n\npublic type EmployeeInsert record {|\n    string firstName;\n    string lastName;\n    string email;\n    string? department;\n    decimal? salary;\n    time:Date? hireDate;\n    time:Utc? createdAt;\n|};\n\npublic type EmployeeUpdate record {|\n    string firstName?;\n    string lastName?;\n    string email?;\n    string? department?;\n    decimal? salary?;\n    time:Date? hireDate?;\n    time:Utc? createdAt?;\n|};\n"
-      }
-    ],
-    "sample-project-with-config/config.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 5,
-            "character": 0
-          },
-          "end": {
-            "line": 5,
-            "character": 0
-          }
-        },
-        "newText": "\nconfigurable string testdbHost = \"localhost\";\nconfigurable int testdbPort = 3307;\nconfigurable string testdbUser = \"root\";\nconfigurable string testdbPassword = ?;\nconfigurable string testdbDatabase = \"testdb\";\n"
-      }
-    ],
-    "sample-project-with-config/connections.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 0,
-            "character": 0
-          },
-          "end": {
-            "line": 0,
-            "character": 0
-          }
-        },
-        "newText": "import sample_project_with_config.employees;\n\nfinal employees:Client testdb = check new (testdbHost, testdbPort, testdbUser, testdbPassword, testdbDatabase);\n\n"
       }
     ],
     "sample-project-with-config/generated/employees/persist_client.bal": [

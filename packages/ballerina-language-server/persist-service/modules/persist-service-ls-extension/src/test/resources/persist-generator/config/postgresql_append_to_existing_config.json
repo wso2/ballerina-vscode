@@ -1,17 +1,15 @@
 {
   "description": "PostgreSQL persist client generation - append to existing config.bal with existing configuration",
   "testProjectFolder": "sample-project-with-config",
-  "name": "testdb",
-  "dbSystem": "postgresql",
-  "host": "localhost",
-  "port": 5432,
-  "user": "postgres",
-  "password": "postgres",
-  "database": "testdb",
-  "selectedTables": [
-    "departments"
+  "targetModule": "sample_project_with_config.departments",
+  "modelFilePath": "persist/departments/model.bal",
+  "tables": [
+    {
+      "table": "departments",
+      "selected": true,
+      "existing": false
+    }
   ],
-  "module": "departments",
   "output": {
     "sample-project-with-config/generated/departments/persist_types.bal": [
       {
@@ -26,66 +24,6 @@
           }
         },
         "newText": "// AUTO-GENERATED FILE. DO NOT MODIFY.\n\n// This file is an auto-generated file by Ballerina persistence layer for departments.\n// It should not be modified by hand.\n\npublic type Department record {|\n    readonly int deptId;\n    string deptName;\n    string? location;\n    decimal? budget;\n|};\n\npublic type DepartmentOptionalized record {|\n    int deptId?;\n    string deptName?;\n    string? location?;\n    decimal? budget?;\n|};\n\npublic type DepartmentTargetType typedesc<DepartmentOptionalized>;\n\npublic type DepartmentInsert record {|\n    string deptName;\n    string? location;\n    decimal? budget;\n|};\n\npublic type DepartmentUpdate record {|\n    string deptName?;\n    string? location?;\n    decimal? budget?;\n|};\n"
-      }
-    ],
-    "sample-project-with-config/Ballerina.toml": [
-      {
-        "range": {
-          "start": {
-            "line": 4,
-            "character": 0
-          },
-          "end": {
-            "line": 4,
-            "character": 0
-          }
-        },
-        "newText": "\n[[tool.persist]]\nid = \"sample_project_with_config.departments\"\ntargetModule = \"sample_project_with_config.departments\"\nfilePath = \"persist/testdb/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.9.0\"\n"
-      }
-    ],
-    "sample-project-with-config/persist/testdb/model.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 0,
-            "character": 0
-          },
-          "end": {
-            "line": 0,
-            "character": 0
-          }
-        },
-        "newText": "import ballerina/persist as _;\nimport ballerinax/persist.sql;\n\n@sql:Name {value: \"departments\"}\npublic type Department record {|\n    @sql:Name {value: \"dept_id\"}\n    @sql:Generated\n    readonly int deptId;\n    @sql:Name {value: \"dept_name\"}\n    @sql:Varchar {length: 100}\n    @sql:UniqueIndex {name: \"departments_dept_name_key\"}\n    string deptName;\n    @sql:Varchar {length: 100}\n    string? location;\n    @sql:Decimal {precision: [12, 2]}\n    decimal? budget;\n|};\n"
-      }
-    ],
-    "sample-project-with-config/config.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 5,
-            "character": 0
-          },
-          "end": {
-            "line": 5,
-            "character": 0
-          }
-        },
-        "newText": "\nconfigurable string testdbHost = \"localhost\";\nconfigurable int testdbPort = 5432;\nconfigurable string testdbUser = \"postgres\";\nconfigurable string testdbPassword = ?;\nconfigurable string testdbDatabase = \"testdb\";\n"
-      }
-    ],
-    "sample-project-with-config/connections.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 0,
-            "character": 0
-          },
-          "end": {
-            "line": 0,
-            "character": 0
-          }
-        },
-        "newText": "import sample_project_with_config.departments;\n\nfinal departments:Client testdb = check new (testdbHost, testdbPort, testdbUser, testdbPassword, testdbDatabase);\n\n"
       }
     ],
     "sample-project-with-config/generated/departments/persist_client.bal": [

@@ -2,3 +2,32 @@
 org = "test"
 name = "sample_project_with_connections"
 version = "0.1.0"
+
+[[tool.persist]]
+id = "sample_project_with_connections.orders"
+targetModule = "sample_project_with_connections.orders"
+filePath = "persist/orders/model.bal"
+options.datastore = "mssql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[tool.persist]]
+id = "sample_project_with_connections.departments"
+targetModule = "sample_project_with_connections.departments"
+filePath = "persist/departments/model.bal"
+options.datastore = "mysql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[tool.persist]]
+id = "sample_project_with_connections.products"
+targetModule = "sample_project_with_connections.products"
+filePath = "persist/products/model.bal"
+options.datastore = "postgresql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[dependency]]
+org = "ballerina"
+name = "tool.persist"
+version = "1.9.0"

@@ -1,15 +1,13 @@
 {
   "description": "Persist client generation - nonexistent project path",
   "testProjectFolder": "nonexistent-project-folder",
-  "name": "testdb",
-  "dbSystem": "mysql",
-  "host": "localhost",
-  "port": 3307,
-  "user": "root",
-  "password": "Test123#",
-  "database": "testdb",
-  "selectedTables": ["employees"],
-  "module": "employees",
+  "tables": [
+    {
+      "table": "employees",
+      "selected": true,
+      "existing": false
+    }
+  ],
   "expectError": true,
   "expectedErrorMessage": "does not exist"
 }

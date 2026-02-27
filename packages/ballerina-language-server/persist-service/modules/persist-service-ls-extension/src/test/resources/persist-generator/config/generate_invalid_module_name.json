@@ -1,15 +1,15 @@
 {
   "description": "Persist client generation - invalid module name with special characters",
   "testProjectFolder": "sample-project",
-  "name": "testdb",
-  "dbSystem": "mysql",
-  "host": "localhost",
-  "port": 3307,
-  "user": "root",
-  "password": "Test123#",
-  "database": "testdb",
-  "selectedTables": ["employees"],
-  "module": "invalid-module-name!@#",
+  "tables": [
+    {
+      "table": "employees",
+      "selected": true,
+      "existing": false
+    }
+  ],
   "expectError": true,
-  "expectedErrorMessage": "module"
+  "expectedErrorMessage": "No persist tool entry",
+  "targetModule": "sample_project.invalid_module",
+  "modelFilePath": "persist/invalid/model.bal"
 }

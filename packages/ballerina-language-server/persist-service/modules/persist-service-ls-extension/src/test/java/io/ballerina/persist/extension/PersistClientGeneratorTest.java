@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import static io.ballerina.persist.extension.PersistClientGeneratorRequest.TableEntry;
+
 /**
  * Tests for Persist client generation functionality.
  *
@@ -63,17 +65,11 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
         TestConfig testConfig = gson.fromJson(bufferedReader, TestConfig.class);
         bufferedReader.close();
 
-        PersistClientGeneratorRequest request = new PersistClientGeneratorRequest(
-                sourceDir.resolve(testConfig.testProjectFolder()).toAbsolutePath().toString(),
-                testConfig.name(),
-                testConfig.dbSystem(),
-                testConfig.host(),
-                testConfig.port(),
-                testConfig.user(),
-                testConfig.password(),
-                testConfig.database(),
-                testConfig.selectedTables(),
-                testConfig.module());
+        PersistClientGeneratorRequest request = new PersistClientGeneratorRequest();
+        request.setProjectPath(sourceDir.resolve(testConfig.testProjectFolder()).toAbsolutePath().toString());
+        request.setTargetModule(testConfig.targetModule());
+        request.setModelFilePath(testConfig.modelFilePath());
+        request.setTables(testConfig.tables());
 
         // Handle negative test cases
         if (testConfig.expectError()) {
@@ -154,15 +150,9 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
                 TestConfig updatedConfig = new TestConfig(
                         testConfig.description(),
                         testConfig.testProjectFolder(),
-                        testConfig.name(),
-                        testConfig.dbSystem(),
-                        testConfig.host(),
-                        testConfig.port(),
-                        testConfig.user(),
-                        testConfig.password(),
-                        testConfig.database(),
-                        testConfig.selectedTables(),
-                        testConfig.module(),
+                        testConfig.targetModule(),
+                        testConfig.modelFilePath(),
+                        testConfig.tables(),
                         newMap,
                         testConfig.expectError(),
                         testConfig.expectedErrorMessage()
@@ -201,23 +191,16 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
      *
      * @param description          The description of the test.
      * @param testProjectFolder    The test project folder path.
-     * @param name                 Name of the database connector.
-     * @param dbSystem             Database system type (mysql, postgresql, mssql).
-     * @param host                 Database host address.
-     * @param port                 Database port number.
-     * @param user                 Database username.
-     * @param password             Database user password.
-     * @param database             Name of the database to connect.
-     * @param selectedTables       Selected tables to generate entities for.
-     * @param module               The target module name for generated client.
+     * @param targetModule         The fully-qualified target module name (e.g. "sample_project.testdb").
+     * @param modelFilePath        Relative path to the existing model file (e.g. "persist/testdb/model.bal").
+     * @param tables               The table entries with selection flags from the introspection step.
      * @param output               The expected text edits output.
      * @param expectError          Flag to indicate if an error is expected.
      * @param expectedErrorMessage Expected error message content for negative tests.
      */
-    private record TestConfig(String description, String testProjectFolder, String name,
-            String dbSystem, String host, Integer port,
-            String user, String password, String database,
-            String[] selectedTables, String module,
+    private record TestConfig(String description, String testProjectFolder,
+            String targetModule, String modelFilePath,
+            List<TableEntry> tables,
             Map<String, List<TextEdit>> output, Boolean expectError, String expectedErrorMessage) {
 
         public String description() {

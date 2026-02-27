@@ -350,7 +350,7 @@ public class PersistClient {
                                       boolean skipTomlEdits, String modelFilePath)
             throws PersistClientException {
         if (skipTomlEdits) {
-            return generateClientFromModel(module, modelFilePath);
+            return generateClientFromModel(module, modelFilePath, name);
         }
 
         validateConnectionDetails();
@@ -400,7 +400,7 @@ public class PersistClient {
      * @return JsonElement containing the PersistClientResponse with text edits map
      * @throws PersistClientException if the model file cannot be found or generation fails
      */
-    private JsonElement generateClientFromModel(String module, String modelFilePath)
+    private JsonElement generateClientFromModel(String module, String modelFilePath, String targetModuleFqn)
             throws PersistClientException {
         if (module == null || module.isEmpty()) {
             throw new PersistClientException("targetModule is required for updating an existing module.");
@@ -414,12 +414,58 @@ public class PersistClient {
             if (modelDoc.isEmpty()) {
                 throw new PersistClientException("Model file not found: " + modelFilePath);
             }
+            String effectiveDatastore = (this.datastore == null || this.datastore.isEmpty())
+                    ? readDatastoreFromToml(targetModuleFqn)
+                    : this.datastore;
             Module entityModule = getEntities(module, modelDoc.get().syntaxTree());
-            addTextEditsForClientModuleSources(module, textEditsMap, entityModule, true);
+            addTextEditsForClientModuleSources(module, textEditsMap, entityModule, true, effectiveDatastore);
             return gson.toJsonTree(new PersistClientResponse(true, textEditsMap));
-        } catch (BalException | FormatterException e) {
+        } catch (BalException | FormatterException | IOException e) {
             throw new PersistClientException("Error generating client from model: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Reads the {@code options.datastore} value from a {@code [[tool.persist]]} entry in
+     * {@code Ballerina.toml} whose {@code targetModule} matches the supplied fully-qualified
+     * module name.
+     *
+     * @param targetModuleFqn Fully-qualified module name (e.g. {@code "sample_project.testdb_mssql"})
+     * @return The datastore string (e.g. {@code "mssql"})
+     * @throws IOException            if the TOML file cannot be read
+     * @throws PersistClientException if no matching entry or datastore value is found
+     */
+    private String readDatastoreFromToml(String targetModuleFqn) throws IOException, PersistClientException {
+        Path tomlPath = this.projectPath.resolve(BALLERINA_TOML);
+        DocumentNode rootNode = parseTomlFile(tomlPath);
+
+        for (DocumentMemberDeclarationNode node : rootNode.members()) {
+            if (node.kind() != SyntaxKind.TABLE_ARRAY) {
+                continue;
+            }
+            TableArrayNode tableArrayNode = (TableArrayNode) node;
+            if (!tableArrayNode.identifier().toSourceCode().equals("tool.persist")) {
+                continue;
+            }
+
+            boolean matchesModule = false;
+            String datastore = null;
+            for (KeyValueNode field : tableArrayNode.fields()) {
+                String fieldId = field.identifier().toSourceCode().trim();
+                String fieldValue = field.value().toSourceCode().trim();
+                if (fieldId.equals("targetModule") && fieldValue.contains("\"" + targetModuleFqn + "\"")) {
+                    matchesModule = true;
+                }
+                if (fieldId.equals("options.datastore")) {
+                    datastore = fieldValue.replace("\"", "").trim();
+                }
+            }
+            if (matchesModule && datastore != null) {
+                return datastore;
+            }
+        }
+        throw new PersistClientException(
+                "No persist tool entry with options.datastore found for module: " + targetModuleFqn);
     }
 
     private void addTextEditForConfigurations(Map<Path, List<TextEdit>> textEditsMap) {
@@ -579,6 +625,12 @@ public class PersistClient {
 
     private void addTextEditsForClientModuleSources(String module, Map<Path, List<TextEdit>> textEditsMap,
                                                     Module entityModule, boolean forceUpdate)
+            throws PersistClientException, FormatterException, BalException {
+        addTextEditsForClientModuleSources(module, textEditsMap, entityModule, forceUpdate, this.datastore);
+    }
+
+    private void addTextEditsForClientModuleSources(String module, Map<Path, List<TextEdit>> textEditsMap,
+                                                    Module entityModule, boolean forceUpdate, String datastore)
             throws PersistClientException, FormatterException, BalException {
         DbSyntaxTree dbSyntaxTree = new DbSyntaxTree();
         Path outputPath = projectPath.resolve("generated").resolve(module);

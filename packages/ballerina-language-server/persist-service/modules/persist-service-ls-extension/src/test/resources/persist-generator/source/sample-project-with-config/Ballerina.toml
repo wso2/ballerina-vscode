@@ -2,3 +2,32 @@
 org = "test"
 name = "sample_project_with_config"
 version = "0.1.0"
+
+[[tool.persist]]
+id = "sample_project_with_config.employees_mssql"
+targetModule = "sample_project_with_config.employees_mssql"
+filePath = "persist/employees_mssql/model.bal"
+options.datastore = "mssql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[tool.persist]]
+id = "sample_project_with_config.employees"
+targetModule = "sample_project_with_config.employees"
+filePath = "persist/employees/model.bal"
+options.datastore = "mysql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[tool.persist]]
+id = "sample_project_with_config.departments"
+targetModule = "sample_project_with_config.departments"
+filePath = "persist/departments/model.bal"
+options.datastore = "postgresql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[dependency]]
+org = "ballerina"
+name = "tool.persist"
+version = "1.9.0"

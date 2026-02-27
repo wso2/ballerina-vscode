@@ -3,3 +3,23 @@ org = "test"
 name = "sample_project"
 version = "0.1.0"
 
+[[tool.persist]]
+id = "sample_project_empty_module.testdb_mssql"
+targetModule = "sample_project_empty_module.testdb_mssql"
+filePath = "persist/testdb_mssql/model.bal"
+options.datastore = "mssql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[tool.persist]]
+id = "sample_project_empty_module.testdb"
+targetModule = "sample_project_empty_module.testdb"
+filePath = "persist/testdb/model.bal"
+options.datastore = "mysql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[dependency]]
+org = "ballerina"
+name = "tool.persist"
+version = "1.9.0"

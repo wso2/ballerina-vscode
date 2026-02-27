@@ -173,8 +173,11 @@ public class PersistClientService implements ExtendedLanguageServerService {
                 PersistClient generator = new PersistClient(
                         request.getProjectPath(), module, this.workspaceManager);
 
+                // For re-generation (hasExistingModule=true), pass the full targetModule so that
+                // PersistClient can read options.datastore from Ballerina.toml.
+                String nameParam = hasExistingModule ? targetModule : module;
                 JsonElement source = generator.generateClient(
-                        selectedTables, module, module, hasExistingModule, modelFilePath);
+                        selectedTables, module, nameParam, hasExistingModule, modelFilePath);
                 response.setSource(source);
             } catch (Exception e) {
                 response.setError(e);

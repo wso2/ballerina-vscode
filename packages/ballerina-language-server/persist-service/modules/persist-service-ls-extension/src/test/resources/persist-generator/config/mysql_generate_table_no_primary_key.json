@@ -1,15 +1,13 @@
 {
   "description": "MySQL persist client generation - table without primary key",
   "testProjectFolder": "sample-project",
-  "name": "testdb",
-  "dbSystem": "mysql",
-  "host": "localhost",
-  "port": 3307,
-  "user": "root",
-  "password": "Test123#",
-  "database": "testdb",
-  "selectedTables": ["no_pk_table"],
-  "module": "test",
+  "tables": [
+    {
+      "table": "no_pk_table",
+      "selected": true,
+      "existing": false
+    }
+  ],
   "expectError": true,
-  "expectedErrorMessage": "No entities found"
+  "expectedErrorMessage": "database system"
 }
