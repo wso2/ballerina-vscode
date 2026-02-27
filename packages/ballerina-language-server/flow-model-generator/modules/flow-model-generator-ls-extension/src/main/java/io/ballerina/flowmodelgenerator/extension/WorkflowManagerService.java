@@ -47,6 +47,7 @@ import org.eclipse.lsp4j.services.LanguageServer;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -136,7 +137,8 @@ public class WorkflowManagerService implements ExtendedLanguageServerService {
         if (params.isEmpty() || params.get().size() < 3) {
             // Try to find events type by convention: <FunctionName>Events
             String funcName = funcSymbol.getName().orElse("");
-            String eventsTypeName = funcName.substring(0, 1).toUpperCase() + funcName.substring(1) + EVENTS_SUFFIX;
+            String eventsTypeName = funcName.substring(0, 1).toUpperCase(Locale.ROOT) + funcName.substring(1)
+                    + EVENTS_SUFFIX;
 
             Optional<Symbol> eventsTypeSymbol = semanticModel.moduleSymbols().stream()
                     .filter(symbol -> symbol.nameEquals(eventsTypeName))

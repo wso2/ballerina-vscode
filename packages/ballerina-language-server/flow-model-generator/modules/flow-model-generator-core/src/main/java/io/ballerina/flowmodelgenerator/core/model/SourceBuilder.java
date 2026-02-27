@@ -778,8 +778,15 @@ public class SourceBuilder {
         } catch (WorkspaceDocumentException | EventSyncException e) {
             return;
         }
-        Path filePath = this.filePath.getParent().resolve(TYPES_BAL);
+        Path parentPath = this.filePath.getParent();
+        if (parentPath == null) {
+            return;
+        }
+        Path filePath = parentPath.resolve(TYPES_BAL);
         Document document = FileSystemUtils.getDocument(workspaceManager, filePath);
+        if (document == null) {
+            return;
+        }
         SyntaxTree syntaxTree = document.syntaxTree();
         ModulePartNode rootNode = syntaxTree.rootNode();
 

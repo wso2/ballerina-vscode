@@ -157,7 +157,7 @@ public class TypeUtils {
     public static TypeSymbol resolveTypeReference(TypeSymbol typeSymbol) {
         if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
             typeSymbol = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
-            if(typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+            if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
                 return resolveTypeReference(typeSymbol);
             }
         }

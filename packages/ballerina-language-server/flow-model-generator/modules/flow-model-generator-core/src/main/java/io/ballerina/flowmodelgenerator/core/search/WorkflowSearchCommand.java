@@ -34,6 +34,7 @@ import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -128,7 +129,7 @@ class WorkflowSearchCommand extends SearchCommand {
         if (query == null || query.isEmpty()) {
             return true;
         }
-        return funcName.toLowerCase().contains(query.toLowerCase());
+        return funcName.toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT));
     }
 }
 

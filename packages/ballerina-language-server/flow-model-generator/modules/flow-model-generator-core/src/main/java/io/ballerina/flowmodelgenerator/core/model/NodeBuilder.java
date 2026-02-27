@@ -45,7 +45,6 @@ import io.ballerina.flowmodelgenerator.core.model.node.DataMapperCreationBuilder
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ErrorHandlerBuilder;
-import io.ballerina.flowmodelgenerator.core.model.node.SendEventBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.EventStartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ExpressionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FailBuilder;
@@ -74,6 +73,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.ResourceActionCallBuilder
 import io.ballerina.flowmodelgenerator.core.model.node.RetryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ReturnBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RollbackBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.SendEventBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StopBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.TransactionBuilder;

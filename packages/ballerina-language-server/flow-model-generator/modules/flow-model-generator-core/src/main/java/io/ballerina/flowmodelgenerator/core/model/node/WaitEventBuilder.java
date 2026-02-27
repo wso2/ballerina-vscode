@@ -52,12 +52,15 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.Document;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextRange;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -179,7 +182,7 @@ public class WaitEventBuilder extends WaitBuilder {
     private void addNewEventToWorkflow(SourceBuilder sourceBuilder, String eventType, String eventName) {
         try {
             sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
-        } catch (Exception e) {
+        } catch (WorkspaceDocumentException | EventSyncException e) {
             return;
         }
 
@@ -197,7 +200,7 @@ public class WaitEventBuilder extends WaitBuilder {
         } else {
             // No events parameter - create new type and add parameter
             String funcName = functionNode.functionName().text();
-            String baseTypeName = funcName.substring(0, 1).toUpperCase() + funcName.substring(1)
+            String baseTypeName = funcName.substring(0, 1).toUpperCase(Locale.ROOT) + funcName.substring(1)
                     + EVENTS_SUFFIX;
             String eventsTypeName = generateUniqueEventsTypeName(baseTypeName, semanticModel);
             createNewEventsType(sourceBuilder, eventsTypeName, eventType, eventName);
@@ -326,42 +329,41 @@ public class WaitEventBuilder extends WaitBuilder {
 
         LineRange typeLineRange = recordType.getLocation().get().lineRange();
 
-        try {
-            Path typesFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath).resolve(TYPES_BAL);
-            Document typesDoc = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, typesFilePath);
-            SyntaxTree typesSyntaxTree = typesDoc.syntaxTree();
-            ModulePartNode typesRootNode = typesSyntaxTree.rootNode();
-
-            // Find the type definition node using the location
-            int txtPos = typesDoc.textDocument().textPositionFrom(typeLineRange.startLine());
-            TextRange textRange = TextRange.from(txtPos, 0);
-            NonTerminalNode typeDefNode = typesRootNode.findNode(textRange);
-            if (typeDefNode == null || typeDefNode.kind() != SyntaxKind.TYPE_DEFINITION) {
-                return;
-            }
-
-            Node typeDescNode = ((TypeDefinitionNode) typeDefNode).typeDescriptor();
-            if (typeDescNode.kind() != SyntaxKind.RECORD_TYPE_DESC) {
-                return;
-            }
-
-            // Get the bodyStartDelimiter location ({|)
-            Token bodyStartDelimiter = ((RecordTypeDescriptorNode) typeDescNode).bodyStartDelimiter();
-            LineRange delimiterLineRange = bodyStartDelimiter.lineRange();
-            Range insertRange = CommonUtils.toRange(delimiterLineRange.endLine());
-
-            sourceBuilder.token()
-                    .name(SyntaxKind.FUTURE_KEYWORD.stringValue())
-                    .name(SyntaxKind.LT_TOKEN.stringValue())
-                    .name(eventType)
-                    .name(SyntaxKind.GT_TOKEN.stringValue())
-                    .whiteSpace()
-                    .name(eventName)
-                    .endOfStatement()
-                    .skipFormatting().stepOut().textEdit(null, typesFilePath, insertRange);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to modify the events type definition");
+        Path typesFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath).resolve(TYPES_BAL);
+        Document typesDoc = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, typesFilePath);
+        if (typesDoc == null) {
+            return;
         }
+        SyntaxTree typesSyntaxTree = typesDoc.syntaxTree();
+        ModulePartNode typesRootNode = typesSyntaxTree.rootNode();
+
+        // Find the type definition node using the location
+        int txtPos = typesDoc.textDocument().textPositionFrom(typeLineRange.startLine());
+        TextRange textRange = TextRange.from(txtPos, 0);
+        NonTerminalNode typeDefNode = typesRootNode.findNode(textRange);
+        if (typeDefNode == null || typeDefNode.kind() != SyntaxKind.TYPE_DEFINITION) {
+            return;
+        }
+
+        Node typeDescNode = ((TypeDefinitionNode) typeDefNode).typeDescriptor();
+        if (typeDescNode.kind() != SyntaxKind.RECORD_TYPE_DESC) {
+            return;
+        }
+
+        // Get the bodyStartDelimiter location ({|)
+        Token bodyStartDelimiter = ((RecordTypeDescriptorNode) typeDescNode).bodyStartDelimiter();
+        LineRange delimiterLineRange = bodyStartDelimiter.lineRange();
+        Range insertRange = CommonUtils.toRange(delimiterLineRange.endLine());
+
+        sourceBuilder.token()
+                .name(SyntaxKind.FUTURE_KEYWORD.stringValue())
+                .name(SyntaxKind.LT_TOKEN.stringValue())
+                .name(eventType)
+                .name(SyntaxKind.GT_TOKEN.stringValue())
+                .whiteSpace()
+                .name(eventName)
+                .endOfStatement()
+                .skipFormatting().stepOut().textEdit(null, typesFilePath, insertRange);
     }
 
     private boolean isValidEventsType(TypeSymbol typeSymbol) {

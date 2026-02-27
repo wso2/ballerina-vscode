@@ -29,7 +29,6 @@ import io.ballerina.flowmodelgenerator.core.model.PropertyTypeMemberInfo;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.PackageUtil;
-import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
 import io.ballerina.projects.Package;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -174,25 +173,21 @@ public class SendEventBuilder extends NodeBuilder {
      */
     private List<Option> getAvailableWorkflowFunctions(TemplateContext context) {
         List<Option> options = new ArrayList<>();
-        try {
-            Package currentPackage = PackageUtil.loadProject(context.workspaceManager(), context.filePath())
-                    .currentPackage();
-            PackageUtil.getCompilation(currentPackage);
-            currentPackage.modules().forEach(module -> {
-                module.getCompilation().getSemanticModel().moduleSymbols().stream()
-                        .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)
-                        .map(symbol -> (FunctionSymbol) symbol)
-                        .filter(WorkflowUtil::isWorkflowFunction)
-                        .forEach(funcSymbol -> {
-                            String funcName = funcSymbol.getName().orElse("");
-                            if (!funcName.isEmpty()) {
-                                options.add(new Option(funcName, funcName));
-                            }
-                        });
-            });
-        } catch (Exception e) {
-            // Return empty options if project loading fails
-        }
+        Package currentPackage = PackageUtil.loadProject(context.workspaceManager(), context.filePath())
+                .currentPackage();
+        PackageUtil.getCompilation(currentPackage);
+        currentPackage.modules().forEach(module -> {
+            module.getCompilation().getSemanticModel().moduleSymbols().stream()
+                    .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)
+                    .map(symbol -> (FunctionSymbol) symbol)
+                    .filter(WorkflowUtil::isWorkflowFunction)
+                    .forEach(funcSymbol -> {
+                        String funcName = funcSymbol.getName().orElse("");
+                        if (!funcName.isEmpty()) {
+                            options.add(new Option(funcName, funcName));
+                        }
+                    });
+        });
         return options;
     }
 }

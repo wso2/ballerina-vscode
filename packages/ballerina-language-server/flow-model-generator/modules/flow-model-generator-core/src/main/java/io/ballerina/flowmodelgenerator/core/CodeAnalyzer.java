@@ -173,11 +173,6 @@ import io.ballerina.tools.text.TextDocument;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CALL_ACTIVITY_METHOD_NAME;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CREATE_INSTANCE_METHOD_NAME;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SEND_EVENT_METHOD_NAME;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -193,6 +188,10 @@ import java.util.Stack;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CALL_ACTIVITY_METHOD_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CREATE_INSTANCE_METHOD_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SEND_EVENT_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowFunction;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINA_ORG_NAME;
