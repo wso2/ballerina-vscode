@@ -177,12 +177,12 @@ const getStatusCode = (output: HTTPResponse | HTTPErrorResponse): number | undef
 
 interface TestCaseContainerProps {
     testCase: TestCase;
-    failed?: boolean;
 }
 
-const TestCaseContainer: React.FC<TestCaseContainerProps> = ({ testCase, failed }) => {
+const TestCaseContainer: React.FC<TestCaseContainerProps> = ({ testCase }) => {
     const statusCode = testCase.isResult && testCase.output ? getStatusCode(testCase.output) : undefined;
     const [expanded, setExpanded] = useState(false);
+    const failed = testCase.output && "error" in testCase.output && testCase.output.error;
 
     return (
         <TryItTestCaseWrapper>

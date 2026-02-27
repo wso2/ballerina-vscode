@@ -1718,7 +1718,6 @@ const AIChat: React.FC = () => {
                                                     key={`try-it-scenarios-${i}`}
                                                     text={segment.text}
                                                     loading={segment.loading}
-                                                    failed={segment.failed}
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.Todo) {
