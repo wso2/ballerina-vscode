@@ -49,7 +49,6 @@ export interface ConvertibleOutputWidgetProps {
 
 export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
     const {
-        id,
         outputType,
         typeName,
         value,
@@ -59,6 +58,8 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
         mappings,
         valueLabel,
     } = props;
+    const id = outputType.convertedField ? props.id + ".C#" : props.id;
+
     const classes = useIONodesStyles();
 
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
@@ -133,10 +134,10 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
 
     return (
         <>
-            <TreeContainer data-testid={`${id}.C#-node`} onContextMenu={onRightClick}>
+            <TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick}>
                 <TreeHeader
                     isSelected={portState !== PortState.Unselected}
-                    id={"recordfield-" + id + ".C#"}
+                    id={"recordfield-" + id}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
                 >
