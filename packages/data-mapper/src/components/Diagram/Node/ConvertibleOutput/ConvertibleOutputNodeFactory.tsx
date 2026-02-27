@@ -41,7 +41,7 @@ export class ConvertibleOutputNodeFactory extends AbstractReactFactory<Convertib
                 ) : (
                     <ConvertibleOutputWidget
                         engine={this.engine}
-                        id={`${CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX}.${event.model.rootName}`}
+                        id={`${CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX}.${event.model.rootName}.C#`}
                         outputType={event.model.outputType}
                         typeName={event.model.typeName}
                         value={undefined}

@@ -133,10 +133,10 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
 
     return (
         <>
-            <TreeContainer data-testid={`${id}.#-node`} onContextMenu={onRightClick}>
+            <TreeContainer data-testid={`${id}.C#-node`} onContextMenu={onRightClick}>
                 <TreeHeader
                     isSelected={portState !== PortState.Unselected}
-                    id={"recordfield-" + id + ".#"}
+                    id={"recordfield-" + id + ".C#"}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
                 >
