@@ -19,6 +19,7 @@ import { z } from 'zod';
 import child_process from 'child_process';
 import { CopilotEventHandler } from '../../utils/events';
 import { extension } from '../../../../BalExtensionContext';
+import { quoteShellPath } from '../../../../utils/config';
 import { DIAGNOSTICS_TOOL_NAME } from './diagnostics';
 
 export const TEST_RUNNER_TOOL_NAME = "runTests";
@@ -99,7 +100,7 @@ function parseTestSummary(output: string): string {
 async function runBallerinaTests(cwd: string): Promise<TestRunResult> {
     return new Promise((resolve) => {
         const balCmd = extension.ballerinaExtInstance.getBallerinaCmd();
-        const command = `${balCmd} test`;
+        const command = `${quoteShellPath(balCmd)} test`;
 
         console.log(`[TestRunner] Running: ${command} in ${cwd}`);
 
