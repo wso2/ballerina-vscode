@@ -68,13 +68,12 @@ export class ConvertibleOutputNode extends DataMapperNodeModel {
 
             this.addPortsForHeader({
                 dmType: this.filteredOutputType,
-                name: this.rootName + ".$",
+                name: this.rootName + ".#",
                 portType: "IN",
                 portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
                 mappings: this.context.model.mappings,
                 collapsedFields,
                 expandedFields,
-                isPreview: true
             });
 
             const mainField = this.filteredOutputType.convertedField || this.filteredOutputType;
