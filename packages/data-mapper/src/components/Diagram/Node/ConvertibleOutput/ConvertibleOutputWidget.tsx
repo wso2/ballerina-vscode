@@ -88,7 +88,7 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
     if (portIn && portIn.attributes.collapsed) {
         expanded = false;
     }
-    const isDisabled = portIn?.attributes.descendantHasValue;
+    const isDisabled = portIn?.attributes.descendantHasValue || outputType.convertedField !== undefined;
 
     const handleExpand = () => {
         const collapsedFields = collapsedFieldsStore.fields;
@@ -133,10 +133,10 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
 
     return (
         <>
-            <TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick}>
+            <TreeContainer data-testid={`${id}.#-node`} onContextMenu={onRightClick}>
                 <TreeHeader
                     isSelected={portState !== PortState.Unselected}
-                    id={"recordfield-" + id}
+                    id={"recordfield-" + id + ".#"}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
                 >
@@ -146,7 +146,7 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
                                 engine={engine}
                                 port={portIn}
                                 handlePortState={handlePortState}
-                                disable={isDisabled && !expanded}
+                                disable={isDisabled && expanded}
                             />
                         )}
                     </span>
@@ -208,7 +208,7 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
                     getPort={getPort}
                     context={context}
                     mappings={mappings}
-                    valueLabel={outputType.convertedField.name}
+                    valueLabel={outputType.convertedField.displayName || outputType.convertedField.name}
                     originalTypeName={outputType.convertedField.typeName}
                 />
             )}

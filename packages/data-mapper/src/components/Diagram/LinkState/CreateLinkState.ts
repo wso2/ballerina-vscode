@@ -145,7 +145,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 							if (element.attributes.portType === "IN") {
 								let isDisabled = false;
 								if (element instanceof InputOutputPortModel) {
-								isDisabled = element.isDisabled();
+								isDisabled = element.isDisabled() || element.attributes.field.convertedField !== undefined;
 								}
 								if (!isDisabled) {
 									element.fireEvent({}, "mappingFinishedTo");
