@@ -167,7 +167,7 @@ public class DiagnosticRequest implements Callable<JsonElement> {
         TextDocument updatedTextDocument = updatedDoc.textDocument();
         ModulePartNode modulePartNode = updatedDoc.syntaxTree().rootNode();
         NonTerminalNode node = modulePartNode.findNode(TextRange.from(start,
-                updatedTextDocument.textPositionFrom(endLinePosition) - 1 - start), true);
+                updatedTextDocument.textPositionFrom(endLinePosition) - start), true);
 
         // Generate the flow node for the ST node with the respective diagnostics annotated
         SemanticModel semanticModel = project.currentPackage().getCompilation()
