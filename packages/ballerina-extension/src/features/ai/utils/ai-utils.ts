@@ -313,7 +313,7 @@ export function getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
         // Standard Error objects have a .message property
         if (error.name === "UsageLimitError") {
-            return "Usage limit exceeded. Please try again later.";
+            return "Usage limit exceeded.";
         }
         if (error.name === "AI_RetryError") {
             return "An error occured connecting with the AI service. Please try again later.";
@@ -333,7 +333,7 @@ export function getErrorMessage(error: unknown): string {
     ) {
         // Check if it has a statusCode property indicating 429
         if ("statusCode" in error && (error as any).statusCode === 429) {
-            return "Usage limit exceeded. Please try again later.";
+            return "Usage limit exceeded.";
         }
         return (error as { message: string }).message;
     }

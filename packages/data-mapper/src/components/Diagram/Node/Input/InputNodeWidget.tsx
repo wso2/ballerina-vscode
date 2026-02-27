@@ -149,15 +149,25 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                     onMouseLeave={onMouseLeave}
                 >
                     <span className={classes.label}>
-                        {(fields || dmType.convertedField || isConvertibleType) && (
+                        {dmType.category !== InputCategory.ConvertedVariable ? (
+                            (fields || dmType.convertedField || isConvertibleType) && (
+                                <Button
+                                    id={"expand-or-collapse-" + id}
+                                    appearance="icon"
+                                    tooltip="Expand/Collapse"
+                                    onClick={handleExpand}
+                                    data-testid={`${id}-expand-icon-record-source-node`}
+                                >
+                                    {expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
+                                </Button>
+                            )
+                        ) : (
                             <Button
-                                id={"expand-or-collapse-" + id}
+                                id={"converted-icon-" + id}
                                 appearance="icon"
-                                tooltip="Expand/Collapse"
-                                onClick={handleExpand}
-                                data-testid={`${id}-expand-icon-record-source-node`}
+                                tooltip="Type defined variable"
                             >
-                                {expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
+                                <Icon name="arrow-down-right" />
                             </Button>
                         )}
                         {label}
@@ -167,7 +177,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                             <FieldActionButton
                                 id={"field-action-edit-" + id}
                                 tooltip="Edit"
-                                iconName="settings-gear"
+                                iconName="edit"
                                 onClick={async () => await context.createConvertedVariable(dmType.name, true, dmType.typeName)}
                             />
                         )}
@@ -202,27 +212,21 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                 )}
             </TreeContainer>
             {expanded && dmType.convertedField &&
-                <>
-                    <ArrowWidget direction="down" />
-                    <InputNodeWidget
-                        id={dmType.convertedField.name}
-                        dmType={dmType.convertedField}
-                        engine={engine}
-                        getPort={getPort}
-                        context={context}
-                        valueLabel={dmType.convertedField.name}
-                        focusedInputs={focusedInputs}
-                    />
-                </>
+                <InputNodeWidget
+                    id={dmType.convertedField.name}
+                    dmType={dmType.convertedField}
+                    engine={engine}
+                    getPort={getPort}
+                    context={context}
+                    valueLabel={dmType.convertedField.name}
+                    focusedInputs={focusedInputs}
+                />
             }
             {expanded && isConvertibleType && !dmType.convertedField &&
-                <>
-                    <ArrowWidget direction="down" />
-                    <PayloadWidget
-                        onClick={async () => await context.createConvertedVariable(headerLabel, true, undefined, dmType.typeName)}
-                        typeName={dmType.typeName}
-                    />
-                </>
+                <PayloadWidget
+                    onClick={async () => await context.createConvertedVariable(headerLabel, true, undefined, dmType.typeName)}
+                    typeName={dmType.typeName.toUpperCase()}
+                />
             }
         </>
     );
