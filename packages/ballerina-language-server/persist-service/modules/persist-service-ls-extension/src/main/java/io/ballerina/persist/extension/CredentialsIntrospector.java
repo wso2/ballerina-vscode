@@ -59,7 +59,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -91,19 +93,17 @@ public class CredentialsIntrospector {
     private static final String REQUIRED_PLACEHOLDER = "?";
 
     // Argument positions in the persist Client constructor: new (host, port, user, password, database)
+    private static final String HOST_KEY = "host";
+    private static final String PORT_KEY = "port";
+    private static final String USER_KEY = "user";
+    private static final String PASSWORD_KEY = "password";
+    private static final String DATABASE_KEY = "database";
+    private static final String DATABASE_TYPE_KEY = "dbSystem";
     private static final int ARG_IDX_HOST = 0;
     private static final int ARG_IDX_PORT = 1;
     private static final int ARG_IDX_USER = 2;
     private static final int ARG_IDX_PASSWORD = 3;
     private static final int ARG_IDX_DATABASE = 4;
-
-    // Property indices in the flat properties list
-    private static final int PROP_IDX_DB_SYSTEM = 0;
-    private static final int PROP_IDX_HOST = 1;
-    private static final int PROP_IDX_PORT = 2;
-    private static final int PROP_IDX_USER = 3;
-    private static final int PROP_IDX_PASSWORD = 4;
-    private static final int PROP_IDX_DATABASE = 5;
 
     private final Path projectPath;
     private final String connectionName;
@@ -136,7 +136,7 @@ public class CredentialsIntrospector {
     public IntrospectCredentialsResponse.CredentialsData introspect()
             throws PersistClient.PersistClientException {
         // Step 1: Create the empty credential model
-        List<Value> properties = createEmptyModel();
+        Map<String, Value> properties = createEmptyModel();
 
         // When no connection name is specified, return the empty model immediately
         if (connectionName == null || connectionName.isEmpty()) {
@@ -182,15 +182,15 @@ public class CredentialsIntrospector {
                 tomlInfo != null ? tomlInfo.modelFilePath() : null);
     }
 
-    private List<Value> createEmptyModel() { // TODO: need to improve the models we are sending
-        List<Value> properties = new ArrayList<>();
-        properties.add(buildEmptyValue("Database System",
+    private Map<String, Value> createEmptyModel() { // TODO: need to improve the models we are sending
+        Map<String, Value> properties = new LinkedHashMap<>();
+        properties.put(DATABASE_TYPE_KEY, buildEmptyValue("Database System",
                 "The database system type (e.g., mysql, postgresql, mssql)"));
-        properties.add(buildEmptyValue("Host", "Database server host address"));
-        properties.add(buildEmptyValue("Port", "Database server port number"));
-        properties.add(buildEmptyValue("User", "Database username"));
-        properties.add(buildEmptyValue("Password", "Database user password"));
-        properties.add(buildEmptyValue("Database", "Name of the database to connect"));
+        properties.put(HOST_KEY, buildEmptyValue("Host", "Database server host address"));
+        properties.put(PORT_KEY, buildEmptyValue("Port", "Database server port number"));
+        properties.put(USER_KEY, buildEmptyValue("User", "Database username"));
+        properties.put(PASSWORD_KEY, buildEmptyValue("Password", "Database user password"));
+        properties.put(DATABASE_KEY, buildEmptyValue("Database", "Name of the database to connect"));
         return properties;
     }
 
@@ -499,41 +499,33 @@ public class CredentialsIntrospector {
         return null;
     }
 
-    // -------------------------------------------------------------------------
-    // Step 3: Enrich properties
-    // -------------------------------------------------------------------------
-
     /**
      * Populates the credential property values in the model using the constructor argument
      * expressions, the semantic model (for resolving variable references), and
      * Ballerina.toml metadata.
      */
-    private void enrichProperties(List<Value> properties, ConnectionInfo connectionInfo,
+    private void enrichProperties(Map<String, Value> properties, ConnectionInfo connectionInfo,
                                   SemanticModel semanticModel, TomlConnectionInfo tomlInfo) {
         List<ExpressionNode> ctorArgs = connectionInfo.ctorArgs();
 
         // dbSystem comes from Ballerina.toml, not from the constructor arguments
         if (tomlInfo != null && tomlInfo.datastore() != null) {
-            setPropertyValue(properties, PROP_IDX_DB_SYSTEM, tomlInfo.datastore());
+            setPropertyValue(properties, DATABASE_TYPE_KEY, tomlInfo.datastore());
         }
 
         // Remaining properties map positionally to constructor arguments:
         // arg[0]=host, arg[1]=port, arg[2]=user, arg[3]=password, arg[4]=database
-        setPropertyFromArg(properties, PROP_IDX_HOST, ctorArgs, ARG_IDX_HOST, semanticModel);
-        setPropertyFromArg(properties, PROP_IDX_PORT, ctorArgs, ARG_IDX_PORT, semanticModel);
-        setPropertyFromArg(properties, PROP_IDX_USER, ctorArgs, ARG_IDX_USER, semanticModel);
-        setPropertyFromArg(properties, PROP_IDX_PASSWORD, ctorArgs, ARG_IDX_PASSWORD, semanticModel);
-        setPropertyFromArg(properties, PROP_IDX_DATABASE, ctorArgs, ARG_IDX_DATABASE, semanticModel);
+        setPropertyFromArg(properties, ctorArgs, ARG_IDX_HOST, HOST_KEY, semanticModel);
+        setPropertyFromArg(properties, ctorArgs, ARG_IDX_PORT, PORT_KEY, semanticModel);
+        setPropertyFromArg(properties, ctorArgs, ARG_IDX_USER, USER_KEY, semanticModel);
+        setPropertyFromArg(properties, ctorArgs, ARG_IDX_PASSWORD, PASSWORD_KEY, semanticModel);
+        setPropertyFromArg(properties, ctorArgs, ARG_IDX_DATABASE, DATABASE_KEY, semanticModel);
     }
 
-    private void setPropertyFromArg(List<Value> properties, int propIdx,
-                                     List<ExpressionNode> ctorArgs, int argIdx,
-                                     SemanticModel semanticModel) {
-        if (argIdx >= ctorArgs.size()) {
-            return;
-        }
+    private void setPropertyFromArg(Map<String, Value> properties, List<ExpressionNode> ctorArgs,
+                                    int argIdx, String propertyKey, SemanticModel semanticModel) {
         String value = resolveArgValue(ctorArgs.get(argIdx), semanticModel);
-        setPropertyValue(properties, propIdx, value);
+        setPropertyValue(properties, propertyKey, value);
     }
 
     /**
@@ -636,9 +628,10 @@ public class CredentialsIntrospector {
         }
     }
 
-    private void setPropertyValue(List<Value> properties, int index, String value) {
-        if (index < properties.size() && value != null && !value.isEmpty()) {
-            properties.get(index).setValue(value);
+    private void setPropertyValue(Map<String, Value> properties, String propertyKey, String value) {
+        Value existing = properties.get(propertyKey);
+        if (existing != null) {
+            existing.setValue(value);
         }
     }
 

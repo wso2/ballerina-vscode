@@ -21,7 +21,7 @@ package io.ballerina.persist.extension;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the response for credential introspection of an existing persist connection.
@@ -59,7 +59,7 @@ public class IntrospectCredentialsResponse {
      * @param targetModule  The fully-qualified target module name (e.g., "myapp.testdb")
      * @param modelFilePath The relative path to the persist model file (e.g., "persist/testdb/model.bal")
      */
-    public record CredentialsData(MetaData metadata, List<Value> properties,
+    public record CredentialsData(MetaData metadata, Map<String, Value> properties,
                                   String targetModule, String modelFilePath) {
     }
 }
