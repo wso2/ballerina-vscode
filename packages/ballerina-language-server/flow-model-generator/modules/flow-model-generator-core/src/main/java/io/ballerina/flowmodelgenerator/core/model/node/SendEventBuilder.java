@@ -139,6 +139,10 @@ public class SendEventBuilder extends NodeBuilder {
         Optional<Property> eventNameProp = sourceBuilder.getProperty(EVENT_NAME_KEY);
         String eventName = eventNameProp.map(p -> p.value().toString()).orElse("");
 
+        if (workflowName.isBlank() || eventName.isBlank()) {
+            throw new IllegalStateException("Send event node is missing required values: workflowName/eventName");
+        }
+
         Optional<Property> eventDataProp = sourceBuilder.getProperty(EVENT_DATA_KEY);
         String eventData = eventDataProp.map(p -> p.value().toString()).orElse("{}");
 

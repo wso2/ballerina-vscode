@@ -32,6 +32,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Project;
 import org.eclipse.lsp4j.TextEdit;
@@ -134,13 +135,14 @@ public class WorkflowStartBuilder extends NodeBuilder {
         // Get workflow function from codedata.symbol()
         String workflowFunction = flowNode.codedata().symbol();
         if (workflowFunction == null) {
-            workflowFunction = "";
+            throw new IllegalStateException("Workflow symbol is required for WORKFLOW_START");
         }
 
         // Get input property
         Optional<Property> inputProp = sourceBuilder.getProperty(INPUT_KEY);
         String input = inputProp
                 .map(p -> p.value().toString())
+                .filter(value -> !value.isBlank())
                 .orElse("{}");
 
         // Build: workflow:createInstance(workflowFunction, input)
@@ -175,28 +177,26 @@ public class WorkflowStartBuilder extends NodeBuilder {
             return null;
         }
 
-        Project project = PackageUtil.loadProject(context.workspaceManager(), context.filePath());
+        SemanticModel semanticModel = FileSystemUtils.getSemanticModel(context.workspaceManager(), context.filePath());
+        // Find the function symbol matching the workflow function name
+        Optional<Symbol> targetSymbol = semanticModel.moduleSymbols().stream()
+                .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)
+                .filter(symbol -> symbol.getName().orElse("").equals(codedata.symbol()))
+                .findFirst();
+        if  (targetSymbol.isEmpty()) {
+            return null;
+        }
 
-        // Search for the workflow function in the project modules
-        for (io.ballerina.projects.Module module : project.currentPackage().modules()) {
-            SemanticModel semanticModel = module.getCompilation().getSemanticModel();
+        Symbol sym = targetSymbol.get();
+        if (sym.kind() == SymbolKind.FUNCTION) {
+            FunctionTypeSymbol functionType = ((FunctionSymbol) sym).typeDescriptor();
+            Optional<List<ParameterSymbol>> params = functionType.params();
 
-            // Find the function symbol matching the workflow function name
-            Optional<Symbol> functionSymbol = semanticModel.moduleSymbols().stream()
-                    .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)
-                    .filter(symbol -> symbol.getName().orElse("").equals(codedata.symbol()))
-                    .findFirst();
-
-            if (functionSymbol.isPresent() && functionSymbol.get() instanceof FunctionSymbol funcSymbol) {
-                FunctionTypeSymbol functionType = funcSymbol.typeDescriptor();
-                Optional<List<ParameterSymbol>> params = functionType.params();
-
-                if (params.isPresent()) {
-                    // Find the parameter whose type is a subtype of anydata
-                    for (ParameterSymbol param : params.get()) {
-                        if (param.typeDescriptor().subtypeOf(semanticModel.types().ANYDATA)) {
-                            return param.typeDescriptor();
-                        }
+            if (params.isPresent()) {
+                // Find the parameter whose type is a subtype of anydata
+                for (ParameterSymbol param : params.get()) {
+                    if (param.typeDescriptor().subtypeOf(semanticModel.types().ANYDATA)) {
+                        return param.typeDescriptor();
                     }
                 }
             }

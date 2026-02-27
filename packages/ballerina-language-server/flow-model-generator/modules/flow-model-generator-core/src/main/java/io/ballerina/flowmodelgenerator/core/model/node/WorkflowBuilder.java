@@ -138,10 +138,12 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                 if (typeModel != null) {
                     // Process the type model with workflow-specific logic
                     String typeName = processTypeModelAndGetTypeName(sourceBuilder, typeModel);
-                    sourceBuilder.token()
-                            .name(typeName)
-                            .whiteSpace()
-                            .name(DEFAULT_INPUT_PARAM_NAME);
+                    if (typeName != null && !typeName.isEmpty()) {
+                        sourceBuilder.token()
+                                .name(typeName)
+                                .whiteSpace()
+                                .name(DEFAULT_INPUT_PARAM_NAME);
+                    }
                 }
             }
         }
@@ -264,7 +266,7 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
             String existingTypeName = existingField.typeDescriptor().signature();
             String memberTypeName = member.type() instanceof String ? (String) member.type() :
                     member.type() instanceof TypeData ? ((TypeData) member.type()).name() : null;
-            if (memberTypeName != null && !existingTypeName.contains(memberTypeName)) {
+            if (memberTypeName != null && !existingTypeName.equals(memberTypeName)) {
                 return false;
             }
         }

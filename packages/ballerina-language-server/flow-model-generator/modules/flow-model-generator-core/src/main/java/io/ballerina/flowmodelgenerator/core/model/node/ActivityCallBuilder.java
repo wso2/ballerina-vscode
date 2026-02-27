@@ -29,6 +29,7 @@ import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
@@ -117,8 +118,8 @@ public class ActivityCallBuilder extends CallBuilder {
 
         // Get activity function from codedata.symbol()
         String activityFunction = flowNode.codedata().symbol();
-        if (activityFunction == null) {
-            activityFunction = "";
+        if (activityFunction == null || activityFunction.isBlank()) {
+            throw new IllegalStateException("ActivityCallBuilder requires a non-empty activity function symbol");
         }
 
         // Generate: int result = check ctx->callActivity(myActivity, input);
@@ -180,6 +181,9 @@ public class ActivityCallBuilder extends CallBuilder {
     private Optional<String> getContextParamName(FunctionDefinitionNode functionNode,
                                                               SemanticModel semanticModel) {
         SeparatedNodeList<ParameterNode> parameters = functionNode.functionSignature().parameters();
+        if (parameters.isEmpty()) {
+            return Optional.empty();
+        }
         ParameterNode lastParam = parameters.get(0);
 
         Node typeNode = null;
@@ -187,11 +191,19 @@ public class ActivityCallBuilder extends CallBuilder {
         if (lastParam.kind() == SyntaxKind.REQUIRED_PARAM) {
             RequiredParameterNode requiredParam = (RequiredParameterNode) lastParam;
             typeNode = requiredParam.typeName();
-            paramName = requiredParam.paramName().get().text();
+            Optional<Token> optParamName = requiredParam.paramName();
+            if (optParamName.isEmpty()) {
+                return Optional.empty();
+            }
+            paramName = optParamName.get().text();
         } else if (lastParam.kind() == SyntaxKind.DEFAULTABLE_PARAM) {
             DefaultableParameterNode defaultableParam = (DefaultableParameterNode) lastParam;
             typeNode = defaultableParam.typeName();
-            paramName = defaultableParam.paramName().get().text();
+            Optional<Token> optParamName = defaultableParam.paramName();
+            if (optParamName.isEmpty()) {
+                return Optional.empty();
+            }
+            paramName = optParamName.get().text();
         }
 
         if (typeNode == null) {

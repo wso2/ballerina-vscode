@@ -161,6 +161,9 @@ public class WaitEventBuilder extends WaitBuilder {
         String variableName = variableProperty.get().value().toString();
         String eventType = eventTypeProperty.get().value().toString();
         String eventName = eventNameProperty.get().value().toString();
+        if (variableName.isBlank() || eventType.isBlank() || eventName.isBlank()) {
+            throw new IllegalStateException("WaitEventBuilder requires non-blank variableName/eventType/eventName");
+        }
 
         addNewEventToWorkflow(sourceBuilder, eventType, eventName);
 
@@ -183,7 +186,7 @@ public class WaitEventBuilder extends WaitBuilder {
         try {
             sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
         } catch (WorkspaceDocumentException | EventSyncException e) {
-            return;
+            throw new IllegalStateException("WaitEventBuilder failed to load project", e);
         }
 
         SemanticModel semanticModel = FileSystemUtils.getSemanticModel(sourceBuilder.workspaceManager,
@@ -191,7 +194,7 @@ public class WaitEventBuilder extends WaitBuilder {
 
         FunctionDefinitionNode functionNode = WorkflowUtil.findEnclosingWorkflowFunction(sourceBuilder);
         if (functionNode == null) {
-            return;
+            throw new IllegalStateException("WaitEventBuilder must be used inside a workflow process function");
         }
 
         Optional<TypeSymbol> eventsTypeSymbol = getEventsParameterTypeSymbol(functionNode, semanticModel);
@@ -332,7 +335,8 @@ public class WaitEventBuilder extends WaitBuilder {
 
         LineRange typeLineRange = recordType.getLocation().get().lineRange();
 
-        Path typesFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath).resolve(TYPES_BAL);
+        Path typesFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath)
+                .resolve(typeLineRange.fileName());
         Document typesDoc = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, typesFilePath);
         if (typesDoc == null) {
             return;
@@ -379,24 +383,16 @@ public class WaitEventBuilder extends WaitBuilder {
         }
 
         // Check that it's a RecordTypeSymbol and all fields are future types
-        if (typeSymbol instanceof RecordTypeSymbol recordType) {
+        Map<String, RecordFieldSymbol> fields = ((RecordTypeSymbol) typeSymbol).fieldDescriptors();
+        if (fields.isEmpty()) {
+            // Empty record is not a valid events record
+            return false;
+        }
 
-            // Get all record fields and validate each is a future type
-            java.util.Map<String, io.ballerina.compiler.api.symbols.RecordFieldSymbol> fields =
-                    recordType.fieldDescriptors();
-
-            if (fields.isEmpty()) {
-                // Empty record is not a valid events record
+        for (RecordFieldSymbol field : fields.values()) {
+            TypeSymbol fieldType = TypeUtils.resolveTypeReference(field.typeDescriptor());
+            if (fieldType.typeKind() != TypeDescKind.FUTURE) {
                 return false;
-            }
-
-            for (io.ballerina.compiler.api.symbols.RecordFieldSymbol field : fields.values()) {
-                TypeSymbol fieldType = TypeUtils.resolveTypeReference(field.typeDescriptor());
-
-                // Each field must be a future type
-                if (fieldType.typeKind() != TypeDescKind.FUTURE) {
-                    return false;
-                }
             }
         }
 
