@@ -49,6 +49,8 @@ export function ProjectForm() {
     const [integrationNameError, setIntegrationNameError] = useState<string | null>(null);
     const [pathError, setPathError] = useState<string | null>(null);
     const [packageNameValidationError, setPackageNameValidationError] = useState<string | null>(null);
+    const resourceTypeLabel = formData.isLibrary ? "Library" : "Integration";
+    const createActionLabel = formData.createAsWorkspace ? "Create Project" : `Create ${resourceTypeLabel}`;
 
     const handleFormDataChange = (data: Partial<ProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
@@ -73,7 +75,7 @@ export function ProjectForm() {
         let hasError = false;
 
         if (formData.integrationName.length < 2) {
-            setIntegrationNameError("Integration name must be at least 2 characters");
+            setIntegrationNameError(`${resourceTypeLabel} name must be at least 2 characters`);
             hasError = true;
         }
 
@@ -89,7 +91,7 @@ export function ProjectForm() {
         }
 
         if (formData.path.length < 2) {
-            setPathError("Please select a path for your project");
+            setPathError(`Please select a path for your ${resourceTypeLabel.toLowerCase()}`);
             hasError = true;
         }
 
@@ -99,17 +101,18 @@ export function ProjectForm() {
         }
 
         try {
+            const targetNameForValidation = formData.createAsWorkspace ? formData.workspaceName : formData.packageName;
             const validationResult = await rpcClient.getBIDiagramRpcClient().validateProjectPath({
                 projectPath: formData.path,
-                projectName: formData.createAsWorkspace ? formData.workspaceName : formData.packageName,
+                projectName: targetNameForValidation,
                 createDirectory: formData.createDirectory,
             });
 
             if (!validationResult.isValid) {
                 if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
-                    setPathError(validationResult.errorMessage || "Invalid project path");
+                    setPathError(validationResult.errorMessage || `Invalid ${resourceTypeLabel.toLowerCase()} path`);
                 } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
-                    setPackageNameValidationError(validationResult.errorMessage || "Invalid project name");
+                    setPackageNameValidationError(validationResult.errorMessage || `Invalid ${resourceTypeLabel.toLowerCase()} name`);
                 }
                 setIsValidating(false);
                 return;
@@ -132,7 +135,7 @@ export function ProjectForm() {
         }
     };
 
-    const gotToWelcome = () => {
+    const goToWelcome = () => {
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
@@ -147,7 +150,7 @@ export function ProjectForm() {
             if (projectPath) {
                 rpcClient.getVisualizerRpcClient().goBack();
             } else {
-                gotToWelcome();
+                goToWelcome();
             }
         });
     };
@@ -159,7 +162,9 @@ export function ProjectForm() {
                     <IconButton onClick={goBack}>
                         <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
                     </IconButton>
-                    <Typography variant="h2">Create Your Integration</Typography>
+                    <Typography variant="h2">
+                        {formData.createAsWorkspace ? "Create Your Project" : `Create Your ${resourceTypeLabel}`}
+                    </Typography>
                 </TitleContainer>
 
                 <ScrollableContent>
@@ -178,11 +183,7 @@ export function ProjectForm() {
                         onClick={handleCreateProject}
                         appearance="primary"
                     >
-                        {isValidating 
-                            ? "Validating..." 
-                            : formData.createAsWorkspace 
-                                ? "Create Workspace" 
-                                : "Create Integration"}
+                        {isValidating ? "Validating..." : createActionLabel}
                     </Button>
                 </ButtonWrapper>
             </FormContainer>

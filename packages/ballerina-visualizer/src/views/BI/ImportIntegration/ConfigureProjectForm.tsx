@@ -29,7 +29,7 @@ import { ConfigureProjectFormProps } from "./types";
 
 export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: ConfigureProjectFormProps) {
     const { rpcClient } = useRpcContext();
-    const [singleProjectData, setSingleProjectData] = useState<ProjectFormData>({
+    const [singleIntegrationData, setSingleIntegrationData] = useState<ProjectFormData>({
         integrationName: "",
         packageName: "",
         path: "",
@@ -50,21 +50,22 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
     const [isValidating, setIsValidating] = useState(false);
     const [pathError, setPathError] = useState<string | null>(null);
     const [folderNameError, setFolderNameError] = useState<string | null>(null);
-    const [singleProjectIntegrationNameError, setSingleProjectIntegrationNameError] = useState<string | null>(null);
-    const [singleProjectPathError, setSingleProjectPathError] = useState<string | null>(null);
-    const [singleProjectPackageNameError, setSingleProjectPackageNameError] = useState<string | null>(null);
+    const [singleIntegrationNameError, setSingleIntegrationNameError] = useState<string | null>(null);
+    const [singleIntegrationPathError, setSingleIntegrationPathError] = useState<string | null>(null);
+    const [singleIntegrationPackageNameError, setSingleIntegrationPackageNameError] = useState<string | null>(null);
+    const selectedResourceTypeLabel = singleIntegrationData.isLibrary ? "Library" : "Integration";
 
     const handleSingleProjectFormChange = (data: Partial<ProjectFormData>) => {
-        setSingleProjectData(prev => ({ ...prev, ...data }));
+        setSingleIntegrationData(prev => ({ ...prev, ...data }));
         // Clear validation errors when form data changes
-        if (singleProjectIntegrationNameError) {
-            setSingleProjectIntegrationNameError(null);
+        if (singleIntegrationNameError) {
+            setSingleIntegrationNameError(null);
         }
-        if (singleProjectPathError) {
-            setSingleProjectPathError(null);
+        if (singleIntegrationPathError) {
+            setSingleIntegrationPathError(null);
         }
-        if (singleProjectPackageNameError) {
-            setSingleProjectPackageNameError(null);
+        if (singleIntegrationPackageNameError) {
+            setSingleIntegrationPackageNameError(null);
         }
     };
 
@@ -81,31 +82,31 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
 
     const handleCreateSingleProject = async () => {
         setIsValidating(true);
-        setSingleProjectIntegrationNameError(null);
-        setSingleProjectPathError(null);
-        setSingleProjectPackageNameError(null);
+        setSingleIntegrationNameError(null);
+        setSingleIntegrationPathError(null);
+        setSingleIntegrationPackageNameError(null);
 
         // Validate required fields first
         let hasError = false;
 
-        if (singleProjectData.integrationName.length < 2) {
-            setSingleProjectIntegrationNameError("Integration name must be at least 2 characters");
+        if (singleIntegrationData.integrationName.length < 2) {
+            setSingleIntegrationNameError(`${selectedResourceTypeLabel} name must be at least 2 characters`);
             hasError = true;
         }
 
-        if (singleProjectData.packageName.length < 2) {
-            setSingleProjectPackageNameError("Package name must be at least 2 characters");
+        if (singleIntegrationData.packageName.length < 2) {
+            setSingleIntegrationPackageNameError("Package name must be at least 2 characters");
             hasError = true;
         } else {
-            const packageNameError = validatePackageName(singleProjectData.packageName, singleProjectData.integrationName);
+            const packageNameError = validatePackageName(singleIntegrationData.packageName, singleIntegrationData.integrationName);
             if (packageNameError) {
-                setSingleProjectPackageNameError(packageNameError);
+                setSingleIntegrationPackageNameError(packageNameError);
                 hasError = true;
             }
         }
 
-        if (singleProjectData.path.length < 2) {
-            setSingleProjectPathError("Please select a path for your project");
+        if (singleIntegrationData.path.length < 2) {
+            setSingleIntegrationPathError("Please select a path for your integration");
             hasError = true;
         }
 
@@ -116,18 +117,21 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
 
         try {
             // Validate the project path
+            const targetNameForValidation = singleIntegrationData.createAsWorkspace
+                ? singleIntegrationData.workspaceName
+                : singleIntegrationData.packageName;
             const validationResult = await rpcClient.getBIDiagramRpcClient().validateProjectPath({
-                projectPath: singleProjectData.path,
-                projectName: singleProjectData.createAsWorkspace ? singleProjectData.workspaceName : singleProjectData.packageName,
-                createDirectory: singleProjectData.createDirectory,
+                projectPath: singleIntegrationData.path,
+                projectName: targetNameForValidation,
+                createDirectory: singleIntegrationData.createDirectory,
             });
 
             if (!validationResult.isValid) {
                 // Show error on the appropriate field
                 if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
-                    setSingleProjectPathError(validationResult.errorMessage || "Invalid project path");
+                    setSingleIntegrationPathError(validationResult.errorMessage || "Invalid integration path");
                 } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
-                    setSingleProjectPackageNameError(validationResult.errorMessage || "Invalid project name");
+                    setSingleIntegrationPackageNameError(validationResult.errorMessage || "Invalid integration name");
                 }
                 setIsValidating(false);
                 return;
@@ -135,17 +139,17 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
 
             // If validation passes, proceed
             onNext({
-                projectName: singleProjectData.integrationName,
-                packageName: singleProjectData.packageName,
-                projectPath: singleProjectData.path,
-                createDirectory: singleProjectData.createDirectory,
-                createAsWorkspace: singleProjectData.createAsWorkspace,
-                workspaceName: singleProjectData.workspaceName,
-                orgName: singleProjectData.orgName || undefined,
-                version: singleProjectData.version || undefined,
+                projectName: singleIntegrationData.integrationName,
+                packageName: singleIntegrationData.packageName,
+                projectPath: singleIntegrationData.path,
+                createDirectory: singleIntegrationData.createDirectory,
+                createAsWorkspace: singleIntegrationData.createAsWorkspace,
+                workspaceName: singleIntegrationData.workspaceName,
+                orgName: singleIntegrationData.orgName || undefined,
+                version: singleIntegrationData.version || undefined,
             });
         } catch (error) {
-            setSingleProjectPathError("An error occurred during validation");
+            setSingleIntegrationPathError("An error occurred during validation");
             setIsValidating(false);
         }
     };
@@ -211,7 +215,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
             {isMultiProject ? (
                 <>
                     <Typography variant="h2">Configure Multi-Project Import</Typography>
-                    <BodyText>Select the location where you want to save the migrated packages.</BodyText>
+                    <BodyText>Select the location where you want to save the migrated integrations.</BodyText>
 
                     <MultiProjectFormFields
                         formData={multiProjectData}
@@ -237,21 +241,27 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                 </>
             ) : (
                 <>
-                    <Typography variant="h2">Configure Your Integration Project</Typography>
-                    <BodyText>Please provide the necessary details to create your integration project.</BodyText>
+                    <Typography variant="h2">Configure Your {selectedResourceTypeLabel}</Typography>
+                    <BodyText>
+                        Please provide the necessary details to create your {selectedResourceTypeLabel.toLowerCase()}.
+                    </BodyText>
 
                     <ProjectFormFields
-                        formData={singleProjectData}
+                        formData={singleIntegrationData}
                         onFormDataChange={handleSingleProjectFormChange}
-                        integrationNameError={singleProjectIntegrationNameError || undefined}
-                        pathError={singleProjectPathError || undefined}
-                        packageNameValidationError={singleProjectPackageNameError || undefined}
+                        integrationNameError={singleIntegrationNameError || undefined}
+                        pathError={singleIntegrationPathError || undefined}
+                        packageNameValidationError={singleIntegrationPackageNameError || undefined}
                     />
 
                     <ButtonWrapper>
                         <ActionButtons
                             primaryButton={{
-                                text: isValidating ? "Validating..." : "Create and Open Project",
+                                text: isValidating
+                                    ? "Validating..."
+                                    : singleIntegrationData.createAsWorkspace
+                                        ? "Create and Open Project"
+                                        : `Create and Open ${selectedResourceTypeLabel}`,
                                 onClick: handleCreateSingleProject,
                                 disabled: isValidating
                             }}
