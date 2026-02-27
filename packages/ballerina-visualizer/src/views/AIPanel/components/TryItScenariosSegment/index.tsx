@@ -65,7 +65,6 @@ const ScenarioContent = styled.div`
 interface TryItScenariosSegmentProps {
     text: string;
     loading: boolean;
-    failed?: boolean;
 }
 
 type HTTPResponse = {
@@ -92,7 +91,7 @@ export type HTTPToolEventOutput = {
     output: HTTPResponse | HTTPErrorResponse;
 };
 
-const TryItScenariosSegment: React.FC<TryItScenariosSegmentProps> = ({ text, loading, failed }) => {
+const TryItScenariosSegment: React.FC<TryItScenariosSegmentProps> = ({ text, loading }) => {
     const [scenarioCases, setScenarioCases] = useState<Map<string, TestCase[]>>(new Map());
     const [standaloneCases, setStandaloneCases] = useState<TestCase[]>([]);
     // text will be surrounded by either <call> or <result> the JSON string is inside the tag. We need to parse the text and segregate the test cases based on scenarios if scenario is present in the text, otherwise put it in standalone cases.
@@ -158,14 +157,13 @@ const TryItScenariosSegment: React.FC<TryItScenariosSegmentProps> = ({ text, loa
                             <TestCaseContainer
                                 key={`scenario-${scenario}-${index}`}
                                 testCase={testCase}
-                                failed={failed}
                             />
                         ))}
                     </ScenarioContent>
                 </ScenarioGroup>
             ))}
             {standaloneCases.map((testCase, index) => (
-                <TestCaseContainer key={`standalone-${index}`} testCase={testCase} failed={failed} />
+                <TestCaseContainer key={`standalone-${index}`} testCase={testCase} />
             ))}
         </TryItContainer>
     );
