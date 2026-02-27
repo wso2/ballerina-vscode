@@ -27,7 +27,9 @@ import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.model.Option;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.PropertyType;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
@@ -269,6 +271,42 @@ public class AiUtils {
         return new Property(
                 updatedMetadata,
                 original.types(),
+                original.value(),
+                original.oldValue(),
+                original.placeholder(),
+                original.optional(),
+                original.editable(),
+                original.advanced(),
+                original.hidden(),
+                original.modified(),
+                original.diagnostics(),
+                original.codedata(),
+                original.advancedValue(),
+                original.imports(),
+                original.defaultValue(),
+                original.comment()
+        );
+    }
+
+    /**
+     * Creates a copy of a property with its types replaced by a single SINGLE_SELECT type with the given options.
+     * All other fields are preserved from the original property.
+     *
+     * @param original the property to copy from
+     * @param options  the list of option values to show in the select box
+     * @return the new property with SINGLE_SELECT type
+     */
+    public static Property convertToSingleSelect(Property original, List<String> options) {
+        if (original == null) {
+            throw new IllegalArgumentException("Original property cannot be null");
+        }
+        List<PropertyType> selectTypes = List.of(
+                new PropertyType(Property.ValueType.SINGLE_SELECT, null, null, Option.of(options),
+                        null, null, null, true)
+        );
+        return new Property(
+                original.metadata(),
+                selectTypes,
                 original.value(),
                 original.oldValue(),
                 original.placeholder(),

@@ -97,6 +97,10 @@ public class AgentCallBuilder extends CallBuilder {
             Set.of(SYSTEM_PROMPT, TOOLS, MEMORY, MODEL, Property.TYPE_KEY, Property.VARIABLE_KEY);
     static final Set<String> AGENT_CALL_PARAMS_TO_SHOW = Set.of(QUERY, SESSION_ID, CONTEXT);
 
+    private static final String STRING = "string";
+    private static final String AI_TRACE = "ai:Trace";
+    private static final List<String> TD_OPTIONS = List.of(STRING, AI_TRACE);
+
     // Cache for agent templates to avoid expensive repeated creation
     private static final Map<String, FlowNode> agentTemplateCache = new ConcurrentHashMap<>();
 
@@ -187,14 +191,37 @@ public class AgentCallBuilder extends CallBuilder {
             Property prop = entry.getValue();
             if (prop.codedata() != null &&
                     ParameterData.Kind.PARAM_FOR_TYPE_INFER.name().equals(prop.codedata().kind())) {
-                Property updatedProp = AiUtils.copyAsOptionalAdvanced(prop);
-                // Update the label to "Type Descriptor" for better clarity
-                if ("td".equals(entry.getKey()) && updatedProp.metadata() != null) {
-                    updatedProp = AiUtils.createPropertyWithUpdatedLabel(updatedProp, "Type Descriptor");
-                }
-                props.put(entry.getKey(), updatedProp);
+                props.put(entry.getKey(), AiUtils.copyAsOptionalAdvanced(prop));
+                postProcessTdProperty(this, entry.getKey());
             }
         }
+    }
+
+    /**
+     * Post-processes the {@code td} inferred-type property on an AGENT_CALL node builder, converting
+     * it from a free-form expression field to a SINGLE_SELECT dropdown. Safe to call for any node
+     * builder or key — exits immediately when the conditions are not met.
+     *
+     * @param nodeBuilder the node builder to update
+     * @param key         the inferred type parameter key
+     */
+    public static void postProcessTdProperty(NodeBuilder nodeBuilder, String key) {
+        if (!(nodeBuilder instanceof AgentCallBuilder builder) || !"td".equals(key)
+                || builder.formBuilder == null) {
+            return;
+        }
+        Map<String, Property> props = builder.formBuilder.build();
+        Property prop = props.get(key);
+        if (prop == null || prop.metadata() == null) {
+            return;
+        }
+        // Ensure optional/advanced are set (needed when called from CodeAnalyzer for existing nodes)
+        Property updated = AiUtils.copyAsOptionalAdvanced(prop);
+        updated = AiUtils.createPropertyWithUpdatedLabel(updated, "Type Descriptor");
+        if (updated.value() == null || updated.value().toString().isEmpty()) {
+            updated = AiUtils.createUpdatedProperty(updated, STRING);
+        }
+        props.put(key, AiUtils.convertToSingleSelect(updated, TD_OPTIONS));
     }
 
     private Set<String> getVisibleSymbolNames(TemplateContext context) {
