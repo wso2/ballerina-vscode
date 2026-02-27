@@ -56,8 +56,8 @@ export function MultiProjectFormFields({ formData, onFormDataChange, pathError, 
     };
 
     const handleProjectDirSelection = async () => {
-        const projectDirectory = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
-        onFormDataChange({ path: projectDirectory.path });
+        const selectedDirectory = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
+        onFormDataChange({ path: selectedDirectory.path });
     };
 
     useEffect(() => {
@@ -86,7 +86,7 @@ export function MultiProjectFormFields({ formData, onFormDataChange, pathError, 
             <FieldGroup>
                 <CheckboxContainer>
                     <CheckBox
-                        label={`Create a new folder for the packages`}
+                        label="Create a new direcotry for integrations"
                         checked={formData.createDirectory}
                         onChange={(checked) => onFormDataChange({ createDirectory: checked })}
                     />
@@ -105,7 +105,7 @@ export function MultiProjectFormFields({ formData, onFormDataChange, pathError, 
                         errorMsg={folderNameError || ""}
                     />
                     <Description>
-                        This folder will contain all migrated packages from this integration.
+                        This direcotry will contain all migrated integrations.
                     </Description>
                 </FieldGroup>
             )}

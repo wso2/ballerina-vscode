@@ -638,9 +638,9 @@ export function NodeList(props: NodeListProps) {
         const content = (
             <>
                 {reorderedGroups.map((group, index) => {
-                    // If subcategory is inside "Current Workspace", show "Current Integration" actions instead of 
-                    // the subcategory title when the subcategory referes to the current integration
-                    const categoryActions = parentCategoryTitle === "Current Workspace" ?  
+                    // If subcategory is inside "Current Project" (or legacy "Current Workspace"),
+                    // show "Current Integration" actions when the subcategory refers to the current integration.
+                    const categoryActions = (parentCategoryTitle === "Current Project" || parentCategoryTitle === "Current Workspace") ?
                        ( group.title?.includes("(current)") ? getCategoryActions("Current Integration", title) : getCategoryActions(group.title, title)) 
                     : 
                     getCategoryActions(group.title, title);
