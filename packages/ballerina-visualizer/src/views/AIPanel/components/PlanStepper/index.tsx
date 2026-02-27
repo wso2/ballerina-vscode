@@ -133,6 +133,14 @@ const TaskRow = styled.div`
     user-select: none;
 `;
 
+const ExpandIcon = styled.span<{ expanded: boolean }>`
+    font-size: 10px;
+    flex-shrink: 0;
+    margin-left: 4px;
+    opacity: ${(props: { expanded: boolean }) => props.expanded ? 0 : 0.5};
+    transition: opacity 0.2s ease;
+`;
+
 // Smooth collapse wrapper using grid-template-rows trick (animates actual content height)
 const EventsArea = styled.div<{ expanded: boolean }>`
     display: grid;
@@ -961,6 +969,7 @@ const PlanStepper: React.FC<ExecutionStreamProps> = ({ executionStream, isLoadin
                         <TaskContent>
                             <TaskRow onClick={() => hasEvents && toggleTask(task.description)}>
                                 <NodeLabel nodeStatus={nodeStatus}>{task.description}</NodeLabel>
+                                {hasEvents && <ExpandIcon expanded={isExpanded} className="codicon codicon-ellipsis" />}
                             </TaskRow>
                             {hasEvents && (
                                 <EventsArea expanded={isExpanded}>
