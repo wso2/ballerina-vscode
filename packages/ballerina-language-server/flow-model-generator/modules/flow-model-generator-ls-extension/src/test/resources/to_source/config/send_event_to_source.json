@@ -1,5 +1,5 @@
 {
-  "source": "workflow_function/functions.bal",
+  "source": "workflow_function_empty/main.bal",
   "description": "Generate workflow:sendEvent call",
   "diagram": {
     "id": "1",
@@ -13,14 +13,14 @@
       "module": "workflow",
       "isNew": true,
       "lineRange": {
-        "fileName": "functions.bal",
+        "fileName": "main.bal",
         "startLine": {
-          "line": 16,
-          "offset": 4
+          "line": 1,
+          "offset": 0
         },
         "endLine": {
-          "line": 16,
-          "offset": 4
+          "line": 1,
+          "offset": 0
         }
       }
     },
@@ -91,32 +91,32 @@
     "flags": 1
   },
   "output": {
-    "workflow_function/functions.bal": [
+    "workflow_function_empty/main.bal": [
       {
         "range": {
           "start": {
-            "line": 1,
+            "line": 0,
             "character": 0
           },
           "end": {
-            "line": 1,
+            "line": 0,
             "character": 0
           }
         },
-        "newText": "\nimport ballerina/workflow;"
+        "newText": "import ballerina/workflow;"
       },
       {
         "range": {
           "start": {
-            "line": 16,
-            "character": 4
+            "line": 1,
+            "character": 0
           },
           "end": {
-            "line": 16,
-            "character": 4
+            "line": 1,
+            "character": 0
           }
         },
-        "newText": "boolean sendResult = check workflow:sendEvent(orderWorkflow, {approved: true}, \"approve\");\n"
+        "newText": "\ncheck workflow:sendEvent(orderWorkflow, {approved: true}, \"approve\");"
       }
     ]
   }

@@ -59,7 +59,7 @@
         ],
         "value": "",
         "optional": false,
-        "editable": true,
+        "editable": false,
         "advanced": false,
         "hidden": false
       },
@@ -92,43 +92,8 @@
         "editable": true,
         "advanced": false,
         "hidden": false
-      },
-      "variable": {
-        "metadata": {
-          "label": "Result Variable",
-          "description": "Variable name to receive the result"
-        },
-        "types": [
-          {
-            "fieldType": "IDENTIFIER",
-            "selected": false
-          }
-        ],
-        "value": "result",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false
-      },
-      "checkError": {
-        "metadata": {
-          "label": "Check Error",
-          "description": "Trigger error flow"
-        },
-        "types": [
-          {
-            "fieldType": "FLAG",
-            "selected": false
-          }
-        ],
-        "value": true,
-        "optional": false,
-        "editable": true,
-        "advanced": true,
-        "hidden": true
       }
     },
     "flags": 0
   }
 }
-

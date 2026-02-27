@@ -77,23 +77,6 @@
         "editable": true,
         "advanced": false,
         "hidden": false
-      },
-      "checkError": {
-        "metadata": {
-          "label": "Check Error",
-          "description": "Trigger error flow"
-        },
-        "types": [
-          {
-            "fieldType": "FLAG",
-            "selected": false
-          }
-        ],
-        "value": true,
-        "optional": false,
-        "editable": true,
-        "advanced": true,
-        "hidden": true
       }
     },
     "flags": 0

@@ -36,9 +36,12 @@
               "offset": 1
             }
           },
-          "sourceCode": "public function main() returns error? {\n    // Workflow start - should be WORKFLOW_START\n    string workflowId = check workflow:createInstance(orderWorkflow, {orderId: \"123\", customerName: \"John\"});\n    io:println(\"Workflow started with ID: \" + workflowId);\n\n    // Send event - should be SEND_EVENT\n    boolean result = check workflow:sendEvent(orderWorkflow, {orderId: \"123\", approved: true, approverName: \"Admin\"}, \"approve\");\n    io:println(\"Event sent: \" + result.toString());\n}"
+          "sourceCode": "public function main() returns error? {\n    // Workflow start - should be WORKFLOW_START\n    string workflowId = check workflow:createInstance(orderWorkflow, {orderId: \"123\", customerName: \"John\"});\n    io:println(\"Workflow started with ID: \" + workflowId);\n\n    // Send event - should be SEND_EVENT\n    check workflow:sendEvent(orderWorkflow, {orderId: \"123\", approved: true, approverName: \"Admin\"}, \"approve\");\n    io:println(\"Event sent: \" + result.toString());\n}"
         },
         "returning": false,
+        "diagnostics": {
+          "hasDiagnostics": true
+        },
         "flags": 0
       },
       {
@@ -143,9 +146,22 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION",
+                "fieldType": "REPEATABLE_MAP",
                 "ballerinaType": "map<anydata>",
-                "selected": true
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "anydata",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
@@ -153,10 +169,7 @@
                 "selected": false
               }
             ],
-            "value": {
-              "orderId": "\"123\"",
-              "customerName": "\"John\""
-            },
+            "value": "{orderId: \"123\", customerName: \"John\"}",
             "placeholder": "{}",
             "optional": false,
             "editable": true,
@@ -272,12 +285,39 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET",
-                "selected": false
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "io:Printable",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "io:Printable",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": true
               }
             ],
             "value": [
-              "\"Workflow started with ID: \" + workflowId"
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "\"Workflow started with ID: \" + workflowId",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
             ],
             "placeholder": "()",
             "optional": false,
@@ -336,7 +376,7 @@
         "flags": 0
       },
       {
-        "id": "79613",
+        "id": "79596",
         "metadata": {
           "label": "Send Event",
           "description": "Send an event to an existing workflow instance",
@@ -357,10 +397,10 @@
             },
             "endLine": {
               "line": 48,
-              "offset": 129
+              "offset": 112
             }
           },
-          "sourceCode": "// Send event - should be SEND_EVENT\n    boolean result = check workflow:sendEvent(orderWorkflow, {orderId: \"123\", approved: true, approverName: \"Admin\"}, \"approve\");"
+          "sourceCode": "// Send event - should be SEND_EVENT\n    check workflow:sendEvent(orderWorkflow, {orderId: \"123\", approved: true, approverName: \"Admin\"}, \"approve\");"
         },
         "returning": false,
         "properties": {
@@ -394,9 +434,22 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION",
+                "fieldType": "REPEATABLE_MAP",
                 "ballerinaType": "map<anydata>",
-                "selected": true
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "anydata",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
@@ -404,11 +457,7 @@
                 "selected": false
               }
             ],
-            "value": {
-              "orderId": "\"123\"",
-              "approved": "true",
-              "approverName": "\"Admin\""
-            },
+            "value": "{orderId: \"123\", approved: true, approverName: \"Admin\"}",
             "placeholder": "{}",
             "optional": false,
             "editable": true,
@@ -464,56 +513,16 @@
             "editable": true,
             "advanced": true,
             "hidden": true
-          },
-          "variable": {
-            "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
-            },
-            "types": [
-              {
-                "fieldType": "IDENTIFIER",
-                "selected": true
-              }
-            ],
-            "value": "result",
-            "optional": false,
-            "editable": false,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "lineRange": {
-                "fileName": "workflow_operations.bal",
-                "startLine": {
-                  "line": 48,
-                  "offset": 12
-                },
-                "endLine": {
-                  "line": 48,
-                  "offset": 18
-                }
-              }
-            }
-          },
-          "type": {
-            "metadata": {
-              "label": "Variable Type",
-              "description": "Type of the variable"
-            },
-            "types": [
-              {
-                "fieldType": "TYPE",
-                "selected": true
-              }
-            ],
-            "value": "boolean",
-            "placeholder": "var",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {}
           }
+        },
+        "diagnostics": {
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "variable assignment is required"
+            }
+          ]
         },
         "flags": 1
       },
@@ -553,12 +562,39 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET",
-                "selected": false
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "io:Printable",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "io:Printable",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": true
               }
             ],
             "value": [
-              "\"Event sent: \" + result.toString()"
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "\"Event sent: \" + result.toString()",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
             ],
             "placeholder": "()",
             "optional": false,
@@ -570,6 +606,9 @@
               "originalName": "values"
             }
           }
+        },
+        "diagnostics": {
+          "hasDiagnostics": true
         },
         "flags": 0
       }

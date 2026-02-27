@@ -44,9 +44,6 @@
           "sourceCode": "# Process an order workflow with events\n@workflow:Process\nfunction orderWorkflow(workflow:Context ctx, OrderInput input, OrderWorkflowEvents events) returns error? {\n    // Activity call - should be ACTIVITY_CALL\n    int intResult = check ctx->callActivity(calculateDiscount, {amount: 100.0});\n    io:println(\"Discount calculated: \" + intResult.toString());\n\n    // Wait for event - should be WAIT_EVENT\n    ApprovalData approval = check wait events.approve;\n    io:println(\"Approved by: \" + approval.approverName);\n}"
         },
         "returning": false,
-        "diagnostics": {
-          "hasDiagnostics": true
-        },
         "flags": 0
       },
       {
@@ -178,10 +175,10 @@
                     "packageInfo": "ballerina:workflow:0.1.0",
                     "packageName": "workflow",
                     "kind": "RECORD_TYPE",
-                    "selected": false
+                    "selected": true
                   }
                 ],
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
@@ -195,15 +192,6 @@
             "editable": true,
             "advanced": true,
             "hidden": false,
-            "diagnostics": {
-              "hasDiagnostics": true,
-              "diagnostics": [
-                {
-                  "severity": "ERROR",
-                  "message": "invalid key 'amount': identifiers cannot be used as rest field keys, expected a string literal or an expression"
-                }
-              ]
-            },
             "codedata": {
               "kind": "DEFAULTABLE",
               "originalName": "args"
@@ -301,9 +289,6 @@
             "codedata": {}
           }
         },
-        "diagnostics": {
-          "hasDiagnostics": true
-        },
         "flags": 1
       },
       {
@@ -342,12 +327,39 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET",
-                "selected": false
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "io:Printable",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "io:Printable",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": true
               }
             ],
             "value": [
-              "\"Discount calculated: \" + intResult.toString()"
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "\"Discount calculated: \" + intResult.toString()",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
             ],
             "placeholder": "()",
             "optional": false,
@@ -606,12 +618,39 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET",
-                "selected": false
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "io:Printable",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "io:Printable",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": true
               }
             ],
             "value": [
-              "\"Approved by: \" + approval.approverName"
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "\"Approved by: \" + approval.approverName",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
             ],
             "placeholder": "()",
             "optional": false,

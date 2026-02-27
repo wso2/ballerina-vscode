@@ -1,5 +1,5 @@
 {
-  "source": "workflow_function/functions.bal",
+  "source": "workflow_function_empty/functions.bal",
   "description": "Create a workflow activity function",
   "diagram": {
     "metadata": {
@@ -196,29 +196,29 @@
     "flags": 0
   },
   "output": {
-    "workflow_function/functions.bal": [
+    "workflow_function_empty/functions.bal": [
       {
         "range": {
           "start": {
-            "line": 1,
+            "line": 0,
             "character": 0
           },
           "end": {
-            "line": 1,
+            "line": 0,
             "character": 0
           }
         },
-        "newText": "\nimport ballerina/workflow;"
+        "newText": "import ballerina/workflow;"
       },
       {
         "range": {
           "start": {
-            "line": 31,
-            "character": 1
+            "line": 0,
+            "character": 0
           },
           "end": {
-            "line": 31,
-            "character": 1
+            "line": 0,
+            "character": 0
           }
         },
         "newText": "# Activity that sends an email\n# + return - Result of the activity\n@workflow:Activity\nfunction sendEmailActivity(int a, int b) returns string {\n}"

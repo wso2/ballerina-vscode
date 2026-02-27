@@ -107,7 +107,7 @@ public class SendEventBuilder extends NodeBuilder {
                 .addProperty(EVENT_NAME_KEY);
 
         List<PropertyTypeMemberInfo> typeMembers = List.of(
-                new PropertyTypeMemberInfo("RECORD_TYPE", null, null, MAP_ANYDATA_TYPE, false)
+                new PropertyTypeMemberInfo(MAP_ANYDATA_TYPE, null, null, "RECORD_TYPE", false)
         );
 
         properties().custom()
@@ -158,8 +158,7 @@ public class SendEventBuilder extends NodeBuilder {
                 .whiteSpace()
                 .name("\"" + eventName + "\"")
                 .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
-                .endOfStatement()
-                .stepOut();
+                .endOfStatement();
 
         return sourceBuilder
                 .textEdit()

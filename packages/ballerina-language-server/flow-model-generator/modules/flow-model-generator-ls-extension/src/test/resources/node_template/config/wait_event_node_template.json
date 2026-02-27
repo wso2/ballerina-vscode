@@ -37,7 +37,7 @@
       "eventType": {
         "metadata": {
           "label": "Event Data Type",
-          "description": "Type of the event data"
+          "description": "Type of the event data to be received on successful wait"
         },
         "types": [
           {

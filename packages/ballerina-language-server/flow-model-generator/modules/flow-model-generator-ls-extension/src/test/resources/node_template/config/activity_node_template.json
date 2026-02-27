@@ -47,7 +47,7 @@
             "selected": true
           }
         ],
-        "value": "\"@workflow:Activity\"",
+        "value": "@workflow:Activity",
         "optional": false,
         "editable": false,
         "advanced": false,
@@ -60,7 +60,7 @@
         },
         "types": [
           {
-            "fieldType": "TEXT",
+            "fieldType": "DOC_TEXT",
             "selected": true
           }
         ],
@@ -95,7 +95,7 @@
         },
         "types": [
           {
-            "fieldType": "TEXT",
+            "fieldType": "DOC_TEXT",
             "selected": true
           }
         ],
