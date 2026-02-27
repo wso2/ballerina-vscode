@@ -82,7 +82,7 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
 
     const typeKind = outputType.kind;
     const isUnknownType = typeKind === TypeKind.Unknown;
-    const isConvertibleType = (typeKind === TypeKind.Json || typeKind === TypeKind.Xml) && !outputType.fields;
+    const isConvertibleType = context.reusable && (typeKind === TypeKind.Json || typeKind === TypeKind.Xml) && !outputType.fields;
 
 
     let expanded = true;
