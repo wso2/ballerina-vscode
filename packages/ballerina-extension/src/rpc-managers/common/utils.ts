@@ -18,16 +18,21 @@
 
 import * as os from 'os';
 import { NodePosition } from "@wso2/syntax-tree";
-import { Position, Progress, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
+import { StateMachine } from "../../stateMachine";
+import { Position, Progress, Range, Uri, ViewColumn, window, workspace, WorkspaceEdit } from "vscode";
 import { PROJECT_KIND, ProjectInfo, TextEdit, WorkspaceTypeResponse } from "@wso2/ballerina-core";
 import axios from 'axios';
 import fs from 'fs';
+import * as path from 'path';
+
 import {
     checkIsBallerinaPackage,
     checkIsBallerinaWorkspace,
     getBallerinaPackages,
     hasMultipleBallerinaPackages
 } from '../../utils';
+import { readOrWriteReadmeContent, resolveReadmePath } from '../bi-diagram/utils';
+import { README_FILE } from '../../utils/bi';
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
 
@@ -90,7 +95,7 @@ export async function askFilePath() {
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
-        defaultUri: Uri.file(os.homedir()),
+        defaultUri: Uri.file(StateMachine.context().projectPath  ?? os.homedir()),
         filters: {
             'Files': ['yaml', 'json', 'yml', 'graphql', 'wsdl']
         },
@@ -249,4 +254,91 @@ export async function findWorkspaceTypeFromWorkspaceFolders(): Promise<Workspace
     }
 
     return { type: "UNKNOWN" };
+}
+
+export function getTargetProjectForPublish(): {
+    projectPath: string;
+    projectName: string;
+    artifactType: string;
+} | null {
+    const { projectPath, projectStructure } = StateMachine.context();
+    const target = projectStructure?.projects.find((p) => p.projectPath === projectPath);
+    if (!target) {
+        return null;
+    }
+    const projectName = target.projectTitle || target.projectName;
+    const artifactType = target.isLibrary ? 'library' : 'integration';
+    return { projectPath, projectName, artifactType };
+}
+
+export async function getReadmeStatus(projectPath: string): Promise<'missing' | 'empty' | 'ready'> {
+    if (!isReadmeExists(projectPath)) {
+        return 'missing';
+    }
+    const { content } = await readOrWriteReadmeContent({ projectPath, read: true });
+    return content === '' ? 'empty' : 'ready';
+}
+
+export function getPublishConfirmation(
+    projectName: string,
+    artifactType: string,
+    readmeStatus: 'missing' | 'empty' | 'ready'
+): { message: string; primaryButton: string } {
+    if (readmeStatus === 'missing') {
+        return {
+            message: `"${projectName}" requires a README.md before it can be published to Ballerina Central. Please try again after creating the README.md file.`,
+            primaryButton: 'Create README'
+        };
+    }
+    if (readmeStatus === 'empty') {
+        return {
+            message: `"${projectName}" contains an empty README.md file. Please enter a description for your ${artifactType} and try again.`,
+            primaryButton: 'Edit README'
+        };
+    }
+    return {
+        message: `Publish "${projectName}" to Ballerina Central? Your ${artifactType} will be made available to the Ballerina community.`,
+        primaryButton: 'Publish to Central'
+    };
+}
+
+
+export async function handleReadmeSetup(
+    readmeStatus: 'missing' | 'empty' | 'ready',
+    projectPath: string,
+    projectName: string,
+    artifactType: string
+): Promise<boolean> {
+    if (readmeStatus === 'missing') {
+        const content = `# ${projectName} ${artifactType}\n\nAdd your ${artifactType} description here.`;
+        await readOrWriteReadmeContent({ projectPath, content, read: false });
+        openReadmeInEditor(projectPath);
+        return true;
+    }
+    if (readmeStatus === 'empty') {
+        openReadmeInEditor(projectPath);
+        return true;
+    }
+    return false;
+}
+
+function openReadmeInEditor(projectPath: string): void {
+    const readmePath = resolveReadmePath(projectPath) ?? path.join(projectPath, README_FILE);
+    workspace.openTextDocument(readmePath).then((doc) => {
+        window.showTextDocument(doc, ViewColumn.Beside);
+    });
+}
+
+export function getFirstBalaPath(projectPath: string): string | null {
+    const balaDirPath = path.join(projectPath, 'target', 'bala');
+    if (!fs.existsSync(balaDirPath)) {
+        return null;
+    }
+    const files = fs.readdirSync(balaDirPath);
+    return files.length > 0 ? path.join(balaDirPath, files[0]) : null;
+}
+
+export function isReadmeExists(projectPath: string): boolean {
+    const existingReadmePath = resolveReadmePath(projectPath);
+    return existingReadmePath !== undefined;
 }

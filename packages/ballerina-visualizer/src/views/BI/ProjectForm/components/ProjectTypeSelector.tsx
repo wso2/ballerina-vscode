@@ -26,7 +26,7 @@ import {
     RadioContent,
     RadioTitle,
     RadioDescription,
-    ProjectTypeNote,
+    Note,
 } from "../styles";
 
 export interface ProjectTypeOption {
@@ -53,7 +53,7 @@ const PROJECT_TYPE_OPTIONS: ProjectTypeOption[] = [
     {
         value: "library",
         title: "Library Project",
-        description: "Shared logic and utilities that can be reused across multiple projects in the workspace.",
+        description: "Shared logic and utilities that can be reused across multiple integrations.",
     },
 ];
 
@@ -87,7 +87,7 @@ export function ProjectTypeSelector({
                     );
                 })}
             </RadioGroup>
-            {note && <ProjectTypeNote>{note}</ProjectTypeNote>}
+            {note && <Note>{note}</Note>}
         </ProjectTypeContainer>
     );
 }

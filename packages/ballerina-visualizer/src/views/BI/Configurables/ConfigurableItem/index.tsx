@@ -95,6 +95,7 @@ interface ConfigurableItemProps {
     moduleName: string;
     index: number;
     fileName: string;
+    isTestsContext?: boolean;
     onDeleteConfigVariable?: (index: number) => void;
     onFormSubmit: () => void;
     updateErrorMessage?: (message: string) => void;
@@ -124,6 +125,8 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
         setEditConfigVariableFormOpen(true);
     };
 
+    const activeValueKey = props.isTestsContext ? 'testConfigValue' : 'configValue';
+
     const handleTextAreaChange = (value: any) => {
         if (configVariable.properties?.type?.value === 'string' && !/^".*"$/.test(value)) {
             value = `"${value}"`;
@@ -143,8 +146,8 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
             ...prevNode,
             properties: {
                 ...prevNode.properties,
-                configValue: {
-                    ...prevNode.properties.configValue,
+                [activeValueKey]: {
+                    ...prevNode.properties[activeValueKey],
                     value: newValue,
                     modified: true
                 }
@@ -166,8 +169,8 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                 ...prevState,
                 properties: {
                     ...prevState.properties,
-                    configValue: {
-                        ...prevState.properties.configValue,
+                    [activeValueKey]: {
+                        ...prevState.properties[activeValueKey],
                         value: newValue
                     }
                 }
@@ -234,7 +237,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                             ` (Defaults to: ${String(configVariable?.properties?.defaultValue?.value)})`}
                     </span>}
                     {(!configVariable?.properties?.defaultValue?.value &&
-                        !configVariable?.properties?.configValue?.value) && (
+                        !configVariable?.properties?.[activeValueKey]?.value) && (
                             // Warning icon if no value is configured
                             <ButtonWrapper>
                                 <Button
@@ -311,14 +314,14 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                 {!isRecordType() && <VSCodeTextArea
                     name={`${String(variable?.properties?.variable?.value)}-config-value`}
                     rows={(() => {
-                        const value = configVariable?.properties?.configValue?.value
-                            ? String(configVariable?.properties?.configValue?.value)
+                        const value = configVariable?.properties?.[activeValueKey]?.value
+                            ? String(configVariable?.properties?.[activeValueKey]?.value)
                             : '';
                         if (!value) return 1;
                         return Math.min(5, Math.ceil(value.length / 100));
                     })()}
                     resize="vertical"
-                    value={configVariable?.properties?.configValue?.value ? getPlainValue(String(configVariable?.properties?.configValue?.value)) : ''}
+                    value={configVariable?.properties?.[activeValueKey]?.value ? getPlainValue(String(configVariable?.properties?.[activeValueKey]?.value)) : ''}
                     style={{
                         width: '100%',
                         maxWidth: '350px',

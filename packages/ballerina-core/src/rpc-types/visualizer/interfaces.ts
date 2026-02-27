@@ -53,11 +53,13 @@ export interface AddToUndoStackRequest {
 export interface JoinProjectPathRequest {
     segments: string | string[];
     codeData?: CodeData;
+    checkExists?: boolean;
 }
 
 export interface JoinProjectPathResponse {
     filePath: string;
     projectPath: string;
+    exists?: boolean;
 }
 
 export interface HandleApprovalPopupCloseRequest {
@@ -76,4 +78,7 @@ export interface SaveEvalThreadRequest {
 export interface SaveEvalThreadResponse {
     success: boolean;
     error?: string;
+}
+export interface GoBackRequest {
+    identifier?: string;
 }

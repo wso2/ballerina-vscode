@@ -859,7 +859,10 @@ export function openView(type: EVENT_TYPE, viewLocation: VisualizerLocation, res
     stateService.send({ type: type, viewLocation: viewLocation });
 }
 
-export function updateView(refreshTreeView?: boolean) {
+export function updateView(refreshTreeView?: boolean, updatedIdentifier?: string) {
+    if (StateMachinePopup.isActive()) {
+        return;
+    }
     let lastView = getLastHistory();
     // Step over to the next location if the last view is skippable
     if (!refreshTreeView && lastView?.location.view.includes("SKIP")) {
@@ -885,12 +888,12 @@ export function updateView(refreshTreeView?: boolean) {
 
         // These changes will be revisited in the revamp
         project.directoryMap[targetedArtifactType].forEach((artifact: ProjectStructureArtifactResponse) => {
-            if (artifact.id === currentIdentifier || artifact.name === currentIdentifier) {
+            if (artifact.id === currentIdentifier || artifact.name === currentIdentifier || artifact.id === updatedIdentifier || artifact.name === updatedIdentifier) {
                 currentArtifact = artifact;
             }
             // Check if artifact has resources and find within those
             if (artifact.resources && artifact.resources.length > 0) {
-                const resource = artifact.resources.find((resource: ProjectStructureArtifactResponse) => resource.id === currentIdentifier || resource.name === currentIdentifier);
+                const resource = artifact.resources.find((resource: ProjectStructureArtifactResponse) => resource.id === currentIdentifier || resource.name === currentIdentifier || resource.id === updatedIdentifier || resource.name === updatedIdentifier);
                 if (resource) {
                     currentArtifact = resource;
                 }

@@ -48,6 +48,7 @@ import {
     createVersionNumber
 } from "../../utils";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
+import { quoteShellPath } from "../../utils/config";
 import { decimal, ExecutableOptions } from 'vscode-languageclient/node';
 import { BAL_NOTEBOOK, getTempFile, NOTEBOOK_CELL_SCHEME } from '../../views/notebook';
 import fileUriToPath from 'file-uri-to-path';
@@ -69,6 +70,7 @@ import { prepareAndGenerateConfig, cleanAndValidateProject } from '../config-gen
 import { extension } from '../../BalExtensionContext';
 import * as fs from 'fs';
 import { findHighestVersionJdk } from '../../utils/server/server';
+import { PlatformExtRpcManager } from '../../rpc-managers/platform-ext/rpc-manager';
 
 const BALLERINA_COMMAND = "ballerina.command";
 const EXTENDED_CLIENT_CAPABILITIES = "capabilities";
@@ -94,7 +96,11 @@ class DebugConfigProvider implements DebugConfigurationProvider {
         if (config.noDebug && (extension.ballerinaExtInstance.enabledRunFast() || StateMachine.context().isBI)) {
             await handleMainFunctionParams(config);
         }
-        return getModifiedConfigs(_folder, config);
+        const configs = await getModifiedConfigs(_folder, config);
+
+        // connect to Devant if applicable
+        await new PlatformExtRpcManager().setupDevantProxyForDebugging(configs);
+        return configs;
     }
 }
 
@@ -598,7 +604,8 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
     }
     getScriptPath(args: string[]): string {
         args.push('start-debugger-adapter');
-        return extension.ballerinaExtInstance.getBallerinaCmd();
+        // Quote the path to handle spaces in directory names (used with shell: true)
+        return quoteShellPath(extension.ballerinaExtInstance.getBallerinaCmd());
     }
     getCurrentWorkingDir(): string {
         return path.join(extension.ballerinaExtInstance.ballerinaHome, "bin");
@@ -657,7 +664,7 @@ class BIRunAdapter extends LoggingDebugSession {
                 task: 'run'
             };
 
-            let runCommand: string = `${extension.ballerinaExtInstance.getBallerinaCmd()} run`;
+            let runCommand: string = `${quoteShellPath(extension.ballerinaExtInstance.getBallerinaCmd())} run`;
 
             const programArgs = (args as any).programArgs;
             if (programArgs && programArgs.length > 0) {
@@ -669,7 +676,7 @@ class BIRunAdapter extends LoggingDebugSession {
             }
 
             // Use the current process environment which should have the updated PATH
-            const env = process.env;
+            const env = { ...process.env, ...((args as any)?.env || {}) };
             debugLog(`[BIRunAdapter] Creating shell execution with env. PATH length: ${env.PATH?.length || 0}`);
 
             // Determine the correct working directory for the task

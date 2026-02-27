@@ -497,13 +497,29 @@ export interface ClausePositionResponse {
 }
 
 export interface ConvertExpressionRequest {
-     outputType: string;
-     expression: string;
-     expressionType: string;
+    outputType: string;
+    expression: string;
+    expressionType: string;
 }
 
 export interface ConvertExpressionResponse {
     convertedExpression: string;
+}
+
+export interface CreateConvertedVariableRequest {
+    // Data Mapper related
+    filePath: string;
+    codedata: CodeData;
+    varName: string;
+    targetField: string;
+    subMappingName?: string;
+
+    // Converting variable related
+    variableName: string;
+    isInput: boolean;
+    typeName: string;
+    parentTypeName?: string;
+    imports?: Imports;
 }
 
 export interface GraphqlDesignServiceParams {
@@ -868,6 +884,7 @@ export type BISourceCodeResponse = {
 export type BIDeleteByComponentInfoRequest = {
     filePath: string;
     component: ComponentInfo;
+    nodeType?: string;
 }
 
 export type BIDeleteByComponentInfoResponse = {
@@ -1322,6 +1339,7 @@ export interface ListenersRequest {
     orgName?: string;
     pkgName?: string;
     listenerTypeName?: string;
+    removeDeprecated?: boolean;
 }
 export interface ListenersResponse {
     hasListeners: boolean;
@@ -1336,6 +1354,7 @@ export interface ListenerModelRequest {
         type?: string;
     };
     filePath: string;
+    removeDeprecated?: boolean;
 }
 export interface ListenerModelResponse {
     listener: ListenerModel;
@@ -1519,6 +1538,8 @@ export interface Member {
     optional?: boolean;
     imports?: Imports;
     readonly?: boolean;
+    selected?: boolean;
+    typeName?: string;
     isGraphqlId?: boolean;
 }
 
@@ -1887,6 +1908,12 @@ export type OpenAPIClientDeleteResponse = {
 
 // <-------- Deployment Related ------->
 
+export interface ProjectScopeMapping {
+    projectPath: string;
+    projectTitle: string;
+    integrationTypes?: SCOPE[];
+}
+
 export interface DeploymentRequest {
     integrationTypes: SCOPE[];
 }
@@ -1895,6 +1922,10 @@ export interface DeploymentResponse {
     isCompleted: boolean;
 }
 
+export interface WorkspaceDeploymentRequest {
+    projectScopes: ProjectScopeMapping[];
+    rootDirectory: string;
+}
 
 // 2201.12.3 -> New Project Component Artifacts Tree
 

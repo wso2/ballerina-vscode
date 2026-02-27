@@ -62,6 +62,7 @@ import {
     DeleteTypeRequest,
     DeleteTypeResponse,
     DeploymentRequest,
+    WorkspaceDeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
     EndOfFileRequest,
@@ -143,6 +144,7 @@ import {
     deleteProject,
     deleteType,
     deployProject,
+    deployWorkspace,
     formDidClose,
     formDidOpen,
     generateOpenApiClient,
@@ -161,6 +163,7 @@ import {
     getDataMapperCompletions,
     getDesignModel,
     getDevantMetadata,
+    getWorkspaceDevantMetadata,
     getEnclosedFunction,
     getEndOfFile,
     getExpressionCompletions,
@@ -207,7 +210,8 @@ import {
     updateType,
     updateTypes,
     validateProjectPath,
-    verifyTypeDelete
+    verifyTypeDelete,
+    WorkspaceDevantMetadata
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -342,7 +346,7 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
     getConfigVariableNodeTemplate(params: GetConfigVariableNodeTemplateRequest): Promise<BINodeTemplateResponse> {
         return this._messenger.sendRequest(getConfigVariableNodeTemplate, HOST_EXTENSION, params);
     }
-    
+
     OpenConfigTomlRequest(params: OpenConfigTomlRequest): Promise<void> {
         return this._messenger.sendRequest(openConfigToml, HOST_EXTENSION, params);
     }
@@ -365,6 +369,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
         return this._messenger.sendRequest(deployProject, HOST_EXTENSION, params);
+    }
+
+    deployWorkspace(params: WorkspaceDeploymentRequest): Promise<DeploymentResponse> {
+        return this._messenger.sendRequest(deployWorkspace, HOST_EXTENSION, params);
     }
 
     openAIChat(params: AIChatRequest): void {
@@ -517,6 +525,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getDevantMetadata(): Promise<DevantMetadata | undefined> {
         return this._messenger.sendRequest(getDevantMetadata, HOST_EXTENSION);
+    }
+
+    getWorkspaceDevantMetadata(): Promise<WorkspaceDevantMetadata | undefined> {
+        return this._messenger.sendRequest(getWorkspaceDevantMetadata, HOST_EXTENSION);
     }
 
     generateOpenApiClient(params: OpenAPIClientGenerationRequest): Promise<GeneratedClientSaveResponse> {

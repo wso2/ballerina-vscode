@@ -85,6 +85,7 @@ export interface DataMapperEditorProps {
     generateForm: (formProps: DMFormProps) => JSX.Element;
     genUniqueName: (name: string, viewId: string) => Promise<string>;
     getConvertedExpression: (expression: string, expressionType: TypeKind, outputType: TypeKind) => Promise<string>;
+    createConvertedVariable: (variableName: string, isInput: boolean, typeName?: string, parentTypeName?: string) => Promise<void>;
     undoRedoGroup: () => JSX.Element;
 }
 

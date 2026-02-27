@@ -91,6 +91,7 @@ export * from "./rpc-types/icp-service/rpc-type";
 export * from "./rpc-types/agent-chat";
 export * from "./rpc-types/agent-chat/interfaces";
 export * from "./rpc-types/agent-chat/rpc-type";
+export * from "./rpc-types/platform-ext";
 
 
 // ------ History class and interface -------->

@@ -94,6 +94,35 @@ export class ObjectOutputNode extends DataMapperNodeModel {
                         });
                     }
                 }
+            } else if (this.filteredOutputType.kind === TypeKind.Json || this.filteredOutputType.kind === TypeKind.Xml) {
+                if (this.filteredOutputType.convertedField) {
+                    await this.addPortsForOutputField({
+                        field: this.filteredOutputType.convertedField,
+                        type: "IN",
+                        parentId: "",
+                        mappings: this.context.model.mappings,
+                        portPrefix: OBJECT_OUTPUT_TARGET_PORT_PREFIX,
+                        parent: parentPort,
+                        collapsedFields,
+                        expandedFields,
+                        hidden: parentPort.attributes.collapsed
+                    });
+                } else if (this.filteredOutputType.fields) {
+                    for (const field of this.filteredOutputType.fields) {
+                        if (!field) continue;
+                        await this.addPortsForOutputField({
+                            field,
+                            type: "IN",
+                            parentId: this.rootName,
+                            mappings: this.context.model.mappings,
+                            portPrefix: OBJECT_OUTPUT_TARGET_PORT_PREFIX,
+                            parent: parentPort,
+                            collapsedFields,
+                            expandedFields,
+                            hidden: parentPort.attributes.collapsed
+                        });
+                    }
+                }
             }
         }
     }

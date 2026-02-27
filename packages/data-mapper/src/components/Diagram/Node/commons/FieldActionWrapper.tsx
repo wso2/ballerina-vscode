@@ -20,7 +20,7 @@ import React from 'react';
 
 export default function FieldActionWrapper({ children, ...props }: { children: React.ReactNode; [key: string]: any }) {
     return (
-        <span data-field-action {...props}>
+        <span data-field-action id="field-action-wrapper" {...props}>
             {children}
         </span>
     );
