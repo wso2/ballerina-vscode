@@ -242,6 +242,13 @@ const EventLabel = styled.span<{ loading: boolean; failed?: boolean }>`
     text-overflow: ellipsis;
 `;
 
+const FileNameChip = styled.span`
+    font-weight: 600;
+    color: var(--vscode-editor-foreground);
+    margin-left: 3px;
+    font-size: 12px;
+`;
+
 
 // ── Inline card (config / connector) ──────────────────────────────────────────
 
@@ -772,21 +779,34 @@ const ConnectorCard: React.FC<ConnectorCardProps> = ({ data, rpcClient }) => {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const FILE_TOOLS = ["file_write", "file_edit", "file_batch_edit"];
+const FILE_TOOLS = ["file_read", "file_write", "file_edit", "file_batch_edit"];
 const LIBRARY_SEARCH_TOOLS = ["LibrarySearchTool"];
 const LIBRARY_FETCH_TOOLS = ["LibraryGetTool", "HealthcareLibraryProviderTool"];
 
-function getEventDisplay(toolName: string | undefined, text: string, loading: boolean): { label: string } {
-    if (toolName) {
-        if (FILE_TOOLS.includes(toolName)) return { label: loading ? "Editing code..." : text || "Code updated" };
-        if (LIBRARY_SEARCH_TOOLS.includes(toolName)) return { label: loading ? "Searching libraries..." : text || "Libraries found" };
-        if (LIBRARY_FETCH_TOOLS.includes(toolName)) return { label: loading ? "Fetching libraries..." : text || "Libraries fetched" };
-        if (toolName === "getCompilationErrors") return { label: loading ? "Checking for errors..." : text || "No issues found" };
-        if (toolName === "ConfigCollector") return { label: loading ? "Reading config..." : text || "Config loaded" };
-        if (toolName === "ConnectorGeneratorTool") return { label: loading ? "Generating connector..." : text || "Connector ready" };
-        if (toolName === "runTests") return { label: loading ? "Running tests..." : text || "Tests completed" };
+// Split "Verb filename" text into prefix + fileName for highlighting
+function splitFileLabel(text: string): { prefix: string; fileName?: string } {
+    const match = text.match(/^(.+?)\s+(\S+)(\.\.\.)?\s*$/);
+    if (match) {
+        const trailingDots = match[3] || "";
+        return { prefix: match[1] + trailingDots, fileName: match[2] };
     }
-    return { label: text };
+    return { prefix: text };
+}
+
+function getEventDisplay(toolName: string | undefined, text: string, loading: boolean): { prefix: string; fileName?: string } {
+    if (toolName) {
+        if (FILE_TOOLS.includes(toolName)) {
+            const label = text || (loading ? "Working..." : "Done");
+            return splitFileLabel(label);
+        }
+        if (LIBRARY_SEARCH_TOOLS.includes(toolName)) return { prefix: loading ? "Searching libraries..." : text || "Libraries found" };
+        if (LIBRARY_FETCH_TOOLS.includes(toolName)) return { prefix: loading ? "Fetching libraries..." : text || "Libraries fetched" };
+        if (toolName === "getCompilationErrors") return { prefix: loading ? "Checking for errors..." : text || "No issues found" };
+        if (toolName === "ConfigCollector") return { prefix: loading ? "Reading config..." : text || "Config loaded" };
+        if (toolName === "ConnectorGeneratorTool") return { prefix: loading ? "Generating connector..." : text || "Connector ready" };
+        if (toolName === "runTests") return { prefix: loading ? "Running tests..." : text || "Tests completed" };
+    }
+    return { prefix: text };
 }
 
 function getNodeStatus(task: ExecutionTask, isLast: boolean, isLoading: boolean): "active" | "done" {
@@ -892,14 +912,14 @@ const PlanStepper: React.FC<ExecutionStreamProps> = ({ executionStream, isLoadin
                         <TaskBlock key={taskIdx} style={{ flexDirection: "column" }}>
                             {trimmed && <MarkdownRenderer markdownContent={trimmed} />}
                             {toolEvents.map((event, eventIdx) => {
-                                const { label } = getEventDisplay(event.toolName, event.text, event.loading);
+                                const { prefix, fileName } = getEventDisplay(event.toolName, event.text, event.loading);
                                 return (
                                     <EventRow key={eventIdx}>
                                         <ToolIcon loading={event.loading} failed={event.failed}>
                                             <span className={"codicon codicon-symbol-property"} />
                                         </ToolIcon>
                                         <EventLabel loading={event.loading} failed={event.failed}>
-                                            {label}
+                                            {prefix}{fileName && <FileNameChip>{fileName}</FileNameChip>}
                                         </EventLabel>
                                     </EventRow>
                                 );
@@ -957,14 +977,14 @@ const PlanStepper: React.FC<ExecutionStreamProps> = ({ executionStream, isLoadin
                                                     </EventRow>
                                                 );
                                             }
-                                            const { label } = getEventDisplay(event.toolName, event.text, event.loading);
+                                            const { prefix, fileName } = getEventDisplay(event.toolName, event.text, event.loading);
                                             return (
                                                 <EventRow key={eventIdx}>
                                                     <ToolIcon loading={event.loading} failed={event.failed}>
                                                         <span className={"codicon codicon-symbol-property"} />
                                                     </ToolIcon>
                                                     <EventLabel loading={event.loading} failed={event.failed}>
-                                                        {label}
+                                                        {prefix}{fileName && <FileNameChip>{fileName}</FileNameChip>}
                                                     </EventLabel>
                                                 </EventRow>
                                             );

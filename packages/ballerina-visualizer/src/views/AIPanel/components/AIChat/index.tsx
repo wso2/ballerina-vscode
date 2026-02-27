@@ -100,21 +100,12 @@ const USAGE_EXCEEDED_THRESHOLD_PERCENT = 3;
  * - Preserves directory structure for context (e.g., "tests/")
  */
 function formatFileNameForDisplay(filePath: string): string {
-    // Remove .bal extension
-    let displayName = filePath.replace(/\.bal$/, '');
+    let displayName = filePath;
 
-    // Extract directory and filename
+    // Extract just the filename (strip directory path)
     const lastSlashIndex = displayName.lastIndexOf('/');
     if (lastSlashIndex !== -1) {
-        const directory = displayName.substring(0, lastSlashIndex + 1);
-        const fileName = displayName.substring(lastSlashIndex + 1);
-
-        // Replace _ and - with spaces in the filename only
-        const formattedFileName = fileName.replace(/[_-]/g, ' ');
-        displayName = directory + formattedFileName;
-    } else {
-        // No directory, just format the filename
-        displayName = displayName.replace(/[_-]/g, ' ');
+        displayName = displayName.substring(lastSlashIndex + 1);
     }
 
     return displayName;
@@ -133,9 +124,10 @@ function getPlanModeToolCallLabel(toolName: string, toolInput: any): string {
         }
         case "LibraryGetTool": return "Fetching library details...";
         case "HealthcareLibraryProviderTool": return "Analyzing healthcare libraries...";
+        case "file_read": return `Reading ${formatFileNameForDisplay(toolInput?.fileName || "file")}...`;
         case "file_write": return `Creating ${formatFileNameForDisplay(toolInput?.fileName || "file")}...`;
         case "file_edit": return `Updating ${formatFileNameForDisplay(toolInput?.fileName || "file")}...`;
-        case "file_batch_edit": return `Editing files...`;
+        case "file_batch_edit": return `Updating ${formatFileNameForDisplay(toolInput?.fileName || "file")}...`;
         case "getCompilationErrors": return "Checking for errors...";
         case "ConnectorGeneratorTool": return "Generating connector...";
         case "ConfigCollector": return "Reading config...";
@@ -158,9 +150,10 @@ function getPlanModeToolResultLabel(toolName: string, toolOutput: any): string {
             const names = toolOutput || [];
             return names.length > 0 ? `Fetched healthcare libraries: [${names.join(", ")}]` : "No relevant healthcare libraries found";
         }
+        case "file_read": return `Read ${formatFileNameForDisplay(toolOutput?.fileName || "file")}`;
         case "file_write": return toolOutput?.action === "updated" ? `Updated ${formatFileNameForDisplay(toolOutput?.fileName || "file")}` : `Created ${formatFileNameForDisplay(toolOutput?.fileName || "file")}`;
         case "file_edit": return `Updated ${formatFileNameForDisplay(toolOutput?.fileName || "file")}`;
-        case "file_batch_edit": return "Files updated";
+        case "file_batch_edit": return `Updated ${formatFileNameForDisplay(toolOutput?.fileName || "file")}`;
         case "getCompilationErrors": return toolOutput?.diagnostics?.length > 0 ? `Found ${toolOutput.diagnostics.length} error(s)` : "No issues found";
         case "ConnectorGeneratorTool": return "Connector ready";
         case "ConfigCollector": return "Config loaded";
@@ -238,7 +231,7 @@ const AIChat: React.FC = () => {
 
     const [showSettings, setShowSettings] = useState(false);
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
-    const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Edit);
+    const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Plan);
     const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
     const [showReviewActions, setShowReviewActions] = useState(false);
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
