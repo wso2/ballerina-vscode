@@ -124,7 +124,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                 return { ...field, hidden: mode !== 'evalSet' };
             }
             if (field.key === 'runs') {
-                return { ...field, hidden: mode === 'evalSet' };
+                return { ...field };
             }
             return field;
         });

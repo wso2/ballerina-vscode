@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "@emotion/styled";
 import { EvalThread, EvalSet, EvalFunctionCall, EvalsetTrace, EvalToolSchema, AvailableNode } from "@wso2/ballerina-core";
 import { MessageContainer, ProfilePic } from "../AgentChatPanel/Components/ChatInterface";
@@ -123,7 +123,7 @@ const BannerDescription = styled.div`
 const HeaderLeft = styled.div`
     flex: 1;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
 `;
 
@@ -162,19 +162,110 @@ const Dot = styled.span`
     background-color: var(--vscode-notificationsWarningIcon-foreground);
 `;
 
-const Title = styled.h2`
+const BreadcrumbRow = styled.div`
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0 0 4px 0;
+`;
+
+const EvalSetName = styled.span`
     font-size: 1.3em;
-    font-weight: 600;
-    margin: 0 0 6px 0;
+    font-weight: 700;
     color: var(--vscode-foreground);
     letter-spacing: -0.01em;
 `;
 
-const Subtitle = styled.p`
+const BreadcrumbSeparator = styled.span`
+    font-size: 1.3em;
+    color: var(--vscode-descriptionForeground);
+    margin: 0 6px;
+    font-weight: 400;
+`;
+
+const EditableSubtitle = styled.span`
+    font-size: 1.3em;
+    font-weight: 400;
+    color: var(--vscode-descriptionForeground);
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 1px 4px;
+    margin-left: -4px;
+
+    &:hover {
+        color: var(--vscode-foreground);
+        background-color: var(--vscode-toolbar-hoverBackground);
+    }
+`;
+
+const EditableDescription = styled.p`
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    margin: 2px 0 0 0;
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 1px 4px;
+    margin-left: -4px;
+
+    &:hover {
+        color: var(--vscode-foreground);
+        background-color: var(--vscode-toolbar-hoverBackground);
+    }
+`;
+
+const AddDescriptionHint = styled.p`
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    margin: 2px 0 0 -4px;
+    opacity: 0;
+    cursor: pointer;
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-style: italic;
+    transition: opacity 0.15s ease;
+`;
+
+const HeaderInfoWrapper = styled.div`
+    &:hover .add-description-hint {
+        opacity: 1;
+    }
+`;
+
+const DescriptionInput = styled.textarea`
+    font-size: 12px;
+    color: var(--vscode-input-foreground);
+    background-color: var(--vscode-input-background);
+    border: 1px solid var(--vscode-focusBorder);
+    border-radius: 3px;
+    padding: 1px 4px;
+    margin: 2px 0 0 -4px;
+    outline: none;
+    width: 100%;
+    min-width: 200px;
+    font-family: inherit;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.4;
+`;
+
+const ThreadNameInput = styled.input<{ $hasError?: boolean }>`
     font-size: 14px;
     font-weight: 500;
-    color: var(--vscode-descriptionForeground);
-    margin: 0;
+    color: var(--vscode-input-foreground);
+    background-color: var(--vscode-input-background);
+    border: 1px solid ${({ $hasError }: { $hasError?: boolean }) => $hasError ? 'var(--vscode-inputValidation-errorBorder)' : 'var(--vscode-focusBorder)'};
+    border-radius: 3px;
+    padding: 1px 4px;
+    margin-left: -4px;
+    outline: none;
+    min-width: 120px;
+`;
+
+const ThreadNameError = styled.span`
+    font-size: 11px;
+    color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground));
+    margin-top: 2px;
+    display: block;
 `;
 
 export const Messages = styled.div`
@@ -477,6 +568,101 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
     const [deleteTraceIndex, setDeleteTraceIndex] = useState<number | null>(null);
     const [deleteToolCall, setDeleteToolCall] = useState<{ traceId: string; toolCallIndex: number } | null>(null);
     const [availableToolsCache, setAvailableToolsCache] = useState<EvalToolSchema[] | null>(null);
+    const [isEditingThreadName, setIsEditingThreadName] = useState(false);
+    const [threadNameValue, setThreadNameValue] = useState(evalThread.id);
+    const [isSavingName, setIsSavingName] = useState(false);
+    const threadNameInputRef = useRef<HTMLInputElement>(null);
+    const [isEditingDescription, setIsEditingDescription] = useState(false);
+    const [descriptionValue, setDescriptionValue] = useState(evalThread.description);
+    const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+        if (isEditingThreadName && threadNameInputRef.current) {
+            threadNameInputRef.current.focus();
+            threadNameInputRef.current.select();
+        }
+    }, [isEditingThreadName]);
+
+    useEffect(() => {
+        if (isEditingDescription && descriptionInputRef.current) {
+            const el = descriptionInputRef.current;
+            el.focus();
+            el.style.height = 'auto';
+            el.style.height = `${el.scrollHeight}px`;
+            el.setSelectionRange(el.value.length, el.value.length);
+        }
+    }, [isEditingDescription]);
+
+    const handleRenameThread = async (newName: string) => {
+        const trimmed = newName.trim();
+        if (!trimmed || trimmed === evalThread.id) {
+            setThreadNameValue(evalThread.id);
+            setIsEditingThreadName(false);
+            return;
+        }
+
+        const nameExists = evalSet.threads.some(t => t.id !== evalThread.id && t.id === trimmed);
+        if (nameExists) {
+            setThreadNameValue(evalThread.id);
+            setIsEditingThreadName(false);
+            return;
+        }
+
+        setIsSavingName(true);
+        try {
+            const renamedThread = { ...evalThread, id: trimmed };
+            const updatedEvalSet: EvalSet = {
+                ...evalSet,
+                threads: evalSet.threads.map(t => t.id === evalThread.id ? renamedThread : t)
+            };
+
+            const response = await rpcClient.getVisualizerRpcClient().saveEvalThread({ filePath, updatedEvalSet });
+
+            if (response.success) {
+                rpcClient.getCommonRpcClient().executeCommand({
+                    commands: ['ballerina.openEvalsetViewer', { fsPath: filePath }, trimmed]
+                });
+            } else {
+                rpcClient.getCommonRpcClient().showErrorMessage({ message: response.error || 'Failed to rename thread.' });
+                setThreadNameValue(evalThread.id);
+            }
+        } catch (error: any) {
+            rpcClient.getCommonRpcClient().showErrorMessage({ message: error?.message || 'An unexpected error occurred while renaming.' });
+            setThreadNameValue(evalThread.id);
+        } finally {
+            setIsSavingName(false);
+            setIsEditingThreadName(false);
+        }
+    };
+
+    const handleSaveDescription = async (newDescription: string) => {
+        const trimmed = newDescription.trim();
+        if (trimmed === evalThread.description) {
+            setDescriptionValue(evalThread.description);
+            setIsEditingDescription(false);
+            return;
+        }
+
+        try {
+            const updatedThread = { ...evalThread, description: trimmed };
+            const updatedEvalSet: EvalSet = {
+                ...evalSet,
+                threads: evalSet.threads.map(t => t.id === evalThread.id ? updatedThread : t)
+            };
+
+            const response = await rpcClient.getVisualizerRpcClient().saveEvalThread({ filePath, updatedEvalSet });
+
+            if (!response.success) {
+                rpcClient.getCommonRpcClient().showErrorMessage({ message: response.error || 'Failed to save description.' });
+                setDescriptionValue(evalThread.description);
+            }
+        } catch (error: any) {
+            rpcClient.getCommonRpcClient().showErrorMessage({ message: error?.message || 'An unexpected error occurred while saving.' });
+            setDescriptionValue(evalThread.description);
+        } finally {
+            setIsEditingDescription(false);
+        }
+    };
 
     // Handle back navigation to thread list view
     const handleBack = () => {
@@ -735,10 +921,70 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                             <Icon name="chevron-left" isCodicon sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
                                 iconSx={{ display: "flex", fontSize: "20px", color: "var(--vscode-foreground)" }} />
                         </IconButton>
-                        <div>
-                            <Title>{evalSet.name}</Title>
-                            <Subtitle>{displayCase.name}</Subtitle>
-                        </div>
+                        <HeaderInfoWrapper>
+                            <BreadcrumbRow>
+                                <EvalSetName>{evalSet.name}</EvalSetName>
+                                <BreadcrumbSeparator>/</BreadcrumbSeparator>
+                                {isEditingThreadName ? (
+                                    <ThreadNameInput
+                                        ref={threadNameInputRef}
+                                        value={threadNameValue}
+                                        $hasError={evalSet.threads.some(t => t.id !== evalThread.id && t.id === threadNameValue.trim())}
+                                        onChange={(e) => setThreadNameValue(e.target.value)}
+                                        onBlur={() => handleRenameThread(threadNameValue)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') { e.currentTarget.blur(); }
+                                            if (e.key === 'Escape') {
+                                                setThreadNameValue(evalThread.id);
+                                                setIsEditingThreadName(false);
+                                            }
+                                        }}
+                                        disabled={isSavingName}
+                                    />
+                                ) : (
+                                    <EditableSubtitle
+                                        onClick={() => { setThreadNameValue(displayCase.id); setIsEditingThreadName(true); }}
+                                        title="Click to rename thread"
+                                    >
+                                        {displayCase.id}
+                                    </EditableSubtitle>
+                                )}
+                            </BreadcrumbRow>
+                            {isEditingThreadName && evalSet.threads.some(t => t.id !== evalThread.id && t.id === threadNameValue.trim()) && (
+                                <ThreadNameError>A thread with this name already exists</ThreadNameError>
+                            )}
+                            {isEditingDescription ? (
+                                <DescriptionInput
+                                    ref={descriptionInputRef}
+                                    value={descriptionValue}
+                                    rows={1}
+                                    onChange={(e) => {
+                                        setDescriptionValue(e.target.value);
+                                        e.target.style.height = 'auto';
+                                        e.target.style.height = `${e.target.scrollHeight}px`;
+                                    }}
+                                    onBlur={() => handleSaveDescription(descriptionValue)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) { e.currentTarget.blur(); }
+                                        if (e.key === 'Escape') {
+                                            setDescriptionValue(evalThread.description);
+                                            setIsEditingDescription(false);
+                                        }
+                                    }}
+                                />
+                            ) : descriptionValue ? (
+                                <EditableDescription
+                                    onClick={() => setIsEditingDescription(true)}
+                                    title="Click to edit description"
+                                >
+                                    {descriptionValue}
+                                </EditableDescription>
+                            ) : (
+                                <AddDescriptionHint className="add-description-hint" onClick={() => setIsEditingDescription(true)}>
+                                    Add a description...
+                                </AddDescriptionHint>
+                            )}
+                        </HeaderInfoWrapper>
                     </HeaderLeft>
                     <HeaderRight>
                         {isEditMode ? (
@@ -794,7 +1040,7 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                                                 isEditMode={isEditMode}
                                                 onDelete={() => setDeleteTraceIndex(traceIdx)}
                                             >
-                                                <StyledMessageContainer isUser={true}>
+                                                <StyledMessageContainer isUser={true} style={{ marginBottom: "16px" }}>
                                                     <EditableTraceMessage
                                                         traceId={trace.id}
                                                         isUser={true}

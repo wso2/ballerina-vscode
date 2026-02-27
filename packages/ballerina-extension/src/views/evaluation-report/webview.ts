@@ -36,8 +36,145 @@ export class EvaluationReportWebview {
         this._panel.webview.html = processedHtml;
     }
 
+    private getDarkModeStyles(): string {
+        return `<style id="vscode-dark-mode-overrides">
+body.vscode-dark,
+body.vscode-high-contrast {
+    background-color: var(--vscode-editor-background, #1e1e1e) !important;
+    color: var(--vscode-editor-foreground, #cccccc) !important;
+}
+
+body.vscode-dark .header-section,
+body.vscode-dark .coverage-content thead,
+body.vscode-dark .eval-runs-cell,
+body.vscode-dark .summary-card.progress-card,
+body.vscode-dark .eval-matrix-header,
+body.vscode-dark .eval-outcome-id {
+    background: var(--vscode-sideBar-background, #252526) !important;
+}
+
+body.vscode-dark .eval-failure-message,
+body.vscode-dark .eval-page-summary,
+body.vscode-dark .eval-page-section,
+body.vscode-dark .test-error-controls,
+body.vscode-dark table{
+    background: var(--vscode-sideBar-background, #252526) !important;
+    border-color: var(--vscode-panel-border, #3e3e42) !important;
+}
+
+body.vscode-dark .eval-list-item-header,
+body.vscode-dark .eval-list-item-error {
+    background-color: var(--vscode-editor-background, #1e1e1e) !important;
+}
+
+body.vscode-dark .eval-list-item.failed .eval-list-item-header:hover {
+    background-color: var(--vscode-list-hoverBackground, #2a2d2e) !important;
+}
+
+body.vscode-dark .row.card {
+    background-color: transparent !important;
+}
+
+body.vscode-dark .card,
+body.vscode-dark .summary-card,
+body.vscode-dark .table thead,
+body.vscode-dark .header-section,
+body.vscode-dark .eval-matrix td,
+body.vscode-dark .eval-matrix th,
+body.vscode-dark .eval-list-item,
+body.vscode-dark .test-error-controls,
+body.vscode-dark .eval-section-title,
+body.vscode-dark .eval-summary-card,
+body.vscode-dark .coverage-content code:last-child > span {
+    border-color: var(--vscode-panel-border, #3e3e42) !important;
+}
+
+body.vscode-dark .project,
+body.vscode-dark .title_projectname,
+body.vscode-dark .eval-breadcrumb-test,
+body.vscode-dark .eval-stat-value,
+body.vscode-dark .eval-summary-name,
+body.vscode-dark .eval-section-title,
+body.vscode-dark .eval-list-item-title {
+    color: var(--vscode-editor-foreground, #cccccc) !important;
+}
+
+body.vscode-dark .module-content .title,
+body.vscode-dark .table,
+body.vscode-dark .table td span.link,
+body.vscode-dark .expand-indicator,
+body.vscode-dark .eval-runs-summary,
+body.vscode-dark .eval-breadcrumb-module,
+body.vscode-dark .eval-breadcrumb-separator,
+body.vscode-dark .eval-stat-label,
+body.vscode-dark .eval-summary-title,
+body.vscode-dark .eval-run-label,
+body.vscode-dark .eval-expand-icon {
+    color: var(--vscode-descriptionForeground, #9d9d9d) !important;
+}
+    
+
+body.vscode-dark .total {
+    background: var(--vscode-badge-background, #4d4d4d) !important;
+    color: var(--vscode-badge-foreground, #ffffff) !important;
+}
+
+body.vscode-dark code.lineNumbers {
+    background-color: var(--vscode-textBlockQuote-background, #2a2d2e) !important;
+    color: var(--vscode-descriptionForeground, #9d9d9d) !important;
+}
+
+body.vscode-dark .eval-error-content {
+    background-color: rgba(247, 75, 90, 0.08) !important;
+    color: var(--vscode-editor-foreground, #cccccc) !important;
+}
+
+body.vscode-dark header {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+    padding-top: 1.5em;
+    padding-bottom: 1em;
+}
+
+body.vscode-dark .table td,
+body.vscode-dark .table th {
+    border-color: var(--vscode-panel-border, #3e3e42) !important;
+    background-color: transparent !important;
+    color: var(--vscode-editor-foreground, #cccccc);
+}
+
+body.vscode-dark .table thead tr {
+    background-color: var(--vscode-sideBar-background, #252526) !important;
+}
+body.vscode-dark .table thead th {
+    color: var(--vscode-editor-foreground, #cccccc) !important;
+    border-color: var(--vscode-panel-border, #3e3e42) !important;
+}
+
+body.vscode-dark .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+}
+body.vscode-dark .table-striped tbody tr:nth-of-type(even) {
+    background-color: transparent !important;
+}
+
+body.vscode-dark .table .PASSED,
+body.vscode-dark .table .PASSED td {
+    color: #24a2b7 !important;
+}
+body.vscode-dark .table .FAILURE,
+body.vscode-dark .table .FAILURE td {
+    color: #f74b5a !important;
+}
+
+body.vscode-dark .table td span.link {
+    border-bottom-color: var(--vscode-descriptionForeground, #9d9d9d) !important;
+}
+</style>`;
+    }
+
     private processHtmlContent(reportContent: string, reportDir: Uri): string {
-        // First, inject VS Code API script
+        // First, inject VS Code API script and dark mode styles
         let html = reportContent.replace(
             "</head>",
             `<script>
@@ -48,7 +185,7 @@ export class EvaluationReportWebview {
                         defaultStyles.remove();
                     }
                 });
-            </script></head>`
+            </script>${this.getDarkModeStyles()}</head>`
         );
 
         // If </head> wasn't found, try injecting at the start of body
@@ -115,8 +252,8 @@ export class EvaluationReportWebview {
         );
 
         panel.iconPath = {
-            light: Uri.file(path.join(extension.context.extensionPath, "resources", "icons", "dark-icon.svg")),
-            dark: Uri.file(path.join(extension.context.extensionPath, "resources", "icons", "light-icon.svg")),
+            light: Uri.file(path.join(extension.context.extensionPath, "resources", "icons", "light-icon.svg")),
+            dark: Uri.file(path.join(extension.context.extensionPath, "resources", "icons", "dark-icon.svg")),
         };
 
         EvaluationReportWebview.currentPanel = new EvaluationReportWebview(panel, reportContent, reportDir);
