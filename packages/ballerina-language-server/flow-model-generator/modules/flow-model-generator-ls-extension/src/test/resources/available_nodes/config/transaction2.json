@@ -169,7 +169,7 @@
             "description": "Create and start a new workflow instance"
           },
           "codedata": {
-            "node": "WORKFLOW"
+            "node": "WORKFLOW_START"
           },
           "enabled": true
         },
@@ -179,7 +179,7 @@
             "description": "Send an event to an existing workflow instance"
           },
           "codedata": {
-            "node": "EVENT"
+            "node": "SEND_EVENT"
           },
           "enabled": true
         }

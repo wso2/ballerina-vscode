@@ -219,6 +219,9 @@ public class WaitEventBuilder extends WaitBuilder {
     private Optional<TypeSymbol> getEventsParameterTypeSymbol(FunctionDefinitionNode functionNode,
                                                               SemanticModel semanticModel) {
         SeparatedNodeList<ParameterNode> parameters = functionNode.functionSignature().parameters();
+        if (parameters.isEmpty()) {
+            return Optional.empty();
+        }
         ParameterNode lastParam = parameters.get(parameters.size() - 1);
 
         Node typeNode = null;
