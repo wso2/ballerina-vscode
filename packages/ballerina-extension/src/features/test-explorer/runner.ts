@@ -203,36 +203,38 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             const startTime = Date.now();
             // For workspace, run from workspace root; for single project, run from project path
             const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
-            runCommand(command, workingDirectory).then(() => {
+            runCommand(command, workingDirectory).then(async () => {
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
-                    if (isAiEvaluations(test)) {
-                        const reportUri = await findLatestEvaluationReport(workingDirectory);
-                        if (reportUri) {
-                            await openEvaluationReport(reportUri);
-                        }
-                    }
+                if (isAiEvaluations(test)) {
+                    testItems.forEach(item => run.passed(item, timeElapsed));
+                    const reportUri = await findLatestEvaluationReport(workingDirectory);
+                    if (reportUri) { await openEvaluationReport(reportUri); }
                     endGroup(test, true, run);
-                }).catch(() => {
-                    endGroup(test, false, run);
-                });
-            }).catch(() => {
+                } else {
+                    reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                        endGroup(test, true, run);
+                    }).catch(() => {
+                        endGroup(test, false, run);
+                    });
+                }
+            }).catch(async () => {
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
-                    if (isAiEvaluations(test)) {
-                        const reportUri = await findLatestEvaluationReport(workingDirectory);
-                        if (reportUri) {
-                            await openEvaluationReport(reportUri);
-                        }
-                    }
-                    endGroup(test, true, run);
-                }).catch(() => {
+                if (isAiEvaluations(test)) {
+                    testItems.forEach(item => run.failed(item, new TestMessage('Evaluation failed'), timeElapsed));
+                    const reportUri = await findLatestEvaluationReport(workingDirectory);
+                    if (reportUri) { await openEvaluationReport(reportUri); }
                     endGroup(test, false, run);
-                });
+                } else {
+                    reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                        endGroup(test, true, run);
+                    }).catch(() => {
+                        endGroup(test, false, run);
+                    });
+                }
             });
         } else if (isTestGroupItem(test)) {
             let testCaseNames: string[] = [];
@@ -249,36 +251,38 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             const startTime = Date.now();
             // For workspace, run from workspace root; for single project, run from project path
             const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
-            runCommand(command, workingDirectory).then(() => {
+            runCommand(command, workingDirectory).then(async () => {
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
-                    if (isAiEvaluations(test)) {
-                        const reportUri = await findLatestEvaluationReport(workingDirectory);
-                        if (reportUri) {
-                            await openEvaluationReport(reportUri);
-                        }
-                    }
+                if (isAiEvaluations(test)) {
+                    testItems.forEach(item => run.passed(item, timeElapsed));
+                    const reportUri = await findLatestEvaluationReport(workingDirectory);
+                    if (reportUri) { await openEvaluationReport(reportUri); }
                     endGroup(test, true, run);
-                }).catch(() => {
-                    endGroup(test, false, run);
-                });
-            }).catch(() => {
+                } else {
+                    reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                        endGroup(test, true, run);
+                    }).catch(() => {
+                        endGroup(test, false, run);
+                    });
+                }
+            }).catch(async () => {
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
-                    if (isAiEvaluations(test)) {
-                        const reportUri = await findLatestEvaluationReport(workingDirectory);
-                        if (reportUri) {
-                            await openEvaluationReport(reportUri);
-                        }
-                    }
-                    endGroup(test, true, run);
-                }).catch(() => {
+                if (isAiEvaluations(test)) {
+                    testItems.forEach(item => run.failed(item, new TestMessage('Evaluation failed'), timeElapsed));
+                    const reportUri = await findLatestEvaluationReport(workingDirectory);
+                    if (reportUri) { await openEvaluationReport(reportUri); }
                     endGroup(test, false, run);
-                });
+                } else {
+                    reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                        endGroup(test, true, run);
+                    }).catch(() => {
+                        endGroup(test, false, run);
+                    });
+                }
             });
         } else if (isTestFunctionItem(test)) {
             command = buildTestCommand(test, executor, projectName, [test.label]);
@@ -296,36 +300,38 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             const startTime = Date.now();
             // For workspace, run from workspace root; for single project, run from project path
             const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
-            runCommand(command, workingDirectory).then(() => {
+            runCommand(command, workingDirectory).then(async () => {
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(async () => {
-                    if (isAiEvaluations(test)) {
-                        const reportUri = await findLatestEvaluationReport(workingDirectory);
-                        if (reportUri) {
-                            await openEvaluationReport(reportUri);
-                        }
-                    }
+                if (isAiEvaluations(test)) {
+                    run.passed(test, timeElapsed);
+                    const reportUri = await findLatestEvaluationReport(workingDirectory);
+                    if (reportUri) { await openEvaluationReport(reportUri); }
                     endGroup(test, true, run);
-                }).catch(() => {
-                    endGroup(test, false, run);
-                });
-            }).catch(() => {
+                } else {
+                    reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
+                        endGroup(test, true, run);
+                    }).catch(() => {
+                        endGroup(test, false, run);
+                    });
+                }
+            }).catch(async () => {
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(async () => {
-                    if (isAiEvaluations(test)) {
-                        const reportUri = await findLatestEvaluationReport(workingDirectory);
-                        if (reportUri) {
-                            await openEvaluationReport(reportUri);
-                        }
-                    }
-                    endGroup(test, true, run);
-                }).catch(() => {
+                if (isAiEvaluations(test)) {
+                    run.failed(test, new TestMessage('Evaluation failed'), timeElapsed);
+                    const reportUri = await findLatestEvaluationReport(workingDirectory);
+                    if (reportUri) { await openEvaluationReport(reportUri); }
                     endGroup(test, false, run);
-                });
+                } else {
+                    reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
+                        endGroup(test, true, run);
+                    }).catch(() => {
+                        endGroup(test, false, run);
+                    });
+                }
             });
         }
     });

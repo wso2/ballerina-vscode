@@ -23,7 +23,7 @@ import * as path from 'path';
 // Interface matching the EvalThread object structure
 interface EvalThreadJson {
     id: string;
-    name: string;
+    description: string;
     traces: any[];
 }
 
@@ -200,7 +200,7 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
                 const traceCount = Array.isArray(threadObj.traces) ? threadObj.traces.length : 0;
 
                 // Use the name defined in the thread object, fallback to generated name
-                const label = threadObj.name || `Thread ${index + 1}`;
+                const label = threadObj.id || `thread ${index + 1}`;
                 const threadId = threadObj.id || `thread-${index + 1}`;
 
                 nodes.push(new EvalsetThreadNode(
