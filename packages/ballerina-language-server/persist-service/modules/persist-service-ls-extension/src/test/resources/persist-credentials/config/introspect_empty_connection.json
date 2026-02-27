@@ -7,8 +7,8 @@
       "label": "",
       "description": ""
     },
-    "properties": [
-      {
+    "properties": {
+      "dbSystem": {
         "metadata": {
           "label": "Database System",
           "description": "The database system type (e.g., mysql, postgresql, mssql)"
@@ -18,7 +18,7 @@
         "optional": false,
         "advanced": false
       },
-      {
+      "host": {
         "metadata": {
           "label": "Host",
           "description": "Database server host address"
@@ -28,7 +28,7 @@
         "optional": false,
         "advanced": false
       },
-      {
+      "port": {
         "metadata": {
           "label": "Port",
           "description": "Database server port number"
@@ -38,7 +38,7 @@
         "optional": false,
         "advanced": false
       },
-      {
+      "user": {
         "metadata": {
           "label": "User",
           "description": "Database username"
@@ -48,7 +48,7 @@
         "optional": false,
         "advanced": false
       },
-      {
+      "password": {
         "metadata": {
           "label": "Password",
           "description": "Database user password"
@@ -58,7 +58,7 @@
         "optional": false,
         "advanced": false
       },
-      {
+      "database": {
         "metadata": {
           "label": "Database",
           "description": "Name of the database to connect"
@@ -68,6 +68,8 @@
         "optional": false,
         "advanced": false
       }
-    ]
-  }
+    }
+  },
+  "expectError": false,
+  "expectedErrorMessage": ""
 }
