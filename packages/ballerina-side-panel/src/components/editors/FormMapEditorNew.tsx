@@ -170,7 +170,7 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
                 {
                     repeatableFields.map((formField) => (
                         <S.ItemContainer style={{ padding: '1px', position: 'relative', marginBottom: '4px' }} key={formField[0].key}>
-                            <div style={{ position: 'absolute', top: '4px', right: '4px', zIndex: 1 }}>
+                            <div style={{ position: 'absolute', top: '4px', right: '5px', zIndex: 1 }}>
                                 <Codicon
                                     name="close"
                                     sx={{ cursor: 'pointer', opacity: 0.6, '&:hover': { opacity: 1 } }}
