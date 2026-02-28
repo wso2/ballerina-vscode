@@ -427,6 +427,22 @@ const AIChat: React.FC = () => {
                 updateLastMessage((content) =>
                     content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`
                 );
+            } else if (response.toolName === "runBallerinaPackage") {
+                const toolCallId = response?.toolCallId;
+                const runType = response.toolInput?.runType === "service" ? "service" : "program";
+                updateLastMessage((content) =>
+                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Running ${runType}...</toolcall>`
+                );
+            } else if (response.toolName === "getServiceLogs") {
+                const toolCallId = response?.toolCallId;
+                updateLastMessage((content) =>
+                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching logs...</toolcall>`
+                );
+            } else if (response.toolName === "stopBallerinaService") {
+                const toolCallId = response?.toolCallId;
+                updateLastMessage((content) =>
+                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Stopping service...</toolcall>`
+                );
             }
         } else if (type === "tool_result") {
             if (response.toolName === "LibrarySearchTool") {
@@ -591,6 +607,40 @@ const AIChat: React.FC = () => {
                 if (toolCallId) {
                     const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`;
                     const resultMessage = response.toolOutput?.summary ?? "Tests completed";
+                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
+                    updateLastMessage((content) => content.replace(searchPattern, replacement));
+                }
+            } else if (response.toolName === "runBallerinaPackage") {
+                const toolCallId = response.toolCallId;
+                if (toolCallId) {
+                    const status = response.toolOutput?.status ?? "completed";
+                    const runType = status === "started" ? "service" : "program";
+                    const searchPattern = new RegExp(`<toolcall id="${toolCallId}" tool="${response.toolName}">Running (?:service|program)\\.\\.\\.<\\/toolcall>`);
+                    const resultMessage = status === "started"
+                        ? "Service started"
+                        : status === "completed"
+                            ? "Program completed"
+                            : status === "timeout"
+                                ? "Program timed out"
+                                : "Run failed";
+                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
+                    updateLastMessage((content) => content.replace(searchPattern, replacement));
+                }
+            } else if (response.toolName === "getServiceLogs") {
+                const toolCallId = response.toolCallId;
+                if (toolCallId) {
+                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching logs...</toolcall>`;
+                    const status = response.toolOutput?.status ?? "running";
+                    const resultMessage = status === "exited" ? "Service exited" : "Logs retrieved";
+                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
+                    updateLastMessage((content) => content.replace(searchPattern, replacement));
+                }
+            } else if (response.toolName === "stopBallerinaService") {
+                const toolCallId = response.toolCallId;
+                if (toolCallId) {
+                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Stopping service...</toolcall>`;
+                    const status = response.toolOutput?.status ?? "stopped";
+                    const resultMessage = status === "stopped" ? "Service stopped" : status === "already_exited" ? "Service already exited" : "Service not found";
                     const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
                     updateLastMessage((content) => content.replace(searchPattern, replacement));
                 }
