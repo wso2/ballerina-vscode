@@ -135,6 +135,7 @@ interface ToolCategory {
 const FILE_TOOLS = ["file_write", "file_edit", "file_batch_edit"];
 const LIBRARY_SEARCH_TOOLS = ["LibrarySearchTool"];
 const LIBRARY_FETCH_TOOLS = ["LibraryGetTool", "HealthcareLibraryProviderTool"];
+const RUN_TOOLS = ["runBallerinaPackage", "getServiceLogs", "stopBallerinaService"];
 
 function getGroupCategory(toolNames: (string | undefined)[]): ToolCategory {
     const names = toolNames.filter(Boolean) as string[];
@@ -148,6 +149,7 @@ function getGroupCategory(toolNames: (string | undefined)[]): ToolCategory {
     const hasConfig = names.includes("ConfigCollector");
     const hasConnector = names.includes("ConnectorGeneratorTool");
     const hasTestRunner = names.includes("runTests");
+    const hasRunTool = names.some(n => RUN_TOOLS.includes(n));
 
     if (hasFile && !hasLibrary && !hasDiagnostics) {
         return { running: "Editing code...", done: "Code updated" };
@@ -172,6 +174,9 @@ function getGroupCategory(toolNames: (string | undefined)[]): ToolCategory {
     }
     if (hasTestRunner) {
         return { running: "Running tests...", done: "Tests completed" };
+    }
+    if (hasRunTool) {
+        return { running: "Running program...", done: "Run complete" };
     }
     return { running: "Thinking...", done: "Done" };
 }
