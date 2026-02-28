@@ -177,11 +177,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewDataLoader = useRef<boolean>(false);
     const isCreatingNewChunker = useRef<boolean>(false);
 
-    const { platformExtState, platformRpcClient, onLinkDevantProject,  importConnection: importDevantConn } = usePlatformExtContext()
+    const { platformExtState, platformRpcClient, onLinkDevantProject, importConnection: importDevantConn } = usePlatformExtContext()
 
-    const enrichedCategories = useMemo(()=>{
-         return  enrichCategoryWithDevant(platformExtState?.devantConns?.list, categories, importingConn)
-    },[platformExtState, categories, importingConn])
+    const enrichedCategories = useMemo(() => {
+        return enrichCategoryWithDevant(platformExtState?.devantConns?.list, categories, importingConn)
+    }, [platformExtState, categories, importingConn])
 
     const handleClickImportDevantConn = (data: ConnectionListItem) => {
         rpcClient.getVisualizerRpcClient().openView({
@@ -1459,7 +1459,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             return;
                         }
                     }
-                
+
                     if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER
                         || (updatedNode?.codedata?.node === "AGENT_CALL" && updatedNode?.properties?.model?.value === "")) {
                         await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
@@ -2239,7 +2239,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             setSidePanelView(SidePanelView.ADD_TOOL);
             setShowSidePanel(true);
             setShowProgressIndicator(false);
-        }, 500);
+        }, 100);
     };
 
     const handleOnAddMcpServer = (node: FlowNode) => {

@@ -194,54 +194,56 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         });
     }, [rpcClient]);
 
-    const fetchNodes = () => {
+    const fetchNodes = async () => {
         setLoading(true);
-        const getNodeRequest: BIAvailableNodesRequest = {
-            position: targetRef.current.startLine,
-            filePath: agentFilePath.current,
-        };
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getAvailableNodes(getNodeRequest)
-            .then(async (response) => {
-                console.log(">>> Available nodes", response);
-                if (!response.categories) {
-                    console.error(">>> Error getting available nodes", response);
-                    return;
-                }
-                const connectionsCategory = response.categories.filter(
-                    (item) => item.metadata.label === "Connections"
-                ) as Category[];
-                // remove connections which names start with _ underscore
-                if (connectionsCategory.at(0)?.items) {
-                    const filteredConnectionsCategory = connectionsCategory
-                        .at(0)
-                        ?.items.filter((item) => !item.metadata.label.startsWith("_"));
-                    connectionsCategory.at(0).items = filteredConnectionsCategory;
-                }
-                const convertedCategories = convertBICategoriesToSidePanelCategories(connectionsCategory);
-                console.log("convertedCategories", convertedCategories);
 
-                let filteredCategories = [];
+        // FUNCTION mode: skip getAvailableNodes entirely — connections are not needed
+        if (mode === NewToolSelectionMode.FUNCTION) {
+            const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
+            const categories = filteredFunctions || [];
+            setCategories(categories);
+            initialCategoriesRef.current = categories;
+            setLoading(false);
+            return;
+        }
 
-                // Filter categories based on mode
-                if (mode === NewToolSelectionMode.CONNECTION) {
-                    filteredCategories = convertedCategories;
-                } else if (mode === NewToolSelectionMode.FUNCTION) {
-                    const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
-                    filteredCategories = filteredFunctions;
-                } else {
-                    const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
-                    filteredCategories = convertedCategories.concat(filteredFunctions);
-                }
+        try {
+            const getNodeRequest: BIAvailableNodesRequest = {
+                position: targetRef.current.startLine,
+                filePath: agentFilePath.current,
+            };
+            const response = await rpcClient.getBIDiagramRpcClient().getAvailableNodes(getNodeRequest);
+            console.log(">>> Available nodes", response);
+            if (!response.categories) {
+                console.error(">>> Error getting available nodes", response);
+                return;
+            }
+            const connectionsCategory = response.categories.filter(
+                (item) => item.metadata.label === "Connections"
+            ) as Category[];
+            // remove connections which names start with _ underscore
+            if (connectionsCategory.at(0)?.items) {
+                const filteredConnectionsCategory = connectionsCategory
+                    .at(0)
+                    ?.items.filter((item) => !item.metadata.label.startsWith("_"));
+                connectionsCategory.at(0).items = filteredConnectionsCategory;
+            }
+            const convertedCategories = convertBICategoriesToSidePanelCategories(connectionsCategory);
+            console.log("convertedCategories", convertedCategories);
 
-                setCategories(filteredCategories);
-                initialCategoriesRef.current = filteredCategories; // Store initial categories
-                setLoading(false);
-            })
-            .finally(() => {
-                setLoading(false);
-            });
+            let filteredCategories: PanelCategory[] = convertedCategories;
+
+            // ALL mode: also fetch functions — CONNECTION mode only needs connections
+            if (mode !== NewToolSelectionMode.CONNECTION) {
+                const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
+                filteredCategories = convertedCategories.concat(filteredFunctions);
+            }
+
+            setCategories(filteredCategories);
+            initialCategoriesRef.current = filteredCategories;
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSearchFunction = async (
@@ -249,6 +251,10 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         functionType: FUNCTION_TYPE,
         isSearching: boolean = true
     ) => {
+        if (isSearching && !searchText) {
+            setCategories(initialCategoriesRef.current); // Reset the categories list when the search input is empty
+            return;
+        }
         const request: BISearchRequest = {
             position: {
                 startLine: targetRef.current.startLine,
@@ -266,10 +272,6 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             searchKind: "FUNCTION",
         };
         const response = await rpcClient.getBIDiagramRpcClient().search(request);
-        if (isSearching && !searchText) {
-            setCategories(initialCategoriesRef.current); // Reset the categories list when the search input is empty
-            return;
-        }
 
         // HACK: filter response until library functions are supported from LS
         const filteredResponse = response.categories.filter((category) => {

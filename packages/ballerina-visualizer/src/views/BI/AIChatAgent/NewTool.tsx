@@ -25,6 +25,9 @@ import { RelativeLoader } from "../../../components/RelativeLoader";
 import { addToolToAgentNode, findAgentNodeFromAgentCallNode, updateFlowNodePropertyValuesWithKeys } from "./utils";
 import { FUNCTION_CALL } from "../../../constants";
 
+// Module-level cache: avoids re-fetching the same agent node when switching between modes
+const agentNodeCache = new Map<string, FlowNode>();
+
 const LoaderContainer = styled.div`
     display: flex;
     justify-content: center;
@@ -69,8 +72,22 @@ export function NewTool(props: NewToolProps): JSX.Element {
     };
 
     const fetchAgentNode = async () => {
+        const agentName = agentCallNode.properties?.connection?.value;
+        const fileName = agentCallNode.codedata?.lineRange?.fileName;
+        const cacheKey = `${fileName}-${agentName}`;
+
+        const cached = agentNodeCache.get(cacheKey);
+        if (cached) {
+            console.log(">>> agent node (from cache)", { cached });
+            setAgentNode(cached);
+            return;
+        }
+
         const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
         console.log(">>> agent node found", { agentNode });
+        if (agentNode) {
+            agentNodeCache.set(cacheKey, agentNode);
+        }
         setAgentNode(agentNode);
     };
 
@@ -143,6 +160,10 @@ export function NewTool(props: NewToolProps): JSX.Element {
                 });
                 console.log(">>> response save tool", { toolResponse });
             }
+            // Invalidate cache so the updated agent node is re-fetched next time
+            const agentName = agentCallNode.properties?.connection?.value;
+            const fileName = agentCallNode.codedata?.lineRange?.fileName;
+            agentNodeCache.delete(`${fileName}-${agentName}`);
             onSave?.();
         } catch (error) {
             console.error("Error saving tool", { error });
