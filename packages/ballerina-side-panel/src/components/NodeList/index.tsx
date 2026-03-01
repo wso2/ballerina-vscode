@@ -357,6 +357,7 @@ interface NodeListProps {
     onImportDevantConn?: (devantConn: ConnectionListItem) => void;
     onLinkDevantProject?: () => void;
     onRefreshDevantConnections?: () => void;
+    panelBodySx?: React.CSSProperties;
 }
 
 export function NodeList(props: NodeListProps) {
@@ -376,6 +377,7 @@ export function NodeList(props: NodeListProps) {
         onImportDevantConn,
         onLinkDevantProject,
         onRefreshDevantConnections,
+        panelBodySx
     } = props;
 
     const [searchText, setSearchText] = useState<string>("");
@@ -903,14 +905,14 @@ export function NodeList(props: NodeListProps) {
                 )}
             </S.HeaderContainer>
             {isSearching && (
-                <S.PanelBody>
+                <S.PanelBody style={{ ...props.panelBodySx }}>
                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
                         <ProgressRing />
                     </div>
                 </S.PanelBody>
             )}
             {!showGeneratePanel && !isSearching && (
-                <S.PanelBody>
+                <S.PanelBody style={{ ...props.panelBodySx }}>
                     {getCategoryContainer(filteredCategories)}
                     {/* Show More Functions button - moved outside Logging category */}
                     {callFunctionNode && !searchText && (
@@ -934,7 +936,7 @@ export function NodeList(props: NodeListProps) {
                 </S.PanelBody>
             )}
             {showAiPanel && showGeneratePanel && (
-                <S.PanelBody>
+                <S.PanelBody style={{ ...props.panelBodySx }}>
                     <S.AiContainer>
                         <S.Title>Describe what you want you want to do</S.Title>
                         <TextArea

@@ -78,7 +78,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
 
         const cached = agentNodeCache.get(cacheKey);
         if (cached) {
-            console.log(">>> agent node (from cache)", { cached });
+            console.log(">>> agent node (from cache)", { cached, agentNodeCache });
             setAgentNode(cached);
             return;
         }
@@ -92,77 +92,81 @@ export function NewTool(props: NewToolProps): JSX.Element {
     };
 
     const handleOnSubmit = async (data: ExtendedAgentToolRequest) => {
-        console.log(">>> submit value", { data });
-        setSavingForm(true);
         if (!data.toolName) {
             console.error("Tool name is required");
             return;
         }
-        try {
-            const updatedAgentNode = await addToolToAgentNode(agentNode, data.toolName);
-            const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [updatedAgentNode.codedata.lineRange.fileName] })).filePath;
-            // generate the source code
-            const agentResponse = await rpcClient
-                .getBIDiagramRpcClient()
-                .getSourceCode({ filePath: filePath, flowNode: updatedAgentNode });
-            console.log(">>> response getSourceCode with template ", { agentResponse });
 
-            // wait for 2 seconds
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+        // Resolve the flow node and connection based on the tool source type
+        let flowNode: FlowNode;
+        let connection: string;
 
-            // add tools
-            if (data.selectedCodeData.node === FUNCTION_CALL) {
-                // create tool from existing function
-                // get function definition
-                const functionDefinition = data.functionNode;
-                if (!functionDefinition) {
-                    console.error("Function definition not found");
-                    return;
-                }
-                if (functionDefinition?.codedata) {
-                    functionDefinition.codedata.isNew = true;
-                    functionDefinition.codedata.lineRange = {
-                        ...agentNode.codedata.lineRange,
-                        endLine: agentNode.codedata.lineRange.startLine,
-                    };
-                }
-                // save tool
-                const toolResponse = await rpcClient.getAIAgentRpcClient().genTool({
-                    toolName: data.toolName,
-                    description: data.description,
-                    filePath: agentFilePath.current,
-                    flowNode: functionDefinition as FlowNode,
-                    connection: "",
-                    toolParameters: data.toolParameters,
-                });
-                console.log(">>> response save tool", { toolResponse });
-            } else {
-                // create tool from existing connection
-                if (!data.flowNode) {
-                    console.error("Node template not found");
-                    return;
-                }
-                if (data.flowNode?.codedata) {
-                    data.flowNode.codedata.isNew = true;
-                    data.flowNode.codedata.lineRange = {
-                        ...agentNode.codedata.lineRange,
-                        endLine: agentNode.codedata.lineRange.startLine,
-                    };
-                }
-                // save tool
-                const toolResponse = await rpcClient.getAIAgentRpcClient().genTool({
-                    toolName: data.toolName,
-                    description: data.description,
-                    filePath: agentFilePath.current,
-                    flowNode: data.flowNode,
-                    connection: data.selectedCodeData.parentSymbol || "",
-                    toolParameters: data.toolParameters,
-                });
-                console.log(">>> response save tool", { toolResponse });
+        if (data.selectedCodeData.node === FUNCTION_CALL) {
+            if (!data.functionNode) {
+                console.error("Function definition not found");
+                return;
             }
+            flowNode = data.functionNode as FlowNode;
+            connection = "";
+        } else {
+            if (!data.flowNode) {
+                console.error("Node template not found");
+                return;
+            }
+            flowNode = data.flowNode;
+            connection = data.selectedCodeData.parentSymbol || "";
+        }
+
+        setSavingForm(true);
+
+        try {
+            if (flowNode.codedata) {
+                flowNode.codedata.isNew = true;
+                flowNode.codedata.lineRange = {
+                    ...agentNode.codedata.lineRange,
+                    endLine: agentNode.codedata.lineRange.startLine,
+                };
+            }
+
+            const toolResponse = await rpcClient.getAIAgentRpcClient().genTool({
+                toolName: data.toolName,
+                description: data.description,
+                filePath: agentFilePath.current,
+                flowNode,
+                connection,
+                toolParameters: data.toolParameters,
+            });
+
+            if (!toolResponse) {
+                console.error("Tool generation failed");
+                return;
+            }
+
+            const updatedAgentNode = await addToolToAgentNode(agentNode, data.toolName);
+
+            // Find the updated agent node in the response artifacts and update the local state
+            if (toolResponse.artifacts?.length > 0) {
+                const updatedAgentArtifact = toolResponse.artifacts.find(artifact => artifact?.name === agentNode?.properties?.variable?.value);
+                // Update line range so subsequent tool additions target the correct source location
+                if (updatedAgentArtifact) {
+                    updatedAgentNode.codedata.lineRange.startLine.line = updatedAgentArtifact.position.startLine;
+                    updatedAgentNode.codedata.lineRange.startLine.offset = updatedAgentArtifact.position.startColumn;
+                    updatedAgentNode.codedata.lineRange.endLine.line = updatedAgentArtifact.position.endLine;
+                    updatedAgentNode.codedata.lineRange.endLine.offset = updatedAgentArtifact.position.endColumn;
+                }
+            }
+
+            const { filePath } = await rpcClient.getVisualizerRpcClient().joinProjectPath({
+                segments: [updatedAgentNode.codedata.lineRange.fileName],
+            });
+
+            // Generate the source code
+            await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath, flowNode: updatedAgentNode });
+
             // Invalidate cache so the updated agent node is re-fetched next time
             const agentName = agentCallNode.properties?.connection?.value;
             const fileName = agentCallNode.codedata?.lineRange?.fileName;
+            console.log(">>> invalidating cache", { agentName, fileName, cacheKey: `${fileName}-${agentName}` });
             agentNodeCache.delete(`${fileName}-${agentName}`);
             onSave?.();
         } catch (error) {

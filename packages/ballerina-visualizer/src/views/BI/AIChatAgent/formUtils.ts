@@ -20,23 +20,25 @@ import { ValueTypeConstraint, ToolParameters, getPrimaryInputType } from "@wso2/
 import { FormField, Parameter } from "@wso2/ballerina-side-panel";
 
 export function createToolInputFields(filteredNodeParameterFields: FormField[]): FormField[] {
-    const paramManagerValues = filteredNodeParameterFields.map((field, idx) => ({
-        id: idx,
-        icon: "",
-        key: field.key,
-        value: `${getPrimaryInputType(field.types)?.fieldType} ${field.key}`,
-        identifierEditable: true,
-        identifierRange: {
-            fileName: "functions.bal",
-            startLine: { line: 0, offset: 0 },
-            endLine: { line: 0, offset: 0 }
-        },
-        formValues: {
-            variable: field.key,
-            type: getPrimaryInputType(field.types)?.ballerinaType,
-            parameterDescription: field.documentation || ""
-        }
-    }));
+    const paramManagerValues = filteredNodeParameterFields
+        .filter(field => !(field.optional && field.advanced))
+        .map((field, idx) => ({
+            id: idx,
+            icon: "",
+            key: field.key,
+            value: `${getPrimaryInputType(field.types)?.fieldType} ${field.key}`,
+            identifierEditable: true,
+            identifierRange: {
+                fileName: "functions.bal",
+                startLine: { line: 0, offset: 0 },
+                endLine: { line: 0, offset: 0 }
+            },
+            formValues: {
+                variable: field.key,
+                type: getPrimaryInputType(field.types)?.ballerinaType,
+                parameterDescription: field.documentation || ""
+            }
+        }));
 
     const paramManagerFormFields: FormField[] = [
         {
@@ -99,7 +101,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             editable: false,
             enabled: true,
             hidden: false,
-            documentation: "",
+            documentation: "Define the inputs the agent must provide when invoking this tool.",
             value: paramManagerValues,
             advanceProps: [],
             diagnostics: [],
@@ -160,7 +162,7 @@ export function createToolParameters(): ToolParameters {
     return {
         metadata: {
             label: "Tool Inputs",
-            description: ""
+            description: "Define the inputs the agent must provide when invoking this tool."
         },
         types: [
             {
@@ -228,3 +230,23 @@ export const cleanServerUrl = (url: string): string | null => {
     if (url === null || url === undefined) return null;
     return url.replace(/^"|"$/g, '').trim();
 };
+
+export const HIDDEN_TOOL_NODE_PROPERTY_KEYS = ["type", "targetType", "variable", "checkError", "connection", "resourcePath"];
+export const EMPTY_DEFAULT_TOOL_NODE_PROPERTY_KEYS = ["headers", "additionalValues"];
+
+export function prepareToolInputFields(fields: FormField[]): FormField[] {
+    const includedKeys: string[] = [];
+    fields.forEach((field) => {
+        if (HIDDEN_TOOL_NODE_PROPERTY_KEYS.includes(field.key)) {
+            field.hidden = true;
+            return;
+        }
+        if (field.optional == false) field.value = field.key;
+        if (EMPTY_DEFAULT_TOOL_NODE_PROPERTY_KEYS.includes(field.key)) {
+            field.value = "{}";
+            return;
+        }
+        includedKeys.push(field.key);
+    });
+    return fields.filter(field => includedKeys.includes(field.key));
+}
