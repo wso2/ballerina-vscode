@@ -443,6 +443,11 @@ const AIChat: React.FC = () => {
                 updateLastMessage((content) =>
                     content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Stopping service...</toolcall>`
                 );
+            } else if (response.toolName === "curlRequest") {
+                const toolCallId = response?.toolCallId;
+                updateLastMessage((content) =>
+                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Running curl...</toolcall>`
+                );
             }
         } else if (type === "tool_result") {
             if (response.toolName === "LibrarySearchTool") {
@@ -641,6 +646,19 @@ const AIChat: React.FC = () => {
                     const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Stopping service...</toolcall>`;
                     const status = response.toolOutput?.status ?? "stopped";
                     const resultMessage = status === "stopped" ? "Service stopped" : status === "already_exited" ? "Service already exited" : "Service not found";
+                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
+                    updateLastMessage((content) => content.replace(searchPattern, replacement));
+                }
+            } else if (response.toolName === "curlRequest") {
+                const toolCallId = response.toolCallId;
+                if (toolCallId) {
+                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Running curl...</toolcall>`;
+                    const status = response.toolOutput?.status ?? "completed";
+                    const resultMessage = status === "completed"
+                        ? "Curl request completed"
+                        : status === "timeout"
+                            ? "Curl request timed out"
+                            : "Curl request failed";
                     const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
                     updateLastMessage((content) => content.replace(searchPattern, replacement));
                 }
