@@ -323,12 +323,16 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
             let functionParameterFields: FormField[] = [];
             if (toolInputFields.length === 0 && functionNodeTemplate.flowNode?.properties) {
-                functionParameterFields = convertConfig(functionNodeTemplate.flowNode.properties, ["type", "variable"], false);
+                functionParameterFields = convertConfig(functionNodeTemplate.flowNode.properties, ["variable"], false);
                 toolInputFields = createToolInputFields(prepareToolInputFields(functionParameterFields));
                 functionNode.current = functionNodeTemplate.flowNode as FunctionNode;
             } else if (functionNodeTemplate.flowNode?.properties) {
-                functionParameterFields = convertConfig(functionNodeTemplate.flowNode.properties, ["type", "variable"], false);
-                functionParameterFields.forEach((field) => {
+                functionParameterFields = convertConfig(functionNodeTemplate.flowNode.properties, ["variable"], false);
+                functionParameterFields.forEach((field, idx) => {
+                    if (field.key === "type") {
+                        functionParameterFields[idx].documentation = "Return type of the agent tool.";
+                        return;
+                    }
                     if (field.optional == false) field.value = field.key;
                 });
             }
@@ -547,21 +551,6 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         onSubmit(toolModel);
     };
 
-    // add concert message to the fields if the tool is a function call
-    let concertMessage = "";
-    let concertRequired = false;
-    let description = "";
-    if (
-        selectedNodeRef.current &&
-        selectedNodeRef.current.codedata.node === FUNCTION_CALL &&
-        !(selectedNodeRef.current.metadata?.data as NodeMetadata)?.isIsolatedFunction
-    ) {
-        concertMessage = `Convert ${selectedNodeRef.current.metadata.label} function to an isolated function`;
-        concertRequired = true;
-        description =
-            "Only isolated functions can be used as tools. Isolated functions ensure predictable behavior by avoiding shared state.";
-    }
-
     let searchPlaceholder = "Search";
     if (mode === NewToolSelectionMode.CONNECTION) {
         searchPlaceholder = "Search connections";
@@ -596,9 +585,6 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     fields={fields}
                     onSubmit={handleToolSubmit}
                     submitText={"Save Tool"}
-                    concertMessage={concertMessage}
-                    concertRequired={concertRequired}
-                    description={description}
                     helperPaneSide="left"
                     customDiagnosticFilter={customDiagnosticFilter}
                     onChange={(fieldKey, value) => {

@@ -231,17 +231,21 @@ export const cleanServerUrl = (url: string): string | null => {
     return url.replace(/^"|"$/g, '').trim();
 };
 
-export const HIDDEN_TOOL_NODE_PROPERTY_KEYS = ["type", "targetType", "variable", "checkError", "connection", "resourcePath"];
+export const HIDDEN_TOOL_NODE_PROPERTY_KEYS = ["targetType", "variable", "checkError", "connection", "resourcePath"];
 export const EMPTY_DEFAULT_TOOL_NODE_PROPERTY_KEYS = ["headers", "additionalValues"];
 
 export function prepareToolInputFields(fields: FormField[]): FormField[] {
     const includedKeys: string[] = [];
-    fields.forEach((field) => {
+    fields.forEach((field, idx) => {
         if (HIDDEN_TOOL_NODE_PROPERTY_KEYS.includes(field.key)) {
             field.hidden = true;
             return;
         }
-        if (field.optional == false) field.value = field.key;
+        if (field.key === "type") {
+            fields[idx].documentation = "Return type of the agent tool.";
+            return;
+        }
+        if (field.optional == false && field.key != "type") field.value = field.key;
         if (EMPTY_DEFAULT_TOOL_NODE_PROPERTY_KEYS.includes(field.key)) {
             field.value = "{}";
             return;
