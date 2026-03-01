@@ -79,7 +79,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
  */
 class FunctionSearchCommand extends SearchCommand {
 
-    public static final String TOOL_ANNOTATION = "Tool";
+    public static final String TOOL_ANNOTATION = AgentToolSearchCommand.TOOL_ANNOTATION;
     private static final Map<String, List<String>> POPULAR_BALLERINA_FUNCTIONS = Map.of(
             "log", List.of("printInfo", "printDebug", "printError", "printWarn"),
             "time", List.of("utcNow", "utcFromString"),
