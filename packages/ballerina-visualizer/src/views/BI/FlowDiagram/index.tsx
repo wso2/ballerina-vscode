@@ -2130,6 +2130,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
         selectedNodeRef.current = agentNode;
         showEditForm.current = true;
+        setSelectedNodeId(agentNode.id);
         setSelectedConnectionKind('MODEL_PROVIDER');
         setSidePanelView(SidePanelView.CONNECTION_CONFIG);
         setShowSidePanel(true);
@@ -2183,6 +2184,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         selectedNodeRef.current = existingMemoryVariable;
         parentNodeRef.current = agentNode;
         showEditForm.current = true;
+        setSelectedNodeId(agentNode.id);
         setSidePanelView(SidePanelView.AGENT_MEMORY_MANAGER);
         setShowSidePanel(true);
     };
@@ -2231,6 +2233,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const handleOnAddTool = (node: FlowNode) => {
         selectedNodeRef.current = node;
         selectedClientName.current = "Add Tool";
+        setSelectedNodeId(node.id);
 
         // Open the tool selection panel
         setShowProgressIndicator(true);
