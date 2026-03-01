@@ -57,7 +57,6 @@ import { cloneDeep } from "lodash";
 import { createDefaultParameterValue, createToolInputFields, createToolParameters, prepareToolInputFields } from "./formUtils";
 import { FUNCTION_CALL, METHOD_CALL, REMOTE_ACTION_CALL, RESOURCE_ACTION_CALL } from "../../../constants";
 import { NewToolSelectionMode } from "./NewTool";
-import { f } from "@tanstack/query-core/build/legacy/hydration-B3ndIyL6";
 
 const LoaderContainer = styled.div`
     display: flex;
@@ -128,7 +127,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             type: "IDENTIFIER",
             optional: false,
             editable: true,
-            documentation: "Enter the name of the tool.",
+            documentation: "Enter a unique name for the tool.",
             value: "",
             types: [{ fieldType: "IDENTIFIER", scope: "Global", selected: false }],
             enabled: true,
@@ -139,7 +138,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             type: "TEXTAREA",
             optional: true,
             editable: true,
-            documentation: "Enter the description of the tool.",
+            documentation: "Describe what this tool does. The agent uses this to decide when to invoke the tool.",
             value: "",
             types: [{ fieldType: "STRING", selected: false }],
             enabled: true,
@@ -330,9 +329,10 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 functionParameterFields = convertConfig(functionNodeTemplate.flowNode.properties, ["variable"], false);
                 functionParameterFields.forEach((field, idx) => {
                     if (field.key === "type") {
-                        functionParameterFields[idx].documentation = "Return type of the agent tool.";
+                        functionParameterFields[idx].documentation = "The data type this tool will return to the agent.";
                         return;
                     }
+                    field.label = `${field.label} Mapping`;
                     if (field.optional == false) field.value = field.key;
                 });
             }
@@ -579,7 +579,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             )}
             {sidePanelView === SidePanelView.TOOL_FORM && (
                 <FormGeneratorNew
-                    preserveFieldOrder={true}
+                    preserveFieldOrder={false}
                     fileName={agentFilePath.current}
                     targetLineRange={{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } }}
                     fields={fields}
