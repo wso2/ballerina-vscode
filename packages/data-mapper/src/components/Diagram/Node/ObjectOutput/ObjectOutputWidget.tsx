@@ -71,7 +71,6 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 	);
 
 	const fields = outputType.fields.filter(t => t !== null);
-	const hasFields = fields.length > 0;
 
 	const portIn = getPort(`${id}.IN`);
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
@@ -144,7 +143,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 					</span>
 					<span className={classes.label}>
 						<Button
-							id={"expand-or-collapse-" + id} 
+							id={"expand-or-collapse-" + id}
 							appearance="icon"
 							tooltip="Expand/Collapse"
 							onClick={handleExpand}
