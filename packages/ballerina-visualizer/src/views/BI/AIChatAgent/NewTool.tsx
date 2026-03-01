@@ -46,10 +46,11 @@ interface NewToolProps {
     mode?: NewToolSelectionMode;
     onBack?: () => void;
     onSave?: () => void;
+    onSetBackOverride?: (handler: (() => void) | null) => void;
 }
 
 export function NewTool(props: NewToolProps): JSX.Element {
-    const { agentCallNode, mode = NewToolSelectionMode.ALL, onSave, onBack } = props;
+    const { agentCallNode, mode = NewToolSelectionMode.ALL, onSave, onBack, onSetBackOverride } = props;
     const { rpcClient } = useRpcContext();
 
     const [agentNode, setAgentNode] = useState<FlowNode | null>(null);
@@ -179,7 +180,14 @@ export function NewTool(props: NewToolProps): JSX.Element {
     return (
         <>
             {agentFilePath.current && !savingForm && (
-                <AIAgentSidePanel projectPath={projectPath.current} onSubmit={handleOnSubmit} mode={mode} />
+                <AIAgentSidePanel
+                    projectPath={projectPath.current}
+                    onSubmit={handleOnSubmit}
+                    mode={mode}
+                    onViewChange={(view, navigateBack) => {
+                        onSetBackOverride?.(navigateBack || null);
+                    }}
+                />
             )}
             {(!agentFilePath.current || savingForm) && (
                 <LoaderContainer>

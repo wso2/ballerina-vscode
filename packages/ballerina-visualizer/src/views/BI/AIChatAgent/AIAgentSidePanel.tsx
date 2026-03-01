@@ -101,6 +101,7 @@ export interface BIFlowDiagramProps {
     projectPath: string;
     onSubmit: (data: ExtendedAgentToolRequest) => void;
     mode?: NewToolSelectionMode;
+    onViewChange?: (view: SidePanelView, navigateBack?: () => void) => void;
 }
 
 export interface ExtendedAgentToolRequest extends AgentToolRequest {
@@ -108,8 +109,33 @@ export interface ExtendedAgentToolRequest extends AgentToolRequest {
     flowNode?: FlowNode;
 }
 
+const INITIAL_FIELDS: FormField[] = [
+    {
+        key: `name`,
+        label: "Tool Name",
+        type: "IDENTIFIER",
+        optional: false,
+        editable: true,
+        documentation: "Enter a unique name for the tool.",
+        value: "",
+        types: [{ fieldType: "IDENTIFIER", scope: "Global", selected: false }],
+        enabled: true,
+    },
+    {
+        key: `description`,
+        label: "Description",
+        type: "TEXTAREA",
+        optional: true,
+        editable: true,
+        documentation: "Describe what this tool does. The agent uses this to decide when to invoke the tool.",
+        value: "",
+        types: [{ fieldType: "STRING", selected: false }],
+        enabled: true,
+    },
+];
+
 export function AIAgentSidePanel(props: BIFlowDiagramProps) {
-    const { projectPath, onSubmit, mode = NewToolSelectionMode.ALL } = props;
+    const { projectPath, onSubmit, mode = NewToolSelectionMode.ALL, onViewChange } = props;
     const { rpcClient } = useRpcContext();
 
     const [sidePanelView, setSidePanelView] = useState<SidePanelView>(SidePanelView.NODE_LIST);
@@ -120,33 +146,8 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const functionNode = useRef<FunctionNode>(null);
     const flowNode = useRef<FlowNode>(null);
 
-    const initialFields: FormField[] = [
-        {
-            key: `name`,
-            label: "Tool Name",
-            type: "IDENTIFIER",
-            optional: false,
-            editable: true,
-            documentation: "Enter a unique name for the tool.",
-            value: "",
-            types: [{ fieldType: "IDENTIFIER", scope: "Global", selected: false }],
-            enabled: true,
-        },
-        {
-            key: `description`,
-            label: "Description",
-            type: "TEXTAREA",
-            optional: true,
-            editable: true,
-            documentation: "Describe what this tool does. The agent uses this to decide when to invoke the tool.",
-            value: "",
-            types: [{ fieldType: "STRING", selected: false }],
-            enabled: true,
-        },
-    ];
-
     const [loading, setLoading] = useState<boolean>(false);
-    const [fields, setFields] = useState<FormField[]>(initialFields);
+    const [fields, setFields] = useState<FormField[]>(INITIAL_FIELDS);
 
     const targetRef = useRef<LineRange>({ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } });
     const initialCategoriesRef = useRef<PanelCategory[]>([]);
@@ -167,6 +168,18 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     useEffect(() => {
         fetchNodes();
     }, []);
+
+    useEffect(() => {
+        if (sidePanelView === SidePanelView.TOOL_FORM) {
+            onViewChange?.(SidePanelView.TOOL_FORM, () => {
+                setSidePanelView(SidePanelView.NODE_LIST);
+                setFields(INITIAL_FIELDS);
+                onViewChange?.(SidePanelView.NODE_LIST);
+            });
+        } else {
+            onViewChange?.(SidePanelView.NODE_LIST);
+        }
+    }, [sidePanelView]);
 
     const getImplementationString = (codeData: CodeData | undefined): string => {
         if (!codeData) {
