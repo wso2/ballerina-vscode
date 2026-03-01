@@ -2433,11 +2433,24 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 await rpcClient
                     .getBIDiagramRpcClient()
                     .getSourceCode({ filePath: agentFilePath, flowNode: updatedAgentNode });
+
+                // Delete the tool function definition
+                const projectComponents = await rpcClient.getBIDiagramRpcClient().getProjectComponents();
+                if (projectComponents?.components) {
+                    const functionInfo = findFunctionByName(projectComponents.components, tool.name);
+                    if (functionInfo) {
+                        await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({
+                            filePath: functionInfo.filePath,
+                            component: functionInfo,
+                        });
+                    }
+                }
             }
         } catch (error) {
             console.error("Error deleting tool:", error);
             alert(`Failed to remove tool "${tool.name}". Please try again.`);
         } finally {
+            selectedNodeRef.current = undefined;
             setShowProgressIndicator(false);
             debouncedGetFlowModel();
         }
