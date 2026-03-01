@@ -333,7 +333,14 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 });
             }
 
-            setFields((prevFields) => [...prevFields, ...toolInputFields, ...functionParameterFields]);
+            const templateDescription = functionNodeTemplate.flowNode?.metadata?.description || "";
+            setFields((prevFields) => [
+                ...prevFields.map((field) =>
+                    field.key === "description" ? { ...field, value: templateDescription } : field
+                ),
+                ...toolInputFields,
+                ...functionParameterFields,
+            ]);
         } catch (error) {
             console.error(">>> Error fetching function node or template", error);
         }
@@ -358,8 +365,15 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 : [];
 
             const toolInputFields = createToolInputFields(prepareToolInputFields(nodeParameterFields));
+            const templateDescription = nodeTemplate.flowNode?.metadata?.description || "";
 
-            setFields((prevFields) => [...prevFields, ...toolInputFields, ...nodeParameterFields]);
+            setFields((prevFields) => [
+                ...prevFields.map((field) =>
+                    field.key === "description" ? { ...field, value: templateDescription } : field
+                ),
+                ...toolInputFields,
+                ...nodeParameterFields,
+            ]);
         } catch (error) {
             console.error(">>> Error fetching node template", error);
         }
