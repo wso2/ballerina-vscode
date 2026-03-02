@@ -26,6 +26,7 @@ import { getSystemPrompt, getUserPrompt } from './prompts';
 import { GenerationType } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
 import { getProjectSource, cleanupTempProject } from '../utils/project/temp-project';
+import { getWorkspaceTomlValues } from '../../../utils';
 import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
 import { updateAndSaveChat } from '../utils/events';
@@ -56,12 +57,12 @@ import { workspace } from 'vscode';
  * @param tempProjectPath Temp project root path
  * @returns Array of temp package paths that have changes
  */
-function determineAffectedPackages(
+async function determineAffectedPackages(
     modifiedFiles: string[],
     projects: ProjectSource[],
     ctx: ExecutionContext,
     tempProjectPath: string
-): string[] {
+): Promise<string[]> {
     const affectedPackages = new Set<string>();
 
     console.log(`[determineAffectedPackages] Analyzing ${modifiedFiles.length} modified files across ${projects.length} projects`);
@@ -74,40 +75,30 @@ function determineAffectedPackages(
         return Array.from(affectedPackages);
     }
 
+    // Re-read workspace Ballerina.toml from temp to get the current package list
+    // (the agent may have added new packages during the session)
+    const workspaceToml = await getWorkspaceTomlValues(tempProjectPath);
+    const packagePaths: string[] = workspaceToml?.workspace?.packages ?? projects.map(p => p.packagePath).filter(p => p !== "");
+
     // For workspace scenario with multiple packages
     // We need to map modified files to their temp package paths
     for (const modifiedFile of modifiedFiles) {
         let matched = false;
 
-        for (const project of projects) {
-            if (project.packagePath === "") {
-                // Root package in workspace (edge case)
-                if (!modifiedFile.includes('/') ||
-                    !projects.some(p => p.packagePath && modifiedFile.startsWith(p.packagePath + '/'))) {
-                    // Root package is at the temp project path directly
-                    affectedPackages.add(tempProjectPath);
-                    matched = true;
-                    console.log(`[determineAffectedPackages] File '${modifiedFile}' belongs to root package (temp): ${tempProjectPath}`);
-                    break;
-                }
-            } else {
-                // Package with a specific path in workspace
-                if (modifiedFile.startsWith(project.packagePath + '/') ||
-                    modifiedFile === project.packagePath) {
-                    // Map to temp package path: tempProjectPath + relative package path
-                    const tempPackagePath = path.join(tempProjectPath, project.packagePath);
-                    affectedPackages.add(tempPackagePath);
-                    matched = true;
-                    console.log(`[determineAffectedPackages] File '${modifiedFile}' belongs to package '${project.packagePath}' (temp): ${tempPackagePath}`);
-                    break;
-                }
+        for (const pkgPath of packagePaths) {
+            if (modifiedFile.startsWith(pkgPath + '/') || modifiedFile === pkgPath) {
+                const tempPackagePath = path.join(tempProjectPath, pkgPath);
+                affectedPackages.add(tempPackagePath);
+                matched = true;
+                console.log(`[determineAffectedPackages] File '${modifiedFile}' belongs to package '${pkgPath}' (temp): ${tempPackagePath}`);
+                break;
             }
         }
 
         if (!matched) {
-            // Fallback: if we can't determine the package, include the temp project root
-            console.warn(`[determineAffectedPackages] Could not determine package for file '${modifiedFile}', using temp project root`);
+            // File at workspace root (e.g. root Ballerina.toml)
             affectedPackages.add(tempProjectPath);
+            console.log(`[determineAffectedPackages] File '${modifiedFile}' is at workspace root (temp): ${tempProjectPath}`);
         }
     }
 
@@ -149,7 +140,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
         const params = this.config.params; // Access params from config
         const modifiedFiles: string[] = [];
         const generationStartTime = Date.now();
-        const projectId = await getHashedProjectId(this.config.executionContext.projectPath);
+        const projectId = await getHashedProjectId(this.config.executionContext.workspacePath || this.config.executionContext.projectPath);
 
         try {
             // 1. Get project sources from temp directory
@@ -202,7 +193,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 modifiedFiles,
                 projects,
                 generationType: GenerationType.CODE_GENERATION,
-                workspaceId: this.config.executionContext.projectPath,
+                projectRootPath: this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '',
                 generationId: this.config.generationId,
                 threadId: 'default',
             });
@@ -273,9 +264,9 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                     });
 
                     // Update generation with user message + partial messages
-                    const workspaceId = this.config.executionContext.projectPath;
+                    const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
                     const threadId = 'default';
-                    chatStateStorage.updateGeneration(workspaceId, threadId, this.config.generationId, {
+                    chatStateStorage.updateGeneration(projectRootPath, threadId, this.config.generationId, {
                         modelMessages: [
                             { role: "user", content: streamContext.userMessageContent },
                             ...messagesToSave,
@@ -283,10 +274,10 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                     });
 
                     // Clear review state
-                    const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+                    const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
                     if (pendingReview && pendingReview.id === this.config.generationId) {
                         console.log("[AgentExecutor] Clearing review state due to abort");
-                        chatStateStorage.declineAllReviews(workspaceId, threadId);
+                        chatStateStorage.declineAllReviews(projectRootPath, threadId);
                     }
 
                     // Send telemetry for generation abort
@@ -386,13 +377,13 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         }
 
         // Clear review state for this generation
-        const workspaceId = context.ctx.projectPath;
+        const projectRootPath = context.ctx.workspacePath || context.ctx.projectPath || '';
         const threadId = 'default';
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
 
         if (pendingReview && pendingReview.id === context.messageId) {
             console.log("[AgentExecutor] Clearing review state due to error");
-            chatStateStorage.updateReviewState(workspaceId, threadId, context.messageId, {
+            chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
                 status: 'error',
                 errorMessage: getErrorMessage(error),
             });
@@ -485,11 +476,11 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         assistantMessages: any[],
         tempProjectPath: string
     ): Promise<void> {
-        const workspaceId = context.ctx.projectPath;
+        const projectRootPath = context.ctx.workspacePath || context.ctx.projectPath || '';
         const threadId = 'default';
 
         // Check if we're updating an existing review context
-        const existingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        const existingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
         let accumulatedModifiedFiles = context.modifiedFiles;
 
         if (existingReview && existingReview.reviewState.tempProjectPath === tempProjectPath) {
@@ -501,7 +492,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         }
 
         // Update chat state storage with user message + assistant messages
-        chatStateStorage.updateGeneration(workspaceId, threadId, context.messageId, {
+        chatStateStorage.updateGeneration(projectRootPath, threadId, context.messageId, {
             modelMessages: [
                 { role: "user", content: context.userMessageContent },
                 ...assistantMessages,
@@ -516,7 +507,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
         // Determine which packages have been affected by the changes
         // This returns temp package paths for use with Language Server APIs
-        const affectedPackagePaths = determineAffectedPackages(
+        const affectedPackagePaths = await determineAffectedPackages(
             accumulatedModifiedFiles,
             context.projects,
             context.ctx,
@@ -524,7 +515,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         );
 
         // Update review state and open review mode
-        chatStateStorage.updateReviewState(workspaceId, threadId, context.messageId, {
+        chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
             status: 'under_review',
             tempProjectPath,
             modifiedFiles: accumulatedModifiedFiles,
