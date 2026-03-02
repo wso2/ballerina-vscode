@@ -1,80 +1,83 @@
 {
   "description": "MySQL database introspection test - list all tables",
   "testProjectFolder": "sample-project",
-  "data": {
-    "metadata": {
-      "label": "testdb",
-      "description": "mysql connection"
+  "targetModule": "",
+  "modelFilePath": "",
+  "connection": "testdb",
+  "properties": {
+    "dbSystem": {
+      "metadata": {
+        "label": "Database System",
+        "description": "The database system type (e.g., mysql, postgresql, mssql)"
+      },
+      "value": "mysql",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
     },
-    "properties": {
-      "dbSystem": {
-        "metadata": {
-          "label": "Database System",
-          "description": "The database system type (e.g., mysql, postgresql, mssql)"
-        },
-        "value": "mysql",
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "Database server host address"
       },
-      "host": {
-        "metadata": {
-          "label": "Host",
-          "description": "Database server host address"
-        },
-        "value": "localhost",
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
+      "value": "localhost",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "port": {
+      "metadata": {
+        "label": "Port",
+        "description": "Database server port number"
       },
-      "port": {
-        "metadata": {
-          "label": "Port",
-          "description": "Database server port number"
-        },
-        "value": "3307",
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
+      "value": "3307",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "user": {
+      "metadata": {
+        "label": "User",
+        "description": "Database username"
       },
-      "user": {
-        "metadata": {
-          "label": "User",
-          "description": "Database username"
-        },
-        "value": "root",
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
+      "value": "root",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "password": {
+      "metadata": {
+        "label": "Password",
+        "description": "Database user password"
       },
-      "password": {
-        "metadata": {
-          "label": "Password",
-          "description": "Database user password"
-        },
-        "value": "Test123#",
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
+      "value": "Test123#",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "database": {
+      "metadata": {
+        "label": "Database",
+        "description": "Name of the database to connect"
       },
-      "database": {
-        "metadata": {
-          "label": "Database",
-          "description": "Name of the database to connect"
-        },
-        "value": "testdb",
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
-      }
+      "value": "testdb",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
     }
   },
+  "tables": [
+    {"table": "employees", "selected": false, "existing": false},
+    {"table": "departments", "selected": false, "existing": false},
+    {"table": "projects", "selected": false, "existing": false},
+    {"table": "no_pk_table", "selected": false, "existing": false}
+  ],
   "output": {
     "tables": [
       {"table": "employees", "selected": false, "existing": false},

@@ -1,80 +1,78 @@
 {
   "description": "MSSQL database introspection test - invalid database",
   "testProjectFolder": "sample-project",
-  "data": {
-    "metadata": {
-      "label": "testdb",
-      "description": "mssql connection"
+  "targetModule": "",
+  "modelFilePath": "",
+  "connection": "testdb",
+  "properties": {
+    "dbSystem": {
+      "metadata": {
+        "label": "Database System",
+        "description": "The database system type (e.g., mysql, postgresql, mssql)"
+      },
+      "value": "mssql",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
     },
-    "properties": {
-      "dbSystem": {
-        "metadata": {
-          "label": "Database System",
-          "description": "The database system type (e.g., mysql, postgresql, mssql)"
-        },
-        "value": "mssql",
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "Database server host address"
       },
-      "host": {
-        "metadata": {
-          "label": "Host",
-          "description": "Database server host address"
-        },
-        "value": "localhost",
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
+      "value": "localhost",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "port": {
+      "metadata": {
+        "label": "Port",
+        "description": "Database server port number"
       },
-      "port": {
-        "metadata": {
-          "label": "Port",
-          "description": "Database server port number"
-        },
-        "value": "1434",
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
+      "value": "1434",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "user": {
+      "metadata": {
+        "label": "User",
+        "description": "Database username"
       },
-      "user": {
-        "metadata": {
-          "label": "User",
-          "description": "Database username"
-        },
-        "value": "SA",
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
+      "value": "SA",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "password": {
+      "metadata": {
+        "label": "Password",
+        "description": "Database user password"
       },
-      "password": {
-        "metadata": {
-          "label": "Password",
-          "description": "Database user password"
-        },
-        "value": "Test@12345",
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
+      "value": "Test@12345",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "database": {
+      "metadata": {
+        "label": "Database",
+        "description": "Name of the database to connect"
       },
-      "database": {
-        "metadata": {
-          "label": "Database",
-          "description": "Name of the database to connect"
-        },
-        "value": "nonexistent_db",
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
-      }
+      "value": "nonexistent_db",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
     }
   },
+  "tables": [],
   "expectError": true,
   "expectedErrorMessage": "database"
 }

@@ -52,33 +52,34 @@ public class PersistClientService implements ExtendedLanguageServerService {
     /**
      * Introspect a database and retrieve table metadata.
      * <p>
-     * Connection details are extracted from the {@code data.properties} array
-     * (keyed by property label: "Database System", "Host", "Port", "User",
-     * "Password", "Database"). When {@code data.modelFilePath} is present, the
-     * referenced model file is parsed to find existing record types; the resulting
-     * set is intersected with the live DB tables so that {@code selected} and
-     * {@code existing} flags are set to {@code true} for already-modelled tables.
+     * Connection details are extracted from the top-level {@code properties} map
+     * (keyed by canonical property keys: {@code dbSystem}, {@code host}, {@code port},
+     * {@code user}, {@code password}, {@code database}). The {@code connection} field
+     * is used as the configurable-variable name prefix / client connection variable name.
+     * {@code targetModule} and {@code modelFilePath} are expected to be empty strings for
+     * introspection-only calls; when {@code modelFilePath} is non-empty the referenced model
+     * file is parsed to find existing record types so that {@code selected} and {@code existing}
+     * flags are set to {@code true} for already-modelled tables.
      *
-     * @param request The database introspection request containing credential data
+     * @param request The request containing connection credentials and optional model file path
      * @return CompletableFuture containing the response with table entries or error information
      */
     @JsonRequest
     public CompletableFuture<DatabaseIntrospectionResponse> introspectDatabase(
-            DatabaseIntrospectionRequest request) {
+            PersistClientGeneratorRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             DatabaseIntrospectionResponse response = new DatabaseIntrospectionResponse();
             try {
                 Path projectPath = Path.of(request.getProjectPath());
                 this.workspaceManager.loadProject(projectPath);
 
-                DatabaseIntrospectionRequest.IntrospectDatabaseData data = request.getData();
                 PersistClientUtils.DatabaseCredentials creds =
-                        PersistClientUtils.extractDatabaseCredentials(data.properties());
-                String modelFilePath = data.modelFilePath();
+                        PersistClientUtils.extractDatabaseCredentials(request.getProperties());
+                String modelFilePath = request.getModelFilePath();
 
                 PersistClient generator = new PersistClient(
                         request.getProjectPath(),
-                        null,
+                        request.getConnection(),
                         creds.dbSystem(),
                         creds.host(),
                         creds.port(),
@@ -88,7 +89,9 @@ public class PersistClientService implements ExtendedLanguageServerService {
                         this.workspaceManager
                 );
 
-                response.setTables(generator.introspectDatabase(modelFilePath));
+                String effectiveModelFilePath = (modelFilePath != null && !modelFilePath.isEmpty())
+                        ? modelFilePath : null;
+                response.setTables(generator.introspectDatabase(effectiveModelFilePath));
             } catch (Exception e) {
                 response.setError(e);
             }

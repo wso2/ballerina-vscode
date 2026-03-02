@@ -24,7 +24,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Represents a request to generate Ballerina persist client from database introspection.
+ * Represents a request to introspect a database or generate Ballerina persist client
+ * from database introspection. This class is shared between the
+ * {@code introspectDatabase} and {@code generatePersistClient} endpoints.
+ * <p>
+ * The {@code connection} field holds the prefix used for configurable variable names
+ * and the persist client connection variable name (e.g. the database/connection name
+ * such as {@code "testdb"}). It is derived from the metadata label of the credential
+ * model returned by the {@code introspectCredentials} API.
+ * <p>
+ * For pure introspection calls, {@code targetModule} and {@code modelFilePath} should
+ * be empty strings. The {@code properties} map uses canonical keys ({@code dbSystem},
+ * {@code host}, {@code port}, {@code user}, {@code password}, {@code database}).
  *
  * @since 1.5.0
  */
