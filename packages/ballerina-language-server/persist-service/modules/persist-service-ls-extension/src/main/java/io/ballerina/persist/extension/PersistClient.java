@@ -310,10 +310,12 @@ public class PersistClient {
      *
      * @param selectedTables The tables to generate entities for
      * @param module         The target module name for the generated files
+     * @param modelPath      The path to the model file relative to the project root
      * @return JsonElement containing the PersistClientResponse with text edits map
      * @throws PersistClientException if an error occurs during generation
      */
-    public JsonElement generateClient(String[] selectedTables, String module) throws PersistClientException {
+    public JsonElement generateClient(String[] selectedTables, String module, String modelPath)
+            throws PersistClientException {
         validateConnectionDetails();
 
         if (module == null || module.isEmpty()) {
@@ -338,13 +340,14 @@ public class PersistClient {
             }
         }
 
-        Path persistModelPath = persistPath.resolve(MODEL_FILE_NAME);
+        boolean isConnectorUpdate = modelPath != null && !modelPath.isEmpty();
+        Path persistModelPath = modelPath != null && modelPath.isEmpty() ? Path.of(modelPath)
+                : persistPath.resolve(MODEL_FILE_NAME);
 
         try {
             Project project = this.workspaceManager.loadProject(projectPath);
             String packageName = project.currentPackage().packageName().value();
             Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-            boolean isModuleExists = addTextEditForBallerinaToml(packageName, module, textEditsMap);
             Module entityModule = getInitialEntityModule(selectedTables);
             SyntaxTree dataModels = new DbModelGenSyntaxTree().getDataModels(entityModule);
             addTextEditForPersistModelFile(dataModels, textEditsMap, persistModelPath);
@@ -352,8 +355,12 @@ public class PersistClient {
             // and other details
             entityModule = getEntities(module, dataModels);
             addTextEditsForClientModuleSources(module, textEditsMap, entityModule);
-            addTextEditForConfigurations(textEditsMap);
-            addTextEditForConnectionClient(packageName, module, textEditsMap);
+            boolean isModuleExists = false;
+            if (!isConnectorUpdate) {
+                addTextEditForConfigurations(textEditsMap);
+                addTextEditForConnectionClient(packageName, module, textEditsMap);
+                isModuleExists = addTextEditForBallerinaToml(packageName, module, textEditsMap);
+            }
             return gson.toJsonTree(new PersistClientResponse(isModuleExists, textEditsMap));
         } catch (BalException | IOException | FormatterException | WorkspaceDocumentException | EventSyncException e) {
             throw new PersistClientException("Error introspecting database: " + e.getMessage(), e);

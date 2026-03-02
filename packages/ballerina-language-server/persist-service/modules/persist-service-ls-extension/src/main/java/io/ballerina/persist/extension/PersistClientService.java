@@ -174,7 +174,8 @@ public class PersistClientService implements ExtendedLanguageServerService {
                         this.workspaceManager);
 
                 // Derive the short module name (last segment of the fully-qualified targetModule)
-                JsonElement source = generator.generateClient(selectedTables, null);
+                JsonElement source = generator.generateClient(selectedTables, request.getTargetModule(),
+                        request.getModelFilePath());
                 response.setSource(source);
             } catch (Exception e) {
                 response.setError(e);
