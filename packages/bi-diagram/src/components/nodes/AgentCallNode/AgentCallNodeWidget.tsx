@@ -967,7 +967,8 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             strokeWidth: 1.5,
                             markerEnd: `url(#${model.node.id}-arrow-head)`,
                             markerStart: `url(#${model.node.id}-diamond-start)`,
-                            transition: "stroke 0.4s ease-out",
+                            opacity: isModelActive ? 0 : 1,
+                            transition: "stroke 0.4s ease-out, opacity 0.4s ease-out",
                         }}
                     />
                     {/* Pulsing Overlay Line */}
@@ -1157,7 +1158,8 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                     strokeWidth: 1.5,
                                     markerEnd: `url(#${model.node.id}-arrow-head-tool-${tool.name})`,
                                     strokeDasharray: "6 6",
-                                    transition: "stroke 0.4s ease-out",
+                                    opacity: isToolActive ? 0 : 1,
+                                    transition: "stroke 0.4s ease-out, opacity 0.4s ease-out",
                                 }}
                             />
                             {/* Pulsing Overlay Tool Line */}
