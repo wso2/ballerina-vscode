@@ -676,14 +676,15 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const isTraceMatch = traceAnimation && (() => {
         const sysInstr = traceAnimation.systemInstructions;
         if (sysInstr) {
-            // System instructions available → use as primary disambiguator
-            // Require both role AND instructions to match when both are available
-            const roleMatch = nodeRole && sysInstr.includes(nodeRole);
-            const instrMatch = nodeInstructions && sysInstr.includes(nodeInstructions);
-            if (nodeRole && nodeInstructions) {
+            const extractedRole = sysInstr.match(/(?:^|\n)#\s*Role[ \t]*\r?\n([\s\S]*?)(?=\r?\n#\s*Instructions|$)/i)?.[1]?.trim();
+            const extractedInstructions = sysInstr.match(/(?:^|\n)#\s*Instructions[ \t]*\r?\n([\s\S]*)$/i)?.[1]?.trim();
+
+            const roleMatch = nodeRole != null && extractedRole === nodeRole.trim();
+            const instrMatch = nodeInstructions != null && extractedInstructions === nodeInstructions.trim();
+
+            if (nodeRole != null && nodeInstructions != null) {
                 return roleMatch && instrMatch;
             }
-            return roleMatch || instrMatch;
         }
         // No system instructions → fall back to tool intersection
         const hasToolOverlap =
