@@ -88,6 +88,7 @@ const OptionDescription = styled.div`
 
 interface AddToolProps {
     agentCallNode: FlowNode;
+    onCreateCustomTool?: () => void;
     onUseConnection?: () => void;
     onUseFunction?: () => void;
     onUseMcpServer?: () => void;
@@ -96,7 +97,11 @@ interface AddToolProps {
 }
 
 export function AddTool(props: AddToolProps): JSX.Element {
-    const { onUseConnection, onUseFunction, onUseMcpServer } = props;
+    const { onCreateCustomTool, onUseConnection, onUseFunction, onUseMcpServer } = props;
+
+    const handleCreateCustomTool = () => {
+        onCreateCustomTool?.();
+    };
 
     const handleUseConnection = () => {
         onUseConnection?.();
@@ -115,8 +120,21 @@ export function AddTool(props: AddToolProps): JSX.Element {
             <Description>
                 Create and add tools to extend your agent's capabilities. Choose the method you'd like to use:
             </Description>
-            
+
             <Column>
+                <OptionCard onClick={handleCreateCustomTool}>
+                    <OptionHeader>
+                        <OptionIcon>
+                            <Icon name="bi-flowchart" />
+                        </OptionIcon>
+                        <OptionTitle>Create Custom Tool</OptionTitle>
+                    </OptionHeader>
+                    <OptionDescription>
+                        Build a new tool from scratch using the visual flow editor.
+                        Define the tool's logic, inputs, and outputs to give your agent customized capabilities tailored to your exact needs.
+                    </OptionDescription>
+                </OptionCard>
+
                 <OptionCard onClick={handleUseConnection}>
                     <OptionHeader>
                         <OptionIcon>
@@ -125,7 +143,7 @@ export function AddTool(props: AddToolProps): JSX.Element {
                         <OptionTitle>Use Connection</OptionTitle>
                     </OptionHeader>
                     <OptionDescription>
-                        Turn an existing connection (HTTP client, database, message broker) into an agent tool. 
+                        Turn an existing connection (HTTP client, database, message broker) into an agent tool.
                         Your agent will be able to make requests and interact with these services.
                     </OptionDescription>
                 </OptionCard>
@@ -138,7 +156,7 @@ export function AddTool(props: AddToolProps): JSX.Element {
                         <OptionTitle>Use Function</OptionTitle>
                     </OptionHeader>
                     <OptionDescription>
-                        Create a tool from an existing function in your integration or build a new custom function. 
+                        Create a tool from an existing function in your integration or from a library function.
                         This gives your agent the ability to execute specific business logic.
                     </OptionDescription>
                 </OptionCard>
@@ -151,7 +169,7 @@ export function AddTool(props: AddToolProps): JSX.Element {
                         <OptionTitle>Use MCP Server</OptionTitle>
                     </OptionHeader>
                     <OptionDescription>
-                        Connect to a Model Context Protocol (MCP) server to access pre-built tools and resources. 
+                        Connect to a Model Context Protocol (MCP) server to access pre-built tools and resources.
                         MCP servers provide standardized access to external systems and data sources.
                     </OptionDescription>
                 </OptionCard>

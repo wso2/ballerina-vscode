@@ -50,12 +50,13 @@ interface FunctionFormProps {
     isDataMapper?: boolean;
     isNpFunction?: boolean;
     isAutomation?: boolean;
+    isAgentTool?: boolean;
     isPopup?: boolean;
 }
 
 export function FunctionForm(props: FunctionFormProps) {
     const { rpcClient } = useRpcContext();
-    const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isAutomation, isPopup } = props;
+    const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isAutomation, isAgentTool, isPopup } = props;
 
     const [functionFields, setFunctionFields] = useState<FormField[]>([]);
     const [functionNode, setFunctionNode] = useState<FunctionNode>(undefined);
@@ -85,6 +86,11 @@ export function FunctionForm(props: FunctionFormProps) {
             formType.current = 'Natural Function';
             setTitleSubtitle('Build a flow using a natural language description');
             setFormSubtitle('Describe what you need in a prompt and let AI handle the implementation');
+        } else if (isAgentTool) {
+            nodeKind = 'FUNCTION_DEFINITION';
+            formType.current = 'Agent Tool';
+            setTitleSubtitle('Build a tool that can be invoked by AI agents');
+            setFormSubtitle('Define the inputs and outputs the agent will use to call this tool');
         } else {
             nodeKind = 'FUNCTION_DEFINITION';
             formType.current = 'Function';
@@ -96,7 +102,7 @@ export function FunctionForm(props: FunctionFormProps) {
         } else {
             getFunctionNode(nodeKind);
         }
-    }, [isDataMapper, isNpFunction, isAutomation, functionName]);
+    }, [isDataMapper, isNpFunction, isAutomation, isAgentTool, functionName]);
 
     useEffect(() => {
         let fields = functionNode ? convertConfig(functionNode.properties) : [];
@@ -109,10 +115,30 @@ export function FunctionForm(props: FunctionFormProps) {
         }
 
         const annotations = functionNode?.properties?.annotations?.value;
-        if (typeof annotations === "string" && annotations.includes("@ai:AgentTool")) {
+        const isExistingAgentTool = typeof annotations === "string" && annotations.includes("@ai:AgentTool");
+        if (isExistingAgentTool) {
             formType.current = "Agent Tool";
             setTitleSubtitle('Build a tool that can be used by AI agents');
             setFormSubtitle('Define the inputs and outputs of the tool');
+        }
+
+        // Apply agent tool field overrides in edit mode (isAgentTool is not passed when editing)
+        if (isExistingAgentTool) {
+            fields.forEach((field) => {
+                if (field.key === "isIsolated" || field.key === "annotations" || field.key === "isPublic") {
+                    field.hidden = true;
+                    field.editable = false;
+                }
+                if (field.key === "functionName") {
+                    field.documentation = "Name of the agent tool.";
+                }
+                if (field.key === "functionNameDescription") {
+                    field.documentation = "Description of the agent tool. This will help AI agents understand when to use this tool and how to use it.";
+                }
+                if (field.key === "parameters") {
+                    field.documentation = "Define the inputs for the agent tool. These are the parameters that AI agents will use when calling this tool.";
+                }
+            });
         }
 
         // update description fields as "TEXTAREA"
@@ -163,6 +189,34 @@ export function FunctionForm(props: FunctionFormProps) {
                 ...flowNode.properties.parameters,
                 advanceProperties: advancedProperties
             }
+        }
+
+        // Set properties needed for new agent tools
+        if (isAgentTool) {
+            flowNode.properties.isIsolated = {
+                value: "true",
+                optional: true,
+                metadata: undefined,
+                editable: false,
+                hidden: true,
+            };
+
+            flowNode.properties.annotations = {
+                "metadata": undefined,
+                "value": "@ai:AgentTool\n",
+                "optional": false,
+                "editable": false,
+                "hidden": true
+            };
+
+            if (flowNode.properties?.isPublic) {
+                flowNode.properties.isPublic.hidden = true;
+            }
+
+            flowNode.properties.functionName.value = "";
+            flowNode.properties.functionName.metadata.description = "Name of the agent tool.";
+            flowNode.properties.functionNameDescription.metadata.description = "Description of the agent tool. This will help AI agents understand when to use this tool and how to use it.";
+            flowNode.properties.parameters.metadata.description = "Define the inputs for the agent tool. These are the parameters that AI agents will use when calling this tool.";
         }
 
         setFunctionNode(flowNode);
@@ -348,7 +402,7 @@ export function FunctionForm(props: FunctionFormProps) {
     const handleClosePopup = (functionName?: string) => {
         rpcClient
             .getVisualizerRpcClient()
-            .openView({ type: EVENT_TYPE.CLOSE_VIEW, location: { view: null, recentIdentifier: functionName, artifactType: DIRECTORY_MAP.FUNCTION }, isPopup: true });
+            .openView({ type: EVENT_TYPE.CLOSE_VIEW, location: { view: null, recentIdentifier: functionName, artifactType: isAgentTool ? DIRECTORY_MAP.AGENT_TOOL : DIRECTORY_MAP.FUNCTION }, isPopup: true });
     }
 
     useEffect(() => {
@@ -388,13 +442,15 @@ export function FunctionForm(props: FunctionFormProps) {
                     {isPopup && (
                         <>
                             <TopBar>
-                                <Typography variant="h2">Create New Function</Typography>
+                                <Typography variant="h2">Create New {formType.current}</Typography>
                                 <Button appearance="icon" onClick={() => handleClosePopup()}>
                                     <Codicon name="close" />
                                 </Button>
                             </TopBar>
                             <BodyText>
-                                Create a new function to define reusable logic.
+                                {isAgentTool
+                                    ? "Create a new agent tool that can be invoked by AI agents."
+                                    : "Create a new function to define reusable logic."}
                             </BodyText>
                         </>
                     )}

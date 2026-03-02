@@ -336,6 +336,7 @@ export enum DIRECTORY_MAP {
     CONNECTION = "CONNECTION",
     CONNECTOR = "CONNECTOR",
     DATA_MAPPER = "DATA_MAPPER",
+    AGENT_TOOL = "AGENT_TOOL",
     FUNCTION = "FUNCTION",
     LISTENER = "LISTENER",
     LOCAL_CONNECTORS = "localConnectors",
@@ -455,6 +456,7 @@ export type NodePropertyKey =
     | "functionNameDescription"
     | "instructions"
     | "isIsolated"
+    | "isPublic"
     | "maxIter"
     | "memory"
     | "method"
