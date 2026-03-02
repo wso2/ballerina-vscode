@@ -53,6 +53,13 @@ async function handleOpenAIPanel(defaultPrompt?: AIPanelPrompt): Promise<void> {
     const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
     const hasActiveTextEditor = !!vscode.window.activeTextEditor;
 
+    // When opening from WorkspaceOverview, skip package selection and open AI panel directly.
+    // The agent will operate on all packages in the workspace without an active package.
+    if (view === MACHINE_VIEW.WorkspaceOverview) {
+        openAIWebviewWithPrompt(defaultPrompt);
+        return;
+    }
+
     const currentBallerinaFile = tryGetCurrentBallerinaFile();
     const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
 

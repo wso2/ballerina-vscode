@@ -49,7 +49,7 @@ export function createTaskWriteTool(
     eventHandler: CopilotEventHandler,
     tempProjectPath: string,
     modifiedFiles: string[] | undefined,
-    workspaceId: string,
+    projectRootPath: string,
     generationId: string,
     threadId: string = 'default'
 ) {
@@ -137,7 +137,7 @@ Rules:
         inputSchema: TaskWriteInputSchema,
         execute: async (input: TaskWriteInput): Promise<TaskWriteResult> => {
             try {
-                const generation = chatStateStorage.getGeneration(workspaceId, threadId, generationId);
+                const generation = chatStateStorage.getGeneration(projectRootPath, threadId, generationId);
                 const existingPlan = generation?.plan;
                 const allTasks = mapInputToTasks(input);
 
@@ -168,7 +168,7 @@ Rules:
                     const needsPlanApproval = (isNewPlan || isPlanRemodification) && taskCategories.inProgress.length === 0;
                     if (needsPlanApproval) {
                         approvalType = "plan";
-                        approvalResult = await handlePlanApproval(allTasks, isPlanRemodification, eventHandler, workspaceId, generationId, threadId);
+                        approvalResult = await handlePlanApproval(allTasks, isPlanRemodification, eventHandler, projectRootPath, generationId, threadId);
                     } else if (taskCategories.completed.length > 0 && taskCategories.inProgress.length === 0) {
                         const newlyCompletedTasks = detectNewlyCompletedTasks(taskCategories.completed, existingPlan);
 
@@ -284,7 +284,7 @@ async function handlePlanApproval(
     allTasks: Task[],
     isPlanRemodification: boolean,
     eventHandler: CopilotEventHandler,
-    workspaceId: string,
+    projectRootPath: string,
     generationId: string,
     threadId: string
 ): Promise<{ approved: boolean; comment?: string }> {
@@ -293,7 +293,7 @@ async function handlePlanApproval(
     const plan = createPlan(allTasks);
 
     // Store plan in ChatStateStorage with the generation
-    chatStateStorage.updateGeneration(workspaceId, threadId, generationId, { plan });
+    chatStateStorage.updateGeneration(projectRootPath, threadId, generationId, { plan });
 
     // Notify visualizer of plan update
     eventHandler({ type: 'plan_updated', plan });

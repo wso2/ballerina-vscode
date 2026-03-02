@@ -24,8 +24,7 @@ import {
 import { CopilotEventHandler, createWebviewEventHandler } from "../utils/events";
 import { getErrorMessage } from "../utils/ai-utils";
 import { chatStateStorage } from "../../../views/ai-panel/chatStateStorage";
-import { StateMachine } from "../../../stateMachine";
-import { createExecutorConfig } from "../agent/index";
+import { createExecutorConfig, resolveProjectRootPath } from "../agent/index";
 
 export type DocumentationGenerationRequest = {
     serviceName: string;
@@ -107,12 +106,12 @@ export async function generateDocumentation(params: DocumentationGenerationReque
         cleanupStrategy: 'immediate'
     });
 
-    const workspaceId = StateMachine.context().projectPath;
+    const projectRootPath = resolveProjectRootPath();
     const threadId = 'default';
 
     try {
         // Register execution for abort support
-        chatStateStorage.setActiveExecution(workspaceId, threadId, {
+        chatStateStorage.setActiveExecution(projectRootPath, threadId, {
             generationId: config.generationId,
             abortController: config.abortController
         });
@@ -128,6 +127,6 @@ export async function generateDocumentation(params: DocumentationGenerationReque
         }
     } finally {
         // Clear active execution
-        chatStateStorage.clearActiveExecution(workspaceId, threadId);
+        chatStateStorage.clearActiveExecution(projectRootPath, threadId);
     }
 }

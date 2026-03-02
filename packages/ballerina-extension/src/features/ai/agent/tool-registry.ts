@@ -49,19 +49,19 @@ export interface ToolRegistryOptions {
     modifiedFiles: string[];
     projects: ProjectSource[];
     generationType: GenerationType;
-    workspaceId: string;
+    projectRootPath: string;
     generationId: string;
     threadId?: string;
 }
 
 export function createToolRegistry(opts: ToolRegistryOptions) {
-    const { eventHandler, tempProjectPath, modifiedFiles, projects, generationType, workspaceId, generationId, threadId } = opts;
+    const { eventHandler, tempProjectPath, modifiedFiles, projects, generationType, projectRootPath, generationId, threadId } = opts;
     return {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(
             eventHandler,
             tempProjectPath,
             modifiedFiles,
-            workspaceId,
+            projectRootPath,
             generationId,
             threadId || 'default'
         ),
@@ -85,7 +85,7 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
             eventHandler,
             {
                 tempPath: tempProjectPath,
-                workspacePath: workspaceId
+                workspacePath: projectRootPath
             },
             modifiedFiles
         ),
