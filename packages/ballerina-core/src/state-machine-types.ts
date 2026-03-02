@@ -831,3 +831,15 @@ export interface ConnectorGeneratorResponsePayload {
     comment?: string;
 }
 export const sendConnectorGeneratorResponse: RequestType<ConnectorGeneratorResponsePayload, void> = { method: 'sendConnectorGeneratorResponse' };
+
+// Trace animation notification types
+export interface TraceAnimationEvent {
+    type: 'invoke_agent' | 'chat' | 'execute_tool';
+    toolNames: string[];
+    activeToolName?: string;
+    spanId: string;
+    active: boolean;
+    systemInstructions?: string;
+}
+
+export const traceAnimationChanged: NotificationType<TraceAnimationEvent> = { method: 'traceAnimationChanged' };

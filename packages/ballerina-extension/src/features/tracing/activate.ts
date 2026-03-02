@@ -23,6 +23,7 @@ import { TraceServer, Trace } from './trace-server';
 import { TraceDetailsWebview } from './trace-details-webview';
 import { StateMachine } from '../../stateMachine';
 import { VisualizerWebview } from '../../views/visualizer/webview';
+import { initTraceAnimation, disposeTraceAnimation } from './trace-animation';
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from '../../utils/project-utils';
 import { findBallerinaPackageRoot } from '../../utils';
 import { requiresPackageSelection, selectPackageOrPrompt } from '../../utils/command-utils';
@@ -53,6 +54,16 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
     // Subscribe to TracerMachine state changes to update VS Code context
     TracerMachine.onUpdate(async (state: any) => {
         await updateContextFromState(state);
+
+        // Initialize trace animation when tracing is enabled, dispose when disabled
+        const isEnabled = typeof state === 'string'
+            ? state === 'enabled'
+            : (typeof state === 'object' && state !== null && 'enabled' in state);
+        if (isEnabled) {
+            initTraceAnimation();
+        } else {
+            disposeTraceAnimation();
+        }
     });
 
     // Set initial context based on current state
