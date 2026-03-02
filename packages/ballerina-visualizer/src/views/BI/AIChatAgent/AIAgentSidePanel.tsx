@@ -102,6 +102,8 @@ export interface BIFlowDiagramProps {
     onSubmit: (data: ExtendedAgentToolRequest) => void;
     mode?: NewToolSelectionMode;
     onViewChange?: (view: SidePanelView, navigateBack?: () => void) => void;
+    onAgentToolCreated?: (functionName: string) => void;
+    onCancel?: () => void;
 }
 
 export interface ExtendedAgentToolRequest extends AgentToolRequest {
@@ -135,7 +137,7 @@ const INITIAL_FIELDS: FormField[] = [
 ];
 
 export function AIAgentSidePanel(props: BIFlowDiagramProps) {
-    const { projectPath, onSubmit, mode = NewToolSelectionMode.ALL, onViewChange } = props;
+    const { projectPath, onSubmit, mode = NewToolSelectionMode.ALL, onViewChange, onAgentToolCreated, onCancel } = props;
     const { rpcClient } = useRpcContext();
 
     const [sidePanelView, setSidePanelView] = useState<SidePanelView>(SidePanelView.NODE_LIST);
@@ -168,6 +170,14 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     useEffect(() => {
         fetchNodes();
     }, []);
+
+    const hasAutoTriggered = useRef(false);
+    useEffect(() => {
+        if (mode === NewToolSelectionMode.CUSTOM_TOOL && !loading && !hasAutoTriggered.current) {
+            hasAutoTriggered.current = true;
+            handleOnAddFunction(MACHINE_VIEW.BIAgentToolForm, DIRECTORY_MAP.AGENT_TOOL);
+        }
+    }, [loading]);
 
     useEffect(() => {
         if (sidePanelView === SidePanelView.TOOL_FORM) {
@@ -203,6 +213,15 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     useEffect(() => {
         rpcClient.onParentPopupSubmitted((parent: ParentPopupData) => {
             console.log(">>> on parent popup submitted", parent);
+            if (parent.artifactType === DIRECTORY_MAP.AGENT_TOOL && parent.recentIdentifier) {
+                onAgentToolCreated?.(parent.recentIdentifier);
+                return;
+            }
+            if (mode === NewToolSelectionMode.CUSTOM_TOOL && parent.artifactType === DIRECTORY_MAP.AGENT_TOOL) {
+                // User dismissed the popup without submitting — navigate back
+                onCancel?.();
+                return;
+            }
             setLoading(true);
             fetchNodes();
         });
@@ -210,6 +229,12 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
     const fetchNodes = async () => {
         setLoading(true);
+
+        // CUSTOM_TOOL mode: skip loading entirely — popup is auto-triggered
+        if (mode === NewToolSelectionMode.CUSTOM_TOOL) {
+            setLoading(false);
+            return;
+        }
 
         // FUNCTION mode: skip getAvailableNodes entirely — connections are not needed
         if (mode === NewToolSelectionMode.FUNCTION) {
@@ -422,12 +447,12 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         });
     };
 
-    const handleOnAddFunction = () => {
+    const handleOnAddFunction = (view: MACHINE_VIEW, artifactType: DIRECTORY_MAP) => {
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
-                view: MACHINE_VIEW.BIFunctionForm,
-                artifactType: DIRECTORY_MAP.FUNCTION,
+                view: view,
+                artifactType: artifactType,
             },
             isPopup: true,
         });
@@ -583,7 +608,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     categories={categories}
                     onSelect={handleOnSelectNode}
                     onAddConnection={handleOnAddConnection}
-                    onAddFunction={handleOnAddFunction}
+                    onAddFunction={() => handleOnAddFunction(MACHINE_VIEW.BIFunctionForm, DIRECTORY_MAP.FUNCTION)}
                     onSearchTextChange={(searchText) => handleSearchFunction(searchText, FUNCTION_TYPE.REGULAR, true)}
                     title={"Functions"}
                     searchPlaceholder={searchPlaceholder}

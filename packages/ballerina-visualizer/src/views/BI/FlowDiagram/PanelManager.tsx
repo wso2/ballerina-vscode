@@ -70,6 +70,7 @@ export enum SidePanelView {
     NEW_AGENT = "NEW_AGENT",
     ADD_TOOL = "ADD_TOOL",
     NEW_TOOL = "NEW_TOOL",
+    NEW_TOOL_CUSTOM = "NEW_TOOL_CUSTOM",
     NEW_TOOL_FROM_CONNECTION = "NEW_TOOL_FROM_CONNECTION",
     NEW_TOOL_FROM_FUNCTION = "NEW_TOOL_FROM_FUNCTION",
     ADD_MCP_SERVER = "ADD_MCP_SERVER",
@@ -238,6 +239,10 @@ export function PanelManager(props: PanelManagerProps) {
         setSidePanelView(SidePanelView.ADD_MCP_SERVER);
     };
 
+    const handleOnCreateCustomTool = () => {
+        setSidePanelView(SidePanelView.NEW_TOOL_CUSTOM);
+    };
+
     const findSubPanelComponent = (subPanel: SubPanel) => {
         switch (subPanel.view) {
             case SubPanelView.HELPER_PANEL:
@@ -275,6 +280,7 @@ export function PanelManager(props: PanelManagerProps) {
                 return (
                     <AddTool
                         agentCallNode={selectedNode}
+                        onCreateCustomTool={handleOnCreateCustomTool}
                         onUseConnection={handleOnUseConnection}
                         onUseFunction={handleOnUseFunction}
                         onUseMcpServer={handleOnUseMcpServer}
@@ -307,6 +313,17 @@ export function PanelManager(props: PanelManagerProps) {
                     <NewTool
                         agentCallNode={selectedNode}
                         mode={NewToolSelectionMode.ALL}
+                        onSave={onClose}
+                        onBack={handleOnBackToAddTool}
+                        onSetBackOverride={handleSetBackOverride}
+                    />
+                );
+
+            case SidePanelView.NEW_TOOL_CUSTOM:
+                return (
+                    <NewTool
+                        agentCallNode={selectedNode}
+                        mode={NewToolSelectionMode.CUSTOM_TOOL}
                         onSave={onClose}
                         onBack={handleOnBackToAddTool}
                         onSetBackOverride={handleSetBackOverride}
