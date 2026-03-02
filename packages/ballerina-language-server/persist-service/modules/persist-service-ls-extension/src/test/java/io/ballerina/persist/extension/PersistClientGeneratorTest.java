@@ -82,10 +82,10 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
             } catch (AssertionError e) {
                 // Expected error - verify error message contains expected text
                 String errorMessage = e.getMessage();
-                if (testConfig.expectedErrorMessage() != null && 
-                    !errorMessage.toLowerCase().contains(testConfig.expectedErrorMessage().toLowerCase())) {
-                    Assert.fail("Error message '" + errorMessage + "' does not contain expected text: " + 
-                               testConfig.expectedErrorMessage());
+                if (testConfig.expectedErrorMessage() != null &&
+                        !errorMessage.toLowerCase().contains(testConfig.expectedErrorMessage().toLowerCase())) {
+                    Assert.fail("Error message '" + errorMessage + "' does not contain expected text: " +
+                            testConfig.expectedErrorMessage());
                 }
                 log.info("Negative test passed: " + testConfig.description());
                 return;
@@ -158,11 +158,11 @@ public class PersistClientGeneratorTest extends AbstractLSTest {
                         testConfig.connection(),
                         testConfig.properties(),
                         testConfig.tables(),
-                        newMap,
-                        testConfig.expectError(),
+                        newMap, testConfig.
+                        expectError(),
                         testConfig.expectedErrorMessage()
                 );
-                updateConfig(configJsonPath, updatedConfig);
+//                updateConfig(configJsonPath, updatedConfig);
                 Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
             }
         } else {

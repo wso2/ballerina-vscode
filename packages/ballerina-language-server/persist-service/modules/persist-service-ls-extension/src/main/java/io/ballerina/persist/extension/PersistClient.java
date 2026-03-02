@@ -173,27 +173,6 @@ public class PersistClient {
     }
 
     /**
-     * Lightweight constructor for updating an existing persist module without DB credentials.
-     * Only supports the {@link #generateClient} path where {@code skipTomlEdits} is {@code true}.
-     *
-     * @param projectPath      The project directory path
-     * @param name             Short module name (last segment of the target module)
-     * @param workspaceManager The workspace manager
-     */
-    public PersistClient(String projectPath, String name, WorkspaceManager workspaceManager) {
-        this.projectPath = Path.of(projectPath);
-        this.name = name;
-        this.datastore = "";
-        this.host = null;
-        this.port = null;
-        this.user = null;
-        this.database = null;
-        this.gson = new Gson();
-        this.workspaceManager = workspaceManager;
-        this.introspectorBuilder = null;
-    }
-
-    /**
      * Introspects the database and returns table metadata.
      *
      * @return Array of table names in the database
@@ -326,151 +305,59 @@ public class PersistClient {
     }
 
     /**
-     * Generates Ballerina persist client with model file and generated source files.
-     * <p>
-     * When {@code skipTomlEdits} is {@code true} (the module already exists), the method
-     * reads the persist model from {@code modelFilePath}, regenerates only the client source
-     * files, and skips all Ballerina.toml / config / connections changes. No database
-     * credentials are required in this path.
-     * <p>
-     * When {@code skipTomlEdits} is {@code false} (creating a new connection), the full
-     * setup flow is executed, which requires database credentials to be available via the
-     * full constructor.
+     * Generates Ballerina persist client with model file and generated source
+     * files.
      *
-     * @param selectedTables       The tables to generate entities for
-     * @param module               The short module name (e.g. {@code "testdb"})
-     * @param name                 The database connector variable name
-     * @param skipTomlEdits        {@code true} to skip Ballerina.toml / config / connections edits
-     * @param modelFilePath        Relative path to the existing model file; used when
-     *                             {@code skipTomlEdits} is {@code true}
-     * @param skipConnectionFiles  {@code true} to skip generating config.bal and connections.bal entries;
-     *                             set when no connection name is provided
+     * @param selectedTables The tables to generate entities for
+     * @param module         The target module name for the generated files
      * @return JsonElement containing the PersistClientResponse with text edits map
      * @throws PersistClientException if an error occurs during generation
      */
-    public JsonElement generateClient(String[] selectedTables, String module, String name,
-                                      boolean skipTomlEdits, String modelFilePath,
-                                      boolean skipConnectionFiles)
-            throws PersistClientException {
-        if (skipTomlEdits) {
-            return generateClientFromModel(module, modelFilePath, name);
-        }
-
+    public JsonElement generateClient(String[] selectedTables, String module) throws PersistClientException {
         validateConnectionDetails();
 
-        if (name == null || name.isEmpty()) {
-            throw new PersistClientException("Connector variable name cannot be null or empty");
-        }
-
         if (module == null || module.isEmpty()) {
-            module = name;
+            module = generateModuleNameFromDatabase(this.database, this.datastore);
         }
 
         if (selectedTables == null || selectedTables.length == 0) {
             throw new PersistClientException("Selected tables cannot be null or empty");
         }
 
-        Path persistModelPath = this.projectPath.resolve(PERSIST_DIR)
-                .resolve(name)
-                .resolve(MODEL_FILE_NAME);
+        // If the directory exists with at least one bal file, then throw error for now
+        // Once persist supports multiple model files, this can be removed
+        Path persistPath = this.projectPath.resolve(PERSIST_DIR);
+        if (Files.exists(persistPath)) {
+            try (var files = Files.list(persistPath)) {
+                if (files.anyMatch(path -> path.toString().endsWith(".bal"))) {
+                    throw new PersistClientException("Currently only one database connection is supported per " +
+                            "project. A database connection is already present in the project at: " + persistPath);
+                }
+            } catch (IOException e) {
+                throw new PersistClientException("Error checking existing database connections: " + e.getMessage(), e);
+            }
+        }
+
+        Path persistModelPath = persistPath.resolve(MODEL_FILE_NAME);
 
         try {
             Project project = this.workspaceManager.loadProject(projectPath);
             String packageName = project.currentPackage().packageName().value();
             Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-            boolean isModuleExists = addTextEditForBallerinaToml(packageName, module, name, textEditsMap);
+            boolean isModuleExists = addTextEditForBallerinaToml(packageName, module, textEditsMap);
             Module entityModule = getInitialEntityModule(selectedTables);
             SyntaxTree dataModels = new DbModelGenSyntaxTree().getDataModels(entityModule);
             addTextEditForPersistModelFile(dataModels, textEditsMap, persistModelPath);
             // Need to reload since the current initial entity module does not have enums
             // and other details
             entityModule = getEntities(module, dataModels);
-            addTextEditsForClientModuleSources(module, textEditsMap, entityModule, false);
-            if (!skipConnectionFiles) {
-                addTextEditForConfigurations(textEditsMap);
-                addTextEditForConnectionClient(packageName, module, textEditsMap);
-            }
+            addTextEditsForClientModuleSources(module, textEditsMap, entityModule);
+            addTextEditForConfigurations(textEditsMap);
+            addTextEditForConnectionClient(packageName, module, textEditsMap);
             return gson.toJsonTree(new PersistClientResponse(isModuleExists, textEditsMap));
         } catch (BalException | IOException | FormatterException | WorkspaceDocumentException | EventSyncException e) {
             throw new PersistClientException("Error introspecting database: " + e.getMessage(), e);
         }
-    }
-
-    /**
-     * Regenerates the client source files for an existing persist module by reading
-     * the current model file. Ballerina.toml, config, and connections files are not modified.
-     *
-     * @param module        The short module name (e.g. {@code "testdb"})
-     * @param modelFilePath Relative path to the existing model file
-     * @return JsonElement containing the PersistClientResponse with text edits map
-     * @throws PersistClientException if the model file cannot be found or generation fails
-     */
-    private JsonElement generateClientFromModel(String module, String modelFilePath, String targetModuleFqn)
-            throws PersistClientException {
-        if (module == null || module.isEmpty()) {
-            throw new PersistClientException("targetModule is required for updating an existing module.");
-        }
-        if (modelFilePath == null || modelFilePath.isEmpty()) {
-            throw new PersistClientException("modelFilePath is required for updating an existing module.");
-        }
-        try {
-            Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-            Optional<Document> modelDoc = workspaceManager.document(projectPath.resolve(modelFilePath));
-            if (modelDoc.isEmpty()) {
-                throw new PersistClientException("Model file not found: " + modelFilePath);
-            }
-            String effectiveDatastore = (this.datastore == null || this.datastore.isEmpty())
-                    ? readDatastoreFromToml(targetModuleFqn)
-                    : this.datastore;
-            Module entityModule = getEntities(module, modelDoc.get().syntaxTree());
-            addTextEditsForClientModuleSources(module, textEditsMap, entityModule, true, effectiveDatastore);
-            return gson.toJsonTree(new PersistClientResponse(true, textEditsMap));
-        } catch (BalException | FormatterException | IOException e) {
-            throw new PersistClientException("Error generating client from model: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Reads the {@code options.datastore} value from a {@code [[tool.persist]]} entry in
-     * {@code Ballerina.toml} whose {@code targetModule} matches the supplied fully-qualified
-     * module name.
-     *
-     * @param targetModuleFqn Fully-qualified module name (e.g. {@code "sample_project.testdb_mssql"})
-     * @return The datastore string (e.g. {@code "mssql"})
-     * @throws IOException            if the TOML file cannot be read
-     * @throws PersistClientException if no matching entry or datastore value is found
-     */
-    private String readDatastoreFromToml(String targetModuleFqn) throws IOException, PersistClientException {
-        Path tomlPath = this.projectPath.resolve(BALLERINA_TOML);
-        DocumentNode rootNode = parseTomlFile(tomlPath);
-
-        for (DocumentMemberDeclarationNode node : rootNode.members()) {
-            if (node.kind() != SyntaxKind.TABLE_ARRAY) {
-                continue;
-            }
-            TableArrayNode tableArrayNode = (TableArrayNode) node;
-            if (!tableArrayNode.identifier().toSourceCode().equals("tool.persist")) {
-                continue;
-            }
-
-            boolean matchesModule = false;
-            String datastore = null;
-            for (KeyValueNode field : tableArrayNode.fields()) {
-                String fieldId = field.identifier().toSourceCode().trim();
-                String fieldValue = field.value().toSourceCode().trim();
-                if (fieldId.equals("targetModule") && fieldValue.contains("\"" + targetModuleFqn + "\"")) {
-                    matchesModule = true;
-                }
-                if (fieldId.equals("options.datastore")) {
-                    datastore = fieldValue.replace("\"", "").trim();
-                }
-            }
-            if (matchesModule && datastore != null) {
-                return datastore;
-            }
-        }
-        throw new PersistClientException(
-                "No persist tool entry with options.datastore found for module: " + targetModuleFqn);
     }
 
     private void addTextEditForConfigurations(Map<Path, List<TextEdit>> textEditsMap) {
@@ -629,19 +516,13 @@ public class PersistClient {
     }
 
     private void addTextEditsForClientModuleSources(String module, Map<Path, List<TextEdit>> textEditsMap,
-                                                    Module entityModule, boolean forceUpdate)
-            throws PersistClientException, FormatterException, BalException {
-        addTextEditsForClientModuleSources(module, textEditsMap, entityModule, forceUpdate, this.datastore);
-    }
-
-    private void addTextEditsForClientModuleSources(String module, Map<Path, List<TextEdit>> textEditsMap,
-                                                    Module entityModule, boolean forceUpdate, String datastore)
+                                                    Module entityModule)
             throws PersistClientException, FormatterException, BalException {
         DbSyntaxTree dbSyntaxTree = new DbSyntaxTree();
         Path outputPath = projectPath.resolve("generated").resolve(module);
 
-        // If the module directory already exists and we are not doing a force update, throw an error
-        if (!forceUpdate && Files.exists(outputPath)) {
+        // If the module directory already exists, throw an error
+        if (Files.exists(outputPath)) {
             throw new PersistClientException("A database connector with the same name already exists: " + outputPath);
         }
 
@@ -679,14 +560,19 @@ public class PersistClient {
         return entityModule;
     }
 
-    private boolean addTextEditForBallerinaToml(String packageName, String module, String name,
-                                                Map<Path, List<TextEdit>> textEditsMap) throws IOException {
+    private static String generateModuleNameFromDatabase(String database, String datastore) {
+        String sanitizedDatabaseName = database.replaceAll("[^a-zA-Z0-9]", "");
+        return datastore + "." + sanitizedDatabaseName;
+    }
+
+    private boolean addTextEditForBallerinaToml(String packageName, String module, Map<Path,
+            List<TextEdit>> textEditsMap) throws IOException {
         Path tomlPath = this.projectPath.resolve(BALLERINA_TOML);
         DocumentNode rootNode = parseTomlFile(tomlPath);
         String moduleFullName = packageName + "." + module;
 
         TomlAnalysisResult analysisResult = analyzeTomlStructure(rootNode, moduleFullName);
-        String tomlEntry = buildTomlEntries(moduleFullName, name, analysisResult);
+        String tomlEntry = buildTomlEntries(moduleFullName, analysisResult);
         addTomlTextEdit(tomlPath, rootNode, analysisResult.toolPersistLineRange(), tomlEntry, textEditsMap);
 
         return analysisResult.moduleExists();
@@ -748,10 +634,10 @@ public class PersistClient {
         return false;
     }
 
-    private String buildTomlEntries(String module, String name, TomlAnalysisResult analysisResult) {
+    private String buildTomlEntries(String module, TomlAnalysisResult analysisResult) {
         StringBuilder tomlEntry = new StringBuilder();
 
-        tomlEntry.append(getBuildOptionEntry(module, name));
+        tomlEntry.append(getBuildOptionEntry(module));
 
         if (!analysisResult.hasPersistDependency()) {
             tomlEntry.append(getPersistMinimumVersionRequirementEntry());
@@ -780,12 +666,12 @@ public class PersistClient {
     ) {
     }
 
-    private String getBuildOptionEntry(String module, String name) {
+    private String getBuildOptionEntry(String module) {
         String moduleWithQuotes = "\"" + module + "\"";
         return LS + "[[tool.persist]]" + LS +
                 "id" + " = " + moduleWithQuotes + LS +
                 "targetModule" + " = " + moduleWithQuotes + LS +
-                "filePath" + " = \"" + PERSIST_DIR + "/"  + name + "/" + MODEL_FILE_NAME + "\"" + LS +
+                "filePath" + " = \"" + PERSIST_DIR + "/" + MODEL_FILE_NAME + "\"" + LS +
                 "options.datastore" + " = \"" + datastore + "\"" + LS +
                 "options.eagerLoading" + " = true" + LS +
                 "options.withInitParams" + " = true" + LS;
@@ -796,7 +682,7 @@ public class PersistClient {
                 "org = \"ballerina\"" + LS +
                 "name = \"tool.persist\"" + LS +
                 // This version is hardcoded as minimum compatible version
-                "version = \"1.9.0\"" + LS;
+                "version = \"1.8.0\"" + LS;
     }
 
     /**

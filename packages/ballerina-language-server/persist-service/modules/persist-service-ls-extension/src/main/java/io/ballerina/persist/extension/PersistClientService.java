@@ -153,55 +153,28 @@ public class PersistClientService implements ExtendedLanguageServerService {
             try {
                 this.workspaceManager.loadProject(Path.of(request.getProjectPath()));
 
-                String targetModule = request.getTargetModule();
-                String modelFilePath = request.getModelFilePath();
-                boolean hasExistingModule = targetModule != null && !targetModule.isEmpty()
-                        && modelFilePath != null && !modelFilePath.isEmpty();
-
-                // Derive the short module name (last segment of the fully-qualified targetModule)
-                String module = targetModule != null && targetModule.contains(".")
-                        ? targetModule.substring(targetModule.lastIndexOf('.') + 1)
-                        : targetModule;
-
-                String connection = request.getConnection();
-                boolean hasConnection = connection != null && !connection.isEmpty();
-
-                // The connector variable name: use explicit connection name when provided,
-                // otherwise fall back to the short module name.
-                String connectorName = hasConnection ? connection : module;
-
                 String[] selectedTables = request.getTables() == null ? new String[0]
                         : request.getTables().stream()
                                 .filter(PersistClientGeneratorRequest.TableEntry::selected)
                                 .map(PersistClientGeneratorRequest.TableEntry::table)
                                 .toArray(String[]::new);
 
-                PersistClient generator;
-                if (hasExistingModule) {
-                    // Lightweight constructor: no DB credentials needed for regeneration.
-                    generator = new PersistClient(
-                            request.getProjectPath(), module, this.workspaceManager);
-                } else {
-                    // Full constructor: DB credentials are required for database introspection.
-                    PersistClientUtils.DatabaseCredentials creds =
-                            PersistClientUtils.extractDatabaseCredentials(request.getProperties());
-                    generator = new PersistClient(
-                            request.getProjectPath(),
-                            connectorName,
-                            creds.dbSystem(),
-                            creds.host(),
-                            creds.port(),
-                            creds.user(),
-                            creds.password(),
-                            creds.database(),
-                            this.workspaceManager);
-                }
+                // Full constructor: DB credentials are required for database introspection.
+                PersistClientUtils.DatabaseCredentials creds = PersistClientUtils.extractDatabaseCredentials(
+                        request.getProperties());
+                PersistClient generator = new PersistClient(
+                        request.getProjectPath(),
+                        request.getConnection(),
+                        creds.dbSystem(),
+                        creds.host(),
+                        creds.port(),
+                        creds.user(),
+                        creds.password(),
+                        creds.database(),
+                        this.workspaceManager);
 
-                // For re-generation (hasExistingModule=true), pass the full targetModule so that
-                // PersistClient can read options.datastore from Ballerina.toml.
-                String nameParam = hasExistingModule ? targetModule : connectorName;
-                JsonElement source = generator.generateClient(
-                        selectedTables, module, nameParam, hasExistingModule, modelFilePath, !hasConnection);
+                // Derive the short module name (last segment of the fully-qualified targetModule)
+                JsonElement source = generator.generateClient(selectedTables, null);
                 response.setSource(source);
             } catch (Exception e) {
                 response.setError(e);

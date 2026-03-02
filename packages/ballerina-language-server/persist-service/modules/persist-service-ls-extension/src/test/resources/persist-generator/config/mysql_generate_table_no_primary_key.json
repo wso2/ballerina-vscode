@@ -1,44 +1,70 @@
 {
   "description": "MySQL persist client generation - table without primary key",
   "testProjectFolder": "sample-project",
-  "targetModule": "sample_project.testdb",
+  "targetModule": "",
+  "modelFilePath": "",
+  "connection": "testdb",
   "properties": {
-    "Database System": {
+    "dbSystem": {
+      "metadata": {
+        "label": "Database System",
+        "description": "The database system type (e.g., mysql, postgresql, mssql)"
+      },
       "value": "mysql",
       "enabled": true,
       "editable": true,
       "optional": false,
       "advanced": false
     },
-    "Host": {
-      "value": "invalid-host-name-12345",
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "Database server host address"
+      },
+      "value": "localhost",
       "enabled": true,
       "editable": true,
       "optional": false,
       "advanced": false
     },
-    "Port": {
+    "port": {
+      "metadata": {
+        "label": "Port",
+        "description": "Database server port number"
+      },
       "value": "3307",
       "enabled": true,
       "editable": true,
       "optional": false,
       "advanced": false
     },
-    "User": {
+    "user": {
+      "metadata": {
+        "label": "User",
+        "description": "Database username"
+      },
       "value": "root",
       "enabled": true,
       "editable": true,
       "optional": false,
       "advanced": false
     },
-    "Password": {
+    "password": {
+      "metadata": {
+        "label": "Password",
+        "description": "Database user password"
+      },
       "value": "Test123#",
       "enabled": true,
       "editable": true,
       "optional": false,
       "advanced": false
     },
-    "Database": {
+    "database": {
+      "metadata": {
+        "label": "Database",
+        "description": "Name of the database to connect"
+      },
       "value": "testdb",
       "enabled": true,
       "editable": true,
@@ -54,5 +80,5 @@
     }
   ],
   "expectError": true,
-  "expectedErrorMessage": "Error introspecting database"
+  "expectedErrorMessage": "No entities found"
 }
