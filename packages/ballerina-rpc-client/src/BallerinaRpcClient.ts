@@ -61,7 +61,9 @@ import {
     refreshReviewMode,
     onHideReviewActions,
     approvalOverlayState,
-    ApprovalOverlayState
+    ApprovalOverlayState,
+    traceAnimationChanged,
+    TraceAnimationEvent
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -292,5 +294,9 @@ export class BallerinaRpcClient {
 
     onApprovalOverlayState(callback: (data: ApprovalOverlayState) => void) {
         this.messenger.onNotification(approvalOverlayState, callback);
+    }
+
+    onTraceAnimationChanged(callback: (event: TraceAnimationEvent) => void) {
+        this.messenger.onNotification(traceAnimationChanged, callback);
     }
 }
