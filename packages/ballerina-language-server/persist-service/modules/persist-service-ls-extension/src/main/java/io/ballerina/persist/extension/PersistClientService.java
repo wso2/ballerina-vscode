@@ -19,7 +19,6 @@
 package io.ballerina.persist.extension;
 
 import com.google.gson.JsonElement;
-import io.ballerina.servicemodelgenerator.extension.model.Value;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -28,7 +27,6 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -74,25 +72,19 @@ public class PersistClientService implements ExtendedLanguageServerService {
                 this.workspaceManager.loadProject(projectPath);
 
                 DatabaseIntrospectionRequest.IntrospectDatabaseData data = request.getData();
-                String name = data.metadata() != null ? data.metadata().label() : "";
-                String dbSystem = findPropertyValue(data.properties(), "Database System");
-                String host = findPropertyValue(data.properties(), "Host");
-                String portStr = findPropertyValue(data.properties(), "Port");
-                String user = findPropertyValue(data.properties(), "User");
-                String password = findPropertyValue(data.properties(), "Password");
-                String database = findPropertyValue(data.properties(), "Database");
-                Integer port = parsePort(portStr);
+                PersistClientUtils.DatabaseCredentials creds =
+                        PersistClientUtils.extractDatabaseCredentials(data.properties());
                 String modelFilePath = data.modelFilePath();
 
                 PersistClient generator = new PersistClient(
                         request.getProjectPath(),
-                        name,
-                        dbSystem,
-                        host,
-                        port,
-                        user,
-                        password,
-                        database,
+                        null,
+                        creds.dbSystem(),
+                        creds.host(),
+                        creds.port(),
+                        creds.user(),
+                        creds.password(),
+                        creds.database(),
                         this.workspaceManager
                 );
 
@@ -188,23 +180,17 @@ public class PersistClientService implements ExtendedLanguageServerService {
                             request.getProjectPath(), module, this.workspaceManager);
                 } else {
                     // Full constructor: DB credentials are required for database introspection.
-                    Map<String, Value> properties = request.getProperties();
-                    String dbSystem = findPropertyValue(properties, "Database System");
-                    String host = findPropertyValue(properties, "Host");
-                    String portStr = findPropertyValue(properties, "Port");
-                    String user = findPropertyValue(properties, "User");
-                    String password = findPropertyValue(properties, "Password");
-                    String database = findPropertyValue(properties, "Database");
-                    Integer port = parsePort(portStr);
+                    PersistClientUtils.DatabaseCredentials creds =
+                            PersistClientUtils.extractDatabaseCredentials(request.getProperties());
                     generator = new PersistClient(
                             request.getProjectPath(),
                             connectorName,
-                            dbSystem,
-                            host,
-                            port,
-                            user,
-                            password,
-                            database,
+                            creds.dbSystem(),
+                            creds.host(),
+                            creds.port(),
+                            creds.user(),
+                            creds.password(),
+                            creds.database(),
                             this.workspaceManager);
                 }
 
@@ -221,30 +207,4 @@ public class PersistClientService implements ExtendedLanguageServerService {
         });
     }
 
-    // -------------------------------------------------------------------------
-    // Helpers for extracting values from the typed CredentialsData
-    // -------------------------------------------------------------------------
-
-    private String findPropertyValue(Map<String, Value> properties, String label) {
-        if (properties == null) {
-            return null;
-        }
-        Value prop = properties.get(label);
-        if (prop == null) {
-            return null;
-        }
-        String val = prop.getValueString();
-        return val != null && !val.isEmpty() ? val : null;
-    }
-
-    private Integer parsePort(String portStr) {
-        if (portStr == null || portStr.isEmpty()) {
-            return null;
-        }
-        try {
-            return Integer.parseInt(portStr);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
 }

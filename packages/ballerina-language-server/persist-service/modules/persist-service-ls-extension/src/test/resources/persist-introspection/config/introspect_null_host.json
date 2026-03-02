@@ -7,7 +7,7 @@
       "description": "mysql connection"
     },
     "properties": {
-      "Database System": {
+      "dbSystem": {
         "metadata": {
           "label": "Database System",
           "description": "The database system type (e.g., mysql, postgresql, mssql)"
@@ -18,7 +18,7 @@
         "optional": false,
         "advanced": false
       },
-      "Host": {
+      "host": {
         "metadata": {
           "label": "Host",
           "description": "Database server host address"
@@ -28,7 +28,7 @@
         "optional": false,
         "advanced": false
       },
-      "Port": {
+      "port": {
         "metadata": {
           "label": "Port",
           "description": "Database server port number"
@@ -39,7 +39,7 @@
         "optional": false,
         "advanced": false
       },
-      "User": {
+      "user": {
         "metadata": {
           "label": "User",
           "description": "Database username"
@@ -50,7 +50,7 @@
         "optional": false,
         "advanced": false
       },
-      "Password": {
+      "password": {
         "metadata": {
           "label": "Password",
           "description": "Database user password"
@@ -61,7 +61,7 @@
         "optional": false,
         "advanced": false
       },
-      "Database": {
+      "database": {
         "metadata": {
           "label": "Database",
           "description": "Name of the database to connect"

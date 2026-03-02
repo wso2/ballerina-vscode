@@ -93,12 +93,12 @@ public class CredentialsIntrospector {
     private static final String REQUIRED_PLACEHOLDER = "?";
 
     // Argument positions in the persist Client constructor: new (host, port, user, password, database)
-    private static final String HOST_KEY = "host";
-    private static final String PORT_KEY = "port";
-    private static final String USER_KEY = "user";
-    private static final String PASSWORD_KEY = "password";
-    private static final String DATABASE_KEY = "database";
-    private static final String DATABASE_TYPE_KEY = "dbSystem";
+    protected static final String HOST_KEY = "host";
+    protected static final String PORT_KEY = "port";
+    protected static final String USER_KEY = "user";
+    protected static final String PASSWORD_KEY = "password";
+    protected static final String DATABASE_KEY = "database";
+    protected static final String DATABASE_TYPE_KEY = "dbSystem";
     private static final int ARG_IDX_HOST = 0;
     private static final int ARG_IDX_PORT = 1;
     private static final int ARG_IDX_USER = 2;
