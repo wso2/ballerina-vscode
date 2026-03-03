@@ -552,11 +552,8 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                                                 <DevantDatabaseCredentials
                                                     biConnectionNames={biConnectionNames}
                                                     existingDevantConnNames={existingDevantConnNames}
-                                                    fileName={fileName}
                                                     projectPath={projectPath}
-                                                    target={target}
                                                     onClose={onClose}
-                                                    onBack={goToPreviousStep}
                                                     setSelectedMarketplaceItem={setSelectedMarketplaceItem}
                                                     selectedMarketplaceItem={selectedMarketplaceItem}
                                                     importedConnection={importingConn}
