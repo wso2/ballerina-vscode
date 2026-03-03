@@ -100,6 +100,7 @@ export interface PlatformExtState {
     devantConns?: PlatformExtConnectionState;
 }
 
+// todo: check this is only being used in visualizer
 export enum DevantConnectionFlow {
     // Create related flows
     CREATE_INTERNAL_OAS = "CREATE_INTERNAL_OAS",
@@ -110,6 +111,9 @@ export enum DevantConnectionFlow {
     CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR = "CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR",
     REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR = "REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR",
     REGISTER_CREATE_THIRD_PARTY_FROM_OAS = "REGISTER_CREATE_THIRD_PARTY_FROM_OAS",
+    // todo: do we need same for import flows?
+    CREATE_THIRD_PARTY_PERSIST = "CREATE_THIRD_PARTY_PERSIST",
+    CREATE_DATABASE_PERSIST = "CREATE_DATABASE_PERSIST",
     // Import related flows
     IMPORT_INTERNAL_OAS = "IMPORT_INTERNAL_OAS",
     IMPORT_INTERNAL_OTHER = "IMPORT_INTERNAL_OTHER",
@@ -120,11 +124,13 @@ export enum DevantConnectionFlow {
 }
 
 export interface DevantTempConfig {
+    /** The id matching the key in devant side */
     id: string;
+    /** The unique identifier in ballerina code */
     name: string;
     value: string;
     isSecret: boolean;
     node?: ModuleVarDecl;
     description?: string;
-    type?: string;
+    type?: "string" | "int";
 }

@@ -82,6 +82,7 @@ export enum DevantConnectionFlowStep {
     INIT_CONNECTOR = "Initialize Connector",
     SELECT_OR_CREATE_BI_CONNECTOR = "Select or Create Connector",
     UPLOAD_OAS = "Upload Specification",
+    PERSIST = "Connect with Database",
 }
 
 export const DEVANT_CONNECTION_FLOWS_STEPS: Partial<Record<DevantConnectionFlow, DevantConnectionFlowStep[]>> = {
@@ -108,6 +109,12 @@ export const DEVANT_CONNECTION_FLOWS_STEPS: Partial<Record<DevantConnectionFlow,
     [DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS]: [
         DevantConnectionFlowStep.UPLOAD_OAS,
         DevantConnectionFlowStep.INIT_CONNECTOR,
+    ],
+    [DevantConnectionFlow.CREATE_THIRD_PARTY_PERSIST]: [
+        DevantConnectionFlowStep.PERSIST,
+    ],
+    [DevantConnectionFlow.CREATE_DATABASE_PERSIST]: [
+        DevantConnectionFlowStep.PERSIST,
     ],
     // Connection importing flow steps
     [DevantConnectionFlow.IMPORT_INTERNAL_OAS]: [DevantConnectionFlowStep.VIEW_SWAGGER],
