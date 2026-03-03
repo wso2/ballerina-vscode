@@ -24,6 +24,8 @@ import { Span, TraceServer } from './trace-server';
 const FADE_OUT_DELAY_MS = 3000;
 const SAFETY_TIMEOUT_MS = 5000;
 const EVENT_STAGGER_DELAY_MS = 400;
+const MAX_PENDING_TOOL_SPANS = 100;
+const PENDING_TOOL_SPAN_TTL_MS = 30_000; // 30 seconds
 
 const activeSpans = new Map<string, { timer: NodeJS.Timeout; event: TraceAnimationEvent }>();
 let unsubscribe: (() => void) | undefined;
@@ -55,7 +57,8 @@ const parentMap = new Map<string, string>();
 // AND propagated up from chat spans to their ancestors.
 const ancestorInfoMap = new Map<string, { systemInstructions: string; toolNames: string[] }>();
 // Buffered execute_tool spans waiting for their ancestor chain to be completed
-const pendingToolSpans: Array<{ span: Span; activeToolName?: string }> = [];
+const pendingToolSpans: Array<{ span: Span; activeToolName?: string; addedAt: number }> = [];
+let pendingToolSpansCleanupTimer: NodeJS.Timeout | undefined;
 
 /**
  * Walk the parentMap from a given spanId upward, looking for a hit in ancestorInfoMap.
@@ -271,6 +274,27 @@ function enqueueEvent(event: TraceAnimationEvent, span: Span) {
 }
 
 /**
+ * Remove expired and excess entries from pendingToolSpans.
+ * Called at push time, before draining, and by periodic cleanup.
+ */
+function prunePendingToolSpans() {
+    const now = Date.now();
+    // Remove TTL-expired entries (iterate backwards to splice safely)
+    for (let i = pendingToolSpans.length - 1; i >= 0; i--) {
+        if (pendingToolSpans[i].addedAt + PENDING_TOOL_SPAN_TTL_MS < now) {
+            console.log(`[TraceAnim] EVICT pending tool span=${pendingToolSpans[i].span.spanId.slice(0, 8)} (TTL expired)`);
+            pendingToolSpans.splice(i, 1);
+        }
+    }
+    // Trim to most recent MAX_PENDING_TOOL_SPANS (drop oldest from front)
+    if (pendingToolSpans.length > MAX_PENDING_TOOL_SPANS) {
+        const excess = pendingToolSpans.length - MAX_PENDING_TOOL_SPANS;
+        console.log(`[TraceAnim] TRIMMED ${excess} oldest pending tool span(s) (max=${MAX_PENDING_TOOL_SPANS})`);
+        pendingToolSpans.splice(0, excess);
+    }
+}
+
+/**
  * Try to enqueue a tool span using resolved ancestor info.
  * Returns true if successfully resolved and enqueued, false if still pending.
  */
@@ -296,6 +320,7 @@ function tryResolveAndEnqueueToolSpan(span: Span, activeToolName?: string): bool
  * Drain pending tool spans — called after parentMap or ancestorInfoMap is updated.
  */
 function drainPendingToolSpans() {
+    prunePendingToolSpans();
     for (let i = pendingToolSpans.length - 1; i >= 0; i--) {
         const { span, activeToolName } = pendingToolSpans[i];
         if (tryResolveAndEnqueueToolSpan(span, activeToolName)) {
@@ -370,7 +395,8 @@ function processSpans(spans: Span[]) {
             if (!tryResolveAndEnqueueToolSpan(span, activeToolName)) {
                 // Chain incomplete — buffer until ancestor arrives
                 console.log(`[TraceAnim] BUFFERED tool span=${span.spanId.slice(0, 8)} tool=${activeToolName ?? 'MISSING'} (waiting for ancestor)`);
-                pendingToolSpans.push({ span, activeToolName });
+                pendingToolSpans.push({ span, activeToolName, addedAt: Date.now() });
+                prunePendingToolSpans();
             }
         }
     }
@@ -382,6 +408,8 @@ function processSpans(spans: Span[]) {
 export function initTraceAnimation() {
     disposeTraceAnimation();
     unsubscribe = TraceServer.onNewSpans(processSpans);
+    // Periodic GC for idle periods where new spans never arrive to trigger draining
+    pendingToolSpansCleanupTimer = setInterval(prunePendingToolSpans, PENDING_TOOL_SPAN_TTL_MS);
 }
 
 export function disposeTraceAnimation() {
@@ -389,9 +417,10 @@ export function disposeTraceAnimation() {
         unsubscribe();
         unsubscribe = undefined;
     }
-    // Clear all active timers
-    for (const { timer } of activeSpans.values()) {
+    // Emit deactivation events for all currently active spans before cleanup
+    for (const [, { timer, event }] of activeSpans.entries()) {
         clearTimeout(timer);
+        sendAnimationEvent({ ...event, active: false });
     }
     activeSpans.clear();
     // Clear event queue
@@ -403,6 +432,11 @@ export function disposeTraceAnimation() {
     lastEventActivationTime = 0;
     lastChatSpanId = undefined;
     processedSpanIds.clear();
+    // Clear periodic pending-spans cleanup timer
+    if (pendingToolSpansCleanupTimer) {
+        clearInterval(pendingToolSpansCleanupTimer);
+        pendingToolSpansCleanupTimer = undefined;
+    }
     // Clear ancestry maps and pending buffer
     parentMap.clear();
     ancestorInfoMap.clear();
