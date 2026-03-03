@@ -66,7 +66,6 @@ const FixButton = styled.button<{ disabled?: boolean }>`
     font-size: 11px;
     font-weight: 600;
     line-height: 1;
-    letter-spacing: 0.4px;
     padding: 4px 8px;
     cursor: ${(props: { disabled?: boolean }) => (props.disabled ? "not-allowed" : "pointer")};
 `;
@@ -210,7 +209,7 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
                         <Tooltip content={disabledFixTooltip}>
                             <span>
                                 <FixButton disabled={!canFix} onClick={handleOnFix}>
-                                    FIX
+                                    Fix with BI Copilot
                                 </FixButton>
                             </span>
                         </Tooltip>
