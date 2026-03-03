@@ -21,6 +21,8 @@ import { CopilotEventHandler } from '../../utils/events';
 
 export const CURL_TOOL_NAME = "curlRequest";
 
+const CURL_REQUEST_TIMEOUT_MS = 30_000;
+
 
 export const HTTPInputSchema = z.object({
     curlCommand: z.string().describe("The curl command to execute, including the URL, method, headers, and body. For example: `curl -X POST https://api.example.com/data -H 'Content-Type: application/json' -d '{\"key\":\"value\"}'`"),
@@ -90,6 +92,7 @@ function parseCurl(curl: string): {
 	const cleanCurl = curl.replace(/\\\s*\n/g, ' ').trim();
 	
 	let method = 'GET';
+	let methodExplicitlySet = false;
 	let url = '';
 	const headers: Record<string, string> = {};
 	let body = '';
@@ -107,6 +110,7 @@ function parseCurl(curl: string): {
 		if (token === '-X' || token === '--request') {
 			if (i + 1 < tokens.length) {
 				method = tokens[i + 1];
+				methodExplicitlySet = true;
 				i++;
 			}
 		} else if (token === '-H' || token === '--header') {
@@ -153,6 +157,11 @@ function parseCurl(curl: string): {
 		}
 	}
 	
+	// curl defaults to POST when a body is supplied and no method is explicitly set
+	if (body && !methodExplicitlySet) {
+		method = 'POST';
+	}
+
 	return { method, url, headers, data };
 }
 
@@ -212,7 +221,6 @@ function tokenizeCurl(curl: string): string[] {
 
 export const executeCurlRequest = async (input: HTTPInput, eventHandler: CopilotEventHandler, context?: { toolCallId?: string }): Promise<HTTPResponse | HTTPErrorResponse> => {
 	const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
-    console.log(`Executing HTTP request: input:`, input);
     const parsedRequest = parseCurl(input.curlCommand);
     try {
 		eventHandler({
@@ -221,7 +229,7 @@ export const executeCurlRequest = async (input: HTTPInput, eventHandler: Copilot
             toolInput: { request: parsedRequest, scenario: input.testScenario },
             toolCallId
         });
-        const response = await axios.request(parsedRequest);
+        const response = await axios.request({ ...parsedRequest, timeout: CURL_REQUEST_TIMEOUT_MS });
         console.log("HTTP request successful:", response);
 		const requestOutput = createSuccessResponse(response);
 		const toolOutput = { request: parsedRequest, scenario: input.testScenario, output: requestOutput };

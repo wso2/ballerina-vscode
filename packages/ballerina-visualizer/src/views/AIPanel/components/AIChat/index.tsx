@@ -476,9 +476,9 @@ const AIChat: React.FC = () => {
             } else if (response.toolName === "curlRequest") {
                 const toolCallId = response?.toolCallId;
                 const toolInput = response.toolInput;
-                let tool_content = "Sending HTTP request...";
+                let tool_content = encodeURIComponent(JSON.stringify({ request: { method: "", url: "Sending HTTP request...", headers: {}, data: null } }));
                 try{
-                    tool_content = JSON.stringify(toolInput, null, 2);
+                    tool_content = encodeURIComponent(JSON.stringify(toolInput));
                 }catch(error){
                     console.error("Failed to stringify HTTP request tool input:", error);
                 }
@@ -656,19 +656,27 @@ const AIChat: React.FC = () => {
             } else if (response.toolName === "curlRequest") {
                 const toolCallId = response.toolCallId;
                 const toolOutput = response.toolOutput;
-                let tool_content = "<error>Agent failed to execute the HTTP request.</error>";
+                let tool_content: string | null = null;
                 try {
-                    tool_content = JSON.stringify(toolOutput, null, 2);
+                    tool_content = encodeURIComponent(JSON.stringify(toolOutput));
                 } catch (error) {
                     console.error("Failed to stringify HTTP request tool output:", error);
                 }
 
-                updateLastMessage((content) =>
-                    content.replace(
-                        new RegExp(`<tryitcall id="${toolCallId}">[\\s\\S]*?</tryitcall>`),
-                        `<tryitresult id="${toolCallId}">${tool_content}</tryitresult>`
-                    )
-                );
+                if (tool_content !== null) {
+                    const searchPattern = `<tryitcall id="${toolCallId}">`;
+                    updateLastMessage((content) => {
+                        const start = content.indexOf(searchPattern);
+                        if (start === -1) return content;
+                        const end = content.indexOf("</tryitcall>", start);
+                        if (end === -1) return content;
+                        return (
+                            content.slice(0, start) +
+                            `<tryitresult id="${toolCallId}">${tool_content}</tryitresult>` +
+                            content.slice(end + "</tryitcall>".length)
+                        );
+                    });
+                }
             }
         } else if (type === "task_approval_request") {
             if (response.approvalType === "plan") {
