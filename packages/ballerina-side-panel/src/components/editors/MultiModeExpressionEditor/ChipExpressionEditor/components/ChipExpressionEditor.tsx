@@ -397,7 +397,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             return;
         }
         const updateEditorState = async () => {
-            const sanitizedValue = props.sanitizedExpression ? props.sanitizedExpression(serializedValue) : serializedValue;
+            const sanitizedValue = serializedValue;
             const currentDoc = viewRef.current!.state.doc.toString();
             const isExternalUpdate = sanitizedValue !== currentDoc;
 
@@ -444,7 +444,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     // Trigger token update when sanitization mode changes
     useEffect(() => {
         setIsTokenUpdateScheduled(true);
-    }, [Boolean(props.sanitizedExpression), Boolean(props.rawExpression)]);
+    }, [Boolean(props.rawExpression)]);
 
     // Update editor editable state when disabled prop changes
     useEffect(() => {
