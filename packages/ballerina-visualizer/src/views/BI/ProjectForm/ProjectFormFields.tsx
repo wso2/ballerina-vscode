@@ -38,10 +38,18 @@ export interface ProjectFormFieldsProps {
     onFormDataChange: (data: Partial<ProjectFormData>) => void;
     integrationNameError?: string;
     pathError?: string;
+    projectNameError?: string;
     packageNameValidationError?: string;
 }
 
-export function ProjectFormFields({ formData, onFormDataChange, integrationNameError, pathError, packageNameValidationError }: ProjectFormFieldsProps) {
+export function ProjectFormFields({
+    formData,
+    onFormDataChange,
+    integrationNameError,
+    pathError,
+    projectNameError,
+    packageNameValidationError,
+}: ProjectFormFieldsProps) {
     const { rpcClient } = useRpcContext();
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
@@ -208,6 +216,7 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
                                 label="Project Name"
                                 placeholder="Enter project name"
                                 required={true}
+                                errorMsg={projectNameError || ""}
                             />
                         </FieldGroup>
                     )}
