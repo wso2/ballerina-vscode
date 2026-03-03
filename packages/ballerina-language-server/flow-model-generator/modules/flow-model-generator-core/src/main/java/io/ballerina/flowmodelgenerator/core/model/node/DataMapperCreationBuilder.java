@@ -220,7 +220,7 @@ public class DataMapperCreationBuilder extends NodeBuilder {
                 .name(property.get().value().toString())
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
 
-        Optional<Property> parameters = sourceBuilder.getProperty(Property.PARAMETERS_KEY);
+        Optional<Property> parameters = sourceBuilder.flowNode.getProperty(Property.PARAMETERS_KEY);
         if (parameters.isPresent() && parameters.get().value() instanceof Map<?, ?> paramMap) {
             List<String> argsList = new ArrayList<>();
             for (Object obj : paramMap.values()) {

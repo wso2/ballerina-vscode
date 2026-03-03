@@ -254,7 +254,8 @@ public class DataMapManager {
                 refOutputPort = getRefMappingPort(parentName, parentName, parentRefType, new HashMap<>(), references);
                 setModuleInfo(parentTypeSymbol, refOutputPort);
 
-                MappingPort convertedVariablePort = getRefMappingPort(name, name, refType, new HashMap<>(), references);
+                MappingPort convertedVariablePort = getRefMappingPort(name, name + "Converted", refType,
+                        new HashMap<>(), references);
                 convertedVariablePort.category = "converted-variable";
                 refOutputPort.convertedVariable = convertedVariablePort;
                 setModuleInfo(targetTypeSymbol, convertedVariablePort);
@@ -265,7 +266,6 @@ public class DataMapManager {
         } catch (UnsupportedOperationException e) {
             return null;
         }
-
 
         MatchingNode matchingNode = targetNode.matchingNode();
         Query query = null;
