@@ -47,6 +47,7 @@ export function AddProjectForm() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [pathValidationError, setPathValidationError] = useState<string | null>(null);
     const [packageNameValidationError, setPackageNameValidationError] = useState<string | null>(null);
+    const [projectNameValidationError, setProjectNameValidationError] = useState<string | null>(null);
     const resourceTypeLabel = formData.isLibrary ? "Library" : "Integration";
 
     const handleFormDataChange = (data: Partial<AddProjectFormData>) => {
@@ -57,6 +58,9 @@ export function AddProjectForm() {
         }
         if (packageNameValidationError) {
             setPackageNameValidationError(null);
+        }
+        if (projectNameValidationError) {
+            setProjectNameValidationError(null);
         }
     };
 
@@ -74,6 +78,7 @@ export function AddProjectForm() {
         setIsLoading(true);
         setPathValidationError(null);
         setPackageNameValidationError(null);
+        setProjectNameValidationError(null);
 
         try {
             // Validate the project path
@@ -92,7 +97,15 @@ export function AddProjectForm() {
                 if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
                     setPathValidationError(validationResult.errorMessage || `Invalid ${resourceTypeLabel.toLowerCase()} path`);
                 } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
-                    setPackageNameValidationError(validationResult.errorMessage || `Invalid ${resourceTypeLabel.toLowerCase()} name`);
+                    if (isInProject) {
+                        setPackageNameValidationError(
+                            validationResult.errorMessage || `Invalid ${resourceTypeLabel.toLowerCase()} name`
+                        );
+                    } else {
+                        setProjectNameValidationError(
+                            validationResult.errorMessage || "Invalid project name"
+                        );
+                    }
                 }
                 setIsLoading(false);
                 return;
@@ -139,6 +152,7 @@ export function AddProjectForm() {
                         onFormDataChange={handleFormDataChange}
                         isInProject={isInProject}
                         packageNameValidationError={packageNameValidationError || undefined}
+                        projectNameValidationError={projectNameValidationError || undefined}
                     />
                 </ScrollableContent>
 

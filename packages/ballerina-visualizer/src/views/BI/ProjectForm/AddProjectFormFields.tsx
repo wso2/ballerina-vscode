@@ -36,13 +36,15 @@ export interface AddProjectFormFieldsProps {
     onFormDataChange: (data: Partial<AddProjectFormData>) => void;
     isInProject: boolean;
     packageNameValidationError?: string;
+    projectNameValidationError?: string;
 }
 
 export function AddProjectFormFields({ 
     formData, 
     onFormDataChange,
     isInProject,
-    packageNameValidationError
+    packageNameValidationError,
+    projectNameValidationError
 }: AddProjectFormFieldsProps) {
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
@@ -92,6 +94,7 @@ export function AddProjectFormFields({
                         placeholder="Enter project name"
                         autoFocus={true}
                         required={true}
+                        errorMsg={projectNameValidationError || ""}
                     />
                 </ProjectSection>
             )}
