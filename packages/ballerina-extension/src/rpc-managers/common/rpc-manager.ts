@@ -657,7 +657,8 @@ export class CommonRpcManager implements CommonRPCAPI {
 
     private upsertTomlField(section: string, fieldName: string, fieldValue: string): string {
         const escapedValue = fieldValue.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-        const fieldRegex = new RegExp(`^\\s*${fieldName}\\s*=\\s*.*$`, 'm');
+        const escapedFieldName = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const fieldRegex = new RegExp(`^\\s*${escapedFieldName}\\s*=\\s*.*$`, 'm');
         const fieldLine = `${fieldName} = "${escapedValue}"`;
 
         if (fieldRegex.test(section)) {

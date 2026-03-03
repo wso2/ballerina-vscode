@@ -295,7 +295,11 @@ export async function getPublishDescriptionInfo(projectPath: string): Promise<Pu
 
     const hasReadyDescription = [readmeContent, packageContent].some((content) => hasNonEmptyContent(content));
     if (hasReadyDescription) {
-        const activeDocPath = readmePath ?? packagePath ?? path.join(projectPath, README_FILE);
+        const activeDocPath = hasNonEmptyContent(readmeContent) && readmePath
+            ? readmePath
+            : hasNonEmptyContent(packageContent) && packagePath
+                ? packagePath
+                : path.join(projectPath, README_FILE);
         return {
             status: 'ready',
             activeDocPath,
