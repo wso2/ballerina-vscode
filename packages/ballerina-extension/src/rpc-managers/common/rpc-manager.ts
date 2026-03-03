@@ -524,7 +524,7 @@ export class CommonRpcManager implements CommonRPCAPI {
             }
 
             if (selectedAction === 'Open Description File') {
-                openPublishDescriptionInEditor(descriptionInfo);
+                await openPublishDescriptionInEditor(descriptionInfo);
                 continue;
             }
 

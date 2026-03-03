@@ -365,24 +365,27 @@ export async function handlePublishDescriptionSetup(
     if (descriptionInfo.status === 'missing') {
         const content = `# ${projectName} ${artifactType}\n\nAdd your ${artifactType} description here.`;
         await readOrWriteReadmeContent({ projectPath, content, read: false });
-        openDescriptionInEditor(path.join(projectPath, README_FILE));
+        await openDescriptionInEditor(path.join(projectPath, README_FILE));
         return true;
     }
     if (descriptionInfo.status === 'empty') {
-        openDescriptionInEditor(descriptionInfo.activeDocPath);
+        await openDescriptionInEditor(descriptionInfo.activeDocPath);
         return true;
     }
     return false;
 }
 
-export function openPublishDescriptionInEditor(descriptionInfo: PublishDescriptionInfo): void {
-    openDescriptionInEditor(descriptionInfo.activeDocPath);
+export async function openPublishDescriptionInEditor(descriptionInfo: PublishDescriptionInfo): Promise<void> {
+    await openDescriptionInEditor(descriptionInfo.activeDocPath);
 }
 
-function openDescriptionInEditor(docPath: string): void {
-    workspace.openTextDocument(docPath).then((doc) => {
-        window.showTextDocument(doc, ViewColumn.Beside);
-    });
+async function openDescriptionInEditor(docPath: string): Promise<void> {
+    try {
+        const doc = await workspace.openTextDocument(docPath);
+        await window.showTextDocument(doc, ViewColumn.Beside);
+    } catch (error) {
+        window.showErrorMessage(`Failed to open description file "${docPath}": ${error}`);
+    }
 }
 
 export function getFirstBalaPath(projectPath: string): string | null {
