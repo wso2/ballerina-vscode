@@ -83,7 +83,7 @@ const TryItScenariosSegment: React.FC<TryItScenariosSegmentProps> = ({ text, loa
             if (match[1]) {
                 // <call> block matched
                 try {
-                    const input: HTTPToolEventInput = JSON.parse(match[1]);
+                    const input: HTTPToolEventInput = JSON.parse(decodeURIComponent(match[1]));
                     const testCase: TestCase = {
                         isResult: false,
                         request: input.request,
@@ -102,7 +102,7 @@ const TryItScenariosSegment: React.FC<TryItScenariosSegmentProps> = ({ text, loa
             } else if (match[2]) {
                 // <result> block matched
                 try {
-                    const output: HTTPToolEventOutput = JSON.parse(match[2]);
+                    const output: HTTPToolEventOutput = JSON.parse(decodeURIComponent(match[2]));
                     const testCase: TestCase = {
                         isResult: true,
                         request: output.request,
