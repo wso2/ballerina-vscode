@@ -63,7 +63,7 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
     }
 
     // use custom icon for ai module
-    if ((url?.includes("ballerinax_ai_") || url?.includes("ballerina_ai")) && !(codedata.node === "AGENT_CALL" || codedata.node === "AGENT_RUN")) {
+    if ((url?.includes("ballerinax_ai_") || url?.includes("ballerina_ai")) && codedata && !(codedata.node === "AGENT_CALL" || codedata.node === "AGENT_RUN")) {
         return <Icon name="bi-ai-model" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
