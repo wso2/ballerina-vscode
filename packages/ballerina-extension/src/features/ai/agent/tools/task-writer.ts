@@ -162,15 +162,17 @@ Rules:
                         approvalType = "plan";
                         approvalResult = await handlePlanApproval(allTasks, eventHandler, workspaceId, generationId, threadId);
                     } else if (input.requestReview === true) {
-                        // Agent-decided review checkpoint — integrate code then ask user before continuing
-                        approvalType = "completion";
-                        approvalResult = await handleTaskCompletion(
-                            allTasks,
-                            taskCategories.completed,
-                            eventHandler,
-                            tempProjectPath,
-                            modifiedFiles
-                        );
+                        // TODO: Re-enable approval gate (handleTaskCompletion) when review flow is ready
+                        // Skip review gate — mark as completed and continue autonomously
+                        eventHandler({
+                            type: "tool_result",
+                            toolName: TASK_WRITE_TOOL_NAME,
+                            toolOutput: {
+                                success: true,
+                                message: `Completed: ${taskCategories.completed[taskCategories.completed.length - 1]?.description ?? "tasks"}`,
+                                tasks: allTasks
+                            }
+                        });
                     } else if (taskCategories.inProgress.length > 0) {
                         // Task started — emit progress event, no user gate
                         console.log(`[TaskWrite Tool] Task in progress: ${taskCategories.inProgress[0].description}`);
@@ -270,9 +272,6 @@ async function handlePlanApproval(
 
     // Store plan in ChatStateStorage with the generation
     chatStateStorage.updateGeneration(workspaceId, threadId, generationId, { plan });
-
-    // Notify visualizer of plan update
-    eventHandler({ type: 'plan_updated', plan });
 
     // Use ApprovalManager for plan approval (replaces state machine subscription)
     const requestId = `plan-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
