@@ -143,9 +143,11 @@ public class DiagnosticRequest implements Callable<JsonElement> {
                 List<String> textEditLines = edit.getNewText().lines().toList();
                 String textLine = textEditLines.getLast();
                 int numTextEdits = textEditLines.size();
-                int lineOffset =
-                        Boolean.TRUE.equals(flowNodeObj.codedata().isNew()) && numTextEdits > 1 ? numTextEdits - 1 : 0;
-                endLinePosition = LinePosition.from(endLine + lineOffset,
+                // For multi-line new text, the end line in the updated document is always
+                // startLine + (numNewLines - 1), regardless of the original edit range's endLine.
+                // This handles existing nodes that get replaced by content with a different line count.
+                int endLineForRange = numTextEdits > 1 ? startLine + numTextEdits - 1 : endLine;
+                endLinePosition = LinePosition.from(endLineForRange,
                         numTextEdits > 1 ? textLine.length() : startCharacter + textLine.length());
             }
         }
