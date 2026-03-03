@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -20,6 +20,7 @@ import { keyframes } from "@emotion/css";
 import styled from "@emotion/styled";
 import React, { useState } from "react";
 import TestCaseDetails from "./TestCaseDetails";
+import { HTTPErrorResponse, HTTPResponse, ParsedHTTPRequest, TestCase } from "./types";
 
 const spin = keyframes`
     from { transform: rotate(0deg); }
@@ -141,32 +142,7 @@ const ActionButton = styled.button`
     }
 `;
 
-export type ParsedHTTPRequest = {
-    method: string;
-    url: string;
-    headers: Record<string, string>;
-    data: unknown;
-};
-
-export type TestCase = {
-    isResult: boolean;
-    request: ParsedHTTPRequest;
-    output?: HTTPResponse | HTTPErrorResponse;
-};
-
-type HTTPResponse = {
-    data: unknown;
-    status: number;
-    statusText: string;
-    headers: Record<string, string>;
-};
-
-type HTTPErrorResponse = {
-    error: true;
-    message: string;
-    code?: string;
-    response?: HTTPResponse;
-};
+export type { ParsedHTTPRequest, TestCase, HTTPResponse, HTTPErrorResponse } from "./types";
 
 const getStatusCode = (output: HTTPResponse | HTTPErrorResponse): number | undefined => {
     if ("error" in output && output.error) {
