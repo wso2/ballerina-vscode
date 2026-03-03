@@ -19,7 +19,7 @@ import { z } from 'zod';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import { CopilotEventHandler } from '../../utils/events';
 
-export const HTTP_REQUEST_TOOL_NAME = "Send-HTTP-request";
+export const CURL_TOOL_NAME = "curlRequest";
 
 
 export const HTTPInputSchema = z.object({
@@ -68,11 +68,11 @@ function createErrorResponse(error: AxiosError): HTTPErrorResponse {
     };
 }
 
-export function createHttpRequestTool(eventHandler: CopilotEventHandler) {
+export function createCurlTool(eventHandler: CopilotEventHandler) {
     return tool({
         description: `A tool to make requests to a given API endpoint. Provide the endpoint URL and request details to get a response. Use this tool for testing and debugging HTTP endpoints.`,
         inputSchema: HTTPInputSchema,
-        execute: async (input): Promise<HTTPResponse | HTTPErrorResponse> => await executeHttpRequest(input, eventHandler)
+        execute: async (input): Promise<HTTPResponse | HTTPErrorResponse> => await executeCurlRequest(input, eventHandler)
     });
 }
 
@@ -210,14 +210,14 @@ function tokenizeCurl(curl: string): string[] {
 	return tokens;
 }
 
-export const executeHttpRequest = async (input: HTTPInput, eventHandler: CopilotEventHandler, context?: { toolCallId?: string }): Promise<HTTPResponse | HTTPErrorResponse> => {
+export const executeCurlRequest = async (input: HTTPInput, eventHandler: CopilotEventHandler, context?: { toolCallId?: string }): Promise<HTTPResponse | HTTPErrorResponse> => {
 	const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
     console.log(`Executing HTTP request: input:`, input);
     const parsedRequest = parseCurl(input.curlCommand);
     try {
 		eventHandler({
             type: "tool_call",
-            toolName: HTTP_REQUEST_TOOL_NAME,
+            toolName: CURL_TOOL_NAME,
             toolInput: { request: parsedRequest, scenario: input.testScenario },
             toolCallId
         });
@@ -227,7 +227,7 @@ export const executeHttpRequest = async (input: HTTPInput, eventHandler: Copilot
 		const toolOutput = { request: parsedRequest, scenario: input.testScenario, output: requestOutput };
 		eventHandler({
             type: "tool_result",
-            toolName: HTTP_REQUEST_TOOL_NAME,
+            toolName: CURL_TOOL_NAME,
             toolOutput: toolOutput,
             toolCallId
         });
@@ -239,7 +239,7 @@ export const executeHttpRequest = async (input: HTTPInput, eventHandler: Copilot
             const toolOutput = { request: parsedRequest, scenario: input.testScenario, output: errorOutput };
             eventHandler({
                 type: "tool_result",
-                toolName: HTTP_REQUEST_TOOL_NAME,
+                toolName: CURL_TOOL_NAME,
                 toolOutput: toolOutput,
                 toolCallId
             });
@@ -252,7 +252,7 @@ export const executeHttpRequest = async (input: HTTPInput, eventHandler: Copilot
         const toolOutput = { request: parsedRequest, scenario: input.testScenario, output: genericErrorOutput };
         eventHandler({
             type: "tool_result",
-            toolName: HTTP_REQUEST_TOOL_NAME,
+            toolName: CURL_TOOL_NAME,
             toolOutput: toolOutput,
             toolCallId
         });

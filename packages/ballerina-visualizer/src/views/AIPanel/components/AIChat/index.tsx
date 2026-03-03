@@ -473,7 +473,7 @@ const AIChat: React.FC = () => {
                 updateLastMessage((content) =>
                     content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`
                 );
-            } else if (response.toolName === "Send-HTTP-request") {
+            } else if (response.toolName === "curlRequest") {
                 const toolCallId = response?.toolCallId;
                 const toolInput = response.toolInput;
                 let tool_content = "Sending HTTP request...";
@@ -653,7 +653,7 @@ const AIChat: React.FC = () => {
                     const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
                     updateLastMessage((content) => content.replace(searchPattern, replacement));
                 }
-            } else if (response.toolName === "Send-HTTP-request") {
+            } else if (response.toolName === "curlRequest") {
                 const toolCallId = response.toolCallId;
                 const toolOutput = response.toolOutput;
                 let tool_content = "<error>Agent failed to execute the HTTP request.</error>";
