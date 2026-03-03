@@ -44,6 +44,7 @@ import { AIChatInputRef } from "../AIChatInput";
 import ProgressTextSegment from "../ProgressTextSegment";
 import ToolCallSegment from "../ToolCallSegment";
 import ToolCallGroupSegment, { ToolCallItem } from "../ToolCallGroupSegment";
+import TryItScenariosSegment from "../TryItScenariosSegment";
 import TodoSection from "../TodoSection";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
@@ -51,7 +52,7 @@ import RoleContainer from "../RoleContainter";
 import CheckpointSeparator from "../CheckpointSeparator";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 
-import { AIChatView, Header, HeaderButtons, ChatMessage, Badge, ApprovalOverlay, OverlayMessage } from "../../styles";
+import { AIChatView, Header, HeaderButtons, ChatMessage, Badge, ResetsInBadge, ApprovalOverlay, OverlayMessage } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import MarkdownRenderer from "../MarkdownRenderer";
@@ -88,6 +89,8 @@ const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the docume
 
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS = "Generate code based on the following requirements: ";
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED = GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS.trim();
+
+const USAGE_EXCEEDED_THRESHOLD_PERCENT = 3;
 
 /**
  * Formats a file path into a user-friendly display name
@@ -155,6 +158,9 @@ const AIChat: React.FC = () => {
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
+
+    const [usage, setUsage] = useState<{ remainingUsagePercentage: number; resetsIn: number } | null>(null);
+    const [isUsageExceeded, setIsUsageExceeded] = useState(false);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -225,6 +231,46 @@ const AIChat: React.FC = () => {
         incrementOnboardingOpens();
     }, []);
     /* REFACTORED CODE END [2] */
+
+    const formatResetsIn = (seconds: number): string => {
+        const days = Math.floor(seconds / 86400);
+        if (days >= 1) return `${days} day${days > 1 ? 's' : ''}`;
+        const hours = Math.floor(seconds / 3600);
+        if (hours >= 1) return `${hours} hour${hours > 1 ? 's' : ''}`;
+        const mins = Math.floor(seconds / 60);
+        return `${mins} min${mins > 1 ? 's' : ''}`;
+    };
+
+    const formatResetsInExact = (seconds: number): string => {
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const parts: string[] = [];
+        if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+        if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+        if (mins > 0) parts.push(`${mins} minute${mins > 1 ? 's' : ''}`);
+        return parts.length > 0 ? parts.join(', ') : 'less than a minute';
+    };
+
+    const fetchUsage = async () => {
+        try {
+            const result = await rpcClient.getAiPanelRpcClient().getUsage();
+            if (result) {
+                setUsage(result);
+                setIsUsageExceeded(result.resetsIn !== -1 && result.remainingUsagePercentage < USAGE_EXCEEDED_THRESHOLD_PERCENT);
+            } else {
+                setUsage(null);
+                setIsUsageExceeded(false);
+            }
+        } catch (e) {
+            console.error("Failed to fetch usage:", e);
+            // Reset on error to avoid permanently blocking the user on transient failures
+            setUsage(null);
+            setIsUsageExceeded(false);
+        }
+    };
+
+    useEffect(() => { fetchUsage(); }, []);
 
     const handleCheckpointRestore = async (checkpointId: string) => {
         try {
@@ -427,6 +473,19 @@ const AIChat: React.FC = () => {
                 updateLastMessage((content) =>
                     content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`
                 );
+            } else if (response.toolName === "curlRequest") {
+                const toolCallId = response?.toolCallId;
+                const toolInput = response.toolInput;
+                let tool_content = encodeURIComponent(JSON.stringify({ request: { method: "", url: "Sending HTTP request...", headers: {}, data: null } }));
+                try{
+                    tool_content = encodeURIComponent(JSON.stringify(toolInput));
+                }catch(error){
+                    console.error("Failed to stringify HTTP request tool input:", error);
+                }
+
+                updateLastMessage((content) =>
+                    content + `\n\n<tryitcall id="${toolCallId}">${tool_content}</tryitcall>`
+                );
             } else if (response.toolName === "runBallerinaPackage") {
                 const toolCallId = response?.toolCallId;
                 const runType = response.toolInput?.runType === "service" ? "service" : "program";
@@ -442,11 +501,6 @@ const AIChat: React.FC = () => {
                 const toolCallId = response?.toolCallId;
                 updateLastMessage((content) =>
                     content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Stopping service...</toolcall>`
-                );
-            } else if (response.toolName === "curlRequest") {
-                const toolCallId = response?.toolCallId;
-                updateLastMessage((content) =>
-                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Running curl...</toolcall>`
                 );
             }
         } else if (type === "tool_result") {
@@ -615,6 +669,30 @@ const AIChat: React.FC = () => {
                     const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
                     updateLastMessage((content) => content.replace(searchPattern, replacement));
                 }
+            } else if (response.toolName === "curlRequest") {
+                const toolCallId = response.toolCallId;
+                const toolOutput = response.toolOutput;
+                let tool_content: string | null = null;
+                try {
+                    tool_content = encodeURIComponent(JSON.stringify(toolOutput));
+                } catch (error) {
+                    console.error("Failed to stringify HTTP request tool output:", error);
+                }
+
+                if (tool_content !== null) {
+                    const searchPattern = `<tryitcall id="${toolCallId}">`;
+                    updateLastMessage((content) => {
+                        const start = content.indexOf(searchPattern);
+                        if (start === -1) return content;
+                        const end = content.indexOf("</tryitcall>", start);
+                        if (end === -1) return content;
+                        return (
+                            content.slice(0, start) +
+                            `<tryitresult id="${toolCallId}">${tool_content}</tryitresult>` +
+                            content.slice(end + "</tryitcall>".length)
+                        );
+                    });
+                }
             } else if (response.toolName === "runBallerinaPackage") {
                 const toolCallId = response.toolCallId;
                 if (toolCallId) {
@@ -646,19 +724,6 @@ const AIChat: React.FC = () => {
                     const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Stopping service...</toolcall>`;
                     const status = response.toolOutput?.status ?? "stopped";
                     const resultMessage = status === "stopped" ? "Service stopped" : status === "already_exited" ? "Service already exited" : "Service not found";
-                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
-                    updateLastMessage((content) => content.replace(searchPattern, replacement));
-                }
-            } else if (response.toolName === "curlRequest") {
-                const toolCallId = response.toolCallId;
-                if (toolCallId) {
-                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Running curl...</toolcall>`;
-                    const status = response.toolOutput?.status ?? "completed";
-                    const resultMessage = status === "completed"
-                        ? "Curl request completed"
-                        : status === "timeout"
-                            ? "Curl request timed out"
-                            : "Curl request failed";
                     const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
                     updateLastMessage((content) => content.replace(searchPattern, replacement));
                 }
@@ -798,6 +863,7 @@ const AIChat: React.FC = () => {
             console.log("Received stop signal");
             setIsCodeLoading(false);
             setIsLoading(false);
+            fetchUsage();
         } else if (type === "abort") {
             console.log("Received abort signal");
             const interruptedMessage = "\n\n*[Request interrupted by user]*";
@@ -1475,9 +1541,19 @@ const AIChat: React.FC = () => {
                     )}
                     <Header>
                         <Badge>
-                            Remaining Free Usage: {"Unlimited"}
-                            <br />
-                            {/* <ResetsInBadge>{`Resets in: 30 days`}</ResetsInBadge> */}
+                            {usage ? (
+                                <>
+                                    Remaining Usage: {usage.resetsIn === -1 ? "Unlimited" : (isUsageExceeded ? "Exceeded" : `${Math.round(usage.remainingUsagePercentage)}%`)}
+                                    {usage.resetsIn !== -1 && (
+                                        <>
+                                            <br />
+                                            <ResetsInBadge title={formatResetsInExact(usage.resetsIn)}>{`Resets in: ${formatResetsIn(usage.resetsIn)}`}</ResetsInBadge>
+                                        </>
+                                    )}
+                                </>
+                            ) : (
+                                "Remaining Usage: N/A"
+                            )}
                         </Badge>
                         <HeaderButtons>
                             <Button
@@ -1694,6 +1770,14 @@ const AIChat: React.FC = () => {
                                                     segments={groupItems}
                                                 />
                                             );
+                                        } else if (segment.type === SegmentType.TryItScenarios) {
+                                            return (
+                                                <TryItScenariosSegment
+                                                    key={`try-it-scenarios-${i}`}
+                                                    text={segment.text}
+                                                    loading={segment.loading}
+                                                />
+                                            );
                                         } else if (segment.type === SegmentType.Todo) {
                                             const isLastMessage = index === otherMessages.length - 1;
                                             return (
@@ -1852,6 +1936,7 @@ const AIChat: React.FC = () => {
                             onChangeAgentMode={isPlanModeFeatureEnabled ? handleChangeAgentMode : undefined}
                             isAutoApproveEnabled={isAutoApproveEnabled}
                             onDisableAutoApprove={handleToggleAutoApprove}
+                            disabled={isUsageExceeded}
                         />
                     )}
                 </AIChatView>
