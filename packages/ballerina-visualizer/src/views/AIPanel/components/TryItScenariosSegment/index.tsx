@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -19,7 +19,8 @@
 import { keyframes } from "@emotion/css";
 import styled from "@emotion/styled";
 import React, { useEffect, useState } from "react";
-import TestCaseContainer, { ParsedHTTPRequest, TestCase } from "./TestCaseContainer";
+import TestCaseContainer from "./TestCaseContainer";
+import { HTTPErrorResponse, HTTPResponse, HTTPToolEventInput, HTTPToolEventOutput, TestCase } from "./types";
 
 const loadingProgress = keyframes`
     0% { width: 0%; }
@@ -67,29 +68,7 @@ interface TryItScenariosSegmentProps {
     loading: boolean;
 }
 
-type HTTPResponse = {
-    data: unknown;
-    status: number;
-    statusText: string;
-    headers: Record<string, string>;
-};
-type HTTPErrorResponse = {
-    error: true;
-    message: string;
-    code?: string;
-    response?: HTTPResponse;
-};
-
-export type HTTPToolEventInput = {
-    request: ParsedHTTPRequest;
-    scenario?: string;
-};
-
-export type HTTPToolEventOutput = {
-    request: ParsedHTTPRequest;
-    scenario?: string;
-    output: HTTPResponse | HTTPErrorResponse;
-};
+export type { HTTPToolEventInput, HTTPToolEventOutput } from "./types";
 
 const TryItScenariosSegment: React.FC<TryItScenariosSegmentProps> = ({ text, loading }) => {
     const [scenarioCases, setScenarioCases] = useState<Map<string, TestCase[]>>(new Map());
