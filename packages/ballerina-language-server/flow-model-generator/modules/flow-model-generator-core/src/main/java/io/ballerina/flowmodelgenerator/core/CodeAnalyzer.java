@@ -1858,7 +1858,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     .value(CommonUtils.getVariableName(assignmentStatementNode.varRef()))
                     .editable()
                     .stepOut()
-                    .addProperty(Property.VARIABLE_KEY);
+                    .addProperty(Property.VARIABLE_KEY, assignmentStatementNode.varRef());
         } else if (nodeBuilder instanceof AgentBuilder) {
             // If an agent node was identified, set the variable property on it
             String variableName = CommonUtils.getVariableName(assignmentStatementNode.varRef());
