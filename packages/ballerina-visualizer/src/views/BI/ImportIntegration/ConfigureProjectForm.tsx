@@ -52,6 +52,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
     const [folderNameError, setFolderNameError] = useState<string | null>(null);
     const [singleIntegrationNameError, setSingleIntegrationNameError] = useState<string | null>(null);
     const [singleIntegrationPathError, setSingleIntegrationPathError] = useState<string | null>(null);
+    const [projectNameError, setProjectNameError] = useState<string | null>(null);
     const [singleIntegrationPackageNameError, setSingleIntegrationPackageNameError] = useState<string | null>(null);
     const selectedResourceTypeLabel = singleIntegrationData.isLibrary ? "Library" : "Integration";
 
@@ -63,6 +64,9 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
         }
         if (singleIntegrationPathError) {
             setSingleIntegrationPathError(null);
+        }
+        if (projectNameError) {
+            setProjectNameError(null);
         }
         if (singleIntegrationPackageNameError) {
             setSingleIntegrationPackageNameError(null);
@@ -84,6 +88,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
         setIsValidating(true);
         setSingleIntegrationNameError(null);
         setSingleIntegrationPathError(null);
+        setProjectNameError(null);
         setSingleIntegrationPackageNameError(null);
 
         // Validate required fields first
@@ -138,7 +143,9 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                     }
                 } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
                     if (singleIntegrationData.createAsWorkspace) {
-                        setSingleIntegrationPathError(validationResult.errorMessage || "Invalid project name");
+                        setProjectNameError(
+                            validationResult.errorMessage || "Invalid project name"
+                        );
                     } else {
                         setSingleIntegrationPackageNameError(
                             validationResult.errorMessage || `Invalid ${selectedResourceTypeLabel.toLowerCase()} name`
@@ -159,6 +166,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                 workspaceName: singleIntegrationData.workspaceName,
                 orgName: singleIntegrationData.orgName || undefined,
                 version: singleIntegrationData.version || undefined,
+                isLibrary: singleIntegrationData.isLibrary,
             });
         } catch (error) {
             setSingleIntegrationPathError("An error occurred during validation");
@@ -263,6 +271,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                         onFormDataChange={handleSingleProjectFormChange}
                         integrationNameError={singleIntegrationNameError || undefined}
                         pathError={singleIntegrationPathError || undefined}
+                        projectNameError={projectNameError || undefined}
                         packageNameValidationError={singleIntegrationPackageNameError || undefined}
                     />
 
