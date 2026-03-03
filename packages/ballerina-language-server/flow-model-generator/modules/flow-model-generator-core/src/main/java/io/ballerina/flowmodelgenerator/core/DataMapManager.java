@@ -267,7 +267,6 @@ public class DataMapManager {
             return null;
         }
 
-
         MatchingNode matchingNode = targetNode.matchingNode();
         Query query = null;
         List<MappingPort> inputPorts;
