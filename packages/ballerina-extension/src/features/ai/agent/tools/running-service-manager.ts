@@ -47,6 +47,7 @@ export function createProcessTerminal(
     const proc = child_process.spawn(command, args, {
         cwd,
         shell: true,
+        detached: true,
         stdio: ['pipe', 'pipe', 'pipe'],
     });
 
@@ -63,6 +64,13 @@ export function createProcessTerminal(
     proc.stdout?.on('data', handleData);
     proc.stderr?.on('data', handleData);
 
+    proc.on('error', (err) => {
+        processExited = true;
+        const msg = `Failed to start process: ${err.message}`;
+        logs.push(msg);
+        writeEmitter.fire(`\r\n\r\n[${msg}]\r\n`);
+    });
+
     // When the process exits, write a message but keep the terminal open
     // so the user can inspect the output.
     proc.on('close', (code) => {
@@ -77,7 +85,7 @@ export function createProcessTerminal(
         close: () => {
             // Called when the user closes the terminal tab
             if (!proc.killed) {
-                proc.kill('SIGTERM');
+                killProcessGroup(proc, 'SIGTERM');
             }
         },
         handleInput: (data: string) => {
@@ -87,7 +95,7 @@ export function createProcessTerminal(
                 return;
             }
             if (data === '\x03') {
-                proc.kill('SIGINT');
+                killProcessGroup(proc, 'SIGINT');
             } else {
                 proc.stdin?.write(data);
             }
@@ -97,6 +105,48 @@ export function createProcessTerminal(
     const terminal = vscode.window.createTerminal({ name, pty });
 
     return { terminal, process: proc };
+}
+
+/**
+ * Kills the entire process group (shell + child processes).
+ * Falls back to killing just the process if the group kill fails.
+ */
+export function killProcessGroup(proc: child_process.ChildProcess, signal: NodeJS.Signals = 'SIGTERM'): void {
+    if (proc.pid == null) {
+        return;
+    }
+    try {
+        process.kill(-proc.pid, signal);
+    } catch {
+        // Process group may already be gone; try killing just the process
+        try { proc.kill(signal); } catch { /* already dead */ }
+    }
+}
+
+const STOP_TIMEOUT_MS = 5000;
+
+export function waitForExit(proc: child_process.ChildProcess, timeoutMs: number = STOP_TIMEOUT_MS): Promise<void> {
+    return new Promise((resolve) => {
+        if (proc.exitCode !== null) {
+            resolve();
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            proc.removeListener('close', onClose);
+            if (proc.exitCode === null) {
+                killProcessGroup(proc, 'SIGKILL');
+            }
+            resolve();
+        }, timeoutMs);
+
+        function onClose() {
+            clearTimeout(timeout);
+            resolve();
+        }
+
+        proc.once('close', onClose);
+    });
 }
 
 export class RunningServicesManager {
@@ -117,8 +167,10 @@ export class RunningServicesManager {
     stopAll(): void {
         for (const service of this.services.values()) {
             if (!service.process.killed) {
-                service.process.kill('SIGTERM');
+                killProcessGroup(service.process, 'SIGTERM');
             }
+            // Best-effort SIGKILL fallback — fire-and-forget for teardown
+            waitForExit(service.process);
             service.terminal.dispose();
         }
         this.services.clear();

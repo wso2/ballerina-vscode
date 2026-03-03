@@ -20,7 +20,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { CopilotEventHandler } from '../../utils/events';
 import { extension } from '../../../../BalExtensionContext';
-import { RunningServicesManager, createProcessTerminal } from './running-service-manager';
+import { RunningServicesManager, createProcessTerminal, killProcessGroup } from './running-service-manager';
 import { DIAGNOSTICS_TOOL_NAME } from './diagnostics';
 import { getRunCommand } from '../../../project/cmds/cmd-runner';
 
@@ -33,6 +33,7 @@ const BallerinaRunInputSchema = z.object({
 });
 
 const DEFAULT_MAIN_TIMEOUT = 120000;
+const DEFAULT_SERVICE_READY_TIMEOUT = 30000;
 
 export function createBallerinaRunTool(
     tempProjectPath: string,
@@ -85,7 +86,7 @@ async function executeRun(
 
     const balCmd = extension.ballerinaExtInstance.getBallerinaCmd();
     const runCmd = getRunCommand();
-    const taskId = crypto.randomUUID();
+    const taskId = crypto.randomUUID().slice(0, 4);
     const packageName = input.packagePath || path.basename(tempProjectPath);
 
     const logs: string[] = [];
@@ -119,10 +120,27 @@ async function executeRun(
     runningServices.register(service);
 
     if (input.runType === "service") {
+        const readyResult = await waitForServiceReady(service, DEFAULT_SERVICE_READY_TIMEOUT);
+
+        if (!readyResult.ready) {
+            killProcessGroup(proc, 'SIGTERM');
+            terminal.dispose();
+            runningServices.remove(taskId);
+            return {
+                status: "error",
+                exitCode: service.exitCode,
+                output: readyResult.logs,
+                message: readyResult.timedOut
+                    ? "Service did not become ready within the timeout. Check output for details."
+                    : "Service exited before becoming ready. Check output for details.",
+            };
+        }
+
         return {
             status: "started",
             taskId,
-            message: "Service started. Use getServiceLogs to check output, stopBallerinaService to stop it.",
+            output: readyResult.logs,
+            message: "Service is running. Use getServiceLogs to check further output, stopBallerinaService to stop it.",
         };
     }
 
@@ -130,11 +148,10 @@ async function executeRun(
     const timeout = input.timeout ?? DEFAULT_MAIN_TIMEOUT;
     const completionResult = await waitForCompletion(service, timeout);
 
-    runningServices.remove(taskId);
-
     if (completionResult.timedOut) {
-        proc.kill('SIGTERM');
+        killProcessGroup(proc, 'SIGTERM');
         terminal.dispose();
+        runningServices.remove(taskId);
         return {
             status: "timeout",
             output: completionResult.logs,
@@ -142,6 +159,7 @@ async function executeRun(
         };
     }
 
+    runningServices.remove(taskId);
     return {
         status: service.exitCode === 0 ? "completed" : "error",
         exitCode: service.exitCode,
@@ -150,6 +168,39 @@ async function executeRun(
             ? "Program completed successfully."
             : "Build or runtime error. Check output for details.",
     };
+}
+
+async function waitForServiceReady(
+    service: { exited: boolean; exitCode: number | null; logs: string[] },
+    timeout: number
+): Promise<{ ready: boolean; logs: string; timedOut: boolean }> {
+    const startTime = Date.now();
+    const pollInterval = 200;
+
+    return new Promise((resolve) => {
+        const check = () => {
+            const logs = service.logs.join('');
+
+            if (logs.includes('Running executable')) {
+                resolve({ ready: true, logs, timedOut: false });
+                return;
+            }
+
+            if (service.exited) {
+                resolve({ ready: false, logs, timedOut: false });
+                return;
+            }
+
+            if (Date.now() - startTime >= timeout) {
+                resolve({ ready: false, logs, timedOut: true });
+                return;
+            }
+
+            setTimeout(check, pollInterval);
+        };
+
+        check();
+    });
 }
 
 async function waitForCompletion(

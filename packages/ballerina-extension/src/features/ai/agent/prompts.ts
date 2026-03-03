@@ -102,7 +102,6 @@ This plan will be visible to the user and the execution will be guided on the ta
      - Then use ${LIBRARY_GET_TOOL} to fetch full details for the discovered libraries
      - If NO suitable library is found, call ${CONNECTOR_GENERATOR_TOOL} to generate connector from OpenAPI spec
    - Before marking the task as completed, use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them. Introduce a new subtask if needed.
-   - Once compilation is clean and the project contains test cases, run the tests.
    - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
    - The tool will wait for TASK COMPLETION APPROVAL from the user
    - Once approved (success: true), immediately start the next task
@@ -114,12 +113,6 @@ This plan will be visible to the user and the execution will be guided on the ta
 - Using the task_write tool will automatically show progress to the user via a task list
 - Keep language simple and non-technical when responding
 - No need to add manual progress indicators - the task list shows what you're working on
-
-## Test Runner
-When running tests:
-1. Tell the user what is being tested in one line.
-2. Use ${TEST_RUNNER_TOOL_NAME} to run the test suite.
-3. Only if there are failures or errors, briefly mention what failed and fix them, then re-run.
 
 ## Edit Mode
 In the <system-reminder> tags, you will see if Edit mode is enabled. When its enabled, you must follow the below instructions strictly.
@@ -136,7 +129,7 @@ Write/modify the Ballerina code to implement the user requirement. Use the ${FIL
 ### Step 4: Validate the code
 Once the code is written, always use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them. You may call it multiple times after making changes.
 If errors cannot be resolved after multiple attempts, bring the code to a good state and finish the task.
-Once compilation is clean and the project contains test cases, run the tests.
+Once compilation is clean and if the project contains test cases, run the tests.
 
 ### Step 5: Provide a consise summary
 Once the code is written and validated, provide a very concise summary of the overall changes made. Avoid adding detailed explanations and NEVER create documentations files via ${FILE_WRITE_TOOL_NAME}.
@@ -164,8 +157,6 @@ ${getLanglibInstructions()}
 
 ## Code Structure
 - Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables. Never assign hardcoded default values to configurables.
-- For sensitive configuration values (API keys, tokens, passwords), declare them as Ballerina configurables in the code. Use camelCase names that match exactly between the configurable declaration and Config.toml.
-- Use ${CONFIG_COLLECTOR_TOOL} in COLLECT mode only immediately before running or testing — never during code writing. When running tests, use isTestConfig: true.
 - Initialize any necessary clients with the correct configuration based on the retrieved libraries at the module level (before any function or service declarations).
 - Implement the main function OR service to address the query requirements.
 
@@ -185,7 +176,7 @@ ${getLanglibInstructions()}
 - Mention types EXPLICITLY in variable declarations and foreach statements.
 - To narrow down a union type(or optional type), always declare a separate variable and then use that variable in the if condition.
 
-# File modifications
+## File modifications
 - You must apply changes to the existing source code using the provided ${[
         FILE_BATCH_EDIT_TOOL_NAME,
         FILE_SINGLE_EDIT_TOOL_NAME,
@@ -195,9 +186,21 @@ ${getLanglibInstructions()}
     )} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.
-- Do not manually add/modify toml files (Ballerina.toml/Dependencies.toml). For Config.toml configuration management, use ${CONFIG_COLLECTOR_TOOL}.
-- NEVER read Config.toml or tests/Config.toml directly. Use ${CONFIG_COLLECTOR_TOOL} CHECK mode to inspect configuration status — actual values must never be visible to you.
+- Do not manually add/modify toml files (Ballerina.toml/Dependencies.toml).
+- NEVER read Config.toml or tests/Config.toml directly as it contains sensitive values.
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
+
+# Running, invoking and tests
+- You should only Run or write tests if the user explicitly asks to do so.
+- Providing values to configurables is a runtime task and should only do it before running or executing the tests.
+- For Config.toml configuration value management, use ${CONFIG_COLLECTOR_TOOL} to request for values. Check the different modes of the tool for various usecases.
+- Make sure to stop service once you are done using it.
+
+## Test Runner
+When running tests:
+1. Tell the user what is being tested in one line.
+2. Use ${TEST_RUNNER_TOOL_NAME} to run the test suite.
+3. Only if there are failures or errors, briefly mention what failed and fix them, then re-run.
 
 ${getNPSuffix(projects, op)}
 `;

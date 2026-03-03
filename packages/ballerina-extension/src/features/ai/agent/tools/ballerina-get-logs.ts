@@ -18,11 +18,12 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { CopilotEventHandler } from '../../utils/events';
 import { RunningServicesManager } from './running-service-manager';
+import { BALLERINA_RUN_TOOL_NAME } from './ballerina-run';
 
 export const BALLERINA_GET_LOGS_TOOL_NAME = "getServiceLogs";
 
 const BallerinaGetLogsInputSchema = z.object({
-    taskId: z.string().describe("The taskId returned by runBallerinaPackage."),
+    taskId: z.string().describe(`The taskId returned by ${BALLERINA_RUN_TOOL_NAME}.`),
     waitTime: z.number().optional().describe("Seconds to wait before reading logs, allowing the service to produce output. Default: 2."),
 });
 
@@ -33,9 +34,7 @@ export function createBallerinaGetLogsTool(
     return tool({
         description: `Retrieves new log output from a running Ballerina service or program.
 
-**Usage:** After starting a service with \`runBallerinaPackage\`, use this tool with the returned \`taskId\` to read its output. Each call returns only **new** output since the last call.
-
-**Tip:** Use \`waitTime\` to give the service time to produce output before reading (default: 2 seconds).
+**Usage:** After starting a service with \`${BALLERINA_RUN_TOOL_NAME}\`, use this tool with the returned \`taskId\` to read its output. Each call returns only **new** output since the last call.
 `,
         inputSchema: BallerinaGetLogsInputSchema,
         execute: async (input, context?: { toolCallId?: string }) => {
@@ -69,7 +68,7 @@ async function getLogs(
     if (!service) {
         return {
             status: "not_found",
-            message: `No running service with taskId '${input.taskId}'. Use runBallerinaPackage first.`,
+            message: `No running service with taskId '${input.taskId}'. Use ${BALLERINA_RUN_TOOL_NAME} first.`,
         };
     }
 
