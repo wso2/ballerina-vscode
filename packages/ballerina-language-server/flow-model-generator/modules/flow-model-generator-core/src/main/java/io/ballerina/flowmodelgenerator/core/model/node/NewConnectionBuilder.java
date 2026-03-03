@@ -41,6 +41,7 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -190,10 +191,14 @@ public class NewConnectionBuilder extends CallBuilder {
     @Override
     protected void setReturnTypeProperties(FunctionData functionData, TemplateContext context, String label, String doc,
                                            boolean hidden) {
+        Set<String> existingNames = new HashSet<>(context.getAllModuleSymbolNames());
+        if (context.position() != null) {
+            existingNames.addAll(context.getAllVisibleSymbolNames());
+        }
         properties()
                 .type(functionData.returnType(), false, functionData.importStatements(), hidden,
                         Property.RESULT_TYPE_LABEL)
-                .data(functionData.returnType(), context.getAllModuleSymbolNames(), label, doc);
+                .data(functionData.returnType(), existingNames, label, doc);
     }
 
     protected void setParameterProperties(FunctionData function) {
