@@ -17,12 +17,13 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { CopilotEventHandler } from '../../utils/events';
-import { RunningServicesManager } from './running-service-manager';
+import { RunningServicesManager, waitForExit, killProcessGroup } from './running-service-manager';
+import { BALLERINA_RUN_TOOL_NAME } from './ballerina-run';
 
 export const BALLERINA_STOP_TOOL_NAME = "stopBallerinaService";
 
 const BallerinaStopInputSchema = z.object({
-    taskId: z.string().describe("The taskId returned by runBallerinaPackage."),
+    taskId: z.string().describe(`The taskId returned by ${BALLERINA_RUN_TOOL_NAME}.`),
 });
 
 export function createBallerinaStopTool(
@@ -32,7 +33,7 @@ export function createBallerinaStopTool(
     return tool({
         description: `Stops a running Ballerina service or program by disposing its terminal.
 
-**Usage:** Pass the \`taskId\` from \`runBallerinaPackage\` to stop the service and close its terminal.
+**Usage:** Pass the \`taskId\` from \`${BALLERINA_RUN_TOOL_NAME}\` to stop the service and close its terminal.
 `,
         inputSchema: BallerinaStopInputSchema,
         execute: async (input, context?: { toolCallId?: string }) => {
@@ -44,7 +45,7 @@ export function createBallerinaStopTool(
                 toolCallId,
             });
 
-            const result = stopService(input, runningServices);
+            const result = await stopService(input, runningServices);
 
             eventHandler({
                 type: "tool_result",
@@ -58,10 +59,10 @@ export function createBallerinaStopTool(
     });
 }
 
-function stopService(
+async function stopService(
     input: z.infer<typeof BallerinaStopInputSchema>,
     runningServices: RunningServicesManager
-): Record<string, unknown> {
+): Promise<Record<string, unknown>> {
     const service = runningServices.get(input.taskId);
     if (!service) {
         return {
@@ -81,8 +82,11 @@ function stopService(
     }
 
     if (!service.process.killed) {
-        service.process.kill('SIGTERM');
+        killProcessGroup(service.process, 'SIGTERM');
     }
+
+    await waitForExit(service.process);
+
     service.terminal.dispose();
     runningServices.remove(input.taskId);
 

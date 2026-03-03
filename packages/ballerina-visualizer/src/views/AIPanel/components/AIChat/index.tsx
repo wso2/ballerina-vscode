@@ -714,7 +714,7 @@ const AIChat: React.FC = () => {
                 if (toolCallId) {
                     const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching logs...</toolcall>`;
                     const status = response.toolOutput?.status ?? "running";
-                    const resultMessage = status === "exited" ? "Service exited" : "Logs retrieved";
+                    const resultMessage = status === "exited" ? "Service exited" : status === "not_found" ? "Service not found" : "Logs retrieved";
                     const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
                     updateLastMessage((content) => content.replace(searchPattern, replacement));
                 }
