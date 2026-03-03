@@ -16,16 +16,15 @@
  * under the License.
  */
 
-import React, { useEffect, useState, type FC, type ReactNode } from "react";
+import React, { useEffect, useState, type FC } from "react";
 import styled from "@emotion/styled";
-import { DIRECTORY_MAP, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
+import { DIRECTORY_MAP, ParentPopupData } from "@wso2/ballerina-core";
 import { Tabs, ThemeColors, Typography, Button, Dropdown, OptionProps } from "@wso2/ui-toolkit";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 import { DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import {
     BIDatabaseType,
     CreatePersistConnectionStep,
-    DatabaseConnectionPopupContent,
     DatabaseCredentials,
     DatabaseTable,
     DEFAULT_DB_PORTS,
@@ -40,8 +39,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
     MarketplaceDatabaseListResp,
     DatabaseRequestStatusEnum,
-    DatabaseCredential,
-    Environment,
     ConnectionDetailed,
     MarketplaceItem,
     ConnectionListItem,
@@ -50,7 +47,6 @@ import {
 import { LoadingRing } from "../../../../components/Loader";
 import { DevantConnectionFlow, DevantConnectionFlowStep, generateInitialConnectionName, isValidDevantConnName, ProgressWrap } from "./utils";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { StepperContainer } from "../AddConnectionPopup/styles";
 import { ConnectorContentContainer } from "../styles";
 
 const TAB_VIEWS = [
@@ -322,8 +318,6 @@ const DatabaseCredentialsTabs: FC<DatabaseCredentialsTabsProps> = ({
 
 interface Props {
     projectPath: string;
-    fileName: string;
-    target: LinePosition | null;
     biConnectionNames: string[];
     existingDevantConnNames: string[];
     selectedMarketplaceItem?: MarketplaceItem | null;
@@ -331,9 +325,6 @@ interface Props {
     devantConfigs: DevantTempConfig[];
     setSelectedMarketplaceItem: (item: MarketplaceItem | null) => void;
     onClose: (parent?: ParentPopupData) => void;
-    onBack: () => void;
-
-    // new ones
     selectedStep: DevantConnectionFlowStep;
     goToNextStep: () => void;
     selectedFlow: DevantConnectionFlow;
@@ -352,14 +343,11 @@ const tempCredentials: DatabaseCredentials = {
 export const DevantDatabaseCredentials: FC<Props> = (props) => {
     const {
         projectPath,
-        fileName,
-        target,
         biConnectionNames,
         existingDevantConnNames,
         setSelectedMarketplaceItem,
         selectedMarketplaceItem,
         onClose,
-        onBack,
         importedConnection,
         devantConfigs,
         selectedStep,
@@ -380,7 +368,6 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
         username: "",
         password: "",
     });
-    // todo: use this when
     const [devantCredentials, setDevantCredentials] = useState<DatabaseCredentials>();
     const [tables, setTables] = useState<DatabaseTable[]>([]);
     const [connectionName, setConnectionName] = useState("");
