@@ -193,7 +193,7 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
         try {
             sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
         } catch (WorkspaceDocumentException | EventSyncException e) {
-            return typeModel.name();
+            throw new IllegalStateException("WorkflowBuilder failed to load project for type resolution", e);
         }
 
         SemanticModel semanticModel = FileSystemUtils.getSemanticModel(sourceBuilder.workspaceManager,

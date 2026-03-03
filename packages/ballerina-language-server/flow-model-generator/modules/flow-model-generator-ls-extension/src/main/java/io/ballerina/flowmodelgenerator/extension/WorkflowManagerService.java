@@ -31,14 +31,12 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
-import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.TypeUtils;
 import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllEventsRequest;
 import io.ballerina.flowmodelgenerator.extension.response.GetAllEventsResponse;
-import io.ballerina.modelgenerator.commons.PackageUtil;
-import io.ballerina.projects.Package;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -91,32 +89,23 @@ public class WorkflowManagerService implements ExtendedLanguageServerService {
             try {
                 Path filePath = Path.of(request.filePath());
                 this.workspaceManager.loadProject(filePath);
-
-                Package currentPackage = PackageUtil.loadProject(workspaceManager, filePath).currentPackage();
-                PackageUtil.getCompilation(currentPackage);
+                SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
 
                 JsonArray eventsArray = new JsonArray();
+                Optional<Symbol> functionSymbol = semanticModel.moduleSymbols().stream()
+                        .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)
+                        .filter(symbol -> symbol.getName().orElse("").equals(request.workflowName()))
+                        .filter(WorkflowUtil::isWorkflowFunction)
+                        .findFirst();
 
-                // Search for the workflow function by name
-                currentPackage.modules().forEach(module -> {
-                    SemanticModel semanticModel = module.getCompilation().getSemanticModel();
-
-                    // Find the function symbol matching the workflow function name
-                    Optional<Symbol> functionSymbol = semanticModel.moduleSymbols().stream()
-                            .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)
-                            .filter(symbol -> symbol.getName().orElse("").equals(request.workflowName()))
-                            .filter(symbol -> WorkflowUtil.isWorkflowFunction((FunctionSymbol) symbol))
-                            .findFirst();
-
-                    if (functionSymbol.isPresent() && functionSymbol.get() instanceof FunctionSymbol funcSymbol) {
-                        // Get events from the function's events type (third parameter)
-                        JsonArray events = getEventsFromWorkflowFunction(funcSymbol, semanticModel);
-                        events.forEach(eventsArray::add);
-                    }
-                });
+                if (functionSymbol.isPresent() && functionSymbol.get() instanceof FunctionSymbol funcSymbol) {
+                    // Get events from the function's events type (third parameter)
+                    JsonArray events = getEventsFromWorkflowFunction(funcSymbol, semanticModel);
+                    events.forEach(eventsArray::add);
+                }
 
                 response.setEvents(eventsArray);
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 response.setError(e);
             }
             return response;

@@ -144,7 +144,9 @@ public class SendEventBuilder extends NodeBuilder {
         }
 
         Optional<Property> eventDataProp = sourceBuilder.getProperty(EVENT_DATA_KEY);
-        String eventData = eventDataProp.map(p -> p.value().toString()).orElse("{}");
+        String eventData = eventDataProp.map(p -> p.value().toString())
+                .filter(value -> !value.isBlank())
+                .orElse("{}");
 
         // Generate: check workflow:sendEvent(workflowFunction, eventData, "eventName");
         sourceBuilder.token()

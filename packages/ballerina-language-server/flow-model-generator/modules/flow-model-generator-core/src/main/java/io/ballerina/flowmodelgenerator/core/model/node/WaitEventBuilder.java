@@ -27,6 +27,7 @@ import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
@@ -308,11 +309,15 @@ public class WaitEventBuilder extends WaitBuilder {
     private void addEventsParameterToFunction(SourceBuilder sourceBuilder,
                                               FunctionDefinitionNode functionNode,
                                               String eventsTypeName) {
-        LineRange closeParenLineRange = functionNode.functionSignature().closeParenToken().lineRange();
+        FunctionSignatureNode signatureNode = functionNode.functionSignature();
+        LineRange closeParenLineRange = signatureNode.closeParenToken().lineRange();
         Range insertRange = CommonUtils.toRange(closeParenLineRange.startLine());
-        // Build the events parameter text: , EventsTypeName events
+        boolean hasExistingParams = !signatureNode.parameters().isEmpty();
+        if (hasExistingParams) {
+            sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN).whiteSpace();
+        }
+
         sourceBuilder.token()
-                .keyword(SyntaxKind.COMMA_TOKEN)
                 .name(eventsTypeName)
                 .whiteSpace()
                 .name(DEFAULT_EVENTS_PARAM_NAME)
@@ -330,7 +335,7 @@ public class WaitEventBuilder extends WaitBuilder {
         }
 
         if (recordType.getLocation().isEmpty()) {
-            return;
+            throw new IllegalStateException("WaitEventBuilder cannot update events type: missing type location");
         }
 
         LineRange typeLineRange = recordType.getLocation().get().lineRange();
@@ -339,7 +344,7 @@ public class WaitEventBuilder extends WaitBuilder {
                 .resolve(typeLineRange.fileName());
         Document typesDoc = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, typesFilePath);
         if (typesDoc == null) {
-            return;
+            throw new IllegalStateException("WaitEventBuilder cannot load events type document: " + typesFilePath);
         }
         SyntaxTree typesSyntaxTree = typesDoc.syntaxTree();
         ModulePartNode typesRootNode = typesSyntaxTree.rootNode();
@@ -349,12 +354,12 @@ public class WaitEventBuilder extends WaitBuilder {
         TextRange textRange = TextRange.from(txtPos, 0);
         NonTerminalNode typeDefNode = typesRootNode.findNode(textRange);
         if (typeDefNode == null || typeDefNode.kind() != SyntaxKind.TYPE_DEFINITION) {
-            return;
+            throw new IllegalStateException("WaitEventBuilder could not locate target type definition");
         }
 
         Node typeDescNode = ((TypeDefinitionNode) typeDefNode).typeDescriptor();
         if (typeDescNode.kind() != SyntaxKind.RECORD_TYPE_DESC) {
-            return;
+            throw new IllegalStateException("WaitEventBuilder target type is not a record");
         }
 
         // Get the bodyStartDelimiter location ({|)

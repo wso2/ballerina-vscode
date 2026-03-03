@@ -120,6 +120,7 @@ public class WorkflowStartBuilder extends NodeBuilder {
         Optional<Property> variableProp = sourceBuilder.getProperty(Property.VARIABLE_KEY);
         String variableName = variableProp
                 .map(p -> p.value().toString())
+                .filter(value -> !value.isBlank())
                 .orElse("workflowId");
 
         // Generate: string workflowId = check workflow:createInstance(workflowFunction, input);
