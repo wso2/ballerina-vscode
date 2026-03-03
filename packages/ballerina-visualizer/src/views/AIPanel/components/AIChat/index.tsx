@@ -133,13 +133,33 @@ const AIChat: React.FC = () => {
     const { rpcClient } = useRpcContext();
     const [messages, setMessages] = useState<Array<{ role: string; content: string; type: string; checkpointId?: string; messageId?: string }>>([]);
 
+    const getLatestAssistantMessageIndex = (chatMessages: Array<{ role: string }>): number => {
+        for (let i = chatMessages.length - 1; i >= 0; i--) {
+            const role = chatMessages[i]?.role;
+            if (role === "Copilot" || role === "assistant") {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    const ensureAssistantMessage = (
+        chatMessages: Array<{ role: string; content: string; type: string; checkpointId?: string; messageId?: string }>
+    ): number => {
+        let targetIndex = getLatestAssistantMessageIndex(chatMessages);
+        if (targetIndex === -1) {
+            chatMessages.push({ role: "Copilot", content: "", type: "assistant_message" });
+            targetIndex = chatMessages.length - 1;
+        }
+        return targetIndex;
+    };
+
     // Helper function to update the last message
     const updateLastMessage = (updater: (content: string) => string) => {
         setMessages((prevMessages) => {
             const newMessages = [...prevMessages];
-            if (newMessages.length > 0) {
-                newMessages[newMessages.length - 1].content = updater(newMessages[newMessages.length - 1].content);
-            }
+            const targetIndex = ensureAssistantMessage(newMessages);
+            newMessages[targetIndex].content = updater(newMessages[targetIndex].content);
             return newMessages;
         });
     };
@@ -377,7 +397,7 @@ const AIChat: React.FC = () => {
                 const historyMessages = await rpcClient.getAiPanelRpcClient().getChatMessages();
                 if (historyMessages && historyMessages.length > 0) {
                     const uiMessages = convertToUIMessages(historyMessages);
-                    setMessages(uiMessages);
+                    setMessages((prevMessages) => (prevMessages.length > 0 ? prevMessages : uiMessages));
                 }
             } catch (error) {
                 console.error('[AIChat] Failed to load initial chat history:', error);
@@ -420,18 +440,10 @@ const AIChat: React.FC = () => {
         const type = response.type;
         if (type === "content_block") {
             const content = response.content;
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1].content += content;
-                return newMessages;
-            });
+            updateLastMessage((lastContent) => lastContent + content);
         } else if (type === "content_replace") {
             const content = response.content;
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1].content = content;
-                return newMessages;
-            });
+            updateLastMessage(() => content);
         } else if (type === "tool_call") {
             if (response.toolName === "LibrarySearchTool") {
                 const toolCallId = response?.toolCallId;
@@ -451,21 +463,13 @@ const AIChat: React.FC = () => {
                     content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching library details...</toolcall>`
                 );
             } else if (response.toolName == "HealthcareLibraryProviderTool") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">Analyzing request & selecting healthcare libraries...</toolcall>`;
-                    }
-                    return newMessages;
-                });
+                updateLastMessage((lastContent) =>
+                    lastContent + `\n\n<toolcall tool="${response.toolName}">Analyzing request & selecting healthcare libraries...</toolcall>`
+                );
             } else if (response.toolName === "task_write") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">Planning...</toolcall>`;
-                    }
-                    return newMessages;
-                });
+                updateLastMessage((lastContent) =>
+                    lastContent + `\n\n<toolcall tool="${response.toolName}">Planning...</toolcall>`
+                );
             } else if (["file_write", "file_edit", "file_batch_edit"].includes(response.toolName)) {
                 const fileName = response.toolInput?.fileName || "file";
                 const displayName = formatFileNameForDisplay(fileName);
@@ -473,21 +477,13 @@ const AIChat: React.FC = () => {
                     ? `Creating ${displayName}...`
                     : `Updating ${displayName}...`;
 
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">${message}</toolcall>`;
-                    }
-                    return newMessages;
-                });
+                updateLastMessage((lastContent) =>
+                    lastContent + `\n\n<toolcall tool="${response.toolName}">${message}</toolcall>`
+                );
             } else if (response.toolName === "getCompilationErrors") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">Checking for errors...</toolcall>`;
-                    }
-                    return newMessages;
-                });
+                updateLastMessage((lastContent) =>
+                    lastContent + `\n\n<toolcall tool="${response.toolName}">Checking for errors...</toolcall>`
+                );
             } else if (response.toolName === "runTests") {
                 const toolCallId = response?.toolCallId;
                 updateLastMessage((content) =>
@@ -555,6 +551,7 @@ const AIChat: React.FC = () => {
 
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
+                    const targetIndex = ensureAssistantMessage(newMessages);
                     if (newMessages.length > 0) {
                         if (!taskOutput.success || !taskOutput.tasks || taskOutput.tasks.length === 0) {
                             const isInternalError = taskOutput.message &&
@@ -564,9 +561,9 @@ const AIChat: React.FC = () => {
                             const todoPattern = /<todo>.*?<\/todo>/s;
 
                             if (isInternalError) {
-                                newMessages[newMessages.length - 1].content = newMessages[
-                                    newMessages.length - 1
-                                ].content.replace(indicatorPattern, "").replace(todoPattern, "");
+                                newMessages[targetIndex].content = newMessages[targetIndex].content
+                                    .replace(indicatorPattern, "")
+                                    .replace(todoPattern, "");
                             } else {
                                 let simplifiedMessage = "Task update failed";
 
@@ -582,9 +579,9 @@ const AIChat: React.FC = () => {
                                 }
 
                                 // Keep tool="TaskWrite" (matching the tool_call tag written by the TaskWrite handler)
-                                newMessages[newMessages.length - 1].content = newMessages[
-                                    newMessages.length - 1
-                                ].content.replace(indicatorPattern, `<toolcall tool="TaskWrite">${simplifiedMessage}</toolcall>`).replace(todoPattern, "");
+                                newMessages[targetIndex].content = newMessages[targetIndex].content
+                                    .replace(indicatorPattern, `<toolcall tool="TaskWrite">${simplifiedMessage}</toolcall>`)
+                                    .replace(todoPattern, "");
                             }
                         } else {
                             const todoData = {
@@ -593,18 +590,18 @@ const AIChat: React.FC = () => {
                             };
                             const todoJson = JSON.stringify(todoData);
 
-                            const lastMessageContent = newMessages[newMessages.length - 1].content;
+                            const lastMessageContent = newMessages[targetIndex].content;
                             const todoPattern = /<todo>.*?<\/todo>/s;
 
                             if (todoPattern.test(lastMessageContent)) {
                                 // Replace existing todo section
-                                newMessages[newMessages.length - 1].content = lastMessageContent.replace(
+                                newMessages[targetIndex].content = lastMessageContent.replace(
                                     todoPattern,
                                     `<todo>${todoJson}</todo>`
                                 );
                             } else {
                                 // Add new todo section
-                                newMessages[newMessages.length - 1].content += `\n\n<todo>${todoJson}</todo>`;
+                                newMessages[targetIndex].content += `\n\n<todo>${todoJson}</todo>`;
                             }
                         }
                     }
@@ -613,8 +610,9 @@ const AIChat: React.FC = () => {
             } else if (["file_write", "file_edit", "file_batch_edit"].includes(response.toolName)) {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
+                    const targetIndex = ensureAssistantMessage(newMessages);
                     if (newMessages.length > 0) {
-                        const lastMessageContent = newMessages[newMessages.length - 1].content;
+                        const lastMessageContent = newMessages[targetIndex].content;
                         const creatingPattern = /<toolcall tool="([^"]+)">Creating (.+?)\.\.\.<\/toolcall>/;
                         const updatingPattern = /<toolcall tool="([^"]+)">Updating (.+?)\.\.\.<\/toolcall>/;
 
@@ -635,7 +633,7 @@ const AIChat: React.FC = () => {
                             );
                         }
 
-                        newMessages[newMessages.length - 1].content = updatedContent;
+                        newMessages[targetIndex].content = updatedContent;
                     }
                     return newMessages;
                 });
@@ -647,8 +645,9 @@ const AIChat: React.FC = () => {
 
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
+                    const targetIndex = ensureAssistantMessage(newMessages);
                     if (newMessages.length > 0) {
-                        const lastMessageContent = newMessages[newMessages.length - 1].content;
+                        const lastMessageContent = newMessages[targetIndex].content;
                         const toolName = response.toolName;
                         const checkingPattern = new RegExp(`<toolcall tool="${toolName}">Checking for errors\\.\\.\\.<\\/toolcall>`);
 
@@ -661,7 +660,7 @@ const AIChat: React.FC = () => {
                             `<toolresult tool="${toolName}">${message}</toolresult>`
                         );
 
-                        newMessages[newMessages.length - 1].content = updatedContent;
+                        newMessages[targetIndex].content = updatedContent;
                     }
                     return newMessages;
                 });
@@ -756,8 +755,9 @@ const AIChat: React.FC = () => {
 
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
+                const targetIndex = ensureAssistantMessage(newMessages);
                 if (newMessages.length > 0) {
-                    const lastMessageContent = newMessages[newMessages.length - 1].content;
+                    const lastMessageContent = newMessages[targetIndex].content;
 
                     const escapeRegex = (str: string): string => {
                         return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -770,12 +770,12 @@ const AIChat: React.FC = () => {
                             `<connectorgenerator>[^<]*${escapeRegex(connectorNotification.requestId)}[^<]*</connectorgenerator>`,
                             's'
                         );
-                        newMessages[newMessages.length - 1].content = lastMessageContent.replace(
+                        newMessages[targetIndex].content = lastMessageContent.replace(
                             replacePattern,
                             `<connectorgenerator>${connectorJson}</connectorgenerator>`
                         );
                     } else {
-                        newMessages[newMessages.length - 1].content += `\n\n<connectorgenerator>${connectorJson}</connectorgenerator>`;
+                        newMessages[targetIndex].content += `\n\n<connectorgenerator>${connectorJson}</connectorgenerator>`;
                     }
                 }
                 return newMessages;
@@ -796,8 +796,9 @@ const AIChat: React.FC = () => {
 
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
+                const targetIndex = ensureAssistantMessage(newMessages);
                 if (newMessages.length > 0) {
-                    const lastMessageContent = newMessages[newMessages.length - 1].content;
+                    const lastMessageContent = newMessages[targetIndex].content;
 
                     const escapeRegex = (str: string): string => {
                         return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -810,12 +811,12 @@ const AIChat: React.FC = () => {
                             `<configurationcollector>[^<]*${escapeRegex(configurationNotification.requestId)}[^<]*</configurationcollector>`,
                             's'
                         );
-                        newMessages[newMessages.length - 1].content = lastMessageContent.replace(
+                        newMessages[targetIndex].content = lastMessageContent.replace(
                             replacePattern,
                             `<configurationcollector>${configurationJson}</configurationcollector>`
                         );
                     } else {
-                        newMessages[newMessages.length - 1].content += `\n\n<configurationcollector>${configurationJson}</configurationcollector>`;
+                        newMessages[targetIndex].content += `\n\n<configurationcollector>${configurationJson}</configurationcollector>`;
                     }
                 }
                 return newMessages;
@@ -837,30 +838,19 @@ const AIChat: React.FC = () => {
         } else if (type === "abort") {
             console.log("Received abort signal");
             const interruptedMessage = "\n\n*[Request interrupted by user]*";
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                if (newMessages.length > 0) {
-                    newMessages[newMessages.length - 1].content += interruptedMessage;
-                } else {
-                    // Edge case: abort before any messages
-                    newMessages.push({
-                        role: "assistant",
-                        content: interruptedMessage,
-                        type: "text"
-                    });
-                }
-                return newMessages;
-            });
+            updateLastMessage((lastContent) => lastContent + interruptedMessage);
             setIsCodeLoading(false);
             setIsLoading(false);
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
             const messageId = response.messageId;
+            const assistantIndex = getLatestAssistantMessageIndex(messages);
+            const contentToPersist = assistantIndex >= 0 ? messages[assistantIndex]?.content : messages[messages.length - 1]?.content;
 
             // Update chat message in state machine with UI message
             await rpcClient.getAiPanelRpcClient().updateChatMessage({
                 messageId,
-                content: messages[messages.length - 1].content
+                content: contentToPersist || ""
             });
         } else if (type === "error") {
             console.log("Received error signal");
@@ -868,7 +858,8 @@ const AIChat: React.FC = () => {
             const errorTemplate = `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${errorContent}</error>`;
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
-                    let content = newMessages[newMessages.length - 1].content;
+                    const targetIndex = ensureAssistantMessage(newMessages);
+                    let content = newMessages[targetIndex].content;
 
                     // Check if there's an unclosed code block and close it properly
                     const codeBlockPattern = /<code filename="[^"]+">[\s]*```\w+/g;
@@ -898,7 +889,7 @@ const AIChat: React.FC = () => {
                         }
                     }
 
-                    newMessages[newMessages.length - 1].content = content + errorTemplate;
+                    newMessages[targetIndex].content = content + errorTemplate;
                     console.log(newMessages);
                     return newMessages;
                 });
@@ -979,26 +970,15 @@ const AIChat: React.FC = () => {
             setIsLoading(false);
             setIsCodeLoading(false);
             if (error.name === "AbortError") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    newMessages[
-                        newMessages.length - 1
-                    ].content += `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">Generation stopped by the user</error>`;
-                    return newMessages;
-                });
+                updateLastMessage((lastContent) =>
+                    lastContent + `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">Generation stopped by the user</error>`
+                );
             } else {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
+                updateLastMessage((lastContent) => {
                     if (error && "message" in error) {
-                        newMessages[
-                            newMessages.length - 1
-                        ].content += `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${error.message}</error>`;
-                    } else {
-                        newMessages[
-                            newMessages.length - 1
-                        ].content += `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${error}</error>`;
+                        return lastContent + `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${error.message}</error>`;
                     }
-                    return newMessages;
+                    return lastContent + `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${error}</error>`;
                 });
             }
         }
@@ -1295,11 +1275,7 @@ const AIChat: React.FC = () => {
                 formatted_response = formatted_response.replace(referenceRegex, referencesTag);
             }
 
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1].content = formatted_response;
-                return newMessages;
-            });
+            updateLastMessage(() => formatted_response);
             setIsLoading(false);
         } catch (error) {
             setIsLoading(false);
@@ -1391,7 +1367,8 @@ const AIChat: React.FC = () => {
             // Update the message content to show "Saved" state
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
-                const lastMessage = newMessages[newMessages.length - 1];
+                const targetIndex = ensureAssistantMessage(newMessages);
+                const lastMessage = newMessages[targetIndex];
                 if (lastMessage && lastMessage.content) {
                     lastMessage.content = lastMessage.content.replace(
                         /<button type="save_documentation">Save Documentation<\/button>/g,
@@ -1412,7 +1389,8 @@ const AIChat: React.FC = () => {
 
         setMessages((prevMessages) => {
             const newMessages = [...prevMessages];
-            newMessages[newMessages.length - 1].content = "";
+            const targetIndex = ensureAssistantMessage(newMessages);
+            newMessages[targetIndex].content = "";
             return newMessages;
         });
 
@@ -1494,7 +1472,8 @@ const AIChat: React.FC = () => {
 
         setMessages((prevMessages) => {
             const newMessage = [...prevMessages];
-            newMessage[newMessage.length - 1].content = response.diags;
+            const targetIndex = ensureAssistantMessage(newMessage);
+            newMessage[targetIndex].content = response.diags;
             return newMessage;
         });
     }
