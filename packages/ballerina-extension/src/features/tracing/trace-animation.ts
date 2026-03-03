@@ -166,7 +166,6 @@ function getSpanType(name: string): TraceAnimationEvent['type'] | null {
 
 function sendAnimationEvent(event: TraceAnimationEvent) {
     try {
-        console.log(`[TraceAnim] SEND ${event.active ? 'ON' : 'OFF'} type=${event.type} tool=${event.activeToolName ?? '-'} span=${event.spanId.slice(0, 8)} sysInstr=${event.systemInstructions ? 'YES' : 'NO'} toolNames=[${event.toolNames}]`);
         RPCLayer._messenger.sendNotification(
             traceAnimationChanged,
             { type: 'webview', webviewType: VisualizerWebview.viewType },
@@ -219,7 +218,6 @@ function processNextEvent() {
 
     const { event, span } = eventQueue.shift()!;
     lastEventActivationTime = Date.now();
-    console.log(`[TraceAnim] DEQUEUE type=${event.type} tool=${event.activeToolName ?? '-'} span=${span.spanId.slice(0, 8)} remaining=${eventQueue.length}`);
 
     // Type-specific pre-activation logic
     if (event.type === 'chat') {
@@ -260,7 +258,6 @@ function enqueueEvent(event: TraceAnimationEvent, span: Span) {
         }
     }
     eventQueue.splice(insertIdx, 0, { event, span });
-    console.log(`[TraceAnim] ENQUEUE type=${event.type} tool=${event.activeToolName ?? '-'} span=${span.spanId.slice(0, 8)} idx=${insertIdx} queueLen=${eventQueue.length}`);
 
     // Start processing if queue was idle
     if (!eventQueueTimer) {
@@ -282,14 +279,12 @@ function prunePendingToolSpans() {
     // Remove TTL-expired entries (iterate backwards to splice safely)
     for (let i = pendingToolSpans.length - 1; i >= 0; i--) {
         if (pendingToolSpans[i].addedAt + PENDING_TOOL_SPAN_TTL_MS < now) {
-            console.log(`[TraceAnim] EVICT pending tool span=${pendingToolSpans[i].span.spanId.slice(0, 8)} (TTL expired)`);
             pendingToolSpans.splice(i, 1);
         }
     }
     // Trim to most recent MAX_PENDING_TOOL_SPANS (drop oldest from front)
     if (pendingToolSpans.length > MAX_PENDING_TOOL_SPANS) {
         const excess = pendingToolSpans.length - MAX_PENDING_TOOL_SPANS;
-        console.log(`[TraceAnim] TRIMMED ${excess} oldest pending tool span(s) (max=${MAX_PENDING_TOOL_SPANS})`);
         pendingToolSpans.splice(0, excess);
     }
 }
@@ -303,7 +298,6 @@ function tryResolveAndEnqueueToolSpan(span: Span, activeToolName?: string): bool
     if (!info) {
         return false;
     }
-    console.log(`[TraceAnim] RESOLVED tool span=${span.spanId.slice(0, 8)} via ancestry: sysInstr=${info.systemInstructions.slice(0, 40)}... toolNames=[${info.toolNames}]`);
     const event: TraceAnimationEvent = {
         type: 'execute_tool',
         toolNames: info.toolNames,
@@ -330,9 +324,6 @@ function drainPendingToolSpans() {
 }
 
 function processSpans(spans: Span[]) {
-    const toolSpans = spans.filter(s => s.name.startsWith('execute_tool'));
-    console.log(`[TraceAnim] BATCH ${spans.length} spans (${toolSpans.length} tools): [${spans.map(s => `${s.name}(${s.spanId.slice(0, 8)})`).join(', ')}]`);
-
     // Phase 1: Register ALL spans in parentMap (regardless of type)
     for (const span of spans) {
         if (span.parentSpanId) {
@@ -394,7 +385,6 @@ function processSpans(spans: Span[]) {
             // Try to resolve via ancestor chain immediately
             if (!tryResolveAndEnqueueToolSpan(span, activeToolName)) {
                 // Chain incomplete — buffer until ancestor arrives
-                console.log(`[TraceAnim] BUFFERED tool span=${span.spanId.slice(0, 8)} tool=${activeToolName ?? 'MISSING'} (waiting for ancestor)`);
                 pendingToolSpans.push({ span, activeToolName, addedAt: Date.now() });
                 prunePendingToolSpans();
             }
