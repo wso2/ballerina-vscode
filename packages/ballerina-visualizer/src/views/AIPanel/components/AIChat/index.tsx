@@ -135,7 +135,7 @@ const AIChat: React.FC = () => {
 
     const [showSettings, setShowSettings] = useState(false);
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
-    const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Plan);
+    const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Edit);
     const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
     const [showReviewActions, setShowReviewActions] = useState(false);
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());

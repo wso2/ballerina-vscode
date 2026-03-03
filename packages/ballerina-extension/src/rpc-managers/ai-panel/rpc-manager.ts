@@ -374,7 +374,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async isPlanModeFeatureEnabled(): Promise<boolean> {
         const config = workspace.getConfiguration('ballerina');
-        return config.get<boolean>('ai.planMode', false);
+        return config.get<boolean>('ai.planMode', true);
     }
 
     async getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
