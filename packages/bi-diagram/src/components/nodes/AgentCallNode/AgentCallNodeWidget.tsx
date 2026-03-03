@@ -92,10 +92,10 @@ export namespace NodeStyles {
             props.hasError
                 ? ThemeColors.ERROR
                 : props.isSelected && !props.disabled
-                ? ThemeColors.SECONDARY
-                : props.hovered && !props.disabled && !props.readOnly
-                ? ThemeColors.SECONDARY
-                : ThemeColors.OUTLINE_VARIANT};
+                    ? ThemeColors.SECONDARY
+                    : props.hovered && !props.disabled && !props.readOnly
+                        ? ThemeColors.SECONDARY
+                        : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
         background-color: ${(props: NodeStyleProp) =>
             props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
@@ -392,7 +392,7 @@ export namespace NodeStyles {
         &:hover {
             background-color: ${ThemeColors.SURFACE_BRIGHT};
             border-color: ${(props: { readOnly: boolean }) =>
-                props.readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.SECONDARY};
+            props.readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.SECONDARY};
         }
     `;
 
@@ -406,7 +406,7 @@ export namespace NodeStyles {
         cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
         &:hover {
             border-color: ${(props: { readOnly: boolean }) =>
-                props.readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.SECONDARY};
+            props.readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.SECONDARY};
         }
     `;
 
@@ -693,9 +693,8 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                 e.type === 'execute_tool' && e.toolName && nodeToolNames.includes(e.toolName)
             );
         if (hasToolOverlap) return true;
-        // Nothing available → match any agent node
-        return traceAnimation.activeAgentToolNames.length === 0 &&
-            !traceAnimation.entries.some(e => e.type === 'execute_tool' && e.toolName);
+        // Nothing available → no match without explicit evidence
+        return false;
     })();
     const matchedEntries = isTraceMatch ? traceAnimation.entries : [];
 
@@ -812,10 +811,10 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                     <NodeStyles.MemoryContainer>
                         <NodeStyles.Row readOnly={readOnly}>
                             {nodeMetadata?.memory ? (
-                                <NodeStyles.MemoryCard 
-                                    readOnly={readOnly} 
-                                    onClick={onMemoryManagerClick} 
-                                    title="Configure Memory" 
+                                <NodeStyles.MemoryCard
+                                    readOnly={readOnly}
+                                    onClick={onMemoryManagerClick}
+                                    title="Configure Memory"
                                     onContextMenu={!readOnly ? handleMemoryContextMenu : undefined}
                                 >
                                     <NodeStyles.Row readOnly={readOnly}>
@@ -1156,7 +1155,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 style={{
                                     stroke: ThemeColors.ON_SURFACE,
                                     strokeWidth: 1.5,
-                                    markerEnd: `url(#${model.node.id}-arrow-head-tool-${tool.name})`,
+                                    markerEnd: `url(#${model.node.id}-arrow-head-tool-${sanitizeId(tool.name)})`,
                                     strokeDasharray: "6 6",
                                     opacity: isToolActive ? 0 : 1,
                                     transition: "stroke 0.4s ease-out, opacity 0.4s ease-out",
@@ -1171,7 +1170,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 style={{
                                     stroke: aiColor,
                                     strokeWidth: 2.5,
-                                    markerEnd: `url(#${model.node.id}-arrow-head-tool-${tool.name}-active)`,
+                                    markerEnd: `url(#${model.node.id}-arrow-head-tool-${sanitizeId(tool.name)}-active)`,
                                     strokeDasharray: "6 6",
                                 }}
                                 css={css`
@@ -1336,7 +1335,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                     {tools.map((tool: ToolData) => (
                         <React.Fragment key={tool.name}>
                             <marker
-                                id={`${model.node.id}-arrow-head-tool-${tool.name}`}
+                                id={`${model.node.id}-arrow-head-tool-${sanitizeId(tool.name)}`}
                                 markerWidth="4"
                                 markerHeight="4"
                                 refX="3"
@@ -1348,7 +1347,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             </marker>
 
                             <marker
-                                id={`${model.node.id}-arrow-head-tool-${tool.name}-active`}
+                                id={`${model.node.id}-arrow-head-tool-${sanitizeId(tool.name)}-active`}
                                 markerWidth="4"
                                 markerHeight="4"
                                 refX="3"
@@ -1365,6 +1364,11 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             <ThemeListener onThemeChange={handleThemeChange} />
         </NodeStyles.Node>
     );
+}
+
+// sanitize a string for use as an SVG/HTML id attribute
+function sanitizeId(name: string): string {
+    return name.replace(/[^A-Za-z0-9_-]/g, "_");
 }
 
 // sanitize agent instructions and role

@@ -233,7 +233,7 @@ function subscribeTraceAnimation(listener: () => void): () => void {
 }
 
 function notifyListeners() {
-    traceAnimationListeners.forEach(l => l());
+    traceAnimationListeners.forEach(l => { l(); });
 }
 
 function entryKey(type: string, toolName?: string): string {
