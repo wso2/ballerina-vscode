@@ -130,9 +130,9 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                 // Show error on the appropriate field
                 if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
                     if (singleIntegrationData.createAsWorkspace) {
-                        setSingleIntegrationPathError(validationResult.errorMessage ||"Invalid project path");
+                        setSingleIntegrationPathError(validationResult.errorMessage || "Invalid project path");
                     } else {
-                        setSingleIntegrationPackageNameError(
+                        setSingleIntegrationPathError(
                             validationResult.errorMessage || `Invalid ${selectedResourceTypeLabel.toLowerCase()} path`
                         );
                     }
