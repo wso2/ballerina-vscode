@@ -230,7 +230,6 @@ export const executeCurlRequest = async (input: HTTPInput, eventHandler: Copilot
             toolCallId
         });
         const response = await axios.request({ ...parsedRequest, timeout: CURL_REQUEST_TIMEOUT_MS });
-        console.log("HTTP request successful:", response);
 		const requestOutput = createSuccessResponse(response);
 		const toolOutput = { request: parsedRequest, scenario: input.testScenario, output: requestOutput };
 		eventHandler({
@@ -241,7 +240,6 @@ export const executeCurlRequest = async (input: HTTPInput, eventHandler: Copilot
         });
         return requestOutput;
     } catch (error) {
-        console.error("HTTP request failed:", error);
         if (axios.isAxiosError(error)) {
             const errorOutput = createErrorResponse(error);
             const toolOutput = { request: parsedRequest, scenario: input.testScenario, output: errorOutput };
