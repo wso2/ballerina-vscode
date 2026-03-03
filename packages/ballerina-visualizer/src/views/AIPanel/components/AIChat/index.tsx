@@ -200,8 +200,6 @@ const AIChat: React.FC = () => {
                 .getDefaultPrompt()
                 .then((defaultPrompt: AIPanelPrompt) => {
                     if (defaultPrompt) {
-                        aiChatInputRef.current?.setInputContent(defaultPrompt);
-
                         // Extract CodeContext from both command-template metadata and text-type direct param
                         const codeCtx = defaultPrompt.type === 'command-template'
                             ? defaultPrompt.metadata?.codeContext
@@ -220,8 +218,11 @@ const AIChat: React.FC = () => {
                                     input: [{ content: defaultPrompt.text }],
                                     attachments: [],
                                 });
+                                return;
                             }
                         }
+
+                        aiChatInputRef.current?.setInputContent(defaultPrompt);
                     }
                 });
         };
