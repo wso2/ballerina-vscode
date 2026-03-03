@@ -164,6 +164,7 @@ const AIChat: React.FC = () => {
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
+    const codeContextRef = useRef<CodeContext | undefined>(undefined);
     const functionsRef = useRef<any>([]);
     const lastAttatchmentsRef = useRef<any>([]);
     const aiChatInputRef = useRef<AIChatInputRef>(null);
@@ -184,6 +185,11 @@ const AIChat: React.FC = () => {
         currentDiagnosticsRef,
     });
 
+    const updateCodeContext = (context?: CodeContext) => {
+        codeContextRef.current = context;
+        setCodeContext(context);
+    };
+
     /**
      * Effect: Initialize the component with initial prompts
      */
@@ -203,13 +209,18 @@ const AIChat: React.FC = () => {
                                 ? defaultPrompt.codeContext
                                 : undefined;
 
-                        if (codeCtx) {
-                            setCodeContext(codeCtx);
-                        }
+                        updateCodeContext(codeCtx);
 
                         // Handle plan mode for text-type prompts
                         if (defaultPrompt.type === 'text') {
                             setAgentMode(defaultPrompt.planMode ? AgentMode.Plan : AgentMode.Edit);
+
+                            if (defaultPrompt.autoSubmit && defaultPrompt.text.trim().length > 0) {
+                                void handleSend({
+                                    input: [{ content: defaultPrompt.text }],
+                                    attachments: [],
+                                });
+                            }
                         }
                     }
                 });
@@ -1305,9 +1316,10 @@ const AIChat: React.FC = () => {
             content: file.content,
         }));
 
-        console.log("Submitting agent prompt:", { useCase, agentMode, codeContext, operationType, fileAttatchments });
+        const currentCodeContext = codeContextRef.current;
+        console.log("Submitting agent prompt:", { useCase, agentMode, codeContext: currentCodeContext, operationType, fileAttatchments });
         rpcClient.getAiPanelRpcClient().generateAgent({
-            usecase: useCase, isPlanMode: agentMode === AgentMode.Plan, codeContext: codeContext, operationType, fileAttachmentContents: fileAttatchments
+            usecase: useCase, isPlanMode: agentMode === AgentMode.Plan, codeContext: currentCodeContext, operationType, fileAttachmentContents: fileAttatchments
         })
     }
 
@@ -1881,7 +1893,7 @@ const AIChat: React.FC = () => {
                             isLoading={isLoading}
                             showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
                             codeContext={codeContext}
-                            onRemoveCodeContext={() => setCodeContext(undefined)}
+                            onRemoveCodeContext={() => updateCodeContext(undefined)}
                             agentMode={agentMode}
                             onChangeAgentMode={isPlanModeFeatureEnabled ? handleChangeAgentMode : undefined}
                             isAutoApproveEnabled={isAutoApproveEnabled}
@@ -1897,5 +1909,3 @@ const AIChat: React.FC = () => {
 };
 
 export default AIChat;
-
-
