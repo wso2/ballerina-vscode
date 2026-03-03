@@ -44,6 +44,7 @@ import { AIChatInputRef } from "../AIChatInput";
 import ProgressTextSegment from "../ProgressTextSegment";
 import ToolCallSegment from "../ToolCallSegment";
 import ToolCallGroupSegment, { ToolCallItem } from "../ToolCallGroupSegment";
+import TryItScenariosSegment from "../TryItScenariosSegment";
 import TodoSection from "../TodoSection";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
@@ -472,6 +473,19 @@ const AIChat: React.FC = () => {
                 updateLastMessage((content) =>
                     content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`
                 );
+            } else if (response.toolName === "curlRequest") {
+                const toolCallId = response?.toolCallId;
+                const toolInput = response.toolInput;
+                let tool_content = encodeURIComponent(JSON.stringify({ request: { method: "", url: "Sending HTTP request...", headers: {}, data: null } }));
+                try{
+                    tool_content = encodeURIComponent(JSON.stringify(toolInput));
+                }catch(error){
+                    console.error("Failed to stringify HTTP request tool input:", error);
+                }
+
+                updateLastMessage((content) =>
+                    content + `\n\n<tryitcall id="${toolCallId}">${tool_content}</tryitcall>`
+                );
             }
         } else if (type === "tool_result") {
             if (response.toolName === "LibrarySearchTool") {
@@ -638,6 +652,30 @@ const AIChat: React.FC = () => {
                     const resultMessage = response.toolOutput?.summary ?? "Tests completed";
                     const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
                     updateLastMessage((content) => content.replace(searchPattern, replacement));
+                }
+            } else if (response.toolName === "curlRequest") {
+                const toolCallId = response.toolCallId;
+                const toolOutput = response.toolOutput;
+                let tool_content: string | null = null;
+                try {
+                    tool_content = encodeURIComponent(JSON.stringify(toolOutput));
+                } catch (error) {
+                    console.error("Failed to stringify HTTP request tool output:", error);
+                }
+
+                if (tool_content !== null) {
+                    const searchPattern = `<tryitcall id="${toolCallId}">`;
+                    updateLastMessage((content) => {
+                        const start = content.indexOf(searchPattern);
+                        if (start === -1) return content;
+                        const end = content.indexOf("</tryitcall>", start);
+                        if (end === -1) return content;
+                        return (
+                            content.slice(0, start) +
+                            `<tryitresult id="${toolCallId}">${tool_content}</tryitresult>` +
+                            content.slice(end + "</tryitcall>".length)
+                        );
+                    });
                 }
             }
         } else if (type === "task_approval_request") {
@@ -1680,6 +1718,14 @@ const AIChat: React.FC = () => {
                                                 <ToolCallGroupSegment
                                                     key={`tool-call-group-${i}`}
                                                     segments={groupItems}
+                                                />
+                                            );
+                                        } else if (segment.type === SegmentType.TryItScenarios) {
+                                            return (
+                                                <TryItScenariosSegment
+                                                    key={`try-it-scenarios-${i}`}
+                                                    text={segment.text}
+                                                    loading={segment.loading}
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.Todo) {
