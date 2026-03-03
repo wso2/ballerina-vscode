@@ -110,9 +110,21 @@ export function ProjectForm() {
 
             if (!validationResult.isValid) {
                 if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
-                    setPathError(validationResult.errorMessage || `Invalid ${resourceTypeLabel.toLowerCase()} path`);
+                    if (formData.createAsWorkspace) {
+                        setPathError(validationResult.errorMessage || "Invalid project path");
+                    } else {
+                        setPathError(
+                            validationResult.errorMessage || `Invalid ${resourceTypeLabel.toLowerCase()} path`
+                        );
+                    }
                 } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
-                    setPackageNameValidationError(validationResult.errorMessage || `Invalid ${resourceTypeLabel.toLowerCase()} name`);
+                    if (formData.createAsWorkspace) {
+                        setPackageNameValidationError(validationResult.errorMessage || "Invalid project name");
+                    } else {
+                        setPackageNameValidationError(
+                            validationResult.errorMessage || `Invalid ${resourceTypeLabel.toLowerCase()} name`
+                        );
+                    }
                 }
                 setIsValidating(false);
                 return;

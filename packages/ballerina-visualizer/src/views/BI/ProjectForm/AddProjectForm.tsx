@@ -77,9 +77,13 @@ export function AddProjectForm() {
 
         try {
             // Validate the project path
+            const targetNameForValidation = !isInProject
+                ? formData.workspaceName
+                : formData.packageName;
+
             const validationResult = await rpcClient.getBIDiagramRpcClient().validateProjectPath({
                 projectPath: targetPath,
-                projectName: formData.packageName,
+                projectName: targetNameForValidation,
                 createDirectory: true,
             });
 

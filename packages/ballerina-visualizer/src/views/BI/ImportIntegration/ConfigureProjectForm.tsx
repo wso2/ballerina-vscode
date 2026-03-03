@@ -106,7 +106,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
         }
 
         if (singleIntegrationData.path.length < 2) {
-            setSingleIntegrationPathError("Please select a path for your integration");
+            setSingleIntegrationPathError(`Please select a path for your ${selectedResourceTypeLabel.toLowerCase()}`);
             hasError = true;
         }
 
@@ -129,9 +129,21 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
             if (!validationResult.isValid) {
                 // Show error on the appropriate field
                 if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
-                    setSingleIntegrationPathError(validationResult.errorMessage || "Invalid integration path");
+                    if (singleIntegrationData.createAsWorkspace) {
+                        setSingleIntegrationPathError(validationResult.errorMessage ||"Invalid project path");
+                    } else {
+                        setSingleIntegrationPackageNameError(
+                            validationResult.errorMessage || `Invalid ${selectedResourceTypeLabel.toLowerCase()} path`
+                        );
+                    }
                 } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
-                    setSingleIntegrationPackageNameError(validationResult.errorMessage || "Invalid integration name");
+                    if (singleIntegrationData.createAsWorkspace) {
+                        setSingleIntegrationPathError(validationResult.errorMessage || "Invalid project name");
+                    } else {
+                        setSingleIntegrationPackageNameError(
+                            validationResult.errorMessage || `Invalid ${selectedResourceTypeLabel.toLowerCase()} name`
+                        );
+                    }
                 }
                 setIsValidating(false);
                 return;
