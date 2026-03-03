@@ -213,23 +213,30 @@ function tokenizeCurl(curl: string): string[] {
 export const executeHttpRequest = async (input: HTTPInput, eventHandler: CopilotEventHandler, context?: { toolCallId?: string }): Promise<HTTPResponse | HTTPErrorResponse> => {
 	const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
     console.log(`Executing HTTP request: input:`, input);
+    const parsedRequest = parseCurl(input.curlCommand);
     try {
-		eventHandler({type:"tool_call", toolName: HTTP_REQUEST_TOOL_NAME, toolInput: input, toolCallId});
-        const response = await axios.request(parseCurl(input.curlCommand));
+		eventHandler({
+            type: "tool_call",
+            toolName: HTTP_REQUEST_TOOL_NAME,
+            toolInput: { request: parsedRequest, scenario: input.testScenario },
+            toolCallId
+        });
+        const response = await axios.request(parsedRequest);
         console.log("HTTP request successful:", response);
 		const requestOutput = createSuccessResponse(response);
-		const toolOutput = {input, output: requestOutput};
+		const toolOutput = { request: parsedRequest, scenario: input.testScenario, output: requestOutput };
 		eventHandler({
-        type: "tool_result",
-        toolName: HTTP_REQUEST_TOOL_NAME,
-        toolOutput: toolOutput,
-        toolCallId});
+            type: "tool_result",
+            toolName: HTTP_REQUEST_TOOL_NAME,
+            toolOutput: toolOutput,
+            toolCallId
+        });
         return requestOutput;
     } catch (error) {
         console.error("HTTP request failed:", error);
         if (axios.isAxiosError(error)) {
             const errorOutput = createErrorResponse(error);
-            const toolOutput = {input, output: errorOutput};
+            const toolOutput = { request: parsedRequest, scenario: input.testScenario, output: errorOutput };
             eventHandler({
                 type: "tool_result",
                 toolName: HTTP_REQUEST_TOOL_NAME,
@@ -242,7 +249,7 @@ export const executeHttpRequest = async (input: HTTPInput, eventHandler: Copilot
             error: true,
             message: error instanceof Error ? error.message : String(error),
         };
-        const toolOutput = {input, output: genericErrorOutput};
+        const toolOutput = { request: parsedRequest, scenario: input.testScenario, output: genericErrorOutput };
         eventHandler({
             type: "tool_result",
             toolName: HTTP_REQUEST_TOOL_NAME,
