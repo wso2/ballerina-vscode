@@ -33,8 +33,6 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
-import io.ballerina.modelgenerator.commons.PackageUtil;
-import io.ballerina.projects.Project;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;

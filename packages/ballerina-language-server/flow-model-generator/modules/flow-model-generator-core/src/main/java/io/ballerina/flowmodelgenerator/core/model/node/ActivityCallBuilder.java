@@ -30,6 +30,7 @@ import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
@@ -39,6 +40,7 @@ import io.ballerina.flowmodelgenerator.core.utils.TypeUtils;
 import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
@@ -117,13 +119,17 @@ public class ActivityCallBuilder extends CallBuilder {
         }
 
         // Get activity function from codedata.symbol()
-        String activityFunction = flowNode.codedata().symbol();
-        if (activityFunction == null || activityFunction.isBlank()) {
+        Codedata codedata = flowNode.codedata();
+        String activityFunctionSymbol = codedata.symbol();
+        if (activityFunctionSymbol == null || activityFunctionSymbol.isBlank()) {
             throw new IllegalStateException("ActivityCallBuilder requires a non-empty activity function symbol");
         }
 
+        // Determine if the activity function is from the current module or an imported module
+        // If from an imported module, use module-qualified name (modulePrefix:functionName)
+        String qualifiedActivityFunction = getQualifiedActivityFunctionName(sourceBuilder, codedata);
+
         // Generate: int result = check ctx->callActivity(myActivity, input);
-        //Todo: handle activity function from imported modules with module prefix
         sourceBuilder.token()
                 .name(resultType)
                 .whiteSpace()
@@ -135,7 +141,7 @@ public class ActivityCallBuilder extends CallBuilder {
                 .keyword(SyntaxKind.RIGHT_ARROW_TOKEN)
                 .name(CALL_ACTIVITY_METHOD)
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN)
-                .name(activityFunction)
+                .name(qualifiedActivityFunction)
                 .keyword(SyntaxKind.COMMA_TOKEN);
 
         // Add function parameters (excluding variable, type, checkError)
@@ -233,5 +239,36 @@ public class ActivityCallBuilder extends CallBuilder {
                 .name(DEFAULT_CTX_PARAM_NAME)
                 .keyword(SyntaxKind.COMMA_TOKEN)
                 .skipFormatting().stepOut().textEdit(null, sourceBuilder.filePath, insertRange);
+    }
+
+    /**
+     * Gets the qualified activity function name, handling both local and imported module functions.
+     * For local functions, returns just the function symbol name.
+     * For imported module functions, returns the module-qualified name (modulePrefix:functionName).
+     *
+     * @param sourceBuilder The source builder
+     * @param codedata      The codedata containing function and module information
+     * @return The qualified activity function name
+     */
+    private String getQualifiedActivityFunctionName(SourceBuilder sourceBuilder, Codedata codedata) {
+        String functionSymbol = codedata.symbol();
+        String org = codedata.org();
+        String module = codedata.module();
+
+        if (org == null || org.isEmpty() || module == null || module.isEmpty()) {
+            return functionSymbol;
+        }
+
+        boolean isLocalFunction = PackageUtil.isLocalFunction(
+                sourceBuilder.workspaceManager, sourceBuilder.filePath, org, module);
+
+        if (isLocalFunction) {
+            return functionSymbol;
+        }
+
+        // Get the module prefix (last part after the dot, e.g., "mymodule" from "org/pkg.mymodule")
+        String modulePrefix = module.substring(module.lastIndexOf('.') + 1);
+        sourceBuilder.acceptImport(org, module);
+        return modulePrefix + ":" + functionSymbol;
     }
 }
