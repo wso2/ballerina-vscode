@@ -19,13 +19,17 @@
 package io.ballerina.flowmodelgenerator.core.diagnostics;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.flowmodelgenerator.core.CodeAnalyzer;
+import io.ballerina.flowmodelgenerator.core.model.Diagnostics;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
+import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -180,7 +184,71 @@ public class DiagnosticRequest implements Callable<JsonElement> {
         if (flowNodes.size() != 1) {
             return null;
         }
-        return gson.toJsonTree(flowNodes.getFirst());
+        FlowNode resultNode = flowNodes.getFirst();
+
+        // Aggregate all diagnostics from the promoted node and remap them onto the "expression"
+        NodeKind flowKind = flowNodeObj.codedata().node();
+        NodeKind resultKind = resultNode.codedata() != null ? resultNode.codedata().node() : null;
+        if ((flowKind == NodeKind.VARIABLE || flowKind == NodeKind.ASSIGN)
+                && resultKind != null
+                && resultKind != NodeKind.VARIABLE
+                && resultKind != NodeKind.ASSIGN) {
+            return remapDiagnosticsToVariableExpression(resultNode);
+        }
+
+        return gson.toJsonTree(resultNode);
+    }
+
+    /**
+     * Collects all diagnostics from the promoted node's properties and remaps them onto the
+     * {@code expression} property of the original VARIABLE node JSON. This is needed when a
+     * VARIABLE node's initializer is a function call: the CodeAnalyzer promotes it to a
+     * FUNCTION_CALL node with parameter-specific properties that don't exist in the Declare
+     * Variable form.
+     */
+    private JsonElement remapDiagnosticsToVariableExpression(FlowNode resultNode) {
+        List<Diagnostics.Info> allDiagnostics = new ArrayList<>();
+        boolean hasDiagnostics = resultNode.diagnostics() != null && resultNode.diagnostics().hasDiagnostics();
+        if (hasDiagnostics && resultNode.diagnostics().diagnostics() != null) {
+            allDiagnostics.addAll(resultNode.diagnostics().diagnostics());
+        }
+        if (resultNode.properties() != null) {
+            for (Property prop : resultNode.properties().values()) {
+                if (prop.diagnostics() != null && prop.diagnostics().hasDiagnostics()) {
+                    hasDiagnostics = true;
+                    if (prop.diagnostics().diagnostics() != null) {
+                        allDiagnostics.addAll(prop.diagnostics().diagnostics());
+                    }
+                }
+            }
+        }
+
+        JsonObject varNodeJson = flowNode.deepCopy().getAsJsonObject();
+        if (hasDiagnostics) {
+            JsonObject nodeDiag = new JsonObject();
+            nodeDiag.addProperty("hasDiagnostics", true);
+            varNodeJson.add("diagnostics", nodeDiag);
+
+            // Attach diagnostics to the "expression" property
+            JsonObject properties = varNodeJson.getAsJsonObject("properties");
+            if (properties != null && properties.has("expression")) {
+                JsonObject expressionProp = properties.getAsJsonObject("expression");
+                JsonObject propDiag = new JsonObject();
+                propDiag.addProperty("hasDiagnostics", true);
+                if (!allDiagnostics.isEmpty()) {
+                    JsonArray diagArray = new JsonArray();
+                    for (Diagnostics.Info info : allDiagnostics) {
+                        JsonObject diagObj = new JsonObject();
+                        diagObj.addProperty("severity", info.severity().toString());
+                        diagObj.addProperty("message", info.message());
+                        diagArray.add(diagObj);
+                    }
+                    propDiag.add("diagnostics", diagArray);
+                }
+                expressionProp.add("diagnostics", propDiag);
+            }
+        }
+        return varNodeJson;
     }
 
     public String getKey() {

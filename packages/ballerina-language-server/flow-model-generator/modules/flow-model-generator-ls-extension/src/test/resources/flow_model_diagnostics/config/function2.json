@@ -1,0 +1,189 @@
+{
+  "source": "function2.bal",
+  "description": "Test diagnostics with simple function",
+  "flowNode": {
+    "id": "31",
+    "metadata": {
+      "label": "Declare Variable",
+      "description": "Create a new variable"
+    },
+    "codedata": {
+      "node": "VARIABLE",
+      "isNew": true,
+      "lineRange": {
+        "startLine": {
+          "line": 1,
+          "offset": 16
+        },
+        "endLine": {
+          "line": 1,
+          "offset": 16
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "variable": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": false
+          }
+        ],
+        "value": "var1",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "modified": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": false
+          }
+        ],
+        "value": "string[]",
+        "placeholder": "var",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {},
+        "modified": false
+      },
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Initialize with value"
+        },
+        "types": [
+          {
+            "fieldType": "ACTION_OR_EXPRESSION",
+            "selected": false
+          }
+        ],
+        "value": "getCSVFiles(\"\")",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "imports": {},
+        "modified": false,
+        "diagnostics": {
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "incompatible types: expected 'string[]', found '(string[]|error)'"
+            }
+          ]
+        }
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Declare Variable",
+      "description": "Create a new variable"
+    },
+    "codedata": {
+      "node": "VARIABLE",
+      "isNew": true,
+      "lineRange": {
+        "startLine": {
+          "line": 1,
+          "offset": 16
+        },
+        "endLine": {
+          "line": 1,
+          "offset": 16
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "variable": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": false
+          }
+        ],
+        "value": "var1",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "modified": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": false
+          }
+        ],
+        "value": "string[]",
+        "placeholder": "var",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {},
+        "modified": false
+      },
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Initialize with value"
+        },
+        "types": [
+          {
+            "fieldType": "ACTION_OR_EXPRESSION",
+            "selected": false
+          }
+        ],
+        "value": "getCSVFiles(\"\")",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "imports": {},
+        "modified": false,
+        "diagnostics": {
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "incompatible types: expected 'string[]', found '(string[]|error)'"
+            }
+          ]
+        }
+      }
+    },
+    "flags": 0,
+    "diagnostics": {
+      "hasDiagnostics": true
+    }
+  }
+}
