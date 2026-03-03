@@ -57,6 +57,9 @@ export function MultiProjectFormFields({ formData, onFormDataChange, pathError, 
 
     const handleProjectDirSelection = async () => {
         const selectedDirectory = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
+        if (!selectedDirectory?.path) {
+            return;
+        }
         onFormDataChange({ path: selectedDirectory.path });
     };
 
@@ -86,7 +89,7 @@ export function MultiProjectFormFields({ formData, onFormDataChange, pathError, 
             <FieldGroup>
                 <CheckboxContainer>
                     <CheckBox
-                        label="Create a new direcotry for integrations"
+                        label="Create a new directory for integrations"
                         checked={formData.createDirectory}
                         onChange={(checked) => onFormDataChange({ createDirectory: checked })}
                     />
