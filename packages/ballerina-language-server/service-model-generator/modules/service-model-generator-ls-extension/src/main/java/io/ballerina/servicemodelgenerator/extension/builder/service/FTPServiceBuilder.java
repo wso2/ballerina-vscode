@@ -21,23 +21,16 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
-import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
-import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.projects.Document;
@@ -48,7 +41,6 @@ import io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
-import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -56,6 +48,7 @@ import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInit
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
+import io.ballerina.servicemodelgenerator.extension.util.FTPFunctionModelUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.ballerinalang.formatter.core.FormatterException;
@@ -118,26 +111,20 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     private static final List<String> LISTENER_CONFIG_KEYS = List.of(
             KEY_LISTENER_VAR_NAME, "designApproach", "host", "portNumber", "authentication", "secureSocket"
     );
-    public static final String DATA_BINDING = "DATA_BINDING";
-    public static final String STREAM = "stream";
     public static final String EVENT = "EVENT";
     private static final String SERVICE_CONFIG = "ServiceConfig";
-    private static final String FUNCTION_CONFIG = "FunctionConfig";
-    private static final String SERVICE_PATH = "path";
-    private static final String POST_PROCESS_ACTION = "postProcessAction";
-    private static final String POST_PROCESS_ACTION_ON_SUCCESS = "onSuccess";
-    private static final String POST_PROCESS_ACTION_ON_ERROR = "onError";
-    private static final String AFTER_PROCESS = "afterProcess";
-    private static final String AFTER_ERROR = "afterError";
-    private static final String ACTION_MOVE = "MOVE";
-    private static final String ACTION_DELETE = "DELETE";
-    private static final String MOVE_TO = "moveTo";
 
+    /**
+     * Router key used by {@code ServiceBuilderRouter} to bind FTP service operations to this builder.
+     */
     @Override
     public String kind() {
         return "FTP";
     }
 
+    /**
+     * Invoked by {@code serviceDesign/getServiceInitModel} when the frontend opens the FTP service-creation flow.
+     */
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
         InputStream resourceStream = HttpServiceBuilder.class.getClassLoader()
@@ -174,6 +161,9 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         }
     }
 
+    /**
+     * Invoked by {@code serviceDesign/addServiceAndListener} when the frontend creates a new FTP service.
+     */
     @Override
     public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context)
             throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException,
@@ -315,6 +305,9 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         return Map.of(context.filePath(), edits);
     }
 
+    /**
+     * Invoked by {@code serviceDesign/getServiceFromSource} to load the FTP service model and all handler metadata.
+     */
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
         Optional<Service> service = getModelTemplate(GetModelContext.fromServiceAndFunctionType(BALLERINA, FTP));
@@ -355,15 +348,11 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                         modelFunc.setCodedata(sourceFunc.getCodedata());
                         modelFunc.getCodedata().setModuleName(FTP);
 
-                        enableParameters(sourceFunc, modelFunc);
-                        updateDatabindingParameter(sourceFunc, modelFunc);
+                        FTPFunctionModelUtil.syncFunctionFromSource(sourceFunc, modelFunc, true);
                         FunctionDefinitionNode functionNode = functionNodes.get(sourceFuncName);
                         if (functionNode != null) {
-                            updatePostProcessActionsFromAnnotation(functionNode, modelFunc, semanticModel);
-                        }
-
-                        if (modelFunc.getProperties().containsKey(STREAM)) {
-                            setStreamProperty(modelFunc, sourceFunc);
+                            FTPFunctionModelUtil.populatePostProcessActionsFromAnnotation(functionNode, modelFunc,
+                                    semanticModel, true);
                         }
                     } else {
                         // Handle deprecated file handlers
@@ -403,6 +392,9 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         return serviceModel;
     }
 
+    /**
+     * Used by the router/template lookup path for FTP service defaults before source extraction and creation flows.
+     */
     @Override
     public Optional<Service> getModelTemplate(GetModelContext context) {
         InputStream resourceStream = HttpServiceBuilder.class.getClassLoader()
@@ -472,227 +464,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             }
         }
         return "FTP";
-    }
-
-    /**
-     * Sets the stream property based on the first parameter type of the function.
-     * Stream property is set to true if the first parameter has a type of stream<{type},error>.
-     *
-     * @param modelFunc The model function to update
-     * @param sourceFunc The source function to check
-     */
-    private void setStreamProperty(Function modelFunc, Function sourceFunc) {
-        boolean isStream = false;
-
-        if (sourceFunc.getParameters() != null && !sourceFunc.getParameters().isEmpty()) {
-            Parameter firstParam = sourceFunc.getParameters().get(0);
-            if (firstParam.getType() != null) {
-                String paramType = firstParam.getType().getValue();
-                // Check if the parameter type is a stream type (e.g., stream<{type},error>)
-                if (paramType != null && paramType.startsWith("stream<")) {
-                    isStream = true;
-                }
-            }
-        }
-
-        // Create or update the stream property in the function's properties map
-        Value streamProperty = new Value.ValueBuilder()
-                .value(String.valueOf(isStream))
-                .enabled(isStream)
-                .editable(false)
-                .optional(false)
-                .setAdvanced(false)
-                .build();
-
-        modelFunc.addProperty("stream", streamProperty);
-    }
-
-    private static void enableParameters(Function sourceFunc, Function modelFunc) {
-        modelFunc.getParameters().forEach(
-                parameter -> parameter.setEnabled(false)
-        );
-        for (Parameter sourceParam: sourceFunc.getParameters()) {
-
-            modelFunc.getParameters().stream().filter(
-                    modelParam -> modelParam.getType().getValue()
-                            .equals(sourceParam.getType().getValue()) ||
-                            modelParam.getKind().equals(DATA_BINDING)
-                            || modelParam.getName().getValue().equals("content")
-            ).forEach(
-                    modelParam -> {
-                        modelParam.setEnabled(true);
-                    }
-            );
-        }
-    }
-
-    private static void updateDatabindingParameter(Function sourceFunc, Function modelFunc) {
-        if (sourceFunc.getParameters() != null) {
-
-            // In source always data-binding parameter must be the first one
-            Parameter sourceParam = sourceFunc.getParameters().getFirst();
-            if (modelFunc.getParameters() != null) {
-                Parameter modelParam = modelFunc.getParameters().getFirst();
-
-                if (modelParam.getType() != null &&
-                        DATA_BINDING.equals(modelParam.getKind())) {
-
-                    // Update parameter name
-                    if (sourceParam.getName() != null && modelParam.getName() != null) {
-                        modelParam.getName().setValue(sourceParam.getName().getValue());
-                    }
-
-                    // Update a parameter type while preserving placeholder if it exists
-                    if (sourceParam.getType() != null && modelParam.getType() != null) {
-                        modelParam.getType().setValue(sourceParam.getType().getValue());
-                    }
-                }
-            }
-        }
-    }
-
-    private void updatePostProcessActionsFromAnnotation(FunctionDefinitionNode functionNode, Function modelFunc,
-                                                        SemanticModel semanticModel) {
-        Value postProcessAction = modelFunc.getProperties().get(POST_PROCESS_ACTION);
-        if (postProcessAction == null || postProcessAction.getProperties() == null) {
-            return;
-        }
-        Map<String, Value> postProcessProps = postProcessAction.getProperties();
-        Value successProperty = postProcessProps.get(POST_PROCESS_ACTION_ON_SUCCESS);
-        Value errorProperty = postProcessProps.get(POST_PROCESS_ACTION_ON_ERROR);
-
-        if (functionNode.metadata().isEmpty()) {
-            disablePostProcessActions(postProcessAction, successProperty, errorProperty);
-            return;
-        }
-
-        Optional<AnnotationNode> functionConfig = findFtpAnnotation(
-                functionNode.metadata().get().annotations(), FUNCTION_CONFIG, semanticModel);
-        if (functionConfig.isEmpty()) {
-            disablePostProcessActions(postProcessAction, successProperty, errorProperty);
-            return;
-        }
-        Optional<MappingConstructorExpressionNode> annotValue = functionConfig.get().annotValue();
-        if (annotValue.isEmpty()) {
-            disablePostProcessActions(postProcessAction, successProperty, errorProperty);
-            return;
-        }
-        boolean hasAfterProcess = false;
-        boolean hasAfterError = false;
-        for (MappingFieldNode field : annotValue.get().fields()) {
-            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
-                continue;
-            }
-            SpecificFieldNode specificField = (SpecificFieldNode) field;
-            String fieldName = specificField.fieldName().toString().trim();
-            Optional<ExpressionNode> valueExpr = specificField.valueExpr();
-            if (valueExpr.isEmpty()) {
-                continue;
-            }
-            if (AFTER_PROCESS.equals(fieldName)) {
-                hasAfterProcess = true;
-                applyPostProcessAction(successProperty, valueExpr.get());
-            } else if (AFTER_ERROR.equals(fieldName)) {
-                hasAfterError = true;
-                applyPostProcessAction(errorProperty, valueExpr.get());
-            }
-        }
-        if (successProperty != null) {
-            successProperty.setEnabled(hasAfterProcess);
-        }
-        if (errorProperty != null) {
-            errorProperty.setEnabled(hasAfterError);
-        }
-        postProcessAction.setEnabled(hasAfterProcess || hasAfterError);
-    }
-
-    private void disablePostProcessActions(Value postProcessAction, Value successProperty, Value errorProperty) {
-        if (successProperty != null) {
-            successProperty.setEnabled(false);
-        }
-        if (errorProperty != null) {
-            errorProperty.setEnabled(false);
-        }
-        if (postProcessAction != null) {
-            postProcessAction.setEnabled(false);
-        }
-    }
-
-    private void applyPostProcessAction(Value actionProperty, ExpressionNode valueExpr) {
-        if (actionProperty == null || actionProperty.getChoices() == null) {
-            return;
-        }
-
-        if (valueExpr instanceof MappingConstructorExpressionNode mappingExpr) {
-            selectPostProcessChoice(actionProperty, ACTION_MOVE, extractMoveProperties(mappingExpr));
-            return;
-        }
-
-        String exprText = valueExpr.toSourceCode().trim();
-        if (exprText.endsWith(ACTION_DELETE)) {
-            selectPostProcessChoice(actionProperty, ACTION_DELETE, null);
-        }
-    }
-
-    private Map<String, String> extractMoveProperties(MappingConstructorExpressionNode mappingExpr) {
-        Map<String, String> moveProps = new HashMap<>();
-        for (MappingFieldNode field : mappingExpr.fields()) {
-            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
-                continue;
-            }
-            SpecificFieldNode specificField = (SpecificFieldNode) field;
-            String fieldName = specificField.fieldName().toString().trim();
-            Optional<ExpressionNode> valueExpr = specificField.valueExpr();
-            valueExpr.ifPresent(expressionNode -> moveProps.put(fieldName,
-                    expressionNode.toSourceCode().trim()));
-        }
-        return moveProps;
-    }
-
-    private void selectPostProcessChoice(Value actionProperty, String action, Map<String, String> moveProps) {
-        for (Value choice : actionProperty.getChoices()) {
-            boolean isSelected = action.equals(choice.getValue());
-            choice.setEnabled(isSelected);
-            if (isSelected && ACTION_MOVE.equals(action) && moveProps != null && choice.getProperties() != null) {
-                Value moveTo = choice.getProperties().get(MOVE_TO);
-                if (moveTo != null && moveProps.containsKey(MOVE_TO)) {
-                    moveTo.setValue(moveProps.get(MOVE_TO));
-                }
-            }
-        }
-    }
-
-    private Optional<AnnotationNode> findFtpAnnotation(NodeList<AnnotationNode> annotations, String annotationName,
-                                                        SemanticModel semanticModel) {
-        for (AnnotationNode annotation : annotations) {
-            if (isMatchingFtpAnnotation(annotation, annotationName, semanticModel)) {
-                return Optional.of(annotation);
-            }
-        }
-        return Optional.empty();
-    }
-
-    private boolean isMatchingFtpAnnotation(AnnotationNode annotation, String annotationName,
-                                            SemanticModel semanticModel) {
-        Optional<Symbol> symbol = semanticModel.symbol(annotation);
-        if (symbol.orElse(null) instanceof AnnotationSymbol annotationSymbol) {
-            Optional<ModuleSymbol> module = annotationSymbol.getModule();
-            if (module.isEmpty() || annotationSymbol.getName().isEmpty()
-                    || !annotationName.equals(annotationSymbol.getName().get())) {
-                return false;
-            }
-            String orgName = module.get().id().orgName();
-            String packageName = module.get().id().packageName();
-            String moduleName = module.get().id().moduleName();
-            return BALLERINA.equals(orgName) && (FTP.equals(packageName) || FTP.equals(moduleName));
-        }
-
-        // Fallback when symbol resolution is unavailable (e.g., temporary semantic model issues).
-        if (annotation.annotReference() instanceof QualifiedNameReferenceNode qualifiedName) {
-            return FTP.equals(qualifiedName.modulePrefix().text())
-                    && annotationName.equals(qualifiedName.identifier().text().trim());
-        }
-        return false;
     }
 
     /**
@@ -801,6 +572,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         if (serviceNode.metadata().isEmpty()) {
             return false;
         }
-        return findFtpAnnotation(serviceNode.metadata().get().annotations(), SERVICE_CONFIG, semanticModel).isPresent();
+        return FTPFunctionModelUtil.findFtpAnnotation(serviceNode.metadata().get().annotations(), SERVICE_CONFIG,
+                semanticModel).isPresent();
     }
 }
