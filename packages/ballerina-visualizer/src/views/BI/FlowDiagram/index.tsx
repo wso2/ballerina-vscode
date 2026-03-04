@@ -986,35 +986,41 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             console.log(`>>> Searched List of ${searchKind.toLowerCase()}`, response);
 
             if (response.categories) {
+
+                // Convert search API results
                 const searchCategories = convertFunctionCategoriesToSidePanelCategories(
-                    response.categories as Category[],
+                    [...response.categories] as Category[],
                     functionType
                 );
 
-                // Filter search results with the same query to ensure consistency
-                const filteredSearchCategories = filterCategoriesLocally(searchCategories, searchText);
-                console.log(">>> Filtered search categories:", filteredSearchCategories.length);
+                // Combine initial getAvailableNodes results with search API results
+                const allCategories = [...initialCategoriesRef.current, ...searchCategories];
+                console.log(">>> Combined categories before filtering:", allCategories.length);
 
-                // Start with current displayed categories (already frontend-filtered)
-                const currentCategories = [...categories];
+                // Filter both initial and search results with the same query
+                const filteredCategories = filterCategoriesLocally(allCategories, searchText);
+                console.log(">>> Filtered combined categories:", filteredCategories.length);
 
-                filteredSearchCategories.forEach(searchCategory => {
+                // Start fresh with filtered combined results
+                const currentCategories: PanelCategory[] = [];
+
+                filteredCategories.forEach(category => {
                     const existingCategoryIndex = currentCategories.findIndex(
-                        existingCategory => existingCategory.title === searchCategory.title
+                        existingCategory => existingCategory.title === category.title
                     );
 
                     if (existingCategoryIndex >= 0) {
                         // Merge items if category exists, avoiding duplicate items
                         const existingCategory = currentCategories[existingCategoryIndex];
                         const existingItemLabels = new Set(existingCategory.items.map((item: any) => item.label));
-                        const newItems = searchCategory.items.filter((item: any) => !existingItemLabels.has(item.label));
+                        const newItems = category.items.filter((item: any) => !existingItemLabels.has(item.label));
                         currentCategories[existingCategoryIndex] = {
                             ...existingCategory,
                             items: [...existingCategory.items, ...newItems]
                         };
                     } else {
-                        // Add new category from search results
-                        currentCategories.push(searchCategory);
+                        // Add new category
+                        currentCategories.push(category);
                     }
                 });
 
@@ -1122,8 +1128,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             console.log(">>> debouncedSearch executing with:", searchText);
             if (searchText.trim()) {
                 // First show frontend filtered results immediately (this runs after debounce)
-                const frontendFiltered = filterCategoriesLocally(initialCategoriesRef.current, searchText);
-                setCategories(frontendFiltered);
+                // const frontendFiltered = filterCategoriesLocally(initialCategoriesRef.current, searchText);
+                // setCategories(frontendFiltered);
 
                 // Then enhance with backend search
                 setIsSearching(true);
@@ -1143,8 +1149,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         console.log(">>> useEffect searchText changed:", searchText);
         if (searchText.trim()) {
             // Show instant frontend filtering
-            const frontendFiltered = filterCategoriesLocally(initialCategoriesRef.current, searchText);
-            setCategories(frontendFiltered);
+            // const frontendFiltered = filterCategoriesLocally(initialCategoriesRef.current, searchText);
+            // setCategories(frontendFiltered);
 
             // Then trigger debounced backend search enhancement
             console.log(">>> Calling debouncedSearch with:", searchText);
