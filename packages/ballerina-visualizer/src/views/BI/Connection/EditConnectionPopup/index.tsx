@@ -359,7 +359,7 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
             case PopupView.CONNECTION_CREATE:
                 return "Configure new connection";
             case PopupView.EDIT_CONNECTOR:
-                return "Update your database credentials and table selection";
+                return "Update your database connector credentials and selected tables";
             default:
                 return "Update connection details";
         }
