@@ -110,19 +110,29 @@ function parsePartialAgentStream(raw: string): { entries: StreamEntry[]; isParti
     let depth = 0;
     let objStart = -1;
 
+    let inString = false;
+    let escaped = false;
     while (i < raw.length) {
         const ch = raw[i];
-        if (ch === "{") {
-            if (depth === 0) objStart = i;
-            depth++;
-        } else if (ch === "}") {
-            depth--;
-            if (depth === 0 && objStart !== -1) {
-                try {
-                    const entry = JSON.parse(raw.slice(objStart, i + 1)) as StreamEntry;
-                    entries.push(entry);
-                } catch { /* skip malformed entry */ }
-                objStart = -1;
+        if (escaped) {
+            escaped = false;
+        } else if (ch === "\\") {
+            escaped = true;
+        } else if (ch === "\"") {
+            inString = !inString;
+        } else if (!inString) {
+            if (ch === "{") {
+                if (depth === 0) objStart = i;
+                depth++;
+            } else if (ch === "}") {
+                depth--;
+                if (depth === 0 && objStart !== -1) {
+                    try {
+                        const entry = JSON.parse(raw.slice(objStart, i + 1)) as StreamEntry;
+                        entries.push(entry);
+                    } catch { /* skip malformed entry */ }
+                    objStart = -1;
+                }
             }
         }
         i++;

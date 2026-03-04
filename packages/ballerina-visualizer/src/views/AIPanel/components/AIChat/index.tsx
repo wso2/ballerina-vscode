@@ -387,10 +387,11 @@ const AIChat: React.FC = () => {
 
         if (type === "content_block") {
             const content = response.content;
-            if (!content.trim()) return;
+            if (content === "") return;
             setMessages(prevMessages => {
                 const msgs = [...prevMessages];
                 const last = msgs[msgs.length - 1];
+                if (!last) return prevMessages;
                 const entries = parseStream(last.content);
                 // Merge into trailing text item of the last entry if possible, otherwise append
                 if (entries.length > 0) {

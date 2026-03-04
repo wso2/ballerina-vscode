@@ -48,7 +48,7 @@ const SpecFetcherInputSchema = z.object({
 
 export function createConnectorGeneratorTool(eventHandler: CopilotEventHandler, tempProjectPath: string, projectName?: string, modifiedFiles?: string[]) {
     return tool({
-        // TODO: Since LIBRARY_SEARCH_TOOL and LIBRARY_GET_TOOL workflow changed, verify this tool's use case ordering aligns with agent behavior
+        // TODO: Verify that the agent invokes LIBRARY_SEARCH_TOOL before LIBRARY_GET_TOOL and only falls back to this tool when no suitable library is found; update the tool description or agent prompt if the ordering is incorrect
         description: `
 Generates a connector for an external service by deriving the service contract from user-provided OpenAPI specifications.
 

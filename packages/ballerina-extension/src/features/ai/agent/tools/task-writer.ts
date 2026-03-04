@@ -187,11 +187,12 @@ Rules:
                         });
                     } else if (taskCategories.completed.length > 0) {
                         // Task(s) completed without requestReview — integrate code silently, no user gate
-                        if (tempProjectPath && modifiedFiles) {
-                            const modifiedFilesSet = new Set(modifiedFiles);
-                            const ctx = createExecutionContextFromStateMachine();
-                            //await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
-                        }
+                        // TODO: Re-enable workspace integration when ready
+                        // if (tempProjectPath && modifiedFiles) {
+                        //     const modifiedFilesSet = new Set(modifiedFiles);
+                        //     const ctx = createExecutionContextFromStateMachine();
+                        //     await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
+                        // }
                         // Emit completion event so the visualizer knows execution is done
                         // and can render subsequent content (agent's closing text) normally
                         eventHandler({
