@@ -22,6 +22,23 @@ import { ThemeColors, Typography, Button, TextField, Stepper, Icon, Codicon, Sea
 import { IntrospectDatabaseResponse, TableInfo, PropertyModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { LSErrorDetails } from "../DatabaseConnectionPopup";
+import { isDatabaseSystemProperty, isPasswordProperty, formatDatabaseTypeDisplay } from "../utils";
+import {
+    FormSection,
+    FormField,
+    TablesGrid,
+    TableCard,
+    TableCheckbox,
+    TableName,
+    ErrorContainer,
+    ErrorHeader,
+    ErrorTitle,
+    ErrorDetailsSection,
+    ErrorDetailsHeader,
+    ErrorDetailsChevronIcon,
+    ErrorDetailsContent,
+    ErrorDetailsText,
+} from "../styles";
 
 const StepperContainer = styled.div`
     padding: 24px 32px;
@@ -74,54 +91,6 @@ const SectionSubtitle = styled(Typography)`
     margin: 0;
 `;
 
-const FormSection = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-`;
-
-const FormField = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-`;
-
-const TablesGrid = styled.div`
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-`;
-
-const TableCard = styled.div<{ selected?: boolean }>`
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    border: 1px solid ${(props: { selected?: boolean }) => (props.selected ? ThemeColors.PRIMARY : ThemeColors.OUTLINE_VARIANT)};
-    border-radius: 8px;
-    background-color: ${(props: { selected?: boolean }) => (props.selected ? ThemeColors.PRIMARY_CONTAINER : ThemeColors.SURFACE_DIM)};
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-        border-color: ${ThemeColors.PRIMARY};
-        background-color: ${ThemeColors.PRIMARY_CONTAINER};
-    }
-`;
-
-const TableCheckbox = styled.input`
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-`;
-
-const TableName = styled(Typography)`
-    font-size: 14px;
-    font-weight: 500;
-    color: ${ThemeColors.ON_SURFACE};
-    margin: 0;
-`;
-
 const SearchRow = styled.div`
     display: flex;
     align-items: center;
@@ -133,16 +102,6 @@ const SelectAllButton = styled(Button)`
     white-space: nowrap;
     flex-shrink: 0;
     min-width: fit-content;
-`;
-
-const ErrorContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 16px;
-    border-radius: 8px;
-    background-color: ${ThemeColors.SURFACE_DIM};
-    border: 1px solid ${ThemeColors.ERROR};
 `;
 
 const WarningContainer = styled.div`
@@ -176,62 +135,6 @@ const TableChip = styled.span`
     border: 1px solid rgba(217, 119, 6, 0.4);
 `;
 
-const ErrorHeader = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-`;
-
-const ErrorTitle = styled(Typography)`
-    font-size: 16px;
-    font-weight: 600;
-    color: ${ThemeColors.ERROR};
-    margin: 0;
-`;
-
-const ErrorDetailsSection = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-`;
-
-const ErrorDetailsHeader = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    user-select: none;
-
-    &:hover {
-        opacity: 0.8;
-    }
-`;
-
-const ChevronIcon = styled(Codicon)`
-    font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-`;
-
-const ErrorDetailsContent = styled.div<{ expanded: boolean }>`
-    max-height: ${(props: { expanded: boolean }) => (props.expanded ? "500px" : "0")};
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-    padding-left: 20px;
-`;
-
-const ErrorDetailsText = styled(Typography)`
-    font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    font-family: monospace;
-    white-space: pre-wrap;
-    word-break: break-word;
-    margin: 0;
-    padding: 8px;
-    background-color: ${ThemeColors.SURFACE_CONTAINER};
-    border-radius: 4px;
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-`;
-
 const ActionButton = styled(Button)`
     width: 100% !important;
     min-width: 0 !important;
@@ -247,24 +150,6 @@ const ActionButton = styled(Button)`
         max-width: 100% !important;
     }
 `;
-
-function isDatabaseSystemProperty(prop: PropertyModel): boolean {
-    const label = (prop.metadata?.label || "").toLowerCase();
-    return label.includes("database system") || label.includes("db system");
-}
-
-function isPasswordProperty(prop: PropertyModel): boolean {
-    const label = (prop.metadata?.label || "").toLowerCase();
-    return label.includes("password");
-}
-
-function formatDatabaseTypeDisplay(value: string): string {
-    const lower = (value || "").toLowerCase();
-    if (lower.includes("postgres")) return "PostgreSQL";
-    if (lower.includes("mysql")) return "MySQL";
-    if (lower.includes("mssql")) return "MSSQL";
-    return value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : "—";
-}
 
 export interface EditConnectorFormProps {
     properties: { [key: string]: PropertyModel };
@@ -467,7 +352,7 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                 {lsErrorDetails.errorMessage && (
                     <ErrorDetailsSection>
                         <ErrorDetailsHeader onClick={() => setLsErrorDetails((prev) => ({ ...prev, isExpanded: !prev.isExpanded }))}>
-                            <ChevronIcon name={lsErrorDetails.isExpanded ? "chevron-down" : "chevron-right"} />
+                            <ErrorDetailsChevronIcon name={lsErrorDetails.isExpanded ? "chevron-down" : "chevron-right"} />
                             <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT, fontSize: "12px", margin: 0 }}>
                                 Error Details
                             </Typography>
