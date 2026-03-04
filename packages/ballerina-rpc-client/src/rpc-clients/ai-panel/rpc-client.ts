@@ -79,7 +79,6 @@ import {
     getSemanticDiff,
     getServiceNames,
     isCopilotSignedIn,
-    isPlanModeFeatureEnabled,
     isPlatformExtensionAvailable,
     isUserAuthenticated,
     isWorkspaceProject,
@@ -210,9 +209,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(openAIPanel, HOST_EXTENSION, params);
     }
 
-    isPlanModeFeatureEnabled(): Promise<boolean> {
-        return this._messenger.sendRequest(isPlanModeFeatureEnabled, HOST_EXTENSION);
-    }
 
     getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
         return this._messenger.sendRequest(getSemanticDiff, HOST_EXTENSION, params);

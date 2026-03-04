@@ -19,6 +19,7 @@
 import React, { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
 import hljs from "highlight.js";
 import yaml from "highlight.js/lib/languages/yaml";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -64,6 +65,28 @@ const markdownWrapperStyle: React.CSSProperties = {
     whiteSpace: "normal",
     wordBreak: "break-word",
     overflowWrap: "anywhere",
+};
+
+const tableStyle: React.CSSProperties = {
+    borderCollapse: "collapse",
+    width: "100%",
+    marginBottom: "8px",
+    fontSize: "13px",
+};
+
+const thStyle: React.CSSProperties = {
+    border: "1px solid var(--vscode-panel-border)",
+    padding: "6px 10px",
+    textAlign: "left",
+    fontWeight: 600,
+    backgroundColor: "var(--vscode-editor-inactiveSelectionBackground)",
+    color: "var(--vscode-editor-foreground)",
+};
+
+const tdStyle: React.CSSProperties = {
+    border: "1px solid var(--vscode-panel-border)",
+    padding: "5px 10px",
+    color: "var(--vscode-editor-foreground)",
 };
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdownContent }) => {
@@ -213,10 +236,18 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdownContent }) 
     return (
         <div style={markdownWrapperStyle}>
             <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw]}
                 components={{
                     ...MarkdownCodeRenderer,
                     ...getMarkdownComponents(markdownContent),
+                    table: ({ children }: { children?: React.ReactNode }) => (
+                        <div style={{ overflowX: "auto", marginBottom: "8px" }}>
+                            <table style={tableStyle}>{children}</table>
+                        </div>
+                    ),
+                    th: ({ children }: { children?: React.ReactNode }) => <th style={thStyle}>{children}</th>,
+                    td: ({ children }: { children?: React.ReactNode }) => <td style={tdStyle}>{children}</td>,
                 } as any}
             >
                 {safeContent}
