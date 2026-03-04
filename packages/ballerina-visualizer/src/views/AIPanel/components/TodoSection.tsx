@@ -27,11 +27,11 @@ import { Task } from "@wso2/ballerina-core";
 const Container = styled.div`
     display: flex;
     flex-direction: column;
-    margin: 0 0 4px 0;
+    margin: 10px 0 12px 0;
     font-family: var(--vscode-font-family);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 4px;
-    padding: 3px 6px;
+    padding: 5px 8px;
 `;
 
 // ── Header row ────────────────────────────────────────────────────────────────
@@ -61,7 +61,7 @@ const ChevronIcon = styled.span<{ expanded: boolean }>`
 `;
 
 const HeaderLabel = styled.span`
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--vscode-editor-foreground);
     flex: 1;
@@ -78,7 +78,7 @@ const CollapsedActiveTask = styled.span`
 `;
 
 const ApprovalLabel = styled.span`
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--vscode-descriptionForeground);
     opacity: 0.75;
