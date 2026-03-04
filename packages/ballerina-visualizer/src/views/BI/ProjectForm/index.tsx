@@ -49,8 +49,10 @@ export function ProjectForm() {
     const [integrationNameError, setIntegrationNameError] = useState<string | null>(null);
     const [pathError, setPathError] = useState<string | null>(null);
     const [packageNameValidationError, setPackageNameValidationError] = useState<string | null>(null);
+    const [projectNameError, setProjectNameError] = useState<string | null>(null);
     const resourceTypeLabel = formData.isLibrary ? "Library" : "Integration";
     const createActionLabel = formData.createAsWorkspace ? "Create Project" : `Create ${resourceTypeLabel}`;
+
 
     const handleFormDataChange = (data: Partial<ProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
@@ -64,6 +66,9 @@ export function ProjectForm() {
         if (packageNameValidationError) {
             setPackageNameValidationError(null);
         }
+        if (projectNameError) {
+            setProjectNameError(null);
+        }
     };
 
     const handleCreateProject = async () => {
@@ -71,6 +76,7 @@ export function ProjectForm() {
         setIntegrationNameError(null);
         setPathError(null);
         setPackageNameValidationError(null);
+        setProjectNameError(null);
 
         let hasError = false;
 
@@ -106,6 +112,7 @@ export function ProjectForm() {
                 projectPath: formData.path,
                 projectName: targetNameForValidation,
                 createDirectory: formData.createDirectory,
+                createAsWorkspace: formData.createAsWorkspace,
             });
 
             if (!validationResult.isValid) {
@@ -118,8 +125,9 @@ export function ProjectForm() {
                         );
                     }
                 } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
+                    // For workspace projects, route name errors to workspace name field
                     if (formData.createAsWorkspace) {
-                        setPackageNameValidationError(validationResult.errorMessage || "Invalid project name");
+                        setProjectNameError(validationResult.errorMessage || "Invalid project name");
                     } else {
                         setPackageNameValidationError(
                             validationResult.errorMessage || `Invalid ${resourceTypeLabel.toLowerCase()} name`
@@ -186,6 +194,7 @@ export function ProjectForm() {
                         integrationNameError={integrationNameError || undefined}
                         pathError={pathError || undefined}
                         packageNameValidationError={packageNameValidationError || undefined}
+                        projectNameError={projectNameError || undefined}
                     />
                 </ScrollableContent>
 
