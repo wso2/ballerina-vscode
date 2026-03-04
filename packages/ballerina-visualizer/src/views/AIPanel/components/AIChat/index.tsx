@@ -17,8 +17,8 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
+import styled from "@emotion/styled";
 import {
-    GetWorkspaceContextResponse,
     SourceFile,
     MappingParameters,
     LLMDiagnostics,
@@ -50,7 +50,6 @@ import AgentStreamView from "../AgentStreamView";
 import { StreamEntry, StreamItem } from "../AgentStreamView/types";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
-import RoleContainer from "../RoleContainter";
 import CheckpointSeparator from "../CheckpointSeparator";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 
@@ -79,7 +78,7 @@ import ApprovalFooter from "./Footer/ApprovalFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
 import WelcomeMessage from "./Welcome";
-import { getOnboardingOpens, incrementOnboardingOpens, convertToUIMessages, isContainsSyntaxError, ChatIndexes } from "./utils/utils";
+import { getOnboardingOpens, incrementOnboardingOpens, convertToUIMessages, isContainsSyntaxError } from "./utils/utils";
 
 import FeedbackBar from "./../FeedbackBar";
 import { useFeedback } from "./utils/useFeedback";
@@ -89,12 +88,22 @@ import ReviewActions from "../ReviewActions";
 const NO_DRIFT_FOUND = "No drift identified between the code and the documentation.";
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
 
-const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS = "Generate code based on the following requirements: ";
-const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED = GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS.trim();
-
 const USAGE_EXCEEDED_THRESHOLD_PERCENT = 3;
 
 //TODO: Add better error handling from backend. stream error type and non 200 status codes
+
+const MessageBody = styled.div<{ isUserMessage: boolean }>(({ isUserMessage }: { isUserMessage: boolean }) => ({
+    display: "flex",
+    flexDirection: "column",
+    width: isUserMessage ? "fit-content" : "100%",
+    maxWidth: isUserMessage ? "85%" : "100%",
+    marginLeft: isUserMessage ? "auto" : "0",
+    padding: isUserMessage ? "12px 14px" : "0",
+    border: isUserMessage ? "1px solid var(--vscode-panel-border)" : "none",
+    borderRadius: isUserMessage ? "12px" : "0",
+    background: isUserMessage ? "var(--vscode-editor-inactiveSelectionBackground)" : "transparent",
+    overflowWrap: "anywhere",
+}));
 
 // ── Agent stream serialization ────────────────────────────────────────────────
 
@@ -121,6 +130,36 @@ function appendToLastEntry(entries: StreamEntry[], item: StreamItem): StreamEntr
 const AIChat: React.FC = () => {
     const { rpcClient } = useRpcContext();
     const [messages, setMessages] = useState<Array<{ role: string; content: string; type: string; checkpointId?: string; messageId?: string }>>([]);
+
+    const getLatestAssistantMessageIndex = (chatMessages: Array<{ role: string }>): number => {
+        for (let i = chatMessages.length - 1; i >= 0; i--) {
+            const role = chatMessages[i]?.role;
+            if (role === "Copilot" || role === "assistant") {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    const ensureAssistantMessage = (
+        chatMessages: Array<{ role: string; content: string; type: string; checkpointId?: string; messageId?: string }>
+    ): number => {
+        let targetIndex = getLatestAssistantMessageIndex(chatMessages);
+        if (targetIndex === -1) {
+            chatMessages.push({ role: "Copilot", content: "", type: "assistant_message" });
+            targetIndex = chatMessages.length - 1;
+        }
+        return targetIndex;
+    };
+
+    const updateLastMessage = (updater: (content: string) => string) => {
+        setMessages((prevMessages) => {
+            const newMessages = [...prevMessages];
+            const targetIndex = ensureAssistantMessage(newMessages);
+            newMessages[targetIndex].content = updater(newMessages[targetIndex].content);
+            return newMessages;
+        });
+    };
 
     const [isLoading, setIsLoading] = useState(false);
     const [lastQuestionIndex, setLastQuestionIndex] = useState(-1);
@@ -150,6 +189,7 @@ const AIChat: React.FC = () => {
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
+    const codeContextRef = useRef<CodeContext | undefined>(undefined);
     const functionsRef = useRef<any>([]);
     const lastAttatchmentsRef = useRef<any>([]);
     const aiChatInputRef = useRef<AIChatInputRef>(null);
@@ -170,6 +210,11 @@ const AIChat: React.FC = () => {
         currentDiagnosticsRef,
     });
 
+    const updateCodeContext = (context?: CodeContext) => {
+        codeContextRef.current = context;
+        setCodeContext(context);
+    };
+
     /**
      * Effect: Initialize the component with initial prompts
      */
@@ -180,8 +225,6 @@ const AIChat: React.FC = () => {
                 .getDefaultPrompt()
                 .then((defaultPrompt: AIPanelPrompt) => {
                     if (defaultPrompt) {
-                        aiChatInputRef.current?.setInputContent(defaultPrompt);
-
                         // Extract CodeContext from both command-template metadata and text-type direct param
                         const codeCtx = defaultPrompt.type === 'command-template'
                             ? defaultPrompt.metadata?.codeContext
@@ -189,14 +232,22 @@ const AIChat: React.FC = () => {
                                 ? defaultPrompt.codeContext
                                 : undefined;
 
-                        if (codeCtx) {
-                            setCodeContext(codeCtx);
-                        }
+                        updateCodeContext(codeCtx);
 
                         // Handle plan mode for text-type prompts
                         if (defaultPrompt.type === 'text') {
                             setAgentMode(defaultPrompt.planMode ? AgentMode.Plan : AgentMode.Edit);
+
+                            if (defaultPrompt.autoSubmit && defaultPrompt.text.trim().length > 0) {
+                                void handleSend({
+                                    input: [{ content: defaultPrompt.text }],
+                                    attachments: [],
+                                });
+                                return;
+                            }
                         }
+
+                        aiChatInputRef.current?.setInputContent(defaultPrompt);
                     }
                 });
         };
@@ -330,7 +381,7 @@ const AIChat: React.FC = () => {
                 const historyMessages = await rpcClient.getAiPanelRpcClient().getChatMessages();
                 if (historyMessages && historyMessages.length > 0) {
                     const uiMessages = convertToUIMessages(historyMessages);
-                    setMessages(uiMessages);
+                    setMessages((prevMessages) => (prevMessages.length > 0 ? prevMessages : uiMessages));
                 }
             } catch (error) {
                 console.error('[AIChat] Failed to load initial chat history:', error);
@@ -376,8 +427,8 @@ const AIChat: React.FC = () => {
             if (content === "") return;
             setMessages(prevMessages => {
                 const msgs = [...prevMessages];
-                const last = msgs[msgs.length - 1];
-                if (!last) return prevMessages;
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
                 const entries = parseStream(last.content);
                 // Merge into trailing text item of the last entry if possible, otherwise append
                 if (entries.length > 0) {
@@ -386,12 +437,12 @@ const AIChat: React.FC = () => {
                     if (lastItem?.kind === "text") {
                         const updatedItems = [...lastEntry.items.slice(0, -1), { ...lastItem, text: lastItem.text + content }];
                         const updated = [...entries.slice(0, -1), { ...lastEntry, items: updatedItems }];
-                        msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                        msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                         return msgs;
                     }
                 }
                 const updated = appendToLastEntry(entries, { kind: "text", text: content });
-                msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
 
@@ -399,10 +450,11 @@ const AIChat: React.FC = () => {
             const newItem: StreamItem = { kind: "tool_call", toolCallId: response.toolCallId, toolName: response.toolName, toolInput: response.toolInput };
             setMessages(prevMessages => {
                 const msgs = [...prevMessages];
-                const last = msgs[msgs.length - 1];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
                 const entries = parseStream(last.content);
                 const updated = appendToLastEntry(entries, newItem);
-                msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
 
@@ -413,7 +465,8 @@ const AIChat: React.FC = () => {
                 const lastCompletedTask = [...tasks].reverse().find(t => t.status === "completed");
                 setMessages(prevMessages => {
                     const msgs = [...prevMessages];
-                    const last = msgs[msgs.length - 1];
+                    const targetIndex = ensureAssistantMessage(msgs);
+                    const last = msgs[targetIndex];
                     let entries = parseStream(last.content);
                     if (inProgressTask) {
                         // Push a named entry for this task (skip if already present)
@@ -434,14 +487,15 @@ const AIChat: React.FC = () => {
                             entries = [...entries, { description: "", items: [] }];
                         }
                     }
-                    msgs[msgs.length - 1] = { ...last, content: serializeStream(entries, last.content) };
+                    msgs[targetIndex] = { ...last, content: serializeStream(entries, last.content) };
                     return msgs;
                 });
             } else {
                 // Replace the matching tool_call item with tool_result
                 setMessages(prevMessages => {
                     const msgs = [...prevMessages];
-                    const last = msgs[msgs.length - 1];
+                    const targetIndex = ensureAssistantMessage(msgs);
+                    const last = msgs[targetIndex];
                     const entries = parseStream(last.content);
                     const resultItem: StreamItem = { kind: "tool_result", toolCallId: response.toolCallId, toolName: response.toolName, toolOutput: response.toolOutput, failed: (response as any).failed };
                     let matched = false;
@@ -455,9 +509,9 @@ const AIChat: React.FC = () => {
                     });
                     if (!matched) {
                         // No matching call found — append as new item to last entry
-                        msgs[msgs.length - 1] = { ...last, content: serializeStream(appendToLastEntry(entries, resultItem), last.content) };
+                        msgs[targetIndex] = { ...last, content: serializeStream(appendToLastEntry(entries, resultItem), last.content) };
                     } else {
-                        msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                        msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                     }
                     return msgs;
                 });
@@ -467,11 +521,12 @@ const AIChat: React.FC = () => {
             if (response.approvalType === "plan") {
                 setMessages(prevMessages => {
                     const msgs = [...prevMessages];
-                    const last = msgs[msgs.length - 1];
+                    const targetIndex = ensureAssistantMessage(msgs);
+                    const last = msgs[targetIndex];
                     const entries = parseStream(last.content);
                     const planItem: StreamItem = { kind: "plan", tasks: response.tasks, message: response.message };
                     const updated = appendToLastEntry(entries, planItem);
-                    msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                    msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                     return msgs;
                 });
             }
@@ -515,7 +570,8 @@ const AIChat: React.FC = () => {
             };
             setMessages(prevMessages => {
                 const msgs = [...prevMessages];
-                const last = msgs[msgs.length - 1];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
                 const entries = parseStream(last.content);
                 let found = false;
                 let updated = entries.map(entry => {
@@ -525,7 +581,7 @@ const AIChat: React.FC = () => {
                     return { ...entry, items: entry.items.map((item, i) => i === idx ? { kind: "connector" as const, data: connectorData } : item) };
                 });
                 if (!found) updated = appendToLastEntry(entries, { kind: "connector", data: connectorData });
-                msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
 
@@ -542,7 +598,8 @@ const AIChat: React.FC = () => {
             };
             setMessages(prevMessages => {
                 const msgs = [...prevMessages];
-                const last = msgs[msgs.length - 1];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
                 const entries = parseStream(last.content);
                 let found = false;
                 let updated = entries.map(entry => {
@@ -552,7 +609,7 @@ const AIChat: React.FC = () => {
                     return { ...entry, items: entry.items.map((item, i) => i === idx ? { kind: "config" as const, data: configurationData } : item) };
                 });
                 if (!found) updated = appendToLastEntry(entries, { kind: "config", data: configurationData });
-                msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
 
@@ -576,10 +633,11 @@ const AIChat: React.FC = () => {
             const abortItem: StreamItem = { kind: "text", text: "*[Request interrupted by user]*" };
             setMessages(prevMessages => {
                 const msgs = [...prevMessages];
-                const last = msgs[msgs.length - 1];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
                 const entries = parseStream(last.content);
                 const updated = appendToLastEntry(entries, abortItem);
-                msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
             setIsCodeLoading(false);
@@ -587,10 +645,11 @@ const AIChat: React.FC = () => {
 
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
-            const contentToSave = messages[messages.length - 1].content;
+            const assistantIndex = getLatestAssistantMessageIndex(messages);
+            const contentToSave = assistantIndex >= 0 ? messages[assistantIndex]?.content : messages[messages.length - 1]?.content;
             await rpcClient.getAiPanelRpcClient().updateChatMessage({
                 messageId: response.messageId,
-                content: contentToSave,
+                content: contentToSave || "",
             });
 
         } else if (type === "error") {
@@ -599,7 +658,8 @@ const AIChat: React.FC = () => {
             const errorTemplate = `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${errorContent}</error>`;
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
-                let content = newMessages[newMessages.length - 1].content;
+                const targetIndex = ensureAssistantMessage(newMessages);
+                let content = newMessages[targetIndex].content;
 
                 // Check if there's an unclosed code block and close it properly
                 const codeBlockPattern = /<code filename="[^"]+">[\s]*```\w+/g;
@@ -624,7 +684,7 @@ const AIChat: React.FC = () => {
                     }
                 }
 
-                newMessages[newMessages.length - 1].content = content + errorTemplate;
+                newMessages[targetIndex].content = content + errorTemplate;
                 return newMessages;
             });
             setIsCodeLoading(false);
@@ -704,26 +764,15 @@ const AIChat: React.FC = () => {
             setIsLoading(false);
             setIsCodeLoading(false);
             if (error.name === "AbortError") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    newMessages[
-                        newMessages.length - 1
-                    ].content += `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">Generation stopped by the user</error>`;
-                    return newMessages;
-                });
+                updateLastMessage((lastContent) =>
+                    lastContent + `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">Generation stopped by the user</error>`
+                );
             } else {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
+                updateLastMessage((lastContent) => {
                     if (error && "message" in error) {
-                        newMessages[
-                            newMessages.length - 1
-                        ].content += `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${error.message}</error>`;
-                    } else {
-                        newMessages[
-                            newMessages.length - 1
-                        ].content += `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${error}</error>`;
+                        return lastContent + `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${error.message}</error>`;
                     }
-                    return newMessages;
+                    return lastContent + `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${error}</error>`;
                 });
             }
         }
@@ -738,9 +787,8 @@ const AIChat: React.FC = () => {
             return;
         }
         rpcClient.getAiPanelRpcClient().clearInitialPrompt();
-        var context: GetWorkspaceContextResponse[] = [];
-        setMessages((prevMessages) => prevMessages.filter((message, index) => message.type !== "label"));
-        setMessages((prevMessages) => prevMessages.filter((message, index) => message.type !== "question"));
+        setMessages((prevMessages) => prevMessages.filter((message) => message.type !== "label"));
+        setMessages((prevMessages) => prevMessages.filter((message) => message.type !== "question"));
         setIsLoading(true);
         isErrorChunkReceivedRef.current = false;
         setMessages((prevMessages) =>
@@ -916,9 +964,7 @@ const AIChat: React.FC = () => {
     const handleAddAllCodeSegmentsToWorkspace = async (
         codeSegments: any,
         setIsCodeAdded: React.Dispatch<React.SetStateAction<boolean>>,
-        command: string,
-        filePaths?: SourceFile[]
-    ) => {
+        command: string    ) => {
         console.log("Add to integration called. Command: ", command);
         const fileChanges: FileChanges[] = [];
         for (let { segmentText, filePath } of codeSegments) {
@@ -1023,11 +1069,7 @@ const AIChat: React.FC = () => {
                 formatted_response = formatted_response.replace(referenceRegex, referencesTag);
             }
 
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1].content = formatted_response;
-                return newMessages;
-            });
+            updateLastMessage(() => formatted_response);
             setIsLoading(false);
         } catch (error) {
             setIsLoading(false);
@@ -1050,9 +1092,10 @@ const AIChat: React.FC = () => {
             content: file.content,
         }));
 
-        console.log("Submitting agent prompt:", { useCase, agentMode, codeContext, operationType, fileAttatchments });
+        const currentCodeContext = codeContextRef.current;
+        console.log("Submitting agent prompt:", { useCase, agentMode, codeContext: currentCodeContext, operationType, fileAttatchments });
         rpcClient.getAiPanelRpcClient().generateAgent({
-            usecase: useCase, isPlanMode: agentMode === AgentMode.Plan, codeContext: codeContext, operationType, fileAttachmentContents: fileAttatchments
+            usecase: useCase, isPlanMode: agentMode === AgentMode.Plan, codeContext: currentCodeContext, operationType, fileAttachmentContents: fileAttatchments
         })
     }
 
@@ -1118,7 +1161,8 @@ const AIChat: React.FC = () => {
             // Update the message content to show "Saved" state
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
-                const lastMessage = newMessages[newMessages.length - 1];
+                const targetIndex = ensureAssistantMessage(newMessages);
+                const lastMessage = newMessages[targetIndex];
                 if (lastMessage && lastMessage.content) {
                     lastMessage.content = lastMessage.content.replace(
                         /<button type="save_documentation">Save Documentation<\/button>/g,
@@ -1139,7 +1183,8 @@ const AIChat: React.FC = () => {
 
         setMessages((prevMessages) => {
             const newMessages = [...prevMessages];
-            newMessages[newMessages.length - 1].content = "";
+            const targetIndex = ensureAssistantMessage(newMessages);
+            newMessages[targetIndex].content = "";
             return newMessages;
         });
 
@@ -1253,7 +1298,8 @@ const AIChat: React.FC = () => {
 
         setMessages((prevMessages) => {
             const newMessage = [...prevMessages];
-            newMessage[newMessage.length - 1].content = response.diags;
+            const targetIndex = ensureAssistantMessage(newMessage);
+            newMessage[targetIndex].content = response.diags;
             return newMessage;
         });
     }
@@ -1304,6 +1350,7 @@ const AIChat: React.FC = () => {
                         )}
                         {otherMessages.map((message, index) => {
                             const isLastResponse = index === currentGeneratingPromptIndex;
+                            const isUserMessage = message.role === "User";
                             const isAssistantMessage = message.role === "Copilot";
                             const lastAssistantIndex = otherMessages.map((m) => m.role).lastIndexOf("Copilot");
                             const isLatestAssistantMessage = isAssistantMessage && index === lastAssistantIndex;
@@ -1311,9 +1358,6 @@ const AIChat: React.FC = () => {
                             // Note: Cannot use useMemo here as it's inside map() callback
                             // The stateless regex implementation in splitContent() ensures no corruption during streaming
                             const segmentedContent = splitContent(message.content);
-                            const areTestsGenerated = segmentedContent.some(
-                                (segment) => segment.type === SegmentType.Progress
-                            );
                             const hasReviewActions = segmentedContent.some(
                                 (segment) => segment.type === SegmentType.ReviewActions
                             );
@@ -1353,48 +1397,117 @@ const AIChat: React.FC = () => {
                                         );
                                     })()}
 
-                                    {/* Message header */}
-                                    {message.type !== "question" && message.type !== "label" && (
-                                        <RoleContainer
-                                            icon={message.role === "User" ? "bi-user" : "bi-ai-chat"}
-                                            title={message.role}
-                                        />
-                                    )}
-                                    {segmentedContent.map((segment, i) => {
-                                        if (segment.type === SegmentType.AgentStream) {
-                                            return (
-                                                <AgentStreamView
-                                                    key={`agent-stream-${i}`}
-                                                    stream={segment.stream ?? []}
-                                                    isLoading={isLoading && isLatestAssistantMessage}
-                                                    rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
-                                                />
-                                            );
-                                        }
+                                    <MessageBody isUserMessage={isUserMessage}>
+                                        {segmentedContent.map((segment, i) => {
+                                            if (segment.type === SegmentType.AgentStream) {
+                                                return (
+                                                    <AgentStreamView
+                                                        key={`agent-stream-${i}`}
+                                                        stream={segment.stream ?? []}
+                                                        isLoading={isLoading && isLatestAssistantMessage}
+                                                        rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
+                                                    />
+                                                );
+                                            }
 
-                                        if (segment.type === SegmentType.Code) {
-                                            const nextSegment = segmentedContent[i + 1];
-                                            if (
-                                                nextSegment &&
-                                                (nextSegment.type === SegmentType.Code ||
-                                                    (nextSegment.type === SegmentType.Text &&
-                                                        (nextSegment.text != "\n" && nextSegment.text.trim() === "")))
-                                            ) {
-                                                return;
-                                            } else {
-                                                const codeSegments = [];
+                                            if (segment.type === SegmentType.Code) {
+                                                const nextSegment = segmentedContent[i + 1];
+                                                if (
+                                                    nextSegment &&
+                                                    (nextSegment.type === SegmentType.Code ||
+                                                        (nextSegment.type === SegmentType.Text &&
+                                                            (nextSegment.text != "\n" && nextSegment.text.trim() === "")))
+                                                ) {
+                                                    return;
+                                                } else {
+                                                    const codeSegments = [];
+                                                    let j = i;
+                                                    while (j >= 0) {
+                                                        const prevSegment = segmentedContent[j];
+                                                        if (prevSegment.type === SegmentType.Code) {
+                                                            codeSegments.unshift({
+                                                                source: prevSegment.text.trim(),
+                                                                fileName: prevSegment.fileName,
+                                                                language: prevSegment.language,
+                                                            });
+                                                        } else if (
+                                                            prevSegment.type === SegmentType.Text &&
+                                                            prevSegment.text.trim() === ""
+                                                        ) {
+                                                            j--;
+                                                            continue;
+                                                        } else {
+                                                            break;
+                                                        }
+                                                        j--;
+                                                    }
+                                                    return (
+                                                        <CodeSection
+                                                            key={`code-${i}`}
+                                                            codeSegments={codeSegments}
+                                                            loading={isLoading}
+                                                            handleAddAllCodeSegmentsToWorkspace={handleAddAllCodeSegmentsToWorkspace}
+                                                            handleRevertChanges={handleRevertChanges}
+                                                            isReady={!isCodeLoading}
+                                                            message={message}
+                                                            buttonsActive={true}
+                                                            isSyntaxError={isContainsSyntaxError(currentDiagnosticsRef.current)}
+                                                            command={segment.command}
+                                                            diagnostics={currentDiagnosticsRef.current}
+                                                            onRetryRepair={handleRetryRepair}
+                                                            isPromptExecutedInCurrentWindow={isPromptExecutedInCurrentWindow}
+                                                            isErrorChunkReceived={isErrorChunkReceivedRef.current}
+                                                            isAddingToWorkspace={isAddingToWorkspace}
+                                                            fileArray={currentFileArray}
+                                                        />
+                                                    );
+                                                }
+                                            } else if (segment.type === SegmentType.Progress) {
+                                                return (
+                                                    <ProgressTextSegment
+                                                        key={`progress-${i}`}
+                                                        text={segment.text}
+                                                        loading={segment.loading}
+                                                        failed={segment.failed}
+                                                    />
+                                                );
+                                            } else if (segment.type === SegmentType.ToolCall) {
+                                                const currentToolName = segment.toolName;
+
+                                                let nextIdx = i + 1;
+                                                while (
+                                                    nextIdx < segmentedContent.length &&
+                                                    segmentedContent[nextIdx].type === SegmentType.Text &&
+                                                    segmentedContent[nextIdx].text.trim() === ""
+                                                ) {
+                                                    nextIdx++;
+                                                }
+                                                const nextSeg = segmentedContent[nextIdx];
+                                                if (
+                                                    nextSeg &&
+                                                    nextSeg.type === SegmentType.ToolCall &&
+                                                    nextSeg.toolName === currentToolName
+                                                ) {
+                                                    return null;
+                                                }
+
+                                                const groupItems: ToolCallItem[] = [];
                                                 let j = i;
                                                 while (j >= 0) {
-                                                    const prevSegment = splitContent(message.content)[j];
-                                                    if (prevSegment.type === SegmentType.Code) {
-                                                        codeSegments.unshift({
-                                                            source: prevSegment.text.trim(),
-                                                            fileName: prevSegment.fileName,
-                                                            language: prevSegment.language,
+                                                    const seg = segmentedContent[j];
+                                                    if (
+                                                        seg.type === SegmentType.ToolCall &&
+                                                        seg.toolName === currentToolName
+                                                    ) {
+                                                        groupItems.unshift({
+                                                            text: seg.text,
+                                                            loading: seg.loading,
+                                                            failed: seg.failed,
+                                                            toolName: seg.toolName,
                                                         });
                                                     } else if (
-                                                        prevSegment.type === SegmentType.Text &&
-                                                        prevSegment.text.trim() === ""
+                                                        seg.type === SegmentType.Text &&
+                                                        seg.text.trim() === ""
                                                     ) {
                                                         j--;
                                                         continue;
@@ -1403,222 +1516,132 @@ const AIChat: React.FC = () => {
                                                     }
                                                     j--;
                                                 }
+
+                                                if (groupItems.length === 1) {
+                                                    return (
+                                                        <ToolCallSegment
+                                                            key={`tool-call-${i}`}
+                                                            text={segment.text}
+                                                            loading={segment.loading}
+                                                            failed={segment.failed}
+                                                        />
+                                                    );
+                                                }
+
                                                 return (
-                                                    <CodeSection
-                                                        key={`code-${i}`}
-                                                        codeSegments={codeSegments}
-                                                        loading={isLoading}
-                                                        handleAddAllCodeSegmentsToWorkspace={
-                                                            handleAddAllCodeSegmentsToWorkspace
-                                                        }
-                                                        handleRevertChanges={handleRevertChanges}
-                                                        isReady={!isCodeLoading}
-                                                        message={message}
-                                                        buttonsActive={true}
-                                                        isSyntaxError={isContainsSyntaxError(
-                                                            currentDiagnosticsRef.current
-                                                        )}
-                                                        command={segment.command}
-                                                        diagnostics={currentDiagnosticsRef.current}
-                                                        onRetryRepair={handleRetryRepair}
-                                                        isPromptExecutedInCurrentWindow={
-                                                            isPromptExecutedInCurrentWindow
-                                                        }
-                                                        isErrorChunkReceived={isErrorChunkReceivedRef.current}
-                                                        isAddingToWorkspace={isAddingToWorkspace}
-                                                        fileArray={currentFileArray}
+                                                    <ToolCallGroupSegment
+                                                        key={`tool-call-group-${i}`}
+                                                        segments={groupItems}
                                                     />
                                                 );
-                                            }
-                                        } else if (segment.type === SegmentType.Progress) {
-                                            return (
-                                                <ProgressTextSegment
-                                                    key={`progress-${i}`}
-                                                    text={segment.text}
-                                                    loading={segment.loading}
-                                                    failed={segment.failed}
-                                                />
-                                            );
-                                        } else if (segment.type === SegmentType.ToolCall) {
-                                            const currentToolName = segment.toolName;
-
-                                            // Skip if the next segment with the same tool name follows
-                                            // (skip over whitespace-only Text segments between tool calls)
-                                            let nextIdx = i + 1;
-                                            while (
-                                                nextIdx < segmentedContent.length &&
-                                                segmentedContent[nextIdx].type === SegmentType.Text &&
-                                                segmentedContent[nextIdx].text.trim() === ""
-                                            ) {
-                                                nextIdx++;
-                                            }
-                                            const nextSeg = segmentedContent[nextIdx];
-                                            if (
-                                                nextSeg &&
-                                                nextSeg.type === SegmentType.ToolCall &&
-                                                nextSeg.toolName === currentToolName
-                                            ) {
-                                                return null;
-                                            }
-
-                                            // Collect consecutive same-tool segments backward from this index,
-                                            // skipping over whitespace-only Text segments between them
-                                            const groupItems: ToolCallItem[] = [];
-                                            let j = i;
-                                            while (j >= 0) {
-                                                const seg = segmentedContent[j];
-                                                if (
-                                                    seg.type === SegmentType.ToolCall &&
-                                                    seg.toolName === currentToolName
-                                                ) {
-                                                    groupItems.unshift({
-                                                        text: seg.text,
-                                                        loading: seg.loading,
-                                                        failed: seg.failed,
-                                                        toolName: seg.toolName,
-                                                    });
-                                                } else if (
-                                                    seg.type === SegmentType.Text &&
-                                                    seg.text.trim() === ""
-                                                ) {
-                                                    j--;
-                                                    continue;
-                                                } else {
-                                                    break;
-                                                }
-                                                j--;
-                                            }
-
-                                            // Single tool call or different tool: bare ToolCallSegment
-                                            if (groupItems.length === 1) {
+                                            } else if (segment.type === SegmentType.TryItScenarios) {
                                                 return (
-                                                    <ToolCallSegment
-                                                        key={`tool-call-${i}`}
+                                                    <TryItScenariosSegment
+                                                        key={`try-it-scenarios-${i}`}
                                                         text={segment.text}
                                                         loading={segment.loading}
-                                                        failed={segment.failed}
                                                     />
                                                 );
-                                            }
-
-                                            // 2+ same-tool consecutive calls: use collapsible group
-                                            return (
-                                                <ToolCallGroupSegment
-                                                    key={`tool-call-group-${i}`}
-                                                    segments={groupItems}
-                                                />
-                                            );
-                                        } else if (segment.type === SegmentType.TryItScenarios) {
-                                            return (
-                                                <TryItScenariosSegment
-                                                    key={`try-it-scenarios-${i}`}
-                                                    text={segment.text}
-                                                    loading={segment.loading}
-                                                />
-                                            );
-                                        } else if (segment.type === SegmentType.Todo) {
-                                            return (
-                                                <TodoSection
-                                                    key={`todo-${i}`}
-                                                    tasks={segment.tasks || []}
-                                                    message={segment.message}
-                                                />
-                                            );
-                                        } else if (segment.type === SegmentType.SpecFetcher) {
-                                            return (
-                                                <ConnectorGeneratorSegment
-                                                    key={`connector-generator-${i}`}
-                                                    data={segment.specData}
-                                                    rpcClient={rpcClient}
-                                                />
-                                            );
-                                        } else if (segment.type === SegmentType.ConfigurationCollector) {
-                                            return (
-                                                <ConfigurationCollectorSegment
-                                                    key={`configuration-collector-${i}`}
-                                                    data={segment.configurationData}
-                                                    rpcClient={rpcClient}
-                                                />
-                                            );
-                                        } else if (segment.type === SegmentType.ReviewActions) {
-                                            return (
-                                                <ReviewActions
-                                                    key={`review-actions-${i}`}
-                                                    rpcClient={rpcClient}
-                                                    onReviewActionsChange={setShowReviewActions}
-                                                />
-                                            );
-                                        } else if (segment.type === SegmentType.Attachment) {
-                                            return (
-                                                <AttachmentsContainer>
-                                                    {segment.text.split(",").map((fileName, index) => (
-                                                        <AttachmentBox
-                                                            key={`attachment-${i}-${index}`}
-                                                            status={AttachmentStatus.Success}
-                                                            fileName={fileName.trim()}
-                                                            index={index}
-                                                            removeAttachment={null}
-                                                            readOnly={true}
-                                                        />
-                                                    ))}
-                                                </AttachmentsContainer>
-                                            );
-                                        } else if (segment.type === SegmentType.InlineCode) {
-                                            // return <BallerinaCodeBlock key={i} code={segment.text} />;
-                                            return (
-                                                <CodeSegment
-                                                    key={`code-segment-${i}`}
-                                                    source={segment.text}
-                                                    fileName={"Ballerina"}
-                                                    language={"ballerina"}
-                                                    collapsible={false}
-                                                    showCopyButton={true}
-                                                />
-                                            );
-                                        } else if (segment.type === SegmentType.References) {
-                                            return <ReferenceDropdown key={`references-${i}`} links={JSON.parse(segment.text)} />;
-                                        } else if (segment.type === SegmentType.Button) {
-                                             if (
-                                                "buttonType" in segment &&
-                                                segment.buttonType === "save_documentation" &&
-                                                !isCodeLoading &&
-                                                isLastResponse &&
-                                                !isLoading
-                                            ) {
+                                            } else if (segment.type === SegmentType.Todo) {
                                                 return (
-                                                    <div key={`btn-save-${i}`} style={{ display: "flex", gap: "10px" }}>
-                                                        <VSCodeButton
-                                                            title="Save Documentation"
-                                                            onClick={saveDocumentation}
-                                                        >
-                                                            {"Save Documentation"}
-                                                        </VSCodeButton>
-                                                        <VSCodeButton
-                                                            title="Regenerate documentation"
-                                                            appearance="secondary"
-                                                            onClick={regenerateDocumentation}
-                                                        >
-                                                            <Codicon name="refresh" />
-                                                        </VSCodeButton>
-                                                    </div>
+                                                    <TodoSection
+                                                        key={`todo-${i}`}
+                                                        tasks={segment.tasks || []}
+                                                        message={segment.message}
+                                                    />
                                                 );
-                                            } else if (
-                                                "buttonType" in segment &&
-                                                segment.buttonType === "documentation_saved"
-                                            ) {
+                                            } else if (segment.type === SegmentType.SpecFetcher) {
                                                 return (
-                                                    <VSCodeButton key={`btn-saved-${i}`} title="Documentation has been saved" disabled>
-                                                        {"Saved"}
-                                                    </VSCodeButton>
+                                                    <ConnectorGeneratorSegment
+                                                        key={`connector-generator-${i}`}
+                                                        data={segment.specData}
+                                                        rpcClient={rpcClient}
+                                                    />
                                                 );
+                                            } else if (segment.type === SegmentType.ConfigurationCollector) {
+                                                return (
+                                                    <ConfigurationCollectorSegment
+                                                        key={`configuration-collector-${i}`}
+                                                        data={segment.configurationData}
+                                                        rpcClient={rpcClient}
+                                                    />
+                                                );
+                                            } else if (segment.type === SegmentType.ReviewActions) {
+                                                return (
+                                                    <ReviewActions
+                                                        key={`review-actions-${i}`}
+                                                        rpcClient={rpcClient}
+                                                        onReviewActionsChange={setShowReviewActions}
+                                                    />
+                                                );
+                                            } else if (segment.type === SegmentType.Attachment) {
+                                                return (
+                                                    <AttachmentsContainer>
+                                                        {segment.text.split(",").map((fileName: string, attachmentIndex: number) => (
+                                                            <AttachmentBox
+                                                                key={`attachment-${i}-${attachmentIndex}`}
+                                                                status={AttachmentStatus.Success}
+                                                                fileName={fileName.trim()}
+                                                                index={attachmentIndex}
+                                                                removeAttachment={null}
+                                                                readOnly={true}
+                                                            />
+                                                        ))}
+                                                    </AttachmentsContainer>
+                                                );
+                                            } else if (segment.type === SegmentType.InlineCode) {
+                                                return (
+                                                    <CodeSegment
+                                                        key={`code-segment-${i}`}
+                                                        source={segment.text}
+                                                        fileName={"Ballerina"}
+                                                        language={"ballerina"}
+                                                        collapsible={false}
+                                                        showCopyButton={true}
+                                                    />
+                                                );
+                                            } else if (segment.type === SegmentType.References) {
+                                                return <ReferenceDropdown key={`references-${i}`} links={JSON.parse(segment.text)} />;
+                                            } else if (segment.type === SegmentType.Button) {
+                                                if (
+                                                    "buttonType" in segment &&
+                                                    segment.buttonType === "save_documentation" &&
+                                                    !isCodeLoading &&
+                                                    isLastResponse &&
+                                                    !isLoading
+                                                ) {
+                                                    return (
+                                                        <div key={`btn-save-${i}`} style={{ display: "flex", gap: "10px" }}>
+                                                            <VSCodeButton title="Save Documentation" onClick={saveDocumentation}>
+                                                                {"Save Documentation"}
+                                                            </VSCodeButton>
+                                                            <VSCodeButton
+                                                                title="Regenerate documentation"
+                                                                appearance="secondary"
+                                                                onClick={regenerateDocumentation}
+                                                            >
+                                                                <Codicon name="refresh" />
+                                                            </VSCodeButton>
+                                                        </div>
+                                                    );
+                                                } else if (
+                                                    "buttonType" in segment &&
+                                                    segment.buttonType === "documentation_saved"
+                                                ) {
+                                                    return (
+                                                        <VSCodeButton key={`btn-saved-${i}`} title="Documentation has been saved" disabled>
+                                                            {"Saved"}
+                                                        </VSCodeButton>
+                                                    );
+                                                }
+                                            } else {
+                                                if (message.type === "Error") {
+                                                    return <ErrorBox key={`error-${i}`}>{segment.text}</ErrorBox>;
+                                                }
+                                                return <MarkdownRenderer key={`markdown-${i}`} markdownContent={segment.text} />;
                                             }
-                                        } else {
-                                            if (message.type === "Error") {
-                                                return <ErrorBox key={`error-${i}`}>{segment.text}</ErrorBox>;
-                                            }
-                                            return <MarkdownRenderer key={`markdown-${i}`} markdownContent={segment.text} />;
-                                        }
-                                    })}
+                                        })}
+                                    </MessageBody>
                                     {/* Show feedback bar only for the latest assistant message and when loading is complete, but not if review actions are present */}
                                     {isAssistantMessage && isLatestAssistantMessage && !isLoading && !isCodeLoading && !hasReviewActions && (
                                         <FeedbackBar
@@ -1667,7 +1690,7 @@ const AIChat: React.FC = () => {
                             isLoading={isLoading}
                             showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
                             codeContext={codeContext}
-                            onRemoveCodeContext={() => setCodeContext(undefined)}
+                            onRemoveCodeContext={() => updateCodeContext(undefined)}
                             agentMode={agentMode}
                             onChangeAgentMode={handleChangeAgentMode}
                             isAutoApproveEnabled={isAutoApproveEnabled}
@@ -1683,5 +1706,3 @@ const AIChat: React.FC = () => {
 };
 
 export default AIChat;
-
-
