@@ -373,11 +373,9 @@ public class CommonUtils {
                             // Remove quotes if present
                             return Optional.of(value.replace("\"", ""));
                         }
+                        // Handles variables etc
                         String value = expr.toSourceCode().trim();
-                        if (!value.isEmpty()) {
-                            return Optional.of(value);
-                        }
-                        return Optional.empty();
+                        return Optional.of(value);
                     }
                 }
             }
