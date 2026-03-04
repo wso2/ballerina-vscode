@@ -146,7 +146,6 @@ function getGroupCategory(toolNames: (string | undefined)[]): ToolCategory {
     const hasLibraryFetch = names.some(n => LIBRARY_FETCH_TOOLS.includes(n));
     const hasLibrary = hasLibrarySearch || hasLibraryFetch;
     const hasDiagnostics = names.includes("getCompilationErrors");
-    const hasPlanning = names.includes("task_write") || names.includes("TaskWrite");
     const hasConfig = names.includes("ConfigCollector");
     const hasConnector = names.includes("ConnectorGeneratorTool");
     const hasTestRunner = names.includes("runTests");
@@ -164,9 +163,6 @@ function getGroupCategory(toolNames: (string | undefined)[]): ToolCategory {
     }
     if (hasLibraryFetch && !hasFile && !hasDiagnostics) {
         return { running: "Fetching libraries...", done: "Libraries fetched" };
-    }
-    if (hasPlanning) {
-        return { running: "Planning...", done: "Plan ready" };
     }
     if (hasConfig) {
         return { running: "Reading config...", done: "Config loaded" };

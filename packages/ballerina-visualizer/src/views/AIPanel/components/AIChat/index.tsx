@@ -46,6 +46,8 @@ import ToolCallSegment from "../ToolCallSegment";
 import ToolCallGroupSegment, { ToolCallItem } from "../ToolCallGroupSegment";
 import TryItScenariosSegment from "../TryItScenariosSegment";
 import TodoSection from "../TodoSection";
+import AgentStreamView from "../AgentStreamView";
+import { StreamEntry, StreamItem } from "../AgentStreamView/types";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
 import RoleContainer from "../RoleContainter";
@@ -92,49 +94,34 @@ const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED = GENERATE_CODE_AG
 
 const USAGE_EXCEEDED_THRESHOLD_PERCENT = 3;
 
-/**
- * Formats a file path into a user-friendly display name
- * - Removes .bal extension
- * - Replaces _ and - with spaces
- * - Preserves directory structure for context (e.g., "tests/")
- */
-function formatFileNameForDisplay(filePath: string): string {
-    // Remove .bal extension
-    let displayName = filePath.replace(/\.bal$/, '');
+//TODO: Add better error handling from backend. stream error type and non 200 status codes
 
-    // Extract directory and filename
-    const lastSlashIndex = displayName.lastIndexOf('/');
-    if (lastSlashIndex !== -1) {
-        const directory = displayName.substring(0, lastSlashIndex + 1);
-        const fileName = displayName.substring(lastSlashIndex + 1);
+// ── Agent stream serialization ────────────────────────────────────────────────
 
-        // Replace _ and - with spaces in the filename only
-        const formattedFileName = fileName.replace(/[_-]/g, ' ');
-        displayName = directory + formattedFileName;
-    } else {
-        // No directory, just format the filename
-        displayName = displayName.replace(/[_-]/g, ' ');
+function serializeStream(entries: StreamEntry[], existingContent: string): string {
+    const blob = `<agentstream>${JSON.stringify({ entries })}</agentstream>`;
+    if (existingContent.includes("<agentstream>")) {
+        return existingContent.replace(/<agentstream>[\s\S]*?<\/agentstream>/, blob);
     }
-
-    return displayName;
+    return existingContent + blob;
 }
 
-//TODO: Add better error handling from backend. stream error type and non 200 status codes
+function parseStream(content: string): StreamEntry[] {
+    const match = content.match(/<agentstream>([\s\S]*?)<\/agentstream>/);
+    if (!match) return [];
+    try { return JSON.parse(match[1]).entries ?? []; } catch { return []; }
+}
+
+function appendToLastEntry(entries: StreamEntry[], item: StreamItem): StreamEntry[] {
+    if (entries.length === 0) return [{ description: "", items: [item] }];
+    const last = entries[entries.length - 1];
+    return [...entries.slice(0, -1), { ...last, items: [...last.items, item] }];
+}
 
 const AIChat: React.FC = () => {
     const { rpcClient } = useRpcContext();
     const [messages, setMessages] = useState<Array<{ role: string; content: string; type: string; checkpointId?: string; messageId?: string }>>([]);
 
-    // Helper function to update the last message
-    const updateLastMessage = (updater: (content: string) => string) => {
-        setMessages((prevMessages) => {
-            const newMessages = [...prevMessages];
-            if (newMessages.length > 0) {
-                newMessages[newMessages.length - 1].content = updater(newMessages[newMessages.length - 1].content);
-            }
-            return newMessages;
-        });
-    };
     const [isLoading, setIsLoading] = useState(false);
     const [lastQuestionIndex, setLastQuestionIndex] = useState(-1);
     const [isCodeLoading, setIsCodeLoading] = useState(false);
@@ -149,7 +136,6 @@ const AIChat: React.FC = () => {
     const [showSettings, setShowSettings] = useState(false);
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Edit);
-    const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
     const [showReviewActions, setShowReviewActions] = useState(false);
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
 
@@ -316,19 +302,6 @@ const AIChat: React.FC = () => {
         initializeCheckpoints();
     }, [rpcClient]);
 
-    useEffect(() => {
-        const checkPlanModeFeatureEnabled = async () => {
-            try {
-                const enabled = await rpcClient.getAiPanelRpcClient().isPlanModeFeatureEnabled();
-                setIsPlanModeFeatureEnabled(enabled);
-            } catch (error) {
-                console.error("[AIChat] Failed to check plan mode feature enabled status:", error);
-                setIsPlanModeFeatureEnabled(false);
-            }
-        };
-
-        checkPlanModeFeatureEnabled();
-    }, [rpcClient]);
 
     useEffect(() => {
         const handleHideReviewActions = () => {
@@ -396,356 +369,111 @@ const AIChat: React.FC = () => {
     });
 
     rpcClient?.onChatNotify(async (response: ChatNotify) => {
-        // TODO: Need to handle the content as step blocks
         const type = response.type;
+
         if (type === "content_block") {
             const content = response.content;
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1].content += content;
-                return newMessages;
+            if (content === "") return;
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const last = msgs[msgs.length - 1];
+                if (!last) return prevMessages;
+                const entries = parseStream(last.content);
+                // Merge into trailing text item of the last entry if possible, otherwise append
+                if (entries.length > 0) {
+                    const lastEntry = entries[entries.length - 1];
+                    const lastItem = lastEntry.items[lastEntry.items.length - 1];
+                    if (lastItem?.kind === "text") {
+                        const updatedItems = [...lastEntry.items.slice(0, -1), { ...lastItem, text: lastItem.text + content }];
+                        const updated = [...entries.slice(0, -1), { ...lastEntry, items: updatedItems }];
+                        msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                        return msgs;
+                    }
+                }
+                const updated = appendToLastEntry(entries, { kind: "text", text: content });
+                msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
             });
-        } else if (type === "content_replace") {
-            const content = response.content;
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1].content = content;
-                return newMessages;
-            });
+
         } else if (type === "tool_call") {
-            if (response.toolName === "LibrarySearchTool") {
-                const toolCallId = response?.toolCallId;
-                const toolInput = response.toolInput;
-                const searchDescription = toolInput?.searchDescription;
-                const displayMessage = searchDescription
-                    ? `Searching for ${searchDescription}...`
-                    : "Searching for libraries...";
+            const newItem: StreamItem = { kind: "tool_call", toolCallId: response.toolCallId, toolName: response.toolName, toolInput: response.toolInput };
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const last = msgs[msgs.length - 1];
+                const entries = parseStream(last.content);
+                const updated = appendToLastEntry(entries, newItem);
+                msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
+            });
 
-                updateLastMessage((content) =>
-                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">${displayMessage}</toolcall>`
-                );
-            } else if (response.toolName === "LibraryGetTool") {
-                const toolCallId = response?.toolCallId;
-
-                updateLastMessage((content) =>
-                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching library details...</toolcall>`
-                );
-            } else if (response.toolName == "HealthcareLibraryProviderTool") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">Analyzing request & selecting healthcare libraries...</toolcall>`;
-                    }
-                    return newMessages;
-                });
-            } else if (response.toolName === "task_write") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">Planning...</toolcall>`;
-                    }
-                    return newMessages;
-                });
-            } else if (["file_write", "file_edit", "file_batch_edit"].includes(response.toolName)) {
-                const fileName = response.toolInput?.fileName || "file";
-                const displayName = formatFileNameForDisplay(fileName);
-                const message = response.toolName === "file_write"
-                    ? `Creating ${displayName}...`
-                    : `Updating ${displayName}...`;
-
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">${message}</toolcall>`;
-                    }
-                    return newMessages;
-                });
-            } else if (response.toolName === "getCompilationErrors") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">Checking for errors...</toolcall>`;
-                    }
-                    return newMessages;
-                });
-            } else if (response.toolName === "runTests") {
-                const toolCallId = response?.toolCallId;
-                updateLastMessage((content) =>
-                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`
-                );
-            } else if (response.toolName === "curlRequest") {
-                const toolCallId = response?.toolCallId;
-                const toolInput = response.toolInput;
-                let tool_content = encodeURIComponent(JSON.stringify({ request: { method: "", url: "Sending HTTP request...", headers: {}, data: null } }));
-                try{
-                    tool_content = encodeURIComponent(JSON.stringify(toolInput));
-                }catch(error){
-                    console.error("Failed to stringify HTTP request tool input:", error);
-                }
-
-                updateLastMessage((content) =>
-                    content + `\n\n<tryitcall id="${toolCallId}">${tool_content}</tryitcall>`
-                );
-            } else if (response.toolName === "runBallerinaPackage") {
-                const toolCallId = response?.toolCallId;
-                const runType = response.toolInput?.runType === "service" ? "service" : "program";
-                updateLastMessage((content) =>
-                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Running ${runType}...</toolcall>`
-                );
-            } else if (response.toolName === "getServiceLogs") {
-                const toolCallId = response?.toolCallId;
-                updateLastMessage((content) =>
-                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching logs...</toolcall>`
-                );
-            } else if (response.toolName === "stopBallerinaService") {
-                const toolCallId = response?.toolCallId;
-                updateLastMessage((content) =>
-                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Stopping service...</toolcall>`
-                );
-            }
         } else if (type === "tool_result") {
-            if (response.toolName === "LibrarySearchTool") {
-                const toolCallId = response.toolCallId;
-                const toolOutput = response.toolOutput;
-                const searchDescription = toolOutput?.searchDescription;
-
-                // Build the original message to replace
-                const originalMessage = searchDescription
-                    ? `Searching for ${searchDescription}...`
-                    : "Searching for libraries...";
-
-                // Build the completion message
-                const completionMessage = searchDescription
-                    ? `${searchDescription.charAt(0).toUpperCase() + searchDescription.slice(1)} search completed`
-                    : "Library search completed";
-
-                updateLastMessage((content) =>
-                    content.replace(
-                        `<toolcall id="${toolCallId}" tool="${response.toolName}">${originalMessage}</toolcall>`,
-                        `<toolresult id="${toolCallId}" tool="${response.toolName}">${completionMessage}</toolresult>`
-                    )
-                );
-            } else if (response.toolName === "LibraryGetTool") {
-                const toolCallId = response.toolCallId;
-                const libraryNames = response.toolOutput || [];
-                if (toolCallId) {
-                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching library details...</toolcall>`;
-                    const resultMessage = libraryNames.length === 0
-                        ? "No relevant libraries found"
-                        : `Fetched libraries: [${libraryNames.join(", ")}]`;
-                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
-
-                    updateLastMessage((content) => content.replace(searchPattern, replacement));
-                }
-            } else if (response.toolName == "HealthcareLibraryProviderTool") {
-                const libraryNames = response.toolOutput;
-                const searchPattern = `<toolcall tool="${response.toolName}">Analyzing request & selecting healthcare libraries...</toolcall>`;
-                const resultMessage = libraryNames.length === 0
-                    ? "No relevant healthcare libraries found."
-                    : `Fetched healthcare libraries: [${libraryNames.join(", ")}]`;
-                const replacement = `<toolresult tool="${response.toolName}">${resultMessage}</toolresult>`;
-
-                updateLastMessage((content) => content.replace(searchPattern, replacement));
-            } else if (response.toolName == "TaskWrite") {
-                const taskOutput = response.toolOutput;
-
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        if (!taskOutput.success || !taskOutput.tasks || taskOutput.tasks.length === 0) {
-                            const isInternalError = taskOutput.message &&
-                                taskOutput.message.includes("ERROR: Missing");
-
-                            const indicatorPattern = /<toolcall tool="TaskWrite">Planning\.\.\.<\/toolcall>/;
-                            const todoPattern = /<todo>.*?<\/todo>/s;
-
-                            if (isInternalError) {
-                                newMessages[newMessages.length - 1].content = newMessages[
-                                    newMessages.length - 1
-                                ].content.replace(indicatorPattern, "").replace(todoPattern, "");
-                            } else {
-                                let simplifiedMessage = "Task update failed";
-
-                                if (taskOutput.message) {
-                                    const commentMatch = taskOutput.message.match(/User comment: "([^"]+)"/);
-                                    const userComment = commentMatch ? commentMatch[1] : null;
-
-                                    if (taskOutput.message.includes("Plan not approved")) {
-                                        simplifiedMessage = userComment
-                                            ? `Plan not approved: ${userComment}`
-                                            : "Plan not approved";
-                                    }
-                                }
-
-                                // Keep tool="TaskWrite" (matching the tool_call tag written by the TaskWrite handler)
-                                newMessages[newMessages.length - 1].content = newMessages[
-                                    newMessages.length - 1
-                                ].content.replace(indicatorPattern, `<toolcall tool="TaskWrite">${simplifiedMessage}</toolcall>`).replace(todoPattern, "");
-                            }
-                        } else {
-                            const todoData = {
-                                tasks: taskOutput.tasks,
-                                message: taskOutput.message
-                            };
-                            const todoJson = JSON.stringify(todoData);
-
-                            const lastMessageContent = newMessages[newMessages.length - 1].content;
-                            const todoPattern = /<todo>.*?<\/todo>/s;
-
-                            if (todoPattern.test(lastMessageContent)) {
-                                // Replace existing todo section
-                                newMessages[newMessages.length - 1].content = lastMessageContent.replace(
-                                    todoPattern,
-                                    `<todo>${todoJson}</todo>`
-                                );
-                            } else {
-                                // Add new todo section
-                                newMessages[newMessages.length - 1].content += `\n\n<todo>${todoJson}</todo>`;
-                            }
-                        }
-                    }
-                    return newMessages;
-                });
-            } else if (["file_write", "file_edit", "file_batch_edit"].includes(response.toolName)) {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        const lastMessageContent = newMessages[newMessages.length - 1].content;
-                        const creatingPattern = /<toolcall tool="([^"]+)">Creating (.+?)\.\.\.<\/toolcall>/;
-                        const updatingPattern = /<toolcall tool="([^"]+)">Updating (.+?)\.\.\.<\/toolcall>/;
-
-                        let updatedContent = lastMessageContent;
-
-                        if (creatingPattern.test(lastMessageContent)) {
-                            // For file_write, check if it was an update or create
-                            const action = response.toolOutput?.action;
-                            const resultText = action === 'updated' ? 'Updated' : 'Created';
-                            updatedContent = lastMessageContent.replace(
-                                creatingPattern,
-                                (_match, toolName, fileName) => `<toolresult tool="${toolName}">${resultText} ${fileName}</toolresult>`
-                            );
-                        } else if (updatingPattern.test(lastMessageContent)) {
-                            updatedContent = lastMessageContent.replace(
-                                updatingPattern,
-                                (_match, toolName, fileName) => `<toolresult tool="${toolName}">Updated ${fileName}</toolresult>`
+            if (response.toolName === "TaskWrite") {
+                const tasks: Array<{ status: string; description: string }> = response.toolOutput?.tasks ?? [];
+                const inProgressTask = tasks.find(t => t.status === "in_progress");
+                const lastCompletedTask = [...tasks].reverse().find(t => t.status === "completed");
+                setMessages(prevMessages => {
+                    const msgs = [...prevMessages];
+                    const last = msgs[msgs.length - 1];
+                    let entries = parseStream(last.content);
+                    if (inProgressTask) {
+                        // Push a named entry for this task (skip if already present)
+                        if (entries.some(e => e.description === inProgressTask.description)) return prevMessages;
+                        entries = [...entries, { description: inProgressTask.description, items: [], status: "in_progress" as const }];
+                    } else {
+                        // Mark the just-completed named entry as done
+                        if (lastCompletedTask) {
+                            entries = entries.map(e =>
+                                e.description === lastCompletedTask.description
+                                    ? { ...e, status: "completed" as const }
+                                    : e
                             );
                         }
-
-                        newMessages[newMessages.length - 1].content = updatedContent;
+                        // Push a floating entry for subsequent content (if not already present)
+                        const lastEntry = entries[entries.length - 1];
+                        if (!lastEntry || lastEntry.description !== "") {
+                            entries = [...entries, { description: "", items: [] }];
+                        }
                     }
-                    return newMessages;
+                    msgs[msgs.length - 1] = { ...last, content: serializeStream(entries, last.content) };
+                    return msgs;
                 });
-            } else if (response.toolName === "getCompilationErrors") {
-                const diagnosticsOutput = response.toolOutput;
-                // Backend already filters for errors only (severity === 1), so no need to filter again
-                const errors = diagnosticsOutput?.diagnostics || [];
-                const errorCount = errors.length;
-
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        const lastMessageContent = newMessages[newMessages.length - 1].content;
-                        const toolName = response.toolName;
-                        const checkingPattern = new RegExp(`<toolcall tool="${toolName}">Checking for errors\\.\\.\\.<\\/toolcall>`);
-
-                        const message = errorCount === 0
-                            ? "No errors found"
-                            : `Found ${errorCount} error${errorCount > 1 ? 's' : ''}`;
-
-                        const updatedContent = lastMessageContent.replace(
-                            checkingPattern,
-                            `<toolresult tool="${toolName}">${message}</toolresult>`
-                        );
-
-                        newMessages[newMessages.length - 1].content = updatedContent;
-                    }
-                    return newMessages;
-                });
-            } else if (response.toolName === "runTests") {
-                const toolCallId = response.toolCallId;
-                if (toolCallId) {
-                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`;
-                    const resultMessage = response.toolOutput?.summary ?? "Tests completed";
-                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
-                    updateLastMessage((content) => content.replace(searchPattern, replacement));
-                }
-            } else if (response.toolName === "curlRequest") {
-                const toolCallId = response.toolCallId;
-                const toolOutput = response.toolOutput;
-                let tool_content: string | null = null;
-                try {
-                    tool_content = encodeURIComponent(JSON.stringify(toolOutput));
-                } catch (error) {
-                    console.error("Failed to stringify HTTP request tool output:", error);
-                }
-
-                if (tool_content !== null) {
-                    const searchPattern = `<tryitcall id="${toolCallId}">`;
-                    updateLastMessage((content) => {
-                        const start = content.indexOf(searchPattern);
-                        if (start === -1) return content;
-                        const end = content.indexOf("</tryitcall>", start);
-                        if (end === -1) return content;
-                        return (
-                            content.slice(0, start) +
-                            `<tryitresult id="${toolCallId}">${tool_content}</tryitresult>` +
-                            content.slice(end + "</tryitcall>".length)
-                        );
+            } else {
+                // Replace the matching tool_call item with tool_result
+                setMessages(prevMessages => {
+                    const msgs = [...prevMessages];
+                    const last = msgs[msgs.length - 1];
+                    const entries = parseStream(last.content);
+                    const resultItem: StreamItem = { kind: "tool_result", toolCallId: response.toolCallId, toolName: response.toolName, toolOutput: response.toolOutput, failed: (response as any).failed };
+                    let matched = false;
+                    const updated = entries.map(entry => {
+                        if (matched) return entry;
+                        const idx = entry.items.findIndex(i => i.kind === "tool_call" && i.toolCallId === response.toolCallId);
+                        if (idx === -1) return entry;
+                        matched = true;
+                        const updatedItems = entry.items.map((item, i) => i === idx ? resultItem : item);
+                        return { ...entry, items: updatedItems };
                     });
-                }
-            } else if (response.toolName === "runBallerinaPackage") {
-                const toolCallId = response.toolCallId;
-                if (toolCallId) {
-                    const status = response.toolOutput?.status ?? "completed";
-                    const runType = status === "started" ? "service" : "program";
-                    const searchPattern = new RegExp(`<toolcall id="${toolCallId}" tool="${response.toolName}">Running (?:service|program)\\.\\.\\.<\\/toolcall>`);
-                    const resultMessage = status === "started"
-                        ? "Service started"
-                        : status === "completed"
-                            ? "Program completed"
-                            : status === "timeout"
-                                ? "Program timed out"
-                                : "Run failed";
-                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
-                    updateLastMessage((content) => content.replace(searchPattern, replacement));
-                }
-            } else if (response.toolName === "getServiceLogs") {
-                const toolCallId = response.toolCallId;
-                if (toolCallId) {
-                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching logs...</toolcall>`;
-                    const status = response.toolOutput?.status ?? "running";
-                    const resultMessage = status === "exited" ? "Service exited" : status === "not_found" ? "Service not found" : "Logs retrieved";
-                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
-                    updateLastMessage((content) => content.replace(searchPattern, replacement));
-                }
-            } else if (response.toolName === "stopBallerinaService") {
-                const toolCallId = response.toolCallId;
-                if (toolCallId) {
-                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Stopping service...</toolcall>`;
-                    const status = response.toolOutput?.status ?? "stopped";
-                    const resultMessage = status === "stopped" ? "Service stopped" : status === "already_exited" ? "Service already exited" : "Service not found";
-                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
-                    updateLastMessage((content) => content.replace(searchPattern, replacement));
-                }
+                    if (!matched) {
+                        // No matching call found — append as new item to last entry
+                        msgs[msgs.length - 1] = { ...last, content: serializeStream(appendToLastEntry(entries, resultItem), last.content) };
+                    } else {
+                        msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                    }
+                    return msgs;
+                });
             }
+
         } else if (type === "task_approval_request") {
             if (response.approvalType === "plan") {
-                const todoJson = JSON.stringify({ tasks: response.tasks, message: response.message });
-                updateLastMessage((content) => {
-                    const cleaned = content
-                        .replace(/<toolcall>Planning\.\.\.<\/toolcall>/, '')
-                        .replace(/<todo>.*?<\/todo>/s, '');
-                    return cleaned + `\n\n<todo>${todoJson}</todo>`;
+                setMessages(prevMessages => {
+                    const msgs = [...prevMessages];
+                    const last = msgs[msgs.length - 1];
+                    const entries = parseStream(last.content);
+                    const planItem: StreamItem = { kind: "plan", tasks: response.tasks, message: response.message };
+                    const updated = appendToLastEntry(entries, planItem);
+                    msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                    return msgs;
                 });
-            } else if (response.approvalType === "completion") {
-                const tasks = isAutoApproveEnabled
-                    ? response.tasks.map((t: { status: string }) =>
-                        t.status === "review" ? { ...t, status: "completed" } : t)
-                    : response.tasks;
-                const todoJson = JSON.stringify({ tasks, message: response.message });
-                updateLastMessage((content) =>
-                    content.replace(/<todo>.*?<\/todo>/s, `<todo>${todoJson}</todo>`)
-                );
             }
 
             if (isAutoApproveEnabled && response.approvalType === "completion") {
@@ -761,17 +489,19 @@ const AIChat: React.FC = () => {
                 taskDescription: response.taskDescription,
                 message: response.message,
             });
+
         } else if (type === "intermediary_state") {
             const state = response.state;
-            // Check if it's a documentation state by looking for specific properties
             if ("serviceName" in state && "documentation" in state) {
                 setDocGenIntermediaryState(state as DocumentationGeneratorIntermediaryState);
             }
+
         } else if (type === "generated_sources") {
             setCurrentFileArray(response.fileArray);
+
         } else if (type === "connector_generation_notification") {
             const connectorNotification = response as any;
-            const connectorJson = JSON.stringify({
+            const connectorData = {
                 requestId: connectorNotification.requestId,
                 stage: connectorNotification.stage,
                 serviceName: connectorNotification.serviceName,
@@ -782,34 +512,23 @@ const AIChat: React.FC = () => {
                 message: connectorNotification.message,
                 inputMethod: connectorNotification.inputMethod,
                 sourceIdentifier: connectorNotification.sourceIdentifier
+            };
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const last = msgs[msgs.length - 1];
+                const entries = parseStream(last.content);
+                let found = false;
+                let updated = entries.map(entry => {
+                    const idx = entry.items.findIndex(item => item.kind === "connector" && (item.data as any)?.requestId === connectorData.requestId);
+                    if (idx === -1) return entry;
+                    found = true;
+                    return { ...entry, items: entry.items.map((item, i) => i === idx ? { kind: "connector" as const, data: connectorData } : item) };
+                });
+                if (!found) updated = appendToLastEntry(entries, { kind: "connector", data: connectorData });
+                msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
             });
 
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                if (newMessages.length > 0) {
-                    const lastMessageContent = newMessages[newMessages.length - 1].content;
-
-                    const escapeRegex = (str: string): string => {
-                        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    };
-
-                    const searchPattern = `<connectorgenerator>{"requestId":"${connectorNotification.requestId}"`;
-
-                    if (lastMessageContent.includes(searchPattern)) {
-                        const replacePattern = new RegExp(
-                            `<connectorgenerator>[^<]*${escapeRegex(connectorNotification.requestId)}[^<]*</connectorgenerator>`,
-                            's'
-                        );
-                        newMessages[newMessages.length - 1].content = lastMessageContent.replace(
-                            replacePattern,
-                            `<connectorgenerator>${connectorJson}</connectorgenerator>`
-                        );
-                    } else {
-                        newMessages[newMessages.length - 1].content += `\n\n<connectorgenerator>${connectorJson}</connectorgenerator>`;
-                    }
-                }
-                return newMessages;
-            });
         } else if (type === "configuration_collection_event") {
             const configurationNotification = response as any;
             const configurationData: ConfigurationCollectionData = {
@@ -821,120 +540,96 @@ const AIChat: React.FC = () => {
                 isTestConfig: configurationNotification.isTestConfig,
                 error: configurationNotification.error
             };
-
-            const configurationJson = JSON.stringify(configurationData);
-
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                if (newMessages.length > 0) {
-                    const lastMessageContent = newMessages[newMessages.length - 1].content;
-
-                    const escapeRegex = (str: string): string => {
-                        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    };
-
-                    const searchPattern = `<configurationcollector>{"requestId":"${configurationNotification.requestId}"`;
-
-                    if (lastMessageContent.includes(searchPattern)) {
-                        const replacePattern = new RegExp(
-                            `<configurationcollector>[^<]*${escapeRegex(configurationNotification.requestId)}[^<]*</configurationcollector>`,
-                            's'
-                        );
-                        newMessages[newMessages.length - 1].content = lastMessageContent.replace(
-                            replacePattern,
-                            `<configurationcollector>${configurationJson}</configurationcollector>`
-                        );
-                    } else {
-                        newMessages[newMessages.length - 1].content += `\n\n<configurationcollector>${configurationJson}</configurationcollector>`;
-                    }
-                }
-                return newMessages;
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const last = msgs[msgs.length - 1];
+                const entries = parseStream(last.content);
+                let found = false;
+                let updated = entries.map(entry => {
+                    const idx = entry.items.findIndex(item => item.kind === "config" && (item.data as any)?.requestId === configurationData.requestId);
+                    if (idx === -1) return entry;
+                    found = true;
+                    return { ...entry, items: entry.items.map((item, i) => i === idx ? { kind: "config" as const, data: configurationData } : item) };
+                });
+                if (!found) updated = appendToLastEntry(entries, { kind: "config", data: configurationData });
+                msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
             });
+
         } else if (type === "diagnostics") {
-            //TODO: Handle this in review mode
-            const content = response.diagnostics;
-            currentDiagnosticsRef.current = content;
+            currentDiagnosticsRef.current = response.diagnostics;
+
         } else if ((response as any).type === "review_actions") {
             setShowReviewActions(true);
+
         } else if (type === "messages") {
-            const messages = response.messages;
-            messagesRef.current = messages;
+            messagesRef.current = response.messages;
+
         } else if (type === "stop") {
             console.log("Received stop signal");
             setIsCodeLoading(false);
             setIsLoading(false);
             fetchUsage();
+
         } else if (type === "abort") {
             console.log("Received abort signal");
-            const interruptedMessage = "\n\n*[Request interrupted by user]*";
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                if (newMessages.length > 0) {
-                    newMessages[newMessages.length - 1].content += interruptedMessage;
-                } else {
-                    // Edge case: abort before any messages
-                    newMessages.push({
-                        role: "assistant",
-                        content: interruptedMessage,
-                        type: "text"
-                    });
-                }
-                return newMessages;
+            const abortItem: StreamItem = { kind: "text", text: "*[Request interrupted by user]*" };
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const last = msgs[msgs.length - 1];
+                const entries = parseStream(last.content);
+                const updated = appendToLastEntry(entries, abortItem);
+                msgs[msgs.length - 1] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
             });
             setIsCodeLoading(false);
             setIsLoading(false);
+
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
-            const messageId = response.messageId;
-
-            // Update chat message in state machine with UI message
+            const contentToSave = messages[messages.length - 1].content;
             await rpcClient.getAiPanelRpcClient().updateChatMessage({
-                messageId,
-                content: messages[messages.length - 1].content
+                messageId: response.messageId,
+                content: contentToSave,
             });
+
         } else if (type === "error") {
             console.log("Received error signal");
             const errorContent = response.content;
             const errorTemplate = `\n\n<error data-system="true" data-auth="${SYSTEM_ERROR_SECRET}">${errorContent}</error>`;
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    let content = newMessages[newMessages.length - 1].content;
+            setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                let content = newMessages[newMessages.length - 1].content;
 
-                    // Check if there's an unclosed code block and close it properly
-                    const codeBlockPattern = /<code filename="[^"]+">[\s]*```\w+/g;
-                    const openCodeBlocks = (content.match(codeBlockPattern) || []).length;
-                    const closedCodeBlocks = (content.match(/<\/code>/g) || []).length;
+                // Check if there's an unclosed code block and close it properly
+                const codeBlockPattern = /<code filename="[^"]+">[\s]*```\w+/g;
+                const openCodeBlocks = (content.match(codeBlockPattern) || []).length;
+                const closedCodeBlocks = (content.match(/<\/code>/g) || []).length;
 
-                    if (openCodeBlocks > closedCodeBlocks) {
-                        // Check what's missing at the end
-                        const endsWithPartialClose = /```\s*<\/cod?e?$/.test(content.trim());
-                        const endsWithBackticks = /```\s*$/.test(content.trim());
-                        const endsWithPartialBackticks = /`{1,2}$/.test(content.trim());
+                if (openCodeBlocks > closedCodeBlocks) {
+                    const endsWithPartialClose = /```\s*<\/cod?e?$/.test(content.trim());
+                    const endsWithBackticks = /```\s*$/.test(content.trim());
+                    const endsWithPartialBackticks = /`{1,2}$/.test(content.trim());
 
-                        if (endsWithPartialClose) {
-                            // Remove partial closing and add complete one
-                            content = content.replace(/```\s*<\/cod?e?$/, "");
-                            content += "\n```\n</code>";
-                        } else if (endsWithBackticks) {
-                            // Already has ```, just need </code>
-                            content += "\n</code>";
-                        } else if (endsWithPartialBackticks) {
-                            // Remove partial backticks and add complete closing
-                            content = content.replace(/`{1,2}$/, "");
-                            content += "\n```\n</code>";
-                        } else {
-                            // No closing elements, add both
-                            content += "\n```\n</code>";
-                        }
+                    if (endsWithPartialClose) {
+                        content = content.replace(/```\s*<\/cod?e?$/, "");
+                        content += "\n```\n</code>";
+                    } else if (endsWithBackticks) {
+                        content += "\n</code>";
+                    } else if (endsWithPartialBackticks) {
+                        content = content.replace(/`{1,2}$/, "");
+                        content += "\n```\n</code>";
+                    } else {
+                        content += "\n```\n</code>";
                     }
+                }
 
-                    newMessages[newMessages.length - 1].content = content + errorTemplate;
-                    console.log(newMessages);
-                    return newMessages;
-                });
-                setIsCodeLoading(false);
-                setIsLoading(false);
-                isErrorChunkReceivedRef.current = true;
+                newMessages[newMessages.length - 1].content = content + errorTemplate;
+                return newMessages;
+            });
+            setIsCodeLoading(false);
+            setIsLoading(false);
+            isErrorChunkReceivedRef.current = true;
         }
     });
 
@@ -1377,7 +1072,6 @@ const AIChat: React.FC = () => {
         setMessages([]);
         setApprovalRequest(null);
         setShowReviewActions(false);
-
         await rpcClient.getAiPanelRpcClient().clearChat();
     }
 
@@ -1387,6 +1081,7 @@ const AIChat: React.FC = () => {
     };
 
     const handleChangeAgentMode = (mode: AgentMode) => {
+        // message.content is already up-to-date with the serialized agent stream — nothing to persist here
         setAgentMode(mode);
     };
 
@@ -1473,6 +1168,22 @@ const AIChat: React.FC = () => {
                 requestId: approvalRequest.requestId,
                 comment: undefined
             });
+            // Collapse TodoSection into approval summary — mark plan items as approved
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const lastIdx = [...msgs].map(m => m.role).lastIndexOf("Copilot");
+                if (lastIdx === -1) return prevMessages;
+                const last = msgs[lastIdx];
+                const entries = parseStream(last.content);
+                const updated = entries.map(entry => ({
+                    ...entry,
+                    items: entry.items.map(item =>
+                        item.kind === "plan" ? { ...item, approvalStatus: "approved" as const } : item
+                    )
+                }));
+                msgs[lastIdx] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
+            });
         } else if (approvalRequest.approvalType === "completion") {
             const reviewTasks = approvalRequest.tasks.filter(t => t.status === "review");
             const lastReviewTask = reviewTasks[reviewTasks.length - 1];
@@ -1493,6 +1204,22 @@ const AIChat: React.FC = () => {
             await rpcClient.getAiPanelRpcClient().declinePlan({
                 requestId: approvalRequest.requestId,
                 comment
+            });
+            // Collapse TodoSection into revision summary — mark plan items as revised
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const lastIdx = [...msgs].map(m => m.role).lastIndexOf("Copilot");
+                if (lastIdx === -1) return prevMessages;
+                const last = msgs[lastIdx];
+                const entries = parseStream(last.content);
+                const updated = entries.map(entry => ({
+                    ...entry,
+                    items: entry.items.map(item =>
+                        item.kind === "plan" ? { ...item, approvalStatus: "revised" as const, approvalComment: comment } : item
+                    )
+                }));
+                msgs[lastIdx] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
             });
         } else if (approvalRequest.approvalType === "completion") {
             await rpcClient.getAiPanelRpcClient().declineTask({
@@ -1634,6 +1361,17 @@ const AIChat: React.FC = () => {
                                         />
                                     )}
                                     {segmentedContent.map((segment, i) => {
+                                        if (segment.type === SegmentType.AgentStream) {
+                                            return (
+                                                <AgentStreamView
+                                                    key={`agent-stream-${i}`}
+                                                    stream={segment.stream ?? []}
+                                                    isLoading={isLoading && isLatestAssistantMessage}
+                                                    rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
+                                                />
+                                            );
+                                        }
+
                                         if (segment.type === SegmentType.Code) {
                                             const nextSegment = segmentedContent[i + 1];
                                             if (
@@ -1779,13 +1517,11 @@ const AIChat: React.FC = () => {
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.Todo) {
-                                            const isLastMessage = index === otherMessages.length - 1;
                                             return (
                                                 <TodoSection
                                                     key={`todo-${i}`}
                                                     tasks={segment.tasks || []}
                                                     message={segment.message}
-                                                    isLoading={isLoading && isLastMessage}
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.SpecFetcher) {
@@ -1933,7 +1669,7 @@ const AIChat: React.FC = () => {
                             codeContext={codeContext}
                             onRemoveCodeContext={() => setCodeContext(undefined)}
                             agentMode={agentMode}
-                            onChangeAgentMode={isPlanModeFeatureEnabled ? handleChangeAgentMode : undefined}
+                            onChangeAgentMode={handleChangeAgentMode}
                             isAutoApproveEnabled={isAutoApproveEnabled}
                             onDisableAutoApprove={handleToggleAutoApprove}
                             disabled={isUsageExceeded}
