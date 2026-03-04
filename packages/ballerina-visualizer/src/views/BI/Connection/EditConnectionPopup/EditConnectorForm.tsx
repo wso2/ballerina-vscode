@@ -145,6 +145,37 @@ const ErrorContainer = styled.div`
     border: 1px solid ${ThemeColors.ERROR};
 `;
 
+const WarningContainer = styled.div`
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    border: 1px solid #d97706;
+`;
+
+const DeselectedTablesRow = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+`;
+
+const TableChip = styled.span`
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: monospace;
+    background-color: rgba(217, 119, 6, 0.15);
+    color: #d97706;
+    border: 1px solid rgba(217, 119, 6, 0.4);
+`;
+
 const ErrorHeader = styled.div`
     display: flex;
     align-items: center;
@@ -416,6 +447,11 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
         [tables, tableSearch]
     );
 
+    const deselectedExistingTables = useMemo(
+        () => tables.filter((t) => t.existing && !t.selected),
+        [tables]
+    );
+
     const renderErrorDisplay = () => {
         if (!connectionError) return null;
 
@@ -523,6 +559,28 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                                 {selectedTablesCount === totalTablesCount && totalTablesCount > 0 ? "Deselect All" : "Select All"}
                             </SelectAllButton>
                         </SearchRow>
+                        {deselectedExistingTables.length > 0 && (
+                            <WarningContainer>
+                                <Codicon
+                                    name="warning"
+                                    sx={{ color: "#d97706", fontSize: "20px", width: "20px", height: "20px", flexShrink: 0 }}
+                                />
+                                <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1, minWidth: 0 }}>
+                                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE, margin: 0, lineHeight: 1.5 }}>
+                                        You have deselected {deselectedExistingTables.length} table{deselectedExistingTables.length === 1 ? "" : "s"} that
+                                        {deselectedExistingTables.length === 1 ? " is" : " are"} already in the connector. Removing these may break existing code that references them.
+                                    </Typography>
+                                    <DeselectedTablesRow>
+                                        <Typography variant="caption" sx={{ color: ThemeColors.ON_SURFACE_VARIANT, margin: 0, flexShrink: 0 }}>
+                                            Deselected tables:
+                                        </Typography>
+                                        {deselectedExistingTables.map((t) => (
+                                            <TableChip key={t.table}>{t.table}</TableChip>
+                                        ))}
+                                    </DeselectedTablesRow>
+                                </div>
+                            </WarningContainer>
+                        )}
                         <TablesGrid>
                             {filteredTables.map((t) => (
                                 <TableCard
