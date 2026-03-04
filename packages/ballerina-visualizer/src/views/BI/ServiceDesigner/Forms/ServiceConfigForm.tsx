@@ -16,16 +16,16 @@
  * under the License.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
+import { FormField, FormImports, FormValues, StringTemplateEditorConfig } from "@wso2/ballerina-side-panel";
 import { getPrimaryInputType, LineRange, Property, RecordTypeField, ServiceModel, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { URI, Utils } from "vscode-uri";
 import { FormGeneratorNew } from "../../Forms/FormGeneratorNew";
 import { FormHeader } from "../../../../components/FormHeader";
 import { getImportsForProperty } from "../../../../utils/bi";
-import { removeForwardSlashes, sanitizedHttpPath } from "../utils";
+import { isValueEqual, removeForwardSlashes, sanitizedHttpPath } from "../utils";
 
 const Container = styled.div`
     /* padding: 0 20px 20px; */
@@ -68,16 +68,19 @@ interface ServiceConfigFormProps {
     onBack?: () => void;
     formSubmitText?: string;
     onChange?: (data: ServiceModel) => void;
+    onDirtyChange?: (isDirty: boolean) => void;
+    onValidityChange?: (isValid: boolean) => void;
 }
 
 export function ServiceConfigForm(props: ServiceConfigFormProps) {
     const { rpcClient } = useRpcContext();
 
     const [serviceFields, setServiceFields] = useState<FormField[]>([]);
-    const { serviceModel, onSubmit, onBack, openListenerForm, formSubmitText = "Next", isSaving, onChange } = props;
+    const { serviceModel, onSubmit, onBack, openListenerForm, formSubmitText = "Next", isSaving, onChange, onDirtyChange, onValidityChange } = props;
     const [filePath, setFilePath] = useState<string>('');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
+    const initialFieldValuesRef = useRef<Record<string, any>>({});
 
     useEffect(() => {
         // Check if the service is HTTP protocol and any properties with choices
@@ -142,7 +145,15 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
             setRecordTypeFields(recordTypeFields);
         }
 
-        serviceModel && setServiceFields(convertConfig(serviceModel));
+        if (serviceModel) {
+            const convertedFields = convertConfig(serviceModel);
+            setServiceFields(convertedFields);
+            initialFieldValuesRef.current = convertedFields.reduce((acc, field) => {
+                acc[field.key] = field.value;
+                return acc;
+            }, {} as Record<string, any>);
+            onDirtyChange?.(false);
+        }
         rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((response) => {
             setFilePath(response.filePath);
         });
@@ -177,11 +188,12 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
             // First, check if any changes exist before modifying serviceFields
             let hasChanges = false;
             for (let val of serviceFields) {
-                if (allValues[val.key] !== undefined && allValues[val.key] !== val.value) {
+                if (allValues[val.key] !== undefined && !isValueEqual(allValues[val.key], initialFieldValuesRef.current[val.key])) {
                     hasChanges = true;
                     break;
                 }
             }
+            onDirtyChange?.(hasChanges);
             if (!hasChanges) {
                 return;
             }
@@ -240,6 +252,7 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                                     preserveFieldOrder={true}
                                     onChange={handleServiceChange}
                                     hideSaveButton={onChange ? true : false}
+                                    onValidityChange={onValidityChange}
                                 />
                             }
                         </FormContainer>

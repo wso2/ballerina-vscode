@@ -46,7 +46,9 @@ import {
     IORoot,
     IntermediateClauseType,
     TriggerKind,
-    TypeKind
+    TypeKind,
+    Type,
+    Imports
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -60,6 +62,7 @@ import { calculateExpressionOffsets, convertBalCompletion, updateLineRange } fro
 import { createAddSubMappingRequest } from "./utils";
 import { FunctionForm } from "../BI/FunctionForm";
 import { UndoRedoGroup } from "../../components/UndoRedoGroup";
+import { EntryPointTypeCreator } from "../../components/EntryPointTypeCreator";
 
 // Types for model comparison
 interface ModelSignature {
@@ -97,6 +100,11 @@ export function DataMapperView(props: DataMapperViewProps) {
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
     const [isUpdatingSource, setIsUpdatingSource] = useState<boolean>(false);
 
+    /* Type Editor related */
+    const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
+    const onTypeCreateRef = useRef<(type: Type | string, imports?: Imports) => void>(() => {});
+    const initialTypeNameRef = useRef<string>("");
+
     // Keep track of previous inputs/outputs and sub mappings for comparison
     const prevSignatureRef = useRef<string>(null);
 
@@ -105,7 +113,8 @@ export function DataMapperView(props: DataMapperViewProps) {
         model,
         isFetching,
         isError,
-        refreshDMModel
+        refreshDMModel,
+        requestRefreshDMModel
     } = useDataMapperModel(filePath, viewState, position);
 
     const prevPositionRef = useRef(position);
@@ -593,10 +602,11 @@ export function DataMapperView(props: DataMapperViewProps) {
             }
         });
 
-        let i = 2;
+        let i = 1;
         let uniqueName = name;
+        const separator = /\d$/.test(name) ? "_" : "";
         while (completions.some(c => c.insertText === uniqueName)) {
-            uniqueName = name + (i++);
+            uniqueName = name + separator + (i++);
         }
 
         return uniqueName;
@@ -614,6 +624,40 @@ export function DataMapperView(props: DataMapperViewProps) {
             console.error(error);
             return expression;
         }
+    };
+
+    const createConvertedVariable = async (variableName: string, isInput: boolean, typeName?: string, parentTypeName?: string) => {
+        const initialTypeName = typeName || variableName.charAt(0).toUpperCase() + variableName.slice(1);
+        initialTypeNameRef.current = await genUniqueName(initialTypeName, viewState.viewId);
+
+        onTypeCreateRef.current = (type: Type | string, imports?: Imports) => {
+            const newTypeName = typeof type === 'string' ? type : (type as Type).name;
+            requestRefreshDMModel();
+            rpcClient
+                .getDataMapperRpcClient()
+                .createConvertedVariable({
+                    filePath,
+                    codedata: {
+                        ...viewState.codedata,
+                        isNew: !typeName
+                    },
+                    varName: name,
+                    targetField: viewState.viewId,
+                    subMappingName: viewState.subMappingName,
+                    typeName: newTypeName,
+                    isInput,
+                    variableName,
+                    parentTypeName,
+                    imports
+                }).then(res => {
+                    console.log(">>> [Data Mapper] createConvertedVariable response:", res);
+                }).catch(error => {
+                    console.error(error);
+                    setIsFileUpdateError(true);
+                });
+        };
+        
+        setIsTypeEditorOpen(true);
     };
 
     const onDMClose = () => {
@@ -768,6 +812,7 @@ export function DataMapperView(props: DataMapperViewProps) {
                             deleteClause={deleteClause}
                             getClausePosition={getClausePosition}
                             getConvertedExpression={getConvertedExpression}
+                            createConvertedVariable={createConvertedVariable}
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
                             deleteSubMapping={deleteSubMapping}
@@ -789,6 +834,18 @@ export function DataMapperView(props: DataMapperViewProps) {
                             }}
                         />
                     )}
+                    {isTypeEditorOpen &&
+                        <EntryPointTypeCreator
+                            isOpen={true}
+                            onClose={() => setIsTypeEditorOpen(false)}
+                            onTypeCreate={onTypeCreateRef.current}
+                            initialTypeName={initialTypeNameRef.current}
+                            modalTitle={"Define Type for converted variable"}
+
+                            modalWidth={650}
+                            modalHeight={600}
+                        />
+                    }
                 </>
             )}
         </>

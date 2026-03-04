@@ -21,35 +21,29 @@ import path from "path";
 import vscode, { Uri, workspace } from 'vscode';
 
 import { StateMachine } from "../../stateMachine";
-import { getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE } from '../../utils/ai/auth';
+import {
+    getRefreshedAccessToken,
+    TOKEN_NOT_AVAILABLE_ERROR_MESSAGE,
+    getAuthCredentials,
+    isPlatformExtensionAvailable,
+    isDevantUserLoggedIn,
+    getPlatformStsToken,
+    exchangeStsToCopilotToken,
+    storeAuthCredentials, 
+    NO_AUTH_CREDENTIALS_FOUND
+} from '../../utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core/lib/state-machine-types';
-import { CONFIG_FILE_NAME, ERROR_NO_BALLERINA_SOURCES, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL } from './constants';
+import { CONFIG_FILE_NAME, ERROR_NO_BALLERINA_SOURCES, LLM_API_BASE_PATH, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL } from './constants';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
-import { BallerinaProject, LoginMethod } from '@wso2/ballerina-core';
+import { BallerinaProject, LoginMethod, AuthCredentials } from '@wso2/ballerina-core';
 import { BallerinaExtension } from 'src/core';
-import { getAuthCredentials } from '../../utils/ai/auth';
 
 const config = workspace.getConfiguration('ballerina');
 const isDevantDev = process.env.CLOUD_ENV === "dev";
-export const BACKEND_URL: string = config.get('rootUrl') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_ROOT_URL : process.env.BALLERINA_ROOT_URL;
-export const AUTH_ORG: string = config.get('authOrg') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_ORG : process.env.BALLERINA_AUTH_ORG;
-export const AUTH_CLIENT_ID: string = config.get('authClientID') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID : process.env.BALLERINA_AUTH_CLIENT_ID;
-export const AUTH_REDIRECT_URL: string = config.get('authRedirectURL') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL : process.env.BALLERINA_AUTH_REDIRECT_URL;
+export const BACKEND_URL: string = config.get('rootUrl') || (isDevantDev ? process.env.COPILOT_DEV_ROOT_URL : process.env.COPILOT_ROOT_URL);
 
-export const DEVANT_STS_TOKEN_CONFIG: string = config.get('cloudStsToken') || process.env.CLOUD_STS_TOKEN;
-
-//TODO: Move to configs after custom URL approved
-const DEVANT_DEV_EXCHANGE_URL = 'https://e95488c8-8511-4882-967f-ec3ae2a0f86f-dev.e1-us-east-azure.choreoapis.dev/ballerina-copilot/devant-token-exchange-ser/v1.0/exchange';
-const DEVANT_PROD_EXCHANGE_URL = 'https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/ballerina-copilot/devant-token-exchange-ser/v1.0/exchange';
-
-export function getDevantExchangeUrl(): string {
-    if (isDevantDev) {
-        return DEVANT_DEV_EXCHANGE_URL;
-    } else {
-        return DEVANT_PROD_EXCHANGE_URL;
-    }
-}
+export const DEVANT_TOKEN_EXCHANGE_URL: string = BACKEND_URL + "/auth-api/v1.0/auth/token-exchange";
 
 // This refers to old backend before FE Migration. We need to eventually remove this.
 export const OLD_BACKEND_URL: string = BACKEND_URL + "/v2.0";
@@ -145,36 +139,44 @@ export async function getConfigFilePath(ballerinaExtInstance: BallerinaExtension
 }
 
 export async function getTokenForDefaultModel() {
-    try {
-        const credentials = await getAuthCredentials();
+    // Priority 1: Check stored credentials
+    const credentials = await getAuthCredentials();
 
+    if (credentials) {
         if (!credentials) {
-            throw new Error('No authentication credentials found.');
+            throw new Error(NO_AUTH_CREDENTIALS_FOUND);
         }
 
         // Check login method and handle accordingly
         if (credentials.loginMethod === LoginMethod.BI_INTEL) {
-            // Keep existing behavior for BI Intel - refresh token
+            // Re-exchange STS token to get a fresh token
             const token = await getRefreshedAccessToken();
             return token;
-        } else if (credentials.loginMethod === LoginMethod.DEVANT_ENV) {
-            // For Devant, return stored access token
-            return credentials.secrets.accessToken;
         } else {
-            // For anything else, show error
             const errorMessage = 'This feature is only available for BI Intelligence users.';
             vscode.window.showErrorMessage(errorMessage);
             throw new Error(errorMessage);
         }
-    } catch (error) {
-        throw error;
     }
-}
 
-export async function getBackendURL(): Promise<string> {
-    return new Promise(async (resolve) => {
-        resolve(OLD_BACKEND_URL);
-    });
+    // Priority 2: No stored credentials — check Devant Platform extension
+    if (isPlatformExtensionAvailable()) {
+        const isLoggedIn = await isDevantUserLoggedIn();
+        if (isLoggedIn) {
+            const stsToken = await getPlatformStsToken();
+            if (stsToken) {
+                const secrets = await exchangeStsToCopilotToken(stsToken);
+                const newCredentials: AuthCredentials = {
+                    loginMethod: LoginMethod.BI_INTEL,
+                    secrets
+                };
+                await storeAuthCredentials(newCredentials);
+                return secrets.accessToken;
+            }
+        }
+    }
+
+    throw new Error(TOKEN_NOT_AVAILABLE_ERROR_MESSAGE);
 }
 
 // Function to find a file in a case-insensitive way
@@ -272,9 +274,17 @@ export async function addConfigFile(configPath: string): Promise<boolean> {
                 const token: string | null = await getTokenForDefaultModel();
                 if (token === null) {
                     AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-                    throw new Error(REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE);
+                    throw new Error(TOKEN_NOT_AVAILABLE_ERROR_MESSAGE);
                 }
-                const success = addDefaultModelConfig(configPath, token, await getBackendURL());
+                const openAiEpUrl = BACKEND_URL + LLM_API_BASE_PATH + "/openai";
+                const success = addDefaultModelConfig(configPath, token, openAiEpUrl);
+
+                // Also update tests/Config.toml if a tests folder exists
+                const testsDir = path.join(configPath, 'tests');
+                if (fs.existsSync(testsDir) && fs.statSync(testsDir).isDirectory()) {
+                    addDefaultModelConfig(testsDir, token, openAiEpUrl);
+                }
+
                 if (success) {
                     return true;
                 }

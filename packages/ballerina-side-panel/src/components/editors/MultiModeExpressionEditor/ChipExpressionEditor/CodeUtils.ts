@@ -881,7 +881,7 @@ export const createTooltipPositioningHandlers = (view: EditorView) => {
     return { mount, destroy };
 };
 
-export const isSelectionOnToken = (from: number, to: number, view: EditorView): ParsedToken => {
+export const isSelectionOnToken = (from: number, to: number, view: EditorView): ParsedToken | undefined => {
     if (!view) return undefined;
     const { tokens, compounds } = view.state.field(tokenField);
 

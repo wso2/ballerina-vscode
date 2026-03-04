@@ -189,6 +189,14 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
     const [showAccessKey, setShowAccessKey] = useState(false);
     const [showSecretKey, setShowSecretKey] = useState(false);
     const [showSessionToken, setShowSessionToken] = useState(false);
+    const [vertexAiCredentials, setVertexAiCredentials] = useState({
+        projectId: "",
+        location: "",
+        clientEmail: "",
+        privateKey: ""
+    });
+    const [showClientEmail, setShowClientEmail] = useState(false);
+    const [showPrivateKey, setShowPrivateKey] = useState(false);
 
     const cancelLogin = () => {
         rpcClient.sendAIStateEvent(AIMachineEventType.CANCEL_LOGIN);
@@ -243,6 +251,36 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
 
     const toggleSessionTokenVisibility = () => {
         setShowSessionToken(!showSessionToken);
+    };
+
+    const connectWithVertexAi = () => {
+        if (vertexAiCredentials.projectId.trim() && vertexAiCredentials.location.trim() &&
+            vertexAiCredentials.clientEmail.trim() && vertexAiCredentials.privateKey.trim()) {
+            rpcClient.sendAIStateEvent({
+                type: AIMachineEventType.SUBMIT_VERTEX_AI_CREDENTIALS,
+                payload: {
+                    projectId: vertexAiCredentials.projectId.trim(),
+                    location: vertexAiCredentials.location.trim(),
+                    clientEmail: vertexAiCredentials.clientEmail.trim(),
+                    privateKey: vertexAiCredentials.privateKey.trim()
+                },
+            });
+        }
+    };
+
+    const handleVertexAiCredentialChange = (field: keyof typeof vertexAiCredentials) => (e: any) => {
+        setVertexAiCredentials(prev => ({
+            ...prev,
+            [field]: e.target.value
+        }));
+    };
+
+    const toggleClientEmailVisibility = () => {
+        setShowClientEmail(!showClientEmail);
+    };
+
+    const togglePrivateKeyVisibility = () => {
+        setShowPrivateKey(!showPrivateKey);
     };
 
     if (loginMethod === LoginMethod.ANTHROPIC_KEY) {
@@ -403,6 +441,113 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                             {...(isValidating || !isFormValid ? { disabled: true } : {})}
                         >
                             {isValidating ? "Validating..." : "Connect with AWS Bedrock"}
+                        </VSCodeButton>
+                        <VSCodeButton
+                            appearance="secondary"
+                            onClick={cancelLogin}
+                            {...(isValidating ? { disabled: true } : {})}
+                        >
+                            Cancel
+                        </VSCodeButton>
+                    </ButtonContainer>
+                </AlertContainer>
+            </Container>
+        );
+    }
+
+    if (loginMethod === LoginMethod.VERTEX_AI) {
+        const isFormValid = vertexAiCredentials.projectId.trim() &&
+                           vertexAiCredentials.location.trim() &&
+                           vertexAiCredentials.clientEmail.trim() &&
+                           vertexAiCredentials.privateKey.trim();
+
+        return (
+            <Container>
+                <AlertContainer variant="primary">
+                    <Title>Connect with Google Vertex AI</Title>
+                    <SubTitle>
+                        Enter your GCP service account credentials to connect to BI Copilot via Google Vertex AI. Your credentials will be securely stored
+                        and used for authentication.
+                    </SubTitle>
+
+                    <InputContainer>
+                        <InputRow>
+                            <StyledTextField
+                                type="text"
+                                placeholder="GCP Project ID"
+                                value={vertexAiCredentials.projectId}
+                                onInput={handleVertexAiCredentialChange('projectId')}
+                                {...(isValidating ? { disabled: true } : {})}
+                            />
+                        </InputRow>
+                    </InputContainer>
+
+                    <InputContainer>
+                        <InputRow>
+                            <StyledTextField
+                                type="text"
+                                placeholder="Location (e.g., us-central1)"
+                                value={vertexAiCredentials.location}
+                                onInput={handleVertexAiCredentialChange('location')}
+                                {...(isValidating ? { disabled: true } : {})}
+                            />
+                        </InputRow>
+                    </InputContainer>
+
+                    <InputContainer>
+                        <InputRow>
+                            <StyledTextField
+                                type={showClientEmail ? "text" : "password"}
+                                placeholder="Service Account Client Email"
+                                value={vertexAiCredentials.clientEmail}
+                                onInput={handleVertexAiCredentialChange('clientEmail')}
+                                {...(isValidating ? { disabled: true } : {})}
+                            />
+                            <EyeButton
+                                type="button"
+                                onClick={toggleClientEmailVisibility}
+                                title={showClientEmail ? "Hide client email" : "Show client email"}
+                                {...(isValidating ? { disabled: true } : {})}
+                            >
+                                <Codicon name={showClientEmail ? "eye-closed" : "eye"} />
+                            </EyeButton>
+                        </InputRow>
+                    </InputContainer>
+
+                    <InputContainer>
+                        <InputRow>
+                            <StyledTextField
+                                type={showPrivateKey ? "text" : "password"}
+                                placeholder="Service Account Private Key"
+                                value={vertexAiCredentials.privateKey}
+                                onInput={handleVertexAiCredentialChange('privateKey')}
+                                {...(isValidating ? { disabled: true } : {})}
+                            />
+                            <EyeButton
+                                type="button"
+                                onClick={togglePrivateKeyVisibility}
+                                title={showPrivateKey ? "Hide private key" : "Show private key"}
+                                {...(isValidating ? { disabled: true } : {})}
+                            >
+                                <Codicon name={showPrivateKey ? "eye-closed" : "eye"} />
+                            </EyeButton>
+                        </InputRow>
+                    </InputContainer>
+
+                    {errorMessage && (
+                        <ErrorMessage>
+                            <Codicon name="error" />
+                            <span>{errorMessage}</span>
+                        </ErrorMessage>
+                    )}
+
+                    <ButtonContainer>
+                        <VSCodeButton
+                            appearance="primary"
+                            onClick={connectWithVertexAi}
+                            {...(isValidating || !isFormValid ? { disabled: true } : {})}
+                        >
+                            {isValidating ? "Validating..." : "Connect with Vertex AI"}
                         </VSCodeButton>
                         <VSCodeButton
                             appearance="secondary"

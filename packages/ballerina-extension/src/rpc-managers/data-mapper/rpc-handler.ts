@@ -29,6 +29,8 @@ import {
     ConvertExpressionRequest,
     convertToQuery,
     ConvertToQueryRequest,
+    createConvertedVariable,
+    CreateConvertedVariableRequest,
     DataMapperModelRequest,
     DataMapperSourceRequest,
     deleteClause,
@@ -87,5 +89,6 @@ export function registerDataMapperRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getExpandedDMFromDMModel, (args: DMModelRequest) => rpcManger.getExpandedDMFromDMModel(args));
     messenger.onRequest(getProcessTypeReference, (args: ProcessTypeReferenceRequest) => rpcManger.getProcessTypeReference(args));
     messenger.onRequest(getConvertedExpression, (args: ConvertExpressionRequest) => rpcManger.getConvertedExpression(args));
+    messenger.onRequest(createConvertedVariable, (args: CreateConvertedVariableRequest) => rpcManger.createConvertedVariable(args));
     messenger.onRequest(clearTypeCache, () => rpcManger.clearTypeCache());
 }

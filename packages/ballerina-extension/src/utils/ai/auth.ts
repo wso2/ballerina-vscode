@@ -18,16 +18,32 @@
 
 import * as vscode from 'vscode';
 import { extension } from "../../BalExtensionContext";
-import { AUTH_CLIENT_ID, AUTH_ORG, getDevantExchangeUrl } from '../../features/ai/utils';
+import { DEVANT_TOKEN_EXCHANGE_URL } from '../../features/ai/utils';
 import axios from 'axios';
+import { AuthCredentials, BIIntelSecrets, LoginMethod } from '@wso2/ballerina-core';
+import { IWso2PlatformExtensionAPI } from '@wso2/wso2-platform-core';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
-import { AuthCredentials, DevantEnvSecrets, LoginMethod } from '@wso2/ballerina-core';
-import { checkDevantEnvironment } from '../../views/ai-panel/utils';
-import { getDevantStsToken } from '../../features/devant/activator';
 
-export const REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE = "Refresh token is not available.";
+export const TOKEN_NOT_AVAILABLE_ERROR_MESSAGE = "Access token is not available.";
+export const PLATFORM_EXTENSION_ID = 'wso2.wso2-platform';
 export const TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL = "Token refresh is only supported for BI Intelligence authentication";
-export const AUTH_CREDENTIALS_SECRET_KEY = 'BallerinaAuthCredentials';
+export const AUTH_CREDENTIALS_SECRET_KEY = 'CopilotAuthCredentials';
+export const NO_AUTH_CREDENTIALS_FOUND = "No authentication credentials found.";
+
+/**
+ * Get the WSO2 Platform extension API, activating it if needed.
+ * Returns undefined if the extension is not installed.
+ */
+export const getPlatformExtensionAPI = async (): Promise<IWso2PlatformExtensionAPI | undefined> => {
+    const platformExt = vscode.extensions.getExtension(PLATFORM_EXTENSION_ID);
+    if (!platformExt) {
+        return undefined;
+    }
+    if (!platformExt.isActive) {
+        await platformExt.activate();
+    }
+    return platformExt.exports as IWso2PlatformExtensionAPI;
+};
 
 //TODO: What if user doesnt have github copilot.
 //TODO: Where does auth git get triggered
@@ -102,7 +118,7 @@ vscode.authentication.onDidChangeSessions(async e => {
             await extension.context.secrets.delete('GITHUB_COPILOT_TOKEN');
             await extension.context.secrets.delete('GITHUB_TOKEN');
         } else {
-            //it could be a login(which we havent captured) or a logout 
+            //it could be a login(which we havent captured) or a logout
             // vscode.window.showInformationMessage(
             //     'WSO2 Integrator: BI supports completions with GitHub Copilot.',
             //     'Login with GitHub Copilot'
@@ -119,6 +135,88 @@ async function copilotTokenExists() {
     const copilotToken = await extension.context.secrets.get('GITHUB_COPILOT_TOKEN');
     return copilotToken !== undefined && copilotToken !== '';
 }
+
+// ==================================
+// Platform Extension (Devant) Auth Utils
+// ==================================
+
+/**
+ * Check if the WSO2 Platform extension is installed
+ */
+export const isPlatformExtensionAvailable = (): boolean => {
+    return !!vscode.extensions.getExtension(PLATFORM_EXTENSION_ID);
+};
+
+/**
+ * Get STS token from the platform extension
+ */
+export const getPlatformStsToken = async (): Promise<string | undefined> => {
+    try {
+        const api = await getPlatformExtensionAPI();
+        if (!api) {
+            return undefined;
+        }
+        return await api.getStsToken();
+    } catch (error) {
+        console.error('Error getting STS token from platform extension:', error);
+        return undefined;
+    }
+};
+
+/**
+ * Check if user is logged into Devant via platform extension
+ */
+export const isDevantUserLoggedIn = async (): Promise<boolean> => {
+    try {
+        const api = await getPlatformExtensionAPI();
+        if (!api) {
+            return false;
+        }
+        return api.isLoggedIn();
+    } catch (error) {
+        console.error('Error checking Devant login status:', error);
+        return false;
+    }
+};
+
+/**
+ * Exchange STS token for Copilot token via the token exchange endpoint
+ */
+export const exchangeStsToCopilotToken = async (stsToken: string): Promise<BIIntelSecrets> => {
+    try {
+        const response = await axios.post(DEVANT_TOKEN_EXCHANGE_URL, {
+            subjectToken: stsToken
+        }, {
+            headers: { 'Content-Type': 'application/json' },
+            validateStatus: () => true
+        });
+
+        if (response.status === 201 || response.status === 200) {
+            const { access_token, expires_in } = response.data;
+            return {
+                accessToken: access_token,
+                expiresAt: Date.now() + (expires_in * 1000)
+            };
+        }
+
+        throw new Error(response.data?.message || response.data?.reason || `Status ${response.status}`);
+    } catch (error) {
+        const reason = error instanceof Error ? error.message : 'Unknown error';
+        vscode.window.showErrorMessage(`BI Copilot authentication failed: ${reason}`);
+        throw error;
+    }
+};
+
+/**
+ * Refresh the Copilot token using the STS token from platform extension
+ */
+export const refreshTokenViaStsExchange = async (): Promise<BIIntelSecrets> => {
+    const stsToken = await getPlatformStsToken();
+    if (!stsToken) {
+        throw new Error('Failed to get STS token from platform extension');
+    }
+    return await exchangeStsToCopilotToken(stsToken);
+};
 
 // ==================================
 // Structured Auth Credentials Utils
@@ -150,16 +248,11 @@ export const clearAuthCredentials = async (): Promise<void> => {
 // BI Copilot Auth Utils
 // ==================================
 export const getLoginMethod = async (): Promise<LoginMethod | undefined> => {
-    // Priority 1: Check devant environment first
-    const devantCredentials = await checkDevantEnvironment();
-    if (devantCredentials) {
-        return devantCredentials.loginMethod;
-    }
-
-    // Priority 2: Check stored credentials
+    // Priority 1: Check Anthropic API key from environment
     if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim() !== "") {
         return LoginMethod.ANTHROPIC_KEY;
     }
+    // Priority 2: Check stored credentials
     const credentials = await getAuthCredentials();
     if (credentials) {
         return credentials.loginMethod;
@@ -170,50 +263,42 @@ export const getLoginMethod = async (): Promise<LoginMethod | undefined> => {
 export const getAccessToken = async (): Promise<AuthCredentials | undefined> => {
     return new Promise(async (resolve, reject) => {
         try {
-            // Priority 1: Check devant environment (highest priority)
-            const devantCredentials = await checkDevantEnvironment();
-            if (devantCredentials) {
-                resolve(devantCredentials);
-                return;
-            }
-
-            // Priority 2: Check stored credentials
+            // Priority 1: Check Anthropic API key from environment
             if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim() !== "") {
-                resolve({loginMethod: LoginMethod.ANTHROPIC_KEY, secrets: {apiKey: process.env.ANTHROPIC_API_KEY.trim()}});
+                resolve({ loginMethod: LoginMethod.ANTHROPIC_KEY, secrets: { apiKey: process.env.ANTHROPIC_API_KEY.trim() } });
                 return;
             }
+            // Priority 2: Check stored credentials
             const credentials = await getAuthCredentials();
 
             if (credentials) {
                 switch (credentials.loginMethod) {
                     case LoginMethod.BI_INTEL:
                         try {
-                            const { accessToken } = credentials.secrets;
-                            let finalToken = accessToken;
+                            const secrets = credentials.secrets as BIIntelSecrets;
+                            let finalSecrets = secrets;
 
-                            // Decode token and check expiration
-                            const decoded = jwtDecode<JwtPayload>(accessToken);
-                            const now = Math.floor(Date.now() / 1000);
-                            if (decoded.exp && decoded.exp < now) {
-                                finalToken = await getRefreshedAccessToken();
+                            // Check expiration with 5-minute buffer using expiresAt
+                            const now = Date.now();
+                            const bufferMs = 5 * 60 * 1000; // 5 minutes
+                            const isExpired = secrets.expiresAt && (secrets.expiresAt - bufferMs) < now;
+
+                            if (isExpired) {
+                                await getRefreshedAccessToken();
+                                // Get updated credentials after refresh
+                                const updatedCreds = await getAuthCredentials();
+                                if (updatedCreds && updatedCreds.loginMethod === LoginMethod.BI_INTEL) {
+                                    finalSecrets = updatedCreds.secrets as BIIntelSecrets;
+                                }
                             }
                             resolve({
                                 loginMethod: LoginMethod.BI_INTEL,
-                                secrets: {
-                                    accessToken: finalToken,
-                                    refreshToken: credentials.secrets.refreshToken
-                                }
+                                secrets: finalSecrets
                             });
                             return;
-                        } catch (err) {
-                            if (axios.isAxiosError(err)) {
-                                const status = err.response?.status;
-                                if (status === 400) {
-                                    reject(new Error("TOKEN_EXPIRED"));
-                                    return;
-                                }
-                            }
-                            reject(err);
+                        } catch (err: any) {
+                            // Any failure to refresh BI_INTEL token means user needs to re-login
+                            reject(new Error("TOKEN_EXPIRED"));
                             return;
                         }
 
@@ -221,11 +306,11 @@ export const getAccessToken = async (): Promise<AuthCredentials | undefined> => 
                         resolve(credentials);
                         return;
 
-                    case LoginMethod.DEVANT_ENV:
+                    case LoginMethod.AWS_BEDROCK:
                         resolve(credentials);
                         return;
 
-                    case LoginMethod.AWS_BEDROCK:
+                    case LoginMethod.VERTEX_AI:
                         resolve(credentials);
                         return;
 
@@ -256,113 +341,68 @@ export const getAwsBedrockCredentials = async (): Promise<{
     return credentials.secrets;
 };
 
+// ==================================
+// Unique user identifier for BIIntel
+// ==================================
+export const getBiIntelId = async (): Promise<string | undefined> => {
+    try {
+        const credentials = await getAuthCredentials();
+        if (!credentials || credentials.loginMethod !== LoginMethod.BI_INTEL) {
+            return undefined;
+        }
+
+        const { accessToken } = credentials.secrets;
+        const decoded = jwtDecode<JwtPayload>(accessToken);
+        return decoded.sub;
+    } catch (error) {
+        console.error('Error decoding JWT token:', error);
+        return undefined;
+    }
+};
+
+
+export const getVertexAiCredentials = async (): Promise<{
+    projectId: string;
+    location: string;
+    clientEmail: string;
+    privateKey: string;
+} | undefined> => {
+    const credentials = await getAuthCredentials();
+    if (!credentials || credentials.loginMethod !== LoginMethod.VERTEX_AI) {
+        return undefined;
+    }
+    return credentials.secrets;
+};
+
 export const getRefreshedAccessToken = async (): Promise<string> => {
     return new Promise(async (resolve, reject) => {
-        const CommonReqHeaders = {
-            'Content-Type': 'application/x-www-form-urlencoded; charset=utf8',
-            'Accept': 'application/json'
-        };
-
         try {
             const credentials = await getAuthCredentials();
             if (!credentials || credentials.loginMethod !== LoginMethod.BI_INTEL) {
                 throw new Error(TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL);
             }
 
-            const { refreshToken } = credentials.secrets;
-            if (!refreshToken) {
-                reject(new Error(REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE));
+            // Try refreshing via STS token exchange from platform extension
+            try {
+                console.log('Refreshing token via STS exchange...');
+                const newSecrets = await refreshTokenViaStsExchange();
+
+                // Update stored credentials
+                const updatedCredentials: AuthCredentials = {
+                    loginMethod: LoginMethod.BI_INTEL,
+                    secrets: newSecrets
+                };
+                await storeAuthCredentials(updatedCredentials);
+
+                resolve(newSecrets.accessToken);
                 return;
+            } catch (stsError) {
+                console.error('STS token exchange failed:', stsError);
+                // If STS exchange fails, we can't refresh - reject
+                reject(new Error('Token refresh failed. Please login again.'));
             }
-
-            const params = new URLSearchParams({
-                client_id: AUTH_CLIENT_ID,
-                refresh_token: refreshToken,
-                grant_type: 'refresh_token',
-                scope: 'openid email'
-            });
-
-            const response = await axios.post(`https://api.asgardeo.io/t/${AUTH_ORG}/oauth2/token`, params.toString(), { headers: CommonReqHeaders });
-
-            const newAccessToken = response.data.access_token;
-            const newRefreshToken = response.data.refresh_token;
-
-            // Update stored credentials
-            const updatedCredentials: AuthCredentials = {
-                ...credentials,
-                secrets: {
-                    accessToken: newAccessToken,
-                    refreshToken: newRefreshToken
-                }
-            };
-            await storeAuthCredentials(updatedCredentials);
-
-            resolve(newAccessToken);
         } catch (error: any) {
             reject(error);
         }
     });
-};
-
-// ==================================
-// Devant STS Token Exchange Utils
-// ==================================
-
-/**
- * Exchanges a Choreo STS token for a Devant Bearer token
- * @param choreoStsToken The Choreo STS token to exchange
- * @returns DevantEnvSecrets containing the access token and calculated expiry time
- */
-export const exchangeStsToken = async (choreoStsToken: string): Promise<DevantEnvSecrets> => {
-    try {
-        const response = await axios.post(getDevantExchangeUrl(), {
-            choreo_sts_token: choreoStsToken
-        }, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const { access_token, expires_in } = response.data;
-        const devantEnv: DevantEnvSecrets =  {
-            accessToken: access_token,
-            expiresAt: Date.now() + (expires_in * 1000) // Convert seconds to milliseconds
-        };
-
-        await storeAuthCredentials({
-            loginMethod: LoginMethod.DEVANT_ENV,
-            secrets: devantEnv
-        });
-        return devantEnv;
-    } catch (error: any) {
-        console.error('Error exchanging STS token:', error);
-        throw new Error(`Failed to exchange STS token: ${error.message}`);
-    }
-};
-
-/**
- * Refreshes the Devant token by fetching a new STS token and exchanging it
- * This is called when a 401 error occurs during DEVANT_ENV authentication
- * @returns The new access token
- */
-export const refreshDevantToken = async (): Promise<string> => {
-    try {
-        // Get fresh STS token from platform extension
-        const newStsToken = await getDevantStsToken();
-
-        if (!newStsToken) {
-            throw new Error('Failed to retrieve STS token from platform extension');
-        }
-
-        // Exchange for new Bearer token
-        const newSecrets = await exchangeStsToken(newStsToken);
-
-        // Update stored credentials (this is in-memory only for DEVANT_ENV)
-        // Note: checkDevantEnvironment already handles the storage, so we just return the token
-
-        return newSecrets.accessToken;
-    } catch (error: any) {
-        console.error('Error refreshing Devant token:', error);
-        throw error;
-    }
 };

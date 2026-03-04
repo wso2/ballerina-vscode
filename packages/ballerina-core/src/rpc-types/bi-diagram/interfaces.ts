@@ -31,6 +31,7 @@ export interface ProjectRequest {
     workspaceName?: string;
     orgName?: string;
     version?: string;
+    isLibrary?: boolean;
 }
 
 export interface AddProjectToWorkspaceRequest {
@@ -41,6 +42,7 @@ export interface AddProjectToWorkspaceRequest {
     workspaceName?: string;
     orgName?: string;
     version?: string;
+    isLibrary?: boolean;
 }
 
 export interface WorkspacesResponse {
@@ -190,6 +192,20 @@ export interface DevantMetadata {
     hasLocalChanges?: boolean;
 }
 
+export interface WorkspaceDevantMetadata {
+    isLoggedIn?: boolean;
+    hasAnyComponent?: boolean;
+    hasLocalChanges?: boolean;
+    projectsMetadata?: ProjectDevantMetadata[];
+}
+
+export interface ProjectDevantMetadata {
+    projectPath: string;
+    projectName?: string;
+    hasComponent?: boolean;
+    hasLocalChanges?: boolean;
+}
+
 export interface GeneratedClientSaveResponse {
     errorMessage?: string;
 }
@@ -202,6 +218,7 @@ export interface ValidateProjectFormRequest {
     projectPath: string;
     projectName: string;
     createDirectory: boolean;
+    createAsWorkspace?: boolean;
 }
 
 export interface ValidateProjectFormResponse {

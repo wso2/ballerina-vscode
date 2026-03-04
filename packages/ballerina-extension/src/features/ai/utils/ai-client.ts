@@ -16,12 +16,14 @@
 
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
-import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials, refreshDevantToken } from "../../../utils/ai/auth";
+import { createVertexAnthropic } from "@ai-sdk/google-vertex/anthropic";
+import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials, getVertexAiCredentials } from "../../../utils/ai/auth";
 import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
 import { BACKEND_URL } from "../utils";
-import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets, DevantEnvSecrets } from "@wso2/ballerina-core";
+import { LLM_API_BASE_PATH } from "../constants";
+import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets } from "@wso2/ballerina-core";
 
-export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
+export const ANTHROPIC_HAIKU = "claude-haiku-4-5-20251001";
 export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-5-20250929";
 
 type AnthropicModel =
@@ -56,7 +58,11 @@ let cachedAnthropic: ReturnType<typeof createAnthropic> | null = null;
 let cachedAuthMethod: LoginMethod | null = null;
 
 /**
- * Reusable fetch function that handles authentication with token refresh
+ * Reusable fetch function that handles authentication with token refresh.
+ * Uses tiered refresh strategy for BI_INTEL:
+ * 1. Try STS token re-exchange via platform extension
+ * 2. If both fail, logout the user
+ *
  * @param input - The URL, Request object, or string to fetch
  * @param options - Fetch options
  * @returns Promise<Response>
@@ -70,17 +76,12 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
             "Content-Type": "application/json",
             'User-Agent': 'Ballerina-VSCode-Plugin',
             'Connection': 'keep-alive',
+            'x-product': 'bi',
+            'x-usage-context': 'copilot',
+            'x-metadata': JSON.stringify({ isCloudEditor: !!process.env.CLOUD_ENV }),
         };
 
-        if (credentials && loginMethod === LoginMethod.DEVANT_ENV) {
-            // For DEVANT_ENV, use Bearer token (exchanged from STS token)
-            const secrets = credentials.secrets as DevantEnvSecrets;
-            if (secrets.accessToken && secrets.accessToken.trim() !== "") {
-                headers["Authorization"] = `Bearer ${secrets.accessToken}`;
-            } else {
-                console.warn("DevantEnv access token missing, this may cause authentication issues");
-            }
-        } else if (credentials && loginMethod === LoginMethod.BI_INTEL) {
+        if (credentials && loginMethod === LoginMethod.BI_INTEL) {
             // For BI_INTEL, use Bearer token
             const secrets = credentials.secrets as BIIntelSecrets;
             headers["Authorization"] = `Bearer ${secrets.accessToken}`;
@@ -95,38 +96,36 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         let response = await fetch(input, options);
         console.log("Response status: ", response.status);
 
-        // Handle token expiration for both BI_INTEL and DEVANT_ENV methods
+        // Handle token expiration for BI_INTEL method with tiered refresh
         if (response.status === 401) {
             if (loginMethod === LoginMethod.BI_INTEL) {
-                console.log("Token expired. Refreshing BI_INTEL token...");
-                const newToken = await getRefreshedAccessToken();
-                if (newToken) {
-                    options.headers = {
-                        ...options.headers,
-                        'Authorization': `Bearer ${newToken}`,
-                    };
-                    response = await fetch(input, options);
-                } else {
-                    AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-                    return;
-                }
-            } else if (loginMethod === LoginMethod.DEVANT_ENV) {
-                console.log("Token expired. Refreshing DEVANT_ENV token...");
+                console.log("Token expired. Attempting tiered refresh for BI_INTEL...");
+
                 try {
-                    const newToken = await refreshDevantToken();
+                    // Tiered refresh: STS token re-exchange via platform extension
+                    const newToken = await getRefreshedAccessToken();
                     if (newToken) {
+                        console.log("Token refreshed via STS exchange");
                         options.headers = {
                             ...options.headers,
                             'Authorization': `Bearer ${newToken}`,
                         };
                         response = await fetch(input, options);
+
+                        // If still 401 after refresh, logout
+                        if (response.status === 401) {
+                            console.log("Still unauthorized after token refresh. Logging out.");
+                            AIStateMachine.service().send(AIMachineEventType.SILENT_LOGOUT);
+                            return;
+                        }
                     } else {
-                        AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+                        console.log("Token refresh returned null. Logging out.");
+                        AIStateMachine.service().send(AIMachineEventType.SILENT_LOGOUT);
                         return;
                     }
-                } catch (error) {
-                    console.error("Failed to refresh Devant token:", error);
-                    AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+                } catch (refreshError) {
+                    console.error("Token refresh failed:", refreshError);
+                    AIStateMachine.service().send(AIMachineEventType.SILENT_LOGOUT);
                     return;
                 }
             }
@@ -135,7 +134,7 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         // Handle usage limit exceeded
         if (response.status === 429) {
             console.log("Usage limit exceeded (429)");
-            const error = new Error("Usage limit exceeded. Please try again later.");
+            const error = new Error("Usage limit exceeded.");
             error.name = "UsageLimitError";
             (error as any).statusCode = 429;
             throw error;
@@ -144,7 +143,7 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         return response;
     } catch (error: any) {
         if (error?.message === "TOKEN_EXPIRED") {
-            AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+            AIStateMachine.service().send(AIMachineEventType.SILENT_LOGOUT);
         } else {
             throw error;
         }
@@ -160,8 +159,8 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 
     // Recreate client if login method has changed or no cached instance
     if (!cachedAnthropic || cachedAuthMethod !== loginMethod) {
-        let url = BACKEND_URL + "/intelligence-api/v1.0/claude";
-        if (loginMethod === LoginMethod.BI_INTEL || loginMethod === LoginMethod.DEVANT_ENV) {
+        let url = BACKEND_URL + LLM_API_BASE_PATH + "/claude";
+        if (loginMethod === LoginMethod.BI_INTEL) {
             cachedAnthropic = createAnthropic({
                 baseURL: url,
                 apiKey: "xx", // dummy value; real auth is via fetchWithAuth
@@ -203,6 +202,34 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
             const bedrockModelId = `${regionalPrefix}.${baseModelId}`;
             
             return bedrock(bedrockModelId);
+        } else if (loginMethod === LoginMethod.VERTEX_AI) {
+            const vertexCredentials = await getVertexAiCredentials();
+            if (!vertexCredentials) {
+                throw new Error('Vertex AI credentials not found');
+            }
+
+            const vertexAnthropic = createVertexAnthropic({
+                project: vertexCredentials.projectId,
+                location: vertexCredentials.location,
+                googleAuthOptions: {
+                    credentials: {
+                        client_email: vertexCredentials.clientEmail,
+                        private_key: vertexCredentials.privateKey,
+                    },
+                },
+            });
+
+            const vertexModelMap: Record<AnthropicModel, string> = {
+                [ANTHROPIC_HAIKU]: "claude-3-5-haiku@20241022",
+                [ANTHROPIC_SONNET_4]: "claude-sonnet-4-5@20250929",
+            };
+
+            const vertexModelId = vertexModelMap[model];
+            if (!vertexModelId) {
+                throw new Error(`Unsupported model for Vertex AI: ${model}`);
+            }
+
+            return vertexAnthropic(vertexModelId);
         } else {
             throw new Error(`Unsupported login method: ${loginMethod}`);
         }
@@ -231,6 +258,7 @@ export const getProviderCacheControl = async (): Promise<ProviderCacheOptions> =
     switch (loginMethod) {
         case LoginMethod.AWS_BEDROCK:
             return { bedrock: { cachePoint: { type: 'default' } } };
+        case LoginMethod.VERTEX_AI:
         case LoginMethod.ANTHROPIC_KEY:
         case LoginMethod.BI_INTEL:
         default:

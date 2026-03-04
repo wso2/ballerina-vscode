@@ -26,44 +26,59 @@ import {
     CommonRPCAPI,
     Completion,
     CompletionParams,
+    DefaultOrgNameResponse,
     DiagnosticData,
     FileOrDirRequest,
     FileOrDirResponse,
     GoToSourceRequest,
     OpenExternalUrlRequest,
     PackageTomlValues,
+    PublishToCentralResponse,
     RunExternalCommandRequest,
     RunExternalCommandResponse,
     SampleDownloadRequest,
+    SettingsTomlValues,
     ShowErrorMessageRequest,
     SyntaxTree,
     TypeResponse,
     WorkspaceFileRequest,
     WorkspaceRootResponse,
     WorkspacesFileResponse,
-    WorkspaceTypeResponse
+    WorkspaceTypeResponse,
+    SetWebviewCacheRequestParam,
+    ShowInfoModalRequest,
+    ShowQuickPickRequest,
 } from "@wso2/ballerina-core";
 import child_process from 'child_process';
 import path from "path";
 import os from "os";
 import fs from "fs";
 import * as unzipper from 'unzipper';
-import { commands, env, MarkdownString, ProgressLocation, Uri, window, workspace } from "vscode";
+import { commands, env, MarkdownString, ProgressLocation, QuickPickItem, Uri, window, workspace } from "vscode";
 import { URI } from "vscode-uri";
+import { parse } from "@iarna/toml";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import {
     getProjectTomlValues,
     goToSource
 } from "../../utils";
+import { getUsername } from "../../utils/bi";
 import {
     askFileOrFolderPath,
     askFilePath,
     askProjectPath,
     BALLERINA_INTEGRATOR_ISSUES_URL,
     findWorkspaceTypeFromWorkspaceFolders,
+    getFirstBalaPath,
+    getPublishDescriptionInfo,
+    getPublishConfirmation,
+    PublishPackageInfo,
+    getTargetProjectForPublish,
     getUpdatedSource,
     handleDownloadFile,
+    handlePublishDescriptionSetup,
+    openPublishDescriptionInEditor,
     selectSampleDownloadPath
 } from "./utils";
 import { VisualizerWebview } from "../../views/visualizer/webview";
@@ -190,6 +205,28 @@ export class CommonRpcManager implements CommonRPCAPI {
                     resolve({ path: "" });
                 } else {
                     const filePath = selectedFile[0].fsPath;
+                    const projectPath = StateMachine.context().projectPath;
+                    if (projectPath && !filePath.startsWith(projectPath)) {
+                        const resp = await window.showErrorMessage('The selected file is not within your project. Do you want to move it inside the project?', { modal: true }, 'Yes');
+                        if (resp === 'Yes') {
+                            // Move the file inside the project
+                            const fileName = path.basename(filePath);
+                            const newFilePath = path.join(projectPath, fileName);
+                            // if newFilePath already exists, append a number to the file name
+                            let counter = 1;
+                            let finalFilePath = newFilePath;
+                            while (fs.existsSync(finalFilePath)) {
+                                const parsedPath = path.parse(newFilePath);
+                                finalFilePath = path.join(parsedPath.dir, `${parsedPath.name}-${counter}${parsedPath.ext}`);
+                                counter++;
+                            }
+                            fs.copyFileSync(filePath, finalFilePath);
+                            resolve({ path: finalFilePath });
+                            return;
+                        }
+                        resolve({ path: "" });
+                        return;
+                    }
                     resolve({ path: filePath });
                 }
             } else {
@@ -258,13 +295,21 @@ export class CommonRpcManager implements CommonRPCAPI {
         window.showErrorMessage(messageWithLink.value);
     }
 
+    async showInformationModal(params: ShowInfoModalRequest): Promise<string> {
+        return window.showInformationMessage(params?.message, {modal: true}, ...(params?.items || []));
+    }
+
+    async showQuickPick(params: ShowQuickPickRequest): Promise<QuickPickItem> {
+        return window.showQuickPick(params.items, params?.options);
+    }
+
     async isNPSupported(): Promise<boolean> {
         return extension.ballerinaExtInstance.isNPSupported;
     }
 
     async getCurrentProjectTomlValues(): Promise<Partial<PackageTomlValues>> {
         const tomlValues = await getProjectTomlValues(StateMachine.context().projectPath);
-        return tomlValues ?? {};  
+        return tomlValues ?? {};
     }
 
     async getWorkspaceType(): Promise<WorkspaceTypeResponse> {
@@ -414,5 +459,298 @@ export class CommonRpcManager implements CommonRPCAPI {
             );
         }
         return isSuccess;
+    }
+
+    async setWebviewCache(params: SetWebviewCacheRequestParam): Promise<void> {
+        await extension.context.workspaceState.update(params.cacheKey, params.data);
+    }
+
+    async restoreWebviewCache(cacheKey: string): Promise<unknown> {
+        return extension.context.workspaceState.get(cacheKey);
+    }
+
+    async clearWebviewCache(cacheKey: string): Promise<void> {
+        await extension.context.workspaceState.update(cacheKey, undefined);
+    }
+
+    async getDefaultOrgName(): Promise<DefaultOrgNameResponse> {
+        return { orgName: getUsername() };
+    }
+
+    async publishToCentral(): Promise<PublishToCentralResponse> {
+        const failResponse = (): PublishToCentralResponse => ({ success: false, message: '' });
+
+        const project = getTargetProjectForPublish();
+        if (!project) {
+            return failResponse();
+        }
+
+        const { projectPath, projectName, artifactType } = project;
+        let packageInfo = await this.getPublishPackageInfo(projectPath, projectName);
+
+        while (true) {
+            const descriptionInfo = await getPublishDescriptionInfo(projectPath);
+            const confirmation = getPublishConfirmation(projectName, artifactType, descriptionInfo, packageInfo);
+            const actionButtons = ['Edit Package Details'];
+            if (descriptionInfo.status !== 'missing') {
+                actionButtons.push('Open Description File');
+            }
+
+            const selectedAction = await window.showInformationMessage(
+                confirmation.message,
+                { modal: true },
+                confirmation.primaryButton,
+                ...actionButtons
+            );
+
+            if (!selectedAction) {
+                return failResponse();
+            }
+
+            if (selectedAction === 'Edit Package Details') {
+                const updatedDetails = await this.promptForPublishPackageInfo(packageInfo);
+                if (!updatedDetails) {
+                    continue;
+                }
+
+                const updated = await this.updateProjectPackageInfo(projectPath, updatedDetails);
+                if (!updated) {
+                    window.showErrorMessage('Failed to update package details in Ballerina.toml');
+                    return failResponse();
+                }
+
+                packageInfo = updatedDetails;
+                continue;
+            }
+
+            if (selectedAction === 'Open Description File') {
+                await openPublishDescriptionInEditor(descriptionInfo);
+                continue;
+            }
+
+            const descriptionHandled = await handlePublishDescriptionSetup(descriptionInfo, projectPath, projectName, artifactType);
+            if (descriptionHandled) {
+                return failResponse();
+            }
+
+            break;
+        }
+
+        const result = await this.packAndPushToCentral(projectPath);
+        this.showPublishResult(result);
+        return result;
+    }
+
+    private async getPublishPackageInfo(projectPath: string, fallbackName: string): Promise<PublishPackageInfo> {
+        const tomlValues = await getProjectTomlValues(projectPath);
+        return {
+            orgName: tomlValues?.package?.org ?? getUsername(),
+            packageName: tomlValues?.package?.name ?? fallbackName,
+            version: tomlValues?.package?.version ?? '0.1.0'
+        };
+    }
+
+    private async promptForPublishPackageInfo(current: PublishPackageInfo): Promise<PublishPackageInfo | undefined> {
+        const orgName = await window.showInputBox({
+            title: 'Edit Package Details',
+            prompt: 'Organization name',
+            value: current.orgName,
+            ignoreFocusOut: true,
+            validateInput: (value) => value.trim() ? undefined : 'Organization name is required'
+        });
+        if (orgName === undefined) {
+            return undefined;
+        }
+
+        const packageName = await window.showInputBox({
+            title: 'Edit Package Details',
+            prompt: 'Package name',
+            value: current.packageName,
+            ignoreFocusOut: true,
+            validateInput: (value) => value.trim() ? undefined : 'Package name is required'
+        });
+        if (packageName === undefined) {
+            return undefined;
+        }
+
+        const version = await window.showInputBox({
+            title: 'Edit Package Version',
+            prompt: 'Version',
+            value: current.version,
+            ignoreFocusOut: true,
+            validateInput: (value) => value.trim() ? undefined : 'Version is required'
+        });
+        if (version === undefined) {
+            return undefined;
+        }
+
+        return {
+            orgName: orgName.trim(),
+            packageName: packageName.trim(),
+            version: version.trim()
+        };
+    }
+
+    private async updateProjectPackageInfo(projectPath: string, details: PublishPackageInfo): Promise<boolean> {
+        const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
+        if (!fs.existsSync(ballerinaTomlPath)) {
+            return false;
+        }
+
+        try {
+            const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+            const packageSection = this.getPackageSectionBoundaries(tomlContent);
+            const updatedPackageSection = this.upsertPackageFields(
+                packageSection.content,
+                details
+            );
+
+            const updatedToml = tomlContent.slice(0, packageSection.start)
+                + updatedPackageSection
+                + tomlContent.slice(packageSection.end);
+
+            await fs.promises.writeFile(ballerinaTomlPath, updatedToml, 'utf-8');
+            return true;
+        } catch (error) {
+            console.error('Failed to update Ballerina.toml package metadata:', error);
+            return false;
+        }
+    }
+
+    private getPackageSectionBoundaries(content: string): { content: string; start: number; end: number } {
+        const packageHeaderRegex = /^\s*\[package\]\s*$/m;
+        const packageHeaderMatch = packageHeaderRegex.exec(content);
+
+        if (!packageHeaderMatch || packageHeaderMatch.index === undefined) {
+            const start = content.length;
+            const prefix = content.endsWith('\n') || content.length === 0 ? '' : '\n';
+            return {
+                content: `${prefix}[package]\n`,
+                start,
+                end: start
+            };
+        }
+
+        const sectionStart = packageHeaderMatch.index;
+        const nextSectionRegex = /^\s*\[[^\]]+\]\s*$/gm;
+        nextSectionRegex.lastIndex = sectionStart + packageHeaderMatch[0].length;
+        const nextSectionMatch = nextSectionRegex.exec(content);
+        const sectionEnd = nextSectionMatch ? nextSectionMatch.index : content.length;
+
+        return {
+            content: content.slice(sectionStart, sectionEnd),
+            start: sectionStart,
+            end: sectionEnd
+        };
+    }
+
+    private upsertPackageFields(packageSection: string, details: PublishPackageInfo): string {
+        let updatedSection = packageSection;
+        updatedSection = this.upsertTomlField(updatedSection, 'org', details.orgName);
+        updatedSection = this.upsertTomlField(updatedSection, 'name', details.packageName);
+        updatedSection = this.upsertTomlField(updatedSection, 'version', details.version);
+        if (!updatedSection.endsWith('\n')) {
+            updatedSection = `${updatedSection}\n`;
+        }
+        return updatedSection;
+    }
+
+    private upsertTomlField(section: string, fieldName: string, fieldValue: string): string {
+        const escapedValue = fieldValue.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        const escapedFieldName = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const fieldRegex = new RegExp(`^\\s*${escapedFieldName}\\s*=\\s*.*$`, 'm');
+        const fieldLine = `${fieldName} = "${escapedValue}"`;
+
+        if (fieldRegex.test(section)) {
+            return section.replace(fieldRegex, fieldLine);
+        }
+
+        const headerLineBreak = section.indexOf('\n');
+        if (headerLineBreak === -1) {
+            return `${section}\n${fieldLine}\n`;
+        }
+
+        return section.slice(0, headerLineBreak + 1)
+            + `${fieldLine}\n`
+            + section.slice(headerLineBreak + 1);
+    }
+
+    private async packAndPushToCentral(projectPath: string): Promise<PublishToCentralResponse> {
+        const result: PublishToCentralResponse = { success: false, message: '' };
+
+        await window.withProgress(
+            {
+                location: ProgressLocation.Notification,
+                title: 'Publishing project to Ballerina Central',
+                cancellable: false
+            },
+            async (progress) => {
+                try {
+                    progress.report({ message: 'Packing...' });
+                    const packResult = await this.runPackCommand(projectPath);
+                    if (packResult.error) {
+                        result.message = packResult.message ?? '';
+                        return;
+                    }
+
+                    progress.report({ message: 'Publishing...' });
+                    const balaFilePath = getFirstBalaPath(projectPath);
+                    if (!balaFilePath) {
+                        result.message = 'No publishable artifact found at the target/bala directory';
+                        return;
+                    }
+
+                    const pushResult = await this.runPushCommand(balaFilePath);
+                    if (pushResult.error) {
+                        result.message = pushResult.message ?? '';
+                        return;
+                    }
+                    result.success = true;
+                } catch (error) {
+                    console.error('Failed to publish project to Ballerina Central:', error);
+                }
+            }
+        );
+
+        return result;
+    }
+
+    private async runPackCommand(projectPath: string): Promise<RunExternalCommandResponse> {
+        return this.runBackgroundTerminalCommand({ command: `bal pack "${projectPath}"` });
+    }
+
+    private async runPushCommand(balaFilePath: string): Promise<RunExternalCommandResponse> {
+        return this.runBackgroundTerminalCommand({ command: `bal push "${balaFilePath}"` });
+    }
+
+    private showPublishResult(result: PublishToCentralResponse): void {
+        if (result.success) {
+            window.showInformationMessage('Project published to ballerina central successfully');
+        } else {
+            window.showErrorMessage(result.message || 'Failed to publish project to Ballerina Central');
+        }
+    }
+
+    async hasCentralPATConfigured(): Promise<boolean> {
+        // check if the central PAT is configured in the environment variable
+        const token = process.env.BALLERINA_CENTRAL_ACCESS_TOKEN;
+        if (token !== undefined && token !== '') {
+            return true;
+        }
+
+        // check if the central PAT is configured in the settings.toml
+        const settingsTomlFilePath = path.join(os.homedir(), '.ballerina', 'settings.toml');
+        if (fs.existsSync(settingsTomlFilePath)) {
+            const tomlContent = await fs.promises.readFile(settingsTomlFilePath, 'utf-8');
+            try {
+                const tomlValues = parse(tomlContent) as Partial<SettingsTomlValues>;
+                const token = tomlValues.central?.accesstoken;
+                return token !== undefined && token !== '';
+            } catch (error) {
+                return false;
+            }
+        }
+
+        return false;
     }
 }

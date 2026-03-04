@@ -16,41 +16,95 @@
  * under the License.
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Label, Slider, SwitchWrapper } from './styles';
 import { InputMode } from '../editors/MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { getDefaultExpressionMode, getSecondaryMode } from '../editors/MultiModeExpressionEditor/ChipExpressionEditor/utils';
 import { InputType } from '@wso2/ballerina-core';
+import { getEditorConfiguration } from '../editors/ExpressionField';
+import { useFormContext } from '../../context';
+import WarningPopup from '../WarningPopup';
 
 interface ModeSwitcherProps {
     value: InputMode;
+    //TODO: Should be removed once fields with type field is fixed to
+    // update the types property correctly when changing the type.
     isRecordTypeField: boolean;
     onChange: (value: InputMode) => void;
     types: InputType[];
+    fieldKey: string;
 }
 
-const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, onChange, types }) => {
+const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, onChange, types, fieldKey }) => {
+
+    const { form } = useFormContext();
+    const { getValues, setValue } = form;
+    const [showWarning, setShowWarning] = useState(false);
+    const [pendingMode, setPendingMode] = useState<InputMode | null>(null);
+
     const defaultMode = useMemo(
+        //TODO: Should only return the getDefaultExpressionMode(types) once fields with type field is fixed to
+        // update the types property correctly when changing the type.
         () => isRecordTypeField ? InputMode.RECORD : getDefaultExpressionMode(types),
         [types, isRecordTypeField]
     );
 
-     const secondaryMode = useMemo(
+    const secondaryMode = useMemo(
+        //TODO: Should only return the getSecondaryMode(types) once fields with type field is fixed to
+        // update the types property correctly when changing the type.
         () => isRecordTypeField ? InputMode.EXP : getSecondaryMode(types),
         [types, isRecordTypeField]
     );
+
     const handleModeSwitch = (mode: InputMode) => {
-        onChange(mode);
-    }
+        const currentFieldValue = getValues(fieldKey);
+        const configForNewMode = getEditorConfiguration(mode);
+        let isValueCompatible = true;
+        if (mode === InputMode.BOOLEAN) {
+            isValueCompatible = false;
+        }
+        else {
+            isValueCompatible = configForNewMode.getIsValueCompatible ? configForNewMode.getIsValueCompatible(currentFieldValue) : true;
+        }
+
+        if (!isValueCompatible) {
+            setPendingMode(mode);
+            setShowWarning(true);
+        } else {
+            onChange(mode);
+        }
+    };
+
+    const handleConfirmSwitch = () => {
+        if (pendingMode) {
+            onChange(pendingMode);
+            setValue(fieldKey, undefined);
+            setPendingMode(null);
+        }
+        setShowWarning(false);
+    };
+
+    const handleCancelSwitch = () => {
+        setPendingMode(null);
+        setShowWarning(false);
+    };
+
     const isChecked = value === secondaryMode;
 
     return (
-        <SwitchWrapper>
+        <>
+            <SwitchWrapper>
                 <Slider checked={isChecked}>
                     <Label active={!isChecked} onClick={() => handleModeSwitch(defaultMode)}>{defaultMode}</Label>
                     <Label active={isChecked} onClick={() => handleModeSwitch(secondaryMode)}>{secondaryMode}</Label>
                 </Slider>
             </SwitchWrapper>
+            <WarningPopup
+                isOpen={showWarning}
+                onContinue={handleConfirmSwitch}
+                onCancel={handleCancelSwitch}
+            />
+        </>
     );
 };
 

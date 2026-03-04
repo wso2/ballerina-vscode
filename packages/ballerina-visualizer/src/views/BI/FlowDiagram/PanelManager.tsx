@@ -25,7 +25,7 @@ import {
     FUNCTION_TYPE,
     ToolData,
     NodeMetadata,
-    DataMapperDisplayMode,
+    EditorConfig
 } from "@wso2/ballerina-core";
 import { HelperView } from "../HelperView";
 import FormGenerator from "../Forms/FormGenerator";
@@ -40,6 +40,7 @@ import { FormSubmitOptions } from ".";
 import { ConnectionConfig, ConnectionCreator, ConnectionSelectionList, ConnectionKind } from "../../../components/ConnectionSelector";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { LoaderContainer } from "../../../components/RelativeLoader/styles";
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
 
 const Container = styled.div`
     display: flex;
@@ -78,6 +79,7 @@ export enum SidePanelView {
     CONNECTION_CREATE = "CONNECTION_CREATE",
     AGENT_MEMORY_MANAGER = "AGENT_MEMORY_MANAGER",
     AGENT_CONFIG = "AGENT_CONFIG",
+    AGENT_LIST = "AGENT_LIST"
 }
 
 interface PanelManagerProps {
@@ -117,7 +119,7 @@ interface PanelManagerProps {
     onAddVectorKnowledgeBase?: () => void;
     onAddDataLoader?: () => void;
     onAddChunker?: () => void;
-    onSubmitForm: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void;
+    onSubmitForm: (updatedNode?: FlowNode, editorConfig?: EditorConfig, options?: FormSubmitOptions) => void;
     onDiscardSuggestions: () => void;
     onSubPanel: (subPanel: SubPanel) => void;
     onUpdateExpressionField: (updatedExpressionField: ExpressionFormField) => void;
@@ -130,6 +132,7 @@ interface PanelManagerProps {
     onSearchVectorKnowledgeBase?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchDataLoader?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchChunker?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onAddAgent?: () => void;
     onEditAgent?: () => void;
     onNavigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
     setSidePanelView: (view: SidePanelView) => void;
@@ -143,6 +146,11 @@ interface PanelManagerProps {
     onAddMcpServer?: (node: FlowNode) => void;
     onSelectNewConnection?: (nodeId: string, metadata?: any) => void;
     onUpdateNodeWithConnection?: (selectedNode: FlowNode) => void;
+
+    // Devant handlers
+    onImportDevantConn?: (devantConn: ConnectionListItem) => void
+    onLinkDevantProject?: () => void;
+    onRefreshDevantConnections?: () => void;
 }
 
 export function PanelManager(props: PanelManagerProps) {
@@ -176,6 +184,7 @@ export function PanelManager(props: PanelManagerProps) {
         onAddFunction,
         onAddNPFunction,
         onAddDataMapper,
+        onAddAgent,
         onAddModelProvider,
         onAddVectorStore,
         onAddEmbeddingProvider,
@@ -197,7 +206,9 @@ export function PanelManager(props: PanelManagerProps) {
         onSelectNewConnection,
         onUpdateNodeWithConnection,
         onNavigateToPanel,
-        onChangeSelectedNode
+        onImportDevantConn,
+        onLinkDevantProject,
+        onRefreshDevantConnections,
     } = props;
 
     const handleOnBackToAddTool = () => {
@@ -243,6 +254,9 @@ export function PanelManager(props: PanelManagerProps) {
                         onSelect={onSelectNode}
                         onAddConnection={onAddConnection}
                         onClose={onClose}
+                        onImportDevantConn={onImportDevantConn}
+                        onLinkDevantProject={onLinkDevantProject}
+                        onRefreshDevantConnections={onRefreshDevantConnections}
                     />
                 );
 
@@ -354,6 +368,20 @@ export function PanelManager(props: PanelManagerProps) {
                         onAddFunction={onAddDataMapper}
                         onClose={onClose}
                         title={"Data Mappers"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.AGENT_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onAdd={onAddAgent}
+                        addButtonLabel={"Add Agent"}
+                        onClose={onClose}
+                        title={"Agents"}
+                        searchPlaceholder={"Search agents"}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
