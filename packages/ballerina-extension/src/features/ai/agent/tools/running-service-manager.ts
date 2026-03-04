@@ -17,6 +17,8 @@
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 
+const isWindows = process.platform === 'win32';
+
 export interface RunningService {
     taskId: string;
     terminal: vscode.Terminal;
@@ -47,7 +49,7 @@ export function createProcessTerminal(
     const proc = child_process.spawn(command, args, {
         cwd,
         shell: true,
-        detached: true,
+        detached: !isWindows,
         stdio: ['pipe', 'pipe', 'pipe'],
     });
 
@@ -115,11 +117,23 @@ export function killProcessGroup(proc: child_process.ChildProcess, signal: NodeJ
     if (proc.pid == null) {
         return;
     }
-    try {
-        process.kill(-proc.pid, signal);
-    } catch {
-        // Process group may already be gone; try killing just the process
-        try { proc.kill(signal); } catch { /* already dead */ }
+
+    if (isWindows) {
+        // On Windows, use taskkill with /T to kill the entire process tree
+        try {
+            child_process.execSync(`taskkill /T /F /PID ${proc.pid}`, { stdio: 'ignore' });
+        } catch {
+            // Process may already be gone
+            try { proc.kill(signal); } catch { /* already dead */ }
+        }
+    } else {
+        // On Unix, kill the process group via negative PID
+        try {
+            process.kill(-proc.pid, signal);
+        } catch {
+            // Process group may already be gone; try killing just the process
+            try { proc.kill(signal); } catch { /* already dead */ }
+        }
     }
 }
 
