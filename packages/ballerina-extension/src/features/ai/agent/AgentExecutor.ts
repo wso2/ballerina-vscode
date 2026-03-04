@@ -46,6 +46,7 @@ import { extension } from "../../../BalExtensionContext";
 import { getProjectMetrics } from "../../telemetry/common/project-metrics";
 import { getHashedProjectId } from "../../telemetry/common/project-id";
 import { workspace } from 'vscode';
+import { runningServicesManager } from './tools/running-service-manager';
 
 /**
  * Determines which packages have been affected by analyzing modified files
@@ -205,6 +206,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 workspaceId: this.config.executionContext.projectPath,
                 generationId: this.config.generationId,
                 threadId: 'default',
+                runningServices: runningServicesManager,
             });
 
             // Stream LLM response
@@ -332,6 +334,9 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 modifiedFiles,
                 error: error as Error,
             };
+        } finally {
+            // Stop all services started during this agent loop
+            runningServicesManager.stopAll();
         }
     }
 
