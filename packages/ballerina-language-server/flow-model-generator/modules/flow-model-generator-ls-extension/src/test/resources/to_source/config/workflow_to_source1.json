@@ -192,7 +192,7 @@
             "character": 1
           }
         },
-        "newText": "\n# Process an order workflow\n@workflow:Process\nfunction orderWorkflow(OrderInput input) returns error? {\n}"
+        "newText": "\n# Process an order workflow\n@workflow:Workflow\nfunction orderWorkflow(OrderInput input) returns error? {\n}"
       }
     ]
   }

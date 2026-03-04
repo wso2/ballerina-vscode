@@ -1,11 +1,11 @@
 {
   "source": "workflow_function/main.bal",
-  "description": "Generate workflow:createInstance call",
+  "description": "Generate workflow:run call",
   "diagram": {
     "id": "1",
     "metadata": {
       "label": "orderWorkflow",
-      "description": "Start a workflow process instance"
+      "description": "Run a workflow instance"
     },
     "codedata": {
       "node": "WORKFLOW_START",
@@ -92,7 +92,7 @@
             "character": 0
           }
         },
-        "newText": "\nstring workflowId = check workflow:createInstance(orderWorkflow, {orderId: \"123\"});"
+        "newText": "\nstring workflowId = check workflow:run(orderWorkflow, {orderId: \"123\"});"
       }
     ]
   }

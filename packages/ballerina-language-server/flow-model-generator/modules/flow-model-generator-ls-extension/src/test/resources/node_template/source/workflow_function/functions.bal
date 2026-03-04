@@ -12,7 +12,7 @@ type NotificationInput record {
 };
 
 # Process an order workflow
-@workflow:Process
+@workflow:Workflow
 function orderWorkflow(workflow:Context ctx, OrderInput input) returns error? {
     io:println("Processing order: " + input.orderId);
 }

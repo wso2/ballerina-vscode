@@ -1,25 +1,25 @@
 {
   "source": "empty.bal",
-  "description": "Wait for workflow event node template",
+  "description": "Wait for workflow data node template",
   "codedata": {
-    "node": "WAIT_EVENT"
+    "node": "WAIT_DATA"
   },
   "output": {
     "id": "31",
     "metadata": {
-      "label": "Wait for Event",
-      "description": "Wait for a workflow event to be received"
+      "label": "Wait for Data",
+      "description": "Wait for workflow data to be received"
     },
     "codedata": {
-      "node": "WAIT_EVENT",
+      "node": "WAIT_DATA",
       "isNew": true
     },
     "returning": false,
     "properties": {
       "variable": {
         "metadata": {
-          "label": "Event Receive Variable Name",
-          "description": "Variable name to receive the event data"
+          "label": "Data Receive Variable Name",
+          "description": "Variable name to receive the data"
         },
         "types": [
           {
@@ -34,10 +34,10 @@
         "advanced": false,
         "hidden": false
       },
-      "eventType": {
+      "dataType": {
         "metadata": {
-          "label": "Event Data Type",
-          "description": "Type of the event data to be received on successful wait"
+          "label": "Data Type",
+          "description": "Type of the data to be received on successful wait"
         },
         "types": [
           {
@@ -52,10 +52,10 @@
         "advanced": false,
         "hidden": false
       },
-      "eventName": {
+      "dataName": {
         "metadata": {
-          "label": "Event Name",
-          "description": "Name of the event to wait for"
+          "label": "Data Name",
+          "description": "Name of the data to wait for"
         },
         "types": [
           {

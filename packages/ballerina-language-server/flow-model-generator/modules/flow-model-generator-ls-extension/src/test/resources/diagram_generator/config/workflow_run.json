@@ -8,7 +8,7 @@
     "offset": 1
   },
   "source": "workflow_operations.bal",
-  "description": "Test workflow:createInstance returns WORKFLOW_START and workflow:sendEvent returns SEND_EVENT node",
+  "description": "Test workflow:run returns WORKFLOW_START and workflow:sendData returns SEND_DATA node",
   "diagram": {
     "fileName": "workflow_operations.bal",
     "nodes": [
@@ -36,7 +36,7 @@
               "offset": 1
             }
           },
-          "sourceCode": "public function main() returns error? {\n    // Workflow start - should be WORKFLOW_START\n    string workflowId = check workflow:createInstance(orderWorkflow, {orderId: \"123\", customerName: \"John\"});\n    io:println(\"Workflow started with ID: \" + workflowId);\n\n    // Send event - should be SEND_EVENT\n    check workflow:sendEvent(orderWorkflow, {orderId: \"123\", approved: true, approverName: \"Admin\"}, \"approve\");\n    io:println(\"Event sent: \" + result.toString());\n}"
+          "sourceCode": "public function main() returns error? {\n    // Workflow start - should be WORKFLOW_START\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});\n    io:println(\"Workflow started with ID: \" + workflowId);\n\n    // Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, {orderId: \"123\", approved: true, approverName: \"Admin\"}, \"approve\");\n    io:println(\"Event sent: \" + result.toString());\n}"
         },
         "returning": false,
         "diagnostics": {
@@ -99,7 +99,7 @@
           "org": "ballerina",
           "module": "workflow",
           "packageName": "workflow",
-          "symbol": "createInstance",
+          "symbol": "run",
           "version": "0.1.0",
           "lineRange": {
             "fileName": "workflow_operations.bal",
@@ -112,7 +112,7 @@
               "offset": 109
             }
           },
-          "sourceCode": "// Workflow start - should be WORKFLOW_START\n    string workflowId = check workflow:createInstance(orderWorkflow, {orderId: \"123\", customerName: \"John\"});"
+          "sourceCode": "// Workflow start - should be WORKFLOW_START\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});"
         },
         "returning": false,
         "properties": {
@@ -336,7 +336,7 @@
         "id": "77447",
         "metadata": {
           "label": "Comment",
-          "description": "Send event - should be SEND_EVENT"
+          "description": "Send data - should be SEND_DATA"
         },
         "codedata": {
           "node": "COMMENT",
@@ -351,7 +351,7 @@
               "offset": 40
             }
           },
-          "sourceCode": "Send event - should be SEND_EVENT"
+          "sourceCode": "Send data - should be SEND_DATA"
         },
         "returning": false,
         "properties": {
@@ -366,7 +366,7 @@
                 "selected": true
               }
             ],
-            "value": "Send event - should be SEND_EVENT",
+            "value": "Send data - should be SEND_DATA",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -378,16 +378,16 @@
       {
         "id": "79596",
         "metadata": {
-          "label": "Send Event",
+          "label": "Send Data",
           "description": "Send an event to an existing workflow instance",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.1.0.png"
         },
         "codedata": {
-          "node": "SEND_EVENT",
+          "node": "SEND_DATA",
           "org": "ballerina",
           "module": "workflow",
           "packageName": "workflow",
-          "symbol": "sendEvent",
+          "symbol": "sendData",
           "version": "0.1.0",
           "lineRange": {
             "fileName": "workflow_operations.bal",
@@ -400,7 +400,7 @@
               "offset": 112
             }
           },
-          "sourceCode": "// Send event - should be SEND_EVENT\n    check workflow:sendEvent(orderWorkflow, {orderId: \"123\", approved: true, approverName: \"Admin\"}, \"approve\");"
+          "sourceCode": "// Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, {orderId: \"123\", approved: true, approverName: \"Admin\"}, \"approve\");"
         },
         "returning": false,
         "properties": {

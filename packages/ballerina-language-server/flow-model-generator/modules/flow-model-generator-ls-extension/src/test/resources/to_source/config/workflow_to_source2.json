@@ -207,7 +207,7 @@
             "character": 1
           }
         },
-        "newText": "\n@workflow:Process\nfunction simpleWorkflow(OrderInput1 input) returns error? {\n}"
+        "newText": "\n@workflow:Workflow\nfunction simpleWorkflow(OrderInput1 input) returns error? {\n}"
       }
     ]
   }

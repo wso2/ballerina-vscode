@@ -16,7 +16,7 @@ type Events record {
 };
 
 # Process an order workflow
-@workflow:Process
+@workflow:Workflow
 function orderWorkflow(workflow:Context ctx, OrderInput input, Events events) returns error? {
     io:println("Processing order: " + input.orderId);
     ApprovalEvent approval = check wait events.approval;
@@ -26,7 +26,7 @@ function orderWorkflow(workflow:Context ctx, OrderInput input, Events events) re
 }
 
 # Simple workflow without events
-@workflow:Process
+@workflow:Workflow
 function simpleWorkflow(workflow:Context ctx, string taskId) returns string|error {
     io:println("Processing task: " + taskId);
     return "completed";

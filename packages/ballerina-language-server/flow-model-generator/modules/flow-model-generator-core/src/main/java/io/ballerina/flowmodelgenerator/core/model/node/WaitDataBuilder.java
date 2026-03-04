@@ -72,38 +72,38 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_EV
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_SUFFIX;
 
 /**
- * Represents a workflow wait for event node.
- * This is a specialized wait operation for workflow events (check wait events.eventName).
+ * Represents a workflow wait for data node.
+ * This is a specialized wait operation for workflow data (check wait events.dataName).
  *
  * @since 2.0.0
  */
-public class WaitEventBuilder extends WaitBuilder {
-    private static final String LABEL = "Wait for Event";
-    private static final String DESCRIPTION = "Wait for a workflow event to be received";
-    private static final String EVENT_NAME_KEY = "eventName";
-    private static final String EVENT_NAME_LABEL = "Event Name";
-    private static final String EVENT_NAME_DOC = "Name of the event to wait for";
-    private static final String EVENT_TYPE_KEY = "eventType";
-    private static final String EVENT_TYPE_LABEL = "Event Data Type";
-    private static final String EVENT_TYPE_DOC = "Type of the event data to be received on successful wait";
-    private static final String EVENT_RECEIVE_VAR_NAME = "Event Receive Variable Name";
-    private static final String EVENT_RECEIVE_VAR_DOC = "Variable name to receive the event data";
+public class WaitDataBuilder extends WaitBuilder {
+    private static final String LABEL = "Wait for Data";
+    private static final String DESCRIPTION = "Wait for workflow data to be received";
+    private static final String DATA_NAME_KEY = "dataName";
+    private static final String DATA_NAME_LABEL = "Data Name";
+    private static final String DATA_NAME_DOC = "Name of the data to wait for";
+    private static final String DATA_TYPE_KEY = "dataType";
+    private static final String DATA_TYPE_LABEL = "Data Type";
+    private static final String DATA_TYPE_DOC = "Type of the data to be received on successful wait";
+    private static final String DATA_RECEIVE_VAR_NAME = "Data Receive Variable Name";
+    private static final String DATA_RECEIVE_VAR_DOC = "Variable name to receive the data";
     private static final String TYPES_BAL = "types.bal";
 
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
-        codedata().node(NodeKind.WAIT_EVENT);
+        codedata().node(NodeKind.WAIT_DATA);
     }
 
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
-        // Event receive variable name
+        // Data receive variable name
         properties()
                 .custom()
                     .metadata()
-                        .label(EVENT_RECEIVE_VAR_NAME)
-                        .description(EVENT_RECEIVE_VAR_DOC)
+                        .label(DATA_RECEIVE_VAR_NAME)
+                        .description(DATA_RECEIVE_VAR_DOC)
                         .stepOut()
                     .type()
                         .fieldType(Property.ValueType.IDENTIFIER)
@@ -115,12 +115,12 @@ public class WaitEventBuilder extends WaitBuilder {
                     .stepOut()
                 .addProperty(Property.VARIABLE_KEY);
 
-        // Event type
+        // Data type
         properties()
                 .custom()
                     .metadata()
-                        .label(EVENT_TYPE_LABEL)
-                        .description(EVENT_TYPE_DOC)
+                        .label(DATA_TYPE_LABEL)
+                        .description(DATA_TYPE_DOC)
                         .stepOut()
                     .type()
                         .fieldType(Property.ValueType.TYPE)
@@ -130,14 +130,14 @@ public class WaitEventBuilder extends WaitBuilder {
                     .value("")
                     .editable(true)
                     .stepOut()
-                .addProperty(EVENT_TYPE_KEY);
+                .addProperty(DATA_TYPE_KEY);
 
-        // Event name
+        // Data name
         properties()
                 .custom()
                     .metadata()
-                        .label(EVENT_NAME_LABEL)
-                        .description(EVENT_NAME_DOC)
+                        .label(DATA_NAME_LABEL)
+                        .description(DATA_NAME_DOC)
                         .stepOut()
                     .type()
                         .fieldType(Property.ValueType.IDENTIFIER)
@@ -146,48 +146,48 @@ public class WaitEventBuilder extends WaitBuilder {
                     .value("")
                     .editable(true)
                     .stepOut()
-                .addProperty(EVENT_NAME_KEY);
+                .addProperty(DATA_NAME_KEY);
     }
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
         Optional<Property> variableProperty = sourceBuilder.getProperty(Property.VARIABLE_KEY);
-        Optional<Property> eventTypeProperty = sourceBuilder.getProperty(EVENT_TYPE_KEY);
-        Optional<Property> eventNameProperty = sourceBuilder.getProperty(EVENT_NAME_KEY);
+        Optional<Property> dataTypeProperty = sourceBuilder.getProperty(DATA_TYPE_KEY);
+        Optional<Property> dataNameProperty = sourceBuilder.getProperty(DATA_NAME_KEY);
 
-        if (variableProperty.isEmpty() || eventTypeProperty.isEmpty() || eventNameProperty.isEmpty()) {
-            throw new IllegalStateException("Wait event node is missing required properties");
+        if (variableProperty.isEmpty() || dataTypeProperty.isEmpty() || dataNameProperty.isEmpty()) {
+            throw new IllegalStateException("Wait data node is missing required properties");
         }
 
         String variableName = variableProperty.get().value().toString();
-        String eventType = eventTypeProperty.get().value().toString();
-        String eventName = eventNameProperty.get().value().toString();
-        if (variableName.isBlank() || eventType.isBlank() || eventName.isBlank()) {
-            throw new IllegalStateException("WaitEventBuilder requires non-blank variableName/eventType/eventName");
+        String dataType = dataTypeProperty.get().value().toString();
+        String dataName = dataNameProperty.get().value().toString();
+        if (variableName.isBlank() || dataType.isBlank() || dataName.isBlank()) {
+            throw new IllegalStateException("WaitDataBuilder requires non-blank variableName/dataType/dataName");
         }
 
-        addNewEventToWorkflow(sourceBuilder, eventType, eventName);
+        addNewDataFieldToWorkflow(sourceBuilder, dataType, dataName);
 
-        // Build the wait statement: EventType eventReceiveVar = check wait events.eventName;
+        // Build the wait statement: DataType dataReceiveVar = check wait events.dataName;
         sourceBuilder.token()
-                .name(eventType)
+                .name(dataType)
                 .whiteSpace()
                 .name(variableName)
                 .keyword(SyntaxKind.EQUAL_TOKEN)
                 .keyword(SyntaxKind.CHECK_KEYWORD)
                 .keyword(SyntaxKind.WAIT_KEYWORD)
-                .name(DEFAULT_EVENTS_PARAM_NAME + "." + eventName)
+                .name(DEFAULT_EVENTS_PARAM_NAME + "." + dataName)
                 .endOfStatement();
         sourceBuilder.textEdit();
 
         return sourceBuilder.build();
     }
 
-    private void addNewEventToWorkflow(SourceBuilder sourceBuilder, String eventType, String eventName) {
+    private void addNewDataFieldToWorkflow(SourceBuilder sourceBuilder, String dataType, String dataName) {
         try {
             sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
         } catch (WorkspaceDocumentException | EventSyncException e) {
-            throw new IllegalStateException("WaitEventBuilder failed to load project", e);
+            throw new IllegalStateException("WaitDataBuilder failed to load project", e);
         }
 
         SemanticModel semanticModel = FileSystemUtils.getSemanticModel(sourceBuilder.workspaceManager,
@@ -195,26 +195,26 @@ public class WaitEventBuilder extends WaitBuilder {
 
         FunctionDefinitionNode functionNode = WorkflowUtil.findEnclosingWorkflowFunction(sourceBuilder);
         if (functionNode == null) {
-            throw new IllegalStateException("WaitEventBuilder must be used inside a workflow process function");
+            throw new IllegalStateException("WaitDataBuilder must be used inside a workflow function");
         }
 
         Optional<TypeSymbol> eventsTypeSymbol = getEventsParameterTypeSymbol(functionNode, semanticModel);
         if (eventsTypeSymbol.isPresent()) {
-            modifyExistingEventsType(sourceBuilder, eventsTypeSymbol.get(), eventType, eventName);
+            modifyExistingEventsType(sourceBuilder, eventsTypeSymbol.get(), dataType, dataName);
         } else {
             // No events parameter - create new type and add parameter
             String funcName = functionNode.functionName().text();
             String baseTypeName = funcName.substring(0, 1).toUpperCase(Locale.ROOT) + funcName.substring(1)
                     + EVENTS_SUFFIX;
             String eventsTypeName = generateUniqueEventsTypeName(baseTypeName, semanticModel);
-            createNewEventsType(sourceBuilder, eventsTypeName, eventType, eventName);
+            createNewEventsType(sourceBuilder, eventsTypeName, dataType, dataName);
             addEventsParameterToFunction(sourceBuilder, functionNode, eventsTypeName);
         }
     }
 
     /**
      * Gets the events parameter from the function if it exists.
-     * The events parameter is expected to be the third parameter in a workflow process function.
+     * The events parameter is expected to be the third parameter in a workflow function.
      *
      * @param functionNode The function definition node
      * @param semanticModel The semantic model
@@ -276,15 +276,15 @@ public class WaitEventBuilder extends WaitBuilder {
     }
 
     private void createNewEventsType(SourceBuilder sourceBuilder, String eventsTypeName,
-                                     String eventType, String eventName) {
+                                     String dataType, String dataName) {
         // Create a new events type with the field
-        String eventFieldType = SyntaxKind.FUTURE_KEYWORD.stringValue() + SyntaxKind.LT_TOKEN.stringValue()
-                + eventType + SyntaxKind.GT_TOKEN.stringValue();
+        String fieldType = SyntaxKind.FUTURE_KEYWORD.stringValue() + SyntaxKind.LT_TOKEN.stringValue()
+                + dataType + SyntaxKind.GT_TOKEN.stringValue();
         List<Member> members = new ArrayList<>();
         members.add(new Member.MemberBuilder()
                 .kind(Member.MemberKind.FIELD)
-                .type(eventFieldType)
-                .name(eventName)
+                .type(fieldType)
+                .name(dataName)
                 .optional(false)
                 .readonly(false)
                 .build());
@@ -292,7 +292,7 @@ public class WaitEventBuilder extends WaitBuilder {
         TypeData eventsTypeData = new TypeData(
                 eventsTypeName,
                 true,
-                new Metadata(eventsTypeName, "Events record for workflow process function",
+                new Metadata(eventsTypeName, "Events record for workflow function",
                         null, null, null, null),
                 new Codedata.Builder<>(null).node(NodeKind.RECORD).build(),
                 Map.of(),
@@ -325,17 +325,17 @@ public class WaitEventBuilder extends WaitBuilder {
     }
 
     private void modifyExistingEventsType(SourceBuilder sourceBuilder, TypeSymbol eventsTypeSymbol,
-                                          String eventType, String eventName) {
+                                          String dataType, String dataName) {
         RecordTypeSymbol recordType = (RecordTypeSymbol) eventsTypeSymbol;
         Map<String, RecordFieldSymbol> existingFields = recordType.fieldDescriptors();
 
         // Check if the field already exists
-        if (existingFields.containsKey(eventName)) {
-            throw new RuntimeException("Field already exists in the events type definition with name: " + eventName);
+        if (existingFields.containsKey(dataName)) {
+            throw new RuntimeException("Field already exists in the events type definition with name: " + dataName);
         }
 
         if (recordType.getLocation().isEmpty()) {
-            throw new IllegalStateException("WaitEventBuilder cannot update events type: missing type location");
+            throw new IllegalStateException("WaitDataBuilder cannot update events type: missing type location");
         }
 
         LineRange typeLineRange = recordType.getLocation().get().lineRange();
@@ -344,7 +344,7 @@ public class WaitEventBuilder extends WaitBuilder {
                 .resolve(typeLineRange.fileName());
         Document typesDoc = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, typesFilePath);
         if (typesDoc == null) {
-            throw new IllegalStateException("WaitEventBuilder cannot load events type document: " + typesFilePath);
+            throw new IllegalStateException("WaitDataBuilder cannot load events type document: " + typesFilePath);
         }
         SyntaxTree typesSyntaxTree = typesDoc.syntaxTree();
         ModulePartNode typesRootNode = typesSyntaxTree.rootNode();
@@ -354,12 +354,12 @@ public class WaitEventBuilder extends WaitBuilder {
         TextRange textRange = TextRange.from(txtPos, 0);
         NonTerminalNode typeDefNode = typesRootNode.findNode(textRange);
         if (typeDefNode == null || typeDefNode.kind() != SyntaxKind.TYPE_DEFINITION) {
-            throw new IllegalStateException("WaitEventBuilder could not locate target type definition");
+            throw new IllegalStateException("WaitDataBuilder could not locate target type definition");
         }
 
         Node typeDescNode = ((TypeDefinitionNode) typeDefNode).typeDescriptor();
         if (typeDescNode.kind() != SyntaxKind.RECORD_TYPE_DESC) {
-            throw new IllegalStateException("WaitEventBuilder target type is not a record");
+            throw new IllegalStateException("WaitDataBuilder target type is not a record");
         }
 
         // Get the bodyStartDelimiter location ({|)
@@ -370,10 +370,10 @@ public class WaitEventBuilder extends WaitBuilder {
         sourceBuilder.token()
                 .name(SyntaxKind.FUTURE_KEYWORD.stringValue())
                 .name(SyntaxKind.LT_TOKEN.stringValue())
-                .name(eventType)
+                .name(dataType)
                 .name(SyntaxKind.GT_TOKEN.stringValue())
                 .whiteSpace()
-                .name(eventName)
+                .name(dataName)
                 .endOfStatement()
                 .skipFormatting().stepOut().textEdit(null, typesFilePath, insertRange);
     }
@@ -404,3 +404,4 @@ public class WaitEventBuilder extends WaitBuilder {
         return true;
     }
 }
+

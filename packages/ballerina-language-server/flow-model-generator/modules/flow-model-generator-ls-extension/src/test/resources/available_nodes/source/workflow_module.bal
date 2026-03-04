@@ -14,7 +14,7 @@ type Approve record {
     boolean approved;
 };
 
-@workflow:Process
+@workflow:Workflow
 function startWorkflow(workflow:Context ctx, Input input, Events events) returns error? {
 
 }

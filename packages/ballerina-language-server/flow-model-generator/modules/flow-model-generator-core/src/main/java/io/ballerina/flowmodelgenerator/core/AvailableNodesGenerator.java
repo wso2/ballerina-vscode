@@ -176,14 +176,14 @@ public class AvailableNodesGenerator {
         NonTerminalNode nonTerminalNode = ((ModulePartNode) document.syntaxTree().rootNode()).findNode(range);
         NonTerminalNode iterationNode = nonTerminalNode;
 
-        // Check if we're inside a @workflow:Process function
-        boolean isInWorkflowProcess = WorkflowUtil.isInsideWorkflowProcessFunction(this.semanticModel, nonTerminalNode);
+        // Check if we're inside a @workflow:Workflow function
+        boolean isInWorkflowFunction = WorkflowUtil.isInsideWorkflowFunction(this.semanticModel, nonTerminalNode);
 
         while (iterationNode != null) {
             SyntaxKind kind = iterationNode.kind();
             switch (kind) {
                 case WHILE_STATEMENT, FOREACH_STATEMENT -> {
-                    setAvailableNodesForIteratingBlock(nonTerminalNode, disableBallerinaAiNodes, isInWorkflowProcess);
+                    setAvailableNodesForIteratingBlock(nonTerminalNode, disableBallerinaAiNodes, isInWorkflowFunction);
                     return this.rootBuilder.build().items();
                 }
                 default -> iterationNode = iterationNode.parent();
@@ -195,25 +195,25 @@ public class AvailableNodesGenerator {
             switch (kind) {
                 case IF_ELSE_STATEMENT, LOCK_STATEMENT, TRANSACTION_STATEMENT, MATCH_STATEMENT, DO_STATEMENT,
                      ON_FAIL_CLAUSE -> {
-                    setAvailableDefaultNodes(nonTerminalNode, disableBallerinaAiNodes, isInWorkflowProcess);
+                    setAvailableDefaultNodes(nonTerminalNode, disableBallerinaAiNodes, isInWorkflowFunction);
                     return this.rootBuilder.build().items();
                 }
                 default -> nonTerminalNode = nonTerminalNode.parent();
             }
         }
-        setDefaultNodes(disableBallerinaAiNodes, isInWorkflowProcess);
+        setDefaultNodes(disableBallerinaAiNodes, isInWorkflowFunction);
         return this.rootBuilder.build().items();
     }
 
     private void setAvailableDefaultNodes(NonTerminalNode node, boolean disableBallerinaAiNodes,
-                                          boolean isInWorkflowProcess) {
-        setDefaultNodes(disableBallerinaAiNodes, isInWorkflowProcess);
+                                          boolean isInWorkflowFunction) {
+        setDefaultNodes(disableBallerinaAiNodes, isInWorkflowFunction);
         setStopNode(node);
     }
 
     private void setAvailableNodesForIteratingBlock(NonTerminalNode node, boolean disableBallerinaAiNodes,
-                                                     boolean isInWorkflowProcess) {
-        setDefaultNodes(disableBallerinaAiNodes, isInWorkflowProcess);
+                                                     boolean isInWorkflowFunction) {
+        setDefaultNodes(disableBallerinaAiNodes, isInWorkflowFunction);
         setStopNode(node);
         this.rootBuilder.stepIn(Category.Name.CONTROL)
                 .node(NodeKind.BREAK)
@@ -221,13 +221,13 @@ public class AvailableNodesGenerator {
                 .stepOut();
     }
 
-    private void setDefaultNodes(boolean disableBallerinaAiNodes, boolean isInWorkflowProcess) {
+    private void setDefaultNodes(boolean disableBallerinaAiNodes, boolean isInWorkflowFunction) {
         this.rootBuilder.stepIn(Category.Name.AI)
                 .items(getAiNodes(disableBallerinaAiNodes))
                 .stepOut();
 
         this.rootBuilder.stepIn(Category.Name.WORKFLOW)
-                .items(getWorkflowNodes(isInWorkflowProcess))
+                .items(getWorkflowNodes(isInWorkflowFunction))
                 .stepOut();
 
         AvailableNode function = new AvailableNode(
@@ -348,14 +348,14 @@ public class AvailableNodesGenerator {
         return List.of(directLlmCategory, ragCategory, agentCategory);
     }
 
-    private List<Item> getWorkflowNodes(boolean isInWorkflowProcess) {
+    private List<Item> getWorkflowNodes(boolean isInWorkflowFunction) {
         List<Item> workflowNodes = new ArrayList<>();
 
         // Always available workflow orchestration nodes
-        AvailableNode createInstance = new AvailableNode(
+        AvailableNode runWorkflow = new AvailableNode(
                 new Metadata.Builder<>(null)
-                        .label(Workflow.CREATE_INSTANCE_LABEL)
-                        .description(Workflow.CREATE_INSTANCE_DESCRIPTION)
+                        .label(Workflow.RUN_LABEL)
+                        .description(Workflow.RUN_DESCRIPTION)
                         .build(),
                 new Codedata.Builder<>(null)
                         .node(NodeKind.WORKFLOW_START)
@@ -363,22 +363,22 @@ public class AvailableNodesGenerator {
                 true
         );
 
-        AvailableNode sendEvent = new AvailableNode(
+        AvailableNode sendData = new AvailableNode(
                 new Metadata.Builder<>(null)
-                        .label(Workflow.SEND_EVENT_LABEL)
-                        .description(Workflow.SEND_EVENT_DESCRIPTION)
+                        .label(Workflow.SEND_DATA_LABEL)
+                        .description(Workflow.SEND_DATA_DESCRIPTION)
                         .build(),
                 new Codedata.Builder<>(null)
-                        .node(NodeKind.SEND_EVENT)
+                        .node(NodeKind.SEND_DATA)
                         .build(),
                 true
         );
 
-        workflowNodes.add(createInstance);
-        workflowNodes.add(sendEvent);
+        workflowNodes.add(runWorkflow);
+        workflowNodes.add(sendData);
 
-        // Only add these nodes inside @workflow:Process functions
-        if (isInWorkflowProcess) {
+        // Only add these nodes inside @workflow:Workflow functions
+        if (isInWorkflowFunction) {
             AvailableNode callActivity = new AvailableNode(
                     new Metadata.Builder<>(null)
                             .label(Workflow.CALL_ACTIVITY_LABEL)
@@ -390,19 +390,19 @@ public class AvailableNodesGenerator {
                     true
             );
 
-            AvailableNode waitEvent = new AvailableNode(
+            AvailableNode waitData = new AvailableNode(
                     new Metadata.Builder<>(null)
-                            .label(Workflow.WAIT_EVENT_LABEL)
-                            .description(Workflow.WAIT_EVENT_DESCRIPTION)
+                            .label(Workflow.WAIT_DATA_LABEL)
+                            .description(Workflow.WAIT_DATA_DESCRIPTION)
                             .build(),
                     new Codedata.Builder<>(null)
-                            .node(NodeKind.WAIT_EVENT)
+                            .node(NodeKind.WAIT_DATA)
                             .build(),
                     true
             );
 
             workflowNodes.add(callActivity);
-            workflowNodes.add(waitEvent);
+            workflowNodes.add(waitData);
         }
 
         return workflowNodes;

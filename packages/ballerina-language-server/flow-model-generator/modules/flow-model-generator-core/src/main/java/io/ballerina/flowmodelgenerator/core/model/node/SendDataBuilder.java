@@ -42,31 +42,31 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_M
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
 /**
- * Represents a workflow send event operation node (sendEvent).
- * This is a specialized function call for workflow event operations.
+ * Represents a workflow send data operation node (sendData).
+ * This is a specialized function call for workflow data operations.
  *
  * @since 2.0.0
  */
-public class SendEventBuilder extends NodeBuilder {
-    public static final String LABEL = "Send Event";
-    public static final String DESCRIPTION = "Send an event to an existing workflow instance";
+public class SendDataBuilder extends NodeBuilder {
+    public static final String LABEL = "Send Data";
+    public static final String DESCRIPTION = "Send data to an existing workflow instance";
     public static final String WORKFLOW_NAME_KEY = "workflowName";
     public static final String WORKFLOW_NAME_LABEL = "Workflow Name";
-    public static final String WORKFLOW_NAME_DOC = "The workflow function to send the event to";
-    public static final String EVENT_NAME_KEY = "eventName";
-    public static final String EVENT_NAME_LABEL = "Event Name";
-    public static final String EVENT_NAME_DOC = "The name of the event to send";
-    public static final String EVENT_DATA_KEY = "eventData";
-    public static final String EVENT_DATA_LABEL = "Event Data";
-    public static final String EVENT_DATA_DOC = "The event data to send";
-    private static final String SEND_EVENT_METHOD = "sendEvent";
+    public static final String WORKFLOW_NAME_DOC = "The workflow function to send the data to";
+    public static final String DATA_NAME_KEY = "dataName";
+    public static final String DATA_NAME_LABEL = "Data Name";
+    public static final String DATA_NAME_DOC = "The name of the data field to send";
+    public static final String DATA_KEY = "data";
+    public static final String DATA_LABEL = "Data";
+    public static final String DATA_DOC = "The data to send";
+    private static final String SEND_DATA_METHOD = "sendData";
     private static final String MAP_ANYDATA_TYPE = "map<anydata>";
 
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
         codedata()
-                .node(NodeKind.SEND_EVENT)
+                .node(NodeKind.SEND_DATA)
                 .org(WORKFLOW_ORG)
                 .module(WORKFLOW_MODULE);
     }
@@ -92,8 +92,8 @@ public class SendEventBuilder extends NodeBuilder {
 
         properties().custom()
                 .metadata()
-                    .label(EVENT_NAME_LABEL)
-                    .description(EVENT_NAME_DOC)
+                    .label(DATA_NAME_LABEL)
+                    .description(DATA_NAME_DOC)
                     .stepOut()
                 .type()
                     .fieldType(Property.ValueType.SINGLE_SELECT)
@@ -103,7 +103,7 @@ public class SendEventBuilder extends NodeBuilder {
                 .value("")
                 .editable(false)
                 .stepOut()
-                .addProperty(EVENT_NAME_KEY);
+                .addProperty(DATA_NAME_KEY);
 
         List<PropertyTypeMemberInfo> typeMembers = List.of(
                 new PropertyTypeMemberInfo(MAP_ANYDATA_TYPE, null, null, "RECORD_TYPE", false)
@@ -111,8 +111,8 @@ public class SendEventBuilder extends NodeBuilder {
 
         properties().custom()
                 .metadata()
-                    .label(EVENT_DATA_LABEL)
-                    .description(EVENT_DATA_DOC)
+                    .label(DATA_LABEL)
+                    .description(DATA_DOC)
                     .stepOut()
                 .type()
                     .fieldType(Property.ValueType.RECORD_MAP_EXPRESSION)
@@ -128,7 +128,7 @@ public class SendEventBuilder extends NodeBuilder {
                 .value("")
                 .editable(true)
                 .stepOut()
-                .addProperty(EVENT_DATA_KEY);
+                .addProperty(DATA_KEY);
     }
 
     @Override
@@ -136,32 +136,32 @@ public class SendEventBuilder extends NodeBuilder {
         Optional<Property> workflowNameProp = sourceBuilder.getProperty(WORKFLOW_NAME_KEY);
         String workflowName = workflowNameProp.map(p -> p.value().toString()).orElse("");
 
-        Optional<Property> eventNameProp = sourceBuilder.getProperty(EVENT_NAME_KEY);
-        String eventName = eventNameProp.map(p -> p.value().toString()).orElse("");
+        Optional<Property> dataNameProp = sourceBuilder.getProperty(DATA_NAME_KEY);
+        String dataName = dataNameProp.map(p -> p.value().toString()).orElse("");
 
-        if (workflowName.isBlank() || eventName.isBlank()) {
-            throw new IllegalStateException("Send event node is missing required values: workflowName/eventName");
+        if (workflowName.isBlank() || dataName.isBlank()) {
+            throw new IllegalStateException("Send data node is missing required values: workflowName/dataName");
         }
 
-        Optional<Property> eventDataProp = sourceBuilder.getProperty(EVENT_DATA_KEY);
-        String eventData = eventDataProp.map(p -> p.value().toString())
+        Optional<Property> dataProp = sourceBuilder.getProperty(DATA_KEY);
+        String data = dataProp.map(p -> p.value().toString())
                 .filter(value -> !value.isBlank())
                 .orElse("{}");
 
-        // Generate: check workflow:sendEvent(workflowFunction, eventData, "eventName");
+        // Generate: check workflow:sendData(workflowFunction, data, "dataName");
         sourceBuilder.token()
                 .keyword(SyntaxKind.CHECK_KEYWORD)
                 .name(WORKFLOW_MODULE)
                 .keyword(SyntaxKind.COLON_TOKEN)
-                .name(SEND_EVENT_METHOD)
+                .name(SEND_DATA_METHOD)
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN)
                 .name(workflowName)
                 .keyword(SyntaxKind.COMMA_TOKEN)
                 .whiteSpace()
-                .name(eventData)
+                .name(data)
                 .keyword(SyntaxKind.COMMA_TOKEN)
                 .whiteSpace()
-                .name("\"" + eventName + "\"")
+                .name("\"" + dataName + "\"")
                 .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
                 .endOfStatement();
 
@@ -172,7 +172,7 @@ public class SendEventBuilder extends NodeBuilder {
     }
 
     /**
-     * Gets the available workflow process functions from the current project.
+     * Gets the available workflow functions from the current project.
      *
      * @param context The template context
      * @return List of options containing workflow function names
@@ -197,3 +197,4 @@ public class SendEventBuilder extends NodeBuilder {
         return options;
     }
 }
+

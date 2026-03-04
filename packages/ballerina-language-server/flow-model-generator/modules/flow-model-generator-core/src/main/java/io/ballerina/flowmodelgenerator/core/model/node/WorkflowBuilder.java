@@ -117,8 +117,8 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
             sourceBuilder.token().descriptionDoc(description);
         }
 
-        // Add @workflow:Process annotation with newline
-        sourceBuilder.token().name("@workflow:Process").name(System.lineSeparator());
+        // Add @workflow:Workflow annotation with newline
+        sourceBuilder.token().name("@workflow:Workflow").name(System.lineSeparator());
 
         // Function keyword
         sourceBuilder.token().keyword(SyntaxKind.FUNCTION_KEYWORD);

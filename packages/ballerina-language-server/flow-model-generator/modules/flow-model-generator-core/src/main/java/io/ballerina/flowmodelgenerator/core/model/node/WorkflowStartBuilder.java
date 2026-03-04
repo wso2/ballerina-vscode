@@ -44,20 +44,20 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_M
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
 /**
- * Represents a workflow start node that generates workflow:createInstance calls.
- * This node is used to start a workflow process function.
+ * Represents a workflow start node that generates workflow:run calls.
+ * This node is used to run a workflow function.
  *
  * @since 2.0.0
  */
 public class WorkflowStartBuilder extends NodeBuilder {
 
-    public static final String LABEL = "Start Workflow";
-    public static final String DESCRIPTION = "Start a workflow process instance";
+    public static final String LABEL = "Run Workflow";
+    public static final String DESCRIPTION = "Run a workflow instance";
 
     public static final String INPUT_KEY = "input";
     public static final String INPUT_LABEL = "Input";
     public static final String INPUT_DOC = "Input data for the workflow";
-    private static final String CREATE_INSTANCE_METHOD = "createInstance";
+    private static final String RUN_METHOD = "run";
 
     @Override
     public void setConcreteConstData() {
@@ -123,7 +123,7 @@ public class WorkflowStartBuilder extends NodeBuilder {
                 .filter(value -> !value.isBlank())
                 .orElse("workflowId");
 
-        // Generate: string workflowId = check workflow:createInstance(workflowFunction, input);
+        // Generate: string workflowId = check workflow:run(workflowFunction, input);
         sourceBuilder.token()
                 .keyword(SyntaxKind.STRING_KEYWORD)
                 .name(variableName)
@@ -144,11 +144,11 @@ public class WorkflowStartBuilder extends NodeBuilder {
                 .filter(value -> !value.isBlank())
                 .orElse("{}");
 
-        // Build: workflow:createInstance(workflowFunction, input)
+        // Build: workflow:run(workflowFunction, input)
         sourceBuilder.token()
                 .name(WORKFLOW_MODULE)
                 .keyword(SyntaxKind.COLON_TOKEN)
-                .name(CREATE_INSTANCE_METHOD)
+                .name(RUN_METHOD)
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN)
                 .name(workflowFunction)
                 .keyword(SyntaxKind.COMMA_TOKEN)

@@ -23,13 +23,13 @@ type OrderWorkflowEvents record {|
 |};
 
 # Process an order workflow with events
-@workflow:Process
+@workflow:Workflow
 function orderWorkflow(workflow:Context ctx, OrderInput input, OrderWorkflowEvents events) returns error? {
     // Activity call - should be ACTIVITY_CALL
     int intResult = check ctx->callActivity(calculateDiscount, {amount: 100.0});
     io:println("Discount calculated: " + intResult.toString());
 
-    // Wait for event - should be WAIT_EVENT
+    // Wait for data - should be WAIT_DATA
     ApprovalData approval = check wait events.approve;
     io:println("Approved by: " + approval.approverName);
 }
@@ -41,10 +41,10 @@ function calculateDiscount(record {decimal amount;} input) returns int|error {
 }
 
 public function main() returns error? {
-    // Workflow start - should be WORKFLOW_START
-    string workflowId = check workflow:createInstance(orderWorkflow, {orderId: "123", customerName: "John"});
+    // Workflow run - should be WORKFLOW_START
+    string workflowId = check workflow:run(orderWorkflow, {orderId: "123", customerName: "John"});
     io:println("Workflow started with ID: " + workflowId);
 
-    // Send event - should be SEND_EVENT
-    check workflow:sendEvent(orderWorkflow, {approved: true, approverName: "Admin"}, "approve");
+    // Send data - should be SEND_DATA
+    check workflow:sendData(orderWorkflow, {approved: true, approverName: "Admin"}, "approve");
 }

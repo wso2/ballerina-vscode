@@ -207,7 +207,7 @@
             "character": 1
           }
         },
-        "newText": "\n# Workflow that calls activities\n@workflow:Process\nfunction processWithActivity(User1 input) returns string|error {\n}"
+        "newText": "\n# Workflow that calls activities\n@workflow:Workflow\nfunction processWithActivity(User1 input) returns string|error {\n}"
       }
     ]
   }

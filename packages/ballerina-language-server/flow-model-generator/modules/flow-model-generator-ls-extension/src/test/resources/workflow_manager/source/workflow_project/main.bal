@@ -23,7 +23,7 @@ type OrderWorkflowEvents record {|
 |};
 
 # Process an order workflow with events
-@workflow:Process
+@workflow:Workflow
 function orderWorkflow(workflow:Context ctx, OrderInput input, OrderWorkflowEvents events) returns error? {
     io:println("Processing order: " + input.orderId);
     ApprovalData approval = check wait events.approve;
@@ -35,7 +35,7 @@ type SimpleInput record {
 };
 
 # Simple workflow without events
-@workflow:Process
+@workflow:Workflow
 function simpleWorkflow(workflow:Context ctx, SimpleInput input) returns error? {
     io:println("Simple workflow: " + input.id.toString());
 }

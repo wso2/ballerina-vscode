@@ -8,7 +8,7 @@
     "offset": 1
   },
   "source": "workflow_operations.bal",
-  "description": "Test workflow process function with ctx->callActivity returns ACTIVITY_CALL and wait events returns WAIT_EVENT",
+  "description": "Test workflow process function with ctx->callActivity returns ACTIVITY_CALL and wait events returns WAIT_DATA",
   "diagram": {
     "fileName": "workflow_operations.bal",
     "nodes": [
@@ -41,7 +41,7 @@
               "offset": 1
             }
           },
-          "sourceCode": "# Process an order workflow with events\n@workflow:Process\nfunction orderWorkflow(workflow:Context ctx, OrderInput input, OrderWorkflowEvents events) returns error? {\n    // Activity call - should be ACTIVITY_CALL\n    int intResult = check ctx->callActivity(calculateDiscount, {amount: 100.0});\n    io:println(\"Discount calculated: \" + intResult.toString());\n\n    // Wait for event - should be WAIT_EVENT\n    ApprovalData approval = check wait events.approve;\n    io:println(\"Approved by: \" + approval.approverName);\n}"
+          "sourceCode": "# Process an order workflow with events\n@workflow:Workflow\nfunction orderWorkflow(workflow:Context ctx, OrderInput input, OrderWorkflowEvents events) returns error? {\n    // Activity call - should be ACTIVITY_CALL\n    int intResult = check ctx->callActivity(calculateDiscount, {amount: 100.0});\n    io:println(\"Discount calculated: \" + intResult.toString());\n\n    // Wait for data - should be WAIT_DATA\n    ApprovalData approval = check wait events.approve;\n    io:println(\"Approved by: \" + approval.approverName);\n}"
         },
         "returning": false,
         "flags": 0
@@ -378,7 +378,7 @@
         "id": "61579",
         "metadata": {
           "label": "Comment",
-          "description": "Wait for event - should be WAIT_EVENT"
+          "description": "Wait for data - should be WAIT_DATA"
         },
         "codedata": {
           "node": "COMMENT",
@@ -393,7 +393,7 @@
               "offset": 44
             }
           },
-          "sourceCode": "Wait for event - should be WAIT_EVENT"
+          "sourceCode": "Wait for data - should be WAIT_DATA"
         },
         "returning": false,
         "properties": {
@@ -408,7 +408,7 @@
                 "selected": true
               }
             ],
-            "value": "Wait for event - should be WAIT_EVENT",
+            "value": "Wait for data - should be WAIT_DATA",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -420,11 +420,11 @@
       {
         "id": "63666",
         "metadata": {
-          "label": "Wait for Event",
+          "label": "Wait for Data",
           "description": "Wait for a workflow event to be received"
         },
         "codedata": {
-          "node": "WAIT_EVENT",
+          "node": "WAIT_DATA",
           "lineRange": {
             "fileName": "workflow_operations.bal",
             "startLine": {
@@ -436,7 +436,7 @@
               "offset": 54
             }
           },
-          "sourceCode": "// Wait for event - should be WAIT_EVENT\n    ApprovalData approval = check wait events.approve;"
+          "sourceCode": "// Wait for data - should be WAIT_DATA\n    ApprovalData approval = check wait events.approve;"
         },
         "returning": false,
         "properties": {

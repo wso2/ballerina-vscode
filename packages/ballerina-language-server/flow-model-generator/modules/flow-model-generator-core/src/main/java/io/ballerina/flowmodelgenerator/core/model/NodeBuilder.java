@@ -73,14 +73,14 @@ import io.ballerina.flowmodelgenerator.core.model.node.ResourceActionCallBuilder
 import io.ballerina.flowmodelgenerator.core.model.node.RetryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ReturnBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RollbackBuilder;
-import io.ballerina.flowmodelgenerator.core.model.node.SendEventBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.SendDataBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StopBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.TransactionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
-import io.ballerina.flowmodelgenerator.core.model.node.WaitEventBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WhileBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WorkflowBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WorkflowStartBuilder;
@@ -182,8 +182,8 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.MCP_TOOL_KIT, McpToolKitBuilder::new);
         put(NodeKind.WORKFLOW, WorkflowBuilder::new);
         put(NodeKind.ACTIVITY, ActivityBuilder::new);
-        put(NodeKind.SEND_EVENT, SendEventBuilder::new);
-        put(NodeKind.WAIT_EVENT, WaitEventBuilder::new);
+        put(NodeKind.SEND_DATA, SendDataBuilder::new);
+        put(NodeKind.WAIT_DATA, WaitDataBuilder::new);
         put(NodeKind.WORKFLOW_START, WorkflowStartBuilder::new);
         put(NodeKind.ACTIVITY_CALL, ActivityCallBuilder::new);
     }};

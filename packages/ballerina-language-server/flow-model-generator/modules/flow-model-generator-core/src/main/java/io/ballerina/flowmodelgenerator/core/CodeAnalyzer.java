@@ -190,8 +190,8 @@ import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CALL_ACTIVITY_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CREATE_INSTANCE_METHOD_NAME;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SEND_EVENT_METHOD_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.RUN_METHOD_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SEND_DATA_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowFunction;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINA_ORG_NAME;
@@ -756,9 +756,9 @@ public class CodeAnalyzer extends NodeVisitor {
                 className.equals(CONTEXT_CLASS_NAME) && isWorkflowModule(classSymbol.getModule());
     }
 
-    private boolean isWorkflowWaitEvent(WaitActionNode waitActionNode) {
+    private boolean isWorkflowWaitData(WaitActionNode waitActionNode) {
         Node waitFutureExpr = waitActionNode.waitFutureExpr();
-        // For workflow events, we expect: wait events.eventName
+        // For workflow data, we expect: wait events.dataName
         if (waitFutureExpr.kind() != SyntaxKind.FIELD_ACCESS) {
             return false;
         }
@@ -2055,10 +2055,10 @@ public class CodeAnalyzer extends NodeVisitor {
             startNode(NodeKind.AGENT_CALL, functionCallExpressionNode.parent());
         } else if (naturalFunctions.containsKey(functionName)) {
             startNode(NodeKind.NP_FUNCTION_CALL, functionCallExpressionNode.parent());
-        } else if (isWorkflowOperation(functionSymbol, CREATE_INSTANCE_METHOD_NAME)) {
+        } else if (isWorkflowOperation(functionSymbol, RUN_METHOD_NAME)) {
             startNode(NodeKind.WORKFLOW_START, functionCallExpressionNode.parent());
-        } else if (isWorkflowOperation(functionSymbol, SEND_EVENT_METHOD_NAME)) {
-            startNode(NodeKind.SEND_EVENT, functionCallExpressionNode.parent());
+        } else if (isWorkflowOperation(functionSymbol, SEND_DATA_METHOD_NAME)) {
+            startNode(NodeKind.SEND_DATA, functionCallExpressionNode.parent());
         } else {
             startNode(NodeKind.FUNCTION_CALL, functionCallExpressionNode.parent());
         }
@@ -2330,9 +2330,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(WaitActionNode waitActionNode) {
-        // Check if this is a workflow wait event (wait events.eventName)
-        if (isWorkflowWaitEvent(waitActionNode)) {
-            startNode(NodeKind.WAIT_EVENT, waitActionNode);
+        // Check if this is a workflow wait for data (wait events.dataName)
+        if (isWorkflowWaitData(waitActionNode)) {
+            startNode(NodeKind.WAIT_DATA, waitActionNode);
         } else {
             startNode(NodeKind.WAIT, waitActionNode);
         }

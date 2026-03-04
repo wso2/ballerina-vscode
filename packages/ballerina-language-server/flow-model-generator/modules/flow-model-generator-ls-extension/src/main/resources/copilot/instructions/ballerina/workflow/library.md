@@ -4,11 +4,11 @@ The `ballerina/workflow` library provides support for creating and managing dura
 
 ## Key Concepts
 
-1. **Process**: Durable workflow orchestration with automatic state persistence. The main workflow logic function annotated with `@workflow:Process`.
+1. **Workflow**: Durable workflow orchestration with automatic state persistence. The main workflow logic function annotated with `@workflow:Workflow`.
 2. **Activity**: A function annotated with `@workflow:Activity` that performs reliable execution of side effects functions (I/O, database calls, external APIs). 
 3. **Context (`workflow:Context`)**: provides workflow execution capabilities — call activities, durable sleep, inspect workflow state.
-4. **Signals (Events)**: Future-based event handling with correlation. External events sent to a running workflow using `workflow:sendEvent`. Received as `future<T>` fields and awaited using Ballerina's `wait` action.
-5. **Correlation Keys**: `readonly` fields in record types that are used to generate composite workflow IDs and route signals without an explicit `id` field.
+4. **Data**: External data sent to a running workflow using `workflow:sendData`. Received as `future<T>` fields and awaited using Ballerina's `wait` action.
+5. **Inputs**: A parameter which is type of `anydata` passed when starting a workflow. The workflow function can declare the input parameter to receive this data.
 
 ## Configuration
 
@@ -42,15 +42,15 @@ function checkInventory(string item, int quantity) returns InventoryStatus|error
 
 **Important**: Activities must be called via ctx->callActivity() within process functions. Direct activity calls are not allowed and will produce a compiler error.
 
-## Defining Process Functions
+## Defining Workflow Functions
 
-A process function defines the workflow logic. It must be annotated with `@workflow:Process`. Process functions must be defined in `functions.bal`.
+A workflow function defines the workflow logic. It must be annotated with `@workflow:Workflow`. Workflow functions must be defined in `functions.bal`.
 
 Use `workflow:Context` as the first parameter to call activities via `ctx->callActivity(activityFn, args)`. The `args` record keys must match the activity function's parameter names exactly.
 
 ```ballerina
 
-@workflow:Process
+@workflow:Workflow
 function processOrder(workflow:Context ctx, OrderRequest request) returns OrderResult|error {
     // Deterministic workflow orchestration logic
     InventoryStatus inventory = check ctx->callActivity(checkInventory, {item: request.item, quantity: request.quantity});
@@ -65,105 +65,57 @@ function processOrder(workflow:Context ctx, OrderRequest request) returns OrderR
 
 **Important**: Activity arguments are passed as a `map<anydata>` record where keys match the activity function's parameter names.
 
-## Signal Handling (Events)
+## Data Handling
 
-Signals allow external systems to send data to a running workflow. The workflow declares expected signals as a `record {| future<SignalType> signalName; |}` parameter and awaits them using Ballerina's `wait` action.
+Data allow external systems to send data to a running workflow. The workflow declares expected data as a `record {| future<DataType> dataName; |} data` parameter and awaits them using Ballerina's `wait` action.
 
-### Process Signature with Signals
+### Workflow Signature with Data
 
 ```ballerina
 public type OrderInput record {|
-    readonly string orderId;  // Correlation key
-    string item;
+    readonly string orderId;
 |};
 
 public type PaymentEvent record {|
-    readonly string orderId;  // Matches correlation key
+    readonly string orderId;
     decimal amount;
 |};
 
-@workflow:Process
+@workflow:Workflow
 function processOrderWithPayment(
     workflow:Context ctx, 
     OrderInput input,
-    record {| future<PaymentEvent> payment; |} events
+    record {| future<PaymentEvent> payment; |} data
 ) returns OrderResult|error {
     // Check inventory
     check ctx->callActivity(checkInventory, {item: input.item, quantity: input.quantity});
     
-    // Wait for payment signal
-    PaymentEvent payment = check wait events.payment;
+    // Wait for payment data
+    PaymentEvent payment = check wait data.payment;
     
     // Complete order
     return {status: "paid", amount: payment.amount};
 }
 ```
 
-### Sending Signals
+### Sending Data to a Running Workflow
 
-Use `workflow:sendEvent` to send a signal to a running workflow. The `signalName` must match the field name in the signals record:
+Use `workflow:sendData` to send a data to a running workflow. The `dataName` must match the field name in the Data record:
 
 ```ballerina
-    // Send payment signal
-    // The field name 'paymentReceived' in the events record determines the signal name
+    // Send payment data
+    // The field name 'paymentReceived' in the data record determines the data name
     PaymentConfirmation payment = {orderId: orderId, amount: paymentData.amount};
-    boolean sent = check workflow:sendEvent(processOrderWithPayment, payment, "paymentReceived");
+    boolean sent = check workflow:sendData(processOrderWithPayment, payment, "paymentReceived");
 ```
 
-## Starting a Workflow
+## Running a Workflow
 
-Use `workflow:createInstance` to start a workflow. It returns the workflow ID:
-
-```ballerina
-// Start workflow using @workflow:Process function
-string workflowId = check workflow:createInstance(processOrderWithPayment, request);
-```
-
-## Correlation Keys
-
-When `readonly` fields are used in the process input record, they become correlation keys. This allows the workflow engine to:
-- Generate a composite workflow ID (e.g., `orderWorkflow-customerId=C123-orderId=O456`)
-- Route signals by matching correlation keys instead of a plain `id` field
-- Signal types must have the same `readonly` fields (same name **and** type) as the process input
+Use `workflow:run` to run a workflow. It returns the workflow ID:
 
 ```ballerina
-public type OrderInput record {|
-    readonly string orderId;  // Correlation key
-    string item;
-|};
-
-public type PaymentEvent record {|
-    readonly string orderId;  // Matches correlation key
-    decimal amount;
-|};
-
-@workflow:Process
-function processOrderWithPayment(
-    workflow:Context ctx, 
-    OrderInput input,
-    record {| future<PaymentEvent> payment; |} events
-) returns OrderResult|error {
-    // Check inventory
-    check ctx->callActivity(checkInventory, {item: input.item, quantity: input.quantity});
-    
-    // Wait for payment signal
-    PaymentEvent payment = check wait events.payment;
-    
-    // Complete order
-    return {status: "paid", amount: payment.amount};
-}
-```
-
-Sending a signal with correlation keys (no explicit signal name needed if type is distinct):
-
-```ballerina
-// No "id" field needed — correlation keys are used for routing
-boolean sent = check workflow:sendEvent(correlatedOrderWorkflow, {
-    customerId: "C123",
-    orderId: "O456",
-    txnId: "TXN-789",
-    amount: 99.99d
-});
+// Run workflow using workflow:run function
+string workflowId = check workflow:run(processOrderWithPayment, request);
 ```
 
 ## Context APIs

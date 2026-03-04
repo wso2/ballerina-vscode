@@ -1,14 +1,14 @@
 {
   "source": "workflow_function_empty/main.bal",
-  "description": "Generate workflow:sendEvent call",
+  "description": "Generate workflow:sendData call",
   "diagram": {
     "id": "1",
     "metadata": {
-      "label": "Send Event",
-      "description": "Send an event to an existing workflow instance"
+      "label": "Send Data",
+      "description": "Send data to an existing workflow instance"
     },
     "codedata": {
-      "node": "SEND_EVENT",
+      "node": "SEND_DATA",
       "org": "ballerina",
       "module": "workflow",
       "isNew": true,
@@ -29,7 +29,7 @@
       "workflowName": {
         "metadata": {
           "label": "Workflow Name",
-          "description": "The workflow function to send the event to"
+          "description": "The workflow function to send the data to"
         },
         "valueType": "SINGLE_SELECT",
         "value": "orderWorkflow",
@@ -38,10 +38,10 @@
         "advanced": false,
         "hidden": false
       },
-      "eventName": {
+      "dataName": {
         "metadata": {
-          "label": "Event Name",
-          "description": "The name of the event to send"
+          "label": "Data Name",
+          "description": "The name of the data field to send"
         },
         "valueType": "SINGLE_SELECT",
         "value": "approve",
@@ -50,10 +50,10 @@
         "advanced": false,
         "hidden": false
       },
-      "eventData": {
+      "data": {
         "metadata": {
-          "label": "Event Data",
-          "description": "The event data to send"
+          "label": "Data",
+          "description": "The data to send"
         },
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "map<anydata>",
@@ -116,7 +116,7 @@
             "character": 0
           }
         },
-        "newText": "\ncheck workflow:sendEvent(orderWorkflow, {approved: true}, \"approve\");"
+        "newText": "\ncheck workflow:sendData(orderWorkflow, {approved: true}, \"approve\");"
       }
     ]
   }

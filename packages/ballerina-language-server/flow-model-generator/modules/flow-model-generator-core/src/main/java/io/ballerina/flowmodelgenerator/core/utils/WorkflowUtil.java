@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ACTIVITY_ANNOTATION;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.PROCESS_ANNOTATION;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ANNOTATION;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
@@ -58,10 +58,10 @@ public class WorkflowUtil {
     }
 
     /**
-     * Checks if the given function symbol has the @workflow:Process annotation.
+     * Checks if the given function symbol has the @workflow:Workflow annotation.
      *
      * @param symbol The function symbol to check
-     * @return true if the function has @workflow:Process annotation, false otherwise
+     * @return true if the function has @workflow:Workflow annotation, false otherwise
      */
     public static boolean isWorkflowFunction(Symbol symbol) {
         if ((symbol instanceof FunctionSymbol funcSymbol)) {
@@ -73,7 +73,7 @@ public class WorkflowUtil {
 
                 if (annotationName.isPresent() && moduleSymbol.isPresent()) {
                     String name = annotationName.get();
-                    if (PROCESS_ANNOTATION.equals(name) && isWorkflowModule(moduleSymbol)) {
+                    if (WORKFLOW_ANNOTATION.equals(name) && isWorkflowModule(moduleSymbol)) {
                         return true;
                     }
                 }
@@ -82,7 +82,7 @@ public class WorkflowUtil {
         return false;
     }
 
-    public static boolean isInsideWorkflowProcessFunction(SemanticModel semanticModel, Node node) {
+    public static boolean isInsideWorkflowFunction(SemanticModel semanticModel, Node node) {
         Node parent = node;
         while (parent != null) {
             if (parent.kind() == SyntaxKind.FUNCTION_DEFINITION) {

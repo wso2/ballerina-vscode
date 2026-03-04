@@ -12,7 +12,7 @@ type NotificationInput record {
 };
 
 # Process an order workflow
-@workflow:Process
+@workflow:Workflow
 function orderWorkflow(workflow:Context context, OrderInput input) returns error? {
 
 }
@@ -32,7 +32,7 @@ function myActivity() returns int {
 }
 
 # Process an order workflow
-@workflow:Process
+@workflow:Workflow
 function orderWorkflow2(OrderInput input) returns error? {
 
 }
