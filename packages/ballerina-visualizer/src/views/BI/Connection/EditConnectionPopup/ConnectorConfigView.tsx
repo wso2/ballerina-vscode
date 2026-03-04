@@ -19,6 +19,7 @@
 import styled from "@emotion/styled";
 import { ThemeColors, Typography, Button, Icon } from "@wso2/ui-toolkit";
 import { PropertyModel } from "@wso2/ballerina-core";
+import { isDatabaseSystemProperty, formatDatabaseTypeDisplay } from "../utils";
 
 const ConnectorConfigSection = styled.div`
     display: flex;
@@ -107,10 +108,7 @@ export function ConnectorConfigView(props: ConnectorConfigViewProps) {
 
     const propertyList: PropertyModel[] = Object.values(properties || {});
 
-    const dbSystemProperty = propertyList.find(
-        (p) => (p.metadata?.label || "").toLowerCase().includes("database system") ||
-            (p.metadata?.label || "").toLowerCase().includes("db system")
-    );
+    const dbSystemProperty = propertyList.find(isDatabaseSystemProperty);
     const dbSystem = (dbSystemProperty?.value as string) || "";
 
     const databaseNameProperty = propertyList.find(
@@ -121,17 +119,9 @@ export function ConnectorConfigView(props: ConnectorConfigViewProps) {
     );
     const databaseName = (databaseNameProperty?.value as string) || connectorLabel || "";
 
-    const formatDbSystemDisplay = (value: string) => {
-        const lower = value.toLowerCase();
-        if (lower.includes("postgres")) return "PostgreSQL";
-        if (lower.includes("mysql")) return "MySQL";
-        if (lower.includes("mssql")) return "MSSQL";
-        return value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
-    };
-
     const connectorName = dbSystem && databaseName
-        ? `${formatDbSystemDisplay(dbSystem)} Connector: ${databaseName}`
-        : connectorLabel || (dbSystem ? `${formatDbSystemDisplay(dbSystem)} Database Connector` : "Database Connector");
+        ? `${formatDatabaseTypeDisplay(dbSystem, "")} Connector: ${databaseName}`
+        : connectorLabel || (dbSystem ? `${formatDatabaseTypeDisplay(dbSystem, "")} Database Connector` : "Database Connector");
 
     return (
         <ConnectorConfigSection>
