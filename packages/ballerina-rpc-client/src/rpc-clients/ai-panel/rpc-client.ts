@@ -47,6 +47,7 @@ import {
     TestGenerationMentions,
     UIChatMessage,
     UpdateChatMessageRequest,
+    UsageResponse,
     abortAIGeneration,
     acceptChanges,
     addFilesToProject,
@@ -92,7 +93,8 @@ import {
     showSignInAlert,
     submitFeedback,
     updateChatMessage,
-    updateRequirementSpecification
+    updateRequirementSpecification,
+    getUsage
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -286,5 +288,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getActiveTempDir(): Promise<string> {
         return this._messenger.sendRequest(getActiveTempDir, HOST_EXTENSION);
+    }
+
+    getUsage(): Promise<UsageResponse | undefined> {
+        return this._messenger.sendRequest(getUsage, HOST_EXTENSION);
     }
 }

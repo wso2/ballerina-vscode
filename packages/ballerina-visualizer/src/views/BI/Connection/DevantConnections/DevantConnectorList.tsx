@@ -34,8 +34,7 @@ import {
     SectionHeader,
     SectionTitle,
 } from "../AddConnectionPopup/styles";
-import { DevantConnectionFlow } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
-import { DevantConnectionType, getKnownAvailableNode, ProgressWrap } from "./utils";
+import { DevantConnectionFlow, getKnownAvailableNode, ProgressWrap } from "./utils";
 
 interface DevantConnectorListProps {
     onItemSelect: (
@@ -52,7 +51,9 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
     const { onItemSelect, fileName, target, searchText } = props;
     const { platformExtState, platformRpcClient } = usePlatformExtContext();
     const { rpcClient } = useRpcContext();
-    const [filterType, setFilterType] = useState<"all" | "internal" | "thirdParty">("all");
+    const [filterType, setFilterType] = useState<"all" | "internal-services" | "third-party-services" | "databases">(
+        "all",
+    );
 
     const [debouncedSearchText, setDebouncedSearchText] = useState(searchText || "");
 
@@ -83,9 +84,26 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
             availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerina", "soap");
         } else if (item.serviceType === "GRPC") {
             availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerina", "grpc");
+        } else if (item.resourceDetails?.databaseType === "postgres") {
+            availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerinax", "postgresql");
+        } else if (item.resourceDetails?.databaseType === "mysql") {
+            availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerinax", "mysql");
+        } else if (item.resourceDetails?.databaseType === "redis") {
+            availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerinax", "redis");
+        } else if (item.resourceDetails?.databaseType === "kafka") {
+            availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerinax", "kafka");
         }
 
-        if (item.isThirdParty) {
+        if (item.resourceType === "DATABASE") {
+            if (["postgres", "mysql"].includes(item.resourceDetails?.databaseType)) {
+                onItemSelect(DevantConnectionFlow.CREATE_DATABASE_PERSIST_DB_SELECTED, item, availableNode);
+            } else {
+                console.error(
+                    `Connection creation from type ${item.resourceDetails?.databaseType} is not supported yet.`,
+                );
+                return;
+            }
+        } else if (item.isThirdParty) {
             if (item.serviceType === "REST") {
                 onItemSelect(DevantConnectionFlow.CREATE_THIRD_PARTY_OAS, item, availableNode);
             } else if (availableNode) {
@@ -122,10 +140,10 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
         searchContent: false,
     };
 
-    if(filterType === "internal") {
+    if (filterType === "internal-services") {
         getMarketPlaceParams.isThirdParty = false;
     }
-    if(filterType === "thirdParty") {
+    if (filterType === "third-party-services") {
         getMarketPlaceParams.isThirdParty = true;
         getMarketPlaceParams.networkVisibilityFilter = "org,project,public";
     }
@@ -137,32 +155,63 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
                 orgId: platformExtState?.selectedContext?.org?.id?.toString(),
                 request: getMarketPlaceParams,
             }),
-        enabled: platformExtState.isLoggedIn && !!platformExtState?.selectedContext?.project,
+        enabled:
+            filterType !== "databases" && platformExtState.isLoggedIn && !!platformExtState?.selectedContext?.project,
         select: (data) => ({
             ...data,
-            data: data.data.filter(
-                (item) => {
-                    if (filterType === "internal") {
-                        return item.component?.componentId !== platformExtState?.selectedComponent?.metadata?.id
-                    }
-                    return true
-                },
-            ),
+            data: data.data.filter((item) => {
+                if (filterType === "internal-services") {
+                    return item.component?.componentId !== platformExtState?.selectedComponent?.metadata?.id;
+                }
+                return true;
+            }),
         }),
     });
 
-    let emptyText = "No services running or configured in Devant";
-    if (filterType === "internal") {
-        emptyText = "No services running in Devant";
-    } else if (filterType === "thirdParty") {
-        emptyText = "No third party services configured in Devant";
+    const { data: marketplaceDbs, isLoading: isLoadingDbs } = useQuery({
+        queryKey: ["marketplace-dbs", platformExtState?.selectedContext?.project],
+        queryFn: () =>
+            platformRpcClient?.getMarketplaceDatabases({
+                orgId: platformExtState?.selectedContext?.org?.id?.toString(),
+            }),
+        enabled:
+            ["databases", "all"].includes(filterType) &&
+            platformExtState.isLoggedIn &&
+            !!platformExtState?.selectedContext?.project,
+    });
+
+    const isLoading = isLoadingMarketplace || isLoadingDbs;
+
+    const items: MarketplaceItem[] = [];
+    if (filterType === "databases") {
+        items.push(
+            ...(marketplaceDbs?.data?.filter((item) => item.name?.toLowerCase()?.includes(searchText?.toLowerCase())) ||
+                []),
+        );
+    } else if (filterType === "all") {
+        items.push(
+            ...(marketplaceServices?.data || []),
+            ...(marketplaceDbs?.data?.filter((item) => item.name?.toLowerCase()?.includes(searchText?.toLowerCase())) ||
+                []),
+        );
+    } else {
+        items.push(...(marketplaceServices?.data || []));
+    }
+
+    let emptyText = "No resources in Devant";
+    if (filterType === "internal-services") {
+        emptyText = "No services running";
+    } else if (filterType === "third-party-services") {
+        emptyText = "No third party services configured";
+    } else if (filterType === "databases") {
+        emptyText = "No databases running";
     }
 
     return (
         <>
             <Section>
                 <SectionHeader>
-                    <SectionTitle variant="h4">Devant Services</SectionTitle>
+                    <SectionTitle variant="h4">Devant Resources</SectionTitle>
                     <FilterButtons onClick={(e) => e.stopPropagation()}>
                         <FilterButton
                             title="All Services running or configured in Devant"
@@ -173,48 +222,57 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
                         </FilterButton>
                         <FilterButton
                             title="Services running in Devant"
-                            active={filterType === "internal"}
-                            onClick={() => setFilterType("internal")}
+                            active={filterType === "internal-services"}
+                            onClick={() => setFilterType("internal-services")}
                         >
-                            Internal
+                            Internal Services
                         </FilterButton>
                         <FilterButton
                             title="Services configured in Devant"
-                            active={filterType === "thirdParty"}
-                            onClick={() => setFilterType("thirdParty")}
+                            active={filterType === "third-party-services"}
+                            onClick={() => setFilterType("third-party-services")}
                         >
-                            Third Party
+                            Third Party Services
+                        </FilterButton>
+                        <FilterButton
+                            title="Databases in Devant"
+                            active={filterType === "databases"}
+                            onClick={() => setFilterType("databases")}
+                        >
+                            Databases
                         </FilterButton>
                     </FilterButtons>
                 </SectionHeader>
                 <ConnectionSection
                     emptyText={emptyText}
-                    loading={isLoadingMarketplace}
-                    data={marketplaceServices?.data || []}
+                    loading={isLoading}
+                    data={items}
                     searchText={searchText}
-                    onItemClick={(item) => handleMarketplaceItemClick(item)}
-                    disableItems={loadingBalOrgConnectors}
+                    renderItem={(item) => (
+                        <ButtonCard
+                            id={`connector-${item.resourceId}`}
+                            title={item.name}
+                            description={item.description}
+                            icon={<Codicon name="package" />}
+                            onClick={() => handleMarketplaceItemClick(item)}
+                            disabled={loadingBalOrgConnectors}
+                        />
+                    )}
                 />
             </Section>
         </>
     );
 }
 
-const ConnectionSection = ({
-    emptyText,
-    loading,
-    data,
-    searchText,
-    onItemClick,
-    disableItems = false,
-}: {
+interface ConnectionSectionProps<T> {
     emptyText?: string;
     loading: boolean;
-    data: MarketplaceItem[];
+    data: T[];
     searchText: string;
-    onItemClick: (item: MarketplaceItem) => void;
-    disableItems?: boolean;
-}) => {
+    renderItem: (item: T) => React.ReactNode;
+}
+
+const ConnectionSection = <T,>({ emptyText, loading, data, searchText, renderItem }: ConnectionSectionProps<T>) => {
     return (
         <>
             {loading ? (
@@ -237,19 +295,9 @@ const ConnectionSection = ({
                         </>
                     ) : (
                         <ConnectorsGrid>
-                            {data?.map((item) => {
-                                return (
-                                    <ButtonCard
-                                        id={`connector-${item.serviceId}`}
-                                        key={item.serviceId}
-                                        title={item.name}
-                                        description={item.description}
-                                        icon={<Codicon name="package" />}
-                                        onClick={() => onItemClick(item)}
-                                        disabled={disableItems}
-                                    />
-                                );
-                            })}
+                            {data?.map((item, index) => (
+                                <React.Fragment key={index}>{renderItem(item)}</React.Fragment>
+                            ))}
                         </ConnectorsGrid>
                     )}
                 </>

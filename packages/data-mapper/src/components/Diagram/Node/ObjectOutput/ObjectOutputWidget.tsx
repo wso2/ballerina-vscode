@@ -152,21 +152,31 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 						}
 					</span>
 					<span className={classes.label}>
-						<Button
-							id={"expand-or-collapse-" + id} 
-							appearance="icon"
-							tooltip="Expand/Collapse"
-							onClick={handleExpand}
-							data-testid={`${id}-expand-icon-mapping-target-node`}
-						>
-							{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
-						</Button>
+						{outputType.category !== InputCategory.ConvertedVariable ? (
+							<Button
+								id={"expand-or-collapse-" + id}
+								appearance="icon"
+								tooltip="Expand/Collapse"
+								onClick={handleExpand}
+								data-testid={`${id}-expand-icon-mapping-target-node`}
+							>
+								{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
+							</Button>
+						) : (
+							<Button
+								id={"converted-icon-" + id}
+								appearance="icon"
+								tooltip="Type defined variable"
+							>
+								<Icon name="arrow-left-up" />
+							</Button>
+						)}
 						{label}
 						{outputType.category === InputCategory.ConvertedVariable && (
 							<FieldActionButton
 								id={"field-action-edit-" + id}
 								tooltip="Edit"
-								iconName="settings-gear"
+								iconName="edit"
 								onClick={async () => await context.createConvertedVariable(outputType.name, false, outputType.typeName)}
 							/>
 						)}
@@ -192,30 +202,24 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 				)}
 			</TreeContainer>
 			{expanded && outputType.convertedField &&
-                <>
-                    <ArrowWidget direction="up" />
-                    <ObjectOutputWidget
-						engine={engine}
-						id={`${OBJECT_OUTPUT_TARGET_PORT_PREFIX}.${outputType.convertedField.name}`}
-						outputType={outputType.convertedField}
-						typeName={outputType.convertedField.typeName}
-						value={undefined}
-						getPort={getPort}
-						context={context}
-						mappings={mappings}
-						valueLabel={outputType.convertedField.name}
-						originalTypeName={outputType.convertedField.typeName}
-					/>
-                </>
-            }
+				<ObjectOutputWidget
+					engine={engine}
+					id={`${OBJECT_OUTPUT_TARGET_PORT_PREFIX}.${outputType.convertedField.name}`}
+					outputType={outputType.convertedField}
+					typeName={outputType.convertedField.typeName}
+					value={undefined}
+					getPort={getPort}
+					context={context}
+					mappings={mappings}
+					valueLabel={outputType.convertedField.name}
+					originalTypeName={outputType.convertedField.typeName}
+				/>
+			}
 			{expanded && isConvertibleType && !outputType.convertedField &&
-				<>
-					<ArrowWidget direction="up" />
-					<PayloadWidget
-						onClick={async () => await context.createConvertedVariable(valueLabel, false, undefined, outputType.typeName)}
-						typeName={outputType.typeName}
-					/>
-				</>
+				<PayloadWidget
+					onClick={async () => await context.createConvertedVariable(valueLabel, false, undefined, outputType.typeName)}
+					typeName={outputType.typeName.toUpperCase()}
+				/>
 			}
 		</>
 	);

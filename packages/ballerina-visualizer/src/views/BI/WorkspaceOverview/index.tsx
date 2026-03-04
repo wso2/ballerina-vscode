@@ -27,7 +27,7 @@ import {
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { useQuery } from "@tanstack/react-query";
 import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
-import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox } from "@wso2/ui-toolkit";
+import { Typography, Codicon, ProgressRing, Button, Icon, Divider } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { ThemeColors } from "@wso2/ui-toolkit";
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
@@ -522,11 +522,22 @@ function DeploymentOptions({
 }
 
 interface IntegrationControlPlaneProps {
-    enabled: boolean;
-    handleICP: (checked: boolean) => void;
+    icpState: "all" | "partial" | "none";
+    enabledCount: number;
+    totalCount: number;
+    onEnableAll: () => void;
+    onDisableAll: () => void;
+    onEnableRemaining: () => void;
 }
 
-function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlaneProps) {
+function IntegrationControlPlane({
+    icpState,
+    enabledCount,
+    totalCount,
+    onEnableAll,
+    onDisableAll,
+    onEnableRemaining
+}: IntegrationControlPlaneProps) {
     const { rpcClient } = useRpcContext();
 
     const openLearnMoreURL = () => {
@@ -542,11 +553,24 @@ function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlane
                 {"Monitor the deployment runtime using WSO2 Integration Control Plane."}
                 <VSCodeLink onClick={openLearnMoreURL} style={{ marginLeft: '4px' }}> Learn More </VSCodeLink>
             </p>
-            <CheckBox
-                checked={enabled}
-                onChange={handleICP}
-                label="Enable WSO2 Integrator: ICP"
-            />
+            <Description variant="body3" sx={{ marginBottom: "8px" }}>
+                {totalCount > 0 ? `${enabledCount}/${totalCount} packages are ICP-enabled` : "No ICP-eligible packages found"}
+            </Description>
+            {icpState === "all" && (
+                <Button appearance="secondary" onClick={onDisableAll}>
+                    Disable ICP for all packages
+                </Button>
+            )}
+            {icpState === "none" && (
+                <Button appearance="secondary" onClick={onEnableAll}>
+                    Enable ICP for all packages
+                </Button>
+            )}
+            {icpState === "partial" && (
+                <Button appearance="secondary" onClick={onEnableRemaining}>
+                    Enable ICP for remaining packages
+                </Button>
+            )}
         </div>
     );
 }
@@ -555,7 +579,7 @@ export function WorkspaceOverview() {
     const { rpcClient } = useRpcContext();
     const [readmeContent, setReadmeContent] = React.useState<string>("");
     const [workspaceStructure, setWorkspaceStructure] = React.useState<ProjectStructureResponse>();
-    const [enabled, setEnableICP] = React.useState(false);
+    const [icpStatusByProjectPath, setIcpStatusByProjectPath] = React.useState<Record<string, boolean>>({});
 
     const [showAlert, setShowAlert] = React.useState(false);
 
@@ -564,6 +588,34 @@ export function WorkspaceOverview() {
         queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
         refetchInterval: 5000
     });
+
+    const getICPProjectPaths = (projects: ProjectStructureResponse["projects"]) => {
+        return projects
+            .filter((project) => !(project?.isLibrary ?? false))
+            .map((project) => project.projectPath);
+    };
+
+    const syncWorkspaceICPStatus = async (projectPaths: string[]) => {
+        if (projectPaths.length === 0) {
+            setIcpStatusByProjectPath({});
+            return;
+        }
+
+        try {
+            const icpStatus = await Promise.all(
+                projectPaths.map((projectPath) =>
+                    rpcClient.getICPRpcClient().isIcpEnabled({ projectPath })
+                )
+            );
+            const nextStatusMap = projectPaths.reduce<Record<string, boolean>>((acc, projectPath, index) => {
+                acc[projectPath] = Boolean(icpStatus[index]?.enabled);
+                return acc;
+            }, {});
+            setIcpStatusByProjectPath(nextStatusMap);
+        } catch (error) {
+            console.error("Failed to sync ICP status:", error);
+        }
+    };
 
     const fetchContext = () => {
         rpcClient
@@ -586,12 +638,7 @@ export function WorkspaceOverview() {
                         setReadmeContent(res.content);
                     });
 
-                rpcClient
-                    .getICPRpcClient()
-                    .isIcpEnabled({ projectPath: '' })
-                    .then((res) => {
-                        setEnableICP(res.enabled);
-                    });
+                syncWorkspaceICPStatus(getICPProjectPaths(res.projects));
             });
     };
 
@@ -615,6 +662,24 @@ export function WorkspaceOverview() {
     const hasStandardIntegrations = useMemo(() => {
         return (workspaceStructure?.projects ?? []).some((project) => !(project?.isLibrary ?? false));
     }, [workspaceStructure?.projects]);
+
+    const icpProjectPaths = useMemo(() => {
+        return workspaceStructure ? getICPProjectPaths(workspaceStructure.projects) : [];
+    }, [workspaceStructure]);
+
+    const icpEnabledCount = useMemo(() => {
+        return icpProjectPaths.filter((projectPath) => Boolean(icpStatusByProjectPath[projectPath])).length;
+    }, [icpProjectPaths, icpStatusByProjectPath]);
+
+    const icpState = useMemo<"all" | "partial" | "none">(() => {
+        if (icpProjectPaths.length === 0 || icpEnabledCount === 0) {
+            return "none";
+        }
+        if (icpEnabledCount === icpProjectPaths.length) {
+            return "all";
+        }
+        return "partial";
+    }, [icpProjectPaths, icpEnabledCount]);
 
     const projectScopes = useMemo(() => {
         return getWorkspaceProjectScopes(workspaceStructure);
@@ -703,20 +768,38 @@ export function WorkspaceOverview() {
         rpcClient.getBIDiagramRpcClient().buildProject(BuildMode.JAR);
     };
 
-    const handleICP = (icpEnabled: boolean) => {
-        if (icpEnabled) {
-            rpcClient.getICPRpcClient().addICP({ projectPath: '' })
-                .then((res) => {
-                    setEnableICP(true);
-                }
-                );
-        } else {
-            rpcClient.getICPRpcClient().disableICP({ projectPath: '' })
-                .then((res) => {
-                    setEnableICP(false);
-                }
-                );
+    const updateICPForProjectPaths = async (projectPaths: string[], enableICP: boolean) => {
+        if (projectPaths.length === 0) {
+            return;
         }
+
+        for (const projectPath of projectPaths) {
+            try {
+                if (enableICP) {
+                    await rpcClient.getICPRpcClient().addICP({ projectPath });
+                } else {
+                    await rpcClient.getICPRpcClient().disableICP({ projectPath });
+                }
+            } catch (error) {
+                console.error("Failed to update ICP for project:", projectPath, error);
+            }
+        }
+    };
+
+    const handleEnableAllICP = async () => {
+        await updateICPForProjectPaths(icpProjectPaths, true);
+        await syncWorkspaceICPStatus(icpProjectPaths);
+    };
+
+    const handleDisableAllICP = async () => {
+        await updateICPForProjectPaths(icpProjectPaths, false);
+        await syncWorkspaceICPStatus(icpProjectPaths);
+    };
+
+    const handleEnableRemainingICP = async () => {
+        const remainingProjectPaths = icpProjectPaths.filter((projectPath) => !icpStatusByProjectPath[projectPath]);
+        await updateICPForProjectPaths(remainingProjectPaths, true);
+        await syncWorkspaceICPStatus(icpProjectPaths);
     };
 
     const goToDevant = () => {
@@ -819,7 +902,11 @@ export function WorkspaceOverview() {
                                     </ButtonContainer>
                                 </EmptyStateContainer>
                             ) : (
-                                <PackageListView workspaceStructure={workspaceStructure} />
+                                <PackageListView
+                                    workspaceStructure={workspaceStructure}
+                                    icpStatusByProjectPath={icpStatusByProjectPath}
+                                    showICPBadge={icpState !== "none"}
+                                />
                             )}
                         </ContentPanel>
                     </Section>
@@ -868,7 +955,14 @@ export function WorkspaceOverview() {
                             deployableProjectPaths={deployableProjectPaths}
                         />
                         <Divider sx={{ margin: "16px 0" }} />
-                        <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
+                        <IntegrationControlPlane
+                            icpState={icpState}
+                            enabledCount={icpEnabledCount}
+                            totalCount={icpProjectPaths.length}
+                            onEnableAll={handleEnableAllICP}
+                            onDisableAll={handleDisableAllICP}
+                            onEnableRemaining={handleEnableRemainingICP}
+                        />
                     </SidePanel>
                 )}
             </MainContent>
