@@ -16,9 +16,9 @@
  * under the License.
  */
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import styled from "@emotion/styled";
-import { ThemeColors, Typography, Button, TextField, Stepper, Icon, Codicon } from "@wso2/ui-toolkit";
+import { ThemeColors, Typography, Button, TextField, Stepper, Icon, Codicon, SearchBox } from "@wso2/ui-toolkit";
 import { IntrospectDatabaseResponse, TableInfo, PropertyModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { LSErrorDetails } from "../DatabaseConnectionPopup";
@@ -120,6 +120,12 @@ const TableName = styled(Typography)`
     font-weight: 500;
     color: ${ThemeColors.ON_SURFACE};
     margin: 0;
+`;
+
+const SearchRow = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
 `;
 
 const SelectAllButton = styled(Button)`
@@ -252,6 +258,7 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
         errorMessage: null,
         isExpanded: false,
     });
+    const [tableSearch, setTableSearch] = useState("");
 
     const steps = ["Introspect Database", "Select Tables"];
 
@@ -401,6 +408,13 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
     const tables = introspectDatabaseResponse?.tables ?? [];
     const selectedTablesCount = tables.filter((t) => t.selected).length;
     const totalTablesCount = tables.length;
+    const filteredTables = useMemo(
+        () =>
+            tables.filter((t) =>
+                t.table.toLowerCase().includes(tableSearch.trim().toLowerCase())
+            ),
+        [tables, tableSearch]
+    );
 
     const renderErrorDisplay = () => {
         if (!connectionError) return null;
@@ -498,13 +512,19 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                                 {selectedTablesCount} of {totalTablesCount} selected
                             </Typography>
                         </div>
-                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <SearchRow>
+                            <SearchBox
+                                value={tableSearch}
+                                placeholder="Search tables..."
+                                onChange={setTableSearch}
+                                sx={{ flex: 1 }}
+                            />
                             <SelectAllButton appearance="secondary" onClick={handleSelectAll}>
                                 {selectedTablesCount === totalTablesCount && totalTablesCount > 0 ? "Deselect All" : "Select All"}
                             </SelectAllButton>
-                        </div>
+                        </SearchRow>
                         <TablesGrid>
-                            {tables.map((t) => (
+                            {filteredTables.map((t) => (
                                 <TableCard
                                     key={t.table}
                                     selected={t.selected}
