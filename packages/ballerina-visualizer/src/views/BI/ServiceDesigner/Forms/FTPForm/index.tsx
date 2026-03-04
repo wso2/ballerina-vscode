@@ -168,6 +168,11 @@ export interface FTPFormProps {
     selectedHandler?: string;
 }
 
+type MoveToValidationState = {
+    isValidating: boolean;
+    hasValidationFailure: boolean;
+};
+
 export function FTPForm(props: FTPFormProps) {
     const { model, isSaving, onSave, onClose, isNew, selectedHandler } = props;
 
@@ -516,10 +521,12 @@ export function FTPForm(props: FTPFormProps) {
         isMoveToRequiredAndEmpty(postProcessActionOnError, selectedErrorAction);
 
     const [moveToDiagnosticsByAction, setMoveToDiagnosticsByAction] = useState<Record<string, Diagnostic[]>>({});
+    const [moveToValidationStateByAction, setMoveToValidationStateByAction] = useState<Record<string, MoveToValidationState>>({});
 
     useEffect(() => {
         // Reset diagnostics when switching between handlers (to avoid leaking state across handler forms).
         setMoveToDiagnosticsByAction({});
+        setMoveToValidationStateByAction({});
     }, [functionModel?.name?.value]);
 
     const handleMoveToDiagnosticsChange = useCallback((propertyKey: string, diagnostics: Diagnostic[]) => {
@@ -533,7 +540,37 @@ export function FTPForm(props: FTPFormProps) {
         return Object.values(moveToDiagnosticsByAction).some((diags) => diags?.some((d) => d.severity === 1));
     }, [moveToDiagnosticsByAction]);
 
-    const isSaveDisabled = hasInvalidMoveTo || hasMoveToErrorDiagnostics;
+    const handleMoveToValidationStateChange = useCallback(
+        (propertyKey: string, state: MoveToValidationState) => {
+            setMoveToValidationStateByAction(prev => ({
+                ...prev,
+                [propertyKey]: state
+            }));
+        },
+        []
+    );
+
+    const hasPendingMoveToValidation = useMemo(() => {
+        return Object.values(moveToValidationStateByAction).some((state) => state?.isValidating);
+    }, [moveToValidationStateByAction]);
+
+    const hasMoveToValidationFailure = useMemo(() => {
+        return Object.values(moveToValidationStateByAction).some((state) => state?.hasValidationFailure);
+    }, [moveToValidationStateByAction]);
+
+    const isSaveDisabled = hasInvalidMoveTo || hasMoveToErrorDiagnostics || hasPendingMoveToValidation || hasMoveToValidationFailure;
+    const saveTooltip = useMemo(() => {
+        if (isSaving) {
+            return "Saving...";
+        }
+        if (hasPendingMoveToValidation) {
+            return "Waiting for Move To diagnostics...";
+        }
+        if (isSaveDisabled) {
+            return "Fix Move To validation errors";
+        }
+        return "Save";
+    }, [isSaveDisabled, isSaving, hasPendingMoveToValidation]);
 
     // Generic handler for post-process action change (nested under postProcessAction)
     const handleActionChange = (propertyKey: string, _action: PropertyModel | undefined, value: string) => {
@@ -757,6 +794,7 @@ export function FTPForm(props: FTPFormProps) {
                             disabled={isSaving}
                             onChange={(value) => handleMoveToChangeGeneric(propertyKey, action, value)}
                             onDiagnosticsChange={(diags) => handleMoveToDiagnosticsChange(propertyKey, diags)}
+                            onValidationStateChange={(state) => handleMoveToValidationStateChange(propertyKey, state)}
                         />
                     </NestedFields>
                 )}
@@ -961,7 +999,7 @@ export function FTPForm(props: FTPFormProps) {
                     primaryButton={{
                         text: isSaving ? "Saving..." : "Save",
                         onClick: handleSave,
-                        tooltip: isSaving ? "Saving..." : isSaveDisabled ? "Fix Move To validation errors" : "Save",
+                        tooltip: saveTooltip,
                         disabled: isSaving || isSaveDisabled,
                         loading: isSaving,
                     }}
