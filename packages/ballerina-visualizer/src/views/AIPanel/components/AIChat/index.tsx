@@ -136,7 +136,6 @@ const AIChat: React.FC = () => {
     const [showSettings, setShowSettings] = useState(false);
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Edit);
-    const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
     const [showReviewActions, setShowReviewActions] = useState(false);
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
 
@@ -303,19 +302,6 @@ const AIChat: React.FC = () => {
         initializeCheckpoints();
     }, [rpcClient]);
 
-    useEffect(() => {
-        const checkPlanModeFeatureEnabled = async () => {
-            try {
-                const enabled = await rpcClient.getAiPanelRpcClient().isPlanModeFeatureEnabled();
-                setIsPlanModeFeatureEnabled(enabled);
-            } catch (error) {
-                console.error("[AIChat] Failed to check plan mode feature enabled status:", error);
-                setIsPlanModeFeatureEnabled(false);
-            }
-        };
-
-        checkPlanModeFeatureEnabled();
-    }, [rpcClient]);
 
     useEffect(() => {
         const handleHideReviewActions = () => {
@@ -1683,7 +1669,7 @@ const AIChat: React.FC = () => {
                             codeContext={codeContext}
                             onRemoveCodeContext={() => setCodeContext(undefined)}
                             agentMode={agentMode}
-                            onChangeAgentMode={isPlanModeFeatureEnabled ? handleChangeAgentMode : undefined}
+                            onChangeAgentMode={handleChangeAgentMode}
                             isAutoApproveEnabled={isAutoApproveEnabled}
                             onDisableAutoApprove={handleToggleAutoApprove}
                             disabled={isUsageExceeded}
