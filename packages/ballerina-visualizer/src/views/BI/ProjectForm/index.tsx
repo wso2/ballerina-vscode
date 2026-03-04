@@ -49,6 +49,7 @@ export function ProjectForm() {
     const [integrationNameError, setIntegrationNameError] = useState<string | null>(null);
     const [pathError, setPathError] = useState<string | null>(null);
     const [packageNameValidationError, setPackageNameValidationError] = useState<string | null>(null);
+    const [workspaceNameError, setWorkspaceNameError] = useState<string | null>(null);
 
     const handleFormDataChange = (data: Partial<ProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
@@ -62,6 +63,9 @@ export function ProjectForm() {
         if (packageNameValidationError) {
             setPackageNameValidationError(null);
         }
+        if (workspaceNameError) {
+            setWorkspaceNameError(null);
+        }
     };
 
     const handleCreateProject = async () => {
@@ -69,6 +73,7 @@ export function ProjectForm() {
         setIntegrationNameError(null);
         setPathError(null);
         setPackageNameValidationError(null);
+        setWorkspaceNameError(null);
 
         let hasError = false;
 
@@ -103,13 +108,19 @@ export function ProjectForm() {
                 projectPath: formData.path,
                 projectName: formData.createAsWorkspace ? formData.workspaceName : formData.packageName,
                 createDirectory: formData.createDirectory,
+                createAsWorkspace: formData.createAsWorkspace,
             });
 
             if (!validationResult.isValid) {
                 if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
                     setPathError(validationResult.errorMessage || "Invalid project path");
                 } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
-                    setPackageNameValidationError(validationResult.errorMessage || "Invalid project name");
+                    // For workspace projects, route name errors to workspace name field
+                    if (formData.createAsWorkspace) {
+                        setWorkspaceNameError(validationResult.errorMessage || "Invalid workspace name");
+                    } else {
+                        setPackageNameValidationError(validationResult.errorMessage || "Invalid project name");
+                    }
                 }
                 setIsValidating(false);
                 return;
@@ -169,6 +180,7 @@ export function ProjectForm() {
                         integrationNameError={integrationNameError || undefined}
                         pathError={pathError || undefined}
                         packageNameValidationError={packageNameValidationError || undefined}
+                        workspaceNameError={workspaceNameError || undefined}
                     />
                 </ScrollableContent>
 

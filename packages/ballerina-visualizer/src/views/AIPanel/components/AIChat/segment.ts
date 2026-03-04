@@ -1,3 +1,4 @@
+import { StreamEntry } from "../AgentStreamView/types";
 
 export enum SegmentType {
     Code = "Code",
@@ -14,6 +15,7 @@ export enum SegmentType {
     ConfigurationCollector = "ConfigurationCollector",
     ReviewActions = "ReviewActions",
     TryItScenarios = "TryItScenarios",
+    AgentStream = "AgentStream",
 }
 
 interface Segment {
@@ -82,13 +84,70 @@ function splitHalfGeneratedCode(content: string): Segment[] {
     return segments;
 }
 
+// ── Partial JSON parser for <agentstream> during live streaming ───────────────
+//
+// During streaming, message.content holds a partially-written JSON blob inside
+// <agentstream>...</agentstream>. We attempt a full parse first, then fall back
+// to extracting complete StreamEntry objects using bracket-depth tracking.
+
+function parsePartialAgentStream(raw: string): { entries: StreamEntry[]; isPartial: boolean } {
+    // 1. Try a full parse first
+    try {
+        const parsed = JSON.parse(raw);
+        return { entries: parsed.entries ?? [], isPartial: false };
+    } catch { /* fall through to partial parsing */ }
+
+    // 2. Best-effort: extract complete top-level objects from the entries array.
+    // The expected structure is: {"entries":[{...},{...},...
+    const entriesMatch = raw.match(/"entries"\s*:\s*\[/);
+    if (!entriesMatch || entriesMatch.index === undefined) {
+        return { entries: [], isPartial: true };
+    }
+
+    const arrayStart = entriesMatch.index + entriesMatch[0].length;
+    const entries: StreamEntry[] = [];
+    let i = arrayStart;
+    let depth = 0;
+    let objStart = -1;
+
+    let inString = false;
+    let escaped = false;
+    while (i < raw.length) {
+        const ch = raw[i];
+        if (escaped) {
+            escaped = false;
+        } else if (ch === "\\") {
+            escaped = true;
+        } else if (ch === "\"") {
+            inString = !inString;
+        } else if (!inString) {
+            if (ch === "{") {
+                if (depth === 0) objStart = i;
+                depth++;
+            } else if (ch === "}") {
+                depth--;
+                if (depth === 0 && objStart !== -1) {
+                    try {
+                        const entry = JSON.parse(raw.slice(objStart, i + 1)) as StreamEntry;
+                        entries.push(entry);
+                    } catch { /* skip malformed entry */ }
+                    objStart = -1;
+                }
+            }
+        }
+        i++;
+    }
+
+    return { entries, isPartial: true };
+}
+
 export function splitContent(content: string): Segment[] {
     const segments: Segment[] = [];
 
     // Combined regex to capture either <code ...>```<language> code ```</code> or <progress>Text</progress>
     // Using matchAll for stateless iteration to avoid regex lastIndex corruption during streaming
     const regexPattern =
-        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall(?:\s+[^>]*)?>([\s\S]*?)<\/toolcall>|<toolresult(?:\s+[^>]*)?>([\s\S]*?)<\/toolresult>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>|<reviewactions>([\s\S]*?)<\/reviewactions>|<configurationcollector>([\s\S]*?)<\/configurationcollector>|<tryitcall(?:\s+[^>]*)?>([\s\S]*?)<\/tryitcall>|<tryitresult(?:\s+[^>]*)?>([\s\S]*?)<\/tryitresult>/g;
+        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall(?:\s+[^>]*)?>([\s\S]*?)<\/toolcall>|<toolresult(?:\s+[^>]*)?>([\s\S]*?)<\/toolresult>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>|<reviewactions>([\s\S]*?)<\/reviewactions>|<configurationcollector>([\s\S]*?)<\/configurationcollector>|<tryitcall(?:\s+[^>]*)?>([\s\S]*?)<\/tryitcall>|<tryitresult(?:\s+[^>]*)?>([\s\S]*?)<\/tryitresult>|<agentstream>([\s\S]*?)<\/agentstream>/g;
 
     // Convert to array to avoid stateful regex iteration issues
     const matches = Array.from(content.matchAll(regexPattern));
@@ -302,6 +361,18 @@ export function splitContent(content: string): Segment[] {
                     text: tryitresultText,
                 });
             }
+        } else if (match[20] !== undefined) {
+            // <agentstream> block matched — new unified agent stream format
+            const agentStreamData = match[20];
+
+            updateLastProgressSegmentLoading();
+            const { entries, isPartial } = parsePartialAgentStream(agentStreamData);
+            segments.push({
+                type: SegmentType.AgentStream,
+                loading: isPartial,
+                text: "",
+                stream: entries,
+            });
         }
 
         // Update lastIndex to the end of the current match
