@@ -109,8 +109,8 @@ export function ResourceResponse(props: ResourceParamProps) {
                         method={method}
                         response={response}
                         readonly={editingSegmentId !== -1 || readonly}
-                        onDelete={response.editable !== false ? () => onDelete(index) : undefined}
-                        onEditClick={response.editable !== false ? () => onEdit(response, index) : undefined}
+                        onDelete={() => onDelete(index)}
+                        onEditClick={() => onEdit(response, index)}
                     />
                 )
             })}
