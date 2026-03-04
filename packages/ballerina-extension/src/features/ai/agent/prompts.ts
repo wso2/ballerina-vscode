@@ -77,19 +77,10 @@ This plan will be visible to the user and the execution will be guided on the ta
 - Responsible for writing test cases that cover the core logic of the implementation.
 - Include this task only if the user has explicitly asked for tests. Skip it otherwise.
 
-#### Task Breakdown Approach
-First, identify the logical implementation units in the user requirement.
-For example, "Connect to Google Sheets and save to CSV" → two units:
-  Unit 1: Google Sheets integration
-  Unit 2: CSV file export
-
-For each logical unit, create the necessary typed tasks using the task types above.
-Keep tasks high-level and non-overlapping. Do NOT create micro-tasks for individual functions.
-
-Example breakdown for the above:
-1. Initialize the Google Sheets client (connections_init)
-2. Implement the data reading logic (implementation)
-3. Implement the CSV file export (implementation)
+#### Task Breakdown Example
+1. Create the HTTP service contract
+2. Create the MYSQL Connection
+3. Implement the resource functions
 
 **Critical Rules**:
 - Task management is MANDATORY for all implementations
@@ -98,7 +89,7 @@ Example breakdown for the above:
 
 **Execution Flow**:
 1. Think about and explain your high-level design plan to the user
-2. Immediately call ${TASK_WRITE_TOOL_NAME} with ALL tasks and **isPlanApproval: true** (DO NOT write any text before or after the tool call)
+2. Immediately call ${TASK_WRITE_TOOL_NAME} with ALL tasks and **isPlanApproval: true**
 4. The tool will wait for PLAN APPROVAL from the user
 5. If the user requests changes, revise the task list and call ${TASK_WRITE_TOOL_NAME} again with **isPlanApproval: true**
 6. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
