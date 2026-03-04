@@ -95,14 +95,14 @@ This plan will be visible to the user and the execution will be guided on the ta
 6. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
 
    **For each task:**
-   - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} and immediately start implementation in parallel (single message with multiple tool calls)
+   - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} and immediately start implementation in parallel (single message with multiple tool calls). **IMPORTANT: ${TASK_WRITE_TOOL_NAME} MUST always be the FIRST tool call in the message — place it before any other parallel tool calls.**
    - Implement the task completely (write the Ballerina code)
    - When implementing external API integrations:
      - First use ${LIBRARY_SEARCH_TOOL} with relevant keywords to discover available libraries
      - Then use ${LIBRARY_GET_TOOL} to fetch full details for the discovered libraries
      - If NO suitable library is found, call ${CONNECTOR_GENERATOR_TOOL} to generate connector from OpenAPI spec
    - Before marking the task as completed, use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them.
-   - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks, no approval flags) — the agent continues automatically
+   - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks, no approval flags) — the agent continues automatically. **IMPORTANT: When marking a task as completed in a message with other tool calls, ${TASK_WRITE_TOOL_NAME} MUST always be the LAST tool call in the message.**
    - After completing a logical unit of work (a set of related tasks), set **requestReview: true** on the TaskWrite call to let the user review before continuing. Do NOT set this after every single task.
    - Repeat until ALL tasks are done
 
