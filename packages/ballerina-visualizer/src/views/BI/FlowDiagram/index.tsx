@@ -122,6 +122,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [showSidePanel, setShowSidePanel] = useState(false);
     const [sidePanelView, setSidePanelView] = useState<SidePanelView>(SidePanelView.NODE_LIST);
     const [categories, setCategories] = useState<PanelCategory[]>([]); //
+    const [searchText, setSearchText] = useState<string>("");
+    const [isSearching, setIsSearching] = useState(false);
     const [fetchingAiSuggestions, setFetchingAiSuggestions] = useState(false);
     const [showProgressIndicator, setShowProgressIndicator] = useState(false);
     const [showProgressSpinner, setShowProgressSpinner] = useState<boolean>(false);
@@ -835,11 +837,66 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 const filteredCategories = transformCategories(response.categories);
                 const convertedCategories = convertBICategoriesToSidePanelCategories(filteredCategories);
 
-                setCategories(convertedCategories);
-                initialCategoriesRef.current = convertedCategories; // Store initial categories
+                // Store initial categories for later merging
+                let finalCategories = convertedCategories;
+                initialCategoriesRef.current = convertedCategories;
 
                 setShowSidePanel(true);
                 setSidePanelView(SidePanelView.NODE_LIST);
+
+                // Call search API with SearchCommand ALL for better NodeList
+                const searchAllRequest: BISearchRequest = {
+                    position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                    filePath: model.fileName,
+                    queryMap: undefined,
+                    searchKind: "ALL",
+                };
+
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .search(searchAllRequest)
+                    .then((searchResponse) => {
+                        console.log(">>> Search ALL response for NodeList", searchResponse);
+                        if (searchResponse.categories) {
+                            // Update categories with search results, but merge with existing converted categories
+                            const allCategories = convertFunctionCategoriesToSidePanelCategories(
+                                searchResponse.categories as Category[],
+                                FUNCTION_TYPE.REGULAR
+                            );
+
+                            // Merge categories while avoiding duplicates by checking category title/label
+                            const mergedCategories = [...convertedCategories];
+
+                            allCategories.forEach(newCategory => {
+                                const existingCategoryIndex = mergedCategories.findIndex(
+                                    existingCategory => existingCategory.title === newCategory.title
+                                );
+
+                                if (existingCategoryIndex >= 0) {
+                                    // Merge items if category exists, avoiding duplicate items
+                                    const existingCategory = mergedCategories[existingCategoryIndex];
+                                    const existingItemLabels = new Set(existingCategory.items.map(item => item.description));
+                                    const newItems = newCategory.items.filter(item => !existingItemLabels.has(item.description));
+                                    mergedCategories[existingCategoryIndex] = {
+                                        ...existingCategory,
+                                        items: [...existingCategory.items, ...newItems]
+                                    };
+                                } else {
+                                    // Add new category
+                                    mergedCategories.push(newCategory);
+                                }
+                            });
+
+                            finalCategories = mergedCategories;
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(">>> Error in search ALL request", error);
+                    })
+                    .finally(() => {
+                        // Set categories only once at the end of all operations
+                        setCategories(finalCategories);
+                    });
             })
             .finally(() => {
                 setShowProgressIndicator(false);
@@ -907,33 +964,57 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         rpcClient.getAiPanelRpcClient().openAIPanel(aiPrompt);
     };
 
-    const handleSearch = async (searchText: string, functionType: FUNCTION_TYPE, searchKind: SearchKind) => {
+    const handleSearch = useCallback(async (searchText: string, functionType: FUNCTION_TYPE, searchKind: SearchKind) => {
         const request: BISearchRequest = {
             position: {
                 startLine: targetRef.current.startLine,
                 endLine: targetRef.current.endLine,
             },
             filePath: model.fileName,
-            queryMap: searchText.trim()
-                ? {
-                    q: searchText,
-                    limit: 12,
-                    offset: 0,
-                    includeAvailableFunctions: "true",
-                }
-                : undefined,
+            queryMap: {
+                q: searchText.trim(),
+                limit: 12,
+                offset: 0,
+                includeAvailableFunctions: "true",
+            },
             searchKind,
         };
         console.log(`>>> Search ${searchKind.toLowerCase()} request`, request);
-        setShowProgressIndicator(true);
-        rpcClient
-            .getBIDiagramRpcClient()
-            .search(request)
-            .then((response) => {
-                console.log(`>>> Searched List of ${searchKind.toLowerCase()}`, response);
-                setCategories(
-                    convertFunctionCategoriesToSidePanelCategories(response.categories as Category[], functionType)
+
+        try {
+            const response = await rpcClient.getBIDiagramRpcClient().search(request);
+            console.log(`>>> Searched List of ${searchKind.toLowerCase()}`, response);
+
+            if (response.categories) {
+                const searchCategories = convertFunctionCategoriesToSidePanelCategories(
+                    response.categories as Category[],
+                    functionType
                 );
+
+                // Merge search results with cached initial categories from getAvailableNodes
+                const mergedCategories = [...initialCategoriesRef.current];
+
+                searchCategories.forEach(searchCategory => {
+                    const existingCategoryIndex = mergedCategories.findIndex(
+                        existingCategory => existingCategory.title === searchCategory.title
+                    );
+
+                    if (existingCategoryIndex >= 0) {
+                        // Merge items if category exists, avoiding duplicate items
+                        const existingCategory = mergedCategories[existingCategoryIndex];
+                        // const existingItemLabels = new Set(existingCategory.items.map(item => item.label));
+                        // const newItems = searchCategory.items.filter(item => !existingItemLabels.has(item.label));
+                        mergedCategories[existingCategoryIndex] = {
+                            ...existingCategory,
+                            items: [...existingCategory.items, ...searchCategories]
+                        };
+                    } else {
+                        // Add new category from search results
+                        mergedCategories.push(searchCategory);
+                    }
+                });
+
+                setCategories(mergedCategories);
 
                 // Set the appropriate side panel view based on search kind and function type
                 let panelView: SidePanelView;
@@ -971,11 +1052,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
                 setSidePanelView(panelView);
                 setShowSidePanel(true);
-            })
-            .finally(() => {
-                setShowProgressIndicator(false);
-            });
-    };
+            }
+        } catch (error) {
+            console.error(">>> Error in search request", error);
+            // Fallback to cached categories on error
+            setCategories(initialCategoriesRef.current);
+        } finally {
+            setIsSearching(false);
+        }
+    }, [rpcClient, model?.fileName]);
 
     const handleSearchNpFunction = async (searchText: string, functionType: FUNCTION_TYPE) => {
         await handleSearch(searchText, functionType, "NP_FUNCTION");
@@ -1008,6 +1093,66 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const handleSearchChunker = async (searchText: string, functionType: FUNCTION_TYPE) => {
         // await handleSearch(searchText, functionType, "CHUNKER");
     };
+
+    const handleSearchTextChange = (text: string) => {
+        console.log(">>> handleSearchTextChange called with:", text);
+        setSearchText(text);
+    };
+
+    // Frontend filtering function for cached categories
+    const filterCategoriesLocally = useCallback((categories: any[], searchText: string) => {
+        if (!searchText.trim()) return categories;
+
+        return categories.map(category => ({
+            ...category,
+            items: category.items?.filter((item: any) =>
+                item.label?.toLowerCase().includes(searchText.toLowerCase()) ||
+                item.description?.toLowerCase().includes(searchText.toLowerCase())
+            )
+        })).filter(category => category.items && category.items.length > 0);
+    }, []);
+
+    // Debounced search following AddConnectionPopupContent pattern
+    const debouncedSearch = useMemo(
+        () => debounce((searchText: string) => {
+            console.log(">>> debouncedSearch executing with:", searchText);
+            if (searchText.trim()) {
+                // First show frontend filtered results immediately (this runs after debounce)
+                const frontendFiltered = filterCategoriesLocally(initialCategoriesRef.current, searchText);
+                setCategories(frontendFiltered);
+
+                // Then enhance with backend search
+                setIsSearching(true);
+                console.log(">>> About to call handleSearch with:", searchText, "FUNCTION_TYPE.REGULAR", "ALL");
+                handleSearch(searchText, FUNCTION_TYPE.REGULAR, "ALL");
+            } else {
+                // Reset to cached categories when search is empty
+                setCategories(initialCategoriesRef.current);
+                setIsSearching(false);
+            }
+        }, 1100), // 1100ms delay like AddConnectionPopupContent
+        [handleSearch]
+    );
+
+    // Effect to handle search text changes
+    useEffect(() => {
+        console.log(">>> useEffect searchText changed:", searchText);
+        if (searchText.trim()) {
+            // Show instant frontend filtering
+            const frontendFiltered = filterCategoriesLocally(initialCategoriesRef.current, searchText);
+            setCategories(frontendFiltered);
+
+            // Then trigger debounced backend search enhancement
+            console.log(">>> Calling debouncedSearch with:", searchText);
+            debouncedSearch(searchText);
+        } else {
+            // Reset immediately when search is cleared
+            setCategories(initialCategoriesRef.current);
+            debouncedSearch.cancel();
+            setIsSearching(false);
+        }
+        return () => debouncedSearch.cancel();
+    }, [searchText, debouncedSearch]);
 
     const updateArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
         await rpcClient.getVisualizerRpcClient().updateCurrentArtifactLocation(artifacts);
@@ -2576,6 +2721,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onResetUpdatedExpressionField={handleResetUpdatedExpressionField}
                 onSearchFunction={handleSearchFunction}
                 onSearchNpFunction={handleSearchNpFunction}
+                onSearchTextChange={handleSearchTextChange}
+                isSearching={isSearching}
                 onSearchModelProvider={handleSearchModelProvider}
                 onSearchVectorStore={handleSearchVectorStore}
                 onSearchEmbeddingProvider={handleSearchEmbeddingProvider}

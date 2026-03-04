@@ -126,12 +126,15 @@ interface PanelManagerProps {
     onResetUpdatedExpressionField: () => void;
     onSearchFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchNpFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchAll?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchModelProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchVectorStore?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchEmbeddingProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchVectorKnowledgeBase?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchDataLoader?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchChunker?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchTextChange?: (searchText: string) => void;
+    isSearching?: boolean;
     onAddAgent?: () => void;
     onEditAgent?: () => void;
     onNavigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
@@ -198,6 +201,8 @@ export function PanelManager(props: PanelManagerProps) {
         onResetUpdatedExpressionField,
         onSearchFunction,
         onSearchNpFunction,
+        onSearchTextChange,
+        onSearchAll,
         onSearchVectorStore,
         onSearchEmbeddingProvider,
         onSearchVectorKnowledgeBase,
@@ -250,6 +255,7 @@ export function PanelManager(props: PanelManagerProps) {
             case SidePanelView.NODE_LIST:
                 return (
                     <NodeList
+                        onSearchTextChange={onSearchTextChange}
                         categories={categories}
                         onSelect={onSelectNode}
                         onAddConnection={onAddConnection}
@@ -335,7 +341,7 @@ export function PanelManager(props: PanelManagerProps) {
                     <NodeList
                         categories={categories}
                         onSelect={onSelectNode}
-                        onSearchTextChange={(searchText) => onSearchFunction(searchText, FUNCTION_TYPE.REGULAR)}
+                        onSearchTextChange={onSearchTextChange}
                         onAddFunction={onAddFunction}
                         onClose={onClose}
                         title={"Functions"}
@@ -349,7 +355,7 @@ export function PanelManager(props: PanelManagerProps) {
                     <NodeList
                         categories={categories}
                         onSelect={onSelectNode}
-                        onSearchTextChange={(searchText) => onSearchNpFunction(searchText, FUNCTION_TYPE.REGULAR)}
+                        onSearchTextChange={(searchText) => onSearchAll?.(searchText, FUNCTION_TYPE.REGULAR)}
                         onAddFunction={onAddNPFunction}
                         onClose={onClose}
                         title={"Natural Functions"}
