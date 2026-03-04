@@ -876,9 +876,11 @@ export interface BISourceCodeRequest {
 }
 
 export type BISourceCodeResponse = {
-    textEdits: {
+    textEdits?: {
         [key: string]: TextEdit[];
     };
+    errorMsg?: string;
+    stacktrace?: string;
 };
 
 export type BIDeleteByComponentInfoRequest = {

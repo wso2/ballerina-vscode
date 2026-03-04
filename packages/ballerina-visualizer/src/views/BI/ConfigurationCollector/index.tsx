@@ -141,6 +141,7 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
         if (data?.existingValues) {
             setConfigValues(data.existingValues);
         }
+        setVisibleFields({});
     }, [data]);
 
     const handleInputChange = (variableName: string, value: string) => {
