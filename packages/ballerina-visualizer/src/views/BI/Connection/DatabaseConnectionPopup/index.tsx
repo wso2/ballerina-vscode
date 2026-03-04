@@ -16,11 +16,12 @@
  * under the License.
  */
 
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Button, Codicon, ThemeColors, Typography, TextField, Dropdown, OptionProps, Icon, SearchBox } from "@wso2/ui-toolkit";
+import { Button, Codicon, ThemeColors, Typography, TextField, Dropdown, OptionProps, Icon, SearchBox, ProgressRing } from "@wso2/ui-toolkit";
 import { Stepper } from "@wso2/ui-toolkit";
-import { DIRECTORY_MAP, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
+import { DIRECTORY_MAP, IntrospectDatabaseResponse, TableInfo, LinePosition, ParentPopupData, IntrospectCredentialsResponse } from "@wso2/ballerina-core";
+import { PropertyModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PopupOverlay, PopupContainer, PopupHeader, BackButton, HeaderTitleContainer, PopupTitle, PopupSubtitle, CloseButton } from "../styles";
 
@@ -287,25 +288,27 @@ interface DatabaseConnectionPopupProps {
     onBrowseConnectors?: () => void;
 }
 
-type DatabaseType = "PostgreSQL" | "MySQL" | "MSSQL";
-
-interface DatabaseCredentials {
-    databaseType: DatabaseType;
-    host: string;
-    port: number;
-    databaseName: string;
-    username: string;
-    password: string;
-}
-
-interface DatabaseTable {
-    name: string;
-    selected: boolean;
-}
-
-interface LSErrorDetails {
+export interface LSErrorDetails {
     errorMessage: string | null;
     isExpanded: boolean;
+}
+
+function isDatabaseSystemProperty(prop: PropertyModel): boolean {
+    const label = (prop.metadata?.label || "").toLowerCase();
+    return label.includes("database system") || label.includes("db system");
+}
+
+function isPasswordProperty(prop: PropertyModel): boolean {
+    const label = (prop.metadata?.label || "").toLowerCase();
+    return label.includes("password");
+}
+
+function formatDatabaseTypeDisplay(value: string): string {
+    const lower = (value || "").toLowerCase();
+    if (lower.includes("postgres")) return "PostgreSQL";
+    if (lower.includes("mysql")) return "MySQL";
+    if (lower.includes("mssql")) return "MSSQL";
+    return value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : "—";
 }
 
 const DATABASE_TYPES: OptionProps[] = [
@@ -314,10 +317,16 @@ const DATABASE_TYPES: OptionProps[] = [
     { id: "mssql", value: "MSSQL", content: "MSSQL" },
 ];
 
-const DEFAULT_PORTS: Record<DatabaseType, number> = {
-    PostgreSQL: 5432,
-    MySQL: 3306,
-    MSSQL: 1433,
+const DB_SYSTEM_TO_VALUE: Record<string, string> = {
+    PostgreSQL: "postgresql",
+    MySQL: "mysql",
+    MSSQL: "mssql",
+};
+
+const DEFAULT_PORTS: Record<string, number> = {
+    postgresql: 5432,
+    mysql: 3306,
+    mssql: 1433,
 };
 
 export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
@@ -325,15 +334,10 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
     const { rpcClient } = useRpcContext();
 
     const [currentStep, setCurrentStep] = useState(0);
-    const [credentials, setCredentials] = useState<DatabaseCredentials>({
-        databaseType: "MySQL",
-        host: "",
-        port: 3306,
-        databaseName: "",
-        username: "",
-        password: "",
-    });
-    const [tables, setTables] = useState<DatabaseTable[]>([]);
+    const [connectorCredentials, setConnectorCredentials] = useState<IntrospectCredentialsResponse["data"] | null>(null);
+    const [isLoadingCredentials, setIsLoadingCredentials] = useState(true);
+    const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+    const [introspectDatabaseResponse, setIntrospectDatabaseResponse] = useState<IntrospectDatabaseResponse | null>(null);
     const [isIntrospecting, setIsIntrospecting] = useState(false);
     const [connectionName, setConnectionName] = useState("");
     const [isSaving, setIsSaving] = useState(false);
@@ -346,52 +350,85 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
     const steps = ["Introspect Database", "Select Tables", "Create Connection"];
 
-    const handleDatabaseTypeChange = (value: string) => {
-        const dbType = value as DatabaseType;
-        setCredentials({
-            ...credentials,
-            databaseType: dbType,
-            port: DEFAULT_PORTS[dbType],
-        });
-    };
+    const updateFieldValue = useCallback((propKey: string, value: string) => {
+        setFieldValues((prev) => ({ ...prev, [propKey]: value }));
+        setConnectionError(null);
+        setLsErrorDetails({ errorMessage: null, isExpanded: false });
+    }, []);
 
-    const handleCredentialsChange = (field: keyof DatabaseCredentials, value: string) => {
-        setCredentials({
-            ...credentials,
-            [field]: field === "port" ? Number(value) : value,
-        });
-        // Clear error when user modifies credentials
-        if (connectionError) {
-            setConnectionError(null);
-            setLsErrorDetails({ errorMessage: null, isExpanded: false });
+    useEffect(() => {
+        const fetchCredentials = async () => {
+            setIsLoadingCredentials(true);
+            try {
+                const visualizerLocation = await rpcClient.getVisualizerLocation();
+                const projectPath = visualizerLocation.projectPath;
+                const response = await rpcClient.getConnectorWizardRpcClient().introspectCredentials({
+                    projectPath,
+                });
+                if (response?.data?.properties && Object.keys(response.data.properties).length > 0) {
+                    setConnectorCredentials(response.data);
+                    const initial: Record<string, string> = {};
+                    let dbSystemLabel: string | undefined;
+                    Object.values(response.data.properties).forEach((prop) => {
+                        const label = prop.metadata?.label || "";
+                        if (label) {
+                            if (isPasswordProperty(prop)) {
+                                initial[label] = "";
+                            } else if (isDatabaseSystemProperty(prop)) {
+                                dbSystemLabel = label;
+                                initial[label] = (prop.value as string)?.trim() || "mysql";
+                            } else if (label.toLowerCase() === "port") {
+                                initial[label] = (prop.value as string) ?? "3306";
+                            } else {
+                                initial[label] = (prop.value as string) ?? "";
+                            }
+                        }
+                    });
+                    if (dbSystemLabel && !initial[dbSystemLabel]?.trim()) {
+                        initial[dbSystemLabel] = "mysql";
+                    }
+                    setFieldValues(initial);
+                    setIsLoadingCredentials(false);
+                }
+            } catch (err) {
+                console.error(">>> Error fetching connector credentials template", err);
+            }
+        };
+        fetchCredentials();
+    }, [rpcClient]);
+
+    const buildPropertiesFromFieldValues = useCallback((): { [key: string]: PropertyModel } => {
+        const props = connectorCredentials?.properties ?? {};
+        const result: { [key: string]: PropertyModel } = {};
+        for (const [key, prop] of Object.entries(props)) {
+            const label = prop.metadata?.label || "";
+            const value = label in fieldValues ? fieldValues[label] : (prop.value as string) ?? "";
+            result[key] = { ...prop, value };
         }
-    };
+        return result;
+    }, [connectorCredentials?.properties, fieldValues]);
 
     const handleIntrospect = async () => {
+        if (!connectorCredentials) return;
         setIsIntrospecting(true);
         setConnectionError(null);
         try {
-            // Map database type to dbSystem format expected by RPC
-            const dbSystemMap: Record<DatabaseType, string> = {
-                PostgreSQL: "postgresql",
-                MySQL: "mysql",
-                MSSQL: "mssql",
-            };
-
             const visualizerLocation = await rpcClient.getVisualizerLocation();
             const projectPath = visualizerLocation.projectPath;
+            const propertiesMap = buildPropertiesFromFieldValues();
 
             const response = await rpcClient.getConnectorWizardRpcClient().introspectDatabase({
-                projectPath: projectPath,
-                dbSystem: dbSystemMap[credentials.databaseType],
-                host: credentials.host,
-                port: credentials.port,
-                database: credentials.databaseName,
-                user: credentials.username,
-                password: credentials.password,
+                projectPath,
+                metadata: {
+                    label: connectorCredentials.metadata?.label,
+                    description: connectorCredentials.metadata?.description,
+                },
+                properties: propertiesMap,
+                targetModule: connectorCredentials.targetModule,
+                modelFilePath: connectorCredentials.modelFilePath,
             });
 
-            if (response.errorMsg) {
+            if (response?.errorMsg) {
                 console.error(">>> Error introspecting database", response.errorMsg);
                 const errorMsg = response.errorMsg.toLowerCase();
                 if (errorMsg.includes("no tables found")) {
@@ -400,49 +437,53 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                     setConnectionError("Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.");
                 }
                 setLsErrorDetails({ errorMessage: response.errorMsg, isExpanded: false });
-                // Clear password field on error
-                setCredentials(prev => ({ ...prev, password: "" }));
+                const pwdLabel = Object.values(connectorCredentials.properties).find((p) => isPasswordProperty(p))?.metadata?.label;
+                if (pwdLabel) setFieldValues((prev) => ({ ...prev, [pwdLabel]: "" }));
                 return;
             }
 
             if (response.tables && response.tables.length > 0) {
-                const databaseTables: DatabaseTable[] = response.tables.map((tableName) => ({
-                    name: tableName,
-                    selected: false,
-                }));
-                setTables(databaseTables);
-                setCurrentStep(1);
+                const normalizedTables: TableInfo[] = response.tables.map((tableInfo) =>
+                    typeof tableInfo === "string"
+                        ? { table: tableInfo, selected: false, existing: false }
+                        : tableInfo
+                );
+                setIntrospectDatabaseResponse({ ...response, tables: normalizedTables });
                 setConnectionError(null);
                 setLsErrorDetails({ errorMessage: null, isExpanded: false });
+                setCurrentStep(1);
             } else {
                 console.warn(">>> No tables found in database");
                 setConnectionError("No tables found in the database. We cannot continue with connection creation. Please use a pre-built connector.");
                 setLsErrorDetails({ errorMessage: null, isExpanded: false });
-                // Clear password field on error
-                setCredentials(prev => ({ ...prev, password: "" }));
+                const pwdLabel = Object.values(connectorCredentials.properties).find((p) => isPasswordProperty(p))?.metadata?.label;
+                if (pwdLabel) setFieldValues((prev) => ({ ...prev, [pwdLabel]: "" }));
             }
         } catch (error) {
             console.error(">>> Error introspecting database", error);
             setConnectionError("Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.");
             setLsErrorDetails({ errorMessage: null, isExpanded: false });
-            // Clear password field on error
-            setCredentials(prev => ({ ...prev, password: "" }));
+            const pwdLabel = connectorCredentials && Object.values(connectorCredentials.properties).find((p) => isPasswordProperty(p))?.metadata?.label;
+            if (pwdLabel) setFieldValues((prev) => ({ ...prev, [pwdLabel]: "" }));
         } finally {
             setIsIntrospecting(false);
         }
     };
 
     const handleTableToggleByName = (name: string) => {
-        setTables((prev) =>
-            prev.map((t) =>
-                t.name === name ? { ...t, selected: !t.selected } : t
-            )
+        setIntrospectDatabaseResponse((prev) =>
+            prev?.tables
+                ? { ...prev, tables: prev.tables.map((t) => (t.table === name ? { ...t, selected: !t.selected } : t)) }
+                : prev
         );
     };
 
     const handleSelectAll = () => {
-        const allSelected = tables.every((table) => table.selected);
-        setTables(tables.map((table) => ({ ...table, selected: !allSelected })));
+        setIntrospectDatabaseResponse((prev) => {
+            if (!prev?.tables?.length) return prev;
+            const allSelected = prev.tables.every((t) => t.selected);
+            return { ...prev, tables: prev.tables.map((t) => ({ ...t, selected: !allSelected })) };
+        });
     };
 
     const handleContinueToConnectionDetails = () => {
@@ -454,32 +495,18 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
         setConnectionError(null);
         setLsErrorDetails({ errorMessage: null, isExpanded: false });
         try {
-            // Get project path
             const visualizerLocation = await rpcClient.getVisualizerLocation();
             const projectPath = visualizerLocation.projectPath;
 
-            // Map database type to dbSystem format expected by RPC
-            const dbSystemMap: Record<DatabaseType, string> = {
-                PostgreSQL: "postgresql",
-                MySQL: "mysql",
-                MSSQL: "mssql",
-            };
-
-            // Get selected tables - if all tables are selected, use ["*"]
-            const selectedTableNames = tables.filter((t) => t.selected).map((t) => t.name);
-            const allTablesSelected = tables.length > 0 && selectedTableNames.length === tables.length;
-            const selectedTables = allTablesSelected ? ["*"] : selectedTableNames;
+            const properties = buildPropertiesFromFieldValues();
 
             const response = await rpcClient.getConnectorWizardRpcClient().persistClientGenerate({
                 projectPath: projectPath,
-                name: connectionName,
-                dbSystem: dbSystemMap[credentials.databaseType],
-                host: credentials.host,
-                port: credentials.port,
-                user: credentials.username,
-                password: credentials.password,
-                database: credentials.databaseName,
-                selectedTables: selectedTables,
+                targetModule: introspectDatabaseResponse?.targetModule,
+                modelFilePath: introspectDatabaseResponse?.modelFilePath,
+                connection: connectionName || undefined,
+                properties,
+                tables: introspectDatabaseResponse?.tables,
             });
 
             if (response.errorMsg) {
@@ -517,12 +544,13 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
         }
     };
 
+    const tables = introspectDatabaseResponse?.tables ?? [];
     const selectedTablesCount = tables.filter((t) => t.selected).length;
     const totalTablesCount = tables.length;
     const filteredTables = useMemo(
         () =>
             tables.filter((t) =>
-                t.name.toLowerCase().includes(tableSearch.trim().toLowerCase())
+                t.table.toLowerCase().includes(tableSearch.trim().toLowerCase())
             ),
         [tables, tableSearch]
     );
@@ -571,6 +599,17 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
     const renderStepContent = () => {
         switch (currentStep) {
             case 0:
+                if (isLoadingCredentials) {
+                    return (
+                        <StepContent fillHeight={true}>
+                            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex: 1 }}>
+                                <ProgressRing />
+                            </div>
+                        </StepContent>
+                    );
+                }
+                const properties = connectorCredentials?.properties || {};
+                const propertyList = Object.values(properties).filter((p) => !p.hidden);
                 return (
                     <StepContent fillHeight={true}>
                         <div>
@@ -581,67 +620,61 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                         </div>
                         {renderErrorDisplay()}
                         <FormSection>
-                            <FormField>
-                                <Dropdown
-                                    id="database-type"
-                                    label="Database Type"
-                                    items={DATABASE_TYPES}
-                                    value={credentials.databaseType}
-                                    onValueChange={handleDatabaseTypeChange}
-                                    disabled={isIntrospecting}
-                                />
-                            </FormField>
-                            <FormField>
-                                <TextField
-                                    id="host"
-                                    label="Host"
-                                    placeholder="Database host"
-                                    value={credentials.host}
-                                    onTextChange={(value) => handleCredentialsChange("host", value)}
-                                    {...(isIntrospecting ? { readonly: true } : {})}
-                                />
-                            </FormField>
-                            <FormField>
-                                <TextField
-                                    id="port"
-                                    label="Port"
-                                    placeholder="Database port"
-                                    value={String(credentials.port)}
-                                    onTextChange={(value) => handleCredentialsChange("port", value)}
-                                    {...(isIntrospecting ? { readonly: true } : {})}
-                                />
-                            </FormField>
-                            <FormField>
-                                <TextField
-                                    id="database-name"
-                                    label="Database Name"
-                                    placeholder="Database name"
-                                    value={credentials.databaseName}
-                                    onTextChange={(value) => handleCredentialsChange("databaseName", value)}
-                                    {...(isIntrospecting ? { readonly: true } : {})}
-                                />
-                            </FormField>
-                            <FormField>
-                                <TextField
-                                    id="username"
-                                    label="Username"
-                                    placeholder="Database username"
-                                    value={credentials.username}
-                                    onTextChange={(value) => handleCredentialsChange("username", value)}
-                                    {...(isIntrospecting ? { readonly: true } : {})}
-                                />
-                            </FormField>
-                            <FormField>
-                                <TextField
-                                    id="password"
-                                    label="Password"
-                                    type="password"
-                                    placeholder="Database password"
-                                    value={credentials.password}
-                                    onTextChange={(value) => handleCredentialsChange("password", value)}
-                                    {...(isIntrospecting ? { readonly: true } : {})}
-                                />
-                            </FormField>
+                            {propertyList.map((prop) => {
+                                if (isDatabaseSystemProperty(prop)) {
+                                    const label = prop.metadata?.label;
+                                    const dbVal = fieldValues[label] ?? (prop.value as string) ?? "mysql";
+                                    const displayValue = formatDatabaseTypeDisplay(dbVal);
+                                    const handleDbTypeChange = (value: string) => {
+                                        const backendValue = DB_SYSTEM_TO_VALUE[value] ?? value.toLowerCase();
+                                        const portProp = Object.values(properties).find((p) => {
+                                            const l = (p.metadata?.label || "").toLowerCase();
+                                            return l === "port";
+                                        });
+                                        setFieldValues((prev) => {
+                                            const next = { ...prev, [label]: backendValue };
+                                            if (portProp?.metadata?.label) {
+                                                next[portProp.metadata.label] = String(DEFAULT_PORTS[backendValue] ?? 3306);
+                                            }
+                                            return next;
+                                        });
+                                        setConnectionError(null);
+                                        setLsErrorDetails({ errorMessage: null, isExpanded: false });
+                                    };
+                                    return (
+                                        <FormField key={label}>
+                                            <Dropdown
+                                                id="database-system"
+                                                label={label}
+                                                items={DATABASE_TYPES}
+                                                value={displayValue}
+                                                onValueChange={handleDbTypeChange}
+                                                disabled={isIntrospecting}
+                                            />
+                                        </FormField>
+                                    );
+                                }
+                                if (prop.editable === false) return null;
+
+                                const label = prop.metadata?.label;
+                                const placeholder = prop.placeholder || prop.metadata?.description || "";
+                                const isPassword = isPasswordProperty(prop);
+                                const value = fieldValues[label] ?? (isPassword ? "" : (prop.value as string) ?? "");
+
+                                return (
+                                    <FormField key={label}>
+                                        <TextField
+                                            id={label.replace(/\s+/g, "-").toLowerCase()}
+                                            label={label}
+                                            placeholder={placeholder}
+                                            type={isPassword ? "password" : "text"}
+                                            value={value}
+                                            onTextChange={(v) => updateFieldValue(label, v)}
+                                            {...(isIntrospecting ? { readonly: true } : {})}
+                                        />
+                                    </FormField>
+                                );
+                            })}
                         </FormSection>
                     </StepContent>
                 );
@@ -672,22 +705,22 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                             </SelectAllButton>
                         </SearchRow>
                         <TablesGrid>
-                            {filteredTables.map((table) => (
+                            {filteredTables.map((t) => (
                                 <TableCard
-                                    key={table.name}
-                                    selected={table.selected}
-                                    onClick={() => handleTableToggleByName(table.name)}
+                                    key={t.table}
+                                    selected={t.selected}
+                                    onClick={() => handleTableToggleByName(t.table)}
                                 >
                                     <TableCheckbox
                                         type="checkbox"
-                                        checked={table.selected}
+                                        checked={t.selected}
                                         onChange={(e) => {
                                             e.stopPropagation();
-                                            handleTableToggleByName(table.name);
+                                            handleTableToggleByName(t.table);
                                         }}
                                         onClick={(e) => e.stopPropagation()}
                                     />
-                                    <TableName variant="body1">{table.name}</TableName>
+                                    <TableName variant="body1">{t.table}</TableName>
                                 </TableCard>
                             ))}
                         </TablesGrid>
@@ -730,30 +763,20 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 </ConfigurablesDescription>
                             </div>
                             <FormSection>
-                                <FormField>
-                                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                        {connectionName ? `${connectionName}Host` : "Host"}
-                                    </Typography>
-                                    <ReadonlyValue>{credentials.host}</ReadonlyValue>
-                                </FormField>
-                                <FormField>
-                                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                        {connectionName ? `${connectionName}Port` : "Port"}
-                                    </Typography>
-                                    <ReadonlyValue>{credentials.port}</ReadonlyValue>
-                                </FormField>
-                                <FormField>
-                                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                        {connectionName ? `${connectionName}User` : "Username"}
-                                    </Typography>
-                                    <ReadonlyValue>{credentials.username}</ReadonlyValue>
-                                </FormField>
-                                <FormField>
-                                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                        {connectionName ? `${connectionName}Database` : "Database Name"}
-                                    </Typography>
-                                    <ReadonlyValue>{credentials.databaseName}</ReadonlyValue>
-                                </FormField>
+                                {Object.values(connectorCredentials?.properties || {})
+                                    .filter((p) => !p.hidden && !isDatabaseSystemProperty(p) && !isPasswordProperty(p))
+                                    .map((prop) => {
+                                        const label = prop.metadata?.label || "";
+                                        const value = fieldValues[label] ?? (prop.value as string) ?? "";
+                                        return (
+                                            <FormField key={label}>
+                                                <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
+                                                    {connectionName ? `${connectionName}${label.replace(/\s+/g, "")}` : label}
+                                                </Typography>
+                                                <ReadonlyValue>{value}</ReadonlyValue>
+                                            </FormField>
+                                        );
+                                    })}
                             </FormSection>
                         </ConfigurablesPanel>
                     </StepContent>
@@ -791,7 +814,15 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                         <ActionButton
                             appearance="primary"
                             onClick={handleIntrospect}
-                            disabled={!credentials.host || !credentials.databaseName || !credentials.username || isIntrospecting || !!connectionError}
+                            disabled={
+                                isLoadingCredentials ||
+                                !connectorCredentials ||
+                                !(fieldValues["Host"]?.trim()) ||
+                                !(fieldValues["Database"]?.trim() || fieldValues["Database Name"]?.trim()) ||
+                                !(fieldValues["User"]?.trim() || fieldValues["Username"]?.trim()) ||
+                                isIntrospecting ||
+                                !!connectionError
+                            }
                             buttonSx={{ width: "100%", height: "35px" }}
                         >
                             {isIntrospecting ? "Connecting..." : "Connect & Introspect Database"}
