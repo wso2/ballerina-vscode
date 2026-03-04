@@ -160,7 +160,7 @@ describe("DiagnosticsPopUp", () => {
 
         fireEvent.click(diagnosticsIcon!.parentElement!);
 
-        const fixButton = screen.getByRole("button", { name: "FIX" });
+        const fixButton = screen.getByRole("button", { name: /fix/i });
         expect(fixButton).toBeEnabled();
 
         fireEvent.click(fixButton);
@@ -191,7 +191,7 @@ describe("DiagnosticsPopUp", () => {
 
         fireEvent.click(diagnosticsIcon!.parentElement!);
 
-        const fixButton = screen.getByRole("button", { name: "FIX" });
+        const fixButton = screen.getByRole("button", { name: /fix/i });
         expect(fixButton).toBeDisabled();
         fireEvent.click(fixButton);
         expect(onAddNodePrompt).not.toHaveBeenCalled();
