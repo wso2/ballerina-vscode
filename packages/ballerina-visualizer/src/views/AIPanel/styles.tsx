@@ -62,12 +62,9 @@ export const Main = styled.main({
 
 export const ChatMessage = styled.div({
     padding: "20px",
-    borderTop: "1px solid var(--vscode-editorWidget-border)",
 });
 
 export const Badge = styled.div`
-    // padding: 5px;
-    // margin-left: 10px;
     display: inline-block;
     text-align: left;
 `;
