@@ -973,7 +973,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             filePath: model.fileName,
             queryMap: {
                 q: searchText.trim(),
-                limit: 12,
+                limit: 60,
                 offset: 0,
                 includeAvailableFunctions: "true",
             },
@@ -1080,27 +1080,27 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         await handleSearch(searchText, functionType, "FUNCTION");
     };
 
-    const handleSearchModelProvider = async (searchText: string, functionType: FUNCTION_TYPE) => {
+    const handleSearchModelProvider = async (_searchText: string, _functionType: FUNCTION_TYPE) => {
         // await handleSearch(searchText, functionType, "MODEL_PROVIDER");
     };
 
-    const handleSearchVectorStore = async (searchText: string, functionType: FUNCTION_TYPE) => {
+    const handleSearchVectorStore = async (_searchText: string, _functionType: FUNCTION_TYPE) => {
         // await handleSearch(searchText, functionType, "VECTOR_STORE");
     };
 
-    const handleSearchEmbeddingProvider = async (searchText: string, functionType: FUNCTION_TYPE) => {
+    const handleSearchEmbeddingProvider = async (_searchText: string, _functionType: FUNCTION_TYPE) => {
         // await handleSearch(searchText, functionType, "EMBEDDING_PROVIDER");
     };
 
-    const handleSearchVectorKnowledgeBase = async (searchText: string, functionType: FUNCTION_TYPE) => {
+    const handleSearchVectorKnowledgeBase = async (_searchText: string, _functionType: FUNCTION_TYPE) => {
         // await handleSearch(searchText, functionType, "KNOWLEDGE_BASE");
     };
 
-    const handleSearchDataLoader = async (searchText: string, functionType: FUNCTION_TYPE) => {
+    const handleSearchDataLoader = async (_searchText: string, _functionType: FUNCTION_TYPE) => {
         // await handleSearch(searchText, functionType, "DATA_LOADER");
     };
 
-    const handleSearchChunker = async (searchText: string, functionType: FUNCTION_TYPE) => {
+    const handleSearchChunker = async (_searchText: string, _functionType: FUNCTION_TYPE) => {
         // await handleSearch(searchText, functionType, "CHUNKER");
     };
 
@@ -2572,7 +2572,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
-    const handleOnGoToTool = async (tool: ToolData, node: FlowNode) => {
+    const handleOnGoToTool = async (tool: ToolData, _node: FlowNode) => {
         setShowProgressIndicator(true);
         const agentFilePath = await getAgentFilePath(rpcClient);
         // get project components to find the function

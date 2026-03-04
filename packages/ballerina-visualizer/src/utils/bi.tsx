@@ -102,7 +102,18 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
         description: node.metadata.description,
         enabled: node.enabled,
         metadata: node,
-        icon: (
+        icon: node.metadata.icon ? (
+            <ConnectorIcon
+                url={node.metadata.icon}
+                style={{ width: "16px", height: "16px", fontSize: "16px" }}
+                fallbackIcon={
+                    <NodeIcon
+                        type={functionType === FUNCTION_TYPE.EXPRESSION_BODIED ? "DATA_MAPPER_CALL" : node.codedata.node}
+                        size={16}
+                    />
+                }
+            />
+        ) : (
             <NodeIcon
                 type={functionType === FUNCTION_TYPE.EXPRESSION_BODIED ? "DATA_MAPPER_CALL" : node.codedata.node}
                 size={16}
@@ -130,9 +141,26 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
             return true;
         });
 
-    // HACK: use the icon of the first item in the category
-    const icon = category.items.at(0)?.metadata.icon;
-    const codedata = (category.items.at(0) as AvailableNode)?.codedata;
+    // Extract icon URL, codedata and connectorType for the ConnectorIcon
+    // First try to get the icon from the category metadata itself
+    let icon = category?.metadata?.icon;
+    let codedata = undefined;
+
+    // If no icon in category metadata, get it from the first item
+    if (!icon && category.items && category.items.length > 0) {
+        const firstItem = category.items.at(0);
+        icon = firstItem?.metadata?.icon;
+        if ("codedata" in firstItem) {
+            codedata = (firstItem as AvailableNode)?.codedata;
+        }
+    } else if (category.items && category.items.length > 0) {
+        // Still get codedata from first item even if we have icon from category
+        const firstItem = category.items.at(0);
+        if ("codedata" in firstItem) {
+            codedata = (firstItem as AvailableNode)?.codedata;
+        }
+    }
+
     const connectorType = (category?.metadata?.data as NodeMetadata)?.connectorType;
 
     return {
@@ -409,7 +437,7 @@ export function updateNodeProperties(
                     const template = primaryType?.template;
                     expression.value = {};
                     // Go through the parameters array
-                    for (const [repeatKey, repeatValue] of Object.entries(dataValue)) {
+                    for (const [_repeatKey, repeatValue] of Object.entries(dataValue)) {
                         // Create a deep copy for each iteration
                         const valueConstraint = JSON.parse(JSON.stringify(template));
                         // Fill the values of the parameter constraint
@@ -1056,7 +1084,7 @@ export function convertConfig(properties: NodeProperties, skipKeys: string[] = [
     return formFields;
 }
 
-export function isNaturalFunction(node: STNode, view: FocusFlowDiagramView): node is FunctionDefinition {
+export function isNaturalFunction(_node: STNode, view: FocusFlowDiagramView): _node is FunctionDefinition {
     return view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
 }
 
