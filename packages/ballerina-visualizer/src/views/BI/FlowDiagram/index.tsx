@@ -991,30 +991,34 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     functionType
                 );
 
-                // Merge search results with cached initial categories from getAvailableNodes
-                const mergedCategories = [...initialCategoriesRef.current];
+                // Filter search results with the same query to ensure consistency
+                const filteredSearchCategories = filterCategoriesLocally(searchCategories, searchText);
+                console.log(">>> Filtered search categories:", filteredSearchCategories.length);
 
-                searchCategories.forEach(searchCategory => {
-                    const existingCategoryIndex = mergedCategories.findIndex(
+                // Start with current displayed categories (already frontend-filtered)
+                const currentCategories = [...categories];
+
+                filteredSearchCategories.forEach(searchCategory => {
+                    const existingCategoryIndex = currentCategories.findIndex(
                         existingCategory => existingCategory.title === searchCategory.title
                     );
 
                     if (existingCategoryIndex >= 0) {
                         // Merge items if category exists, avoiding duplicate items
-                        const existingCategory = mergedCategories[existingCategoryIndex];
-                        // const existingItemLabels = new Set(existingCategory.items.map(item => item.label));
-                        // const newItems = searchCategory.items.filter(item => !existingItemLabels.has(item.label));
-                        mergedCategories[existingCategoryIndex] = {
+                        const existingCategory = currentCategories[existingCategoryIndex];
+                        const existingItemLabels = new Set(existingCategory.items.map((item: any) => item.label));
+                        const newItems = searchCategory.items.filter((item: any) => !existingItemLabels.has(item.label));
+                        currentCategories[existingCategoryIndex] = {
                             ...existingCategory,
-                            items: [...existingCategory.items, ...searchCategories]
+                            items: [...existingCategory.items, ...newItems]
                         };
                     } else {
                         // Add new category from search results
-                        mergedCategories.push(searchCategory);
+                        currentCategories.push(searchCategory);
                     }
                 });
 
-                setCategories(mergedCategories);
+                setCategories(currentCategories);
 
                 // Set the appropriate side panel view based on search kind and function type
                 let panelView: SidePanelView;
