@@ -744,11 +744,13 @@ export function createReadExecute(
       const validation = validateLineRange(offset, limit, totalLines);
       if (!validation.valid) {
         console.error(`[FileReadTool] Invalid line range for file: ${file_path}, offset: ${offset}, limit: ${limit}`);
-        return {
+        const result = {
           success: false,
           message: validation.error!,
           error: `Error: ${ErrorMessages.INVALID_LINE_RANGE}`
         };
+        emitFileToolResult(eventHandler, FILE_READ_TOOL_NAME, result, file_path);
+        return result;
       }
 
       const startIndex = offset - 1; // Convert to 0-based index

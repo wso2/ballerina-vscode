@@ -38,7 +38,7 @@ const AgentStreamView: React.FC<AgentStreamViewProps> = ({ stream, isLoading = f
             if (!entry.description) return;
             const isLastEntry = entryIdx === stream.length - 1;
             const nodeStatus = getNodeStatus(entry, isLastEntry, isLoading);
-            const key = entry.description;
+            const key = `${entry.description}::${entryIdx}`;
 
             if (nodeStatus === "active") {
                 if (collapseTimers.current[key]) {
@@ -60,11 +60,12 @@ const AgentStreamView: React.FC<AgentStreamViewProps> = ({ stream, isLoading = f
 
     // Scroll to bottom of items when expanded and items change
     useEffect(() => {
-        stream.forEach(entry => {
+        stream.forEach((entry, entryIdx) => {
             if (!entry.description) return;
-            const el = itemsInnerRefs.current[entry.description];
+            const key = `${entry.description}::${entryIdx}`;
+            const el = itemsInnerRefs.current[key];
             if (!el) return;
-            if (expandedEntries[entry.description]) {
+            if (expandedEntries[key]) {
                 el.scrollTop = el.scrollHeight;
             }
         });
@@ -89,18 +90,21 @@ const AgentStreamView: React.FC<AgentStreamViewProps> = ({ stream, isLoading = f
 
     return (
         <PipelineContainer>
-            {stream.map((entry, idx) => (
-                <StreamEntryComponent
-                    key={idx}
-                    entry={entry}
-                    isLast={idx === stream.length - 1}
-                    isLoading={isLoading}
-                    expanded={expandedEntries[entry.description] ?? true}
-                    onToggle={() => toggleEntry(entry.description)}
-                    innerRef={el => { itemsInnerRefs.current[entry.description] = el; }}
-                    rpcClient={rpcClient}
-                />
-            ))}
+            {stream.map((entry, idx) => {
+                const uniqueKey = `${entry.description}::${idx}`;
+                return (
+                    <StreamEntryComponent
+                        key={uniqueKey}
+                        entry={entry}
+                        isLast={idx === stream.length - 1}
+                        isLoading={isLoading}
+                        expanded={expandedEntries[uniqueKey] ?? true}
+                        onToggle={() => toggleEntry(uniqueKey)}
+                        innerRef={el => { itemsInnerRefs.current[uniqueKey] = el; }}
+                        rpcClient={rpcClient}
+                    />
+                );
+            })}
         </PipelineContainer>
     );
 };
