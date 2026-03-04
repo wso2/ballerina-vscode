@@ -127,7 +127,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
      */
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
-        InputStream resourceStream = HttpServiceBuilder.class.getClassLoader()
+        InputStream resourceStream = FTPServiceBuilder.class.getClassLoader()
                 .getResourceAsStream(FTP_INIT_JSON);
         if (resourceStream == null) {
             return null;
