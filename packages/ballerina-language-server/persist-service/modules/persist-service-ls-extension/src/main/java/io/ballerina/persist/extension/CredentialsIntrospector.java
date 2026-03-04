@@ -188,9 +188,9 @@ public class CredentialsIntrospector {
                 "The database system type (e.g., mysql, postgresql, mssql)"));
         properties.put(HOST_KEY, buildEmptyValue("Host", "Database server host address"));
         properties.put(PORT_KEY, buildEmptyValue("Port", "Database server port number"));
+        properties.put(DATABASE_KEY, buildEmptyValue("Database", "Name of the database to connect"));
         properties.put(USER_KEY, buildEmptyValue("User", "Database username"));
         properties.put(PASSWORD_KEY, buildEmptyValue("Password", "Database user password"));
-        properties.put(DATABASE_KEY, buildEmptyValue("Database", "Name of the database to connect"));
         return properties;
     }
 
