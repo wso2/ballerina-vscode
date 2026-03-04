@@ -140,6 +140,9 @@ export const ItemRow = styled.div`
 
 export const ItemMarkdownWrapper = styled.div`
     width: 100%;
+    padding: 2px 0;
+    p:first-child { margin-top: 0; }
+    p:last-child { margin-bottom: 0; }
 `;
 
 // ── Task node indicators ──────────────────────────────────────────────────────
