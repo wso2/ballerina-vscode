@@ -89,6 +89,35 @@ const tdStyle: React.CSSProperties = {
     color: "var(--vscode-editor-foreground)",
 };
 
+const headingStyles: Record<"h1" | "h2" | "h3", React.CSSProperties> = {
+    h1: {
+        fontSize: "18px",
+        lineHeight: "26px",
+        margin: "14px 0 8px",
+        fontWeight: 700,
+    },
+    h2: {
+        fontSize: "16px",
+        lineHeight: "24px",
+        margin: "12px 0 8px",
+        fontWeight: 700,
+    },
+    h3: {
+        fontSize: "14px",
+        lineHeight: "22px",
+        margin: "10px 0 6px",
+        fontWeight: 650,
+    },
+};
+
+const paragraphStyle: React.CSSProperties = {
+    margin: "8px 0",
+};
+
+const listStyle: React.CSSProperties = {
+    margin: "8px 0",
+};
+
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdownContent }) => {
     const { rpcClient } = useRpcContext();
 
@@ -241,6 +270,12 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdownContent }) 
                 components={{
                     ...MarkdownCodeRenderer,
                     ...getMarkdownComponents(markdownContent),
+                    h1: ({ children }: { children?: React.ReactNode }) => <h1 style={headingStyles.h1}>{children}</h1>,
+                    h2: ({ children }: { children?: React.ReactNode }) => <h2 style={headingStyles.h2}>{children}</h2>,
+                    h3: ({ children }: { children?: React.ReactNode }) => <h3 style={headingStyles.h3}>{children}</h3>,
+                    p: ({ children }: { children?: React.ReactNode }) => <p style={paragraphStyle}>{children}</p>,
+                    ul: ({ children }: { children?: React.ReactNode }) => <ul style={listStyle}>{children}</ul>,
+                    ol: ({ children }: { children?: React.ReactNode }) => <ol style={listStyle}>{children}</ol>,
                     table: ({ children }: { children?: React.ReactNode }) => (
                         <div style={{ overflowX: "auto", marginBottom: "8px" }}>
                             <table style={tableStyle}>{children}</table>
