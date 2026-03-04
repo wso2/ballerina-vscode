@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import { debounce } from "lodash";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -181,6 +181,50 @@ const unquoteStringLiteral = (value: string): string => {
     return "";
 };
 
+const removeLiteralWrapping = (value: string): string => {
+    const trimmed = getTrimmed(value);
+    if (!trimmed) {
+        return "";
+    }
+    if (isStringTemplateLiteral(trimmed)) {
+        return getStringTemplateLiteralContent(trimmed) ?? "";
+    }
+    return unquoteStringLiteral(trimmed);
+};
+
+const getValidationErrorMessage = (error: unknown): string => {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    if (typeof error === "string" && error.trim()) {
+        return error;
+    }
+
+    if (error && typeof error === "object") {
+        const err = error as Record<string, any>;
+        const message =
+            err?.message ||
+            err?.error?.message ||
+            err?.data?.message ||
+            err?.response?.message ||
+            err?.response?.data?.message;
+        if (typeof message === "string" && message.trim()) {
+            return message;
+        }
+        try {
+            const serialized = JSON.stringify(error);
+            if (serialized && serialized !== "{}") {
+                return serialized;
+            }
+        } catch {
+            // Ignore stringify failures and return fallback.
+        }
+    }
+
+    return "Unable to validate expression.";
+};
+
 const toExpressionProperty = (propertyModel: PropertyModel | undefined, value: string): ExpressionProperty => ({
     metadata: {
         label: propertyModel?.metadata?.label || "Move To",
@@ -197,6 +241,30 @@ const toExpressionProperty = (propertyModel: PropertyModel | undefined, value: s
     imports: propertyModel?.imports,
 });
 
+const toDiagnosticsExpressionProperty = (propertyModel: PropertyModel | undefined, value: string): ExpressionProperty => {
+    const baseProperty = toExpressionProperty(propertyModel, value);
+    const inputTypes = baseProperty.types;
+    if (!inputTypes || inputTypes.length === 0) {
+        return {
+            ...baseProperty,
+            types: [{ fieldType: "EXPRESSION", selected: true } as any],
+        };
+    }
+
+    const hasExpressionType = inputTypes.some((type) => type.fieldType === "EXPRESSION");
+    if (!hasExpressionType) {
+        return {
+            ...baseProperty,
+            types: [{ fieldType: "EXPRESSION", selected: true } as any],
+        };
+    }
+
+    return {
+        ...baseProperty,
+        types: inputTypes.map((type) => ({ ...type, selected: type.fieldType === "EXPRESSION" })) as any,
+    };
+};
+
 export interface MoveToFieldProps {
     id?: string;
     value: string;
@@ -207,10 +275,11 @@ export interface MoveToFieldProps {
     disabled?: boolean;
     onChange: (value: string) => void;
     onDiagnosticsChange?: (diagnostics: Diagnostic[]) => void;
+    onValidationStateChange?: (state: { isValidating: boolean; hasValidationFailure: boolean }) => void;
 }
 
 export function MoveToField(props: MoveToFieldProps) {
-    const { id, value, moveToProperty, filePath, targetLineRange, required, disabled, onChange, onDiagnosticsChange } = props;
+    const { id, value, moveToProperty, filePath, targetLineRange, required, disabled, onChange, onDiagnosticsChange, onValidationStateChange } = props;
     const { rpcClient } = useRpcContext();
 
     const formContext = useMemo(() => {
@@ -253,11 +322,15 @@ export function MoveToField(props: MoveToFieldProps) {
         return isQuotedStringLiteral(trimmed) || isStringTemplateLiteral(trimmed) ? InputMode.TEXT : InputMode.EXP;
     });
     const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
+    const [isValidating, setIsValidating] = useState(false);
+    const [hasValidationFailure, setHasValidationFailure] = useState(false);
+    const [validationFailureMessage, setValidationFailureMessage] = useState("");
     const [showWarning, setShowWarning] = useState(false);
     const [completions, setCompletions] = useState<CompletionItem[]>([]);
     const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>([]);
 
     const onDiagnosticsChangeRef = useRef(onDiagnosticsChange);
+    const onValidationStateChangeRef = useRef(onValidationStateChange);
     const moveToPropertyRef = useRef(moveToProperty);
     const prevCompletionFetchText = useRef<string>("");
     const helperPaneAnchorRef = useRef<HTMLDivElement>(null);
@@ -267,8 +340,26 @@ export function MoveToField(props: MoveToFieldProps) {
     }, [onDiagnosticsChange]);
 
     useEffect(() => {
+        onValidationStateChangeRef.current = onValidationStateChange;
+    }, [onValidationStateChange]);
+
+    useEffect(() => {
+        onValidationStateChangeRef.current?.({ isValidating, hasValidationFailure });
+    }, [isValidating, hasValidationFailure]);
+
+    useEffect(() => {
         moveToPropertyRef.current = moveToProperty;
     }, [moveToProperty]);
+
+    const clearValidationFailure = useCallback(() => {
+        setHasValidationFailure(false);
+        setValidationFailureMessage("");
+    }, []);
+
+    const resetValidationState = useCallback(() => {
+        setIsValidating(false);
+        clearValidationFailure();
+    }, [clearValidationFailure]);
 
     const canSwitchToText = useMemo(() => {
         const trimmed = getTrimmed(value);
@@ -288,21 +379,27 @@ export function MoveToField(props: MoveToFieldProps) {
         () =>
             debounce(async (expression: string) => {
                 if (!rpcClient || !filePath) {
+                    resetValidationState();
                     return;
                 }
 
                 const startLine = targetLineRange?.startLine ?? { line: 0, offset: 0 };
-                const property = toExpressionProperty(moveToPropertyRef.current, expression);
+                const expressionForDiagnostics = inputMode === InputMode.TEXT
+                    && !isQuotedStringLiteral(expression)
+                    && !isStringTemplateLiteral(expression)
+                    ? JSON.stringify(expression)
+                    : expression;
+                const property = toDiagnosticsExpressionProperty(moveToPropertyRef.current, expressionForDiagnostics);
 
                 try {
                     const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
                         filePath,
                         context: {
-                            expression,
+                            expression: expressionForDiagnostics,
                             startLine,
                             lineOffset: 0,
                             offset: 0,
-                            codedata: undefined,
+                            codedata: property.codedata,
                             property,
                         } as any,
                     });
@@ -310,13 +407,19 @@ export function MoveToField(props: MoveToFieldProps) {
                     const uniqueDiagnostics = removeDuplicateDiagnostics(response.diagnostics || []);
                     setDiagnostics(uniqueDiagnostics);
                     onDiagnosticsChangeRef.current?.(uniqueDiagnostics);
+                    clearValidationFailure();
                 } catch (e) {
-                    // Ignore diagnostics failures to avoid blocking the form UI.
+                    // Treat LS diagnostics failures as blocking save until recovered.
                     setDiagnostics([]);
                     onDiagnosticsChangeRef.current?.([]);
+                    setHasValidationFailure(true);
+                    const errorMessage = getValidationErrorMessage(e);
+                    setValidationFailureMessage(errorMessage);
+                } finally {
+                    setIsValidating(false);
                 }
             }, 250),
-        [rpcClient, filePath, targetLineRange]
+        [rpcClient, filePath, targetLineRange, inputMode, clearValidationFailure, resetValidationState]
     );
 
     const retrieveCompletions = useMemo(
@@ -403,16 +506,19 @@ export function MoveToField(props: MoveToFieldProps) {
         // Validate when switching modes / when value changes (covers initial load and programmatic updates).
         const trimmed = getTrimmed(value);
         if (!trimmed) {
+            resetValidationState();
             setDiagnostics([]);
             onDiagnosticsChangeRef.current?.([]);
             return;
         }
+        setIsValidating(true);
         validateExpression(value);
     }, [inputMode, value, validateExpression]);
 
     useEffect(() => {
         return () => {
             onDiagnosticsChange?.([]);
+            onValidationStateChange?.({ isValidating: false, hasValidationFailure: false });
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -463,8 +569,8 @@ export function MoveToField(props: MoveToFieldProps) {
     const editorValue = useMemo(() => {
         if (inputMode === InputMode.TEXT) {
             const trimmed = getTrimmed(value);
-            if (isQuotedStringLiteral(trimmed)) {
-                return unquoteStringLiteral(trimmed);
+            if (isQuotedStringLiteral(trimmed) || isStringTemplateLiteral(trimmed)) {
+                return removeLiteralWrapping(trimmed);
             }
         }
         return value;
@@ -561,10 +667,12 @@ export function MoveToField(props: MoveToFieldProps) {
                         onChange(updated);
                         const trimmed = getTrimmed(updated);
                         if (!trimmed) {
+                            resetValidationState();
                             setDiagnostics([]);
                             onDiagnosticsChange?.([]);
                             return;
                         }
+                        setIsValidating(true);
                         validateExpression(updated);
                     }}
                     value={editorValue}
@@ -586,6 +694,10 @@ export function MoveToField(props: MoveToFieldProps) {
 
             {errorDiagnostics.length > 0 && (
                 <ErrorBanner errorMsg={errorMessage} />
+            )}
+
+            {hasValidationFailure && (
+                <ErrorBanner errorMsg={validationFailureMessage || "Unable to validate Move To expression from language server diagnostics."} />
             )}
 
             <WarningPopup
