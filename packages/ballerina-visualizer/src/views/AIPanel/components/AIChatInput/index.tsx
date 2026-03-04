@@ -132,11 +132,12 @@ interface AIChatInputProps {
     onChangeAgentMode?: (mode: AgentMode) => void;
     isAutoApproveEnabled?: boolean;
     onDisableAutoApprove?: () => void;
+    disabled?: boolean;
 }
 
 const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
     ({ initialCommandTemplate, tagOptions, attachmentOptions, placeholder, onSend, onStop, isLoading,
-       agentMode = AgentMode.Edit, onChangeAgentMode, isAutoApproveEnabled = false, onDisableAutoApprove }, ref) => {
+       agentMode = AgentMode.Edit, onChangeAgentMode, isAutoApproveEnabled = false, onDisableAutoApprove, disabled }, ref) => {
         const [inputValue, setInputValue] = useState<{
             text: string;
             [key: string]: any;
@@ -540,8 +541,9 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                             onChange={setInputValue}
                             onKeyDown={handleKeyDown}
                             onBlur={() => completeSuggestionSelection()}
-                            placeholder={placeholder}
+                            placeholder={disabled ? "Usage limit exceeded" : placeholder}
                             onPostDOMUpdate={executeOnPostDOMUpdate}
+                            disabled={disabled}
                         />
                         {/* Attachments Display */}
                         {attachments.length > 0 && (
@@ -594,7 +596,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                             <div>
                                 <ActionButton
                                     title={isLoading ? "Stop (Escape)" : "Send (Enter)"}
-                                    disabled={inputValue.text.trim() === "" && !isLoading}
+                                    disabled={(inputValue.text.trim() === "" && !isLoading) || disabled}
                                     onClick={isLoading ? handleStop : handleSend}
                                 >
                                     <span

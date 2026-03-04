@@ -22,7 +22,7 @@ import { useIONodesStyles } from "../../../styles";
 
 export interface PayloadWidgetProps {
     onClick: () => void | Promise<void>;
-    typeName?: string;
+    typeName: string;
 }
 
 export function PayloadWidget(props: PayloadWidgetProps) {
@@ -46,14 +46,14 @@ export function PayloadWidget(props: PayloadWidgetProps) {
             className={classes.payloadWidget}
             onClick={!inProgress ? handleOnClick : undefined}
         >
-            <p className={classes.payloadWidgetMessage}>{`Please provide a sample ${typeName} payload to construct the ${typeName} structure to create mappings`}</p>
+            <div className={classes.payloadNote}>{`Structure is not defined. Please provide a sample ${typeName} to create the structure`}</div>
             <div className={classes.payloadWidgetAction}>
                 {inProgress ? (
                     <ProgressRing sx={{ height: '16px', width: '16px' }} />
                 ) : (
-                    <Codicon name="add"/>
+                    <Codicon name="new-file" iconSx={{ fontSize: '25px' }}/>
                 )}
-                <p className={classes.payloadWidgetActionLabel}>{`Add sample ${typeName}`}</p>
+                <p className={classes.payloadWidgetActionLabel}>{`Add Sample ${typeName}`}</p>
             </div>
         </div>
     );

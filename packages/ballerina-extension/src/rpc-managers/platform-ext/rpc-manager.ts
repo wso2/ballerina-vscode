@@ -55,6 +55,15 @@ import {
     CreateThirdPartyConnectionReq,
     CreateComponentConnectionReq,
     GetComponentsReq,
+    MarketplaceDatabaseListResp,
+    DatabaseServer,
+    GetDatabaseServerReq,
+    DatabaseAdminCredential,
+    DatabaseCredential,
+    Environment,
+    GetProjectEnvsReq,
+    CreateDatabaseConnectionReq,
+    GetDatabaseItemReq,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
@@ -69,7 +78,7 @@ import {
     ReplaceDevantTempConfigValuesReq,
 } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { StateMachine } from "../../stateMachine";
-import { CaptureBindingPattern, ModulePart, STKindChecker } from "@wso2/syntax-tree";
+import { CaptureBindingPattern, ModulePart, ModuleVarDecl, STKindChecker } from "@wso2/syntax-tree";
 import { DeleteBiDevantConnectionReq } from "./types";
 import { platformExtStore } from "./platform-store";
 import { Messenger } from "vscode-messenger";
@@ -272,6 +281,60 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
+    async getMarketplaceDatabases(params: { orgId: string }): Promise<MarketplaceDatabaseListResp> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return platformExt?.getMarketplaceDatabases(params);
+        } catch (err) {
+            log(`Failed to invoke getMarketplaceDatabases: ${err}`);
+        }
+    }
+
+    async getMarketplaceDatabaseItem(params: GetDatabaseItemReq): Promise<MarketplaceItem> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return platformExt?.getMarketplaceDatabaseItem(params);
+        } catch (err) {
+            log(`Failed to invoke getMarketplaceDatabaseItem: ${err}`);
+        }
+    }
+
+    async getDatabaseServer(params: GetDatabaseServerReq): Promise<DatabaseServer> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return platformExt?.getDatabaseServer(params);
+        } catch (err) {
+            log(`Failed to invoke getDatabaseServer: ${err}`);
+        }
+    }
+
+    async getDatabaseAdminCredential(params: GetDatabaseServerReq): Promise<DatabaseAdminCredential> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return platformExt?.getDatabaseAdminCredential(params);
+        } catch (err) {
+            log(`Failed to invoke getDatabaseAdminCredential: ${err}`);
+        }
+    }
+
+    async getDatabaseCredentials(params: GetDatabaseServerReq): Promise<DatabaseCredential[]> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return platformExt?.getDatabaseCredentials(params);
+        } catch (err) {
+            log(`Failed to invoke getDatabaseCredentials: ${err}`);
+        }
+    }
+
+    async createDatabaseConnection(params: CreateDatabaseConnectionReq): Promise<ConnectionDetailed> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return platformExt?.createDatabaseConnection(params);
+        } catch (err) {
+            log(`Failed to invoke createDatabaseConnection: ${err}`);
+        }
+    }
+
     async getMarketplaceItem(params: GetMarketplaceItemReq): Promise<MarketplaceItem> {
         try {
             const platformExt = await this.getPlatformExt();
@@ -350,6 +413,15 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             return await platformExt?.createThirdPartyConnection(params);
         } catch (err) {
             log(`Failed to create 3rd party connection: ${err}`);
+        }
+    }
+
+    async getProjectEnvs(params: GetProjectEnvsReq): Promise<Environment[]> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return await platformExt?.getProjectEnvs(params);
+        } catch (err) {
+            log(`Failed to get project environments: ${err}`);
         }
     }
 
@@ -917,13 +989,13 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     configs[endpointName] = {
                         name: endpointName,
                         environmentTemplateIds: [env.templateId],
-                        values: params.configs?.map((item) => ({ key: item.name, value: "" })),
+                        values: params.configs?.map((item) => ({ key: item.id, value: "" })),
                     };
                 } else {
                     configs[endpointName] = {
                         name: endpointName,
                         environmentTemplateIds: [env.templateId],
-                        values: params.configs?.map((item) => ({ key: item.name, value: item.value || "" })),
+                        values: params.configs?.map((item) => ({ key: item.id, value: item.value || "" })),
                     };
                 }
             }
@@ -937,7 +1009,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 idlContent,
                 configs,
                 schemaEntries: params.configs?.map((item) => ({
-                    name: item.name,
+                    name: item.id,
                     type: "string",
                     isSensitive: item.isSecret,
                 })),
@@ -971,21 +1043,33 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
             for (const config of params.configs) {
                 const matchingConfigEntry = Object.values(connectionKeys).find((item) => item.key === config.id);
-                if (matchingConfigEntry && config.node) {
+                let matchingNode: ModuleVarDecl = config.node as ModuleVarDecl;
+                if (!matchingNode) {
+                    matchingNode = (syntaxTree?.syntaxTree as ModulePart)?.members?.find(
+                        (member) =>
+                            STKindChecker.isModuleVarDecl(member) &&
+                            (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value === config.name,
+                    ) as ModuleVarDecl;
+                }
+                if (matchingConfigEntry && matchingNode) {
+                    let value = `os:getEnv("${matchingConfigEntry.envVariableName}")`;
+                    if (config.type === "int") {
+                        value = `check int:fromString(os:getEnv("${matchingConfigEntry.envVariableName}"))`;
+                    }
                     hasUpdatedConfig = true;
                     configBalEdits.replace(
                         getConfigFileUri(),
                         new vscode.Range(
                             new vscode.Position(
-                                config.node.initializer.position.startLine,
-                                config.node.initializer.position.startColumn,
+                                matchingNode.initializer.position.startLine,
+                                matchingNode.initializer.position.startColumn,
                             ),
                             new vscode.Position(
-                                config.node.initializer.position.endLine,
-                                config.node.initializer.position.endColumn,
+                                matchingNode.initializer.position.endLine,
+                                matchingNode.initializer.position.endColumn,
                             ),
                         ),
-                        `os:getEnv("${matchingConfigEntry.envVariableName}")`,
+                        value,
                     );
                 }
             }

@@ -245,26 +245,6 @@ export const Variables = (props: VariablesPageProps) => {
     }
 
 
-    const getTypeDef = () => {
-        return (
-            {
-                metadata: {
-                    label: "Type",
-                    description: "Type of the variable",
-                },
-                valueType: "TYPE",
-                value: selectedType?.label,
-                placeholder: "var",
-                optional: false,
-                editable: true,
-                advanced: false,
-                hidden: false,
-            }
-        )
-
-    }
-
-
     const selectedNode: FlowNode = {
         codedata: {
             node: 'VARIABLE',
@@ -289,7 +269,19 @@ export const Variables = (props: VariablesPageProps) => {
                 advanced: false,
                 hidden: false,
             },
-            type: getTypeDef(),
+            type: {
+                metadata: {
+                    label: "Type",
+                    description: "Type of the variable",
+                },
+                types: [{ fieldType: "TYPE", selected: false }],
+                value: selectedType?.label,
+                placeholder: "var",
+                optional: false,
+                editable: true,
+                advanced: false,
+                hidden: false,
+            },
             expression: {
                 metadata: {
                     label: "Expression",
