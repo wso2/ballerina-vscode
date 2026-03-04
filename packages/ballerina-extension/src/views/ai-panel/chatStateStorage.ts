@@ -26,6 +26,7 @@ import {
 } from '@wso2/ballerina-core/lib/state-machine-types';
 import { Command } from '@wso2/ballerina-core';
 import * as crypto from 'crypto';
+import { approvalManager } from '../../features/ai/state/ApprovalManager';
 
 /**
  * Active execution handle
@@ -695,6 +696,7 @@ export class ChatStateStorage {
         }
 
         console.log(`[ChatStateStorage] Aborting execution: ${execution.generationId} for thread: ${threadId}`);
+        approvalManager.cancelAllPending("Agent execution aborted by user");
         execution.abortController.abort();
 
         // Cleanup

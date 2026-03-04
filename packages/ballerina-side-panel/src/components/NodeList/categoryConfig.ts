@@ -20,9 +20,11 @@ export type CategoryActionType = 'connection' | 'function' | 'add';
 
 export interface CategoryAction {
     type: CategoryActionType;
+    codeIcon?: string;
+    hideOnEmptyState?: boolean;
     tooltip: string;
     emptyStateLabel: string;
-    handlerKey: 'onAddConnection' | 'onAddFunction' | 'onAdd';
+    handlerKey: 'onAddConnection' | 'onAddFunction' | 'onAdd' | 'onLinkDevantProject' | 'onRefreshDevantConnections';
     condition?: (title: string) => boolean; // For special conditions like data mapper
 }
 
@@ -38,12 +40,30 @@ export interface CategoryConfig {
 export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
     "Connections": {
         title: "Connections",
-        actions: [{
-            type: 'connection',
-            tooltip: "Add Connection",
-            emptyStateLabel: "Add Connection",
-            handlerKey: 'onAddConnection'
-        }],
+         actions: [
+            {
+                type: "connection",
+                codeIcon: "vm-connect",
+                tooltip: "Use Devant Connections",
+                emptyStateLabel: "",
+                hideOnEmptyState: true,
+                handlerKey: "onLinkDevantProject",
+            },
+            {
+                type: "connection",
+                codeIcon: "refresh",
+                tooltip: "Refresh Devant Connections",
+                emptyStateLabel: "",
+                hideOnEmptyState: true,
+                handlerKey: "onRefreshDevantConnections",
+            },
+            {
+                type: "connection",
+                tooltip: "Add Connection",
+                emptyStateLabel: "Add Connection",
+                handlerKey: "onAddConnection",
+            },
+        ],
         showWhenEmpty: true,
         useConnectionContainer: true,
         fixed: true
@@ -60,7 +80,7 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             },
             {
                 type: 'function',
-                tooltip: "Create Natural Function", 
+                tooltip: "Create Natural Function",
                 emptyStateLabel: "Create Natural Function",
                 handlerKey: 'onAddFunction',
                 condition: (title) => title === "Natural Functions"
@@ -77,11 +97,17 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
         useConnectionContainer: false,
         fixed: true
     },
-    "Agents": {
-        title: "Agents", 
-        actions: [],
+    "Agent": {
+        title: "Agents",
+        actions: [{
+            type: 'add',
+            tooltip: "Add Agent", // Will use addButtonLabel from props
+            emptyStateLabel: "", // Will use addButtonLabel from props
+            handlerKey: 'onAdd'
+        }],
         showWhenEmpty: true,
-        useConnectionContainer: false
+        useConnectionContainer: true,
+        fixed: true
     },
     "Model Providers": {
         title: "Model Providers",
@@ -162,7 +188,11 @@ export const getCategoryConfig = (title: string): CategoryConfig | undefined => 
     return CATEGORY_CONFIGS[title];
 };
 
-export const shouldShowEmptyCategory = (title: string): boolean => {
+export const shouldShowEmptyCategory = (title: string, isSubCategory: boolean): boolean => {
+    if (isSubCategory) {
+        // For subcategories, only show if it's "Current Integration"
+        return title === "Current Integration";
+    }
     const config = getCategoryConfig(title);
     return config?.showWhenEmpty ?? false;
 };

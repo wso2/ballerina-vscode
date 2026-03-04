@@ -227,7 +227,6 @@ import {
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
     ResourceReturnTypesRequest,
-    ResourceReturnTypesResponse,
     JsonToTypeRequest,
     JsonToTypeResponse,
     McpToolsRequest,
@@ -283,7 +282,10 @@ import {
     PersistClientGenerateRequest,
     PersistClientGenerateResponse,
     WSDLApiClientGenerationRequest,
-    WSDLApiClientGenerationResponse
+    WSDLApiClientGenerationResponse,
+    CopilotSearchLibrariesBySearchRequest,
+    CopilotSearchLibrariesBySearchResponse,
+    CreateConvertedVariableRequest
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -353,6 +355,7 @@ enum EXTENDED_APIS {
     BI_VERIFY_TYPE_DELETE = 'typesManager/verifyTypeDelete',
     BI_DELETE_TYPE = 'typesManager/deleteType',
     BI_AVAILABLE_NODES = 'flowDesignService/getAvailableNodes',
+    BI_AVAILABLE_AGENTS = 'flowDesignService/getAvailableAgents',
     BI_AVAILABLE_MODEL_PROVIDERS = 'flowDesignService/getAvailableModelProviders',
     BI_AVAILABLE_VECTOR_STORES = 'flowDesignService/getAvailableVectorStores',
     BI_AVAILABLE_EMBEDDING_PROVIDERS = 'flowDesignService/getAvailableEmbeddingProviders',
@@ -386,6 +389,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_CLAUSE_POSITION = 'dataMapper/clausePosition',
     DATA_MAPPER_CLEAR_TYPE_CACHE = 'dataMapper/clearTypeCache',
     DATA_MAPPER_CONVERT_EXPRESSION = 'dataMapper/convertExpression',
+    DATA_MAPPER_CREATE_CONVERTED_VARIABLE = 'dataMapper/convertType',
     VIEW_CONFIG_VARIABLES_V2 = 'configEditorV2/getConfigVariables',
     UPDATE_CONFIG_VARIABLES_V2 = 'configEditorV2/updateConfigVariable',
     DELETE_CONFIG_VARIABLE_V2 = 'configEditorV2/deleteConfigVariable',
@@ -475,6 +479,7 @@ enum EXTENDED_APIS {
     PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts',
     COPILOT_ALL_LIBRARIES = 'copilotLibraryManager/getLibrariesList',
     COPILOT_FILTER_LIBRARIES = 'copilotLibraryManager/getFilteredLibraries',
+    COPILOT_SEARCH_LIBRARIES = 'copilotLibraryManager/getLibrariesBySearch',
     GET_MIGRATION_TOOLS = 'projectService/getMigrationTools',
     TIBCO_TO_BI = 'projectService/importTibco',
     MULE_TO_BI = 'projectService/importMule',
@@ -885,6 +890,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<ConvertExpressionResponse>(EXTENDED_APIS.DATA_MAPPER_CONVERT_EXPRESSION, params);
     }
 
+    async createConvertedVariable(params: CreateConvertedVariableRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_CREATE_CONVERTED_VARIABLE, params);
+    }
+
     async clearTypeCache(): Promise<ClearTypeCacheResponse> {
         return this.sendRequest<ClearTypeCacheResponse>(EXTENDED_APIS.DATA_MAPPER_CLEAR_TYPE_CACHE);
     }
@@ -1087,6 +1096,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getAvailableNodes(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_NODES, params);
+    }
+
+    async getAvailableAgents(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_AGENTS, params);
     }
 
     async getAvailableModelProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
@@ -1428,6 +1441,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getCopilotFilteredLibraries(params: CopilotFilterLibrariesRequest): Promise<CopilotFilterLibrariesResponse> {
         return this.sendRequest<CopilotFilterLibrariesResponse>(EXTENDED_APIS.COPILOT_FILTER_LIBRARIES, params);
+    }
+
+    async getCopilotLibrariesBySearch(params: CopilotSearchLibrariesBySearchRequest): Promise<CopilotSearchLibrariesBySearchResponse> {
+        return this.sendRequest<CopilotSearchLibrariesBySearchResponse>(EXTENDED_APIS.COPILOT_SEARCH_LIBRARIES, params);
     }
 
     async getMigrationTools(): Promise<GetMigrationToolsResponse> {

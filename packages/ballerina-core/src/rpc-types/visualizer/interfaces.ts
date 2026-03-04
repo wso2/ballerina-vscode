@@ -17,7 +17,7 @@
  */
 
 import { CodeData } from "../../interfaces/bi";
-import { EVENT_TYPE, PopupVisualizerLocation, VisualizerLocation } from "../../state-machine-types";
+import { EVENT_TYPE, EvalSet, PopupVisualizerLocation, VisualizerLocation } from "../../state-machine-types";
 
 export interface UpdateUndoRedoMangerRequest {
     filePath: string;
@@ -53,9 +53,32 @@ export interface AddToUndoStackRequest {
 export interface JoinProjectPathRequest {
     segments: string | string[];
     codeData?: CodeData;
+    checkExists?: boolean;
 }
 
 export interface JoinProjectPathResponse {
     filePath: string;
     projectPath: string;
+    exists?: boolean;
+}
+
+export interface HandleApprovalPopupCloseRequest {
+    requestId: string;
+}
+
+export interface ReopenApprovalViewRequest {
+    requestId: string;
+}
+
+export interface SaveEvalThreadRequest {
+    filePath: string;
+    updatedEvalSet: EvalSet;
+}
+
+export interface SaveEvalThreadResponse {
+    success: boolean;
+    error?: string;
+}
+export interface GoBackRequest {
+    identifier?: string;
 }

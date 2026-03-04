@@ -21,6 +21,7 @@ import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTOR
 import { StateMachine } from "../stateMachine";
 import { ExtendedLangClient } from "../core/extended-language-client";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
+import { isLibraryProject } from "./config";
 
 export async function buildProjectsStructure(
     projectInfo: ProjectInfo,
@@ -67,6 +68,9 @@ async function buildProjectArtifactsStructure(
         projectName: packageName,
         projectPath: projectPath,
         projectTitle: packageTitle,
+        // Workaround to check if the project is a library project.
+        // This will be removed once the projectInfo is updated to include the library flag.
+        isLibrary: await isLibraryProject(projectPath),
         directoryMap: {
             [DIRECTORY_MAP.AUTOMATION]: [],
             [DIRECTORY_MAP.SERVICE]: [],
@@ -188,7 +192,7 @@ async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: 
             break;
         case DIRECTORY_MAP.SERVICE:
             // Do things related to service
-            entryValue.name = artifact.name; // GraphQL Service - /foo
+            entryValue.name = getServiceDisplayName(artifact); // GraphQL Service - /foo
             entryValue.icon = getCustomEntryNodeIcon(artifact.module);
             if (artifact.module === "ai") {
                 entryValue.resources = [];
@@ -243,6 +247,18 @@ async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: 
             break;
     }
     return entryValue;
+}
+
+function getServiceDisplayName(artifact: BaseArtifact): string {
+    if (artifact.module !== "ftp") {
+        return artifact.name;
+    }
+    const accessor = artifact.accessor?.trim();
+    if (!accessor) {
+        return artifact.name;
+    }
+    const suffix = ` - ${accessor}`;
+    return artifact.name.includes(suffix) ? artifact.name : `${artifact.name}${suffix}`;
 }
 
 /**

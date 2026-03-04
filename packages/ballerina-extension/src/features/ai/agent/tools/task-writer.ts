@@ -36,11 +36,21 @@ export interface TaskWriteResult {
 export const TaskInputSchema = z.object({
     description: z.string().min(1).describe("Clear, actionable description of the task to be implemented"),
     status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED]).describe("Current status of the task. Use 'pending' for tasks not started, 'in_progress' when actively working on it, 'completed' when work is finished."),
-    type: z.enum([TaskTypes.SERVICE_DESIGN, TaskTypes.CONNECTIONS_INIT, TaskTypes.IMPLEMENTATION]).describe("Type of the implementation task. service_design will only generate the http service contract. not the implementation. connections_init will only generate the connection initializations. All of the other tasks will be of type implementation.")
+    type: z.enum([TaskTypes.SERVICE_DESIGN, TaskTypes.CONNECTIONS_INIT, TaskTypes.IMPLEMENTATION, TaskTypes.TESTING]).describe("Type of the implementation task. service_design: creates the HTTP service contract only (no implementation). connections_init: creates connection/client initializations only. implementation: all other implementation tasks. testing: writing test cases for the implemented logic — include only if the user has explicitly asked for tests.")
 });
 
 const TaskWriteInputSchema = z.object({
-    tasks: z.array(TaskInputSchema).min(1).describe("ALL TASKS - EVERY SINGLE ONE. This tool is stateless. Always send the COMPLETE list of tasks with their current statuses.")
+    tasks: z.array(TaskInputSchema).min(1).describe("ALL TASKS - EVERY SINGLE ONE. This tool is stateless. Always send the COMPLETE list of tasks with their current statuses."),
+    isPlanApproval: z.boolean().optional().describe(
+        "Set to true when submitting the initial plan or a revised plan. " +
+        "This shows the full task list to the user and waits for plan approval before execution begins. " +
+        "Use this on the very first TaskWrite call, and again if the user requests plan changes."
+    ),
+    requestReview: z.boolean().optional().describe(
+        "Set to true after completing a meaningful milestone (e.g. finishing a logical unit of work) " +
+        "when you want the user to review the current state before continuing. " +
+        "Do NOT use after every single task — only at significant checkpoints."
+    )
 });
 
 export type TaskWriteInput = z.infer<typeof TaskWriteInputSchema>;
@@ -129,61 +139,71 @@ After approval, start task 2 - Send ALL:
 ]
 
 Rules:
-- Send ALL tasks every single call (tool will reject partial lists)
+- Send ALL tasks on every call
 - Only ONE task "in_progress" at a time
-- After plan approval, start first task immediately
-- Wait for approval after each task completion before starting next
-- Continue autonomously through all tasks with approval checkpoints`,
+- Set isPlanApproval: true on the first call (and when revising the plan)
+- Set requestReview: true only at meaningful milestones, not after every task
+- After plan approval, start tasks immediately and continue autonomously unless requestReview is set`,
         inputSchema: TaskWriteInputSchema,
         execute: async (input: TaskWriteInput): Promise<TaskWriteResult> => {
             try {
-                const generation = chatStateStorage.getGeneration(workspaceId, threadId, generationId);
-                const existingPlan = generation?.plan;
                 const allTasks = mapInputToTasks(input);
 
-                console.log(`[TaskWrite Tool] Received ${allTasks.length} task(s)`);
+                console.log(`[TaskWrite Tool] Received ${allTasks.length} task(s), isPlanApproval=${input.isPlanApproval}, requestReview=${input.requestReview}`);
 
                 const taskCategories = categorizeTasks(allTasks);
-
-                // TODO: Add tests for plan modification detection in the middle of execution
-                // Fixed: Plan state is now preserved in the state machine across chat continuations,
-                // preventing unnecessary approval requests when agent continues with existing plan.
-                // Still need comprehensive tests for: mid-execution plan modifications, task reordering,
-                // task additions/removals, and edge cases where plan changes should trigger re-approval.
-                const isNewPlan = !existingPlan || existingPlan.tasks.length === 0;
-                const isPlanRemodification = existingPlan && (
-                    allTasks.length !== existingPlan.tasks.length ||
-                    allTasks.some(task => !existingPlan.tasks.find(t => t.description === task.description))
-                );
-
-                if (!isNewPlan && !isPlanRemodification) {
-                    const missingTasksError = validateAllTasksIncluded(input, existingPlan);
-                    if (missingTasksError) { return missingTasksError; }
-                }
 
                 let approvalResult: { approved: boolean; comment?: string; approvedTaskDescription?: string } | undefined;
                 let approvalType: "plan" | "completion" | undefined;
 
                 if (eventHandler) {
-                    const needsPlanApproval = (isNewPlan || isPlanRemodification) && taskCategories.inProgress.length === 0;
-                    if (needsPlanApproval) {
+                    if (input.isPlanApproval === true) {
+                        // Explicit plan approval gate — show full task list to user and wait for approval
                         approvalType = "plan";
-                        approvalResult = await handlePlanApproval(allTasks, isPlanRemodification, eventHandler, workspaceId, generationId, threadId);
-                    } else if (taskCategories.completed.length > 0 && taskCategories.inProgress.length === 0) {
-                        const newlyCompletedTasks = detectNewlyCompletedTasks(taskCategories.completed, existingPlan);
-
-                        if (newlyCompletedTasks.length > 0) {
-                            approvalType = "completion";
-                            approvalResult = await handleTaskCompletion(
-                                allTasks,
-                                newlyCompletedTasks,
-                                eventHandler,
-                                tempProjectPath,
-                                modifiedFiles
-                            );
-                        }
+                        approvalResult = await handlePlanApproval(allTasks, eventHandler, workspaceId, generationId, threadId);
+                    } else if (input.requestReview === true) {
+                        // TODO: Re-enable approval gate (handleTaskCompletion) when review flow is ready
+                        // Skip review gate — mark as completed and continue autonomously
+                        eventHandler({
+                            type: "tool_result",
+                            toolName: TASK_WRITE_TOOL_NAME,
+                            toolOutput: {
+                                success: true,
+                                message: `Completed: ${taskCategories.completed[taskCategories.completed.length - 1]?.description ?? "tasks"}`,
+                                tasks: allTasks
+                            }
+                        });
                     } else if (taskCategories.inProgress.length > 0) {
+                        // Task started — emit progress event, no user gate
                         console.log(`[TaskWrite Tool] Task in progress: ${taskCategories.inProgress[0].description}`);
+                        eventHandler({
+                            type: "tool_result",
+                            toolName: TASK_WRITE_TOOL_NAME,
+                            toolOutput: {
+                                success: true,
+                                message: `Started working on: ${taskCategories.inProgress[0].description}`,
+                                tasks: allTasks
+                            }
+                        });
+                    } else if (taskCategories.completed.length > 0) {
+                        // Task(s) completed without requestReview — integrate code silently, no user gate
+                        // TODO: Re-enable workspace integration when ready
+                        // if (tempProjectPath && modifiedFiles) {
+                        //     const modifiedFilesSet = new Set(modifiedFiles);
+                        //     const ctx = createExecutionContextFromStateMachine();
+                        //     await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
+                        // }
+                        // Emit completion event so the visualizer knows execution is done
+                        // and can render subsequent content (agent's closing text) normally
+                        eventHandler({
+                            type: "tool_result",
+                            toolName: TASK_WRITE_TOOL_NAME,
+                            toolOutput: {
+                                success: true,
+                                message: `Completed: ${taskCategories.completed[taskCategories.completed.length - 1].description}`,
+                                tasks: allTasks
+                            }
+                        });
                     }
                 }
 
@@ -222,27 +242,6 @@ function mapInputToTasks(input: TaskWriteInput): Task[] {
     }));
 }
 
-function validateAllTasksIncluded(input: TaskWriteInput, existingPlan: Plan | undefined): TaskWriteResult | null {
-    if (!existingPlan || existingPlan.tasks.length === 0) {
-        return null;
-    }
-
-    const existingDescriptions = new Set(existingPlan.tasks.map(t => t.description));
-    const receivedDescriptions = new Set(input.tasks.map(t => t.description));
-    const missingDescriptions = [...existingDescriptions].filter(desc => !receivedDescriptions.has(desc));
-
-    if (missingDescriptions.length > 0) {
-        console.error(`[TaskWrite Tool] Missing ${missingDescriptions.length} task(s)`);
-        return {
-            success: false,
-            message: `ERROR: Missing ${missingDescriptions.length} task(s). Missing: ${missingDescriptions.map(d => `"${d}"`).join(', ')}`,
-            tasks: existingPlan.tasks
-        };
-    }
-    //TOOD: Add diagnostics check
-    return null;
-}
-
 function categorizeTasks(allTasks: Task[]) {
     return {
         completed: allTasks.filter(t => t.status === TaskStatus.COMPLETED),
@@ -251,16 +250,6 @@ function categorizeTasks(allTasks: Task[]) {
     };
 }
 
-function detectNewlyCompletedTasks(completedTasks: Task[], existingPlan: Plan | undefined): Task[] {
-    if (!existingPlan) {
-        return completedTasks;
-    }
-
-    return completedTasks.filter(task => {
-        const existingTask = existingPlan.tasks.find(t => t.description === task.description);
-        return existingTask && existingTask.status !== TaskStatus.COMPLETED;
-    });
-}
 
 function createPlan(allTasks: Task[]): Plan {
     return {
@@ -273,21 +262,17 @@ function createPlan(allTasks: Task[]): Plan {
 
 async function handlePlanApproval(
     allTasks: Task[],
-    isPlanRemodification: boolean,
     eventHandler: CopilotEventHandler,
     workspaceId: string,
     generationId: string,
     threadId: string
 ): Promise<{ approved: boolean; comment?: string }> {
-    console.log(`[TaskWrite Tool] ${isPlanRemodification ? 'Plan remodified' : 'Plan created'}`);
+    console.log(`[TaskWrite Tool] Plan approval requested`);
 
     const plan = createPlan(allTasks);
 
     // Store plan in ChatStateStorage with the generation
     chatStateStorage.updateGeneration(workspaceId, threadId, generationId, { plan });
-
-    // Notify visualizer of plan update
-    eventHandler({ type: 'plan_updated', plan });
 
     // Use ApprovalManager for plan approval (replaces state machine subscription)
     const requestId = `plan-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
@@ -311,18 +296,18 @@ async function handleTaskCompletion(
     const lastCompletedTask = newlyCompletedTasks[newlyCompletedTasks.length - 1];
     console.log(`[TaskWrite Tool] Detected ${newlyCompletedTasks.length} newly completed task(s)`);
 
-    const diagnosticResult = await checkCompilationErrors(tempProjectPath);
+    // const diagnosticResult = await checkCompilationErrors(tempProjectPath);
 
-    if (diagnosticResult.diagnostics.length > 0) {
-        const errorCount = diagnosticResult.diagnostics.length;
-        console.error(`[TaskWrite Tool] Found ${errorCount} compilation error(s), blocking task completion`);
+    // if (diagnosticResult.diagnostics.length > 0) {
+    //     const errorCount = diagnosticResult.diagnostics.length;
+    //     console.error(`[TaskWrite Tool] Found ${errorCount} compilation error(s), blocking task completion`);
 
-        return {
-            approved: false,
-            comment: `Cannot complete task: ${errorCount} compilation error(s) detected. Use the ${DIAGNOSTICS_TOOL_NAME} tool to check the errors and fix them before marking the task as completed.`,
-            approvedTaskDescription: lastCompletedTask.description
-        };
-    }
+    //     return {
+    //         approved: false,
+    //         comment: `Cannot complete task: ${errorCount} compilation error(s) detected. Use the ${DIAGNOSTICS_TOOL_NAME} tool to check the errors and fix them before marking the task as completed.`,
+    //         approvedTaskDescription: lastCompletedTask.description
+    //     };
+    // }
 
     if (tempProjectPath && modifiedFiles) {
         const modifiedFilesSet = new Set(modifiedFiles);

@@ -19,7 +19,7 @@
 import { ExpandableList } from "../Components/ExpandableList"
 import { TypeIndicator } from "../Components/TypeIndicator"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
-import { DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
+import { EditorConfig, EditorDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
 import { Codicon, CompletionItem, Divider, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, useFieldContext, InputMode } from "@wso2/ballerina-side-panel"
@@ -42,7 +42,7 @@ type VariablesPageProps = {
     onChange: (value: string, isRecordConfigureChange: boolean, shouldKeepHelper?: boolean) => void;
     targetLineRange: LineRange;
     anchorRef: React.RefObject<HTMLDivElement>;
-    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions, openDMInPopup?: boolean) => void;
+    handleOnFormSubmit?: (updatedNode?: FlowNode, editorConfig?: EditorConfig, options?: FormSubmitOptions, openDMInPopup?: boolean) => void;
     selectedType?: CompletionItem;
     filteredCompletions: CompletionItem[];
     currentValue: string;
@@ -150,7 +150,7 @@ export const Variables = (props: VariablesPageProps) => {
         setProjectPathUri(URI.file(visualizerContext.projectPath).fsPath);
     }
 
-    const handleSubmit = (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode) => {
+    const handleSubmit = (updatedNode?: FlowNode, editorConfig?: EditorConfig) => {
         newNodeNameRef.current = "";
         // Safely extract the variable name as a string, fallback to empty string if not available
         const varName = typeof updatedNode?.properties?.variable?.value === "string"
@@ -159,7 +159,10 @@ export const Variables = (props: VariablesPageProps) => {
         newNodeNameRef.current = varName;
         handleOnFormSubmit?.(
             updatedNode,
-            dataMapperMode === DataMapperDisplayMode.VIEW ? DataMapperDisplayMode.POPUP : DataMapperDisplayMode.NONE,
+            {
+                view: editorConfig?.view,
+                displayMode: editorConfig?.displayMode === EditorDisplayMode.VIEW ? EditorDisplayMode.POPUP : EditorDisplayMode.NONE
+            },
             {
                 closeSidePanel: false, isChangeFromHelperPane: true, postUpdateCallBack: () => {
                     onClose()
@@ -242,26 +245,6 @@ export const Variables = (props: VariablesPageProps) => {
     }
 
 
-    const getTypeDef = () => {
-        return (
-            {
-                metadata: {
-                    label: "Type",
-                    description: "Type of the variable",
-                },
-                valueType: "TYPE",
-                value: selectedType?.label,
-                placeholder: "var",
-                optional: false,
-                editable: true,
-                advanced: false,
-                hidden: false,
-            }
-        )
-
-    }
-
-
     const selectedNode: FlowNode = {
         codedata: {
             node: 'VARIABLE',
@@ -286,7 +269,19 @@ export const Variables = (props: VariablesPageProps) => {
                 advanced: false,
                 hidden: false,
             },
-            type: getTypeDef(),
+            type: {
+                metadata: {
+                    label: "Type",
+                    description: "Type of the variable",
+                },
+                types: [{ fieldType: "TYPE", selected: false }],
+                value: selectedType?.label,
+                placeholder: "var",
+                optional: false,
+                editable: true,
+                advanced: false,
+                hidden: false,
+            },
             expression: {
                 metadata: {
                     label: "Expression",

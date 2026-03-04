@@ -18,14 +18,15 @@
  */
 
 import { exec } from 'child_process';
-import { CancellationToken, TestRunRequest, TestMessage, TestRun, TestItem, debug, Uri, WorkspaceFolder, DebugConfiguration, workspace, TestRunProfileKind } from 'vscode';
-import { testController } from './activator';
+import { CancellationToken, TestRunRequest, TestMessage, TestRun, TestItem, debug, Uri, WorkspaceFolder, DebugConfiguration, workspace, TestRunProfileKind, commands, window } from 'vscode';
+import { EVALUATION_GROUP, testController } from './activator';
 import { StateMachine } from "../../stateMachine";
 import { isTestFunctionItem, isTestGroupItem, isProjectGroupItem } from './discover';
 import { extension } from '../../BalExtensionContext';
 import { constructDebugConfig } from "../debugger";
 const fs = require('fs');
 import path from 'path';
+import { EvaluationReportWebview } from '../../views/evaluation-report/webview';
 
 /**
  * Extract project path from a test item
@@ -35,7 +36,7 @@ function getProjectPathFromTestItem(test: TestItem): string | undefined {
     if (isTestFunctionItem(test)) {
         // Extract from test ID: test:${projectPath}:${fileName}:${functionName}
         const parts = test.id.split(':');
-        if (parts.length >= 2  && parts[0] === 'test') {
+        if (parts.length >= 2 && parts[0] === 'test') {
             return parts[1];
         }
     } else if (isProjectGroupItem(test)) {
@@ -82,6 +83,50 @@ function getProjectNameIfWorkspace(projectPath: string): string | undefined {
     }
 
     return undefined;
+}
+
+function isAiEvaluations(test: TestItem): boolean {
+    // Check if the test item itself is the evaluations group
+    if (isTestGroupItem(test) && test.label === EVALUATION_GROUP) {
+        return true;
+    }
+
+    // Check if the test function's parent is the evaluations group
+    if (isTestFunctionItem(test) && test.parent && test.parent.label === EVALUATION_GROUP) {
+        return true;
+    }
+
+    // Check if the project group contains only evaluations groups
+    if (isProjectGroupItem(test)) {
+        // Return true only if all children are evaluation groups
+        let allChildrenAreEvaluations = true;
+        let hasChildren = false;
+
+        test.children.forEach((child) => {
+            hasChildren = true;
+            if (!isTestGroupItem(child) || child.label !== EVALUATION_GROUP) {
+                allChildrenAreEvaluations = false;
+            }
+        });
+
+        return hasChildren && allChildrenAreEvaluations;
+    }
+
+    return false;
+}
+
+function buildTestCommand(test: TestItem, executor: string, projectName: string | undefined, testCaseNames?: string[]): string {
+    if (isAiEvaluations(test)) {
+        // Evaluations tests use group-based execution with test report
+        const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
+        const projectPart = projectName ? ` ${projectName}` : '';
+        return `${executor} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=evaluation-reports${testsPart}${projectPart}`;
+    } else {
+        // Standard tests use code coverage and optional test filtering
+        const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
+        const projectPart = projectName ? ` ${projectName}` : '';
+        return `${executor} test --code-coverage${testsPart}${projectPart}`;
+    }
 }
 
 export async function runHandler(request: TestRunRequest, token: CancellationToken) {
@@ -153,17 +198,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 }
             });
 
-            if (projectName) {
-                // Workspace context - include project name in command
-                command = testCaseNames.length > 0
-                    ? `${executor} test --code-coverage --tests ${testCaseNames.join(',')} ${projectName}`
-                    : `${executor} test --code-coverage ${projectName}`;
-            } else {
-                // Single project context
-                command = testCaseNames.length > 0
-                    ? `${executor} test --code-coverage --tests ${testCaseNames.join(',')}`
-                    : `${executor} test --code-coverage`;
-            }
+            command = buildTestCommand(test, executor, projectName, testCaseNames.length > 0 ? testCaseNames : undefined);
 
             const startTime = Date.now();
             // For workspace, run from workspace root; for single project, run from project path
@@ -172,7 +207,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -181,7 +222,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -197,13 +244,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 run.started(child);
             });
 
-            if (projectName) {
-                // Workspace context - include project name in command
-                command = `${executor} test --code-coverage --tests ${testCaseNames.join(',')} ${projectName}`;
-            } else {
-                // Single project context
-                command = `${executor} test --code-coverage --tests ${testCaseNames.join(',')}`;
-            }
+            command = buildTestCommand(test, executor, projectName, testCaseNames);
 
             const startTime = Date.now();
             // For workspace, run from workspace root; for single project, run from project path
@@ -212,7 +253,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -221,20 +268,20 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
                 });
             });
         } else if (isTestFunctionItem(test)) {
-            if (projectName) {
-                // Workspace context - include project name in command
-                command = `${executor} test --code-coverage --tests ${test.label} ${projectName}`;
-            } else {
-                // Single project context
-                command = `${executor} test --code-coverage --tests ${test.label}`;
-            }
+            command = buildTestCommand(test, executor, projectName, [test.label]);
 
             const parentGroup = test.parent;
             let testItems: TestItem[] = [];
@@ -253,7 +300,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -262,13 +315,17 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
                 });
-            }).finally(() => {
-                run.end();
             });
         }
     });
@@ -391,6 +448,47 @@ export async function readTestJson(file): Promise<JSON | undefined> {
         return JSON.parse(rawdata);
     } catch {
         return undefined;
+    }
+}
+
+async function findLatestEvaluationReport(workingDirectory: string): Promise<Uri | undefined> {
+    const reportsDir = path.join(workingDirectory, 'evaluation-reports');
+
+    if (!fs.existsSync(reportsDir)) {
+        return undefined;
+    }
+
+    try {
+        const files = fs.readdirSync(reportsDir);
+        const htmlFiles = files
+            .filter((file: string) => file.endsWith('.html'))
+            .map((file: string) => ({
+                name: file,
+                path: path.join(reportsDir, file),
+                mtime: fs.statSync(path.join(reportsDir, file)).mtime
+            }))
+            .sort((a: { mtime: Date }, b: { mtime: Date }) => b.mtime.getTime() - a.mtime.getTime());
+
+        if (htmlFiles.length > 0) {
+            return Uri.file(htmlFiles[0].path);
+        }
+    } catch (error) {
+        console.error('Error finding evaluation report:', error);
+    }
+
+    return undefined;
+}
+
+async function openEvaluationReport(reportUri: Uri): Promise<void> {
+    try {
+        // Show notification (non-blocking, no button)
+        window.showInformationMessage('Evaluation report generated');
+
+        // Open report in webview
+        await EvaluationReportWebview.createOrShow(reportUri);
+    } catch (error) {
+        console.error('Failed to open evaluation report:', error);
+        window.showErrorMessage('Failed to open evaluation report');
     }
 }
 

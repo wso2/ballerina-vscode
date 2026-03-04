@@ -27,6 +27,8 @@ import {
     CheckpointInfo,
     ConnectorSpecCancelRequest,
     ConnectorSpecRequest,
+    ConfigurationCancelRequest,
+    ConfigurationProvideRequest,
     DocGenerationRequest,
     GenerateAgentCodeRequest,
     GenerateOpenAPIRequest,
@@ -45,12 +47,14 @@ import {
     TestGenerationMentions,
     UIChatMessage,
     UpdateChatMessageRequest,
+    UsageResponse,
     abortAIGeneration,
     acceptChanges,
     addFilesToProject,
     approvePlan,
     approveTask,
     cancelConnectorSpec,
+    cancelConfiguration,
     clearChat,
     clearInitialPrompt,
     createTestDirecoryIfNotExists,
@@ -64,6 +68,7 @@ import {
     generateOpenAPI,
     getAIMachineSnapshot,
     getActiveTempDir,
+    getAffectedPackages,
     getChatMessages,
     getCheckpoints,
     getDefaultPrompt,
@@ -72,22 +77,23 @@ import {
     getGeneratedDocumentation,
     getLoginMethod,
     getSemanticDiff,
-    getAffectedPackages,
-    isWorkspaceProject,
     getServiceNames,
     isCopilotSignedIn,
-    isPlanModeFeatureEnabled,
+    isPlatformExtensionAvailable,
     isUserAuthenticated,
+    isWorkspaceProject,
     markAlertShown,
     openAIPanel,
     openChatWindowWithCommand,
     promptGithubAuthorize,
     provideConnectorSpec,
+    provideConfiguration,
     restoreCheckpoint,
     showSignInAlert,
     submitFeedback,
     updateChatMessage,
-    updateRequirementSpecification
+    updateRequirementSpecification,
+    getUsage
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -101,6 +107,10 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getLoginMethod(): Promise<LoginMethod> {
         return this._messenger.sendRequest(getLoginMethod, HOST_EXTENSION);
+    }
+
+    isPlatformExtensionAvailable(): Promise<boolean> {
+        return this._messenger.sendRequest(isPlatformExtensionAvailable, HOST_EXTENSION);
     }
 
     getDefaultPrompt(): Promise<AIPanelPrompt> {
@@ -199,9 +209,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(openAIPanel, HOST_EXTENSION, params);
     }
 
-    isPlanModeFeatureEnabled(): Promise<boolean> {
-        return this._messenger.sendRequest(isPlanModeFeatureEnabled, HOST_EXTENSION);
-    }
 
     getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
         return this._messenger.sendRequest(getSemanticDiff, HOST_EXTENSION, params);
@@ -247,6 +254,14 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(cancelConnectorSpec, HOST_EXTENSION, params);
     }
 
+    provideConfiguration(params: ConfigurationProvideRequest): Promise<void> {
+        return this._messenger.sendRequest(provideConfiguration, HOST_EXTENSION, params);
+    }
+
+    cancelConfiguration(params: ConfigurationCancelRequest): Promise<void> {
+        return this._messenger.sendRequest(cancelConfiguration, HOST_EXTENSION, params);
+    }
+
     getChatMessages(): Promise<UIChatMessage[]> {
         return this._messenger.sendRequest(getChatMessages, HOST_EXTENSION);
     }
@@ -269,5 +284,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getActiveTempDir(): Promise<string> {
         return this._messenger.sendRequest(getActiveTempDir, HOST_EXTENSION);
+    }
+
+    getUsage(): Promise<UsageResponse | undefined> {
+        return this._messenger.sendRequest(getUsage, HOST_EXTENSION);
     }
 }

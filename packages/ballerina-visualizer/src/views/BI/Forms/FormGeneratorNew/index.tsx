@@ -119,6 +119,7 @@ interface FormProps {
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
     hideSaveButton?: boolean;
     customDiagnosticFilter?: (diagnostics: Diagnostic[]) => Diagnostic[];
+    onValidityChange?: (isValid: boolean) => void;
 }
 
 export function FormGeneratorNew(props: FormProps) {
@@ -152,7 +153,8 @@ export function FormGeneratorNew(props: FormProps) {
         changeOptionalFieldTitle,
         onChange,
         hideSaveButton,
-        customDiagnosticFilter
+        customDiagnosticFilter,
+        onValidityChange
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -174,6 +176,7 @@ export function FormGeneratorNew(props: FormProps) {
     const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
 
     const [fieldsValues, setFields] = useState<FormField[]>(fields);
+    const fieldsRef = useRef<FormField[]>(fields);
     const [formImports, setFormImports] = useState<FormImports>({});
     const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
@@ -390,6 +393,7 @@ export function FormGeneratorNew(props: FormProps) {
     useEffect(() => {
         if (fields) {
             setFields(fields);
+            fieldsRef.current = fields;
             setFormImports(getImportsForFormFields(fields));
         }
     }, [fields]);
@@ -634,13 +638,13 @@ export function FormGeneratorNew(props: FormProps) {
                 shouldUpdateNode?: boolean,
                 variableType?: string
             ) => {
-                if (!showDiagnostics || isDataMapperEditor) {
+                if (!showDiagnostics) {
                     setDiagnosticsInfo({ key, diagnostics: [] });
                     return;
                 }
 
                 try {
-                    const field = fields.find(f => f.key === key);
+                    const field = fieldsRef.current.find(f => f.key === key);
                     if (field) {
                         const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
                             filePath: fileName,
@@ -1016,6 +1020,7 @@ export function FormGeneratorNew(props: FormProps) {
                     changeOptionalFieldTitle={changeOptionalFieldTitle}
                     onChange={onChange}
                     hideSaveButton={hideSaveButton}
+                    onValidityChange={onValidityChange}
                 />
             )}
             {
@@ -1071,6 +1076,8 @@ export function FormGeneratorNew(props: FormProps) {
                                 closeRecordConfigPage();
                             }
                         }}
+                        closeOnBackdropClick={true}
+                        closeButtonIcon="minimize"
                     >
                         <ConfigureRecordPage
                             fileName={fileName}

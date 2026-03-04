@@ -47,7 +47,8 @@ import {
     ClausePositionRequest,
     ClausePositionResponse,
     ConvertExpressionRequest,
-    ConvertExpressionResponse
+    ConvertExpressionResponse,
+    CreateConvertedVariableRequest
 } from "../../interfaces/extended-lang-client";
 
 export interface DataMapperAPI {
@@ -72,5 +73,6 @@ export interface DataMapperAPI {
     getExpandedDMFromDMModel: (params: DMModelRequest) => Promise<ExpandedDMModelResponse>;
     getProcessTypeReference: (params: ProcessTypeReferenceRequest) => Promise<ProcessTypeReferenceResponse>;
     getConvertedExpression: (params: ConvertExpressionRequest) => Promise<ConvertExpressionResponse>;
+    createConvertedVariable: (params: CreateConvertedVariableRequest) => Promise<DataMapperSourceResponse>;
     clearTypeCache: () => Promise<ClearTypeCacheResponse>;
 }

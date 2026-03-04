@@ -40,11 +40,13 @@ import {
     outputChannel,
     isWindows,
     isWSL,
+    quoteShellPath,
     isSupportedVersion,
     VERSION,
     isSupportedSLVersion,
     createVersionNumber,
-    checkIsBallerinaWorkspace
+    checkIsBallerinaWorkspace,
+    isInWI
 } from '../utils';
 import { AssertionError } from "assert";
 import {
@@ -1693,14 +1695,21 @@ export class BallerinaExtension {
         debug("[VERSION] Starting Ballerina version detection...");
         debug(`[VERSION] Input parameters - ballerinaHome: '${ballerinaHome}', overrideBallerinaHome: ${overrideBallerinaHome}`);
 
-        try {
-            // Initialize with fresh environment
-            debug("[VERSION] Syncing environment variables...");
-            await this.syncEnvironment();
-            debug("[VERSION] Environment sync completed");
-        } catch (error) {
-            debug(`[VERSION] Warning: Failed to sync environment: ${error}`);
-            // Continue anyway, don't fail the whole process
+        // Use BALLERINA_HOME in WSO2 Integrator if set, otherwise fallback to system PATH
+        if (process.env.WSO2_INTEGRATOR_RUNTIME && process.env.BALLERINA_HOME) {
+            debug(`[VERSION] Detected WSO2 Integrator environment with BALLERINA_HOME: ${process.env.BALLERINA_HOME}`);
+            ballerinaHome = process.env.BALLERINA_HOME;
+            overrideBallerinaHome = true;
+        } else {
+            try {
+                // Initialize with fresh environment
+                debug("[VERSION] Syncing environment variables...");
+                await this.syncEnvironment();
+                debug("[VERSION] Environment sync completed");
+            } catch (error) {
+                debug(`[VERSION] Warning: Failed to sync environment: ${error}`);
+                // Continue anyway, don't fail the whole process
+            }
         }
 
         // Log current environment for debugging
@@ -1824,7 +1833,8 @@ export class BallerinaExtension {
             debug("[VERSION] Non-Windows platform detected, no extension needed");
         }
 
-        let ballerinaCommand = distPath + 'bal' + exeExtension + ' version';
+        // Build the executable path separately so we can quote it for shell execution
+        let balExecutablePath = distPath + 'bal' + exeExtension;
 
         // Handle WSL environment - prefer native Linux installation over Windows .bat files
         if (isWSL()) {
@@ -1834,25 +1844,27 @@ export class BallerinaExtension {
                     // Check if 'bal' command is available in PATH
                     execSync('which bal', { encoding: 'utf8', timeout: 5000 });
                     // If we get here, 'bal' is available, use it instead of .bat
-                    ballerinaCommand = 'bal version';
+                    balExecutablePath = 'bal';
                     debug("[VERSION] WSL detected native 'bal' command, using it instead of .bat file");
                 } catch (error) {
                     debug("[VERSION] No native 'bal' command found in WSL, will try .bat file");
                     // If the path contains Windows-style paths, we need to handle them properly
-                    if (ballerinaCommand.includes('\\') || ballerinaCommand.match(/^[A-Za-z]:/)) {
+                    if (balExecutablePath.includes('\\') || balExecutablePath.match(/^[A-Za-z]:/)) {
                         debug("[VERSION] WSL detected with Windows path, attempting to convert to WSL path");
                         // Try to convert Windows path to WSL path
-                        const wslPath = ballerinaCommand.replace(/^([A-Za-z]):/, '/mnt/$1').replace(/\\/g, '/').toLowerCase();
-                        debug(`[VERSION] Converted Windows path to WSL path: ${wslPath}`);
-                        ballerinaCommand = wslPath;
+                        balExecutablePath = balExecutablePath.replace(/^([A-Za-z]):/, '/mnt/$1').replace(/\\/g, '/').toLowerCase();
+                        debug(`[VERSION] Converted Windows path to WSL path: ${balExecutablePath}`);
                     }
                 }
             } else {
                 // We have a native Linux installation, use it directly
-                ballerinaCommand = 'bal version';
+                balExecutablePath = 'bal';
                 debug("[VERSION] WSL detected with native Linux installation, using 'bal version'");
             }
         }
+
+        // Quote the executable path to handle spaces in directory names
+        let ballerinaCommand = `${quoteShellPath(balExecutablePath)} version`;
 
         debug(`[VERSION] Executing command: '${ballerinaCommand}'`);
 
@@ -2303,6 +2315,11 @@ export class BallerinaExtension {
      */
     private checkMultipleBallerinaInstallations(): void {
         debug("[MULTI_BAL_CHECK] Checking for multiple Ballerina installations in PATH...");
+
+        if (isInWI()) {
+            debug("[MULTI_BAL_CHECK] Skipping multiple installation warning in WSO2 Integrator environment");
+            return;
+        }
 
         const MULTIPLE_INSTALLATIONS_WARNING = 'Multiple Ballerina installations detected. This may cause unpredictable behavior.';
         const RESOLUTION_ADVICE = 'Consider removing duplicate installations or adjusting your PATH to avoid version conflicts.';

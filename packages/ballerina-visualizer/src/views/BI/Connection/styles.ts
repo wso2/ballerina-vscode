@@ -81,4 +81,61 @@ export const CloseButton = styled(Button)`
     padding: 4px;
 `;
 
+export const PopupContent = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+`;
 
+export const FooterContainer = styled.div`
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+`;
+
+export const ActionButton = styled(Button)`
+    width: 100% !important;
+    min-width: 0 !important;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+`;
+
+export const ConnectorInfoContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+`;
+
+export const ConnectorContentContainer = styled.div<{ hasFooterButton?: boolean }>`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    padding-bottom: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"};
+    min-height: 0;
+`;
+
+export const ConnectorProgressContainer = styled.p`
+    display: flex;
+    padding: 50px;
+    justify-content: center;
+    align-items: center;
+`;
+
+export const PopupFooter = styled.div`
+    padding: 16px 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+`;
