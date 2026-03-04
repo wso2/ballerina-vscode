@@ -13,6 +13,7 @@ export enum SegmentType {
     SpecFetcher = "SpecFetcher",
     ConfigurationCollector = "ConfigurationCollector",
     ReviewActions = "ReviewActions",
+    TryItScenarios = "TryItScenarios",
 }
 
 interface Segment {
@@ -87,7 +88,7 @@ export function splitContent(content: string): Segment[] {
     // Combined regex to capture either <code ...>```<language> code ```</code> or <progress>Text</progress>
     // Using matchAll for stateless iteration to avoid regex lastIndex corruption during streaming
     const regexPattern =
-        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall(?:\s+[^>]*)?>([\s\S]*?)<\/toolcall>|<toolresult(?:\s+[^>]*)?>([\s\S]*?)<\/toolresult>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>|<reviewactions>([\s\S]*?)<\/reviewactions>|<configurationcollector>([\s\S]*?)<\/configurationcollector>/g;
+        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall(?:\s+[^>]*)?>([\s\S]*?)<\/toolcall>|<toolresult(?:\s+[^>]*)?>([\s\S]*?)<\/toolresult>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>|<reviewactions>([\s\S]*?)<\/reviewactions>|<configurationcollector>([\s\S]*?)<\/configurationcollector>|<tryitcall(?:\s+[^>]*)?>([\s\S]*?)<\/tryitcall>|<tryitresult(?:\s+[^>]*)?>([\s\S]*?)<\/tryitresult>/g;
 
     // Convert to array to avoid stateful regex iteration issues
     const matches = Array.from(content.matchAll(regexPattern));
@@ -268,6 +269,38 @@ export function splitContent(content: string): Segment[] {
                 });
             } catch (error) {
                 console.error("Failed to parse configuration collector data:", error);
+            }
+        } else if (match[18]) {
+            // <tryitcall> block matched
+            const tryitcallText = `\n<call>${match[18]}</call>`;
+
+            updateLastProgressSegmentLoading();
+            const tryitSegment = segments.find((seg) => seg.type === SegmentType.TryItScenarios);
+            if (tryitSegment) {
+                tryitSegment.text += tryitcallText;
+                tryitSegment.loading = true;
+            } else {
+                segments.push({
+                    type: SegmentType.TryItScenarios,
+                    loading: true,
+                    text: tryitcallText,
+                });
+            }
+        } else if (match[19]) {
+            // <tryitresult> block matched
+            const tryitresultText = `<result>${match[19]}</result>\n`;
+
+            updateLastProgressSegmentLoading();
+            const tryitSegment = segments.find((seg) => seg.type === SegmentType.TryItScenarios);
+            if (tryitSegment) {
+                tryitSegment.text += tryitresultText;
+                tryitSegment.loading = false;
+            } else {
+                segments.push({
+                    type: SegmentType.TryItScenarios,
+                    loading: false,
+                    text: tryitresultText,
+                });
             }
         }
 

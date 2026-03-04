@@ -32,6 +32,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { NodePosition } from "@wso2/syntax-tree";
 import { Button, Codicon, Icon, LinkButton, TextField, Typography, View } from "@wso2/ui-toolkit";
+import { cloneDeep } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { LoadingRing } from "../../../components/Loader";
 import { TitleBar } from "../../../components/TitleBar";
@@ -470,9 +471,14 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     };
 
     const handleNewFTPFunction = (selectedHandler: string) => {
+        const templateFunction = serviceModel?.functions?.find(
+            (fn) => !fn.enabled && fn.metadata?.label === selectedHandler
+        );
+        setFunctionModel(templateFunction ? cloneDeep(templateFunction) : undefined);
+        setIsNew(true);
         setSelectedFTPHandler(selectedHandler);
         setShowForm(true);
-        handleFunctionConfigClose();
+        setShowFunctionConfigForm(false);
         setIsSaving(false);
     };
 
@@ -563,6 +569,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const handleNewFunctionClose = () => {
         setShowForm(false);
+        setIsNew(false);
+        setFunctionModel(undefined);
         setSelectedFTPHandler(undefined);
         // If a handler was selected, also close the FunctionConfigForm
         if (selectedHandler) {
@@ -1382,16 +1390,19 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     onClose={handleNewFunctionClose}
                                     width={400}
                                 >
-                                    <FTPForm
-                                        functionModel={functionModel!}
-                                        isNew={isNew}
-                                        model={serviceModel}
-                                        filePath={filePath}
-                                        isSaving={isSaving}
-                                        onSave={handleFunctionSubmit}
-                                        onClose={handleNewFunctionClose}
-                                        selectedHandler={selectedFTPHandler}
-                                    />
+                                    {showForm && functionModel && (
+                                        <FTPForm
+                                            key={`${isNew ? "new" : "edit"}-${selectedFTPHandler ?? functionModel.name?.value ?? "handler"}`}
+                                            functionModel={functionModel}
+                                            isNew={isNew}
+                                            model={serviceModel}
+                                            filePath={filePath}
+                                            isSaving={isSaving}
+                                            onSave={handleFunctionSubmit}
+                                            onClose={handleNewFunctionClose}
+                                            selectedHandler={selectedFTPHandler}
+                                        />
+                                    )}
                                 </PanelContainer>
                             )}
 

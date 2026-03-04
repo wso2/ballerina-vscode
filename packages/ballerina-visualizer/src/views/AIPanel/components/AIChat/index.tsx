@@ -44,6 +44,7 @@ import { AIChatInputRef } from "../AIChatInput";
 import ProgressTextSegment from "../ProgressTextSegment";
 import ToolCallSegment from "../ToolCallSegment";
 import ToolCallGroupSegment, { ToolCallItem } from "../ToolCallGroupSegment";
+import TryItScenariosSegment from "../TryItScenariosSegment";
 import TodoSection from "../TodoSection";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
@@ -472,6 +473,35 @@ const AIChat: React.FC = () => {
                 updateLastMessage((content) =>
                     content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`
                 );
+            } else if (response.toolName === "curlRequest") {
+                const toolCallId = response?.toolCallId;
+                const toolInput = response.toolInput;
+                let tool_content = encodeURIComponent(JSON.stringify({ request: { method: "", url: "Sending HTTP request...", headers: {}, data: null } }));
+                try{
+                    tool_content = encodeURIComponent(JSON.stringify(toolInput));
+                }catch(error){
+                    console.error("Failed to stringify HTTP request tool input:", error);
+                }
+
+                updateLastMessage((content) =>
+                    content + `\n\n<tryitcall id="${toolCallId}">${tool_content}</tryitcall>`
+                );
+            } else if (response.toolName === "runBallerinaPackage") {
+                const toolCallId = response?.toolCallId;
+                const runType = response.toolInput?.runType === "service" ? "service" : "program";
+                updateLastMessage((content) =>
+                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Running ${runType}...</toolcall>`
+                );
+            } else if (response.toolName === "getServiceLogs") {
+                const toolCallId = response?.toolCallId;
+                updateLastMessage((content) =>
+                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching logs...</toolcall>`
+                );
+            } else if (response.toolName === "stopBallerinaService") {
+                const toolCallId = response?.toolCallId;
+                updateLastMessage((content) =>
+                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Stopping service...</toolcall>`
+                );
             }
         } else if (type === "tool_result") {
             if (response.toolName === "LibrarySearchTool") {
@@ -636,6 +666,64 @@ const AIChat: React.FC = () => {
                 if (toolCallId) {
                     const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Running tests...</toolcall>`;
                     const resultMessage = response.toolOutput?.summary ?? "Tests completed";
+                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
+                    updateLastMessage((content) => content.replace(searchPattern, replacement));
+                }
+            } else if (response.toolName === "curlRequest") {
+                const toolCallId = response.toolCallId;
+                const toolOutput = response.toolOutput;
+                let tool_content: string | null = null;
+                try {
+                    tool_content = encodeURIComponent(JSON.stringify(toolOutput));
+                } catch (error) {
+                    console.error("Failed to stringify HTTP request tool output:", error);
+                }
+
+                if (tool_content !== null) {
+                    const searchPattern = `<tryitcall id="${toolCallId}">`;
+                    updateLastMessage((content) => {
+                        const start = content.indexOf(searchPattern);
+                        if (start === -1) return content;
+                        const end = content.indexOf("</tryitcall>", start);
+                        if (end === -1) return content;
+                        return (
+                            content.slice(0, start) +
+                            `<tryitresult id="${toolCallId}">${tool_content}</tryitresult>` +
+                            content.slice(end + "</tryitcall>".length)
+                        );
+                    });
+                }
+            } else if (response.toolName === "runBallerinaPackage") {
+                const toolCallId = response.toolCallId;
+                if (toolCallId) {
+                    const status = response.toolOutput?.status ?? "completed";
+                    const runType = status === "started" ? "service" : "program";
+                    const searchPattern = new RegExp(`<toolcall id="${toolCallId}" tool="${response.toolName}">Running (?:service|program)\\.\\.\\.<\\/toolcall>`);
+                    const resultMessage = status === "started"
+                        ? "Service started"
+                        : status === "completed"
+                            ? "Program completed"
+                            : status === "timeout"
+                                ? "Program timed out"
+                                : "Run failed";
+                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
+                    updateLastMessage((content) => content.replace(searchPattern, replacement));
+                }
+            } else if (response.toolName === "getServiceLogs") {
+                const toolCallId = response.toolCallId;
+                if (toolCallId) {
+                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching logs...</toolcall>`;
+                    const status = response.toolOutput?.status ?? "running";
+                    const resultMessage = status === "exited" ? "Service exited" : status === "not_found" ? "Service not found" : "Logs retrieved";
+                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
+                    updateLastMessage((content) => content.replace(searchPattern, replacement));
+                }
+            } else if (response.toolName === "stopBallerinaService") {
+                const toolCallId = response.toolCallId;
+                if (toolCallId) {
+                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Stopping service...</toolcall>`;
+                    const status = response.toolOutput?.status ?? "stopped";
+                    const resultMessage = status === "stopped" ? "Service stopped" : status === "already_exited" ? "Service already exited" : "Service not found";
                     const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
                     updateLastMessage((content) => content.replace(searchPattern, replacement));
                 }
@@ -1680,6 +1768,14 @@ const AIChat: React.FC = () => {
                                                 <ToolCallGroupSegment
                                                     key={`tool-call-group-${i}`}
                                                     segments={groupItems}
+                                                />
+                                            );
+                                        } else if (segment.type === SegmentType.TryItScenarios) {
+                                            return (
+                                                <TryItScenariosSegment
+                                                    key={`try-it-scenarios-${i}`}
+                                                    text={segment.text}
+                                                    loading={segment.loading}
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.Todo) {
