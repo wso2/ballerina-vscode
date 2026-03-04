@@ -120,7 +120,7 @@ export function ConnectorConfigView(props: ConnectorConfigViewProps) {
     const databaseName = (databaseNameProperty?.value as string) || connectorLabel || "";
 
     const connectorName = dbSystem && databaseName
-        ? `${formatDatabaseTypeDisplay(dbSystem, "")} Connector: ${databaseName}`
+        ? `Database Connector: ${databaseName}`
         : connectorLabel || (dbSystem ? `${formatDatabaseTypeDisplay(dbSystem, "")} Database Connector` : "Database Connector");
 
     return (
