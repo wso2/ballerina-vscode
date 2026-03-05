@@ -18,6 +18,8 @@
 
 import { DownloadProgress, ImportIntegrationResponse, MigrationTool, ProjectMigrationResult, ProjectRequest } from "@wso2/ballerina-core";
 
+export type MigrationEnhancementMode = 'auto-fix' | 'guided-review' | 'none';
+
 export interface FinalIntegrationParams {
     importSourcePath: string;
     type: string;
@@ -75,7 +77,7 @@ export interface MigrationProgressProps {
 
 export interface ConfigureProjectFormProps {
     isMultiProject: boolean;
-    onNext: (project: ProjectRequest) => void;
+    onNext: (project: ProjectRequest, enhancementMode: MigrationEnhancementMode) => void;
     onBack: () => void;
 }
 

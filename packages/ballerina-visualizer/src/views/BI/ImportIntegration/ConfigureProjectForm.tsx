@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ActionButtons, Typography } from "@wso2/ui-toolkit";
+import { ActionButtons, Codicon, Typography } from "@wso2/ui-toolkit";
 import { useState } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ValidateProjectFormErrorField } from "@wso2/ballerina-core";
@@ -24,11 +24,83 @@ import { BodyText } from "../../styles";
 import { ProjectFormData, ProjectFormFields } from "../ProjectForm/ProjectFormFields";
 import { validatePackageName } from "../ProjectForm/utils";
 import { MultiProjectFormData, MultiProjectFormFields } from "./components/MultiProjectFormFields";
-import { ButtonWrapper } from "./styles";
-import { ConfigureProjectFormProps } from "./types";
+import {
+    AIBadge,
+    AIEnhancementSection,
+    AIEnhancementTitle,
+    ButtonWrapper,
+    RadioDot,
+    RadioOptionCard,
+    RadioOptionDescription,
+    RadioOptionLabel,
+    RadioOptionList,
+    RadioOptionTitle,
+} from "./styles";
+import { ConfigureProjectFormProps, MigrationEnhancementMode } from "./types";
+
+interface AIEnhancementOption {
+    mode: MigrationEnhancementMode;
+    title: string;
+    description: string;
+    badge?: string;
+}
+
+const AI_ENHANCEMENT_OPTIONS: AIEnhancementOption[] = [
+    {
+        mode: 'auto-fix',
+        title: 'Auto-fix',
+        description: 'AI automatically resolves unmapped elements, fixes build errors, refines tests, and runs them. No prompts needed.',
+        badge: 'Recommended',
+    },
+    {
+        mode: 'guided-review',
+        title: 'Guided Review',
+        description: 'AI walks through each issue one at a time. Review and accept each change before it is applied.',
+    },
+    {
+        mode: 'none',
+        title: 'Skip for now',
+        description: 'Open the project as-is. You can trigger AI enhancement later from the project or migration report.',
+    },
+];
+
+interface AIEnhancementRadioGroupProps {
+    mode: MigrationEnhancementMode;
+    onChange: (mode: MigrationEnhancementMode) => void;
+}
+
+function AIEnhancementRadioGroup({ mode, onChange }: AIEnhancementRadioGroupProps) {
+    return (
+        <AIEnhancementSection>
+            <AIEnhancementTitle>
+                <Codicon name="sparkle" />
+                AI Enhancement
+            </AIEnhancementTitle>
+            <RadioOptionList>
+                {AI_ENHANCEMENT_OPTIONS.map((option) => (
+                    <RadioOptionCard
+                        key={option.mode}
+                        selected={mode === option.mode}
+                        onClick={() => onChange(option.mode)}
+                    >
+                        <RadioDot selected={mode === option.mode} />
+                        <RadioOptionLabel>
+                            <RadioOptionTitle>
+                                {option.title}
+                                {option.badge && <AIBadge>{option.badge}</AIBadge>}
+                            </RadioOptionTitle>
+                            <RadioOptionDescription>{option.description}</RadioOptionDescription>
+                        </RadioOptionLabel>
+                    </RadioOptionCard>
+                ))}
+            </RadioOptionList>
+        </AIEnhancementSection>
+    );
+}
 
 export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: ConfigureProjectFormProps) {
     const { rpcClient } = useRpcContext();
+    const [enhancementMode, setEnhancementMode] = useState<MigrationEnhancementMode>('auto-fix');
     const [singleProjectData, setSingleProjectData] = useState<ProjectFormData>({
         integrationName: "",
         packageName: "",
@@ -143,7 +215,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                 workspaceName: singleProjectData.workspaceName,
                 orgName: singleProjectData.orgName || undefined,
                 version: singleProjectData.version || undefined,
-            });
+            }, enhancementMode);
         } catch (error) {
             setSingleProjectPathError("An error occurred during validation");
             setIsValidating(false);
@@ -199,7 +271,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                 projectPath: multiProjectData.path,
                 createDirectory: multiProjectData.createDirectory,
                 createAsWorkspace: false,
-            });
+            }, enhancementMode);
         } catch (error) {
             setPathError("An error occurred during validation");
             setIsValidating(false);
@@ -219,6 +291,8 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                         pathError={pathError || undefined}
                         folderNameError={folderNameError || undefined}
                     />
+
+                    {<AIEnhancementRadioGroup mode={enhancementMode} onChange={setEnhancementMode} />}
 
                     <ButtonWrapper>
                         <ActionButtons
@@ -247,6 +321,8 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                         pathError={singleProjectPathError || undefined}
                         packageNameValidationError={singleProjectPackageNameError || undefined}
                     />
+
+                    {<AIEnhancementRadioGroup mode={enhancementMode} onChange={setEnhancementMode} />}
 
                     <ButtonWrapper>
                         <ActionButtons

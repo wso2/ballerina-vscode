@@ -56,6 +56,111 @@ export const ButtonWrapper = styled.div`
     justify-content: flex-end;
 `;
 
+export const AIEnhancementSection = styled.div`
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border));
+`;
+
+export const AIEnhancementTitle = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--vscode-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+`;
+
+export const RadioOptionList = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+`;
+
+export const RadioOptionCard = styled.div<{ selected: boolean }>`
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    border: 1px solid ${
+        ({ selected }: { selected: boolean }) =>
+            selected
+                ? 'var(--vscode-focusBorder)'
+                : 'var(--vscode-editorWidget-border, var(--vscode-panel-border))'
+    };
+    background: ${
+        ({ selected }: { selected: boolean }) =>
+            selected
+                ? 'var(--vscode-list-activeSelectionBackground, rgba(255,255,255,0.05))'
+                : 'transparent'
+    };
+    cursor: pointer;
+    transition: border-color 0.1s, background 0.1s;
+    &:hover {
+        border-color: var(--vscode-focusBorder);
+        background: var(--vscode-list-hoverBackground);
+    }
+`;
+
+export const RadioDot = styled.div<{ selected: boolean }>`
+    margin-top: 2px;
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid ${
+        ({ selected }: { selected: boolean }) =>
+            selected ? 'var(--vscode-focusBorder)' : 'var(--vscode-editorWidget-border, var(--vscode-descriptionForeground))'
+    };
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    &::after {
+        content: '';
+        display: ${ ({ selected }: { selected: boolean }) => (selected ? 'block' : 'none') };
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--vscode-focusBorder);
+    }
+`;
+
+export const RadioOptionLabel = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+`;
+
+export const RadioOptionTitle = styled.span`
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--vscode-foreground);
+`;
+
+export const RadioOptionDescription = styled.span`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+`;
+
+export const AIBadge = styled.span`
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+    vertical-align: middle;
+    margin-left: 6px;
+`;
+
 // Form-specific styles
 export const IntegrationCardGrid = styled.div`
     display: flex;

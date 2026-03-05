@@ -35,7 +35,7 @@ import { ConfigureProjectForm } from "./ConfigureProjectForm";
 import { ImportIntegrationForm } from "./ImportIntegrationForm";
 import { MigrationProgressView } from "./MigrationProgressView";
 import { FormContainer, TitleContainer, IconButton } from "./styles";
-import { FinalIntegrationParams } from "./types";
+import { FinalIntegrationParams, MigrationEnhancementMode } from "./types";
 
 export function ImportIntegration() {
     const { rpcClient } = useRpcContext();
@@ -99,13 +99,14 @@ export function ImportIntegration() {
             });
     };
 
-    const handleCreateIntegrationFiles = (project: ProjectRequest) => {
-        console.log("Creating integration files with params:", importParams);
+    const handleCreateIntegrationFiles = (project: ProjectRequest, enhancementMode: MigrationEnhancementMode) => {
+        console.log("Creating integration files with params:", importParams, "enhancementMode:", enhancementMode);
         if (migrationResponse) {
             const params: MigrateRequest = {
                 project: project,
                 textEdits: migrationResponse.textEdits,
                 projects: migratedProjects,
+                enhancementMode,
             };
             rpcClient.getMigrateIntegrationRpcClient().migrateProject(params);
         }
