@@ -19,6 +19,7 @@
 import React, { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
 import hljs from "highlight.js";
 import yaml from "highlight.js/lib/languages/yaml";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -64,6 +65,57 @@ const markdownWrapperStyle: React.CSSProperties = {
     whiteSpace: "normal",
     wordBreak: "break-word",
     overflowWrap: "anywhere",
+};
+
+const tableStyle: React.CSSProperties = {
+    borderCollapse: "collapse",
+    width: "100%",
+    marginBottom: "8px",
+    fontSize: "13px",
+};
+
+const thStyle: React.CSSProperties = {
+    border: "1px solid var(--vscode-panel-border)",
+    padding: "6px 10px",
+    textAlign: "left",
+    fontWeight: 600,
+    backgroundColor: "var(--vscode-editor-inactiveSelectionBackground)",
+    color: "var(--vscode-editor-foreground)",
+};
+
+const tdStyle: React.CSSProperties = {
+    border: "1px solid var(--vscode-panel-border)",
+    padding: "5px 10px",
+    color: "var(--vscode-editor-foreground)",
+};
+
+const headingStyles: Record<"h1" | "h2" | "h3", React.CSSProperties> = {
+    h1: {
+        fontSize: "18px",
+        lineHeight: "26px",
+        margin: "14px 0 8px",
+        fontWeight: 700,
+    },
+    h2: {
+        fontSize: "16px",
+        lineHeight: "24px",
+        margin: "12px 0 8px",
+        fontWeight: 700,
+    },
+    h3: {
+        fontSize: "14px",
+        lineHeight: "22px",
+        margin: "10px 0 6px",
+        fontWeight: 650,
+    },
+};
+
+const paragraphStyle: React.CSSProperties = {
+    margin: "8px 0",
+};
+
+const listStyle: React.CSSProperties = {
+    margin: "8px 0",
 };
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdownContent }) => {
@@ -213,10 +265,24 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdownContent }) 
     return (
         <div style={markdownWrapperStyle}>
             <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw]}
                 components={{
                     ...MarkdownCodeRenderer,
                     ...getMarkdownComponents(markdownContent),
+                    h1: ({ children }: { children?: React.ReactNode }) => <h1 style={headingStyles.h1}>{children}</h1>,
+                    h2: ({ children }: { children?: React.ReactNode }) => <h2 style={headingStyles.h2}>{children}</h2>,
+                    h3: ({ children }: { children?: React.ReactNode }) => <h3 style={headingStyles.h3}>{children}</h3>,
+                    p: ({ children }: { children?: React.ReactNode }) => <p style={paragraphStyle}>{children}</p>,
+                    ul: ({ children }: { children?: React.ReactNode }) => <ul style={listStyle}>{children}</ul>,
+                    ol: ({ children }: { children?: React.ReactNode }) => <ol style={listStyle}>{children}</ol>,
+                    table: ({ children }: { children?: React.ReactNode }) => (
+                        <div style={{ overflowX: "auto", marginBottom: "8px" }}>
+                            <table style={tableStyle}>{children}</table>
+                        </div>
+                    ),
+                    th: ({ children }: { children?: React.ReactNode }) => <th style={thStyle}>{children}</th>,
+                    td: ({ children }: { children?: React.ReactNode }) => <td style={tdStyle}>{children}</td>,
                 } as any}
             >
                 {safeContent}
