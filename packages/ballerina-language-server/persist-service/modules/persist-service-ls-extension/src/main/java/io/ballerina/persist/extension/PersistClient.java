@@ -203,7 +203,7 @@ public class PersistClient {
      * @throws PersistClientException if an error occurs during introspection
      */
     public List<DatabaseIntrospectionResponse.TableInfo> introspectDatabase(String modelFilePath)
-            throws PersistClientException {
+            throws PersistClientException, WorkspaceDocumentException, EventSyncException {
         String[] dbTables = introspectDatabaseTables();
         Set<String> modelTableNames = extractModelTableNames(modelFilePath);
 
@@ -229,11 +229,13 @@ public class PersistClient {
      * @param modelFilePath Relative path to the model file (e.g. {@code persist/testdb/model.bal})
      * @return Set of table names found in the model; empty when the file is absent or unreadable
      */
-    private Set<String> extractModelTableNames(String modelFilePath) {
+    private Set<String> extractModelTableNames(String modelFilePath) throws WorkspaceDocumentException,
+            EventSyncException {
         if (modelFilePath == null || modelFilePath.isEmpty()) {
             return Set.of();
         }
         Path fullPath = this.projectPath.resolve(modelFilePath);
+        this.workspaceManager.loadProject(fullPath);
         Optional<Document> document = workspaceManager.document(fullPath);
         if (document.isEmpty()) {
             return Set.of();
@@ -309,52 +311,34 @@ public class PersistClient {
      * files.
      *
      * @param selectedTables The tables to generate entities for
-     * @param module         The target module name for the generated files
+     * @param targetModule         The target module name for the generated files
      * @param modelPath      The path to the model file relative to the project root
      * @return JsonElement containing the PersistClientResponse with text edits map
      * @throws PersistClientException if an error occurs during generation
      */
-    public JsonElement generateClient(String[] selectedTables, String module, String modelPath)
+    public JsonElement generateClient(String[] selectedTables, String targetModule, String modelPath)
             throws PersistClientException {
         validateConnectionDetails();
-
-        if (module == null || module.isEmpty()) {
-            module = generateModuleNameFromDatabase(this.database, this.datastore);
-        }
-
         if (selectedTables == null || selectedTables.length == 0) {
             throw new PersistClientException("Selected tables cannot be null or empty");
         }
 
-        // If the directory exists with at least one bal file, then throw error for now
-        // Once persist supports multiple model files, this can be removed
-        Path persistPath = this.projectPath.resolve(PERSIST_DIR);
-        if (Files.exists(persistPath)) {
-            try (var files = Files.list(persistPath)) {
-                if (files.anyMatch(path -> path.toString().endsWith(".bal"))) {
-                    throw new PersistClientException("Currently only one database connection is supported per " +
-                            "project. A database connection is already present in the project at: " + persistPath);
-                }
-            } catch (IOException e) {
-                throw new PersistClientException("Error checking existing database connections: " + e.getMessage(), e);
-            }
-        }
-
         boolean isConnectorUpdate = modelPath != null && !modelPath.isEmpty();
         Path persistModelPath = modelPath != null && modelPath.isEmpty() ? Path.of(modelPath)
-                : persistPath.resolve(MODEL_FILE_NAME);
+                : this.projectPath.resolve(PERSIST_DIR).resolve(getModelBalFileName());
 
         try {
             Project project = this.workspaceManager.loadProject(projectPath);
             String packageName = project.currentPackage().packageName().value();
+            String module = resolvePersistModuleName(targetModule, packageName);
             Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
             Module entityModule = getInitialEntityModule(selectedTables);
             SyntaxTree dataModels = new DbModelGenSyntaxTree().getDataModels(entityModule);
-            addTextEditForPersistModelFile(dataModels, textEditsMap, persistModelPath);
+            addTextEditForPersistModelFile(dataModels, textEditsMap, persistModelPath, isConnectorUpdate);
             // Need to reload since the current initial entity module does not have enums
             // and other details
             entityModule = getEntities(module, dataModels);
-            addTextEditsForClientModuleSources(module, textEditsMap, entityModule);
+            addTextEditsForGeneratedModule(module, textEditsMap, entityModule, isConnectorUpdate);
             boolean isModuleExists = false;
             if (!isConnectorUpdate) {
                 addTextEditForConfigurations(textEditsMap);
@@ -365,6 +349,13 @@ public class PersistClient {
         } catch (BalException | IOException | FormatterException | WorkspaceDocumentException | EventSyncException e) {
             throw new PersistClientException("Error introspecting database: " + e.getMessage(), e);
         }
+    }
+
+    private String resolvePersistModuleName(String targetModule, String packageName) {
+        if (targetModule == null || targetModule.isEmpty()) {
+            return generateModuleNameFromDatabase();
+        }
+        return targetModule.replace(packageName + ".", "");
     }
 
     private void addTextEditForConfigurations(Map<Path, List<TextEdit>> textEditsMap) {
@@ -522,33 +513,57 @@ public class PersistClient {
         return modulePartNode;
     }
 
-    private void addTextEditsForClientModuleSources(String module, Map<Path, List<TextEdit>> textEditsMap,
-                                                    Module entityModule)
-            throws PersistClientException, FormatterException, BalException {
+    private void addTextEditsForGeneratedModule(String module, Map<Path, List<TextEdit>> textEditsMap,
+                                                Module entityModule, boolean isConnectorUpdate)
+            throws FormatterException, BalException,
+            WorkspaceDocumentException, EventSyncException {
         DbSyntaxTree dbSyntaxTree = new DbSyntaxTree();
         Path outputPath = projectPath.resolve("generated").resolve(module);
 
         // If the module directory already exists, throw an error
-        if (Files.exists(outputPath)) {
-            throw new PersistClientException("A database connector with the same name already exists: " + outputPath);
+        Document typesDocument = null;
+        Document clientDocument = null;
+        if (isConnectorUpdate) {
+            this.workspaceManager.loadProject(outputPath);
+            typesDocument = this.workspaceManager.document(outputPath.resolve("persist_types.bal"))
+                    .orElse(null);
+            clientDocument = this.workspaceManager.document(outputPath.resolve("persist_client.bal"))
+                    .orElse(null);
         }
 
         SyntaxTree dataTypesFile = dbSyntaxTree.getDataTypesSyntax(entityModule);
         List<TextEdit> dataTypesTextEdits = new ArrayList<>();
-        dataTypesTextEdits.add(new TextEdit(START_RANGE, Formatter.format(dataTypesFile.toSourceCode())));
+        dataTypesTextEdits.add(new TextEdit(getTextEditRange(typesDocument),
+                Formatter.format(dataTypesFile.toSourceCode())));
         textEditsMap.put(outputPath.resolve("persist_types.bal"), dataTypesTextEdits);
 
         SyntaxTree clientFile = dbSyntaxTree.getClientSyntax(entityModule, datastore, true, true);
         List<TextEdit> clientTextEdits = new ArrayList<>();
-        clientTextEdits.add(new TextEdit(START_RANGE, Formatter.format(clientFile.toSourceCode())));
+        clientTextEdits.add(new TextEdit(getTextEditRange(clientDocument),
+                Formatter.format(clientFile.toSourceCode())));
         textEditsMap.put(outputPath.resolve("persist_client.bal"), clientTextEdits);
     }
 
-    private static void addTextEditForPersistModelFile(SyntaxTree dataModels, Map<Path, List<TextEdit>> textEditsMap,
-                                                       Path persistModelPath) throws FormatterException {
+    private void addTextEditForPersistModelFile(SyntaxTree dataModels, Map<Path, List<TextEdit>> textEditsMap,
+                                                Path persistModelPath, boolean isConnectionUpdate)
+            throws FormatterException, WorkspaceDocumentException, EventSyncException {
+        Document document = null;
+        if (isConnectionUpdate) {
+            this.workspaceManager.loadProject(persistModelPath);
+            Optional<Document> docOpt = this.workspaceManager.document(persistModelPath);
+            document = docOpt.orElse(null);
+        }
         List<TextEdit> persistModelTextEdits = new ArrayList<>();
-        persistModelTextEdits.add(new TextEdit(START_RANGE, Formatter.format(dataModels.toSourceCode())));
+        persistModelTextEdits.add(new TextEdit(getTextEditRange(document),
+                Formatter.format(dataModels.toSourceCode())));
         textEditsMap.put(persistModelPath, persistModelTextEdits);
+    }
+
+    private Range getTextEditRange(Document document) {
+        if (document == null) {
+            return START_RANGE;
+        }
+        return CommonUtils.toRange(document.syntaxTree().rootNode().lineRange());
     }
 
     private Module getInitialEntityModule(String[] selectedTables) throws BalException, PersistClientException {
@@ -567,9 +582,9 @@ public class PersistClient {
         return entityModule;
     }
 
-    private static String generateModuleNameFromDatabase(String database, String datastore) {
+    private String generateModuleNameFromDatabase() {
         String sanitizedDatabaseName = database.replaceAll("[^a-zA-Z0-9]", "");
-        return datastore + "." + sanitizedDatabaseName;
+        return sanitizedDatabaseName + "." + name;
     }
 
     private boolean addTextEditForBallerinaToml(String packageName, String module, Map<Path,
@@ -678,10 +693,18 @@ public class PersistClient {
         return LS + "[[tool.persist]]" + LS +
                 "id" + " = " + moduleWithQuotes + LS +
                 "targetModule" + " = " + moduleWithQuotes + LS +
-                "filePath" + " = \"" + PERSIST_DIR + "/" + MODEL_FILE_NAME + "\"" + LS +
+                "filePath" + " = \"" + getModelFilePath() + "\"" + LS +
                 "options.datastore" + " = \"" + datastore + "\"" + LS +
                 "options.eagerLoading" + " = true" + LS +
                 "options.withInitParams" + " = true" + LS;
+    }
+
+    private String getModelFilePath() {
+        return PERSIST_DIR + "/" + getModelBalFileName();
+    }
+
+    private String getModelBalFileName() {
+        return name + "_" + MODEL_FILE_NAME;
     }
 
     private String getPersistMinimumVersionRequirementEntry() {
