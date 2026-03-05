@@ -322,9 +322,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                     label: connectorCredentials.metadata?.label,
                     description: connectorCredentials.metadata?.description,
                 },
-                properties: propertiesMap,
-                targetModule: connectorCredentials.targetModule,
-                modelFilePath: connectorCredentials.modelFilePath,
+                properties: propertiesMap
             });
 
             if (response?.errorMsg) {
@@ -401,8 +399,6 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
             const response = await rpcClient.getConnectorWizardRpcClient().persistClientGenerate({
                 projectPath: projectPath,
-                targetModule: introspectDatabaseResponse?.targetModule,
-                modelFilePath: introspectDatabaseResponse?.modelFilePath,
                 connection: connectionName || undefined,
                 properties,
                 tables: introspectDatabaseResponse?.tables,
