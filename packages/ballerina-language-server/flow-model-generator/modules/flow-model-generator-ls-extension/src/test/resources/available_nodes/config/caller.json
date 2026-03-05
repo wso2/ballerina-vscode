@@ -287,8 +287,8 @@
       "items": [
         {
           "metadata": {
-            "label": "Start Workflow",
-            "description": "Create and start a new workflow instance"
+            "label": "Run Workflow",
+            "description": "Run a new workflow instance"
           },
           "codedata": {
             "node": "WORKFLOW_START"
@@ -297,11 +297,11 @@
         },
         {
           "metadata": {
-            "label": "Send Event",
-            "description": "Send an event to an existing workflow instance"
+            "label": "Send Data",
+            "description": "Send data to an existing workflow instance"
           },
           "codedata": {
-            "node": "SEND_EVENT"
+            "node": "SEND_DATA"
           },
           "enabled": true
         }
