@@ -17,15 +17,8 @@
  */
 
 import React, { CSSProperties } from "react";
-import { Icon } from "@wso2/ui-toolkit";
+import { Icon, OpenAiIcon, AzureOpenAiIcon, AnthropicIcon, OllamaIcon, MistralAIIcon, DeepseekIcon, DefaultLlmIcon } from "@wso2/ui-toolkit";
 import { ApiIcon } from "../../resources";
-import OpenAiIcon from "../../resources/icons/OpenAiIcon";
-import AzureOpenAiIcon from "../../resources/icons/AzureOpenAiIcon";
-import AnthropicIcon from "../../resources/icons/AnthropicIcon";
-import OllamaIcon from "../../resources/icons/OllamaIcon";
-import MistralAIIcon from "../../resources/icons/MistralAIIcon";
-import DeepseekIcon from "../../resources/icons/DeepseekIcon";
-import DefaultLlmIcon from "../../resources/icons/DefaultLlmIcon";
 import { CodeData } from "@wso2/ballerina-core";
 import { isWso2Module } from "../AIModelIcon";
 

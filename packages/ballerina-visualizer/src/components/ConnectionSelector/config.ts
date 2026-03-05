@@ -29,7 +29,7 @@ import {
 export const CONNECTION_TYPE_CONFIGS: Record<ConnectionKind, ConnectionKindConfig> = {
     MODEL_PROVIDER: {
         displayName: "Model Provider",
-        types: [{ fieldType: "ACTION_EXPRESSION", ballerinaType: "ai:ModelProvider", selected: true }],
+        types: [{ fieldType: "ACTION_EXPRESSION", ballerinaType: "ai:ModelProvider", selected: true }, { fieldType: "EXPRESSION", selected: false }],
         nodePropertyKey: ["model", "modelProvider"],
         categoryConverter: convertModelProviderCategoriesToSidePanelCategories,
         searchConfig: (aiModuleOrg?: string): ConnectionSearchConfig => ({
@@ -39,25 +39,25 @@ export const CONNECTION_TYPE_CONFIGS: Record<ConnectionKind, ConnectionKindConfi
     },
     VECTOR_STORE: {
         displayName: "Vector Store",
-        types: [{ fieldType: "ACTION_EXPRESSION", ballerinaType: "ai:VectorStore", selected: true }],
+        types: [{ fieldType: "ACTION_EXPRESSION", ballerinaType: "ai:VectorStore", selected: true }, { fieldType: "EXPRESSION", selected: false }],
         nodePropertyKey: "vectorStore",
         categoryConverter: convertVectorStoreCategoriesToSidePanelCategories,
     },
     EMBEDDING_PROVIDER: {
         displayName: "Embedding Provider",
-        types: [{ fieldType: "ACTION_EXPRESSION", ballerinaType: "ai:EmbeddingProvider", selected: true }],
+        types: [{ fieldType: "ACTION_EXPRESSION", ballerinaType: "ai:EmbeddingProvider", selected: true }, { fieldType: "EXPRESSION", selected: false }],
         nodePropertyKey: "embeddingModel",
         categoryConverter: convertEmbeddingProviderCategoriesToSidePanelCategories,
     },
     CHUNKER: {
         displayName: "Chunker",
-        types: [{ fieldType: "ACTION_EXPRESSION", ballerinaType: "ai:Chunker", selected: true }],
+        types: [{ fieldType: "ACTION_EXPRESSION", ballerinaType: "ai:Chunker", selected: true }, { fieldType: "EXPRESSION", selected: false }],
         nodePropertyKey: "chunker",
         categoryConverter: convertChunkerCategoriesToSidePanelCategories,
     },
     MEMORY_STORE: {
         displayName: "Memory Store",
-        types: [{ fieldType: "ACTION_EXPRESSION", ballerinaType: "ai:MemoryStore", selected: true }],
+        types: [{ fieldType: "ACTION_EXPRESSION", ballerinaType: "ai:MemoryStore", selected: true }, { fieldType: "EXPRESSION", selected: false }],
         nodePropertyKey: "store",
         categoryConverter: convertMemoryStoreCategoriesToSidePanelCategories,
         searchConfig: (): ConnectionSearchConfig => ({
