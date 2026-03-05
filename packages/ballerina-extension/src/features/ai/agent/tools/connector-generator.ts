@@ -48,7 +48,7 @@ const SpecFetcherInputSchema = z.object({
 
 export function createConnectorGeneratorTool(eventHandler: CopilotEventHandler, tempProjectPath: string, projectName?: string, modifiedFiles?: string[]) {
     return tool({
-        // TODO: Since LIBRARY_SEARCH_TOOL and LIBRARY_GET_TOOL workflow changed, verify this tool's use case ordering aligns with agent behavior
+        // TODO: Verify that the agent invokes LIBRARY_SEARCH_TOOL before LIBRARY_GET_TOOL and only falls back to this tool when no suitable library is found; update the tool description or agent prompt if the ordering is incorrect
         description: `
 Generates a connector for an external service by deriving the service contract from user-provided OpenAPI specifications.
 
@@ -57,6 +57,8 @@ Use this tool when:
 2. User request is ambiguous and needs a SaaS connector
 3. User explicitly requests to create a SaaS connector
 4. After searching with ${LIBRARY_SEARCH_TOOL}, no suitable connector is found
+
+**CRITICAL: Do NOT call this tool again for the same service if the user has already skipped it (errorCode: USER_SKIPPED). Accept the skip and proceed without the connector.**
 
 The tool will:
 1. Request OpenAPI spec from user (supports JSON and YAML formats)
@@ -185,7 +187,7 @@ function handleUserSkip(
 
     return {
         success: false,
-        message: `User skipped providing OpenAPI specification for ${serviceName}. Proceed without generating connector or ask user to provide the spec later.`,
+        message: `User skipped providing OpenAPI specification for ${serviceName}. Do NOT call this tool again for ${serviceName} — proceed with the implementation without this connector.`,
         error: `User skipped providing spec for ${serviceName}${comment ? ": " + comment : ""}`,
         errorCode: "USER_SKIPPED",
         details: "User chose not to provide the OpenAPI specification",
