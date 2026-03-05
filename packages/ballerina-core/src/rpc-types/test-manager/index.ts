@@ -18,11 +18,19 @@
 
 import { GetTestFunctionRequest, GetTestFunctionResponse, AddOrUpdateTestFunctionRequest } from "../../interfaces/extended-lang-client";
 import { SourceUpdateResponse } from "../service-designer/interfaces";
-import { GetEvalsetsRequest, GetEvalsetsResponse } from "./rpc-type";
+import {
+    GetEvalsetsRequest, GetEvalsetsResponse,
+    GetEvaluationHistoryRequest, GetEvaluationHistoryResponse,
+    OpenEvaluationReportRequest,
+    GetEvaluationReportRequest, GetEvaluationReportResponse
+} from "./rpc-type";
 
 export interface TestManagerServiceAPI {
     updateTestFunction: (params: AddOrUpdateTestFunctionRequest) => Promise<SourceUpdateResponse>;
     addTestFunction: (params: AddOrUpdateTestFunctionRequest) => Promise<SourceUpdateResponse>;
     getTestFunction: (params: GetTestFunctionRequest) => Promise<GetTestFunctionResponse>;
     getEvalsets: (params: GetEvalsetsRequest) => Promise<GetEvalsetsResponse>;
+    getEvaluationHistory: (params: GetEvaluationHistoryRequest) => Promise<GetEvaluationHistoryResponse>;
+    openEvaluationReport: (params: OpenEvaluationReportRequest) => Promise<void>;
+    getEvaluationReport: (params: GetEvaluationReportRequest) => Promise<GetEvaluationReportResponse>;
 }

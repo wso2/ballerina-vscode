@@ -779,6 +779,12 @@
                 "title": "Delete Thread",
                 "category": "Ballerina",
                 "icon": "$(trash)"
+            },
+            {
+                "command": "ballerina.openEvaluationHistory",
+                "title": "Evaluation History",
+                "category": "Ballerina",
+                "icon": "$(history)"
             }
         ],
         "views": {
@@ -894,6 +900,11 @@
                 },
                 {
                     "command": "ballerina.createNewEvalset",
+                    "when": "view == ballerina-evalsets",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ballerina.openEvaluationHistory",
                     "when": "view == ballerina-evalsets",
                     "group": "navigation"
                 }
