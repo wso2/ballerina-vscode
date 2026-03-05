@@ -104,12 +104,6 @@ enum PopupView {
     CONNECTION_CREATE = "CONNECTION_CREATE",
     EDIT_CONNECTOR = "EDIT_CONNECTOR"
 }
-
-interface PersistConnectionInfo {
-    isPersist: boolean;
-    modelFilePath: string;
-}
-
 interface EditConnectionPopupProps {
     connectionName: string;
     fileName?: string;
@@ -126,10 +120,6 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [updatedExpressionField, setUpdatedExpressionField] = useState<ExpressionFormField>(undefined);
-    const [persistConnection, setPersistConnection] = useState<PersistConnectionInfo>({
-        isPersist: false,
-        modelFilePath: ""
-    });
 
     // Navigation state
     const [currentView, setCurrentView] = useState<PopupView>(PopupView.CONNECTION_CONFIG);
@@ -181,10 +171,6 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                 // Check if this is a persist connection and store connection info
                 const metadataData = connector.metadata?.data as any;
                 const isPersist = metadataData?.connectorType === "persist";
-                setPersistConnection({
-                    isPersist: isPersist,
-                    modelFilePath: isPersist && metadataData?.persistModelFile ? metadataData.persistModelFile : ""
-                });
 
                 // Fetch connector credentials for persist connections
                 if (isPersist) {
@@ -328,13 +314,16 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
 
     const handleOpenERDiagram = async () => {
         const visualizerLocation = await rpcClient.getVisualizerLocation();
+        const modelDocumentUri = (await rpcClient.getVisualizerRpcClient().joinProjectPath({
+            segments: [connectorCredentials.modelFilePath]
+        })).filePath;
 
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 view: MACHINE_VIEW.ERDiagram,
                 projectPath: visualizerLocation.projectPath,
-                documentUri: persistConnection.modelFilePath
+                documentUri: modelDocumentUri
             }
         });
     };
@@ -396,7 +385,7 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                     />
                 ) : null;
             default:
-                return persistConnection.isPersist && connectorCredentials ? (
+                return connectorCredentials ? (
                     <PersistContentLayout>
                         <ConnectorConfigWrapper>
                             <ConnectorConfigView

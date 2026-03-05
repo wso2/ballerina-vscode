@@ -298,8 +298,8 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
 
             const response = await rpcClient.getConnectorWizardRpcClient().persistClientGenerate({
                 projectPath,
-                targetModule: introspectDatabaseResponse.targetModule ?? targetModule ?? connectionName.replace(/[- ]/g, "_"),
-                modelFilePath: introspectDatabaseResponse.modelFilePath ?? modelFilePath ?? `persist/${connectionName}/model.bal`,
+                targetModule: introspectDatabaseResponse.targetModule ?? targetModule,
+                modelFilePath: introspectDatabaseResponse.modelFilePath ?? modelFilePath,
                 connection: connectionName,
                 properties: propertiesMap,
                 tables: introspectDatabaseResponse.tables,
