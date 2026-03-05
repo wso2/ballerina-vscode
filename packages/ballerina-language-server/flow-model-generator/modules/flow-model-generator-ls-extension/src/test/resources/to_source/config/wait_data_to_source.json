@@ -77,7 +77,7 @@
             "character": 2
           }
         },
-        "newText": "\n\n\n# Events record for workflow process function\ntype OrderWorkflowEvents record {|\n\tfuture<PaymentConfirmation> paymentConfirmed;\n|};"
+        "newText": "\n\n\n# Events record for workflow function\ntype OrderWorkflowEvents record {|\n\tfuture<PaymentConfirmation> paymentConfirmed;\n|};"
       }
     ],
     "workflow_events/functions.bal": [
@@ -105,7 +105,7 @@
             "character": 61
           }
         },
-        "newText": ", OrderWorkflowEvents events"
+        "newText": ",  OrderWorkflowEvents events"
       }
     ]
   }

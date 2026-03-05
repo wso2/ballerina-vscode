@@ -101,7 +101,7 @@ public enum NodeKind {
     MEMORY_STORE,
     MCP_TOOL_KIT,
     WORKFLOW,
-    WORKFLOW_START,
+    WORKFLOW_RUN,
     ACTIVITY,
     ACTIVITY_CALL,
     SEND_DATA,

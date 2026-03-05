@@ -1,6 +1,6 @@
 {
   "source": "workflow_function/main.bal",
-  "description": "Generate workflow:run call",
+  "description": "Generate workflow:run call without input",
   "diagram": {
     "id": "1",
     "metadata": {
@@ -8,10 +8,10 @@
       "description": "Run a workflow instance"
     },
     "codedata": {
-      "node": "WORKFLOW_START",
+      "node": "WORKFLOW_RUN",
       "org": "ballerina",
       "module": "workflow",
-      "symbol": "orderWorkflow",
+      "symbol": "workflowWithNoInput",
       "isNew": true,
       "lineRange": {
         "startLine": {
@@ -26,19 +26,6 @@
     },
     "returning": false,
     "properties": {
-      "input": {
-        "metadata": {
-          "label": "Input",
-          "description": "Input data for the workflow"
-        },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "anydata",
-        "value": "{orderId: \"123\"}",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false
-      },
       "variable": {
         "metadata": {
           "label": "Workflow ID Variable Name",
@@ -92,7 +79,7 @@
             "character": 0
           }
         },
-        "newText": "\nstring workflowId = check workflow:run(orderWorkflow, {orderId: \"123\"});"
+        "newText": "\nstring workflowId = check workflow:run(workflowWithNoInput);"
       }
     ]
   }

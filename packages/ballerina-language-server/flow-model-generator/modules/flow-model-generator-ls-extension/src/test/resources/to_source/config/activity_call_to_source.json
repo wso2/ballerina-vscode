@@ -9,8 +9,8 @@
     },
     "codedata": {
       "node": "ACTIVITY_CALL",
-      "org": "ballerina",
-      "module": "workflow",
+      "org": "test",
+      "module": "workflow_function",
       "symbol": "sendNotification",
       "lineRange": {
         "fileName": "functions.bal",

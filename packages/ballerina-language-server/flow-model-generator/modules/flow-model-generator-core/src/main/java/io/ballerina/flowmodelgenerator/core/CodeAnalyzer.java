@@ -2056,7 +2056,7 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (naturalFunctions.containsKey(functionName)) {
             startNode(NodeKind.NP_FUNCTION_CALL, functionCallExpressionNode.parent());
         } else if (isWorkflowOperation(functionSymbol, RUN_METHOD_NAME)) {
-            startNode(NodeKind.WORKFLOW_START, functionCallExpressionNode.parent());
+            startNode(NodeKind.WORKFLOW_RUN, functionCallExpressionNode.parent());
         } else if (isWorkflowOperation(functionSymbol, SEND_DATA_METHOD_NAME)) {
             startNode(NodeKind.SEND_DATA, functionCallExpressionNode.parent());
         } else {

@@ -36,3 +36,8 @@ function myActivity() returns int {
 function orderWorkflow2(OrderInput input) returns error? {
 
 }
+
+@workflow:Workflow
+function workflowWithNoInput() returns error? {
+
+}

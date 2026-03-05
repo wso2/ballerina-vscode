@@ -358,7 +358,7 @@ public class AvailableNodesGenerator {
                         .description(Workflow.RUN_DESCRIPTION)
                         .build(),
                 new Codedata.Builder<>(null)
-                        .node(NodeKind.WORKFLOW_START)
+                        .node(NodeKind.WORKFLOW_RUN)
                         .build(),
                 true
         );

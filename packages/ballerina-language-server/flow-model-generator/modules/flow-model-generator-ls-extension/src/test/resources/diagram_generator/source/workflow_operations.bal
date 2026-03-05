@@ -41,7 +41,7 @@ function calculateDiscount(record {decimal amount;} input) returns int|error {
 }
 
 public function main() returns error? {
-    // Workflow run - should be WORKFLOW_START
+    // Workflow run - should be WORKFLOW_RUN
     string workflowId = check workflow:run(orderWorkflow, {orderId: "123", customerName: "John"});
     io:println("Workflow started with ID: " + workflowId);
 

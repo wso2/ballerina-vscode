@@ -8,7 +8,7 @@
     "offset": 1
   },
   "source": "workflow_operations.bal",
-  "description": "Test workflow:run returns WORKFLOW_START and workflow:sendData returns SEND_DATA node",
+  "description": "Test workflow:run returns WORKFLOW_RUN and workflow:sendData returns SEND_DATA node",
   "diagram": {
     "fileName": "workflow_operations.bal",
     "nodes": [
@@ -36,7 +36,7 @@
               "offset": 1
             }
           },
-          "sourceCode": "public function main() returns error? {\n    // Workflow start - should be WORKFLOW_START\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});\n    io:println(\"Workflow started with ID: \" + workflowId);\n\n    // Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, {orderId: \"123\", approved: true, approverName: \"Admin\"}, \"approve\");\n    io:println(\"Event sent: \" + result.toString());\n}"
+          "sourceCode": "public function main() returns error? {\n    // Workflow start - should be WORKFLOW_RUN\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});\n    io:println(\"Workflow started with ID: \" + workflowId);\n\n    // Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, {orderId: \"123\", approved: true, approverName: \"Admin\"}, \"approve\");\n    io:println(\"Event sent: \" + result.toString());\n}"
         },
         "returning": false,
         "diagnostics": {
@@ -48,7 +48,7 @@
         "id": "74448",
         "metadata": {
           "label": "Comment",
-          "description": "Workflow start - should be WORKFLOW_START"
+          "description": "Workflow start - should be WORKFLOW_RUN"
         },
         "codedata": {
           "node": "COMMENT",
@@ -63,7 +63,7 @@
               "offset": 48
             }
           },
-          "sourceCode": "Workflow start - should be WORKFLOW_START"
+          "sourceCode": "Workflow start - should be WORKFLOW_RUN"
         },
         "returning": false,
         "properties": {
@@ -78,7 +78,7 @@
                 "selected": true
               }
             ],
-            "value": "Workflow start - should be WORKFLOW_START",
+            "value": "Workflow start - should be WORKFLOW_RUN",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -95,7 +95,7 @@
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.1.0.png"
         },
         "codedata": {
-          "node": "WORKFLOW_START",
+          "node": "WORKFLOW_RUN",
           "org": "ballerina",
           "module": "workflow",
           "packageName": "workflow",
@@ -112,7 +112,7 @@
               "offset": 109
             }
           },
-          "sourceCode": "// Workflow start - should be WORKFLOW_START\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});"
+          "sourceCode": "// Workflow start - should be WORKFLOW_RUN\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});"
         },
         "returning": false,
         "properties": {

@@ -49,7 +49,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_O
  *
  * @since 2.0.0
  */
-public class WorkflowStartBuilder extends NodeBuilder {
+public class WorkflowRunBuilder extends NodeBuilder {
 
     public static final String LABEL = "Run Workflow";
     public static final String DESCRIPTION = "Run a workflow instance";
@@ -63,7 +63,7 @@ public class WorkflowStartBuilder extends NodeBuilder {
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
         codedata()
-                .node(NodeKind.WORKFLOW_START)
+                .node(NodeKind.WORKFLOW_RUN)
                 .org(WORKFLOW_ORG)
                 .module(WORKFLOW_MODULE);
     }
@@ -76,7 +76,7 @@ public class WorkflowStartBuilder extends NodeBuilder {
         if (codedata != null && codedata.symbol() != null) {
             metadata().label(codedata.symbol()).description(DESCRIPTION);
             codedata()
-                    .node(NodeKind.WORKFLOW_START)
+                    .node(NodeKind.WORKFLOW_RUN)
                     .org(codedata.org())
                     .module(codedata.module())
                     .symbol(codedata.symbol())
@@ -86,18 +86,19 @@ public class WorkflowStartBuilder extends NodeBuilder {
         // Get the input parameter type from the workflow function's second parameter
         TypeSymbol inputType = getWorkflowInputType(context, codedata);
 
-        // Input property with the actual type from the workflow function
-        properties().custom()
-                .metadata()
+        if  (inputType != null) {
+            properties().custom()
+                    .metadata()
                     .label(INPUT_LABEL)
                     .description(INPUT_DOC)
                     .stepOut()
-                .typeWithExpression(inputType, moduleInfo)
-                .placeholder("")
-                .value("")
-                .editable(true)
-                .stepOut()
-                .addProperty(INPUT_KEY);
+                    .typeWithExpression(inputType, moduleInfo)
+                    .placeholder("")
+                    .value("")
+                    .editable(true)
+                    .stepOut()
+                    .addProperty(INPUT_KEY);
+        }
 
         // Variable property for result
         properties().custom()
@@ -134,15 +135,14 @@ public class WorkflowStartBuilder extends NodeBuilder {
         // Get workflow function from codedata.symbol()
         String workflowFunction = flowNode.codedata().symbol();
         if (workflowFunction == null) {
-            throw new IllegalStateException("Workflow symbol is required for WORKFLOW_START");
+            throw new IllegalStateException("Workflow symbol is required for WORKFLOW_RUN");
         }
 
         // Get input property
         Optional<Property> inputProp = sourceBuilder.getProperty(INPUT_KEY);
-        String input = inputProp
+        Optional<String> input = inputProp
                 .map(p -> p.value().toString())
-                .filter(value -> !value.isBlank())
-                .orElse("{}");
+                .filter(value -> !value.isBlank());
 
         // Build: workflow:run(workflowFunction, input)
         sourceBuilder.token()
@@ -150,10 +150,13 @@ public class WorkflowStartBuilder extends NodeBuilder {
                 .keyword(SyntaxKind.COLON_TOKEN)
                 .name(RUN_METHOD)
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN)
-                .name(workflowFunction)
+                .name(workflowFunction);
+        input.ifPresent(s -> sourceBuilder.token()
                 .keyword(SyntaxKind.COMMA_TOKEN)
                 .whiteSpace()
-                .name(input)
+                .name(s));
+
+        sourceBuilder.token()
                 .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
                 .endOfStatement();
 

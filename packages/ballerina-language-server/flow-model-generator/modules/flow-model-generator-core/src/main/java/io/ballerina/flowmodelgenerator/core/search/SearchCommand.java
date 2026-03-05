@@ -79,7 +79,7 @@ public abstract class SearchCommand {
             case MEMORY_STORE -> new MemoryStoreSearchCommand(module, position, queryMap);
             case AGENT_TOOL -> new AgentToolSearchCommand(module, position, queryMap);
             case KNOWLEDGE_BASE -> new KnowledgeBaseSearchCommand(module, position, queryMap);
-            case WORKFLOW_START -> new WorkflowSearchCommand(module, position, queryMap);
+            case WORKFLOW_RUN -> new WorkflowSearchCommand(module, position, queryMap);
             case ACTIVITY_CALL -> new ActivitySearchCommand(module, position, queryMap);
         };
     }
@@ -211,7 +211,7 @@ public abstract class SearchCommand {
         MEMORY_STORE,
         AGENT_TOOL,
         KNOWLEDGE_BASE,
-        WORKFLOW_START,
+        WORKFLOW_RUN,
         ACTIVITY_CALL
     }
 }

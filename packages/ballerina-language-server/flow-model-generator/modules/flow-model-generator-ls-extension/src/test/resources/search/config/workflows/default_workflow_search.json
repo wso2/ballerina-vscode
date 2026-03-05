@@ -33,7 +33,7 @@
             "description": "Process an order workflow"
           },
           "codedata": {
-            "node": "WORKFLOW_START",
+            "node": "WORKFLOW_RUN",
             "org": "test",
             "module": "workflow_proj",
             "symbol": "orderWorkflow",
@@ -47,7 +47,7 @@
             "description": "Simple workflow without events"
           },
           "codedata": {
-            "node": "WORKFLOW_START",
+            "node": "WORKFLOW_RUN",
             "org": "test",
             "module": "workflow_proj",
             "symbol": "simpleWorkflow",

@@ -4,9 +4,9 @@
     "line": 3,
     "offset": 0
   },
-  "description": "Workflow start node template",
+  "description": "Workflow run node template",
   "codedata": {
-    "node": "WORKFLOW_START",
+    "node": "WORKFLOW_RUN",
     "org": "test",
     "module": "workflow_function",
     "symbol": "orderWorkflow",
@@ -19,7 +19,7 @@
       "description": "Start a workflow process instance"
     },
     "codedata": {
-      "node": "WORKFLOW_START",
+      "node": "WORKFLOW_RUN",
       "org": "ballerina",
       "module": "workflow",
       "symbol": "orderWorkflow",

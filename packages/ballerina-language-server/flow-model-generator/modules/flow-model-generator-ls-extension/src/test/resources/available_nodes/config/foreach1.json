@@ -169,7 +169,7 @@
             "description": "Run a new workflow instance"
           },
           "codedata": {
-            "node": "WORKFLOW_START"
+            "node": "WORKFLOW_RUN"
           },
           "enabled": true
         },
