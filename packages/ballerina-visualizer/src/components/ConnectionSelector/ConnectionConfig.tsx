@@ -81,7 +81,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     };
 
     const renderFormField = () => {
-        const connectionSelectField = createConnectionSelectField(selectedConnectionValue, config, onCreateNewConnection);
+        const connectionSelectField = createConnectionSelectField(selectedConnectionValue, config, onCreateNewConnection, connectionKind);
         setSelectedConnectionFields([connectionSelectField]);
     };
 
