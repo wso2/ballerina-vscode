@@ -33,3 +33,13 @@ export interface PendingMigrationEnhancement {
 
 /** Seconds before a stale pending-enhancement entry is discarded */
 export const PENDING_ENHANCEMENT_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+/**
+ * Describes the current state of a migration AI enhancement session.
+ * Mirrors `ActiveMigrationSession` from `@wso2/ballerina-core`.
+ * Defined locally here to avoid cross-package build-order issues.
+ */
+export interface ActiveMigrationSessionLocal {
+    isActive: boolean;
+    mode: MigrationEnhancementMode;
+}

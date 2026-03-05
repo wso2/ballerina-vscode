@@ -17,7 +17,7 @@
  */
 
 import { ImportIntegrationResponse } from "../../interfaces/extended-lang-client";
-import { GetMigrationToolsResponse, ImportIntegrationRPCRequest, MigrateRequest, MigrationToolPullRequest, OpenMigrationReportRequest, OpenSubProjectReportRequest, SaveMigrationReportRequest, StoreSubProjectReportsRequest } from "./interfaces";
+import { ActiveMigrationSession, GetMigrationToolsResponse, ImportIntegrationRPCRequest, MigrateRequest, MigrationToolPullRequest, OpenMigrationReportRequest, OpenSubProjectReportRequest, SaveMigrationReportRequest, StoreSubProjectReportsRequest } from "./interfaces";
 
 export interface MigrateIntegrationAPI {
     getMigrationTools: () => Promise<GetMigrationToolsResponse>;
@@ -28,4 +28,5 @@ export interface MigrateIntegrationAPI {
     storeSubProjectReports: (params: StoreSubProjectReportsRequest) => void;
     saveMigrationReport: (params: SaveMigrationReportRequest) => void;
     migrateProject: (params: MigrateRequest) => void;
+    getActiveMigrationSession: () => Promise<ActiveMigrationSession>;
 }

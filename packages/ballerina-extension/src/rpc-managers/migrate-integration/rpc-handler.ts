@@ -37,6 +37,9 @@ import {
 import { Messenger } from "vscode-messenger";
 import { MigrateIntegrationRpcManager } from "./rpc-manager";
 
+// Defined locally to avoid depending on a rebuilt @wso2/ballerina-core
+const getActiveMigrationSession = { method: "migrate-integration/getActiveMigrationSession" } as const;
+
 export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     const rpcManger = MigrateIntegrationRpcManager.getInstance();
     messenger.onRequest(getMigrationTools, () => rpcManger.getMigrationTools());
@@ -47,4 +50,5 @@ export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     messenger.onNotification(storeSubProjectReports, (args: StoreSubProjectReportsRequest) => rpcManger.storeSubProjectReports(args));
     messenger.onNotification(saveMigrationReport, (args: SaveMigrationReportRequest) => rpcManger.saveMigrationReport(args));
     messenger.onNotification(migrateProject, (args: MigrateRequest) => rpcManger.migrateProject(args));
+    messenger.onRequest(getActiveMigrationSession, () => rpcManger.getActiveMigrationSession());
 }
