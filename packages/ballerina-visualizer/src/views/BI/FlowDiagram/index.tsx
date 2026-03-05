@@ -964,6 +964,76 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         rpcClient.getAiPanelRpcClient().openAIPanel(aiPrompt);
     };
 
+    // Helper function to determine the best SidePanelView for "ALL" search results
+    const determinePanelViewForAllCategories = (categories: any[]): SidePanelView => {
+        if (!categories || categories.length === 0) {
+            return SidePanelView.NODE_LIST;
+        }
+
+        // Count different category types to determine the best view
+        const categoryTypeCounts = {
+            connections: 0,
+            functions: 0,
+            npFunctions: 0,
+            modelProviders: 0,
+            vectorStores: 0,
+            embeddingProviders: 0,
+            knowledgeBases: 0,
+            dataLoaders: 0,
+            chunkers: 0,
+            agents: 0,
+            other: 0
+        };
+
+        categories.forEach(category => {
+            const title = category.title?.toLowerCase() || '';
+            if (title.includes('connection')) {
+                categoryTypeCounts.connections++;
+            } else if (title.includes('function') && !title.includes('np')) {
+                categoryTypeCounts.functions++;
+            } else if (title.includes('np') || title.includes('natural')) {
+                categoryTypeCounts.npFunctions++;
+            } else if (title.includes('model') && title.includes('provider')) {
+                categoryTypeCounts.modelProviders++;
+            } else if (title.includes('vector') && title.includes('store')) {
+                categoryTypeCounts.vectorStores++;
+            } else if (title.includes('embedding')) {
+                categoryTypeCounts.embeddingProviders++;
+            } else if (title.includes('knowledge') || title.includes('base')) {
+                categoryTypeCounts.knowledgeBases++;
+            } else if (title.includes('data') && title.includes('loader')) {
+                categoryTypeCounts.dataLoaders++;
+            } else if (title.includes('chunker')) {
+                categoryTypeCounts.chunkers++;
+            } else if (title.includes('agent')) {
+                categoryTypeCounts.agents++;
+            } else {
+                categoryTypeCounts.other++;
+            }
+        });
+
+        // Determine the most appropriate view based on what we found
+        // If we have mostly one type, use the specific view for that type
+        if (categoryTypeCounts.connections > 0 &&
+            categoryTypeCounts.connections >= categoryTypeCounts.functions &&
+            categoryTypeCounts.connections >= categoryTypeCounts.other) {
+            return SidePanelView.NODE_LIST; // Connections are shown in NODE_LIST
+        } else if (categoryTypeCounts.functions > 0 &&
+                   categoryTypeCounts.functions > categoryTypeCounts.other) {
+            return SidePanelView.FUNCTION_LIST;
+        } else if (categoryTypeCounts.npFunctions > 0 &&
+                   categoryTypeCounts.npFunctions > categoryTypeCounts.other) {
+            return SidePanelView.NP_FUNCTION_LIST;
+        } else if (categoryTypeCounts.modelProviders > 0) {
+            return SidePanelView.MODEL_PROVIDER_LIST;
+        } else if (categoryTypeCounts.agents > 0) {
+            return SidePanelView.AGENT_LIST;
+        }
+
+        // Default to NODE_LIST for mixed or unrecognized content
+        return SidePanelView.NODE_LIST;
+    };
+
     const handleSearch = useCallback(async (searchText: string, functionType: FUNCTION_TYPE, searchKind: SearchKind) => {
         const request: BISearchRequest = {
             position: {
@@ -1056,6 +1126,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     case "CHUNKER":
                         panelView = SidePanelView.CHUNKER_LIST;
                         break;
+                    case "ALL":
+                        // For "ALL" search, determine the best panel view based on categories returned
+                        panelView = determinePanelViewForAllCategories(currentCategories);
+                        break;
                     default:
                         panelView = SidePanelView.NODE_LIST;
                 }
@@ -1109,16 +1183,41 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setSearchText(text);
     };
 
-    // Frontend filtering function for cached categories
-    const filterCategoriesLocally = useCallback((categories: any[], searchText: string) => {
+    // Frontend filtering function for cached categories - handles nested structures
+    const filterCategoriesLocally = useCallback((categories: any[], searchText: string): any[] => {
         if (!searchText.trim()) return categories;
+
+        const lowerSearchText = searchText.toLowerCase();
+
+        const filterItemsRecursively = (items: any[]): any[] => {
+            if (!items) return [];
+
+            return items.map((item: any) => {
+                // Check if this item matches the search
+                const itemMatches = item.label?.toLowerCase().includes(lowerSearchText);
+
+                // If this item has nested items (subcategory), recursively filter them
+                if (item.items && Array.isArray(item.items)) {
+                    const filteredSubItems = filterItemsRecursively(item.items);
+
+                    // Include this subcategory if it matches OR has matching nested items
+                    if (itemMatches || filteredSubItems.length > 0) {
+                        return {
+                            ...item,
+                            items: filteredSubItems
+                        };
+                    }
+                    return null; // Filter out this subcategory
+                } else {
+                    // This is a leaf item - include it if it matches
+                    return itemMatches ? item : null;
+                }
+            }).filter(item => item !== null);
+        };
 
         return categories.map(category => ({
             ...category,
-            items: category.items?.filter((item: any) =>
-                item.label?.toLowerCase().includes(searchText.toLowerCase()) ||
-                item.description?.toLowerCase().includes(searchText.toLowerCase())
-            )
+            items: filterItemsRecursively(category.items || [])
         })).filter(category => category.items && category.items.length > 0);
     }, []);
 
