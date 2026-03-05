@@ -105,6 +105,10 @@ async function runBallerinaTests(cwd: string): Promise<TestRunResult> {
     proc.on('close', () => {
         exited = true;
     });
+    proc.on('error', (err) => {
+        logs.push(`\nFailed to start process: ${err.message}\n`);
+        exited = true;
+    });
 
     // Wait for completion
     const startTime = Date.now();
