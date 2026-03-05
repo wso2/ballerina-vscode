@@ -97,7 +97,11 @@ export function ProjectForm() {
         }
 
         if (formData.path.length < 2) {
-            setPathError(`Please select a path for your ${resourceTypeLabel.toLowerCase()}`);
+            setPathError(
+                formData.createAsWorkspace
+                    ? "Please select a path for your project"
+                    : `Please select a path for your ${resourceTypeLabel.toLowerCase()}`
+            );
             hasError = true;
         }
 

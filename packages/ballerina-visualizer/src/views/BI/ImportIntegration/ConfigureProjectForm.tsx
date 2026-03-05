@@ -94,12 +94,12 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
         // Validate required fields first
         let hasError = false;
 
-        if (singleIntegrationData.integrationName.length < 2) {
+        if (singleIntegrationData.integrationName.trim().length < 2) {
             setSingleIntegrationNameError(`${selectedResourceTypeLabel} name must be at least 2 characters`);
             hasError = true;
         }
 
-        if (singleIntegrationData.packageName.length < 2) {
+        if (singleIntegrationData.packageName.trim().length < 2) {
             setSingleIntegrationPackageNameError("Package name must be at least 2 characters");
             hasError = true;
         } else {
@@ -110,7 +110,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
             }
         }
 
-        if (singleIntegrationData.path.length < 2) {
+        if (singleIntegrationData.path.trim().length < 2) {
             setSingleIntegrationPathError(`Please select a path for your ${selectedResourceTypeLabel.toLowerCase()}`);
             hasError = true;
         }
@@ -157,7 +157,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
             }
 
             // If validation passes, proceed
-            onNext({
+            const payload = {
                 projectName: singleIntegrationData.integrationName,
                 packageName: singleIntegrationData.packageName,
                 projectPath: singleIntegrationData.path,
@@ -167,7 +167,9 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                 orgName: singleIntegrationData.orgName || undefined,
                 version: singleIntegrationData.version || undefined,
                 isLibrary: singleIntegrationData.isLibrary,
-            });
+            };
+            setIsValidating(false);
+            onNext(payload);
         } catch (error) {
             setSingleIntegrationPathError("An error occurred during validation");
             setIsValidating(false);
