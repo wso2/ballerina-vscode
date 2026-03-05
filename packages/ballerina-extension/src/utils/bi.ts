@@ -588,11 +588,14 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
         if (fileName === "Ballerina.toml") {
             content = content.replace(/name = ".*?"/, `name = "${sanitizedPackageName}"`);
             content = content.replace(/org = ".*?"/, `org = "${projectInfo.finalOrgName}"`);
-            
+
+            // Remove any existing distribution line
+            content = content.replace(/^\s*distribution\s*=\s*".*?"\n?/m, '');
+
             // Get the Ballerina distribution version
             const distribution = getBallerinaDistribution();
             const distributionLine = distribution ? `\ndistribution = "${distribution}"` : '';
-            
+
             content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"${distributionLine}\ntitle = "${projectInfo.integrationName}"`);
         }
 
