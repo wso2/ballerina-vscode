@@ -93,6 +93,7 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                 .type(Property.ValueType.WORKFLOW_INPUT_TYPE, ANYDATA_TYPE)
                 .value("")
                 .editable(true)
+                .optional(true)
                 .stepOut()
                 .addProperty(INPUT_KEY);
 
