@@ -397,7 +397,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const key = fieldKey ?? field.key;
     const [focused, setFocused] = useState<boolean>(false);
-    const [isExpressionEditorHovered, setIsExpressionEditorHovered] = useState<boolean>(false);
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
     const [isExpandedModalOpen, setIsExpandedModalOpen] = useState(false);
 
@@ -577,8 +576,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             <S.Container
                 id={id}
                 data-testid={`ex-editor-${field.key}`}
-                onMouseEnter={() => setIsExpressionEditorHovered(true)}
-                onMouseLeave={() => setIsExpressionEditorHovered(false)}
             >
                 {showHeader && (
                     <S.Header>
@@ -588,7 +585,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     <S.HeaderContainer>
                                         <S.LabelContainer>
                                             <S.Label>{field.label}</S.Label>
-                                            {field.defaultValue && <S.DefaultValue style={{marginLeft: '8px'}}>{ `(Default: ${field.defaultValue}) `}</S.DefaultValue>}
+                                            {(field.defaultValue && field.defaultValue?.trim() !== "()") && <S.DefaultValue style={{marginLeft: '8px'}}>{ `(Default: ${field.defaultValue}) `}</S.DefaultValue>}
                                         {(required ?? !field.optional) && <RequiredFormInput />}
                                             {getPrimaryInputType(field.types)?.ballerinaType && (
                                                 <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
@@ -602,7 +599,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
                                 </S.EditorMdContainer>
                             </div>
-                            {modeSwitcherContext?.isModeSwitcherEnabled && isExpressionEditorHovered && (
+                            {modeSwitcherContext?.isModeSwitcherEnabled && (
                                 <S.FieldInfoSection>
                                     <ModeSwitcher
                                         fieldKey={field.key}
