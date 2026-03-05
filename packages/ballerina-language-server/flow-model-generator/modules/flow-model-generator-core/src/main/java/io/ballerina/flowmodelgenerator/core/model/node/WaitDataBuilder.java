@@ -88,7 +88,6 @@ public class WaitDataBuilder extends WaitBuilder {
     private static final String DATA_TYPE_DOC = "Type of the data to be received on successful wait";
     private static final String DATA_RECEIVE_VAR_NAME = "Data Receive Variable Name";
     private static final String DATA_RECEIVE_VAR_DOC = "Variable name to receive the data";
-    private static final String TYPES_BAL = "types.bal";
 
     @Override
     public void setConcreteConstData() {

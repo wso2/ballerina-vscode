@@ -8,7 +8,7 @@
       "description": "Wait for a workflow event to be received"
     },
     "codedata": {
-      "node": "WAIT_EVENT",
+      "node": "WAIT_DATA",
       "isNew": true,
       "lineRange": {
         "fileName": "functions.bal",
@@ -36,7 +36,7 @@
         "advanced": false,
         "hidden": false
       },
-      "eventType": {
+      "dataType": {
         "metadata": {
           "label": "Event Data Type",
           "description": "Type of the event data"
@@ -49,7 +49,7 @@
         "advanced": false,
         "hidden": false
       },
-      "eventName": {
+      "dataName": {
         "metadata": {
           "label": "Event Name",
           "description": "Name of the event to wait for"
