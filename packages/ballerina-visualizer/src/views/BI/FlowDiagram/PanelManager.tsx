@@ -149,6 +149,7 @@ interface PanelManagerProps {
     onAddTool?: (node: FlowNode) => void;
     onAddMcpServer?: (node: FlowNode) => void;
     onSelectNewConnection?: (nodeId: string, metadata?: any) => void;
+    onSelectConnectorPopup?: (nodeId: string, metadata?: any) => void;
     onUpdateNodeWithConnection?: (selectedNode: FlowNode) => void;
 
     // Devant handlers
@@ -210,6 +211,7 @@ export function PanelManager(props: PanelManagerProps) {
         onSearchDataLoader,
         onSearchChunker,
         onSelectNewConnection,
+        onSelectConnectorPopup,
         onUpdateNodeWithConnection,
         onNavigateToPanel,
         onImportDevantConn,
@@ -606,6 +608,20 @@ export function PanelManager(props: PanelManagerProps) {
                         //TODO: this should be merged with onSubmit prop
                         handleOnFormSubmit={onSubmitForm}
                         navigateToPanel={onNavigateToPanel}
+                    />
+                );
+
+            case SidePanelView.ALL:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onSelectConnector={onSelectConnectorPopup}
+                        onSearchTextChange={onSearchTextChange}
+                        onClose={onClose}
+                        title={"All Components"}
+                        searchPlaceholder={"Search all components"}
+                        onBack={canGoBack ? onBack : undefined}
                     />
                 );
 

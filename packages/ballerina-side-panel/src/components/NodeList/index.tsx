@@ -346,6 +346,7 @@ interface NodeListProps {
     showAiPanel?: boolean;
     title?: string;
     onSelect: (id: string, metadata?: any) => void;
+    onSelectConnector?: (id: string, metadata?: any) => void; // For connector routing
     onSearchTextChange?: (text: string) => void;
     onAddConnection?: () => void;
     onAddFunction?: () => void;
@@ -365,6 +366,7 @@ export function NodeList(props: NodeListProps) {
         showAiPanel,
         title,
         onSelect,
+        onSelectConnector,
         onSearchTextChange,
         onAddConnection,
         onAddFunction,
@@ -453,7 +455,12 @@ export function NodeList(props: NodeListProps) {
 
     const handleAddNode = (node: Node, category?: string) => {
         if (node.enabled) {
-            onSelect(node.id, { node: node.metadata, category });
+            // Check if this item is from a "Connectors" category and should use connector routing
+            if (category === "Connectors" && onSelectConnector) {
+                onSelectConnector(node.id, { node: node.metadata, category });
+            } else {
+                onSelect(node.id, { node: node.metadata, category });
+            }
         }
     };
 
@@ -526,7 +533,7 @@ export function NodeList(props: NodeListProps) {
                             >
                                 <S.Component
                                     enabled={node.enabled}
-                                    onClick={() => handleAddNode(node)}
+                                    onClick={() => handleAddNode(node, parentCategoryTitle)}
                                 >
                                     <S.IconContainer>{node.icon || <LogIcon />}</S.IconContainer>
                                     <S.ComponentTitle
@@ -612,7 +619,8 @@ export function NodeList(props: NodeListProps) {
     const getCategoryContainer = (groups: Category[], isSubCategory = false, parentCategoryTitle?: string) => {
         // Configuration for special categories
         const categoryConfig = {
-            "Connections": { hasBackground: false },
+            "Connections": { hasBackground: false }, // Existing connections (already configured)
+            "Connectors": { hasBackground: false, useConnectionRouting: true }, // Available connectors to be added
             "Statement": { hasBackground: true, showSeparatorBefore: true }, // Show separator before Statement
             "AI": { hasBackground: true, targetPosition: 3 }, // 4th position (0-indexed)
             "Control": { hasBackground: true },

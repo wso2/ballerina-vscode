@@ -964,76 +964,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         rpcClient.getAiPanelRpcClient().openAIPanel(aiPrompt);
     };
 
-    // Helper function to determine the best SidePanelView for "ALL" search results
-    const determinePanelViewForAllCategories = (categories: any[]): SidePanelView => {
-        if (!categories || categories.length === 0) {
-            return SidePanelView.NODE_LIST;
-        }
-
-        // Count different category types to determine the best view
-        const categoryTypeCounts = {
-            connections: 0,
-            functions: 0,
-            npFunctions: 0,
-            modelProviders: 0,
-            vectorStores: 0,
-            embeddingProviders: 0,
-            knowledgeBases: 0,
-            dataLoaders: 0,
-            chunkers: 0,
-            agents: 0,
-            other: 0
-        };
-
-        categories.forEach(category => {
-            const title = category.title?.toLowerCase() || '';
-            if (title.includes('connection')) {
-                categoryTypeCounts.connections++;
-            } else if (title.includes('function') && !title.includes('np')) {
-                categoryTypeCounts.functions++;
-            } else if (title.includes('np') || title.includes('natural')) {
-                categoryTypeCounts.npFunctions++;
-            } else if (title.includes('model') && title.includes('provider')) {
-                categoryTypeCounts.modelProviders++;
-            } else if (title.includes('vector') && title.includes('store')) {
-                categoryTypeCounts.vectorStores++;
-            } else if (title.includes('embedding')) {
-                categoryTypeCounts.embeddingProviders++;
-            } else if (title.includes('knowledge') || title.includes('base')) {
-                categoryTypeCounts.knowledgeBases++;
-            } else if (title.includes('data') && title.includes('loader')) {
-                categoryTypeCounts.dataLoaders++;
-            } else if (title.includes('chunker')) {
-                categoryTypeCounts.chunkers++;
-            } else if (title.includes('agent')) {
-                categoryTypeCounts.agents++;
-            } else {
-                categoryTypeCounts.other++;
-            }
-        });
-
-        // Determine the most appropriate view based on what we found
-        // If we have mostly one type, use the specific view for that type
-        if (categoryTypeCounts.connections > 0 &&
-            categoryTypeCounts.connections >= categoryTypeCounts.functions &&
-            categoryTypeCounts.connections >= categoryTypeCounts.other) {
-            return SidePanelView.NODE_LIST; // Connections are shown in NODE_LIST
-        } else if (categoryTypeCounts.functions > 0 &&
-                   categoryTypeCounts.functions > categoryTypeCounts.other) {
-            return SidePanelView.FUNCTION_LIST;
-        } else if (categoryTypeCounts.npFunctions > 0 &&
-                   categoryTypeCounts.npFunctions > categoryTypeCounts.other) {
-            return SidePanelView.NP_FUNCTION_LIST;
-        } else if (categoryTypeCounts.modelProviders > 0) {
-            return SidePanelView.MODEL_PROVIDER_LIST;
-        } else if (categoryTypeCounts.agents > 0) {
-            return SidePanelView.AGENT_LIST;
-        }
-
-        // Default to NODE_LIST for mixed or unrecognized content
-        return SidePanelView.NODE_LIST;
-    };
-
     const handleSearch = useCallback(async (searchText: string, functionType: FUNCTION_TYPE, searchKind: SearchKind) => {
         const request: BISearchRequest = {
             position: {
@@ -1128,7 +1058,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         break;
                     case "ALL":
                         // For "ALL" search, determine the best panel view based on categories returned
-                        panelView = determinePanelViewForAllCategories(currentCategories);
+                        panelView = SidePanelView.ALL;
                         break;
                     default:
                         panelView = SidePanelView.NODE_LIST;
@@ -1581,6 +1511,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
+    const handleOnSelectConnectorPopup = async (nodeId: string, metadata?: any) => {
+        
+    };
+
     const handleOnFormSubmit = (
         updatedNode?: FlowNode,
         editorConfig?: EditorConfig,
@@ -1962,6 +1896,35 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             isPopup: true,
         });
     };
+
+    const handleOnSelectConnectorConfiguration = useCallback((nodeId: string, metadata: { node: any; category?: string }) => {
+        const connector = metadata.node as AvailableNode;
+
+        rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: {
+                view: MACHINE_VIEW.ConnectionConfiguration,
+                documentUri: model.fileName,
+                metadata: {
+                    target: targetRef.current.startLine,
+                    selectedConnectorId: connector.codedata?.id,
+                    selectedConnectorOrg: connector.codedata?.org,
+                    selectedConnectorModule: connector.codedata?.module,
+                    selectedConnectorPackageName: connector.codedata?.packageName,
+                    selectedConnectorObject: connector.codedata?.object,
+                    selectedConnectorSymbol: connector.codedata?.symbol,
+                    selectedConnectorVersion: connector.codedata?.version,
+                    selectedConnectorIsGenerated: connector.codedata?.isGenerated,
+                    selectedConnectorNode: connector.codedata?.node,
+                    selectedConnectorLabel: connector.metadata?.label,
+                    selectedConnectorDescription: connector.metadata?.description,
+                    selectedConnectorIcon: connector.metadata?.icon,
+                    categoryName: metadata.category
+                }
+            },
+            isPopup: true,
+        });
+    }, [model, targetRef, categories, rpcClient]);
 
     const handleOnEditConnection = (connectionName: string) => {
         rpcClient.getVisualizerRpcClient().openView({
@@ -2847,6 +2810,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onAddTool={handleOnAddTool}
                 onAddMcpServer={handleOnAddMcpServer}
                 onSelectNewConnection={handleOnSelectNewConnection}
+                onSelectConnectorPopup={handleOnSelectConnectorConfiguration}
                 selectedMcpToolkitName={selectedMcpToolkitName}
                 onNavigateToPanel={handleOnNavigateToPanel}
                 // Devant specific callbacks

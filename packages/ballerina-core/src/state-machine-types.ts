@@ -82,6 +82,7 @@ export enum MACHINE_VIEW {
     BIAddProjectForm = "BI Add Project SKIP",
     BIComponentView = "BI Component View",
     AddConnectionWizard = "Add Connection Wizard",
+    ConnectionConfiguration = "Connection Configuration",
     AddCustomConnector = "Add Custom Connector",
     ViewConfigVariables = "View Config Variables",
     EditConfigVariables = "Edit Config Variables",
@@ -156,6 +157,7 @@ export interface VisualizerLocation {
     artifactInfo?: ArtifactInfo;
     reviewData?: ReviewModeData;
     evalsetData?: EvalsetData;
+    customProps?: any;
 }
 
 export interface ArtifactInfo {
@@ -201,6 +203,20 @@ export interface VisualizerMetadata {
     featureSupport?: {
         aiEvaluation?: boolean;
     };
+    // Connection Configuration metadata
+    selectedConnectorId?: string;
+    selectedConnectorOrg?: string;
+    selectedConnectorModule?: string;
+    selectedConnectorPackageName?: string;
+    selectedConnectorObject?: string;
+    selectedConnectorSymbol?: string;
+    selectedConnectorVersion?: string;
+    selectedConnectorIsGenerated?: boolean;
+    selectedConnectorNode?: string;
+    selectedConnectorLabel?: string;
+    selectedConnectorDescription?: string;
+    selectedConnectorIcon?: string;
+    categoryName?: string;
 }
 
 export interface DataMapperMetadata {
