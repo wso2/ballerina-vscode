@@ -65,12 +65,15 @@ export interface SaveMigrationReportRequest {
     };
 }
 
+export type MigrationEnhancementMode = 'auto-fix' | 'guided-review' | 'none';
+
 export interface MigrateRequest {
     project: ProjectRequest;
     textEdits: {
         [key: string]: string;
     };
     projects?: ProjectMigrationResult[];
+    enhancementMode?: MigrationEnhancementMode;
 }
 
 export interface OpenSubProjectReportRequest {
