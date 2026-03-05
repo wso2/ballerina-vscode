@@ -65,6 +65,11 @@ export type ExpressionContextProps = CompletionConditionalProps & {
     ) => Promise<number[]>;
 }
 
+export interface DiagramPromptOptions {
+    autoSubmit?: boolean;
+    planMode?: boolean;
+}
+
 export interface DiagramContextState {
     flow: Flow;
     componentPanel: {
@@ -76,7 +81,7 @@ export interface DiagramContextState {
     expandedErrorHandler?: string;
     toggleErrorHandlerExpansion?: (nodeId: string) => void;
     onAddNode?: (parent: FlowNode | Branch, target: LineRange) => void;
-    onAddNodePrompt?: (parent: FlowNode | Branch, target: LineRange, prompt: string) => void;
+    onAddNodePrompt?: (parent: FlowNode | Branch, target: LineRange, prompt: string, options?: DiagramPromptOptions) => void;
     onDeleteNode?: (node: FlowNode) => void;
     onAddComment?: (comment: string, target: LineRange) => void;
     onNodeSelect?: (node: FlowNode) => void;

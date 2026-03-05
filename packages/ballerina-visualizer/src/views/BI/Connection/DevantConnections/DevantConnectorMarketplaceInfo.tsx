@@ -44,7 +44,7 @@ import {
     ConnectorProgressContainer,
     FooterContainer,
 } from "../styles";
-import { DevantConnectionFlow } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { DevantConnectionFlow } from "./utils";
 
 const StyledSummary = styled.p`
     margin-top: 1rem;

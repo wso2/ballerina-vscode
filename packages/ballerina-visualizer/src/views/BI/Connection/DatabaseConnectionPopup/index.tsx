@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -58,9 +58,8 @@ const ContentContainer = styled.div<{ hasFooterButton?: boolean }>`
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: auto;
     padding: 24px 32px;
-    padding-bottom: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"};
+    padding-bottom: ${(props: { hasFooterButton?: boolean }) => (props.hasFooterButton ? "0" : "24px")};
     min-height: 0;
 `;
 
@@ -68,17 +67,13 @@ const StepContent = styled.div<{ fillHeight?: boolean }>`
     display: flex;
     flex-direction: column;
     gap: 24px;
-    ${(props: { fillHeight?: boolean }) => props.fillHeight && `
-        flex: 1;
-        min-height: 0;
-        height: 100%;
-    `}
+    overflow: auto;
+    flex: 1;
+    padding-bottom: 12px;
 `;
 
 const FooterContainer = styled.div`
-    position: sticky;
-    bottom: 0;
-    padding: 20px 32px;
+    padding-bottom: 24px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -118,7 +113,7 @@ const ActionButton = styled(Button)`
     align-items: center;
     align-self: stretch;
     box-sizing: border-box;
-    
+
     & > div {
         width: 100% !important;
         max-width: 100% !important;
@@ -127,6 +122,7 @@ const ActionButton = styled(Button)`
 
 const TablesGrid = styled(BaseTablesGrid)`
     margin-top: 16px;
+    position: relative;
 `;
 
 const SelectAllButton = styled(Button)`
@@ -187,11 +183,11 @@ const BrowseMoreButton = styled(Button)`
     background-color: var(--vscode-button-secondaryBackground, #3c3c3c) !important;
     color: var(--vscode-button-secondaryForeground, #ffffff) !important;
     border-radius: 4px;
-    
+
     &:hover {
         background-color: var(--vscode-button-secondaryHoverBackground, #4a4a4a) !important;
     }
-    
+
     & > span {
         color: var(--vscode-button-secondaryForeground, #ffffff) !important;
     }
@@ -404,12 +400,12 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                 tables: introspectDatabaseResponse?.tables,
             });
 
-            if (response.errorMsg) {
-                console.error(">>> Error creating connection", response.errorMsg);
-                setConnectionError("Unable to create the connection. Please check the error details below.");
-                setLsErrorDetails({ errorMessage: response.errorMsg, isExpanded: false });
-                return;
-            }
+        if (response.errorMsg) {
+            console.error(">>> Error creating connection", response.errorMsg);
+            throw new Error("Unable to create the connection. Please check the error details below.", {
+                cause: response.errorMsg,
+            });
+        }
 
             // Log success and text edits info if available
             if (response.source?.textEditsMap) {
@@ -684,6 +680,21 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
     return (
         <>
+            <StepperContainer>
+                <Stepper steps={steps} currentStep={currentStep} alignment="flex-start" />
+            </StepperContainer>
+            <ContentContainer hasFooterButton>{renderStepContent()}</ContentContainer>
+        </>
+    );
+}
+
+// ─── Shell ────────────────────────────────────────────────────────────────────
+
+export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
+    const { fileName, target, onClose, onBack, onBrowseConnectors } = props;
+
+    return (
+        <>
             <PopupOverlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }} />
             <PopupContainer>
                 <PopupHeader>
@@ -754,4 +765,3 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 }
 
 export default DatabaseConnectionPopup;
-

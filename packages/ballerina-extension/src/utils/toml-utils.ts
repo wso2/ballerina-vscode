@@ -25,11 +25,8 @@ export interface ConfigVariable {
     secret?: boolean;
 }
 
-// Cache regex for performance
-const PLACEHOLDER_REGEX = /^\$\{([A-Z_0-9]+)\}$/;
-
 /**
- * Read all keys from Config.toml and return their status — filled or placeholder.
+ * Read all keys from Config.toml and return their fill status.
  * Returns empty object if file doesn't exist.
  */
 export function getAllConfigStatus(
@@ -49,24 +46,18 @@ export function getAllConfigStatus(
             for (const [key, value] of Object.entries(obj)) {
                 const fullKey = prefix ? `${prefix}.${key}` : key;
                 if (Array.isArray(value)) {
-                    // Arrays of tables [[...]] or primitive arrays
                     value.forEach((item, index) => {
                         if (item !== null && typeof item === "object") {
                             collectStatus(item, `${fullKey}[${index}]`);
-                        } else if (typeof item === "string" && PLACEHOLDER_REGEX.test(item)) {
-                            status[`${fullKey}[${index}]`] = "missing";
                         } else {
                             status[`${fullKey}[${index}]`] = "filled";
                         }
                     });
-                    // Also mark the array key itself if empty
                     if (value.length === 0) {
                         status[fullKey] = "filled";
                     }
                 } else if (value !== null && typeof value === "object") {
                     collectStatus(value, fullKey);
-                } else if (typeof value === "string" && PLACEHOLDER_REGEX.test(value)) {
-                    status[fullKey] = "missing";
                 } else {
                     status[fullKey] = "filled";
                 }
@@ -80,10 +71,6 @@ export function getAllConfigStatus(
 
     return status;
 }
-
-/**
- * Create or update Config.toml with placeholder variables
- */
 
 /**
  * Write configuration values to Config.toml - SECURITY: never logs values
@@ -115,7 +102,6 @@ export function writeConfigValuesToConfig(
 
     const intKeys = new Set<string>();
     for (const [variableName, value] of Object.entries(configValues)) {
-        const tomlKey = variableName;
         const varType = typeMap.get(variableName) || "string";
 
         // Convert value based on type
@@ -124,10 +110,10 @@ export function writeConfigValuesToConfig(
             if (isNaN(intValue)) {
                 throw new Error(`Invalid integer value for ${variableName}`);
             }
-            config[tomlKey] = intValue;
-            intKeys.add(tomlKey);
+            config[variableName] = intValue;
+            intKeys.add(variableName);
         } else {
-            config[tomlKey] = value;
+            config[variableName] = value;
         }
     }
 
@@ -200,18 +186,12 @@ export function readExistingConfigValues(
         const config = parse(content) as Record<string, any>;
 
         for (const name of variableNames) {
-            const tomlKey = name;
-            const value = getNestedValue(config, tomlKey);
+            const value = getNestedValue(config, name);
 
-            // Include the value if it exists and is not a placeholder
             if (value !== undefined && value !== null) {
                 if (typeof value === "string") {
-                    // Don't include placeholder values like ${VARIABLE_NAME}
-                    if (!value.startsWith("${")) {
-                        existingValues[name] = value;
-                    }
+                    existingValues[name] = value;
                 } else if (typeof value === "number") {
-                    // Convert number to string for UI display
                     existingValues[name] = value.toString();
                 }
             }
@@ -232,11 +212,7 @@ export function createStatusMetadata(
     const status: Record<string, "filled" | "missing"> = {};
 
     for (const [key, value] of Object.entries(configValues)) {
-        if (!value || value.trim() === "" || value.startsWith("${")) {
-            status[key] = "missing";
-        } else {
-            status[key] = "filled";
-        }
+        status[key] = value && value.trim() !== "" ? "filled" : "missing";
     }
 
     return status;

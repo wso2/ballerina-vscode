@@ -23,9 +23,26 @@ import {
     ProjectScopeMapping
 } from "@wso2/ballerina-core";
 
-const INTEGRATION_API_MODULES = ["http", "graphql", "tcp"];
-const EVENT_INTEGRATION_MODULES = ["kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb"];
-const FILE_INTEGRATION_MODULES = ["ftp", "file"];
+const INTEGRATION_API_MODULES = [
+    "http",
+    "graphql",
+    "tcp"
+];
+const EVENT_INTEGRATION_MODULES = [
+    "kafka",
+    "rabbitmq",
+    "salesforce",
+    "trigger.github",
+    "mqtt",
+    "asb",
+    "mssql",
+    "mysql",
+    "postgresql"
+];
+const FILE_INTEGRATION_MODULES = [
+    "ftp",
+    "file"
+];
 const AI_AGENT_MODULE = "ai";
 
 export function findScopeByModule(moduleName: string): SCOPE {
