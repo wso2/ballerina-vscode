@@ -79,7 +79,8 @@ export enum SidePanelView {
     CONNECTION_CREATE = "CONNECTION_CREATE",
     AGENT_MEMORY_MANAGER = "AGENT_MEMORY_MANAGER",
     AGENT_CONFIG = "AGENT_CONFIG",
-    AGENT_LIST = "AGENT_LIST"
+    AGENT_LIST = "AGENT_LIST",
+    ALL = "ALL"
 }
 
 interface PanelManagerProps {

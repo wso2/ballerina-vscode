@@ -73,7 +73,7 @@ import { cloneDeep } from "lodash";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import hljs from "highlight.js";
-import { COMPLETION_ITEM_KIND, CompletionItem, CompletionItemKind, convertCompletionItemKind, FnSignatureDocumentation, VSCodeColors } from "@wso2/ui-toolkit";
+import { COMPLETION_ITEM_KIND, CompletionItem, CompletionItemKind, convertCompletionItemKind, FnSignatureDocumentation } from "@wso2/ui-toolkit";
 import { FunctionDefinition, STNode } from "@wso2/syntax-tree";
 import { DocSection } from "../components/ExpressionEditor";
 
@@ -122,6 +122,48 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
     };
 }
 
+// Helper function to recursively find the first AvailableNode with an icon in nested categories
+function findFirstAvailableNodeWithIcon(category: Category): AvailableNode | undefined {
+    if (!category.items) return undefined;
+
+    for (const item of category.items) {
+        if ("codedata" in item) {
+            // This is an AvailableNode - check if it has an icon
+            const availableNode = item as AvailableNode;
+            if (availableNode.metadata?.icon) {
+                return availableNode;
+            }
+        } else {
+            // This is a nested category - search recursively
+            const found = findFirstAvailableNodeWithIcon(item as Category);
+            if (found) return found;
+        }
+    }
+    return undefined;
+}
+
+// Helper function to check if a category has any AvailableNodes (functions) nested within it
+function hasAvailableNodesRecursively(category: Category, functionType?: FUNCTION_TYPE): boolean {
+    if (!category.items) return false;
+
+    for (const item of category.items) {
+        if ("codedata" in item) {
+            // This is an AvailableNode - check if it passes the function type filter
+            const availableNode = item as AvailableNode;
+            const convertedNode = convertAvailableNodeToPanelNode(availableNode, functionType);
+            if (convertedNode !== undefined) {
+                return true;
+            }
+        } else {
+            // This is a nested category - check recursively
+            if (hasAvailableNodesRecursively(item as Category, functionType)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 function convertDiagramCategoryToSidePanelCategory(category: Category, functionType?: FUNCTION_TYPE): PanelCategory {
     const items: PanelItem[] = category.items
         ?.map((item) => {
@@ -136,6 +178,7 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
                 return false;
             }
             if ((item as PanelCategory).items !== undefined) {
+                // For categories, use recursive check to see if they have any functions
                 return (item as PanelCategory).items.length > 0;
             }
             return true;
@@ -146,18 +189,12 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
     let icon = category?.metadata?.icon;
     let codedata = undefined;
 
-    // If no icon in category metadata, get it from the first item
-    if (!icon && category.items && category.items.length > 0) {
-        const firstItem = category.items.at(0);
-        icon = firstItem?.metadata?.icon;
-        if ("codedata" in firstItem) {
-            codedata = (firstItem as AvailableNode)?.codedata;
-        }
-    } else if (category.items && category.items.length > 0) {
-        // Still get codedata from first item even if we have icon from category
-        const firstItem = category.items.at(0);
-        if ("codedata" in firstItem) {
-            codedata = (firstItem as AvailableNode)?.codedata;
+    // If no icon in category metadata, recursively search for first AvailableNode with icon
+    if (!icon) {
+        const firstAvailableNode = findFirstAvailableNodeWithIcon(category);
+        if (firstAvailableNode) {
+            icon = firstAvailableNode.metadata?.icon;
+            codedata = firstAvailableNode.codedata;
         }
     }
 
