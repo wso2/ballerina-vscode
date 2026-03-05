@@ -27,6 +27,16 @@ import {
     GetEvalsetsRequest,
     GetEvalsetsResponse,
     EvalsetItem,
+    GetEvaluationHistoryRequest,
+    GetEvaluationHistoryResponse,
+    OpenEvaluationReportRequest,
+    EvaluationHistoryData,
+    EvaluationTestHistory,
+    EvaluationRun,
+    EvaluationRunDataPoint,
+    GetEvaluationReportRequest,
+    GetEvaluationReportResponse,
+    EvaluationReportData,
 } from "@wso2/ballerina-core";
 import { ModulePart, NodePosition, STKindChecker } from "@wso2/syntax-tree";
 import * as fs from 'fs';
@@ -35,6 +45,7 @@ import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { EvaluationReportWebview } from "../../views/evaluation-report/webview";
 
 export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
 
@@ -135,5 +146,208 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
                 resolve({ evalsets: [] });
             }
         });
+    }
+
+    async getEvaluationHistory(params: GetEvaluationHistoryRequest): Promise<GetEvaluationHistoryResponse> {
+        return new Promise(async (resolve) => {
+            try {
+                const reportsDir = path.join(params.projectPath, "evaluation-reports");
+                const data = this.loadReportData(reportsDir);
+                resolve({ data });
+            } catch (error) {
+                console.error('Failed to get evaluation history:', error);
+                resolve({ data: { tests: [], totalRunFiles: 0, projectNames: [] } });
+            }
+        });
+    }
+
+    async openEvaluationReport(params: OpenEvaluationReportRequest): Promise<void> {
+        return new Promise(async (resolve) => {
+            try {
+                await EvaluationReportWebview.createOrShow(params.reportPath);
+                resolve();
+            } catch (error) {
+                vscode.window.showErrorMessage(`Failed to open evaluation report: ${error}`);
+                resolve();
+            }
+        });
+    }
+
+    async getEvaluationReport(params: GetEvaluationReportRequest): Promise<GetEvaluationReportResponse> {
+        return new Promise(async (resolve) => {
+            try {
+                const reportPath = params.reportPath;
+                if (!fs.existsSync(reportPath)) {
+                    resolve({ data: { projectName: "Unknown", totalTests: 0, passed: 0, failed: 0, skipped: 0, moduleStatus: [] } });
+                    return;
+                }
+                const rawData = fs.readFileSync(reportPath, 'utf-8');
+                const jsonData = JSON.parse(rawData);
+
+                const moduleStatus = (jsonData.moduleStatus ?? []).map((mod: any) => ({
+                    name: mod.name,
+                    totalTests: mod.totalTests ?? 0,
+                    passed: mod.passed ?? 0,
+                    failed: mod.failed ?? 0,
+                    skipped: mod.skipped ?? 0,
+                    tests: (mod.tests ?? []).map((test: any) => ({
+                        name: test.name,
+                        status: test.status,
+                        failureMessage: test.failureMessage,
+                        isEvaluation: test.isEvaluation ?? false,
+                        evaluationSummary: test.evaluationSummary ? {
+                            evaluationRuns: (test.evaluationSummary.evaluationRuns ?? []).map((r: any) => ({
+                                id: r.id,
+                                passRate: r.passRate ?? 0,
+                                outcomes: (r.outcomes ?? []).map((o: any) => ({
+                                    id: o.id,
+                                    passed: !o.errorMessage,
+                                    errorMessage: o.errorMessage,
+                                })),
+                            })),
+                            targetPassRate: test.evaluationSummary.targetPassRate ?? 0.8,
+                            observedPassRate: test.evaluationSummary.observedPassRate ?? 0,
+                        } : undefined,
+                    })),
+                }));
+
+                const data: EvaluationReportData = {
+                    projectName: jsonData.projectName ?? "Unknown",
+                    totalTests: jsonData.totalTests ?? 0,
+                    passed: jsonData.passed ?? 0,
+                    failed: jsonData.failed ?? 0,
+                    skipped: jsonData.skipped ?? 0,
+                    moduleStatus,
+                };
+
+                resolve({ data });
+            } catch (error) {
+                console.error('Failed to load evaluation report:', error);
+                resolve({ data: { projectName: "Unknown", totalTests: 0, passed: 0, failed: 0, skipped: 0, moduleStatus: [] } });
+            }
+        });
+    }
+
+    private parseDateFromFilename(filename: string): Date | undefined {
+        const match = filename.match(
+            /^(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})-(\d{3})/
+        );
+        if (!match) {
+            return undefined;
+        }
+        const [, year, month, day, hour, minute, second, ms] = match;
+        return new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day),
+            parseInt(hour),
+            parseInt(minute),
+            parseInt(second),
+            parseInt(ms)
+        );
+    }
+
+    private loadReportData(reportsDir: string): EvaluationHistoryData {
+        const testMap = new Map<string, EvaluationTestHistory>();
+        const projectNames = new Set<string>();
+        let totalRunFiles = 0;
+
+        if (!fs.existsSync(reportsDir)) {
+            return { tests: [], totalRunFiles: 0, projectNames: [] };
+        }
+
+        const files = fs.readdirSync(reportsDir);
+        const jsonFiles = files
+            .filter((f) => f.endsWith("_test_results.json"))
+            .sort();
+
+        for (const jsonFile of jsonFiles) {
+            const date = this.parseDateFromFilename(jsonFile);
+            if (!date) {
+                continue;
+            }
+
+            let jsonData: any;
+            try {
+                jsonData = JSON.parse(
+                    fs.readFileSync(path.join(reportsDir, jsonFile), "utf-8")
+                );
+            } catch {
+                continue;
+            }
+
+            totalRunFiles++;
+
+            const jsonReportPath = path.join(reportsDir, jsonFile);
+
+            const projectName: string = jsonData.projectName ?? "Unknown";
+            projectNames.add(projectName);
+
+            const moduleStatus: any[] = jsonData.moduleStatus ?? [];
+            for (const mod of moduleStatus) {
+                const tests: any[] = mod.tests ?? [];
+                for (const test of tests) {
+                    if (!test.isEvaluation) {
+                        continue;
+                    }
+
+                    const testName: string = test.name;
+                    const status: "PASSED" | "FAILURE" =
+                        test.status === "PASSED" ? "PASSED" : "FAILURE";
+
+                    const evalSummary = test.evaluationSummary ?? {};
+                    const observedPassRate: number =
+                        typeof evalSummary.observedPassRate === "number"
+                            ? evalSummary.observedPassRate
+                            : 0;
+                    const targetPassRate: number =
+                        typeof evalSummary.targetPassRate === "number"
+                            ? evalSummary.targetPassRate
+                            : 0.8;
+
+                    const evaluationRuns: EvaluationRun[] = (
+                        evalSummary.evaluationRuns ?? []
+                    ).map((r: any) => ({
+                        id: r.id,
+                        passRate: r.passRate ?? 0,
+                        outcomes: (r.outcomes ?? []).map((o: any) => ({
+                            id: o.id,
+                            passed: !o.errorMessage,
+                            errorMessage: o.errorMessage,
+                        })),
+                    }));
+
+                    const run: EvaluationRunDataPoint = {
+                        date: date.toISOString(),
+                        passRate: observedPassRate,
+                        targetPassRate,
+                        status,
+                        evaluationRuns,
+                        jsonReportPath,
+                        failureMessage: test.failureMessage,
+                    };
+
+                    if (!testMap.has(testName)) {
+                        testMap.set(testName, {
+                            testName,
+                            runs: [],
+                            projectName,
+                        });
+                    }
+                    testMap.get(testName)!.runs.push(run);
+                }
+            }
+        }
+
+        const tests = Array.from(testMap.values());
+        for (const t of tests) {
+            t.runs.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        }
+
+        return {
+            tests,
+            totalRunFiles,
+            projectNames: Array.from(projectNames),
+        };
     }
 }

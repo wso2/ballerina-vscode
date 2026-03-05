@@ -209,8 +209,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
                 if (isAiEvaluations(test)) {
                     testItems.forEach(item => run.passed(item, timeElapsed));
-                    const reportUri = await findLatestEvaluationReport(workingDirectory);
-                    if (reportUri) { await openEvaluationReport(reportUri); }
+                    const reportPath = await findLatestEvaluationReport(workingDirectory);
+                    if (reportPath) { await openEvaluationReport(reportPath); }
                     endGroup(test, true, run);
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
@@ -225,8 +225,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
                 if (isAiEvaluations(test)) {
                     testItems.forEach(item => run.failed(item, new TestMessage('Evaluation failed'), timeElapsed));
-                    const reportUri = await findLatestEvaluationReport(workingDirectory);
-                    if (reportUri) { await openEvaluationReport(reportUri); }
+                    const reportPath = await findLatestEvaluationReport(workingDirectory);
+                    if (reportPath) { await openEvaluationReport(reportPath); }
                     endGroup(test, false, run);
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
@@ -257,8 +257,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
                 if (isAiEvaluations(test)) {
                     testItems.forEach(item => run.passed(item, timeElapsed));
-                    const reportUri = await findLatestEvaluationReport(workingDirectory);
-                    if (reportUri) { await openEvaluationReport(reportUri); }
+                    const reportPath = await findLatestEvaluationReport(workingDirectory);
+                    if (reportPath) { await openEvaluationReport(reportPath); }
                     endGroup(test, true, run);
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
@@ -273,8 +273,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
                 if (isAiEvaluations(test)) {
                     testItems.forEach(item => run.failed(item, new TestMessage('Evaluation failed'), timeElapsed));
-                    const reportUri = await findLatestEvaluationReport(workingDirectory);
-                    if (reportUri) { await openEvaluationReport(reportUri); }
+                    const reportPath = await findLatestEvaluationReport(workingDirectory);
+                    if (reportPath) { await openEvaluationReport(reportPath); }
                     endGroup(test, false, run);
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
@@ -306,8 +306,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
                 if (isAiEvaluations(test)) {
                     run.passed(test, timeElapsed);
-                    const reportUri = await findLatestEvaluationReport(workingDirectory);
-                    if (reportUri) { await openEvaluationReport(reportUri); }
+                    const reportPath = await findLatestEvaluationReport(workingDirectory);
+                    if (reportPath) { await openEvaluationReport(reportPath); }
                     endGroup(test, true, run);
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
@@ -322,8 +322,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
                 if (isAiEvaluations(test)) {
                     run.failed(test, new TestMessage('Evaluation failed'), timeElapsed);
-                    const reportUri = await findLatestEvaluationReport(workingDirectory);
-                    if (reportUri) { await openEvaluationReport(reportUri); }
+                    const reportPath = await findLatestEvaluationReport(workingDirectory);
+                    if (reportPath) { await openEvaluationReport(reportPath); }
                     endGroup(test, false, run);
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
@@ -457,7 +457,7 @@ export async function readTestJson(file): Promise<JSON | undefined> {
     }
 }
 
-async function findLatestEvaluationReport(workingDirectory: string): Promise<Uri | undefined> {
+async function findLatestEvaluationReport(workingDirectory: string): Promise<string | undefined> {
     const reportsDir = path.join(workingDirectory, 'evaluation-reports');
 
     if (!fs.existsSync(reportsDir)) {
@@ -466,8 +466,8 @@ async function findLatestEvaluationReport(workingDirectory: string): Promise<Uri
 
     try {
         const files = fs.readdirSync(reportsDir);
-        const htmlFiles = files
-            .filter((file: string) => file.endsWith('.html'))
+        const jsonFiles = files
+            .filter((file: string) => file.endsWith('_test_results.json'))
             .map((file: string) => ({
                 name: file,
                 path: path.join(reportsDir, file),
@@ -475,8 +475,8 @@ async function findLatestEvaluationReport(workingDirectory: string): Promise<Uri
             }))
             .sort((a: { mtime: Date }, b: { mtime: Date }) => b.mtime.getTime() - a.mtime.getTime());
 
-        if (htmlFiles.length > 0) {
-            return Uri.file(htmlFiles[0].path);
+        if (jsonFiles.length > 0) {
+            return jsonFiles[0].path;
         }
     } catch (error) {
         console.error('Error finding evaluation report:', error);
@@ -485,13 +485,10 @@ async function findLatestEvaluationReport(workingDirectory: string): Promise<Uri
     return undefined;
 }
 
-async function openEvaluationReport(reportUri: Uri): Promise<void> {
+async function openEvaluationReport(reportPath: string): Promise<void> {
     try {
-        // Show notification (non-blocking, no button)
         window.showInformationMessage('Evaluation report generated');
-
-        // Open report in webview
-        await EvaluationReportWebview.createOrShow(reportUri);
+        await EvaluationReportWebview.createOrShow(reportPath);
     } catch (error) {
         console.error('Failed to open evaluation report:', error);
         window.showErrorMessage('Failed to open evaluation report');
