@@ -1,5 +1,5 @@
 {
-  "source": "workflow_events/functions.bal",
+  "source": "workflow_data/functions.bal",
   "description": "Wait for event - add a new field to events type definition when events parameter exists but no ctx parameter in the function",
   "diagram": {
     "id": "1",
@@ -65,7 +65,7 @@
     "flags": 0
   },
   "output": {
-    "workflow_events/types.bal": [
+    "workflow_data/types.bal": [
       {
         "range": {
           "start": {
@@ -80,7 +80,7 @@
         "newText": "\nfuture<ApprovalData> approvalReceived;\n"
       }
     ],
-    "workflow_events/functions.bal": [
+    "workflow_data/functions.bal": [
       {
         "range": {
           "start": {

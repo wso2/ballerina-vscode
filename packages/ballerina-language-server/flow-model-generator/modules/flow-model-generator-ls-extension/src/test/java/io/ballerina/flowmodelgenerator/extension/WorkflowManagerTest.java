@@ -20,7 +20,7 @@ package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.ballerina.flowmodelgenerator.extension.request.GetAllEventsRequest;
+import io.ballerina.flowmodelgenerator.extension.request.GetAllDataRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -30,7 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Tests for the WorkflowManagerService getAllEvents API.
+ * Tests for the WorkflowManagerService getAllData API.
  *
  * @since 2.0.0
  */
@@ -43,18 +43,18 @@ public class WorkflowManagerTest extends AbstractLSTest {
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
         String filePath = sourceDir.resolve(testConfig.source()).toAbsolutePath().toString();
-        GetAllEventsRequest request = new GetAllEventsRequest(filePath, testConfig.workflowName());
-        JsonArray events = getResponseAndCloseFile(request, testConfig.source()).getAsJsonArray("events");
+        GetAllDataRequest request = new GetAllDataRequest(filePath, testConfig.workflowName());
+        JsonArray data = getResponseAndCloseFile(request, testConfig.source()).getAsJsonArray("data");
 
-        JsonArray expectedEvents = testConfig.output().getAsJsonArray("events");
+        JsonArray expectedData = testConfig.output().getAsJsonArray("data");
 
-        if (!events.equals(expectedEvents)) {
+        if (!data.equals(expectedData)) {
             JsonObject output = new JsonObject();
-            output.add("events", events);
+            output.add("data", data);
             TestConfig updateConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.workflowName(), output);
 //            updateConfig(configJsonPath, updateConfig);
-            compareJsonElements(events, expectedEvents);
+            compareJsonElements(data, expectedData);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
@@ -71,7 +71,7 @@ public class WorkflowManagerTest extends AbstractLSTest {
 
     @Override
     protected String getApiName() {
-        return "getAllEvents";
+        return "getAllData";
     }
 
     @Override

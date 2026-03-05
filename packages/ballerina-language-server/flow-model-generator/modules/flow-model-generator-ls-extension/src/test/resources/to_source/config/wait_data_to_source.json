@@ -1,5 +1,5 @@
 {
-  "source": "workflow_events/functions.bal",
+  "source": "workflow_data/functions.bal",
   "description": "Wait for data - modifies existing events type to add new field right after {|",
   "diagram": {
     "id": "1",
@@ -65,7 +65,7 @@
     "flags": 0
   },
   "output": {
-    "workflow_events/types.bal": [
+    "workflow_data/types.bal": [
       {
         "range": {
           "start": {
@@ -80,7 +80,7 @@
         "newText": "\n\n\n# Events record for workflow function\ntype OrderWorkflowEvents record {|\n\tfuture<PaymentConfirmation> paymentConfirmed;\n|};"
       }
     ],
-    "workflow_events/functions.bal": [
+    "workflow_data/functions.bal": [
       {
         "range": {
           "start": {

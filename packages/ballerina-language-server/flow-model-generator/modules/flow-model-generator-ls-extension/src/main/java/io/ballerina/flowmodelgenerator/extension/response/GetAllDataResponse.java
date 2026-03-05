@@ -21,22 +21,22 @@ package io.ballerina.flowmodelgenerator.extension.response;
 import com.google.gson.JsonArray;
 
 /**
- * Represents the response for available events in a workflow.
+ * Represents the response for available data in a workflow.
  *
  * @since 2.0.0
  */
-public class GetAllEventsResponse extends AbstractFlowModelResponse {
-    private JsonArray events;
+public class GetAllDataResponse extends AbstractFlowModelResponse {
+    private JsonArray data;
 
-    public GetAllEventsResponse() {
+    public GetAllDataResponse() {
     }
 
-    public JsonArray getEvents() {
-        return events;
+    public JsonArray getData() {
+        return data;
     }
 
-    public void setEvents(JsonArray events) {
-        this.events = events;
+    public void setData(JsonArray data) {
+        this.data = data;
     }
 }
 
