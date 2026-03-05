@@ -15,8 +15,8 @@
   "output": {
     "id": "31",
     "metadata": {
-      "label": "Start Workflow",
-      "description": "Start a workflow process instance"
+      "label": "Run Workflow",
+      "description": "Run a workflow instance"
     },
     "codedata": {
       "node": "WORKFLOW_RUN",

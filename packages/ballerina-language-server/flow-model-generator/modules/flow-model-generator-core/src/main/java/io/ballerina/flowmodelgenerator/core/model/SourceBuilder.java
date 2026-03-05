@@ -942,6 +942,11 @@ public class SourceBuilder {
             return this;
         }
 
+        public TokenBuilder newLine() {
+            sb.append(System.lineSeparator());
+            return this;
+        }
+
         public TokenBuilder skipFormatting() {
             this.skipFormatting = true;
             return this;

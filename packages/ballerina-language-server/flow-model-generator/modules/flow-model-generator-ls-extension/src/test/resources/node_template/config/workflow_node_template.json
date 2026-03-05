@@ -60,7 +60,7 @@
         },
         "types": [
           {
-            "fieldType": "WORKFLOW_INPUT_TYPE",
+            "fieldType": "TYPE",
             "ballerinaType": "anydata",
             "selected": false
           }

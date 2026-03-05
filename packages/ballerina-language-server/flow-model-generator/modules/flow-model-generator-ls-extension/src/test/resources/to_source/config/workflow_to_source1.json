@@ -1,6 +1,6 @@
 {
   "source": "workflow_function/functions.bal",
-  "description": "Create a new workflow process function with input parameter",
+  "description": "Create a new workflow function with input parameter",
   "diagram": {
     "metadata": {
       "label": "Workflow Process Function",
@@ -44,111 +44,10 @@
           "label": "Input Type",
           "description": "Type of the input data to the workflow"
         },
-        "types": [
-          {
-            "fieldType": "WORKFLOW_INPUT_TYPE",
-            "ballerinaType": "anydata",
-            "selected": false,
-            "typeModel": {
-              "name": "OrderInput",
-              "editable": true,
-              "metadata": {
-                "label": "OrderInput",
-                "description": "Record with readonly field"
-              },
-              "codedata": {
-                "node": "RECORD"
-              },
-              "properties": {
-                "name": {
-                  "metadata": {
-                    "label": "Type name",
-                    "description": "Unique name to identify the type"
-                  },
-                  "valueType": "IDENTIFIER",
-                  "value": "User1",
-                  "optional": false,
-                  "editable": false,
-                  "advanced": false,
-                  "hidden": false
-                },
-                "isPublic": {
-                  "metadata": {
-                    "label": "public",
-                    "description": "Is this public"
-                  },
-                  "valueType": "FLAG",
-                  "value": "false",
-                  "optional": true,
-                  "editable": true,
-                  "advanced": false,
-                  "hidden": false
-                },
-                "description": {
-                  "metadata": {
-                    "label": "Type description",
-                    "description": "Detailed description about the type"
-                  },
-                  "valueType": "STRING",
-                  "value": "Record with readonly field",
-                  "optional": false,
-                  "editable": true,
-                  "advanced": false,
-                  "hidden": false
-                },
-                "isArray": {
-                  "metadata": {
-                    "label": "Is array type",
-                    "description": "Is this type an array or list value"
-                  },
-                  "valueType": "FLAG",
-                  "value": "false",
-                  "optional": true,
-                  "editable": true,
-                  "advanced": true,
-                  "hidden": false
-                },
-                "arraySize": {
-                  "metadata": {
-                    "label": "Size of the array",
-                    "description": "Array dimensions"
-                  },
-                  "valueType": "STRING",
-                  "value": "",
-                  "optional": true,
-                  "editable": true,
-                  "advanced": true,
-                  "hidden": false
-                }
-              },
-              "members": [
-                {
-                  "kind": "FIELD",
-                  "refs": [],
-                  "type": "string",
-                  "name": "orderId",
-                  "optional": false,
-                  "readonly": true,
-                  "docs": ""
-                },
-                {
-                  "kind": "FIELD",
-                  "refs": [],
-                  "type": "string",
-                  "name": "customerName",
-                  "optional": false,
-                  "readonly": false,
-                  "docs": ""
-                }
-              ],
-              "includes": [],
-              "allowAdditionalFields": false
-            }
-          }
-        ],
-        "value": "",
-        "optional": false,
-        "editable": false,
+        "valueType": "TYPE",
+        "value": "OrderInput",
+        "optional": true,
+        "editable": true,
         "advanced": false,
         "hidden": false
       },

@@ -347,8 +347,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         RECORD_MAP_EXPRESSION,
         PROMPT,
         CLAUSE_EXPRESSION,
-        SQL_QUERY,
-        WORKFLOW_INPUT_TYPE
+        SQL_QUERY
     }
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {
