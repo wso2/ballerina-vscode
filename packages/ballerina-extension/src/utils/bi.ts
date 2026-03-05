@@ -42,6 +42,7 @@ import { debug } from "./logger";
 import { parse } from "@iarna/toml";
 import { getProjectTomlValues } from "./config";
 import { extension } from "../BalExtensionContext";
+import { scheduleMigrationEnhancement } from "../features/ai/migration/orchestrator";
 
 export const README_FILE = "README.md";
 export const FUNCTIONS_FILE = "functions.bal";
@@ -611,6 +612,11 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
     fs.writeFileSync(gitignorePath, gitignoreContent.trim());
 
     debug(`BI project created successfully at ${projectRoot}`);
+
+    // Persist the AI enhancement mode so the pipeline resumes after the
+    // window reloads when vscode.openFolder is executed.
+    scheduleMigrationEnhancement(params.enhancementMode ?? 'none', path.resolve(projectRoot));
+
     commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
 }
 
