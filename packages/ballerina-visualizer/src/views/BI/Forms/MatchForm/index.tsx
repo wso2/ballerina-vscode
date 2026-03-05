@@ -135,11 +135,11 @@ export function MatchForm(props: MatchFormProps) {
                     label: "Pattern",
                     description: "Binding pattern",
                 },
-                valueType: "EXPRESSION",
                 value: "",
                 optional: false,
                 editable: true,
                 advanced: false,
+                types: [{ fieldType: "EXPRESSION", selected: false }],
                 hidden: false,
             },
         ];
@@ -255,21 +255,21 @@ export function MatchForm(props: MatchFormProps) {
                         label: "Patterns",
                         description: "List of binding patterns",
                     },
-                    valueType: "SINGLE_SELECT",
                     value: [
                         {
                             metadata: {
                                 label: "Pattern",
                                 description: "Binding pattern",
                             },
-                            valueType: "EXPRESSION",
                             value: "",
+                            types: [{ fieldType: "EXPRESSION", selected: false }],
                             optional: false,
                             editable: true,
                             advanced: false,
                             hidden: false,
                         },
                     ],
+                    types: [{ fieldType: "SINGLE_SELECT", selected: false }],
                     optional: false,
                     editable: true,
                     advanced: false,
@@ -386,14 +386,14 @@ export function MatchForm(props: MatchFormProps) {
                             label: "Patterns",
                             description: "List of binding patterns",
                         },
-                        valueType: "SINGLE_SELECT",
+                        types: [{ fieldType: "SINGLE_SELECT", selected: false }],
                         value: [
                             {
                                 metadata: {
                                     label: "Pattern",
                                     description: "Binding pattern",
                                 },
-                                valueType: "EXPRESSION",
+                                types: [{ fieldType: "EXPRESSION", selected: false }],
                                 value: "_",
                                 optional: false,
                                 editable: true,
@@ -521,6 +521,7 @@ export function MatchForm(props: MatchFormProps) {
                 <ExpressionEditor
                     {...expressionEditor}
                     control={control}
+                    fieldInputType={{ fieldType: "EXPRESSION", selected: false }}
                     field={targetField}
                     setValue={setValue}
                     watch={watch}
@@ -550,6 +551,7 @@ export function MatchForm(props: MatchFormProps) {
                             <ExpressionEditor
                                 {...expressionEditor}
                                 control={control}
+                                fieldInputType={{ fieldType: "EXPRESSION", selected: false }}
                                 field={field}
                                 setValue={setValue}
                                 watch={watch}

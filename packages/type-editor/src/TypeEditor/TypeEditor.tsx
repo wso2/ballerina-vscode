@@ -44,25 +44,27 @@ interface TypeEditorProps {
     newTypeValue?: string;
     isPopupTypeForm: boolean;
     isGraphql?: boolean;
+    defaultTab?: 'create-from-scratch' | 'import';
     typeHelper: {
         loading?: boolean;
         loadingTypeBrowser?: boolean;
         referenceTypes: TypeHelperCategory[];
         basicTypes: TypeHelperCategory[];
         importedTypes: TypeHelperCategory[];
+        workspaceTypes: TypeHelperCategory[];
         operators: TypeHelperOperator[];
         typeBrowserTypes: TypeHelperCategory[];
         onSearchTypeHelper: (searchText: string, isType?: boolean) => void;
         onSearchTypeBrowser: (searchText: string) => void;
         onTypeItemClick: (item: TypeHelperItem) => Promise<AddImportItemResponse>;
         onCloseCompletions?: () => void;
-        onTypeCreate?: (typeName?: string) => void;
+        onTypeCreate?: (fieldIndex: number, typeName?: string) => void;
     }
 }
 
 
 export function TypeEditor(props: TypeEditorProps) {
-    const { isGraphql, newType, isPopupTypeForm } = props;
+    const { isGraphql, newType, isPopupTypeForm, defaultTab } = props;
 
     const [initialTypeKind] = useState<TypeNodeKind>(() =>
         (props.type?.codedata?.node ?? "RECORD") as TypeNodeKind
@@ -95,7 +97,7 @@ export function TypeEditor(props: TypeEditorProps) {
         return defaultType as unknown as Type;
     })();
 
-    const [activeTab, setActiveTab] = useState<string>("create-from-scratch");
+    const [activeTab, setActiveTab] = useState<string>(defaultTab ?? "create-from-scratch");
 
 
     const onTypeSave = async (type: Type) => {

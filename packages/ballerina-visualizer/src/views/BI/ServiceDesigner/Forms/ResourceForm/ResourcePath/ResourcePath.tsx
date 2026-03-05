@@ -156,13 +156,13 @@ export function ResourcePath(props: ResourcePathProps) {
 		const newPathParam: ParameterModel = {
 			name: {
 				value: 'param',
-				valueType: 'IDENTIFIER',
+				types: [{ fieldType: 'IDENTIFIER', selected: false }],
 				placeholder: 'param',
 				enabled: true
 			},
 			type: {
 				value: 'string',
-				valueType: 'EXPRESSION',
+				types: [{ fieldType: 'EXPRESSION', selected: false }],
 				placeholder: 'string',
 				enabled: true
 			},
@@ -243,8 +243,7 @@ export function ResourcePath(props: ResourcePathProps) {
 					label="Resource Path"
 					size={70}
 					onTextChange={(input) => {
-						const trimmedInput = input.startsWith('/') ? input.slice(1) : input;
-						handlePathChange(trimmedInput);
+						handlePathChange(input);
 					}}
 					disabled={readonly}
 					onKeyUp={handleBlur}

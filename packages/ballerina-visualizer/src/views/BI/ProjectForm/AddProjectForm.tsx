@@ -16,47 +16,21 @@
  * under the License.
  */
 
-import { useEffect, useMemo, useState } from "react";
-import {
-    Button,
-    Icon,
-    Typography,
-} from "@wso2/ui-toolkit";
-import styled from "@emotion/styled";
+import { useEffect, useState } from "react";
+import { Button, Icon, Typography } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { AddProjectFormFields, AddProjectFormData } from "./AddProjectFormFields";
+import {
+    PageWrapper,
+    FormContainer,
+    TitleContainer,
+    ScrollableContent,
+    ButtonWrapper,
+    IconButton,
+} from "./styles";
+import { AddProjectFormFields } from "./AddProjectFormFields";
+import { AddProjectFormData } from "./types";
 import { isFormValidAddProject } from "./utils";
-
-const FormContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    margin: 80px 120px;
-    max-width: 600px;
-`;
-
-const TitleContainer = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 32px;
-`;
-
-const ButtonWrapper = styled.div`
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-`;
-
-const IconButton = styled.div`
-    cursor: pointer;
-    border-radius: 4px;
-    width: 20px;
-    height: 20px;
-    font-size: 20px;
-    &:hover {
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
-`;
+import { ValidateProjectFormErrorField } from "@wso2/ballerina-core";
 
 export function AddProjectForm() {
     const { rpcClient } = useRpcContext();
@@ -66,13 +40,23 @@ export function AddProjectForm() {
         workspaceName: "",
         orgName: "",
         version: "",
+        isLibrary: false,
     });
     const [isInWorkspace, setIsInWorkspace] = useState<boolean>(false);
     const [path, setPath] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [pathValidationError, setPathValidationError] = useState<string | null>(null);
+    const [packageNameValidationError, setPackageNameValidationError] = useState<string | null>(null);
 
     const handleFormDataChange = (data: Partial<AddProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
+        // Clear validation errors when form data changes
+        if (pathValidationError) {
+            setPathValidationError(null);
+        }
+        if (packageNameValidationError) {
+            setPackageNameValidationError(null);
+        }
     };
 
     useEffect(() => {
@@ -85,17 +69,45 @@ export function AddProjectForm() {
         });
     }, []);
 
-    const handleAddProject = () => {
+    const handleAddProject = async () => {
         setIsLoading(true);
-        rpcClient.getBIDiagramRpcClient().addProjectToWorkspace({
-            projectName: formData.integrationName,
-            packageName: formData.packageName,
-            convertToWorkspace: !isInWorkspace,
-            path: path,
-            workspaceName: formData.workspaceName,
-            orgName: formData.orgName || undefined,
-            version: formData.version || undefined,
-        });
+        setPathValidationError(null);
+        setPackageNameValidationError(null);
+
+        try {
+            // Validate the project path
+            const validationResult = await rpcClient.getBIDiagramRpcClient().validateProjectPath({
+                projectPath: path,
+                projectName: formData.packageName,
+                createDirectory: true,
+            });
+
+            if (!validationResult.isValid) {
+                // Show error on the appropriate field
+                if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
+                    setPathValidationError(validationResult.errorMessage || "Invalid project path");
+                } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
+                    setPackageNameValidationError(validationResult.errorMessage || "Invalid project name");
+                }
+                setIsLoading(false);
+                return;
+            }
+
+            // If validation passes, add the project
+            rpcClient.getBIDiagramRpcClient().addProjectToWorkspace({
+                projectName: formData.integrationName,
+                packageName: formData.packageName,
+                convertToWorkspace: !isInWorkspace,
+                path: path,
+                workspaceName: formData.workspaceName,
+                orgName: formData.orgName || undefined,
+                version: formData.version || undefined,
+                isLibrary: formData.isLibrary,
+            });
+        } catch (error) {
+            setPathValidationError("An error occurred during validation");
+            setIsLoading(false);
+        }
     };
 
     const goBack = () => {
@@ -103,44 +115,60 @@ export function AddProjectForm() {
     };
 
     return (
-        <FormContainer>
-            <TitleContainer>
-                <IconButton onClick={goBack}>
-                    <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
-                </IconButton>
-                <Typography variant="h2">
-                    {!isInWorkspace 
-                        ? "Convert to Workspace & Add Integration"
-                        : "Add New Integration"}
-                </Typography>
-            </TitleContainer>
+        <PageWrapper>
+            <FormContainer>
+                <TitleContainer>
+                    <IconButton onClick={goBack}>
+                        <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
+                    </IconButton>
+                    <Typography variant="h2">
+                        {!isInWorkspace 
+                            ? "Convert to Workspace & Add Integration"
+                            : "Add New Integration"}
+                    </Typography>
+                </TitleContainer>
 
-            <AddProjectFormFields
-                formData={formData}
-                onFormDataChange={handleFormDataChange}
-                isInWorkspace={isInWorkspace}
-            />
+                <ScrollableContent>
+                    <AddProjectFormFields
+                        formData={formData}
+                        onFormDataChange={handleFormDataChange}
+                        isInWorkspace={isInWorkspace}
+                        packageNameValidationError={packageNameValidationError || undefined}
+                    />
+                </ScrollableContent>
 
-            <ButtonWrapper>
-                <Button
-                    disabled={!isFormValidAddProject(formData, isInWorkspace) || isLoading}
-                    onClick={handleAddProject}
-                    appearance="primary"
-                >
-                    {isLoading ? (
-                        <Typography variant="progress">
-                            {!isInWorkspace 
-                                ? "Converting & Adding..."
-                                : "Adding..."}
+                <ButtonWrapper>
+                    {pathValidationError && (
+                        <Typography 
+                            variant="body2" 
+                            sx={{ 
+                                color: "var(--vscode-errorForeground)", 
+                                marginRight: "16px",
+                                flex: 1
+                            }}
+                        >
+                            {pathValidationError}
                         </Typography>
-                    ) : (
-                        !isInWorkspace 
-                            ? "Convert & Add Integration"
-                            : "Add Integration"
                     )}
-                </Button>
-            </ButtonWrapper>
-        </FormContainer>
+                    <Button
+                        disabled={!isFormValidAddProject(formData, isInWorkspace) || isLoading}
+                        onClick={handleAddProject}
+                        appearance="primary"
+                    >
+                        {isLoading ? (
+                            <Typography variant="progress">
+                                {!isInWorkspace 
+                                    ? "Converting & Adding..."
+                                    : "Adding..."}
+                            </Typography>
+                        ) : (
+                            !isInWorkspace 
+                                ? "Convert & Add Integration"
+                                : "Add Integration"
+                        )}
+                    </Button>
+                </ButtonWrapper>
+            </FormContainer>
+        </PageWrapper>
     );
 }
-

@@ -40,6 +40,7 @@ interface TypeDiagramProps {
     isGraphql?: boolean;
     selectedNodeId?: string;
     focusedNodeId?: string;
+    readonly?: boolean;
     updateFocusedNodeId?: (nodeId: string) => void;
     showProblemPanel?: () => void;
     goToSource: (node: Type) => void
@@ -54,7 +55,7 @@ export interface ModelResult {
 }
 
 export function TypeDiagram(props: TypeDiagramProps) {
-    const { typeModel, showProblemPanel, selectedNodeId, goToSource, focusedNodeId, updateFocusedNodeId, rootService, isGraphql, verifyTypeDelete } = props;
+    const { typeModel, showProblemPanel, selectedNodeId, goToSource, focusedNodeId, readonly, updateFocusedNodeId, rootService, isGraphql, verifyTypeDelete } = props;
 
     const [diagramEngine] = useState<DiagramEngine>(createEntitiesEngine());
     const [diagramModel, setDiagramModel] = useState<DiagramModel>(undefined);
@@ -138,6 +139,7 @@ export function TypeDiagram(props: TypeDiagramProps) {
         setHasDiagnostics,
         hasDiagnostics,
         focusedNodeId,
+        readonly,
         setFocusedNodeId: updateFocusedNodeId,
         onEditNode: onTypeEdit,
         goToSource,

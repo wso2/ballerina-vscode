@@ -52,7 +52,7 @@ const SubTitleWrapper = styled.div`
 
 const LeftElementsWrapper = styled.div`
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: 12px;
 `;
 
@@ -85,87 +85,12 @@ const Path = styled.span`
     line-height: 1.3;
 `;
 
-const Parameters = styled.span`
-    color: ${ThemeColors.PRIMARY};
-    font-family: var(--vscode-editor-font-family);
-    font-size: 13px;
-    max-width: 360px;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    line-height: 1.3;
-`;
-
-const ReturnType = styled.span`
-    font-family: var(--vscode-editor-font-family);
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-`;
-
-const ReturnTypeIcon = styled(Icon)`
-    margin-top: 5px;
-    width: 16px;
-    height: 16px;
-    font-size: 14px;
-`;
-
-interface WrappedTooltipProps {
-    content: string;
-    children: React.ReactNode;
-}
-
-const WrappedTooltip = ({ content, children }: WrappedTooltipProps) => {
-    // Format content by replacing commas or pipes with line breaks
-    const formatContent = (text: string) => {
-        if (!text) return "";
-
-        let formattedItems: string[] = [];
-
-        if (text.includes(",")) {
-            formattedItems = text.split(",").map((item) => item.trim());
-        } else if (text.includes("|")) {
-            formattedItems = text.split("|").map((item) => item.trim());
-        } else {
-            return text;
-        }
-
-        // Return JSX with proper line breaks
-        return (
-            <>
-                {formattedItems.map((item, index) => (
-                    <React.Fragment key={index}>
-                        {item}
-                        {index < formattedItems.length - 1 && <br />}
-                    </React.Fragment>
-                ))}
-            </>
-        );
-    };
-
-    return (
-        <Tooltip
-            content={formatContent(content)}
-            containerSx={{ cursor: "default" }}
-            sx={{
-                wordBreak: "break-word",
-                whiteSpace: "normal",
-                maxWidth: "500px",
-                fontFamily: "var(--vscode-editor-font-family)",
-            }}
-        >
-            {children}
-        </Tooltip>
-    );
-};
 
 export interface DiagramWrapperProps {
     projectPath: string;
     filePath?: string;
     view?: FocusFlowDiagramView;
-    breakpointState?: boolean;
+    breakpointState?: number;
     syntaxTree?: STNode;
 }
 
@@ -182,10 +107,13 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [listener, setListener] = useState("");
     const [parentMetadata, setParentMetadata] = useState<ParentMetadata>();
     const [currentPosition, setCurrentPosition] = useState<NodePosition>();
+    const [parentCodedata, setParentCodedata] = useState<CodeData>();
 
     const [functionModel, setFunctionModel] = useState<FunctionModel>();
     const [servicePosition, setServicePosition] = useState<NodePosition>();
     const [isSaving, setIsSaving] = useState(false);
+    const [isTracingEnabled, setIsTracingEnabled] = useState(false);
+    const [isToggling, setIsToggling] = useState(false);
 
     useEffect(() => {
         rpcClient.getVisualizerLocation().then((location) => {
@@ -239,6 +167,37 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     }, [rpcClient]);
 
 
+    useEffect(() => {
+        checkTracingStatus();
+    }, []);
+
+    const checkTracingStatus = async () => {
+        try {
+            const status = await rpcClient.getAgentChatRpcClient().getTracingStatus();
+            setIsTracingEnabled(status.enabled);
+        } catch (error) {
+            setIsTracingEnabled(false);
+        }
+    };
+
+    const handleToggleTracing = async () => {
+        if (isToggling) {
+            return;
+        }
+
+        setIsToggling(true);
+        try {
+            const command = isTracingEnabled ? "ballerina.disableTracing" : "ballerina.enableTracing";
+            await rpcClient.getCommonRpcClient().executeCommand({ commands: [command] });
+            await checkTracingStatus();
+        } catch (error) {
+            console.error("Failed to toggle tracing:", error);
+            throw error;
+        } finally {
+            setIsToggling(false);
+        }
+    };
+
     const handleFunctionClose = () => {
         setFunctionModel(undefined);
     };
@@ -251,7 +210,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         setLoadingDiagram(true);
     };
 
-    const handleReadyDiagram = (fileName?: string, parentMetadata?: ParentMetadata, position?: NodePosition) => {
+    const handleReadyDiagram = (fileName?: string, parentMetadata?: ParentMetadata, position?: NodePosition, parentCodedata?: CodeData) => {
         setLoadingDiagram(false);
         if (fileName) {
             setFileName(fileName);
@@ -262,8 +221,10 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         if (position) {
             setCurrentPosition(position);
         }
+        if (parentCodedata) {
+            setParentCodedata(parentCodedata);
+        }
     };
-
 
     const getFunctionModel = async () => {
         const location = (await rpcClient.getVisualizerLocation()).position;
@@ -277,7 +238,6 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         const functionModel = await rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({ filePath: filePath, codedata: codeData });
         setFunctionModel(functionModel.function);
     }
-
 
     const handleResourceSubmit = async (value: FunctionModel) => {
         setIsSaving(true);
@@ -303,8 +263,36 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         setFunctionModel(undefined);
     };
 
-
     const handleEdit = (fileUri?: string, position?: NodePosition) => {
+        const isTestFunction = parentCodedata?.sourceCode.includes("@test:Config");
+        const isAIEvaluation = isTestFunction && parentCodedata?.sourceCode.includes('"evaluations"');
+
+        if (isAIEvaluation) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.BIAIEvaluationForm,
+                    identifier: parentMetadata?.label || "",
+                    documentUri: fileUri,
+                    serviceType: 'UPDATE_TEST',
+                }
+            });
+            return;
+        }
+
+        if (isTestFunction) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.BITestFunctionForm,
+                    identifier: parentMetadata?.label || "",
+                    documentUri: fileUri,
+                    serviceType: 'UPDATE_TEST',
+                }
+            });
+            return;
+        }
+
         const context: VisualizerLocation = {
             view:
                 view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION
@@ -323,8 +311,6 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     let isRemote = parentMetadata?.kind === "Remote Function";
     let isAgent = parentMetadata?.kind === "AI Chat Agent" && parentMetadata?.label === "chat";
     let isNPFunction = view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
-    const parameters = parentMetadata?.parameters?.join(", ") || "";
-    const returnType = parentMetadata?.return || "";
 
     const handleResourceTryIt = (methodValue: string, pathValue: string) => {
         const resource = serviceType === "http" ? { methodValue, pathValue } : undefined;
@@ -336,52 +322,53 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const getTitle = () => {
         if (isNPFunction) return "Natural Function";
         if (isAutomation) return "Automation";
+        if (parentCodedata?.sourceCode.includes("@ai:AgentTool")) return "Agent Tool";
+        if ((parentCodedata?.sourceCode.includes("@test:Config")) && parentCodedata?.sourceCode.includes("\"evaluations\"")) return "AI Evaluation";
+        if (parentCodedata?.sourceCode.includes("@test:Config")) return "Test";
         return parentMetadata?.kind || "";
     };
 
     // Calculate subtitle element based on conditions
-    const getSubtitleElement = () => {
-        return (
-            <SubTitleWrapper>
-                <LeftElementsWrapper>
-                    {isResource && (
-                        <AccessorType color={getColorByMethod(parentMetadata?.accessor || "")}>
-                            {parentMetadata?.accessor || ""}
-                        </AccessorType>
-                    )}
-                    {!isAutomation && <Path>{removeForwardSlashes(parentMetadata?.label || "")}</Path>}
-                    {/* {parameters && (
-                        <WrappedTooltip content={parameters}>
-                            <Parameters>({parameters})</Parameters>
-                        </WrappedTooltip>
-                    )} */}
-                </LeftElementsWrapper>
-                {/* {returnType && (
-                    <WrappedTooltip content={returnType}>
-                        <ReturnType>
-                            <ReturnTypeIcon name="bi-return" /> {returnType}
-                        </ReturnType>
-                    </WrappedTooltip>
-                )} */}
-            </SubTitleWrapper>
-        );
-    };
+    const getSubtitleElement = getTitleBarSubEl(
+        parentMetadata?.label || "",
+        parentMetadata?.accessor || "",
+        isResource,
+        isAutomation
+    );
 
     // Calculate actions based on conditions
     const getActions = () => {
+        const tracingButton = (
+            <ActionButton
+                appearance={isTracingEnabled ? "primary" : "secondary"}
+                onClick={handleToggleTracing}
+                disabled={isToggling}
+            >
+                <Icon
+                    name={isTracingEnabled ? "telescope" : "circle-slash"}
+                    isCodicon={true}
+                    sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
+                />
+                {isTracingEnabled ? "Tracing: On" : "Tracing: Off"}
+            </ActionButton>
+        );
+
         if (isAgent) {
             return (
-                <ActionButton
-                    appearance="secondary"
-                    onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
-                >
-                    <Icon
-                        name="comment-discussion"
-                        isCodicon={true}
-                        sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
-                    />
-                    Chat
-                </ActionButton>
+                <>
+                    {tracingButton}
+                    <ActionButton
+                        appearance="secondary"
+                        onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
+                    >
+                        <Icon
+                            name="comment-discussion"
+                            isCodicon={true}
+                            sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
+                        />
+                        Chat
+                    </ActionButton>
+                </>
             );
         }
 
@@ -434,7 +421,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             {loadingDiagram ? (
                 <TitleBarSkeleton />
             ) : (
-                <TitleBar title={getTitle()} subtitleElement={getSubtitleElement()} actions={getActions()} />
+                <TitleBar title={getTitle()} subtitleElement={getSubtitleElement} actions={getActions()} />
             )}
             {enableSequenceDiagram && !isAgent &&
                 (
@@ -494,24 +481,38 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                 )
             }
             {/* This is for editing a http resource */}
-            {functionModel && isResource && functionModel.kind === "RESOURCE" && (
-                <PanelContainer
-                    title={"Resource Configuration"}
-                    show={!!functionModel}
+            <PanelContainer
+                title={"Resource Configuration"}
+                show={!!(isResource && functionModel?.kind === "RESOURCE")}
+                onClose={handleFunctionClose}
+                width={400}
+                overlay={true}
+            >
+                <ResourceForm
+                    model={functionModel}
+                    isSaving={isSaving}
+                    filePath={filePath}
+                    onSave={handleResourceSubmit}
                     onClose={handleFunctionClose}
-                    width={400}
-                >
-                    <ResourceForm
-                        model={functionModel}
-                        isSaving={isSaving}
-                        filePath={filePath}
-                        onSave={handleResourceSubmit}
-                        onClose={handleFunctionClose}
-                    />
-                </PanelContainer>
-            )}
+                />
+            </PanelContainer>
         </View >
     );
 }
 
 export default DiagramWrapper;
+
+export function getTitleBarSubEl(label: string, accessor: string, isResource: boolean, isAutomation: boolean): React.ReactNode {
+    return (
+        <SubTitleWrapper>
+            <LeftElementsWrapper>
+                {isResource && (
+                    <AccessorType color={getColorByMethod(accessor || "")}>
+                        {accessor || ""}
+                    </AccessorType>
+                )}
+                {!isAutomation && <Path>{removeForwardSlashes(label || "")}</Path>}
+            </LeftElementsWrapper>
+        </SubTitleWrapper>
+    );
+}

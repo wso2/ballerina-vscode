@@ -35,11 +35,17 @@ interface ConnectorIconProps {
     style?: CSSProperties; // Custom style for images
     className?: string;
     codedata?: CodeData;
+    connectorType?: string;
 }
 
 export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
-    const { url, fallbackIcon, className, style, codedata } = props;
+    const { url, fallbackIcon, className, style, codedata, connectorType } = props;
     const [imageError, setImageError] = React.useState(false);
+
+    // use custom icon for persist connections (database)
+    if (connectorType === "persist") {
+        return <Icon name="bi-db" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
+    }
 
     // use custom icon for http
     if (url?.includes("ballerina_http_")) {
@@ -53,14 +59,14 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
         return getLlmModelIcons(selectedModule);
     }
 
-    // use custom icon for wso2 module
-    if (codedata && isWso2Module(codedata) || url?.includes("wso2_icon")) {
-        return <Icon name="bi-wso2" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
-    }
-
     // use custom icon for mcp
     if (url?.includes("mcp")) {
         return <Icon name="bi-mcp" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
+    }
+
+    // use custom icon for wso2 module
+    if (codedata && isWso2Module(codedata) || url?.includes("wso2_icon")) {
+        return <Icon name="bi-wso2" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
     // use custom icon for ai module
@@ -70,6 +76,10 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
 
     if (url && isValidUrl(url) && !imageError) {
         return <img src={url} className={className} onError={() => setImageError(true)} style={{ ...style }} />;
+    }
+
+    if (codedata && (codedata.node === "AGENT_CALL" || codedata.node === "AGENT_RUN")) {
+        return <Icon name="bi-ai-agent" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
     if (fallbackIcon) {

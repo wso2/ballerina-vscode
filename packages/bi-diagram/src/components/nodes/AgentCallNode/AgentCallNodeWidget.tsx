@@ -44,6 +44,7 @@ import { nodeHasError } from "../../../utils/node";
 import { css } from "@emotion/react";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 import { NodeMetadata } from "@wso2/ballerina-core";
+import ReactMarkdown from "react-markdown";
 
 export namespace NodeStyles {
     export const Node = styled.div<{ readOnly: boolean }>`
@@ -150,16 +151,131 @@ export namespace NodeStyles {
         opacity: 0.7;
     `;
 
-    export const Role = styled(StyledText)`
+    const MarkdownContent = styled.div`
         font-size: 12px;
+        line-height: 1.4;
+        width: 100%;
+
+        /* Markdown styling */
+        p {
+            margin: 0 0 0.3em 0;
+            padding: 0;
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            margin: 0.4em 0 0.2em 0;
+            padding: 0;
+            font-weight: 600;
+        }
+
+        h1:first-child, h2:first-child, h3:first-child, h4:first-child, h5:first-child, h6:first-child {
+            margin-top: 0;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-size: 12px;
+        }
+
+        ul, ol {
+            margin: 0.3em 0;
+            padding-left: 1.2em;
+        }
+
+        ul:first-child, ol:first-child {
+            margin-top: 0;
+        }
+
+        ul:last-child, ol:last-child {
+            margin-bottom: 0;
+        }
+
+        li {
+            margin: 0 0 0.1em 0;
+        }
+
+        li:last-child {
+            margin-bottom: 0;
+        }
+
+        code {
+            background-color: rgba(127, 127, 127, 0.1);
+            padding: 1px 3px;
+            border-radius: 2px;
+            font-size: 11px;
+        }
+
+        pre {
+            margin: 0.3em 0;
+            padding: 4px;
+            background-color: rgba(127, 127, 127, 0.1);
+            border-radius: 2px;
+            overflow-x: auto;
+        }
+
+        pre:first-child {
+            margin-top: 0;
+        }
+
+        pre:last-child {
+            margin-bottom: 0;
+        }
+
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+
+        blockquote {
+            margin: 0.3em 0;
+            padding-left: 8px;
+            border-left: 2px solid ${ThemeColors.OUTLINE_VARIANT};
+        }
+
+        blockquote:first-child {
+            margin-top: 0;
+        }
+
+        blockquote:last-child {
+            margin-bottom: 0;
+        }
+
+        strong {
+            font-weight: 600;
+        }
+
+        em {
+            font-style: italic;
+        }
+
+        a {
+            color: ${ThemeColors.PRIMARY};
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    `;
+
+    export const Role = styled(MarkdownContent)`
         color: ${ThemeColors.PRIMARY};
         font-family: "GilmerMedium";
         font-weight: bold;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        width: 100%;
         padding: 0 4px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+
+        /* Override paragraph margins for single line display */
+        p {
+            display: inline;
+            margin: 0;
+        }
     `;
 
     export const RolePlaceholder = styled(Role)`
@@ -168,17 +284,12 @@ export namespace NodeStyles {
         font-style: italic;
     `;
 
-    export const Instructions = styled(StyledText)`
-        font-size: 12px;
+    export const Instructions = styled(MarkdownContent)`
         color: ${ThemeColors.ON_SURFACE};
         opacity: 0.7;
         overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        width: 100%;
+        height: 100%;
         max-height: calc(100% - 5px);
-        line-height: 1.4;
         padding: 0 4px 4px;
     `;
 
@@ -659,7 +770,14 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
 
                     {nodeMetadata?.agent?.role ? (
                         <NodeStyles.Row readOnly={readOnly} onClick={handleOnClick}>
-                            <NodeStyles.Role>{nodeMetadata?.agent?.role}</NodeStyles.Role>
+                            <NodeStyles.Role>
+                                <ReactMarkdown
+                                    disallowedElements={['script', 'iframe', 'object', 'embed', 'link', 'style']}
+                                    unwrapDisallowed={true}
+                                >
+                                    {nodeMetadata.agent.role}
+                                </ReactMarkdown>
+                            </NodeStyles.Role>
                         </NodeStyles.Row>
                     ) : (
                         <NodeStyles.Row readOnly={readOnly} onClick={handleOnClick}>
@@ -669,7 +787,14 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
 
                     {nodeMetadata?.agent?.instructions ? (
                         <NodeStyles.InstructionsRow readOnly={readOnly} onClick={handleOnClick}>
-                            <NodeStyles.Instructions>{nodeMetadata.agent.instructions}</NodeStyles.Instructions>
+                            <NodeStyles.Instructions>
+                                <ReactMarkdown
+                                    disallowedElements={['script', 'iframe', 'object', 'embed', 'link', 'style']}
+                                    unwrapDisallowed={true}
+                                >
+                                    {nodeMetadata.agent.instructions}
+                                </ReactMarkdown>
+                            </NodeStyles.Instructions>
                         </NodeStyles.InstructionsRow>
                     ) : (
                         <NodeStyles.InstructionsRow readOnly={readOnly} onClick={handleOnClick}>

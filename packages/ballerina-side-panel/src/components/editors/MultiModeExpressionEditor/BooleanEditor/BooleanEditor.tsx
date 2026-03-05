@@ -24,15 +24,12 @@ import { OptionProps } from "@wso2/ballerina-core";
 interface BooleanEditorProps {
     value: string;
     field: FormField;
-    onChange: (value: string, cursorPosition: number) => void;
+    onChange: (value: string | undefined, cursorPosition: number) => void;
 }
 
+const DEFAULT_NONE_SELECTED_VALUE = "__none__";
+
 const dropdownItems: OptionProps[] = [
-    {
-        id: "default-option",
-        content: "None Selected",
-        value: ""
-    },
     {
         id: "1",
         content: "True",
@@ -42,18 +39,51 @@ const dropdownItems: OptionProps[] = [
         id: "2",
         content: "False",
         value: "false"
+    },
+    {
+        id: "default-option",
+        content: "No Selection",
+        value: DEFAULT_NONE_SELECTED_VALUE
     }
 ]
 
-export const BooleanEditor: React.FC<BooleanEditorProps> = ({ value, onChange, field }) => {
-    const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
-        onChange(e.target.value, e.target.value.length)
+const parseBoolean = (value: unknown): boolean => {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') {
+        const v = value.trim().toLowerCase();
+        if (v === 'true') return true;
+        if (v === 'false') return false;
     }
+    return false;
+};
+
+export const BooleanEditor: React.FC<BooleanEditorProps> = ({ value, onChange, field }) => {
+
+    const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        let value = e.target.value;
+        if (value === DEFAULT_NONE_SELECTED_VALUE) {
+            onChange("", 0);
+        } else {
+            const bool = parseBoolean(value);
+            onChange(String(bool), String(bool).length);
+        }
+    }
+
+    const getValidatedValue = (): string => {
+        if (typeof value === 'boolean') return String(value);
+        if (value === undefined || value === "") return DEFAULT_NONE_SELECTED_VALUE;
+        if (typeof value === 'string') {
+            const v = value.trim().toLowerCase();
+            if (v === 'true' || v === 'false') return v;
+        }
+        return DEFAULT_NONE_SELECTED_VALUE;
+    }
+
 
     return (
         <Dropdown
             id={field.key}
-            value={value.trim()}
+            value={getValidatedValue()}
             items={dropdownItems}
             onChange={handleChange}
             sx={{ width: "100%" }}

@@ -23,10 +23,14 @@ import {
     AddFieldRequest,
     addFunction,
     AddFunctionRequest,
+    addProjectToWorkspace,
+    AddProjectToWorkspaceRequest,
     AIChatRequest,
     BIAiSuggestionsRequest,
     BIAvailableNodesRequest,
     BIDeleteByComponentInfoRequest,
+    BIDesignModelRequest,
+    BIFlowModelRequest,
     BIGetEnclosedFunctionRequest,
     BIGetVisibleVariableTypesRequest,
     BINodeTemplateRequest,
@@ -52,10 +56,14 @@ import {
     deleteType,
     DeleteTypeRequest,
     DeploymentRequest,
+    WorkspaceDeploymentRequest,
     deployProject,
+    deployWorkspace,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
     ExpressionDiagnosticsRequest,
+    ExpressionTokensRequest,
+    FormDiagnosticsRequest,
     formDidClose,
     FormDidCloseParams,
     formDidOpen,
@@ -63,6 +71,7 @@ import {
     FunctionNodeRequest,
     generateOpenApiClient,
     getAiSuggestions,
+    getAvailableAgents,
     getAvailableChunkers,
     getAvailableDataLoaders,
     getAvailableEmbeddingProviders,
@@ -73,15 +82,16 @@ import {
     getBreakpointInfo,
     getConfigVariableNodeTemplate,
     GetConfigVariableNodeTemplateRequest,
-    getConfigVariables,
     getConfigVariablesV2,
     getDataMapperCompletions,
     getDesignModel,
     getDevantMetadata,
+    getWorkspaceDevantMetadata,
     getEnclosedFunction,
     getEndOfFile,
     getExpressionCompletions,
     getExpressionDiagnostics,
+    getExpressionTokens,
     getFlowModel,
     getFormDiagnostics,
     getFunctionNames,
@@ -119,6 +129,7 @@ import {
     openConfigToml,
     OpenConfigTomlRequest,
     openReadme,
+    OpenReadmeRequest,
     ProjectRequest,
     ReadmeContentRequest,
     RecordSourceGenRequest,
@@ -131,9 +142,7 @@ import {
     ServiceClassSourceRequest,
     SignatureHelpRequest,
     updateClassField,
-    UpdateConfigVariableRequest,
     UpdateConfigVariableRequestV2,
-    updateConfigVariables,
     updateConfigVariablesV2,
     updateImports,
     UpdateImportsRequest,
@@ -147,23 +156,20 @@ import {
     verifyTypeDelete,
     VerifyTypeDeleteRequest,
     VisibleTypesRequest,
-    FormDiagnosticsRequest,
-    getExpressionTokens,
-    ExpressionTokensRequest,
-    addProjectToWorkspace,
-    AddProjectToWorkspaceRequest,
-    OpenReadmeRequest
+    ValidateProjectFormRequest,
+    validateProjectPath
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { BiDiagramRpcManager } from "./rpc-manager";
 
 export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     const rpcManger = new BiDiagramRpcManager();
-    messenger.onRequest(getFlowModel, () => rpcManger.getFlowModel());
+    messenger.onRequest(getFlowModel, (args: BIFlowModelRequest) => rpcManger.getFlowModel(args));
     messenger.onRequest(getSourceCode, (args: BISourceCodeRequest) => rpcManger.getSourceCode(args));
     messenger.onRequest(deleteFlowNode, (args: BISourceCodeRequest) => rpcManger.deleteFlowNode(args));
     messenger.onRequest(deleteByComponentInfo, (args: BIDeleteByComponentInfoRequest) => rpcManger.deleteByComponentInfo(args));
     messenger.onRequest(getAvailableNodes, (args: BIAvailableNodesRequest) => rpcManger.getAvailableNodes(args));
+    messenger.onRequest(getAvailableAgents, (args: BIAvailableNodesRequest) => rpcManger.getAvailableAgents(args));
     messenger.onRequest(getAvailableModelProviders, (args: BIAvailableNodesRequest) => rpcManger.getAvailableModelProviders(args));
     messenger.onRequest(getAvailableVectorStores, (args: BIAvailableNodesRequest) => rpcManger.getAvailableVectorStores(args));
     messenger.onRequest(getAvailableEmbeddingProviders, (args: BIAvailableNodesRequest) => rpcManger.getAvailableEmbeddingProviders(args));
@@ -174,6 +180,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getNodeTemplate, (args: BINodeTemplateRequest) => rpcManger.getNodeTemplate(args));
     messenger.onRequest(getAiSuggestions, (args: BIAiSuggestionsRequest) => rpcManger.getAiSuggestions(args));
     messenger.onNotification(createProject, (args: ProjectRequest) => rpcManger.createProject(args));
+    messenger.onRequest(validateProjectPath, (args: ValidateProjectFormRequest) => rpcManger.validateProjectPath(args));
     messenger.onNotification(deleteProject, (args: DeleteProjectRequest) => rpcManger.deleteProject(args));
     messenger.onNotification(addProjectToWorkspace, (args: AddProjectToWorkspaceRequest) => rpcManger.addProjectToWorkspace(args));
     messenger.onRequest(getWorkspaces, () => rpcManger.getWorkspaces());
@@ -184,8 +191,6 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getVisibleVariableTypes, (args: BIGetVisibleVariableTypesRequest) => rpcManger.getVisibleVariableTypes(args));
     messenger.onRequest(getExpressionCompletions, (args: ExpressionCompletionsRequest) => rpcManger.getExpressionCompletions(args));
     messenger.onRequest(getDataMapperCompletions, (args: ExpressionCompletionsRequest) => rpcManger.getDataMapperCompletions(args));
-    messenger.onRequest(getConfigVariables, () => rpcManger.getConfigVariables());
-    messenger.onRequest(updateConfigVariables, (args: UpdateConfigVariableRequest) => rpcManger.updateConfigVariables(args));
     messenger.onRequest(getConfigVariablesV2, (args: ConfigVariableRequest) => rpcManger.getConfigVariablesV2(args));
     messenger.onRequest(updateConfigVariablesV2, (args: UpdateConfigVariableRequestV2) => rpcManger.updateConfigVariablesV2(args));
     messenger.onRequest(deleteConfigVariableV2, (args: DeleteConfigVariableRequestV2) => rpcManger.deleteConfigVariableV2(args));
@@ -196,6 +201,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onNotification(openReadme, (args: OpenReadmeRequest) => rpcManger.openReadme(args));
     messenger.onRequest(renameIdentifier, (args: RenameIdentifierRequest) => rpcManger.renameIdentifier(args));
     messenger.onRequest(deployProject, (args: DeploymentRequest) => rpcManger.deployProject(args));
+    messenger.onRequest(deployWorkspace, (args: WorkspaceDeploymentRequest) => rpcManger.deployWorkspace(args));
     messenger.onNotification(openAIChat, (args: AIChatRequest) => rpcManger.openAIChat(args));
     messenger.onRequest(getSignatureHelp, (args: SignatureHelpRequest) => rpcManger.getSignatureHelp(args));
     messenger.onNotification(buildProject, (args: BuildMode) => rpcManger.buildProject(args));
@@ -209,7 +215,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getExpressionTokens, (args: ExpressionTokensRequest) => rpcManger.getExpressionTokens(args));
     messenger.onNotification(formDidOpen, (args: FormDidOpenParams) => rpcManger.formDidOpen(args));
     messenger.onNotification(formDidClose, (args: FormDidCloseParams) => rpcManger.formDidClose(args));
-    messenger.onRequest(getDesignModel, () => rpcManger.getDesignModel());
+    messenger.onRequest(getDesignModel, (args: BIDesignModelRequest) => rpcManger.getDesignModel(args));
     messenger.onRequest(getTypes, (args: GetTypesRequest) => rpcManger.getTypes(args));
     messenger.onRequest(getType, (args: GetTypeRequest) => rpcManger.getType(args));
     messenger.onRequest(updateType, (args: UpdateTypeRequest) => rpcManger.updateType(args));
@@ -235,6 +241,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getRecordNames, () => rpcManger.getRecordNames());
     messenger.onRequest(getFunctionNames, () => rpcManger.getFunctionNames());
     messenger.onRequest(getDevantMetadata, () => rpcManger.getDevantMetadata());
+    messenger.onRequest(getWorkspaceDevantMetadata, () => rpcManger.getWorkspaceDevantMetadata());
     messenger.onRequest(generateOpenApiClient, (args: OpenAPIClientGenerationRequest) => rpcManger.generateOpenApiClient(args));
     messenger.onRequest(getOpenApiGeneratedModules, (args: OpenAPIGeneratedModulesRequest) => rpcManger.getOpenApiGeneratedModules(args));
     messenger.onRequest(deleteOpenApiGeneratedModules, (args: OpenAPIClientDeleteRequest) => rpcManger.deleteOpenApiGeneratedModules(args));

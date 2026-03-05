@@ -18,8 +18,8 @@
 
 import React, { ReactNode, useEffect, useState } from "react";
 import styled from "@emotion/styled";
-import { ExpressionFormField } from "@wso2/ballerina-side-panel";
-import { DataMapperDisplayMode, FlowNode, LineRange, SubPanel } from "@wso2/ballerina-core";
+import { ExpressionEditorDevantProps, ExpressionFormField, FormValues } from "@wso2/ballerina-side-panel";
+import { EditorConfig, FlowNode, LineRange, SubPanel } from "@wso2/ballerina-core";
 import FormGenerator from "../../Forms/FormGenerator";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
@@ -31,7 +31,6 @@ const Container = styled.div<{ footerActionButton?: boolean }>`
     ${(props: { footerActionButton?: boolean }) => props.footerActionButton ? `
         flex: 1;
         min-height: 0;
-        height: 100%;
         display: flex;
         flex-direction: column;
     ` : `
@@ -59,7 +58,7 @@ interface ConnectionConfigViewProps {
     submitText?: string;
     isSaving?: boolean;
     selectedNode: FlowNode;
-    onSubmit: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void;
+    onSubmit: (updatedNode?: FlowNode, editorConfig?: EditorConfig, options?: FormSubmitOptions) => void;
     openSubPanel?: (subPanel: SubPanel) => void;
     updatedExpressionField?: ExpressionFormField;
     resetUpdatedExpressionField?: () => void;
@@ -67,6 +66,8 @@ interface ConnectionConfigViewProps {
     isPullingConnector?: boolean;
     navigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
     footerActionButton?: boolean; // Render save button as footer action button
+    devantExpressionEditor?: ExpressionEditorDevantProps;
+    customValidator?: (fieldKey: string, value: any, allValues: FormValues) => string | undefined;
 }
 
 export function ConnectionConfigView(props: ConnectionConfigViewProps) {
@@ -82,6 +83,8 @@ export function ConnectionConfigView(props: ConnectionConfigViewProps) {
         isSaving,
         navigateToPanel,
         footerActionButton,
+        devantExpressionEditor,
+        customValidator,
     } = props;
     const { rpcClient } = useRpcContext();
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
@@ -127,6 +130,8 @@ export function ConnectionConfigView(props: ConnectionConfigViewProps) {
                     footerActionButton={footerActionButton}
                     navigateToPanel={navigateToPanel}
                     handleOnFormSubmit={onSubmit}
+                    devantExpressionEditor={devantExpressionEditor}
+                    customValidator={customValidator}
                 />
             )}
         </Container>

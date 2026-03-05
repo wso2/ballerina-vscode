@@ -19,21 +19,21 @@
 import { BI_COMMANDS, DIRECTORY_MAP, EVENT_TYPE, MACHINE_VIEW, SCOPE, findScopeByModule } from "@wso2/ballerina-core";
 import {
     CommandIds as PlatformCommandIds,
-    IWso2PlatformExtensionAPI,
-    ICommitAndPuhCmdParams,
+    ICommitAndPushCmdParams,
     ICreateComponentCmdParams,
 } from "@wso2/wso2-platform-core";
 import { BallerinaExtension } from "../../core";
 import { openView, StateMachine } from "../../stateMachine";
-import { commands, extensions, window } from "vscode";
+import { commands, window } from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import { debug } from "../../utils";
+import { getPlatformExtensionAPI } from "../../utils/ai/auth";
 
 export function activateDevantFeatures(_ballerinaExtInstance: BallerinaExtension) {
     const cloudToken = process.env.CLOUD_STS_TOKEN;
     if (cloudToken) {
-        // Set the connection token context
+        // Set the connection token context for Devant UI features
         commands.executeCommand("setContext", "devant.editor", true);
     }
 
@@ -46,19 +46,15 @@ const handleComponentPushToDevant = async () => {
         return;
     }
 
-    const platformExt = extensions.getExtension("wso2.wso2-platform");
-    if (!platformExt) {
+    const platformExtAPI = await getPlatformExtensionAPI();
+    if (!platformExtAPI) {
         return;
     }
-    if (!platformExt.isActive) {
-        await platformExt.activate();
-    }
-    const platformExtAPI: IWso2PlatformExtensionAPI = platformExt.exports;
     if (isGitRepo(projectRoot)) {
         // push changes to repo if component for the directory already exists
         await commands.executeCommand(PlatformCommandIds.CommitAndPushToGit, {
             componentPath: projectRoot,
-        } as ICommitAndPuhCmdParams);
+        } as ICommitAndPushCmdParams);
     } else if (platformExtAPI.getDirectoryComponents(projectRoot)?.length) {
         debug(`project url: ${projectRoot}`);
         // push changes to repo if component for the directory already exists
@@ -69,7 +65,7 @@ const handleComponentPushToDevant = async () => {
         }
         await commands.executeCommand(PlatformCommandIds.CommitAndPushToGit, {
             componentPath: projectRoot,
-        } as ICommitAndPuhCmdParams);
+        } as ICommitAndPushCmdParams);
     } else {
         // create a new component if it doesn't exist for the directory
         if (!StateMachine.context().projectStructure) {
@@ -148,20 +144,3 @@ function isGitRepo(dir: string): boolean {
     }
     return false;
 }
-
-// TODO: 
-// need to move all platform ext api calls to separate client.
-// after that, delete this function
-export const getDevantStsToken = async (): Promise<string> => {
-    try {
-        const platformExt = extensions.getExtension("wso2.wso2-platform");
-        if (!platformExt) {
-            return "";
-        }
-        const platformExtAPI: IWso2PlatformExtensionAPI = await platformExt.activate();
-        const stsToken = await platformExtAPI.getStsToken();
-        return stsToken;
-    } catch (err) {
-        return "";
-    }
-};

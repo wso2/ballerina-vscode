@@ -24,7 +24,7 @@ import { Parameter } from './ParamManager';
 import Form from '../Form';
 import { FormField, FormValues, HelperpaneOnChangeOptions } from '../Form/types';
 import { useFormContext } from '../../context';
-import { RecordTypeField, TextEdit } from '@wso2/ballerina-core';
+import { InputType, RecordTypeField, TextEdit } from '@wso2/ballerina-core';
 import { HelperPaneHeight } from '@wso2/ui-toolkit';
 import { FormExpressionEditorRef } from '@wso2/ui-toolkit';
 
@@ -71,7 +71,7 @@ export function ParamEditor(props: ParamProps) {
 
     const getTypeHelper = (
         fieldKey: string,
-        valueTypeConstraint: string,
+        types: InputType[],
         typeBrowserRef: RefObject<HTMLDivElement>,
         currentType: string,
         currentCursorPosition: number,
@@ -84,7 +84,7 @@ export function ParamEditor(props: ParamProps) {
     ) => {
         return expressionEditor?.getTypeHelper(
             propertyKey,
-            valueTypeConstraint,
+            types,
             typeBrowserRef,
             currentType,
             currentCursorPosition,

@@ -24,7 +24,10 @@ import {
     ClausePositionRequest,
     ClausePositionResponse,
     ClearTypeCacheResponse,
+    ConvertExpressionRequest,
+    ConvertExpressionResponse,
     ConvertToQueryRequest,
+    CreateConvertedVariableRequest,
     DataMapperAPI,
     DataMapperModelRequest,
     DataMapperModelResponse,
@@ -407,6 +410,15 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
+    async getConvertedExpression(params: ConvertExpressionRequest): Promise<ConvertExpressionResponse> {
+        return new Promise(async (resolve) => {
+            const res = await StateMachine
+                .langClient()
+                .getConvertedExpression(params);
+            resolve(res);
+        });
+    }
+
     async clearTypeCache(): Promise<ClearTypeCacheResponse> {
         return new Promise(async (resolve) => {
             await StateMachine
@@ -418,4 +430,25 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
+    async createConvertedVariable(params: CreateConvertedVariableRequest): Promise<DataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .createConvertedVariable(params)
+                .then((resp) => {
+                    console.log(">>> Data mapper create converted variable response", resp);
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.subMappingName
+                    )
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
+        });
+    }
 }

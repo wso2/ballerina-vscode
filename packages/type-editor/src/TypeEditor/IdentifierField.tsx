@@ -88,9 +88,8 @@ export const IdentifierField = forwardRef<HTMLInputElement, IdentifierFieldProps
                         label: "",
                         description: "",
                     },
-                    valueType: "IDENTIFIER",
                     value: "",
-                    valueTypeConstraint: "Object",
+                    types: [{fieldType: "IDENTIFIER", scope: "Object", selected: false}],
                     optional: false,
                     editable: true
                 }

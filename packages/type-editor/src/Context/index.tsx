@@ -35,6 +35,8 @@ export type TypeHelperContext = {
     basicTypes: TypeHelperCategory[];
     // Array of imported types for the type helper
     importedTypes: TypeHelperCategory[];
+    // Array of workspace types for the type helper
+    workspaceTypes: TypeHelperCategory[];
     // Array of operators for type helper
     operators: TypeHelperOperator[];
     // Callback function to search the type helper
@@ -48,7 +50,7 @@ export type TypeHelperContext = {
     // Callback function to close the completions
     onCloseCompletions?: () => void;
     // Callback function to be executed when a new type is created
-    onTypeCreate?: (typeName?: string) => void;
+    onTypeCreate?: (fieldIndex: number,typeName?: string) => void;
 };
 
 const defaultTypeHelperContext: TypeHelperContext = {
@@ -57,13 +59,14 @@ const defaultTypeHelperContext: TypeHelperContext = {
     referenceTypes: [],
     basicTypes: [],
     importedTypes: [],
+    workspaceTypes: [],
     operators: [],
     typeBrowserTypes: [],
-    onSearchTypeHelper: () => {},
-    onSearchTypeBrowser: () => {},
+    onSearchTypeHelper: () => { },
+    onSearchTypeBrowser: () => { },
     onTypeItemClick: () => Promise.resolve({} as AddImportItemResponse),
-    onCloseCompletions: () => {},
-    onTypeCreate: () => {}
+    onCloseCompletions: () => { },
+    onTypeCreate: () => { }
 };
 
 export const TypeHelperContext = createContext<TypeHelperContext>(defaultTypeHelperContext);

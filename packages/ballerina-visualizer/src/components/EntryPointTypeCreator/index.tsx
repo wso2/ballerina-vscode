@@ -39,7 +39,8 @@ interface EntryPointTypeCreatorProps {
     modalWidth?: number;
     modalHeight?: number;
     payloadContext?: PayloadContext;
-
+    defaultTab?: 'import' | 'create-from-scratch' | 'browse-exisiting-types';
+    note?: string;
 }
 
 interface TypeEditorState {
@@ -51,7 +52,7 @@ interface TypeEditorState {
 
 
 export function EntryPointTypeCreator(props: EntryPointTypeCreatorProps) {
-    const { modalTitle, initialTypeName, modalWidth, modalHeight, payloadContext, isOpen, onClose, onTypeCreate } = props;
+    const { modalTitle, initialTypeName, modalWidth, modalHeight, payloadContext, isOpen, onClose, onTypeCreate, defaultTab, note } = props;
 
     const [typeEditorState, setTypeEditorState] = React.useState<TypeEditorState>({
         isTypeCreatorOpen: false,
@@ -274,6 +275,8 @@ export function EntryPointTypeCreator(props: EntryPointTypeCreatorProps) {
                         refetchTypes={false}
                         isContextTypeForm={true}
                         payloadContext={payloadContext}
+                        defaultTab={defaultTab}
+                        note={note}
                     />
                 </div>
             </DynamicModal>
@@ -312,6 +315,7 @@ export function EntryPointTypeCreator(props: EntryPointTypeCreatorProps) {
                                         onSaveType={onSaveType}
                                         getNewTypeCreateForm={getNewTypeCreateForm}
                                         refetchTypes={refetchStates[i + 1]}
+                                        defaultTab={defaultTab}
                                     />
                                 </div>
                             </>

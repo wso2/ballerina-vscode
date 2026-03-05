@@ -218,8 +218,8 @@ export function IfForm(props: IfFormProps) {
                         label: "Else If Condition",
                         description: "Add condition to evaluate if the previous conditions are false",
                     },
-                    valueType: "EXPRESSION",
                     value: "",
+                    types: [{ fieldType: "EXPRESSION", selected: false }],
                     placeholder: "true",
                     optional: false,
                     editable: true,
@@ -266,8 +266,8 @@ export function IfForm(props: IfFormProps) {
                         label: "Else",
                         description: "Add condition to evaluate if the previous conditions are false",
                     },
-                    valueType: "EXPRESSION",
                     value: "",
+                    types: [{ fieldType: "EXPRESSION", selected: false }],
                     placeholder: "true",
                     optional: false,
                     editable: true,
@@ -369,6 +369,7 @@ export function IfForm(props: IfFormProps) {
                             <ExpressionEditor
                                 {...expressionEditor}
                                 // ref={exprRef}
+                                fieldInputType={{fieldType: "EXPRESSION", selected: false}}
                                 control={control}
                                 field={field}
                                 watch={watch}

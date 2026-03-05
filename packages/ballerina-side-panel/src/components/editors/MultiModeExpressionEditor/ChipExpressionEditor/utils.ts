@@ -18,6 +18,7 @@
 
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { INPUT_MODE_MAP, InputMode, TokenType, CompoundTokenSequence, TokenMetadata, DocumentType, TokenPattern } from "./types";
+import { getPrimaryInputType, InputType } from "@wso2/ballerina-core";
 import { FnSignatureDocumentation } from "@wso2/ui-toolkit";
 
 export const TOKEN_LINE_OFFSET_INDEX = 0;
@@ -40,31 +41,62 @@ const getTokenTypeFromIndex = (index: number): TokenType => {
     return TOKEN_TYPE_INDEX_MAP[index] || TokenType.VARIABLE;
 };
 
-export const getInputModeFromTypes = (valueTypeConstraint: string | string[], key?: string): InputMode => {
-    if (!valueTypeConstraint) return;
-    if (key === "query") return InputMode.PROMPT;
-    let types: string[];
-    if (typeof valueTypeConstraint === 'string') {
-        if (valueTypeConstraint.includes('|')) {
-            types = valueTypeConstraint.split('|').map(t => t.trim());
-        } else {
-            types = [valueTypeConstraint];
-        }
-    } else {
-        types = valueTypeConstraint;
+export const getInputModeFromTypes = (inputType: InputType): InputMode | undefined => {
+    if (!inputType) return;
+
+    if (inputType.fieldType === "SQL_QUERY") {
+        return InputMode.SQL;
     }
 
-    for (let i = 0; i < types.length; i++) {
-        if (INPUT_MODE_MAP[types[i]]) {
-            return INPUT_MODE_MAP[types[i]];
-        }
+    if (inputType.fieldType === "TEXT") {
+        return InputMode.TEXT;
     }
-    return;
+    if (inputType.fieldType === "EXPRESSION") {
+        return InputMode.EXP;
+    }
+    if (inputType.fieldType === "NUMBER") {
+        return InputMode.NUMBER;
+    }
+    if (inputType.fieldType === "SINGLE_SELECT") {
+        return InputMode.SELECT;
+    }
+    if (inputType.fieldType === "EXPRESSION_SET") {
+        return InputMode.ARRAY;
+    }
+    if (inputType.fieldType === "TEXT_SET") {
+        return InputMode.TEXT_ARRAY;
+    }
+    if (inputType.fieldType === "PROMPT") {
+        return InputMode.PROMPT;
+    }
+    if (inputType.fieldType === "FLAG") {
+        return InputMode.BOOLEAN;
+    }
+    if (inputType.fieldType === "RECORD_MAP_EXPRESSION") {
+        return InputMode.RECORD;
+    }
+    if (inputType.fieldType === "REPEATABLE_MAP") {
+        return InputMode.MAP;
+    }
+    if (inputType.fieldType === "REPEATABLE_LIST") {
+        return InputMode.ARRAY;
+    }
+
+    //default behaviour
+    return getInputModeFromBallerinaType(inputType.ballerinaType);
 };
 
-export const getDefaultExpressionMode = (valueTypeConstraint: string | string[], key?: string): InputMode => {
-    if (!valueTypeConstraint) throw new Error("Value type constraint is undefined");
-    return getInputModeFromTypes(valueTypeConstraint, key);
+export const getInputModeFromBallerinaType = (ballerinaType: string): InputMode => {
+    return INPUT_MODE_MAP[ballerinaType];
+}
+
+export const getDefaultExpressionMode = (inputTypes: InputType[]): InputMode => {
+    const primaryInputType = getPrimaryInputType(inputTypes);
+    return getInputModeFromTypes(primaryInputType);
+}
+export const getSecondaryMode = (inputTypes: InputType[]): InputMode => {
+    const secondaryInputType = inputTypes?.length ? inputTypes[inputTypes.length - 1] : undefined;
+    return getInputModeFromTypes(secondaryInputType);
 }
 
 export const getAbsoluteColumnOffset = (value: string, line: number, column: number) => {
@@ -147,8 +179,12 @@ export const getWordBeforeCursorPosition = (textBeforeCursor: string): string =>
 export const filterCompletionsByPrefixAndType = (completions: CompletionItem[], prefix: string): CompletionItem[] => {
     if (!prefix) {
         return completions.filter(completion =>
-            completion.kind === 'field'
-        );
+            completion.kind === 'field' || completion.kind === 'function'
+        ).sort((a, b) => {
+            if (a.kind === 'field' && b.kind === 'function') return -1;
+            if (a.kind === 'function' && b.kind === 'field') return 1;
+            return 0;
+        });
     }
 
     return completions.filter(completion =>
@@ -289,7 +325,7 @@ export const detectTokenPatterns = (
     return compounds;
 };
 
-// Calculates helper pane position with viewport overflow correction
+// Calculates helper pane position with editor right boundary overflow correction
 export const calculateHelperPanePosition = (
     targetCoords: { bottom: number; left: number },
     editorRect: DOMRect,
@@ -300,10 +336,10 @@ export const calculateHelperPanePosition = (
     let top = targetCoords.bottom - editorRect.top + scrollTop;
     let left = targetCoords.left - editorRect.left;
 
-    // Add overflow correction for window boundaries
-    const viewportWidth = window.innerWidth;
-    const absoluteLeft = targetCoords.left;
-    const overflow = absoluteLeft + helperPaneWidth - viewportWidth;
+    // Add overflow correction for editor right boundary
+    const editorRight = editorRect.left + editorRect.width;
+    const paneRight = targetCoords.left + helperPaneWidth;
+    const overflow = paneRight - editorRight;
 
     if (overflow > 0) {
         left -= overflow;
@@ -439,3 +475,6 @@ export const processFunctionWithArguments = async (
     // Keep caret at the end of the inserted snippet.
     return { finalValue: value, cursorAdjustment: value.length };
 };
+
+export const normalizeEditorValue = (v: unknown) =>
+    typeof v === 'string' ? v.trim() : v;

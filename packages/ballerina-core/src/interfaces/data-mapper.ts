@@ -17,7 +17,7 @@
  */
 
 import { TypeInfo } from "./ballerina";
-import { CodeData } from "./bi";
+import { CodeData, InputType } from "./bi";
 import { LineRange } from "./common";
 
 export enum TypeKind {
@@ -40,7 +40,8 @@ export enum TypeKind {
     Unknown = "$CompilationError$",
     Anydata = "anydata",
     Byte = "byte",
-    Json = "json"
+    Json = "json",
+    Xml = "xml",
 }
 
 export enum InputCategory {
@@ -50,15 +51,16 @@ export enum InputCategory {
     Enum = "enum",
     Parameter = "parameter",
     Variable = "variable",
-    LocalVariable = "local-variable"
+    LocalVariable = "local-variable",
+    ConvertedVariable = "converted-variable"
 }
 
 export enum IntermediateClauseType {
-    LET = "let",
     WHERE = "where",
-    FROM = "from",
+    LET = "let",
     ORDER_BY = "order-by",
     LIMIT = "limit",
+    FROM = "from",
     JOIN = "join",
     GROUP_BY = "group-by"
 }
@@ -69,18 +71,8 @@ export enum ResultClauseType {
 }
 
 export interface DMDiagnostic {
-    kind: string;
+    code: string;
     message: string;
-    range: {
-        start: {
-            line: number;
-            character: number;
-        };
-        end: {
-            line: number;
-            character: number;
-        };
-    };
 }
 
 export interface IOType {
@@ -101,6 +93,7 @@ export interface IOType {
     isDeepNested?: boolean;
     ref?: string;
     typeInfo?: TypeInfo;
+    convertedField?: IOType;
 }
 
 export interface Mapping {
@@ -179,7 +172,10 @@ export interface IOTypeField {
     ref?: string;
     focusExpression?: string;
     isSeq?: boolean;
+    isIterationVariable?: boolean;
+    isGroupingKey?: boolean;
     typeInfo?: TypeInfo;
+    convertedVariable?: IORoot;
 }
 
 export interface EnumMember {
@@ -269,7 +265,7 @@ export interface DMFormField {
     editable: boolean;
     documentation: string;
     value: any;
-    valueTypeConstraint: string;
+    types: InputType[];
     enabled: boolean;
     items?: string[];
 }

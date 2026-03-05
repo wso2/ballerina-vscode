@@ -15,13 +15,12 @@
 // under the License.
 
 import { TestConfiguration } from '../types';
-import * as path from 'path';
 
 /**
  * Default test configuration
  */
 export const DEFAULT_TEST_CONFIG: TestConfiguration = {
-    // should be 1, 5, 10, 15, 20 ...
+    // ExecutionContext pattern enables parallel execution without race conditions!
     maxConcurrency: 5,
     iterations: 1
 } as const;
@@ -76,5 +75,5 @@ observabilityIncluded = true
 export const VSCODE_COMMANDS = {
     CLOSE_ALL_EDITORS: "workbench.action.closeAllEditors",
     OPEN: "vscode.open",
-    AI_GENERATE_CODE_CORE: "ballerina.test.ai.generateCodeCore"
+    AI_GENERATE_AGENT_FOR_TEST: "ballerina.test.ai.generateAgentForTest"
 } as const;

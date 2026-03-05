@@ -24,7 +24,10 @@ import {
     ClausePositionRequest,
     ClausePositionResponse,
     ClearTypeCacheResponse,
+    ConvertExpressionRequest,
+    ConvertExpressionResponse,
     ConvertToQueryRequest,
+    CreateConvertedVariableRequest,
     DMModelRequest,
     DataMapperAPI,
     DataMapperModelRequest,
@@ -53,10 +56,12 @@ import {
     addSubMapping,
     clearTypeCache,
     convertToQuery,
+    createConvertedVariable,
     deleteClause,
     deleteMapping,
     deleteSubMapping,
     getClausePosition,
+    getConvertedExpression,
     getDataMapperCodedata,
     getDataMapperModel,
     getDataMapperSource,
@@ -158,6 +163,14 @@ export class DataMapperRpcClient implements DataMapperAPI {
 
     getProcessTypeReference(params: ProcessTypeReferenceRequest): Promise<ProcessTypeReferenceResponse> {
         return this._messenger.sendRequest(getProcessTypeReference, HOST_EXTENSION, params);
+    }
+
+    getConvertedExpression(params: ConvertExpressionRequest): Promise<ConvertExpressionResponse> {
+        return this._messenger.sendRequest(getConvertedExpression, HOST_EXTENSION, params);
+    }
+
+    createConvertedVariable(params: CreateConvertedVariableRequest): Promise<DataMapperSourceResponse> {
+        return this._messenger.sendRequest(createConvertedVariable, HOST_EXTENSION, params);
     }
 
     clearTypeCache(): Promise<ClearTypeCacheResponse> {
