@@ -34,7 +34,7 @@ import { Flow, NodeModel, FlowNode, Branch, LineRange, NodePosition, ToolData, D
 import { NodeFactoryVisitor } from "../visitors/NodeFactoryVisitor";
 import { NodeLinkModel } from "./NodeLink";
 import { OverlayLayerModel } from "./OverlayLayer";
-import { DiagramContextProvider, DiagramContextState, ExpressionContextProps } from "./DiagramContext";
+import { DiagramContextProvider, DiagramContextState, DiagramPromptOptions, ExpressionContextProps } from "./DiagramContext";
 import { SizingVisitor } from "../visitors/SizingVisitor";
 import { PositionVisitor } from "../visitors/PositionVisitor";
 import { InitVisitor } from "../visitors/InitVisitor";
@@ -49,7 +49,7 @@ import { PopupOverlay } from "./PopupOverlay";
 export interface DiagramProps {
     model: Flow;
     onAddNode?: (parent: FlowNode | Branch, target: LineRange) => void;
-    onAddNodePrompt?: (parent: FlowNode | Branch, target: LineRange, prompt: string) => void;
+    onAddNodePrompt?: (parent: FlowNode | Branch, target: LineRange, prompt: string, options?: DiagramPromptOptions) => void;
     onDeleteNode?: (node: FlowNode) => void;
     onAddComment?: (comment: string, target: LineRange) => void;
     onNodeSelect?: (node: FlowNode) => void;

@@ -77,7 +77,6 @@ export const getGeneratedDocumentation: RequestType<DocGenerationRequest, void> 
 export const addFilesToProject: RequestType<AddFilesToProjectRequest, boolean> = { method: `${_preFix}/addFilesToProject` };
 export const isUserAuthenticated: RequestType<void, boolean> = { method: `${_preFix}/isUserAuthenticated` };
 export const openAIPanel: RequestType<AIPanelPrompt, void> = { method: `${_preFix}/openAIPanel` };
-export const isPlanModeFeatureEnabled: RequestType<void, boolean> = { method: `${_preFix}/isPlanModeFeatureEnabled` };
 export const getSemanticDiff: RequestType<SemanticDiffRequest, SemanticDiffResponse> = { method: `${_preFix}/getSemanticDiff` };
 export const getAffectedPackages: NotificationType<void> = { method: `${_preFix}/getAffectedPackages` };
 export const isWorkspaceProject: RequestType<void, boolean> = { method: `${_preFix}/isWorkspaceProject` };

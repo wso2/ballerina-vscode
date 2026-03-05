@@ -188,35 +188,35 @@ const ApprovalFooter: React.FC<ApprovalFooterProps> = ({
     };
 
     const promptText = approvalType === "plan"
-        ? "Accept this plan?"
-        : "Approve this task?";
+        ? "Does this plan look right?"
+        : "Ready to continue?";
 
     const primaryButtonText = approvalType === "plan"
-        ? "Yes and auto-approve tasks"
-        : "Yes and don't ask again";
+        ? "Start building"
+        : "Approve";
 
-    const secondaryButtonText = "Yes";
+    const secondaryButtonText = approvalType === "plan" ? "Approve" : "Continue";
 
-    const placeholderText = "Or describe what needs to change...";
+    const placeholderText = "What should be different?";
 
     return (
         <FooterContainer>
             <ApprovalContainer>
                 <PromptText>{promptText}</PromptText>
                 <ButtonsColumn>
-                    <Button
+                    {/* <Button
                         variant="primary"
                         onClick={handleApproveWithAutoApprove}
                         disabled={isSubmitting}
                     >
                         {primaryButtonText}
-                    </Button>
+                    </Button> */}
                     <Button
                         variant="secondary"
                         onClick={handleApproveManually}
                         disabled={isSubmitting}
                     >
-                        {secondaryButtonText}
+                        {primaryButtonText}
                     </Button>
                     <InputContainer>
                         <Input

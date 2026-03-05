@@ -28,7 +28,7 @@ import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatemen
 // ==================================
 export type AIPanelPrompt =
     | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any> }
-    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext }
+    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext; autoSubmit?: boolean }
     | undefined;
 
 export interface AIMachineSnapshot {
