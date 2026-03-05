@@ -22,7 +22,7 @@ import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
-import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -57,6 +57,7 @@ export enum SCOPE {
     EVENT_INTEGRATION = "event-integration",
     FILE_INTEGRATION = "file-integration",
     AI_AGENT = "ai-agent",
+    LIBRARY = "library",
     ANY = "any"
 }
 
@@ -90,6 +91,7 @@ export enum MACHINE_VIEW {
     BIFunctionForm = "Add Function SKIP",
     BINPFunctionForm = "Add Natural Function SKIP",
     BITestFunctionForm = "Add Test Function SKIP",
+    BIAIEvaluationForm = "AI Evaluation SKIP",
     BIServiceWizard = "Service Wizard SKIP",
     BIServiceConfigView = "Service Config View",
     BIListenerConfigView = "Listener Config View",
@@ -100,7 +102,10 @@ export enum MACHINE_VIEW {
     AIChatAgentWizard = "AI Chat Agent Wizard",
     ResolveMissingDependencies = "Resolve Missing Dependencies",
     ServiceFunctionForm = "Service Function Form",
-    BISamplesView = "BI Samples View"
+    BISamplesView = "BI Samples View",
+    ReviewMode = "Review Mode SKIP",
+    EvalsetViewer = "Evalset Viewer SKIP",
+    ConfigurationCollector = "Configuration Collector"
 }
 
 export interface MachineEvent {
@@ -140,6 +145,7 @@ export interface VisualizerLocation {
     isGraphql?: boolean;
     rootDiagramId?: string;
     metadata?: VisualizerMetadata;
+    agentMetadata?: AgentMetadata;
     scope?: SCOPE;
     projectStructure?: ProjectStructureResponse;
     org?: string;
@@ -148,6 +154,8 @@ export interface VisualizerLocation {
     version?: string;
     dataMapperMetadata?: DataMapperMetadata;
     artifactInfo?: ArtifactInfo;
+    reviewData?: ReviewModeData;
+    evalsetData?: EvalsetData;
 }
 
 export interface ArtifactInfo {
@@ -162,17 +170,139 @@ export interface ArtifactData {
     identifier?: string;
 }
 
+export interface ConfigurationCollectorMetadata {
+    requestId: string;
+    variables: Array<{
+        name: string;
+        description: string;
+        type?: "string" | "int";
+        secret?: boolean;
+    }>;
+    existingValues?: Record<string, string>;
+    message: string;
+    isTestConfig?: boolean;
+}
+
+export interface AgentMetadata {
+    configurationCollector?: ConfigurationCollectorMetadata;
+}
+
+export interface ApprovalOverlayState {
+    show: boolean;
+    message?: string;
+}
+
 export interface VisualizerMetadata {
     haveLS?: boolean;
     isBISupported?: boolean;
     recordFilePath?: string;
     enableSequenceDiagram?: boolean; // Enable sequence diagram view
     target?: LinePosition;
+    featureSupport?: {
+        aiEvaluation?: boolean;
+    };
 }
 
 export interface DataMapperMetadata {
     name: string;
     codeData: CodeData;
+}
+
+export interface ReviewViewItem {
+    type: 'component' | 'flow';
+    filePath: string;
+    position: NodePosition;
+    projectPath: string;
+    label?: string;
+}
+
+export interface ReviewModeData {
+    views: ReviewViewItem[];
+    currentIndex: number;
+    onAccept?: string;
+    onReject?: string;
+}
+
+// --- Evalset Trace Types ---
+export type EvalRole = 'system' | 'user' | 'assistant' | 'function';
+
+export interface EvalChatUserMessage {
+    role: 'user';
+    content: string | any;
+    name?: string;
+}
+
+export interface EvalChatSystemMessage {
+    role: 'system';
+    content: string | any;
+    name?: string;
+}
+
+export interface EvalChatAssistantMessage {
+    role: 'assistant';
+    content?: string | null;
+    name?: string;
+    toolCalls?: EvalFunctionCall[];
+}
+
+export interface EvalChatFunctionMessage {
+    role: 'function';
+    content?: string | null;
+    name: string;
+    id?: string;
+}
+
+export type EvalChatMessage = EvalChatUserMessage | EvalChatSystemMessage | EvalChatAssistantMessage | EvalChatFunctionMessage;
+
+export interface EvalFunctionCall {
+    name: string;
+    arguments?: { [key: string]: any };
+    id?: string;
+}
+
+export interface EvalToolSchema {
+    name: string;
+    description: string;
+    parametersSchema?: { [key: string]: any };
+}
+
+export interface EvalIteration {
+    history: EvalChatMessage[];
+    output: EvalChatAssistantMessage | EvalChatFunctionMessage | any;
+    startTime: string;
+    endTime: string;
+}
+
+export interface EvalsetTrace {
+    id: string;
+    userMessage: EvalChatUserMessage;
+    iterations: EvalIteration[];
+    output: EvalChatAssistantMessage | any;
+    tools: EvalToolSchema[];
+    toolCalls?: EvalFunctionCall[];
+    startTime: string;
+    endTime: string;
+}
+
+export interface EvalThread {
+    id: string;
+    name: string;
+    traces: EvalsetTrace[];
+    created_on: string;
+}
+
+export interface EvalSet {
+    id: string;
+    name?: string;
+    description?: string;
+    threads: EvalThread[];
+    created_on: string;
+}
+
+export interface EvalsetData {
+    filePath: string;
+    content: EvalSet;
+    threadId?: string;
 }
 
 export interface PopupVisualizerLocation extends VisualizerLocation {
@@ -202,12 +332,19 @@ export type ChatNotify =
     | CodeDiagnostics
     | CodeMessages
     | ChatStop
+    | ChatAbort
+    | SaveChat
     | ChatError
     | ToolCall
     | ToolResult
     | EvalsToolResult
     | UsageMetricsEvent
-    | GeneratedSourcesEvent;
+    | TaskApprovalRequest
+    | GeneratedSourcesEvent
+    | ConnectorGenerationNotification
+    | ConfigurationCollectionEvent
+    | CodeReviewActions
+    | PlanUpdated;
 
 export interface ChatStart {
     type: "start";
@@ -215,7 +352,7 @@ export interface ChatStart {
 
 export interface IntermidaryState {
     type: "intermediary_state";
-    state: TestGeneratorIntermediaryState | DocumentationGeneratorIntermediaryState;
+    state: DocumentationGeneratorIntermediaryState;
 }
 
 //TODO: Maybe rename content_block to content_append?
@@ -240,6 +377,17 @@ export interface ChatStop {
     command: Command | undefined;
 }
 
+export interface ChatAbort {
+    type: "abort";
+    command: Command | undefined;
+}
+
+export interface SaveChat {
+    type: "save_chat";
+    command: Command | undefined;
+    messageId: string;
+}
+
 export interface ChatError {
     type: "error";
     content: string;
@@ -248,12 +396,15 @@ export interface ChatError {
 export interface ToolCall {
     type: "tool_call";
     toolName: string;
+    toolInput?: any;
+    toolCallId?: string;
 }
 
 export interface ToolResult {
     type: "tool_result";
     toolName: string;
-    toolOutput: any;
+    toolOutput?: any;
+    toolCallId?: string;
 }
 
 export interface EvalsToolResult {
@@ -273,18 +424,82 @@ export interface UsageMetricsEvent {
     };
 }
 
+export interface TaskApprovalRequest {
+    type: "task_approval_request";
+    requestId: string;
+    approvalType: "plan" | "completion";
+    tasks: Task[];
+    taskDescription?: string;
+    message?: string;
+}
+
 export interface GeneratedSourcesEvent {
     type: "generated_sources";
     fileArray: SourceFile[];
 }
 
+export interface ConnectorGenerationNotification {
+    type: "connector_generation_notification";
+    requestId: string;
+    stage: "requesting_input" | "input_received" | "generating" | "generated" | "skipped" | "error";
+    serviceName?: string;
+    serviceDescription?: string;
+    spec?: {
+        version: string;
+        title: string;
+        description?: string;
+        baseUrl?: string;
+        endpointCount: number;
+        methods: string[];
+    };
+    connector?: {
+        moduleName: string;
+        importStatement: string;
+    };
+    error?: {
+        message: string;
+        code: string;
+    };
+    message: string;
+}
+
+export interface ConfigurationCollectionEvent {
+    type: "configuration_collection_event";
+    requestId: string;
+    stage: "creating_file" | "collecting" | "done" | "skipped" | "error";
+    variables?: Array<{
+        name: string;
+        description: string;
+        type?: "string" | "int";
+        secret?: boolean;
+    }>;
+    existingValues?: Record<string, string>;
+    message: string;
+    isTestConfig?: boolean;
+    error?: {
+        message: string;
+        code: string;
+    };
+}
+
+export interface CodeReviewActions {
+    type: "review_actions";
+}
+
+export interface PlanUpdated {
+    type: "plan_updated";
+    plan: Plan;
+}
+
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
+export const onHideReviewActions: NotificationType<void> = { method: 'onHideReviewActions' };
 export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
 export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
 export const onMigratedProject: NotificationType<ProjectMigrationResult> = { method: 'onMigratedProject' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
+export const promptUpdated: NotificationType<void> = { method: 'promptUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };
 export const dependencyPullProgress: NotificationType<string> = { method: 'dependencyPullProgress' };
@@ -299,12 +514,13 @@ export const popupStateChanged: NotificationType<PopupMachineStateValue> = { met
 export const getPopupVisualizerState: RequestType<void, PopupVisualizerLocation> = { method: 'getPopupVisualizerState' };
 
 export const breakpointChanged: NotificationType<boolean> = { method: 'breakpointChanged' };
+export const approvalOverlayState: NotificationType<ApprovalOverlayState> = { method: 'approvalOverlayState' };
 
 // ------------------> AI Related state types <-----------------------
 export type AIMachineStateValue =
     | 'Initialize'          // (checking auth, first load)
     | 'Unauthenticated'     // (show login window)
-    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' | 'awsBedrockFlow' | 'validatingAwsCredentials' } // hierarchical substates
+    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' | 'awsBedrockFlow' | 'validatingAwsCredentials' | 'vertexAiFlow' | 'validatingVertexAiCredentials' } // hierarchical substates
     | 'Authenticated'       // (ready, main view)
     | 'Disabled';           // (optional: if AI Chat is globally unavailable)
 
@@ -315,6 +531,8 @@ export enum AIMachineEventType {
     SUBMIT_API_KEY = 'SUBMIT_API_KEY',
     AUTH_WITH_AWS_BEDROCK = 'AUTH_WITH_AWS_BEDROCK',
     SUBMIT_AWS_CREDENTIALS = 'SUBMIT_AWS_CREDENTIALS',
+    AUTH_WITH_VERTEX_AI = 'AUTH_WITH_VERTEX_AI',
+    SUBMIT_VERTEX_AI_CREDENTIALS = 'SUBMIT_VERTEX_AI_CREDENTIALS',
     LOGOUT = 'LOGOUT',
     SILENT_LOGOUT = "SILENT_LOGOUT",
     COMPLETE_AUTH = 'COMPLETE_AUTH',
@@ -335,6 +553,13 @@ export type AIMachineEventMap = {
         region: string;
         sessionToken?: string;
     };
+    [AIMachineEventType.AUTH_WITH_VERTEX_AI]: undefined;
+    [AIMachineEventType.SUBMIT_VERTEX_AI_CREDENTIALS]: {
+        projectId: string;
+        location: string;
+        clientEmail: string;
+        privateKey: string;
+    };
     [AIMachineEventType.LOGOUT]: undefined;
     [AIMachineEventType.SILENT_LOGOUT]: undefined;
     [AIMachineEventType.COMPLETE_AUTH]: undefined;
@@ -349,25 +574,183 @@ export type AIMachineSendableEvent =
         : { type: K; payload: AIMachineEventMap[K] }
     }[keyof AIMachineEventMap];
 
+export interface ChatMessage {
+    id: string;
+    content: string;
+    uiResponse: string;
+    modelMessages: any[];
+    timestamp: number;
+    checkpointId?: string;
+}
+
+export interface Checkpoint {
+    id: string;
+    messageId: string;
+    timestamp: number;
+    workspaceSnapshot: { [filePath: string]: string };
+    fileList: string[];
+    snapshotSize: number;
+}
+
+// ==================================
+// Thread-Based Chat State Types
+// ==================================
+
+/**
+ * Review state for a generation
+ */
+export interface GenerationReviewState {
+    /** Status of the generation review */
+    status: 'pending' | 'under_review' | 'accepted' | 'error';
+    /** Temp project path while under review (shared across generations in same thread) */
+    tempProjectPath?: string;
+    /** Files modified in this specific generation */
+    modifiedFiles: string[];
+    /** Packages that have changes (absolute package paths) */
+    affectedPackagePaths?: string[];
+    /** Error message if status is 'error' */
+    errorMessage?: string;
+}
+
+/**
+ * Metadata for a generation
+ */
+export interface GenerationMetadata {
+    /** Whether this was a plan mode generation */
+    isPlanMode: boolean;
+    /** Operation type for the generation */
+    operationType?: OperationType;
+    /** Generation type (agent or datamapper) */
+    generationType?: 'agent' | 'datamapper';
+    /** Command type if triggered by command */
+    commandType?: string;
+}
+
+/**
+ * Generation represents a single user prompt + complete AI response cycle
+ * Contains all data needed to render UI and pass to LLM
+ */
+export interface Generation {
+    /** Unique generation ID */
+    id: string;
+    /** User prompt content */
+    userPrompt: string;
+    /** Model messages from AI SDK (for LLM context) */
+    modelMessages: any[];
+    /** UI response formatted for display */
+    uiResponse: string;
+    /** Timestamp when generation started */
+    timestamp: number;
+
+    /** Review state (embedded, not separate context) */
+    reviewState: GenerationReviewState;
+
+    /** Checkpoint linked to this generation (optional) */
+    checkpoint?: Checkpoint;
+    /** Plan associated with this generation (optional) */
+    plan?: Plan;
+    /** Current task index for plan execution */
+    currentTaskIndex: number;
+    /** File attachments for this generation */
+    fileAttachments?: FileAttatchment[];
+    /** Code context for this generation */
+    codeContext?: CodeContext;
+    /** Generation metadata */
+    metadata: GenerationMetadata;
+}
+
+/**
+ * Thread represents a conversation with multiple generations
+ */
+export interface ChatThread {
+    /** Unique thread ID */
+    id: string;
+    /** Display name for thread */
+    name: string;
+    /** Array of generations in chronological order */
+    generations: Generation[];
+    /** Session ID for backend correlation */
+    sessionId?: string;
+    /** Thread creation timestamp */
+    createdAt: number;
+    /** Last update timestamp */
+    updatedAt: number;
+}
+
+/**
+ * Workspace-level storage container
+ * One per workspace, contains multiple threads
+ */
+export interface WorkspaceChatState {
+    /** Workspace/project identifier (hash of workspace path) */
+    workspaceId: string;
+    /** Map of thread ID to thread */
+    threads: Map<string, ChatThread>;
+    /** Currently active thread ID */
+    activeThreadId: string;
+}
+
+/**
+ * Task status enum
+ */
+export enum TaskStatus {
+    PENDING = "pending",
+    IN_PROGRESS = "in_progress",
+    COMPLETED = "completed",
+    REVIEW = "review"
+}
+
+export enum TaskTypes {
+    SERVICE_DESIGN = "service_design",
+    CONNECTIONS_INIT = "connections_init",
+    IMPLEMENTATION = "implementation",
+    TESTING = "testing"
+}
+
+/**
+ * Task interface representing a single implementation task
+ */
+export interface Task {
+    description: string;
+    status: TaskStatus;
+    type: TaskTypes;
+}
+
+export interface Plan {
+    id: string;
+    tasks: Task[];
+    createdAt: number;
+    updatedAt: number;
+}
+
+export interface Question {
+    id: string;
+    question: string;
+    context?: string;
+    timestamp: number;
+}
+
+export interface UserApproval {
+    comment?: string;
+}
+
+export type OperationType = "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
+
+
 export enum LoginMethod {
     BI_INTEL = 'biIntel',
     ANTHROPIC_KEY = 'anthropic_key',
-    DEVANT_ENV = 'devant_env',
-    AWS_BEDROCK = 'aws_bedrock'
+    AWS_BEDROCK = 'aws_bedrock',
+    VERTEX_AI = 'vertex_ai'
 }
 
 export interface BIIntelSecrets {
     accessToken: string;
-    refreshToken: string;
+    expiresAt?: number;  // Unix timestamp in milliseconds
 }
 
 export interface AnthropicKeySecrets {
     apiKey: string;
-}
-
-export interface DevantEnvSecrets {
-    accessToken: string;
-    expiresAt: number;
 }
 
 interface AwsBedrockSecrets {
@@ -375,6 +758,13 @@ interface AwsBedrockSecrets {
     secretAccessKey: string;
     region: string;
     sessionToken?: string;
+}
+
+export interface VertexAiSecrets {
+    projectId: string;
+    location: string;
+    clientEmail: string;
+    privateKey: string;
 }
 
 export type AuthCredentials =
@@ -387,12 +777,12 @@ export type AuthCredentials =
         secrets: AnthropicKeySecrets;
     }
     | {
-        loginMethod: LoginMethod.DEVANT_ENV;
-        secrets: DevantEnvSecrets;
-    }
-    | {
         loginMethod: LoginMethod.AWS_BEDROCK;
         secrets: AwsBedrockSecrets;
+    }
+    | {
+        loginMethod: LoginMethod.VERTEX_AI;
+        secrets: VertexAiSecrets;
     };
 
 export interface AIUserToken {
@@ -418,6 +808,26 @@ export enum ColorThemeKind {
     HighContrastLight = 4
 }
 
+// Type alias for backward compatibility - use UIChatMessage from rpc-types/ai-panel instead
+export type { UIChatMessage as UIChatHistoryMessage } from "./rpc-types/ai-panel/interfaces";
+
 export const aiStateChanged: NotificationType<AIMachineStateValue> = { method: 'aiStateChanged' };
 export const sendAIStateEvent: RequestType<AIMachineEventType | AIMachineSendableEvent, void> = { method: 'sendAIStateEvent' };
 export const currentThemeChanged: NotificationType<ColorThemeKind> = { method: 'currentThemeChanged' };
+
+export interface CheckpointCapturedPayload {
+    messageId: string;
+    checkpointId: string;
+}
+export const checkpointCaptured: NotificationType<CheckpointCapturedPayload> = { method: 'checkpointCaptured' };
+
+// Connector Generator RPC methods
+export interface ConnectorGeneratorResponsePayload {
+    requestId: string;
+    action: 'provide' | 'skip';
+    spec?: any;
+    inputMethod?: 'file' | 'paste' | 'url';
+    sourceIdentifier?: string;
+    comment?: string;
+}
+export const sendConnectorGeneratorResponse: RequestType<ConnectorGeneratorResponsePayload, void> = { method: 'sendConnectorGeneratorResponse' };

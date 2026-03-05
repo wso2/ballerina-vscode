@@ -20,7 +20,7 @@ import React from "react";
 import { FormField } from "../Form/types";
 import { TextField } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../context";
-import { capitalize } from "./utils";
+import { buildRequiredRule, capitalize } from "./utils";
 
 interface TextEditorProps {
     field: FormField;
@@ -31,15 +31,38 @@ interface TextEditorProps {
 export function TextEditor(props: TextEditorProps) {
     const { field, handleOnFieldFocus, autoFocus } = props;
     const { form } = useFormContext();
-    const { register } = form;
+    const { register, formState: { errors } } = form;
 
-    const errorMsg = field.diagnostics?.map((diagnostic) => diagnostic.message).join("\n");
+    // Combine diagnostics and validation errors
+    const diagnosticMsg = field.diagnostics?.map((diagnostic) => diagnostic.message).join("\n");
+    const validationError = errors[field.key]?.message;
+    const errorMsg = validationError ? String(validationError) : diagnosticMsg;
+
+    // Build validation rules
+    const validationRules: any = {
+        required: buildRequiredRule({ isRequired: !field.optional, label: field.label }),
+        value: field.value
+    };
+
+    // Add pattern validation if it exists in field types
+    const patternType = field.types?.find(t => t.pattern);
+    if (patternType?.pattern) {
+        try {
+            validationRules.pattern = {
+                value: new RegExp(patternType.pattern),
+                message: patternType.patternErrorMessage || "Invalid format"
+            };
+        } catch (error) {
+            console.error(`Invalid regex pattern for field '${field.key}': ${patternType.pattern}`, error);
+            // Skip adding pattern validation rule when regex is invalid
+        }
+    }
 
     return (
         <TextField
             id={field.key}
             name={field.key}
-            {...register(field.key, { required: !field.optional && !field.placeholder, value: field.value })}
+            {...register(field.key, validationRules)}
             label={capitalize(field.label)}
             required={!field.optional}
             description={field.documentation}

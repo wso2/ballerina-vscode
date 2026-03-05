@@ -45,6 +45,15 @@ export const HeaderButtons = styled.div({
     marginRight: "10px",
 });
 
+export const TodoPanel = styled.div`
+    border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+    background-color: var(--vscode-editor-background);
+    padding: 8px 12px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+`;
+
 export const Main = styled.main({
     flex: 1,
     flexDirection: "column",
@@ -65,4 +74,27 @@ export const Badge = styled.div`
 
 export const ResetsInBadge = styled.div`
     font-size: 10px;
+`;
+
+export const ApprovalOverlay = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    pointer-events: all;
+`;
+
+export const OverlayMessage = styled.div`
+    color: var(--vscode-foreground);
+    font-size: 14px;
+    padding: 16px 24px;
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
 `;

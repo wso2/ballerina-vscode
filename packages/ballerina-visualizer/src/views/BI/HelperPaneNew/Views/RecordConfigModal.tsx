@@ -16,17 +16,18 @@
  * under the License.
  */
 
-import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField, RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse, ExpressionProperty, NodeKind } from "@wso2/ballerina-core";
-import { Dropdown, HelperPane, Typography, Button, HelperPaneHeight, FormExpressionEditorRef, ErrorBanner, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
+import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField, RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse, ExpressionProperty, NodeKind, getPrimaryInputType, InputType } from "@wso2/ballerina-core";
+import { Dropdown, HelperPane, Typography, HelperPaneHeight, FormExpressionEditorRef, ErrorBanner, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useEffect, useRef, useState, RefObject } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { RecordConfigView } from "./RecordConfigView";
-import { ChipExpressionEditorComponent, Context as FormContext, HelperpaneOnChangeOptions, FieldProvider, FormField, FormExpressionEditorProps, getPropertyFromFormField } from "@wso2/ballerina-side-panel";
+import { ChipExpressionEditorComponent, Context as FormContext, HelperpaneOnChangeOptions, FieldProvider, FormField, FormExpressionEditorProps, getPropertyFromFormField, RecordConfigExpressionEditorConfig } from "@wso2/ballerina-side-panel";
 import { useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import ReactMarkdown from "react-markdown";
 import { updateFieldsSelection } from "../Components/RecordConstructView/utils";
+import { ChipExpressionEditorDefaultConfiguration } from "@wso2/ballerina-side-panel/lib/components/editors/MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig";
 
 type ConfigureRecordPageProps = {
     fileName: string;
@@ -46,7 +47,7 @@ type ConfigureRecordPageProps = {
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        defaultValueTypeConstraint?: string,
+        defaultTypes?: InputType[],
     ) => React.ReactNode;
     field?: FormField;
     triggerCharacters: readonly string[];
@@ -73,7 +74,8 @@ export const LabelContainer = styled.div({
 export const TwoColumnLayout = styled.div({
     display: 'flex',
     gap: '16px',
-    height: '500px'
+    height: '100%',
+    overflow: 'hidden'
 });
 
 export const LeftColumn = styled.div({
@@ -110,7 +112,9 @@ export const ExpressionEditorContainer = styled.div({
     flex: '1',
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px'
+    gap: '8px',
+    minHeight: 0,
+    overflow: 'hidden'
 });
 
 export const ExpressionEditorLabel = styled.div({
@@ -131,13 +135,6 @@ export const ExpressionEditorDocumentation = styled.div({
     }
 });
 
-export const ButtonContainer = styled.div({
-    display: 'flex',
-    gap: '8px',
-    justifyContent: 'flex-end',
-    marginTop: '16px'
-});
-
 export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const { fileName, onChange, currentValue, recordTypeField, onClose, targetLineRange, getHelperPane, field, triggerCharacters, formContext } = props;
     const { rpcClient } = useRpcContext();
@@ -146,6 +143,8 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const recordModelRef = useRef<TypeField[]>([]);
     const [selectedMemberName, setSelectedMemberName] = useState<string>("");
     const firstRender = useRef<boolean>(true);
+    const initialMountRef = useRef<boolean>(true);
+    const onChangeRef = useRef(onChange);
     const sourceCode = useRef<string>(currentValue);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     // Local state for expression value - only update form on save/close
@@ -167,13 +166,12 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             // Create a default property from recordTypeField
             const defaultProperty: ExpressionProperty = {
                 metadata: recordTypeField.property?.metadata,
-                valueType: recordTypeField.property?.valueType,
                 value: value,
                 optional: recordTypeField.property?.optional,
                 editable: recordTypeField.property?.editable,
                 advanced: recordTypeField.property?.advanced,
                 placeholder: recordTypeField.property?.placeholder,
-                valueTypeConstraint: recordTypeField.property?.valueTypeConstraint,
+                types: recordTypeField.property?.types,
                 codedata: recordTypeField.property?.codedata,
                 imports: recordTypeField.property?.imports,
                 diagnostics: recordTypeField.property?.diagnostics
@@ -222,6 +220,21 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             onClose();
         }
     }, [currentValue]);
+
+    useEffect(() => {
+        onChangeRef.current = onChange;
+    }, [onChange]);
+
+    // Auto-propagate localExpressionValue changes to parent form (remove need for Save button)
+    useEffect(() => {
+        // Skip the first render to avoid calling onChange with initial value
+        if (initialMountRef.current) {
+            initialMountRef.current = false;
+            return;
+        }
+
+        onChangeRef.current(localExpressionValue, true);
+    }, [localExpressionValue]);
 
     const fetchRecordModelFromSource = async (currentValue: string) => {
         setIsLoading(true);
@@ -417,12 +430,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         }
     }
 
-    const handleSave = () => {
-        // Update the form with the current local expression value
-        onChange(localExpressionValue, true);
-        onClose();
-    }
-
     // Debounced function to fetch diagnostics
     const fetchDiagnostics = useRef(
         debounce(async (value: string) => {
@@ -433,13 +440,12 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             const fieldKey = field?.key || "expression";
             const property: ExpressionProperty = {
                 metadata: recordTypeField?.property?.metadata,
-                valueType: recordTypeField?.property?.valueType,
                 value: value,
                 optional: recordTypeField?.property?.optional || false,
                 editable: recordTypeField?.property?.editable !== false,
                 advanced: recordTypeField?.property?.advanced,
                 placeholder: recordTypeField?.property?.placeholder,
-                valueTypeConstraint: recordTypeField?.property?.valueTypeConstraint,
+                types: recordTypeField?.property?.types,
                 codedata: recordTypeField?.property?.codedata,
                 imports: recordTypeField?.property?.imports,
                 diagnostics: recordTypeField?.property?.diagnostics
@@ -481,13 +487,12 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         const fieldKey = field?.key || "expression";
         const property: ExpressionProperty = {
             metadata: recordTypeField?.property?.metadata,
-            valueType: recordTypeField?.property?.valueType,
             value: expressionValue,
             optional: recordTypeField?.property?.optional || false,
             editable: recordTypeField?.property?.editable !== false,
             advanced: recordTypeField?.property?.advanced,
             placeholder: recordTypeField?.property?.placeholder,
-            valueTypeConstraint: recordTypeField?.property?.valueTypeConstraint,
+            types: recordTypeField?.property?.types,
             codedata: recordTypeField?.property?.codedata,
             imports: recordTypeField?.property?.imports,
             diagnostics: recordTypeField?.property?.diagnostics
@@ -621,8 +626,8 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 helperPaneHeight,
                 recordTypeField,
                 false, // isAssignIdentifier
-                typeof recordTypeField?.property?.valueTypeConstraint === 'string'
-                    ? recordTypeField.property.valueTypeConstraint
+                typeof getPrimaryInputType(recordTypeField?.property?.types)?.ballerinaType === 'string'
+                    ? recordTypeField.property.types
                     : undefined
             );
         }
@@ -686,9 +691,9 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                         type: "EXPRESSION",
                                         value: localExpressionValue,
                                         optional: false,
-                                        valueTypeConstraint: typeof recordTypeField?.property?.valueTypeConstraint === 'string'
-                                            ? recordTypeField.property.valueTypeConstraint
-                                            : "",
+                                        types: typeof getPrimaryInputType(recordTypeField?.property?.types)?.ballerinaType === 'string'
+                                            ? recordTypeField.property?.types ?? []
+                                            : [],
                                         metadata: recordTypeField?.property?.metadata,
                                         editable: true,
                                         documentation: "",
@@ -696,7 +701,13 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                     }}
                                     triggerCharacters={triggerCharacters}
                                 >
-                                    <div ref={anchorRef}>
+                                    <div ref={anchorRef} style={{ 
+                                        flex: 1, 
+                                        display: 'flex', 
+                                        flexDirection: 'column',
+                                        minHeight: 0,
+                                        gap: '8px'
+                                    }}>
                                         <ChipExpressionEditorComponent
                                             completions={formContext.expressionEditor.completions}
                                             onChange={handleExpressionChange}
@@ -705,8 +716,14 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                             targetLineRange={targetLineRange}
                                             extractArgsFromFunction={wrappedExtractArgsFromFunction}
                                             getHelperPane={wrappedGetHelperPane}
-                                            sx={{ height: "350px" }}
+                                            sx={{ 
+                                                height: "100%",
+                                                minHeight: 0,
+                                                flex: 1
+                                            }}
+                                            configuration={new RecordConfigExpressionEditorConfig()}
                                             isExpandedVersion={false}
+                                            hideFxButton={true}
                                         />
                                         {formDiagnostics && formDiagnostics.length > 0 && (
                                             <ErrorBanner errorMsg={formDiagnostics.map((d: any) => d.message).join(', ')} />
@@ -715,11 +732,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                 </FieldProvider>
                             </FormContext.Provider>
                         </ExpressionEditorContainer>
-                        <ButtonContainer>
-                            <Button appearance="primary" onClick={handleSave}>
-                                Save
-                            </Button>
-                        </ButtonContainer>
                     </RightColumn>
                 </TwoColumnLayout>
 

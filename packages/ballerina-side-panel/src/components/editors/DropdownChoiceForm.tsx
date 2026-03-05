@@ -21,12 +21,10 @@ import React, { useEffect, useState } from "react";
 import { Dropdown, LocationSelector, RadioButtonGroup } from "@wso2/ui-toolkit";
 
 import { FormField } from "../Form/types";
-import { capitalize, getValueForDropdown } from "./utils";
+import { buildRequiredRule, capitalize, getValueForDropdown } from "./utils";
 import { useFormContext } from "../../context";
 import styled from "@emotion/styled";
-import { PropertyModel } from "@wso2/ballerina-core";
-import { EditorFactory } from "./EditorFactory";
-import Form from "../Form";
+import { FieldFactory } from "./FieldFactory";
 
 interface DropdownChoiceFormProps {
     field: FormField;
@@ -76,7 +74,10 @@ export function DropdownChoiceForm(props: DropdownChoiceFormProps) {
             <ChoiceSection>
                 <Dropdown
                     id={field.key}
-                    {...register(field.key, { required: !field.optional, value: getValueForDropdown(field) })}
+                    {...register(field.key, {
+                        required: buildRequiredRule({ isRequired: !field.optional, label: field.label }),
+                        value: getValueForDropdown(field)
+                    })}
                     label={capitalize(field.label)}
                     description={field.documentation}
                     items={field.itemOptions ? field.itemOptions : field.items?.map((item) => ({ id: item, content: item, value: item }))}
@@ -94,7 +95,7 @@ export function DropdownChoiceForm(props: DropdownChoiceFormProps) {
                 {dynamicFields.map((dfield, index) => {
                     if (!dfield.advanced && !dfield.optional) {
                         return (
-                            <EditorFactory
+                            <FieldFactory
                                 key={dfield.key}
                                 field={dfield}
                                 autoFocus={index === 0 ? true : false}
@@ -106,5 +107,3 @@ export function DropdownChoiceForm(props: DropdownChoiceFormProps) {
         </FormContainer>
     );
 }
-
-

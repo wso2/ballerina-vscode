@@ -27,23 +27,27 @@ import {
 } from '@wso2/ui-toolkit';
 import { S } from './ExpressionEditor';
 import TextModeEditor from './MultiModeExpressionEditor/TextExpressionEditor/TextModeEditor';
-import { InputMode, TokenType } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
+import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { FormField, HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
 import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
-import { RawTemplateEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
+import { NumberExpressionEditorConfig, RawTemplateEditorConfig, SQLExpressionEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
 import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
-import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
+import { EnumEditor } from './MultiModeExpressionEditor/EnumEditor/EnumEditor';
 import { SQLExpressionEditor } from './MultiModeExpressionEditor/SqlExpressionEditor/SqlExpressionEditor';
+import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
+import { getPrimaryInputType, isDropDownType } from '@wso2/ballerina-core';
 import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig';
+import { DynamicArrayBuilder } from './MultiModeExpressionEditor/DynamicArrayBuilder/DynamicArrayBuilder';
+import { isRecord } from './utils';
 
-export interface ExpressionField {
+export interface ExpressionFieldProps {
     field: FormField;
     inputMode: InputMode;
     primaryMode: InputMode;
     name: string;
-    value: string;
+    value: string | any[] | Record<string, unknown>;
     fileName?: string;
     targetLineRange?: LineRange;
     completions: CompletionItem[];
@@ -52,7 +56,7 @@ export interface ExpressionField {
     rawExpression?: (value: string) => string;
     ariaLabel?: string;
     placeholder?: string;
-    onChange: (updatedValue: string, updatedCursorPosition: number) => void;
+    onChange: (updatedValue: string | any[] | Record<string, unknown>, updatedCursorPosition: number) => void;
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;
         args: string[];
@@ -102,39 +106,88 @@ const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
     );
 };
 
-export const ExpressionField: React.FC<ExpressionField> = ({
-    inputMode,
-    field,
-    name,
-    value,
-    completions,
-    autoFocus,
-    ariaLabel,
-    placeholder,
-    fileName,
-    targetLineRange,
-    onChange,
-    extractArgsFromFunction,
-    onFocus,
-    onBlur,
-    onSave,
-    onCancel,
-    onRemove,
-    getHelperPane,
-    growRange,
-    exprRef,
-    anchorRef,
-    sanitizedExpression,
-    rawExpression,
-    onOpenExpandedMode,
-    isInExpandedMode
-}) => {
+export const getEditorConfiguration = (inputMode: InputMode) => {
+    switch (inputMode) {
+        case InputMode.TEXT:
+            return new StringTemplateEditorConfig();
+        case InputMode.TEMPLATE:
+            return new RawTemplateEditorConfig();
+        case InputMode.NUMBER:
+            return new NumberExpressionEditorConfig();
+        case InputMode.SQL:
+            return new SQLExpressionEditorConfig();
+        default:
+            return new ChipExpressionEditorDefaultConfiguration();
+    }
+};
+
+export const ExpressionField: React.FC<ExpressionFieldProps> = (props: ExpressionFieldProps) => {
+    const {
+        inputMode,
+        field,
+        primaryMode,
+        name,
+        value,
+        completions,
+        autoFocus,
+        ariaLabel,
+        placeholder,
+        fileName,
+        targetLineRange,
+        onChange,
+        extractArgsFromFunction,
+        onFocus,
+        onBlur,
+        onSave,
+        onCancel,
+        onRemove,
+        getHelperPane,
+        growRange,
+        exprRef,
+        anchorRef,
+        sanitizedExpression,
+        rawExpression,
+        onOpenExpandedMode,
+        isInExpandedMode
+    } = props;
+
+    //below editors cannot have input value in record type
+    if (isRecord(value)) return null;
+    if (inputMode === InputMode.ARRAY || inputMode === InputMode.TEXT_ARRAY) {
+        return (
+            <DynamicArrayBuilder
+                label={field.label}
+                value={value}
+                onChange={(val) => onChange(val, val.length)}
+                expressionFieldProps={props}
+            />
+        );
+    }
+    //below editors cannot have input value in array type
+    if (Array.isArray(value)) return null;
+
+    const primaryInputType = getPrimaryInputType(field.types || []);
     if (inputMode === InputMode.BOOLEAN) {
         return (
             <BooleanEditor
-                field={field}
                 value={value}
-                onChange={onChange}
+                field={field}
+                onChange={(val) => onChange(val, val?.length)}
+            />
+        );
+    }
+    if (inputMode === InputMode.SELECT && isDropDownType(primaryInputType)) {
+        return (
+            <EnumEditor
+                value={value}
+                field={field}
+                onChange={(val) => onChange(val, val?.length)}
+                items={primaryInputType.options.map(option => (
+                    {
+                        id: option.value,
+                        content: option.label,
+                        value: option.value
+                    }))}
             />
         );
     }
@@ -154,7 +207,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onCancel={onCancel}
                 onRemove={onRemove}
                 growRange={growRange}
-                placeholder={placeholder}
+                placeholder={field.placeholder}
                 onOpenExpandedMode={onOpenExpandedMode}
                 isInExpandedMode={isInExpandedMode}
             />
@@ -176,7 +229,8 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
-                configuration={new StringTemplateEditorConfig()}
+                configuration={getEditorConfiguration(inputMode)}
+                placeholder={field.placeholder}
             />
 
         );
@@ -198,6 +252,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
                 configuration={new RawTemplateEditorConfig()}
+                placeholder={field.placeholder}
             />
 
         );
@@ -218,7 +273,8 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
-                configuration={field.valueTypeConstraint === "ai:Prompt" ? new RawTemplateEditorConfig() : new StringTemplateEditorConfig()}
+                configuration={getPrimaryInputType(field.types)?.ballerinaType === "ai:Prompt" ? new RawTemplateEditorConfig() : new StringTemplateEditorConfig()}
+                placeholder={field.placeholder}
             />
 
         );
@@ -239,6 +295,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
+                placeholder={field.placeholder}
             />
 
         );
@@ -259,6 +316,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
+                placeholder={field.placeholder}
             />
         );
     }
@@ -269,6 +327,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
             isExpandedVersion={false}
             completions={completions}
             onChange={onChange}
+            onBlur={onBlur}
             value={value}
             sanitizedExpression={sanitizedExpression}
             rawExpression={rawExpression}
@@ -278,7 +337,8 @@ export const ExpressionField: React.FC<ExpressionField> = ({
             onOpenExpandedMode={onOpenExpandedMode}
             onRemove={onRemove}
             isInExpandedMode={isInExpandedMode}
-            configuration={new ChipExpressionEditorDefaultConfiguration()}
+            configuration={getEditorConfiguration(inputMode)}
+            placeholder={field.placeholder}
         />
     );
 };

@@ -21,7 +21,7 @@ import React, { useEffect } from "react";
 import { AutoComplete } from "@wso2/ui-toolkit";
 
 import { FormField } from "../Form/types";
-import { capitalize, getValueForDropdown } from "./utils";
+import { buildRequiredRule, capitalize, getValueForDropdown } from "./utils";
 import { useFormContext } from "../../context";
 import { SubPanel, SubPanelView } from "@wso2/ballerina-core";
 
@@ -42,15 +42,23 @@ export function AutoCompleteEditor(props: AutoCompleteEditorProps) {
             id={field.key}
             description={field.documentation}
             value={value as string}
-            {...register(field.key, { required: !field.optional, value: getValueForDropdown(field) })}
+            {...register(field.key, {
+                required: buildRequiredRule({ isRequired: !field.optional, label: field.label }),
+                value: getValueForDropdown(field)
+            })}
             label={capitalize(field.label)}
             items={field.items}
             allowItemCreate={true}
             required={!field.optional}
             disabled={!field.editable}
             onValueChange={(val: string) => {
-                setValue(field.key, val);
-                field.onValueChange?.(val);
+                // Preserve existing value when Combobox fires with empty on blur (e.g., click away without selecting)
+                const currentValue = value ?? getValueForDropdown(field) ?? field.value;
+                const newVal = (val === "" || val === undefined || val === null) && currentValue
+                    ? currentValue
+                    : val;
+                setValue(field.key, newVal);
+                field.onValueChange?.(newVal);
             }}
             sx={{
                 marginRight: "-4px",

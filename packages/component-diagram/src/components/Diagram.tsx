@@ -45,12 +45,13 @@ export const SHOW_ALL_THRESHOLD = 3;
 
 export interface DiagramProps {
     project: CDModel;
+    readonly?: boolean;
     onListenerSelect: (listener: CDListener) => void;
     onServiceSelect: (service: CDService) => void;
     onFunctionSelect: (func: CDFunction | CDResourceFunction) => void;
     onAutomationSelect: (automation: CDAutomation) => void;
     onConnectionSelect: (connection: CDConnection) => void;
-    onDeleteComponent: (component: CDListener | CDService | CDAutomation | CDConnection) => void;
+    onDeleteComponent: (component: CDListener | CDService | CDAutomation | CDConnection, nodeType?: string) => void;
 }
 
 export type GQLFuncListType = Record<GroupKey, Array<CDFunction | CDResourceFunction>>;
@@ -64,6 +65,7 @@ export type GQLState = {
 export function Diagram(props: DiagramProps) {
     const {
         project,
+        readonly,
         onListenerSelect,
         onServiceSelect,
         onFunctionSelect,
@@ -315,6 +317,7 @@ export function Diagram(props: DiagramProps) {
         project,
         expandedNodes,
         graphQLGroupOpen,
+        readonly,
         onListenerSelect,
         onServiceSelect,
         onFunctionSelect,

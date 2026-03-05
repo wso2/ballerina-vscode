@@ -22,7 +22,7 @@ import React, { useEffect, useState } from 'react';
 import { Divider, Dropdown, Typography } from '@wso2/ui-toolkit';
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
 import { EditorContainer, EditorContent } from '../../../styles';
-import { LineRange, ParameterModel, PayloadContext, PropertyModel } from '@wso2/ballerina-core';
+import { getPrimaryInputType, LineRange, ParameterModel, PayloadContext, PropertyModel } from '@wso2/ballerina-core';
 import { FormField, FormImports } from '@wso2/ballerina-side-panel';
 import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -183,13 +183,13 @@ export function ParamEditor(props: ParamProps) {
                 fields.push({
                     key: `name`,
                     label: 'Name',
-                    type: param.name.valueType,
+                    type: getPrimaryInputType(param.name.types)?.fieldType,
                     optional: false,
                     editable: true,
                     documentation: '',
                     enabled: param.name?.enabled,
                     value: param.name.value,
-                    valueTypeConstraint: ""
+                    types: [{ fieldType: getPrimaryInputType(param.name.types)?.fieldType, selected: false }]
                 });
                 fields.push({
                     key: `type`,
@@ -203,7 +203,7 @@ export function ParamEditor(props: ParamProps) {
                     defaultValue: "string",
                     value: param.type.value,
                     items: ["string", "int", "float", "decimal", "boolean"],
-                    valueTypeConstraint: ""
+                    types: [{ fieldType: getPrimaryInputType(param.type.types)?.fieldType, selected: false }]
                 });
                 break;
             case "HEADER":
@@ -217,7 +217,7 @@ export function ParamEditor(props: ParamProps) {
                     documentation: '',
                     enabled: true,
                     value: (param.headerName?.value || "Content-Type").replace(/"/g, ""),
-                    valueTypeConstraint: "",
+                    types: [{ fieldType: "AUTOCOMPLETE", selected: false }], // TODO: Need to come up with a better way to handle this
                     onValueChange: (value: string | boolean) => {
                         const sanitizeValue = (value as string)
                             .replace(/-([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
@@ -227,9 +227,10 @@ export function ParamEditor(props: ParamProps) {
                         // Set the sanitized value to the variable name field
                         // When the header name changes, auto-update the variable name field (param.name.value) to a sanitized version
                         if (param.name && typeof param.name === 'object') {
-                            param.name.value = sanitizeValue;
-                            param.headerName.value = `"${value}"`;
-                            onChange({ ...param, name: { ...param.name, value: sanitizedValueWithLowerFirst } });
+                            if (isNew) {
+                                param.name.value = sanitizedValueWithLowerFirst;
+                            }
+                            onChange({ ...param, name: { ...param.name }, headerName: { ...param.headerName, value: `"${value}"` } });
                         }
                     }
                 });
@@ -237,13 +238,13 @@ export function ParamEditor(props: ParamProps) {
                     key: `name`,
                     label: 'Variable Name',
                     advanced: isNew,
-                    type: param.name.valueType,
+                    type: getPrimaryInputType(param.name.types)?.fieldType,
                     optional: false,
                     editable: true,
                     documentation: '',
                     enabled: param.name?.enabled,
                     value: param.name.value || "contentType",
-                    valueTypeConstraint: ""
+                    types: [{ fieldType: getPrimaryInputType(param.name.types)?.fieldType, selected: false }]
                 });
                 fields.push({
                     key: `type`,
@@ -257,32 +258,32 @@ export function ParamEditor(props: ParamProps) {
                     defaultValue: "string",
                     value: param.type.value,
                     items: ["string", "int", "float", "decimal", "boolean"],
-                    valueTypeConstraint: ""
+                    types: [{ fieldType: getPrimaryInputType(param.type.types)?.fieldType, selected: false }]
                 });
                 break;
             case "PAYLOAD":
                 fields.push({
                     key: `name`,
                     label: 'Name',
-                    type: param.name.valueType,
+                    type: getPrimaryInputType(param.name.types)?.fieldType,
                     optional: false,
                     editable: true,
                     documentation: '',
                     enabled: param.name?.enabled,
                     value: param.name.value,
-                    valueTypeConstraint: ""
+                    types: [{ fieldType: getPrimaryInputType(param.name.types)?.fieldType, selected: false }]
                 });
                 fields.push({
                     key: `type`,
                     label: 'Type',
-                    type: param.type.valueType,
+                    type: getPrimaryInputType(param.type.types)?.fieldType,
                     optional: false,
                     editable: true,
                     documentation: param?.type?.metadata?.description || '',
                     enabled: param.type?.enabled,
                     value: param.type.value || "json",
                     defaultValue: "json",
-                    valueTypeConstraint: "",
+                    types: [{ fieldType: getPrimaryInputType(param.type.types)?.fieldType, selected: false }],
                     // isContextTypeSupported: true // Enable this to support context typeEditor
                 });
                 break;
@@ -293,14 +294,14 @@ export function ParamEditor(props: ParamProps) {
             fields.push({
                 key: `defaultValue`,
                 label: 'Default Value',
-                type: (param.defaultValue as PropertyModel).valueType,
+                type: getPrimaryInputType((param.defaultValue as PropertyModel)?.types)?.fieldType,
                 optional: true,
                 advanced: isNew,
                 editable: true,
                 documentation: '',
                 enabled: true,
                 value: (param.defaultValue as PropertyModel)?.value,
-                valueTypeConstraint: ""
+                types: [{ fieldType: getPrimaryInputType((param.defaultValue as PropertyModel).types)?.fieldType, selected: false }]
             });
         }
         setCurrentFields(fields);

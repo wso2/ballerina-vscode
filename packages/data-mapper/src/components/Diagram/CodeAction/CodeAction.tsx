@@ -23,6 +23,8 @@ import { CodeActionTooltip } from "./CodeActionTooltip";
 
 export interface CodeAction {
     title: string;
+    icon?: string;
+    isCodicon?: boolean;
     onClick: () => Promise<void>;
 }
 

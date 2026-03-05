@@ -143,7 +143,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 setBreakpointInfo(response);
                 rpcClient
                     .getBIDiagramRpcClient()
-                    .getFlowModel()
+                    .getFlowModel({})
                     .then(async (model) => {
                         console.log(">>> focus diagram flow model", model);
                         if (model?.flowModel) {
@@ -273,7 +273,6 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                         label: "Comment",
                         description: "Comment to describe the flow",
                     },
-                    valueType: "STRING",
                     value: `\n${comment}\n\n`, // HACK: add extra new lines to get last position right
                     optional: false,
                     advanced: false,

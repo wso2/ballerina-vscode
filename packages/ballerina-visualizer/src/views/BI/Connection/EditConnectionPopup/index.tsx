@@ -16,22 +16,33 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import styled from "@emotion/styled";
-import { FlowNode, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
+import { FlowNode, LinePosition, ParentPopupData, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Codicon, ThemeColors, Typography, ProgressRing } from "@wso2/ui-toolkit";
+import { Codicon, ThemeColors, Typography, ProgressRing, Button, Icon } from "@wso2/ui-toolkit";
 import ConnectionConfigView from "../ConnectionConfigView";
 import { getFormProperties } from "../../../../utils/bi";
 import { ExpressionFormField } from "@wso2/ballerina-side-panel";
 import { cloneDeep } from "lodash";
 import { PopupOverlay, PopupContainer, PopupHeader as ConfigHeader, BackButton, HeaderTitleContainer as ConfigTitleContainer, PopupTitle, PopupSubtitle as ConfigSubtitle, CloseButton } from "../styles";
+import { ConnectionKind, ConnectionSelectionList, ConnectionCreator } from "../../../../components/ConnectionSelector";
+import { SidePanelView } from "../../FlowDiagram/PanelManager";
+import { getNodeTemplateForConnection } from "../../FlowDiagram/utils";
 
 const ConnectionDetailsSection = styled.div`
     display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+`;
+
+const ConnectionDetailsTitleSection = styled.div`
+    display: flex;
     flex-direction: column;
     gap: 4px;
-    margin-bottom: 16px;
+    flex: 1;
 `;
 
 const ConnectionDetailsTitle = styled(Typography)`
@@ -47,14 +58,20 @@ const ConnectionDetailsSubtitle = styled(Typography)`
     margin: 0;
 `;
 
+const Separator = styled.div`
+    width: 100%;
+    height: 1px;
+    background-color: ${ThemeColors.OUTLINE_VARIANT};
+`;
 
 const ContentContainer = styled.div<{ hasFooterButton?: boolean }>`
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "hidden" : "auto"};
-    padding: 24px 32px;
+    padding: 24px;
     padding-bottom: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"};
+    min-height: 0;
 `;
 
 const LoadingContainer = styled.div`
@@ -64,6 +81,18 @@ const LoadingContainer = styled.div`
     height: 100%;
     padding: 40px;
 `;
+
+// Navigation views for the popup
+enum PopupView {
+    CONNECTION_CONFIG = "CONNECTION_CONFIG",
+    CONNECTION_SELECT = "CONNECTION_SELECT",
+    CONNECTION_CREATE = "CONNECTION_CREATE"
+}
+
+interface PersistConnectionInfo {
+    isPersist: boolean;
+    modelFilePath: string;
+}
 
 interface EditConnectionPopupProps {
     connectionName: string;
@@ -81,6 +110,15 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [updatedExpressionField, setUpdatedExpressionField] = useState<ExpressionFormField>(undefined);
+    const [persistConnection, setPersistConnection] = useState<PersistConnectionInfo>({
+        isPersist: false,
+        modelFilePath: ""
+    });
+
+    // Navigation state
+    const [currentView, setCurrentView] = useState<PopupView>(PopupView.CONNECTION_CONFIG);
+    const [selectedConnectionKind, setSelectedConnectionKind] = useState<ConnectionKind>();
+    const [nodeFormTemplate, setNodeFormTemplate] = useState<FlowNode>();
 
     useEffect(() => {
         const fetchConnection = async () => {
@@ -120,6 +158,14 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
 
                 setFilePath(connectionFilePath);
                 setConnection(connector);
+
+                // Check if this is a persist connection and store connection info
+                const metadataData = connector.metadata?.data as any;
+                const isPersist = metadataData?.connectorType === "persist";
+                setPersistConnection({
+                    isPersist: isPersist,
+                    modelFilePath: isPersist && metadataData?.persistModelFile ? metadataData.persistModelFile : ""
+                });
 
                 const formProperties = getFormProperties(connector);
                 console.log(">>> Connector form properties", formProperties);
@@ -182,10 +228,179 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
         setUpdatedExpressionField(undefined);
     };
 
+    // Navigation handlers
+    const handleNavigateToPanel = async (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => {
+        if (connectionKind) {
+            setSelectedConnectionKind(connectionKind);
+        }
+        switch (targetPanel) {
+            case SidePanelView.CONNECTION_SELECT:
+                setCurrentView(PopupView.CONNECTION_SELECT);
+                break;
+            case SidePanelView.CONNECTION_CREATE:
+                setCurrentView(PopupView.CONNECTION_CREATE);
+                break;
+            default:
+                setCurrentView(PopupView.CONNECTION_CONFIG);
+        }
+    };
+
+    const handleSelectNewConnection = async (nodeId: string, metadata?: any) => {
+        try {
+            const { flowNode, connectionKind } = await getNodeTemplateForConnection(
+                nodeId,
+                metadata,
+                connection?.codedata?.lineRange,
+                filePath,
+                rpcClient
+            );
+            setNodeFormTemplate(flowNode);
+            setSelectedConnectionKind(connectionKind as ConnectionKind);
+            setCurrentView(PopupView.CONNECTION_CREATE);
+        } catch (error) {
+            console.error('Error getting node template for connection:', error);
+        }
+    };
+
+    const handleConnectionCreated = (connectionNode: FlowNode) => {
+        // Update the connection state with the modified node to trigger re-render
+        // and update the memoized selectedNode
+        setConnection(cloneDeep(connectionNode));
+        setCurrentView(PopupView.CONNECTION_CONFIG);
+    };
 
     const handleBack = () => {
-        handleClosePopup();
+        switch (currentView) {
+            case PopupView.CONNECTION_SELECT:
+                setCurrentView(PopupView.CONNECTION_CONFIG);
+                break;
+            case PopupView.CONNECTION_CREATE:
+                setCurrentView(PopupView.CONNECTION_SELECT);
+                break;
+            default:
+                handleClosePopup();
+        }
     };
+
+    const handleOpenERDiagram = async () => {
+        const visualizerLocation = await rpcClient.getVisualizerLocation();
+
+        rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: {
+                view: MACHINE_VIEW.ERDiagram,
+                projectPath: visualizerLocation.projectPath,
+                documentUri: persistConnection.modelFilePath
+            }
+        });
+    };
+
+    const getViewTitle = () => {
+        switch (currentView) {
+            case PopupView.CONNECTION_SELECT:
+                return `Select ${connection?.codedata?.module || ''} Connection`;
+            case PopupView.CONNECTION_CREATE:
+                return `Create ${connection?.codedata?.module || ''} Connection`;
+            default:
+                return "Edit Connection";
+        }
+    };
+
+    const getViewSubtitle = () => {
+        switch (currentView) {
+            case PopupView.CONNECTION_SELECT:
+                return "Choose a connection type";
+            case PopupView.CONNECTION_CREATE:
+                return "Configure new connection";
+            default:
+                return "Update connection details";
+        }
+    };
+
+    const renderCurrentView = () => {
+        switch (currentView) {
+            case PopupView.CONNECTION_SELECT:
+                return (
+                    <ConnectionSelectionList
+                        connectionKind={selectedConnectionKind}
+                        selectedNode={connection}
+                        onSelect={handleSelectNewConnection}
+                    />
+                );
+            case PopupView.CONNECTION_CREATE:
+                return (
+                    <ConnectionCreator
+                        connectionKind={selectedConnectionKind}
+                        selectedNode={connection}
+                        nodeFormTemplate={nodeFormTemplate}
+                        onSave={handleConnectionCreated}
+                    />
+                );
+            default:
+                return (
+                    <>
+                        <ConnectionDetailsSection>
+                            <ConnectionDetailsTitleSection>
+                                <ConnectionDetailsTitle variant="h3">Connection Details</ConnectionDetailsTitle>
+                                <ConnectionDetailsSubtitle variant="body2">
+                                    Configure your connection settings
+                                </ConnectionDetailsSubtitle>
+                            </ConnectionDetailsTitleSection>
+                            {persistConnection.isPersist && (
+                                <Button
+                                    appearance="secondary"
+                                    onClick={handleOpenERDiagram}
+                                    buttonSx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        fontSize: "13px",
+                                        whiteSpace: "nowrap"
+                                    }}
+                                    tooltip="View Entity Relationship Diagram"
+                                >
+                                    <Icon
+                                        name="persist-diagram"
+                                        sx={{
+                                            fontSize: "14px",
+                                            width: "14px",
+                                            height: "14px",
+                                            marginRight: "4px"
+                                        }}
+                                    />
+                                    View ER Diagram
+                                </Button>
+                            )}
+                        </ConnectionDetailsSection>
+                        {persistConnection.isPersist && <Separator />}
+                        {selectedNode && (
+                            <ConnectionConfigView
+                                submitText={isSaving ? "Updating..." : "Update Connection"}
+                                fileName={filePath}
+                                selectedNode={selectedNode}
+                                onSubmit={handleOnFormSubmit}
+                                updatedExpressionField={updatedExpressionField}
+                                resetUpdatedExpressionField={handleResetUpdatedExpressionField}
+                                isSaving={isSaving}
+                                footerActionButton={true}
+                                navigateToPanel={handleNavigateToPanel}
+                            />
+                        )}
+                    </>
+                );
+        }
+    };
+
+    const selectedNode = useMemo(() => {
+        if (!connection) return undefined;
+
+        // Remove description property from node before passing to form
+        // since it's already shown in the connector info card
+        const nodeWithoutDescription = cloneDeep(connection);
+        if (nodeWithoutDescription?.metadata?.description) {
+            delete nodeWithoutDescription.metadata.description;
+        }
+        return nodeWithoutDescription;
+    }, [connection]);
 
     if (isLoading) {
         return (
@@ -213,42 +428,17 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                         <Codicon name="chevron-left" />
                     </BackButton>
                     <ConfigTitleContainer>
-                        <PopupTitle variant="h2">Edit Connection</PopupTitle>
+                        <PopupTitle variant="h2">{getViewTitle()}</PopupTitle>
                         <ConfigSubtitle variant="body2">
-                            Update connection details
+                            {getViewSubtitle()}
                         </ConfigSubtitle>
                     </ConfigTitleContainer>
                     <CloseButton appearance="icon" onClick={handleClosePopup}>
                         <Codicon name="close" />
                     </CloseButton>
                 </ConfigHeader>
-                <ContentContainer hasFooterButton={true}>
-                    <>
-                        <ConnectionDetailsSection>
-                            <ConnectionDetailsTitle variant="h3">Connection Details</ConnectionDetailsTitle>
-                            <ConnectionDetailsSubtitle variant="body2">
-                                Configure your connection settings
-                            </ConnectionDetailsSubtitle>
-                        </ConnectionDetailsSection>
-                        <ConnectionConfigView
-                            submitText={isSaving ? "Updating..." : "Update Connection"}
-                            fileName={filePath}
-                            selectedNode={(() => {
-                                // Remove description property from node before passing to form
-                                // since it's already shown in the connector info card
-                                const nodeWithoutDescription = cloneDeep(connection);
-                                if (nodeWithoutDescription?.metadata?.description) {
-                                    delete nodeWithoutDescription.metadata.description;
-                                }
-                                return nodeWithoutDescription;
-                            })()}
-                            onSubmit={handleOnFormSubmit}
-                            updatedExpressionField={updatedExpressionField}
-                            resetUpdatedExpressionField={handleResetUpdatedExpressionField}
-                            isSaving={isSaving}
-                            footerActionButton={true}
-                        />
-                    </>
+                <ContentContainer hasFooterButton={currentView === PopupView.CONNECTION_CONFIG}>
+                    {renderCurrentView()}
                 </ContentContainer>
             </PopupContainer>
         </>

@@ -21,7 +21,7 @@ import styled from "@emotion/styled";
 import { ProgressRing, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { FormField, FormValues } from "@wso2/ballerina-side-panel";
 import {
-    EVENT_TYPE, MACHINE_VIEW,
+    EVENT_TYPE, getPrimaryInputType, MACHINE_VIEW,
     ModelFromCodeRequest,
     NodePosition,
     PropertyModel,
@@ -122,8 +122,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
                 enabled: nameProperty.enabled,
                 documentation: nameProperty.metadata?.description,
                 value: nameProperty.value || '',
-                valueType: nameProperty?.valueType,
-                valueTypeConstraint: nameProperty?.valueTypeConstraint,
+                types: nameProperty?.types,
                 lineRange: nameProperty.codedata?.lineRange
             });
         }
@@ -134,15 +133,14 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
             fields.push({
                 key: 'documentation',
                 label: docProperty.metadata?.label || 'Documentation',
-                type: docProperty.valueType || 'string',
+                type: getPrimaryInputType(docProperty?.types)?.fieldType || 'string',
                 optional: docProperty.optional,
                 editable: docProperty.editable,
                 advanced: docProperty.advanced,
                 enabled: docProperty.enabled,
                 documentation: docProperty.metadata?.description || '',
                 value: docProperty.value || '',
-                valueType: docProperty.valueType,
-                valueTypeConstraint: docProperty?.valueTypeConstraint,
+                types: docProperty?.types,
                 lineRange: docProperty.codedata?.lineRange
             });
         }
@@ -200,6 +198,8 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
                             type: type,
                         }
                     });
+            } else {
+                rpcClient.getVisualizerRpcClient()?.goBack();
             }
         } else {
             // No changes detected, just go back

@@ -27,3 +27,4 @@ export { PopupMessage } from "./PopupMessage";
 export { FunctionForm } from "./FunctionForm";
 export { SetupView } from "./SetupView";
 export { TestFunctionForm } from "./TestFunctionForm";
+export { AIEvaluationForm } from "./AIEvaluationForm";

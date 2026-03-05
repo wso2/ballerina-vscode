@@ -21,7 +21,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { debounce } from "lodash";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { useFormContext } from "../../context";
-import { capitalize, getPropertyFromFormField } from "./utils";
+import { buildRequiredRule, capitalize, getPropertyFromFormField } from "./utils";
 import { FormField } from "../Form/types";
 export interface IdentifierFieldProps {
     field: FormField;
@@ -36,12 +36,17 @@ export function IdentifierField(props: IdentifierFieldProps) {
     const { expressionEditor, form } = useFormContext();
     const { getExpressionEditorDiagnostics } = expressionEditor;
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
-    const { watch, formState, register } = form;
+    const { watch, formState, register, setValue } = form;
     const { errors } = formState;
 
     useEffect(() => {
         setFormDiagnostics(field.diagnostics);
     }, [field.diagnostics]);
+
+    // Sync external field value changes to the form (e.g., when a sibling field's onValueChange updates the value)
+    useEffect(() => {
+        setValue(field.key, field.value ?? '');
+    }, [field.key, field.value, setValue]);
 
     const validateIdentifierName = useCallback(debounce(async (value: string) => {
         const fieldValue = watch(field.key);
@@ -62,7 +67,10 @@ export function IdentifierField(props: IdentifierFieldProps) {
         handleOnFieldFocus?.(field.key);
     }
 
-    const registerField = register(field.key, { required: !field.optional && !field.placeholder, value: field.value })
+    const registerField = register(field.key, {
+        required: buildRequiredRule({ isRequired: !field.optional, label: field.label }),
+        value: field.value
+    })
     const { onChange } = registerField;
 
 

@@ -61,7 +61,7 @@ import { window, workspace } from "vscode";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
-import { generateExamplePayload } from "../../features/ai/service/editor/payload-json/payload_json";
+import { generateExamplePayload } from "../../features/ai/payload-generator/payload_json";
 
 export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
 
@@ -171,7 +171,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 this.ensureFileExists(targetFile);
                 params.filePath = targetFile;
                 const res: ListenerSourceCodeResponse = await context.langClient.updateListenerSourceCode(params);
-                const artifacts = await updateSourceCode({ textEdits: res.textEdits, artifactData: { artifactType: DIRECTORY_MAP.LISTENER }, description: params.listener.name + ' Update' });
+                const artifacts = await updateSourceCode({ textEdits: res.textEdits, description: params.listener.name + ' Update' });
                 const result: UpdatedArtifactsResponse = {
                     artifacts: artifacts
                 };

@@ -17,10 +17,10 @@
  */
 
 import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { TextField, Button, ProgressRing, Icon, Typography } from "@wso2/ui-toolkit";
+import { TextField, Button, ProgressRing, Typography, Codicon, Icon } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Member, Type, TypeNodeKind } from "@wso2/ballerina-core";
+import { FormFieldInputType, Member, Type, TypeNodeKind } from "@wso2/ballerina-core";
 import { RecordEditor } from "../RecordEditor";
 import { EnumEditor } from "../EnumEditor";
 import { UnionEditor } from "../UnionEditor";
@@ -92,6 +92,20 @@ const NameContainer = styled.div`
     margin-top: 5px;
 `;
 
+const InfoBanner = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background-color: var(--vscode-textCodeBlock-background);
+    border-radius: 4px;
+    margin-bottom: 12px;
+`;
+
+const InfoText = styled(Typography)`
+    color: var(--vscode-descriptionForeground);
+`;
+
 enum TypeKind {
     RECORD = "Record",
     ENUM = "Enum",
@@ -109,6 +123,7 @@ interface ContextTypeCreatorProps {
     isSaving: boolean;
     setIsSaving: (isSaving: boolean) => void;
     onTypeChange: (type: Type, rename?: boolean) => void;
+    note?: string;
 }
 
 export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
@@ -120,7 +135,8 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
         onTypeSave,
         isSaving,
         setIsSaving,
-        onTypeChange
+        onTypeChange,
+        note
     } = props;
 
     const [type, setType] = useState<Type>(editingType);
@@ -191,6 +207,7 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
     }, [editingType?.name, newType]);
 
     const handleSetType = (type: Type) => {
+        onTypeChange(type);
         replaceTop({
             type: type,
             isDirty: true
@@ -368,16 +385,15 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
                 property: type?.properties["name"] ?
                     {
                         ...type.properties["name"],
-                        valueTypeConstraint: "Global"
+                        types: [{fieldType: type.properties["name"].valueType as FormFieldInputType, scope: "Global", selected: false}]
                     } :
                     {
                         metadata: {
                             label: "",
                             description: "",
                         },
-                        valueType: "IDENTIFIER",
                         value: "",
-                        valueTypeConstraint: "Global",
+                        types: [{fieldType: "IDENTIFIER", scope: "Global", selected: false}],
                         optional: false,
                         editable: true
                     }
@@ -509,6 +525,12 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
     return (
         <StickyFooterContainer>
             <ContentBody>
+                {note && (
+                    <InfoBanner>
+                        <Codicon name="info" />
+                        <InfoText variant="body3">{note}</InfoText>
+                    </InfoBanner>
+                )}
                 <NameContainer>
                     {!isNewType && !isEditing && !type.properties["name"]?.editable && (
                         <InputWrapper>
@@ -616,4 +638,3 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
         </StickyFooterContainer>
     );
 }
-

@@ -23,6 +23,7 @@ import styled from "@emotion/styled";
 
 import { FormField } from "../Form/types";
 import { useFormContext } from "../../context";
+import { buildRequiredRule } from "./utils";
 
 namespace S {
     export const Container = styled.div({
@@ -157,7 +158,7 @@ export function FormMapEditor(props: FormMapEditorProps) {
                             label: "Expression",
                             description: "Expression",
                         },
-                        valueType: "EXPRESSION",
+                        types: [{fieldType: "EXPRESSION", selected: false}],
                         value: expressionValue || "",
                         optional: false,
                         editable: true,
@@ -168,7 +169,7 @@ export function FormMapEditor(props: FormMapEditorProps) {
                             label: "Variable Name",
                             description: "Name of the variable",
                         },
-                        valueType: "IDENTIFIER",
+                        types: [{fieldType: "IDENTIFIER", selected: false}],
                         value: variableValue || "",
                         optional: true,
                         editable: true,
@@ -239,10 +240,10 @@ export function FormMapEditor(props: FormMapEditorProps) {
                             <S.FieldContainer>
                                 <div style={{ width: "100%" }}>
                                     <S.FieldLabel>Expression</S.FieldLabel>
-                                    <TextField
-                                        id={`${field.key}-${index}-expression`}
-                                        {...register(`${field.key}-${index}-expression`, {
-                                            required: !field.optional,
+                                        <TextField
+                                            id={`${field.key}-${index}-expression`}
+                                            {...register(`${field.key}-${index}-expression`, {
+                                            required: buildRequiredRule({ isRequired: !field.optional, label: field.label }),
                                             value: initialValue.expression?.value || "",
                                         })}
                                         required={!field.optional}

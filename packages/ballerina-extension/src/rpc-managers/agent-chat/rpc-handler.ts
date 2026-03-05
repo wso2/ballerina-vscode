@@ -23,7 +23,12 @@ import {
     getChatMessage,
     getTracingStatus,
     showTraceView,
-    TraceInput
+    showSessionOverview,
+    TraceInput,
+    SessionInput,
+    getChatHistory,
+    clearChatHistory,
+    getAgentStatus
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { AgentChatRpcManager } from "./rpc-manager";
@@ -34,4 +39,8 @@ export function registerAgentChatRpcHandlers(messenger: Messenger) {
     messenger.onNotification(abortChatRequest, () => rpcManger.abortChatRequest());
     messenger.onRequest(getTracingStatus, () => rpcManger.getTracingStatus());
     messenger.onNotification(showTraceView, (args: TraceInput) => rpcManger.showTraceView(args));
+    messenger.onNotification(showSessionOverview, (args: SessionInput) => rpcManger.showSessionOverview(args));
+    messenger.onRequest(getChatHistory, () => rpcManger.getChatHistory());
+    messenger.onRequest(clearChatHistory, () => rpcManger.clearChatHistory());
+    messenger.onRequest(getAgentStatus, () => rpcManger.getAgentStatus());
 }

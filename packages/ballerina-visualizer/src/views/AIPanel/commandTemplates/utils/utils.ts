@@ -27,6 +27,10 @@ export const getAllCommands = (templates: CommandTemplates): Command[] => {
     return Object.keys(templates) as Command[];
 }
 
+export const getPublicCommands = (templates: CommandTemplates): Command[] => {
+    return Object.keys(templates).filter((cmd) => cmd !== Command.Agent) as Command[];
+}
+
 export const getCommand = (input: string): Command | undefined => {
     const values = Object.values(Command);
     return values.includes(input as Command) ? (input as Command) : undefined;

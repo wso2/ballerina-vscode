@@ -18,7 +18,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Codicon, Icon } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { HistoryEntry, MACHINE_VIEW, WorkspaceTypeResponse } from "@wso2/ballerina-core";
 
@@ -38,6 +38,7 @@ const BreadcrumbContainer = styled.div`
     gap: 8px;
     margin-left: 4px;
     color: var(--vscode-foreground);
+    flex: 1;
 `;
 
 const BreadcrumbSeparator = styled.span`
@@ -223,6 +224,16 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                     return null;
                 })}
             </BreadcrumbContainer>
+            {/** TODO: Uncomment if want to show popup icon */}
+            {/* <Button tooltip="Manage Devant" appearance="icon" onClick={(e)=>setDevantBtnAnchor(e.currentTarget as HTMLElement)}>
+                <Icon name="Devant" sx={{ fontSize: "18px", width: "18px" }} />
+            </Button>
+            <PlatformExtPopover 
+                anchorEl={devantBtnAnchor} 
+                onClose={() => setDevantBtnAnchor(null)} 
+                isVisible={!!devantBtnAnchor} 
+                projectPath={projectPath} 
+            /> */}
         </NavContainer>
     );
 }
@@ -245,6 +256,10 @@ function getShortNames(name: string) {
             return "Natural Function";
         case MACHINE_VIEW.BITestFunctionForm:
             return "Test Function";
+        case MACHINE_VIEW.BIAIEvaluationForm:
+            return "AI Evaluation";
+        case MACHINE_VIEW.EvalsetViewer:
+            return "Evalset Viewer";
         case MACHINE_VIEW.BIServiceWizard:
         case MACHINE_VIEW.BIServiceConfigView:
             return "Service";

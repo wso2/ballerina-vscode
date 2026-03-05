@@ -16,25 +16,25 @@
  * under the License.
  */
 
-import { AvailableNode, Category, functionKinds, Item, VisibleTypeItem } from '@wso2/ballerina-core';
+import { AvailableNode, Category, functionKinds, Item, VisibleTypeItem, GeneralPayloadContext, Protocol, FunctionKind } from '@wso2/ballerina-core';
 import type { TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
 import { COMPLETION_ITEM_KIND, convertCompletionItemKind } from '@wso2/ui-toolkit';
 import { getFunctionItemKind, isDMSupportedType } from '../../../utils/bi';
 
 // TODO: Remove this order onces the LS is fixed
 const TYPE_CATEGORY_ORDER = [
-    { label: "User-Defined", sortText: "0"},
-    { label: "Primitive Types", sortText: "1"},
-    { label: "Data Types", sortText: "2"},
-    { label: "Structural Types", sortText: "3"},
-    { label: "Error Types", sortText: "4"},
-    { label: "Behaviour Types", sortText: "5"},
-    { label: "Other Types", sortText: "6"},
-    { label: "Used Variable Types", sortText: "7"},
+    { label: "User-Defined", sortText: "0" },
+    { label: "Primitive Types", sortText: "1" },
+    { label: "Data Types", sortText: "2" },
+    { label: "Structural Types", sortText: "3" },
+    { label: "Error Types", sortText: "4" },
+    { label: "Behaviour Types", sortText: "5" },
+    { label: "Other Types", sortText: "6" },
+    { label: "Used Variable Types", sortText: "7" },
 
     // GraphQL Specific
-    { label: "Scalar Types", sortText: "1"},
-    { label: "Enum Types", sortText: "2"},
+    { label: "Scalar Types", sortText: "1" },
+    { label: "Enum Types", sortText: "2" },
 ] as const;
 
 /**
@@ -44,7 +44,7 @@ const TYPE_CATEGORY_ORDER = [
  * @param filterDMTypes - Whether to filter the types for the data mapper
  * @returns The categories for the type editor
  */
-export const getTypes = (types: VisibleTypeItem[], filterDMTypes?: boolean): TypeHelperCategory[] => {
+export const getTypes = (types: VisibleTypeItem[], filterDMTypes?: boolean, payloadContext?: GeneralPayloadContext): TypeHelperCategory[] => {
     const categoryRecord: Record<string, TypeHelperItem[]> = {};
 
     for (const type of types) {
@@ -54,6 +54,12 @@ export const getTypes = (types: VisibleTypeItem[], filterDMTypes?: boolean): Typ
 
         // If types should be filtered for the data mapper
         if (filterDMTypes && !isDMSupportedType(type)) {
+            continue;
+        }
+
+        // Skip User-Defined types since they will again fetched 
+        // from search API align with other integrations types
+        if (type.labelDetails?.detail === "User-Defined") {
             continue;
         }
 
@@ -68,13 +74,24 @@ export const getTypes = (types: VisibleTypeItem[], filterDMTypes?: boolean): Typ
         });
     }
 
-    const categories = Object.entries(categoryRecord).map(([category, items]) => ({
+    let categories = Object.entries(categoryRecord).map(([category, items]) => ({
         category,
         sortText: TYPE_CATEGORY_ORDER.find((order) => order.label === category)?.sortText,
         items
     }));
 
-    return categories.sort((a, b) => a.sortText.localeCompare(b.sortText));
+    if (payloadContext?.protocol === Protocol.FTP || payloadContext?.protocol === Protocol.CDC) {
+
+        categories = categories
+            .filter((category) => category.category === "User-Defined")
+            .map((category) => ({
+                ...category,
+                items: category.items.filter((item) => item.labelDetails?.description === "Record")
+            }))
+            .filter((category) => category.items.length > 0);
+
+    }
+    return categories.sort((a, b) => (a.sortText ?? "z").localeCompare(b.sortText ?? "z"));;
 };
 
 export const filterTypes = (types: TypeHelperCategory[], searchText: string) => {
@@ -100,16 +117,52 @@ const isCategoryType = (item: Item): item is Category => {
     return !(item as AvailableNode)?.codedata;
 }
 
-export const getImportedTypes = (types: Category[]) => {
+export const transformTypesFromSearchToHelperCategory = (types: Category[]): TypeHelperCategory[] => {
+    return types.map((category) => {
+        const items: TypeHelperItem[] = [];
+        const subCategories: TypeHelperCategory[] = [];
+        const categoryKind = getFunctionItemKind(category.metadata.label);
+        for (const categoryItem of category.items) {
+            if (isCategoryType(categoryItem)) {
+                subCategories.push({
+                    category: categoryItem.metadata.label,
+                    items: categoryItem.items.map((item) => ({
+                        name: item.metadata.label,
+                        insertText: item.metadata.label,
+                        type: COMPLETION_ITEM_KIND.TypeParameter,
+                        codedata: (item as AvailableNode).codedata,
+                        kind: categoryKind
+                    }))
+                });
+            } else {
+                items.push({
+                    name: categoryItem.metadata.label,
+                    insertText: categoryItem.metadata.label,
+                    type: COMPLETION_ITEM_KIND.TypeParameter,
+                    codedata: categoryItem.codedata,
+                    kind: categoryKind
+                });
+            }
+        }
+
+        return {
+            category: category.metadata.label,
+            subCategory: subCategories,
+            items: items
+        }
+    });
+}
+
+export const getFilteredTypesByKind = (types: Category[], kind: FunctionKind) => {
     const categories: TypeHelperCategory[] = [];
 
     for (const category of types) {
         if (category.items.length === 0) {
             continue;
         }
-        
+
         const categoryKind = getFunctionItemKind(category.metadata.label);
-        if (categoryKind !== functionKinds.IMPORTED) {
+        if (categoryKind !== kind) {
             continue;
         }
 
@@ -121,6 +174,17 @@ export const getImportedTypes = (types: Category[]) => {
                     continue;
                 }
 
+                let subCategoryKind = categoryKind;
+                if (kind === functionKinds.CURRENT) {
+                    // HACK: If item is under the current workspace category,
+                    // but it is not in the current integration, then 
+                    // treat is as an imported item.
+                    subCategoryKind = getFunctionItemKind(categoryItem.metadata.label);
+                    if (subCategoryKind !== functionKinds.CURRENT) {
+                        subCategoryKind = functionKinds.IMPORTED
+                    }
+                }
+
                 subCategories.push({
                     category: categoryItem.metadata.label,
                     items: categoryItem.items.map((item) => ({
@@ -128,7 +192,7 @@ export const getImportedTypes = (types: Category[]) => {
                         insertText: item.metadata.label,
                         type: COMPLETION_ITEM_KIND.TypeParameter,
                         codedata: (item as AvailableNode).codedata,
-                        kind: categoryKind
+                        kind: subCategoryKind
                     }))
                 });
             } else {
@@ -161,7 +225,7 @@ export const getTypeBrowserTypes = (types: Category[]) => {
         if (category.items.length === 0) {
             continue;
         }
-        
+
         const categoryKind = getFunctionItemKind(category.metadata.label);
         const items: TypeHelperItem[] = [];
         const subCategories: TypeHelperCategory[] = [];

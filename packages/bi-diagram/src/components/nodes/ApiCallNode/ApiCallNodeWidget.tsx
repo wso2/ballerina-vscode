@@ -38,6 +38,7 @@ import { useDiagramContext } from "../../DiagramContext";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { getNodeTitle, nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
+import { NodeMetadata } from "@wso2/ballerina-core";
 
 export namespace NodeStyles {
     export const Node = styled.div<{ readOnly: boolean }>`
@@ -433,6 +434,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                             pointerEvents: readOnly ? "none" : "auto",
                         }}
                         codedata={model.node?.codedata}
+                        connectorType={(model.node.properties.connection.metadata?.data as NodeMetadata)?.connectorType}
                     />
                 </foreignObject>
                 <line

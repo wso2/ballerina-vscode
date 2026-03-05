@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TextField, Button, TextArea, Typography, Icon, Codicon, LinkButton, ProgressRing } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient, useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Type, EVENT_TYPE, JsonToTypeResponse, TypeDataWithReferences, PayloadContext } from "@wso2/ballerina-core";
+import { Type, EVENT_TYPE, JsonToTypeResponse, TypeDataWithReferences, PayloadContext, FormFieldInputType, Protocol } from "@wso2/ballerina-core";
 import { debounce } from "lodash";
 import { Utils, URI } from "vscode-uri";
 import { ContentBody, StickyFooterContainer, FloatingFooter } from "./ContextTypeEditor";
@@ -134,6 +134,10 @@ export function GenericImportTab(props: GenericImportTabProps) {
 
     const { rpcClient } = useRpcContext();
 
+    const supportedFormats = useMemo(
+        () => payloadContext ? [DetectedFormat.JSON] : [DetectedFormat.JSON, DetectedFormat.XML],
+        [payloadContext]);
+
     // Check user authentication status on mount
     useEffect(() => {
         const checkAuthStatus = async () => {
@@ -151,14 +155,12 @@ export function GenericImportTab(props: GenericImportTabProps) {
     useEffect(() => {
         if (detectedFormat === DetectedFormat.JSON) {
             validateTypeName(importTypeName);
-        }
-        if (detectedFormat === DetectedFormat.EMPTY) {
+        } else if (detectedFormat === DetectedFormat.EMPTY) {
             setError("");
+        } else if (detectedFormat === DetectedFormat.UNKNOWN) {
+            setError(`Invalid format. Please ensure the content is valid ${supportedFormats.join(" or ")}.`);
         }
-        if (detectedFormat === DetectedFormat.UNKNOWN) {
-            setError("Invalid format. Please ensure the content is valid JSON or XML.");
-        }
-    }, [type, detectedFormat, importTypeName]);
+    }, [type, detectedFormat, importTypeName, supportedFormats]);
 
     // Auto-detect format based on content
     const detectFormat = (value: string): DetectedFormat => {
@@ -169,34 +171,38 @@ export function GenericImportTab(props: GenericImportTabProps) {
         const trimmed = value.trim();
 
         // Try to detect JSON
-        if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-            (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-            try {
-                JSON.parse(trimmed);
-                setError("");
-                return DetectedFormat.JSON;
-            } catch (e) {
-                // Not valid JSON, continue checking
-                setError("Invalid JSON format");
+        if (supportedFormats.includes(DetectedFormat.JSON)) {
+            if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+                (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+                try {
+                    JSON.parse(trimmed);
+                    setError("");
+                    return DetectedFormat.JSON;
+                } catch (e) {
+                    // Not valid JSON, continue checking
+                    setError("Invalid JSON format");
+                }
             }
         }
 
         // Try to detect XML
-        if (trimmed.startsWith('<') && trimmed.endsWith('>')) {
-            try {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(trimmed, "text/xml");
-                // Check if parsing produced an error node
-                if (doc.getElementsByTagName("parsererror").length === 0) {
-                    setError("");
-                    return DetectedFormat.XML;
+        if (supportedFormats.includes(DetectedFormat.XML)) {
+            if (trimmed.startsWith('<') && trimmed.endsWith('>')) {
+                try {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(trimmed, "text/xml");
+                    // Check if parsing produced an error node
+                    if (doc.getElementsByTagName("parsererror").length === 0) {
+                        setError("");
+                        return DetectedFormat.XML;
+                    }
+                } catch (e) {
+                    // Not valid XML
+                    setError("Invalid XML format");
                 }
-            } catch (e) {
-                // Not valid XML
-                setError("Invalid XML format");
             }
         }
-
+        
         return DetectedFormat.UNKNOWN;
     };
 
@@ -234,16 +240,15 @@ export function GenericImportTab(props: GenericImportTabProps) {
                 property: type?.properties["name"] ?
                     {
                         ...type.properties["name"],
-                        valueTypeConstraint: "Global"
+                        types: [{ fieldType:  type.properties["name"].valueType, scope: "Global", selected: false}]
                     } :
                     {
                         metadata: {
                             label: "",
                             description: "",
                         },
-                        valueType: "IDENTIFIER",
                         value: "",
-                        valueTypeConstraint: "Global",
+                        types: [{fieldType: "IDENTIFIER", scope: "Global", selected: false}],
                         optional: false,
                         editable: true
                     }
@@ -474,7 +479,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                 <InfoBanner>
                     <Codicon name="info" />
                     <InfoText variant="body3">
-                        Supports JSON and XML formats — just paste a Sample or Upload a file
+                        Supports {supportedFormats.join(" and ")} format{supportedFormats.length > 1 ? "s" : ""} — just paste a Sample or Upload a file 
                     </InfoText>
                 </InfoBanner>
                 <HeaderRow>
@@ -484,7 +489,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                             type="file"
                             ref={fileInputRef}
                             onChange={handleFileSelect}
-                            accept=".json,.xml"
+                            accept={supportedFormats.map(format => `.${format.toLowerCase()}`).join(",")}
                             style={{ display: 'none' }}
                         />
                         <LinkButton
@@ -547,14 +552,14 @@ export function GenericImportTab(props: GenericImportTabProps) {
                                 variant="body3"
                                 sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}
                             >
-                                Paste JSON or XML here...
+                                Paste {supportedFormats.join(" or ")} here...
                             </Typography>
-                            <Typography
+                            {payloadContext?.protocol !== Protocol.FTP && (<Typography
                                 variant="body3"
                                 sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}
                             >
                                 or
-                            </Typography>
+                            </Typography>)}
                             {payloadContext && isUserAuthenticated && (
                                 <>
                                     <LinkButton
@@ -582,7 +587,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                                     </Typography>
                                 </>
                             )}
-                            <LinkButton
+                            {payloadContext?.protocol!==Protocol.FTP && (<LinkButton
                                 onClick={() => selectJsonType()}
                                 sx={{
                                     display: 'flex',
@@ -597,7 +602,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                                 }}
                             >
                                 Continue with JSON Type
-                            </LinkButton>
+                            </LinkButton>)}
                         </div>
                     )}
                 </div>
