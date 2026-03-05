@@ -27,7 +27,8 @@ import {
     OpenMigrationReportRequest,
     OpenSubProjectReportRequest,
     SaveMigrationReportRequest,
-    StoreSubProjectReportsRequest
+    StoreSubProjectReportsRequest,
+    ActiveMigrationSession
 } from "@wso2/ballerina-core";
 import os from "os";
 import path from "path";
@@ -36,6 +37,7 @@ import { StateMachine } from "../../stateMachine";
 import { createBIProjectFromMigration, getUsername, sanitizeName } from "../../utils/bi";
 import { pullMigrationTool } from "../../utils/migrate-integration";
 import { MigrationReportWebview } from "../../views/migration-report/webview";
+import { getActiveMigrationSessionState } from "../../features/ai/migration/orchestrator";
 
 export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
     private static instance: MigrateIntegrationRpcManager;
@@ -201,5 +203,9 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
 
     async migrateProject(params: MigrateRequest): Promise<void> {
         createBIProjectFromMigration(params);
+    }
+
+    async getActiveMigrationSession(): Promise<ActiveMigrationSession> {
+        return getActiveMigrationSessionState();
     }
 }

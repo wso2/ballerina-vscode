@@ -20,10 +20,27 @@ import { extension } from "../../../BalExtensionContext";
 import { openAIPanelWithPrompt } from "../../../views/ai-panel/aiMachine";
 import { getAutoFixPrompt, getGuidedReviewPrompt } from "./prompts";
 import {
+    ActiveMigrationSessionLocal,
     PENDING_ENHANCEMENT_TTL_MS,
     PENDING_MIGRATION_ENHANCEMENT_KEY,
     PendingMigrationEnhancement,
 } from "./types";
+
+// ===========================================================================
+// Active Session – in-memory state for the current window session
+// ===========================================================================
+
+/** Module-level session state – reset on each extension host lifecycle. */
+let _activeSession: ActiveMigrationSessionLocal = { isActive: false, mode: "none" };
+
+/**
+ * Returns the current migration enhancement session state.
+ * Used by the RPC manager to answer `getActiveMigrationSession` requests
+ * from the webview.
+ */
+export function getActiveMigrationSessionState(): ActiveMigrationSessionLocal {
+    return { ..._activeSession };
+}
 
 // ===========================================================================
 // Schedule – called before vscode.openFolder so data survives the reload
@@ -121,6 +138,7 @@ export async function checkAndRunPendingEnhancement(): Promise<void> {
  */
 async function runAutoFixPipeline(): Promise<void> {
     try {
+        _activeSession = { isActive: true, mode: "auto-fix" };
         openAIPanelWithPrompt({
             type: "text",
             text: getAutoFixPrompt(),
@@ -145,6 +163,7 @@ async function runAutoFixPipeline(): Promise<void> {
  */
 function runGuidedReviewPipeline(): void {
     try {
+        _activeSession = { isActive: true, mode: "guided-review" };
         openAIPanelWithPrompt({
             type: "text",
             text: getGuidedReviewPrompt(),

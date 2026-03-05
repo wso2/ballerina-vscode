@@ -40,6 +40,15 @@ import {
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
 
+// Defined locally to avoid depending on a rebuilt @wso2/ballerina-core
+const _getActiveMigrationSession = { method: "migrate-integration/getActiveMigrationSession" } as const;
+
+/** Local mirror until @wso2/ballerina-core is rebuilt. */
+interface ActiveMigrationSession {
+    isActive: boolean;
+    mode: 'auto-fix' | 'guided-review' | 'none';
+}
+
 export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
     private _messenger: Messenger;
 
@@ -77,5 +86,9 @@ export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
 
     migrateProject(params: MigrateRequest): void {
         return this._messenger.sendNotification(migrateProject, HOST_EXTENSION, params);
+    }
+
+    getActiveMigrationSession(): Promise<ActiveMigrationSession> {
+        return this._messenger.sendRequest(_getActiveMigrationSession as any, HOST_EXTENSION);
     }
 }
