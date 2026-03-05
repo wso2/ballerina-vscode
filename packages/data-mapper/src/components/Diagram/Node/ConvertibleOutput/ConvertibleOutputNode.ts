@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -23,7 +23,7 @@ import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapp
 import { DataMapperNodeModel } from "../commons/DataMapperNode";
 import { getFilteredMappings, getSearchFilteredOutput, hasNoOutputMatchFound } from "../../utils/search-utils";
 import { getTypeName } from "../../utils/type-utils";
-import { OBJECT_OUTPUT_TARGET_PORT_PREFIX } from "../../utils/constants";
+import { CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX } from "../../utils/constants";
 import { findInputNode } from "../../utils/node-utils";
 import { InputOutputPortModel } from "../../Port";
 import { DataMapperLinkModel } from "../../Link";
@@ -31,10 +31,10 @@ import { ExpressionLabelModel } from "../../Label";
 import { getInputPort, getOutputPort } from "../../utils/port-utils";
 import { removeMapping } from "../../utils/modification-utils";
 
-export const OBJECT_OUTPUT_NODE_TYPE = "data-mapper-node-object-output";
-const NODE_ID = "object-output-node";
+export const CONVERTIBLE_OUTPUT_NODE_TYPE = "data-mapper-node-convertible-output";
+const NODE_ID = "convertible-output-node";
 
-export class ObjectOutputNode extends DataMapperNodeModel {
+export class ConvertibleOutputNode extends DataMapperNodeModel {
     public filteredOutputType: IOType;
     public filteredMappings: Mapping[];
     public typeName: string;
@@ -42,7 +42,6 @@ export class ObjectOutputNode extends DataMapperNodeModel {
     public hasNoMatchingFields: boolean;
     public x: number;
     public y: number;
-    public isMapFn: boolean;
 
     constructor(
         public context: IDataMapperContext,
@@ -51,8 +50,8 @@ export class ObjectOutputNode extends DataMapperNodeModel {
         super(
             NODE_ID,
             context,
-            OBJECT_OUTPUT_NODE_TYPE
-        ); 
+            CONVERTIBLE_OUTPUT_NODE_TYPE
+        );
     }
 
     async initPorts() {
@@ -66,34 +65,40 @@ export class ObjectOutputNode extends DataMapperNodeModel {
             this.typeName = getTypeName(this.filteredOutputType);
 
             this.hasNoMatchingFields = hasNoOutputMatchFound(this.outputType, this.filteredOutputType);
-    
-            const parentPort = this.addPortsForHeader({
-                dmType: this.filteredOutputType,
-                name: this.rootName,
-                portType: "IN",
-                portPrefix: OBJECT_OUTPUT_TARGET_PORT_PREFIX,
-                mappings: this.context.model.mappings,
-                collapsedFields,
-                expandedFields
-            });
-    
-            if (this.filteredOutputType.kind === TypeKind.Record) {
-                if (this.filteredOutputType.fields.length) {
-                    for (const field of this.filteredOutputType.fields) {
-                        if (!field) continue;
-                        await this.addPortsForOutputField({
-                            field,
-                            type: "IN",
-                            parentId: this.rootName,
-                            mappings: this.context.model.mappings,
-                            portPrefix: OBJECT_OUTPUT_TARGET_PORT_PREFIX,
-                            parent: parentPort,
-                            collapsedFields,
-                            expandedFields,
-                            hidden: parentPort.attributes.collapsed
-                        });
-                    }
-                }
+
+            if (this.filteredOutputType.convertedField) {
+
+                const headerPort = this.addPortsForHeader({
+                    dmType: this.filteredOutputType,
+                    name: this.rootName + ".C#",
+                    portType: "IN",
+                    portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
+                    mappings: this.context.model.mappings,
+                    collapsedFields,
+                    expandedFields,
+                });
+
+                await this.addPortsForOutputField({
+                    field: this.filteredOutputType.convertedField,
+                    type: "IN",
+                    parentId: "",
+                    mappings: this.context.model.mappings,
+                    portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
+                    parent: headerPort,
+                    collapsedFields,
+                    expandedFields,
+                    hidden: headerPort.attributes.collapsed
+                });
+            } else {
+                const headerPort = this.addPortsForHeader({
+                    dmType: this.filteredOutputType,
+                    name: this.rootName,
+                    portType: "IN",
+                    portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
+                    mappings: this.context.model.mappings,
+                    collapsedFields,
+                    expandedFields
+                });
             }
         }
     }
@@ -106,14 +111,19 @@ export class ObjectOutputNode extends DataMapperNodeModel {
     }
 
     private createLinks(mappings: Mapping[]) {
-        mappings.forEach((mapping) => {    
-            const { isComplex, isQueryExpression, isFunctionCall, elementAccessIndex, inputs, output, expression, diagnostics } = mapping;
-            if (isComplex || isQueryExpression || isFunctionCall || inputs.length !== 1 || elementAccessIndex) {
+
+        const views = this.context.views;
+        const lastViewIndex = views.length - 1;
+
+        mappings.forEach((mapping) => {
+
+            const { isComplex, isQueryExpression, isFunctionCall, inputs, output, expression, diagnostics } = mapping;
+            if (isComplex || isQueryExpression || isFunctionCall || inputs.length !== 1) {
                 // Complex mappings are handled in the LinkConnectorNode
                 return;
             }
 
-            const inputNode = findInputNode(inputs[0], this);
+            const inputNode = findInputNode(inputs[0], this, views, lastViewIndex);
             let inPort: InputOutputPortModel;
             if (inputNode) {
                 inPort = getInputPort(inputNode, inputs[0].replace(/\.\d+/g, ''));
@@ -133,8 +143,8 @@ export class ObjectOutputNode extends DataMapperNodeModel {
                         link: lm,
                         context: this.context,
                         deleteLink: () => this.deleteField(mapping),
-                    }
-                ));
+                    })
+                );
 
                 lm.registerListener({
                     selectionChanged(event) {
