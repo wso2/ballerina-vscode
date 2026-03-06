@@ -868,6 +868,9 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                 if (result.success && result.connectorCredentials && result.initialFieldValues) {
                     setConnectorCredentials(result.connectorCredentials);
                     setFieldValues(result.initialFieldValues);
+                    setConnectionError(null);
+                } else {
+                    setConnectionError(result.error ?? "Failed to load connector credentials");
                 }
             } finally {
                 setIsLoadingCredentials(false);
