@@ -38,6 +38,7 @@ export interface ArgManagerProps {
     readonly?: boolean;
     selectedNode?: NodeKind;
     setSubComponentEnabled?: (isAdding: boolean) => void;
+    updateImports?: (key: string, imports: Imports) => void;
 }
 
 const AddButtonWrapper = styled.div`
@@ -95,10 +96,11 @@ export interface ArgManagerEditorProps {
     openRecordEditor?: (open: boolean) => void;
     selectedNode?: NodeKind;
     setSubComponentEnabled?: (isAdding: boolean) => void;
+    updateImports?: (key: string, imports: Imports) => void;
 }
 
 export function ArgManagerEditor(props: ArgManagerEditorProps) {
-    const { field, openRecordEditor, selectedNode, setSubComponentEnabled } = props;
+    const { field, openRecordEditor, selectedNode, setSubComponentEnabled, updateImports } = props;
     const { form } = useFormContext();
     const { control } = form;
 
@@ -130,6 +132,7 @@ export function ArgManagerEditor(props: ArgManagerEditorProps) {
                             }}
                             selectedNode={selectedNode}
                             setSubComponentEnabled={setSubComponentEnabled}
+                            updateImports={updateImports}
                         />
                         {error && <ErrorBanner errorMsg={error.message.toString()} />}
                     </>
@@ -141,7 +144,7 @@ export function ArgManagerEditor(props: ArgManagerEditorProps) {
 }
 
 export function ArgManager(props: ArgManagerProps) {
-    const { field, readonly, onChange, openRecordEditor, setSubComponentEnabled } = props;
+    const { field, readonly, onChange, openRecordEditor, setSubComponentEnabled, updateImports } = props;
     const propertyKey = field.key;
     const paramConfigs = field.paramManagerProps;
 
@@ -230,7 +233,12 @@ export function ArgManager(props: ArgManagerProps) {
 
     const onSaveParam = (paramConfig: Parameter) => {
         getTypeFromArg(paramConfig.formValues['variable']).then((type) => {
-            paramConfig.formValues['type'] = type?.name;
+            if (type) {
+                paramConfig.formValues['type'] = type.name;
+                if (type.imports) {
+                    updateImports?.(propertyKey, type.imports);
+                }
+            }
             onChangeParam(paramConfig);
             setEditingSegmentId(-1);
             setIsNew(false);
