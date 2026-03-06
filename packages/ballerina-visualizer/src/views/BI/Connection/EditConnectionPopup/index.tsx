@@ -313,6 +313,10 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
     };
 
     const handleOpenERDiagram = async () => {
+        if(!connectorCredentials?.modelFilePath) {
+            return;
+        }
+        
         const visualizerLocation = await rpcClient.getVisualizerLocation();
         const modelDocumentUri = (await rpcClient.getVisualizerRpcClient().joinProjectPath({
             segments: [connectorCredentials.modelFilePath]

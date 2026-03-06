@@ -74,7 +74,6 @@ export class ConnectorWizardRpcManager implements ConnectorWizardAPI {
 
     async introspectDatabase(params: IntrospectDatabaseRequest): Promise<IntrospectDatabaseResponse> {
         return new Promise((resolve) => {
-            console.log(">>> introspect database request", params);
             StateMachine.langClient()
                 .introspectDatabase(params)
                 .then((response) => {
