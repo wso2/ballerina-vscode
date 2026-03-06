@@ -140,6 +140,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [importingConn, setImportingConn] = useState<ConnectionListItem>();
     const [projectOrg, setProjectOrg] = useState<string>("");
     const [isUserAuthenticated, setIsUserAuthenticated] = useState<boolean>(false);
+    const [connectorErrorMessage, setConnectorErrorMessage] = useState<string | undefined>(undefined);
 
     // Navigation stack for back navigation
     const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([]);
@@ -778,6 +779,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingNewVectorKnowledgeBase.current = false;
         isCreatingNewDataLoader.current = false;
         isCreatingNewChunker.current = false;
+        setConnectorErrorMessage(undefined);
         clearNavigationStack();
     };
 
@@ -1302,11 +1304,22 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         filePath: model?.fileName || fileName,
                         id: node.codedata,
                     })
-                    .then((response) => {
+                    .then((response: any) => {
+                        if (response.errorMsg) {
+                            setConnectorErrorMessage("An unexpected error occurred while fetching connection information");
+                            setSidePanelView(SidePanelView.CONNECTOR_ERROR);
+                            setShowSidePanel(true);
+                            return;
+                        }
                         selectedNodeRef.current = response.flowNode;
                         nodeTemplateRef.current = response.flowNode;
                         showEditForm.current = false;
                         setSidePanelView(SidePanelView.FORM);
+                        setShowSidePanel(true);
+                    })
+                    .catch(() => {
+                        setConnectorErrorMessage("An unexpected error occurred while fetching connection information.");
+                        setSidePanelView(SidePanelView.CONNECTOR_ERROR);
                         setShowSidePanel(true);
                     })
                     .finally(() => {
@@ -1608,10 +1621,21 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 filePath: model.fileName,
                 id: node.codedata,
             })
-            .then((response) => {
+            .then((response: any) => {
+                if (response.errorMsg) {
+                    setConnectorErrorMessage(response.errorMsg);
+                    setSidePanelView(SidePanelView.CONNECTOR_ERROR);
+                    setShowSidePanel(true);
+                    return;
+                }
                 nodeTemplateRef.current = response.flowNode;
                 showEditForm.current = true;
                 setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .catch(() => {
+                setConnectorErrorMessage("An unexpected error occurred while fetching connector information.");
+                setSidePanelView(SidePanelView.CONNECTOR_ERROR);
                 setShowSidePanel(true);
             })
             .finally(() => {
@@ -2605,6 +2629,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onSelectNewConnection={handleOnSelectNewConnection}
                 selectedMcpToolkitName={selectedMcpToolkitName}
                 onNavigateToPanel={handleOnNavigateToPanel}
+                errorMessage={connectorErrorMessage}
                 // Devant specific callbacks
                 onImportDevantConn={handleClickImportDevantConn}
                 onLinkDevantProject={!platformExtState?.selectedContext?.project ? onLinkDevantProject : undefined}

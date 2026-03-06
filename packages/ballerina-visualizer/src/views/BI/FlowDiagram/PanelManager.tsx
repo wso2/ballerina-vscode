@@ -41,6 +41,7 @@ import { ConnectionConfig, ConnectionCreator, ConnectionSelectionList, Connectio
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { LoaderContainer } from "../../../components/RelativeLoader/styles";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
+import { ConnectorErrorView } from "./components/ErrorContainer";
 
 const Container = styled.div`
     display: flex;
@@ -79,7 +80,8 @@ export enum SidePanelView {
     CONNECTION_CREATE = "CONNECTION_CREATE",
     AGENT_MEMORY_MANAGER = "AGENT_MEMORY_MANAGER",
     AGENT_CONFIG = "AGENT_CONFIG",
-    AGENT_LIST = "AGENT_LIST"
+    AGENT_LIST = "AGENT_LIST",
+    CONNECTOR_ERROR = "CONNECTOR_ERROR"
 }
 
 interface PanelManagerProps {
@@ -104,6 +106,7 @@ interface PanelManagerProps {
     selectedConnectionKind?: ConnectionKind;
     showProgressSpinner?: boolean;
     progressMessage?: string;
+    errorMessage?: string;
 
     // Action handlers
     onClose: () => void;
@@ -206,6 +209,7 @@ export function PanelManager(props: PanelManagerProps) {
         onSelectNewConnection,
         onUpdateNodeWithConnection,
         onNavigateToPanel,
+        errorMessage,
         onImportDevantConn,
         onLinkDevantProject,
         onRefreshDevantConnections,
@@ -579,6 +583,14 @@ export function PanelManager(props: PanelManagerProps) {
                     />
                 );
 
+            case SidePanelView.CONNECTOR_ERROR:
+                return (
+                    <ConnectorErrorView
+                        errorMessage={errorMessage}
+                        onBack={onBack}
+                    />
+                );
+
             case SidePanelView.FORM:
                 return (
                     <FormGenerator
@@ -616,6 +628,7 @@ export function PanelManager(props: PanelManagerProps) {
                 return handleOnBackToAddTool;
             case SidePanelView.CONNECTION_SELECT:
             case SidePanelView.CONNECTION_CREATE:
+            case SidePanelView.CONNECTOR_ERROR:
                 return onBack;
             case SidePanelView.FORM:
                 return !showEditForm ? onBack : undefined;
