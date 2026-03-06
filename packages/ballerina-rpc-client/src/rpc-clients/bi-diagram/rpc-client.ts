@@ -81,6 +81,8 @@ import {
     GetRecordConfigResponse,
     GetRecordModelFromSourceRequest,
     GetRecordModelFromSourceResponse,
+    GetSimpleTypeOfExpressionRequest,
+    GetSimpleTypeOfExpressionResponse,
     GetTypeRequest,
     GetTypeResponse,
     GetTypesRequest,
@@ -183,6 +185,7 @@ import {
     getRecordSource,
     getServiceClassModel,
     getSignatureHelp,
+    getSimpleTypeOfExpression,
     getSourceCode,
     getType,
     getTypeFromJson,
@@ -430,6 +433,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getType(params: GetTypeRequest): Promise<GetTypeResponse> {
         return this._messenger.sendRequest(getType, HOST_EXTENSION, params);
+    }
+
+    getSimpleTypeOfExpression(params: GetSimpleTypeOfExpressionRequest): Promise<GetSimpleTypeOfExpressionResponse> {
+        return this._messenger.sendRequest(getSimpleTypeOfExpression, HOST_EXTENSION, params);
     }
 
     updateType(params: UpdateTypeRequest): Promise<UpdateTypeResponse> {

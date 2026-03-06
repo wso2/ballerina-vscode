@@ -412,6 +412,7 @@ enum EXTENDED_APIS {
     BI_TRIGGER_UPDATE_FUNCTION = 'triggerDesignService/updateTriggerFunction',
     BI_GET_TYPES = 'typesManager/getTypes',
     BI_GET_TYPE = 'typesManager/getType',
+    BI_GET_SIMPLE_TYPE_OF_EXPRESSION = 'typesManager/getTypeOfExpression',
     BI_UPDATE_TYPE = 'typesManager/updateType',
     BI_UPDATE_TYPES = 'typesManager/updateTypes',
     BI_GET_GRAPHQL_TYPE = 'typesManager/getGraphqlType',
