@@ -64,6 +64,8 @@ import {
     GetProjectEnvsReq,
     CreateDatabaseConnectionReq,
     GetDatabaseItemReq,
+    ResolveConnectionSecretsResp,
+    ResolveConnectionSecretsReq,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
@@ -422,6 +424,15 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             return await platformExt?.getProjectEnvs(params);
         } catch (err) {
             log(`Failed to get project environments: ${err}`);
+        }
+    }
+
+    async resolveConnectionSecrets(params: ResolveConnectionSecretsReq): Promise<ResolveConnectionSecretsResp> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return await platformExt?.resolveConnectionSecrets(params);
+        } catch (err) {
+            log(`Failed to resolve connection secrets: ${err}`);
         }
     }
 
