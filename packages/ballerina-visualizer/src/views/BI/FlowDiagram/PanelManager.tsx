@@ -135,6 +135,7 @@ interface PanelManagerProps {
     onSearchDataLoader?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchChunker?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchTextChange?: (searchText: string) => void;
+    searchText?: string;
     isSearching?: boolean;
     onAddAgent?: () => void;
     onEditAgent?: () => void;
@@ -204,6 +205,7 @@ export function PanelManager(props: PanelManagerProps) {
         onSearchFunction,
         onSearchNpFunction,
         onSearchTextChange,
+        searchText,
         onSearchAll,
         onSearchVectorStore,
         onSearchEmbeddingProvider,
@@ -259,6 +261,7 @@ export function PanelManager(props: PanelManagerProps) {
                 return (
                     <NodeList
                         onSearchTextChange={onSearchTextChange}
+                        searchText={searchText}
                         categories={categories}
                         onSelect={onSelectNode}
                         onAddConnection={onAddConnection}
@@ -344,11 +347,12 @@ export function PanelManager(props: PanelManagerProps) {
                     <NodeList
                         categories={categories}
                         onSelect={onSelectNode}
-                        onSearchTextChange={onSearchTextChange}
+                        onSearchTextChange={(searchText) => onSearchFunction?.(searchText, FUNCTION_TYPE.REGULAR)}
                         onAddFunction={onAddFunction}
                         onClose={onClose}
                         title={"Functions"}
                         searchPlaceholder={"Search library functions"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -362,6 +366,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onAddFunction={onAddNPFunction}
                         onClose={onClose}
                         title={"Natural Functions"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -377,6 +382,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onAddFunction={onAddDataMapper}
                         onClose={onClose}
                         title={"Data Mappers"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -391,6 +397,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onClose={onClose}
                         title={"Agents"}
                         searchPlaceholder={"Search agents"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -405,6 +412,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onClose={onClose}
                         title={"Model Providers"}
                         searchPlaceholder={"Search model providers"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -432,6 +440,7 @@ export function PanelManager(props: PanelManagerProps) {
                         title={"Vector Stores"}
                         searchPlaceholder={"Search vector stores"}
                         onSearchTextChange={(searchText) => onSearchVectorStore?.(searchText, FUNCTION_TYPE.REGULAR)}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -461,6 +470,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) =>
                             onSearchEmbeddingProvider?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -490,6 +500,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) =>
                             onSearchVectorKnowledgeBase?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -519,6 +530,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) =>
                             onSearchDataLoader?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -548,6 +560,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) =>
                             onSearchChunker?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
