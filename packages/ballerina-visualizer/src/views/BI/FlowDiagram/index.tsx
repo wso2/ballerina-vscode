@@ -178,11 +178,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewDataLoader = useRef<boolean>(false);
     const isCreatingNewChunker = useRef<boolean>(false);
 
-    const { platformExtState, platformRpcClient, onLinkDevantProject,  importConnection: importDevantConn } = usePlatformExtContext()
+    const { platformExtState, platformRpcClient, onLinkDevantProject, importConnection: importDevantConn } = usePlatformExtContext()
 
-    const enrichedCategories = useMemo(()=>{
-         return  enrichCategoryWithDevant(platformExtState?.devantConns?.list, categories, importingConn)
-    },[platformExtState, categories, importingConn])
+    const enrichedCategories = useMemo(() => {
+        return enrichCategoryWithDevant(platformExtState?.devantConns?.list, categories, importingConn)
+    }, [platformExtState, categories, importingConn])
 
     const handleClickImportDevantConn = (data: ConnectionListItem) => {
         rpcClient.getVisualizerRpcClient().openView({
@@ -991,6 +991,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             });
     };
 
+    const showConnectorError = () => {
+        setConnectorErrorMessage("An unexpected error occurred while fetching connection information.");
+        setSidePanelView(SidePanelView.CONNECTOR_ERROR);
+        setShowSidePanel(true);
+    }
+
     const handleSearchNpFunction = async (searchText: string, functionType: FUNCTION_TYPE) => {
         await handleSearch(searchText, functionType, "NP_FUNCTION");
     };
@@ -1306,9 +1312,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     })
                     .then((response: any) => {
                         if (response.errorMsg) {
-                            setConnectorErrorMessage("An unexpected error occurred while fetching connection information");
-                            setSidePanelView(SidePanelView.CONNECTOR_ERROR);
-                            setShowSidePanel(true);
+                            showConnectorError();
                             return;
                         }
                         selectedNodeRef.current = response.flowNode;
@@ -1318,9 +1322,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         setShowSidePanel(true);
                     })
                     .catch(() => {
-                        setConnectorErrorMessage("An unexpected error occurred while fetching connection information.");
-                        setSidePanelView(SidePanelView.CONNECTOR_ERROR);
-                        setShowSidePanel(true);
+                        showConnectorError();
                     })
                     .finally(() => {
                         setShowProgressIndicator(false);
@@ -1461,7 +1463,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             return;
                         }
                     }
-                
+
                     if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER
                         || (updatedNode?.codedata?.node === "AGENT_CALL" && updatedNode?.properties?.model?.value === "")) {
                         await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
@@ -1623,9 +1625,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             })
             .then((response: any) => {
                 if (response.errorMsg) {
-                    setConnectorErrorMessage(response.errorMsg);
-                    setSidePanelView(SidePanelView.CONNECTOR_ERROR);
-                    setShowSidePanel(true);
+                    showConnectorError();
                     return;
                 }
                 nodeTemplateRef.current = response.flowNode;
@@ -1634,7 +1634,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setShowSidePanel(true);
             })
             .catch(() => {
-                setConnectorErrorMessage("An unexpected error occurred while fetching connector information.");
+                setConnectorErrorMessage("An unexpected error occurred while fetching connection information.");
                 setSidePanelView(SidePanelView.CONNECTOR_ERROR);
                 setShowSidePanel(true);
             })
