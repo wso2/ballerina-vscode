@@ -33,7 +33,7 @@ const BallerinaRunInputSchema = z.object({
 });
 
 const DEFAULT_MAIN_TIMEOUT = 120000;
-const DEFAULT_SERVICE_READY_TIMEOUT = 30000;
+const DEFAULT_SERVICE_READY_TIMEOUT = 60000;
 
 export function createBallerinaRunTool(
     tempProjectPath: string,

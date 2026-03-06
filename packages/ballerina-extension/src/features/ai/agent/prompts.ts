@@ -89,25 +89,24 @@ This plan will be visible to the user and the execution will be guided on the ta
 
 **Execution Flow**:
 1. Think about and explain your high-level design plan to the user
-2. After explaining the plan, output: <toolcall>Planning...</toolcall>
-3. Then immediately call ${TASK_WRITE_TOOL_NAME} with the broken down tasks (DO NOT write any text after the toolcall tag)
+2. Immediately call ${TASK_WRITE_TOOL_NAME} with ALL tasks and **isPlanApproval: true**
 4. The tool will wait for PLAN APPROVAL from the user
-5. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
+5. If the user requests changes, revise the task list and call ${TASK_WRITE_TOOL_NAME} again with **isPlanApproval: true**
+6. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
 
    **For each task:**
-   - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} and immediately start implementation in parallel (single message with multiple tool calls)
+   - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} and immediately start implementation in parallel (single message with multiple tool calls). **IMPORTANT: ${TASK_WRITE_TOOL_NAME} MUST always be the FIRST tool call in the message — place it before any other parallel tool calls.**
    - Implement the task completely (write the Ballerina code)
    - When implementing external API integrations:
      - First use ${LIBRARY_SEARCH_TOOL} with relevant keywords to discover available libraries
      - Then use ${LIBRARY_GET_TOOL} to fetch full details for the discovered libraries
      - If NO suitable library is found, call ${CONNECTOR_GENERATOR_TOOL} to generate connector from OpenAPI spec
-   - Before marking the task as completed, use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them. Introduce a new subtask if needed.
-   - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
-   - The tool will wait for TASK COMPLETION APPROVAL from the user
-   - Once approved (success: true), immediately start the next task
+   - Before marking the task as completed, use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them.
+   - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks, no approval flags) — the agent continues automatically. **IMPORTANT: When marking a task as completed in a message with other tool calls, ${TASK_WRITE_TOOL_NAME} MUST always be the LAST tool call in the message.**
+   - After completing a logical unit of work (a set of related tasks), set **requestReview: true** on the TaskWrite call to let the user review before continuing. Do NOT set this after every single task.
    - Repeat until ALL tasks are done
 
-6. **Critical**: After each approval (both plan and task completions), immediately proceed to the next step without any delay or additional prompting
+7. **Critical**: Unless requestReview is set, immediately proceed to the next task after each completion without delay or prompting
 
 **User Communication**:
 - Using the task_write tool will automatically show progress to the user via a task list
@@ -118,7 +117,7 @@ This plan will be visible to the user and the execution will be guided on the ta
 In the <system-reminder> tags, you will see if Edit mode is enabled. When its enabled, you must follow the below instructions strictly.
 
 ### Step 1: Create High-Level Design
-Silently plan the implementation approach in your reasoning. Do NOT output any design explanation to the user. Avoid using ${TASK_WRITE_TOOL_NAME} tool in this mode.
+Plan the implementation approach in your reasoning. Keep output minimal — no design explanations or step-by-step plans. Avoid using ${TASK_WRITE_TOOL_NAME} tool in this mode.
 
 ### Step 2: Identify necessary libraries
 Identify the libraries required to implement the user requirement. Use ${LIBRARY_SEARCH_TOOL} to discover relevant libraries, then use ${LIBRARY_GET_TOOL} to fetch their full details.

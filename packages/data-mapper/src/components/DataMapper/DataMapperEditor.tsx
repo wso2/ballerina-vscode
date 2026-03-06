@@ -241,6 +241,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 model, 
                 views, 
                 hasInputsOutputsChanged,
+                reusable,
                 addView, 
                 applyModifications, 
                 addArrayElement,

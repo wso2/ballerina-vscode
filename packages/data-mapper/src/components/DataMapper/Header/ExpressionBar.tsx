@@ -280,7 +280,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
 
     const partialFieldTitle = useMemo(() => {
         if (fieldTitle) {
-            return focusedPort?.attributes.optionalOmittedFieldFQN.split('.').pop();
+            return focusedPort?.attributes.field.displayName;
         }
         return 'No field selected';
     }, [fieldTitle]);
