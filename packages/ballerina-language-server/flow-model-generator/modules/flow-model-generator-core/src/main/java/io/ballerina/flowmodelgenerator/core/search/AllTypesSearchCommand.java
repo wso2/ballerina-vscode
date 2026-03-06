@@ -27,9 +27,11 @@ import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchDatabaseManager;
 import io.ballerina.modelgenerator.commons.SearchResult;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
 
@@ -73,7 +75,9 @@ public class AllTypesSearchCommand extends SearchCommand {
                                  Document functionsDoc) {
         super(project, position, queryMap);
         this.functionsDoc = functionsDoc;
-        this.moduleNames = project.currentPackage().getDefaultModule().moduleDependencies().stream()
+        Package currentPackage = project.currentPackage();
+        PackageUtil.getCompilation(currentPackage);
+        this.moduleNames = currentPackage.getDefaultModule().moduleDependencies().stream()
                 .map(moduleDependency -> moduleDependency.descriptor().name().packageName().value())
                 .toList();
         this.executorService = Executors.newCachedThreadPool();
