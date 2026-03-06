@@ -18,10 +18,10 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import styled from "@emotion/styled";
-import { ThemeColors, Typography, Button, TextField, Stepper, Icon, Codicon, SearchBox } from "@wso2/ui-toolkit";
+import { ThemeColors, Typography, Button, TextField, Stepper, Icon, Codicon, SearchBox, ProgressIndicator } from "@wso2/ui-toolkit";
 import { IntrospectDatabaseResponse, TableInfo, PropertyModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { LSErrorDetails } from "../DatabaseConnectionPopup";
+import { fetchConnectorCredentials, LSErrorDetails } from "../DatabaseConnectionPopup";
 import { isDatabaseSystemProperty, isPasswordProperty, formatDatabaseTypeDisplay } from "../utils";
 import {
     FormSection,
@@ -39,6 +39,10 @@ import {
     ErrorDetailsContent,
     ErrorDetailsText,
 } from "../styles";
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
+import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
+import { dbCredentialsToFieldValues, buildDbPropertiesFromFieldValues, fieldValuesToDbConfig } from "../DevantConnections/utils";
+import { LoadingRing } from "../../../../components/Loader";
 
 const StepperContainer = styled.div`
     padding: 24px 32px;
@@ -151,6 +155,41 @@ const ActionButton = styled(Button)`
     }
 `;
 
+interface ErrorDisplayProps {
+    connectionError: string;
+    errorMessage: string | null;
+    stepIndex: number;
+}
+
+function ErrorDisplay({ connectionError, errorMessage, stepIndex }: ErrorDisplayProps) {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    return (
+        <ErrorContainer>
+            <ErrorHeader>
+                <Icon name="bi-error" sx={{ color: ThemeColors.ERROR, fontSize: "20px", width: "20px", height: "20px" }} />
+                <ErrorTitle variant="h4">
+                    {stepIndex === 0 ? "Introspection Failed" : "Connector Update Failed"}
+                </ErrorTitle>
+            </ErrorHeader>
+            <Typography variant="body2">{connectionError}</Typography>
+            {errorMessage && (
+                <ErrorDetailsSection>
+                    <ErrorDetailsHeader onClick={() => setIsExpanded((prev) => !prev)}>
+                        <ErrorDetailsChevronIcon name={isExpanded ? "chevron-down" : "chevron-right"} />
+                        <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT, fontSize: "12px", margin: 0 }}>
+                            Error Details
+                        </Typography>
+                    </ErrorDetailsHeader>
+                    <ErrorDetailsContent expanded={isExpanded}>
+                        <ErrorDetailsText>{errorMessage}</ErrorDetailsText>
+                    </ErrorDetailsContent>
+                </ErrorDetailsSection>
+            )}
+        </ErrorContainer>
+    );
+}
+
 export interface EditConnectorFormProps {
     properties: { [key: string]: PropertyModel };
     metadata?: { label?: string; description?: string };
@@ -168,20 +207,136 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
     const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
     const [introspectDatabaseResponse, setIntrospectDatabaseResponse] = useState<IntrospectDatabaseResponse | null>(null);
     const [isIntrospecting, setIsIntrospecting] = useState(false);
+    const [isDevantDb, setIsDevantDb] = useState(false);
+    const [isFetchingDevantCreds, setIsFetchingDevantCreds] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [connectionError, setConnectionError] = useState<string | null>(null);
     const [lsErrorDetails, setLsErrorDetails] = useState<LSErrorDetails>({
         errorMessage: null,
-        isExpanded: false,
     });
     const [tableSearch, setTableSearch] = useState("");
+    const { platformExtState, platformRpcClient } = usePlatformExtContext();
 
     const steps = ["Introspect Database", "Select Tables"];
+
+    const getDevantDbCredentials = async (devantConnection: ConnectionListItem) => {
+        try {
+            setIsFetchingDevantCreds(true)
+            const visualizerLocation = await rpcClient.getVisualizerLocation();
+            const connectorCredentialsResp = await fetchConnectorCredentials({
+                connectorWizardRpcClient: rpcClient.getConnectorWizardRpcClient(),
+                projectPath: visualizerLocation?.projectPath,
+            });
+            const orgId = platformExtState?.selectedContext?.org.id?.toString() || "";
+            if (devantConnection?.resourceType === "DATABASE") {
+                 const marketplaceItem = await platformRpcClient.getMarketplaceDatabaseItem({
+                    orgId,
+                    resourceId: devantConnection.serviceId,
+                })
+
+                const serverId = marketplaceItem?.resourceDetails?.databaseServerId;
+                const [server, adminCredential] = await Promise.all([
+                    platformRpcClient.getDatabaseServer({ orgId, databaseServerId: serverId }),
+                    platformRpcClient.getDatabaseAdminCredential({ orgId, databaseServerId: serverId }),
+                ]);
+                const dbTypeMap: Record<string, string> = {
+                    postgres: "PostgreSQL",
+                    mysql: "MySQL",
+                };
+                const credsToUse = dbCredentialsToFieldValues(connectorCredentialsResp.connectorCredentials, {
+                    databaseType: dbTypeMap[marketplaceItem.resourceDetails?.databaseType] ?? "PostgreSQL",
+                    host: server.connection_params.host,
+                    port: Number(server.connection_params.port),
+                    databaseName: marketplaceItem?.name || server.connection_params.database,
+                    username: server.connection_params.user,
+                    password: adminCredential.password,
+                });
+
+                
+
+                const properties = buildDbPropertiesFromFieldValues(connectorCredentialsResp.connectorCredentials, credsToUse);
+                const newFieldValues: Record<string, string> = {};
+                Object.values(properties || {}).forEach((prop) => {
+                    const key = prop.metadata?.label || "";
+                    newFieldValues[key] = (prop.value as string) ?? "";
+                });
+                setFieldValues(newFieldValues);
+                handleConnectAndIntrospect(properties);
+            } else {
+                const marketplaceItem = await platformRpcClient.getMarketplaceItem({
+                    orgId: platformExtState?.selectedContext?.org?.id?.toString(),
+                    serviceId: devantConnection.serviceId,
+                });
+                const connectionItem = await platformRpcClient.getConnection({ connectionGroupId: devantConnection.groupUuid, orgId });
+                const matchingConfig = connectionItem.configurations[platformExtState?.selectedEnv?.templateId]
+                if(matchingConfig){
+                    const kv: Record<string, string> = {};
+                    const secretValuesRefs: {key: string; valueRef: string}[] = []
+                    for(const key of Object.keys(matchingConfig.entries)){
+                        const entry = matchingConfig.entries[key];
+                            if(entry.value){
+                                kv[key] = entry.value;
+                            }else if(entry.isSensitive && !entry.isFile){
+                                secretValuesRefs.push({ key, valueRef: entry.valueRef })
+                            }
+                    }
+                    if(secretValuesRefs.length > 0){
+                        const secretsResp = await platformRpcClient.resolveConnectionSecrets({
+                            orgId,
+                            componentId: platformExtState?.selectedComponent?.metadata?.id || "",
+                            projectId: platformExtState?.selectedContext?.project?.id || "",
+                            groupId: devantConnection.groupUuid,
+                            envTemplateId: platformExtState?.selectedEnv?.templateId || "",
+                            secrets: secretValuesRefs
+                        })
+                        for(const secret of secretsResp.secrets){
+                            kv[secret.key] = secret.value;
+                        }
+                    }
+
+                    let databaseType = "mysql"
+                    Object.entries(properties).forEach(([propKey, prop]) => {
+                        if(isDatabaseSystemProperty(prop)){
+                            databaseType = prop.value;
+                        }
+                    })
+
+                    const credsToUse = dbCredentialsToFieldValues(connectorCredentialsResp.connectorCredentials, {
+                        ...fieldValuesToDbConfig(kv),
+                        databaseType
+                    });
+
+                    const dbProperties = buildDbPropertiesFromFieldValues(connectorCredentialsResp.connectorCredentials, credsToUse);
+                    const newFieldValues: Record<string, string> = {};
+                    Object.values(dbProperties || {}).forEach((prop) => {
+                        const key = prop.metadata?.label || "";
+                        newFieldValues[key] = (prop.value as string) ?? "";
+                    });
+                    setFieldValues(newFieldValues);
+                    handleConnectAndIntrospect(dbProperties);
+                }
+            }
+        } catch (error) {
+            console.error(">>> Error fetching Devant database credentials", error);
+            setConnectionError("Unable to fetch database credentials from Devant connection. Please try again.");
+            setLsErrorDetails({ errorMessage: error instanceof Error ? error.message : String(error) });
+        } finally {
+            setIsFetchingDevantCreds(false)
+        }
+    }
+
+    useEffect(() => {
+        const matchingDevantConnection = platformExtState?.devantConns?.list?.find(item=>item.name?.replaceAll("-", "_").replaceAll(" ", "_") === connectionName);
+        if (platformExtState?.isLoggedIn && platformExtState?.selectedContext?.project && matchingDevantConnection){
+            setIsDevantDb(true);
+            getDevantDbCredentials(matchingDevantConnection);
+        }
+    },[connectionName])
 
     const updateFieldValue = useCallback((propKey: string, value: string) => {
         setFieldValues((prev) => ({ ...prev, [propKey]: value }));
         setConnectionError(null);
-        setLsErrorDetails({ errorMessage: null, isExpanded: false });
+        setLsErrorDetails({ errorMessage: null });
     }, []);
 
     useEffect(() => {
@@ -207,14 +362,13 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
         return result;
     }, [properties, fieldValues]);
 
-    const handleConnectAndIntrospect = async () => {
+    const handleConnectAndIntrospect = async (propertiesMap = buildPropertiesFromFieldValues()) => {
         setIsIntrospecting(true);
         setConnectionError(null);
-        setLsErrorDetails({ errorMessage: null, isExpanded: false });
+        setLsErrorDetails({ errorMessage: null });
         try {
             const visualizerLocation = await rpcClient.getVisualizerLocation();
             const projectPath = visualizerLocation.projectPath;
-            const propertiesMap = buildPropertiesFromFieldValues();
 
             const response = await rpcClient.getConnectorWizardRpcClient().introspectDatabase({
                 projectPath,
@@ -229,7 +383,7 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
 
             if (!response) {
                 setConnectionError("Unable to connect to the database. Please try again.");
-                setLsErrorDetails({ errorMessage: "No response received from database introspection.", isExpanded: false });
+                setLsErrorDetails({ errorMessage: "No response received from database introspection." });
                 return;
             }
 
@@ -240,7 +394,7 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                 } else {
                     setConnectionError("Unable to connect to the database. Please verify your credentials.");
                 }
-                setLsErrorDetails({ errorMessage: response.errorMsg, isExpanded: false });
+                setLsErrorDetails({ errorMessage: response.errorMsg });
                 const pwdLabel = Object.values(properties || {}).find((p) => isPasswordProperty(p))?.metadata?.label;
                 if (pwdLabel) setFieldValues((prev) => ({ ...prev, [pwdLabel]: "" }));
                 return;
@@ -254,18 +408,18 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                 );
                 setIntrospectDatabaseResponse({ ...response, tables: normalizedTables });
                 setConnectionError(null);
-                setLsErrorDetails({ errorMessage: null, isExpanded: false });
+                setLsErrorDetails({ errorMessage: null });
                 setCurrentStep(1);
             } else {
                 setConnectionError("No tables found in the database.");
-                setLsErrorDetails({ errorMessage: null, isExpanded: false });
+                setLsErrorDetails({ errorMessage: null });
                 const pwdLabel = Object.values(properties || {}).find((p) => isPasswordProperty(p))?.metadata?.label;
                 if (pwdLabel) setFieldValues((prev) => ({ ...prev, [pwdLabel]: "" }));
             }
         } catch (error) {
             console.error(">>> Error introspecting database", error);
             setConnectionError("Unable to connect to the database. Please verify your credentials.");
-            setLsErrorDetails({ errorMessage: error instanceof Error ? error.message : String(error), isExpanded: false });
+            setLsErrorDetails({ errorMessage: error instanceof Error ? error.message : String(error) });
             const pwdLabel = Object.values(properties || {}).find((p) => isPasswordProperty(p))?.metadata?.label;
             if (pwdLabel) setFieldValues((prev) => ({ ...prev, [pwdLabel]: "" }));
         } finally {
@@ -293,11 +447,10 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
         if (!connectionName || !introspectDatabaseResponse?.tables?.length) return;
         setIsSaving(true);
         setConnectionError(null);
-        setLsErrorDetails({ errorMessage: null, isExpanded: false });
+        setLsErrorDetails({ errorMessage: null });
         try {
             const visualizerLocation = await rpcClient.getVisualizerLocation();
             const projectPath = visualizerLocation.projectPath;
-
             const propertiesMap = buildPropertiesFromFieldValues();
 
             const response = await rpcClient.getConnectorWizardRpcClient().persistClientGenerate({
@@ -311,13 +464,13 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
 
             if (!response) {
                 setConnectionError("Unable to update the connector. Please try again.");
-                setLsErrorDetails({ errorMessage: "No response received from connector update.", isExpanded: false });
+                setLsErrorDetails({ errorMessage: "No response received from connector update." });
                 return;
             }
 
             if (response?.errorMsg) {
                 setConnectionError("Unable to update the connector. Please check the error details below.");
-                setLsErrorDetails({ errorMessage: response.errorMsg, isExpanded: false });
+                setLsErrorDetails({ errorMessage: response.errorMsg });
                 return;
             }
 
@@ -325,7 +478,7 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
         } catch (error) {
             console.error(">>> Error updating connector", error);
             setConnectionError("Unable to update the connector. Please try again.");
-            setLsErrorDetails({ errorMessage: error instanceof Error ? error.message : String(error), isExpanded: false });
+            setLsErrorDetails({ errorMessage: error instanceof Error ? error.message : String(error) });
         } finally {
             setIsSaving(false);
         }
@@ -347,37 +500,8 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
         [tables]
     );
 
-    const renderErrorDisplay = () => {
-        if (!connectionError) return null;
-
-        return (
-            <ErrorContainer>
-                <ErrorHeader>
-                    <Icon name="bi-error" sx={{ color: ThemeColors.ERROR, fontSize: "20px", width: "20px", height: "20px" }} />
-                    <ErrorTitle variant="h4">
-                        {currentStep === 0 ? "Introspection Failed" : "Connector Update Failed"}
-                    </ErrorTitle>
-                </ErrorHeader>
-                <Typography variant="body2">{connectionError}</Typography>
-                {lsErrorDetails.errorMessage && (
-                    <ErrorDetailsSection>
-                        <ErrorDetailsHeader onClick={() => setLsErrorDetails((prev) => ({ ...prev, isExpanded: !prev.isExpanded }))}>
-                            <ErrorDetailsChevronIcon name={lsErrorDetails.isExpanded ? "chevron-down" : "chevron-right"} />
-                            <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT, fontSize: "12px", margin: 0 }}>
-                                Error Details
-                            </Typography>
-                        </ErrorDetailsHeader>
-                        <ErrorDetailsContent expanded={lsErrorDetails.isExpanded}>
-                            <ErrorDetailsText>{lsErrorDetails.errorMessage}</ErrorDetailsText>
-                        </ErrorDetailsContent>
-                    </ErrorDetailsSection>
-                )}
-            </ErrorContainer>
-        );
-    };
-
-    const renderStepContent = () => {
-        switch (currentStep) {
+    const renderStepContent = (defaultStep = currentStep) => {
+        switch (defaultStep) {
             case 0:
                 return (
                     <StepContent fillHeight={true}>
@@ -387,7 +511,7 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                                 Enter credentials to connect and introspect the database
                             </SectionSubtitle>
                         </div>
-                        {renderErrorDisplay()}
+                        {connectionError && <ErrorDisplay connectionError={connectionError} errorMessage={lsErrorDetails.errorMessage} stepIndex={currentStep} />}
                         <FormSection>
                             {Object.values(properties || {}).filter((p) => !p.hidden).map((prop) => {
                                 if (isDatabaseSystemProperty(prop)) {
@@ -431,7 +555,7 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
             case 1:
                 return (
                     <StepContent fillHeight={true} style={{ gap: "16px" }}>
-                        {renderErrorDisplay()}
+                        {connectionError && <ErrorDisplay connectionError={connectionError} errorMessage={lsErrorDetails.errorMessage} stepIndex={currentStep} />}
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                             <div>
                                 <SectionTitle variant="h3">Select Tables</SectionTitle>
@@ -477,6 +601,7 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                             </WarningContainer>
                         )}
                         <TablesGrid>
+                            {isIntrospecting && <ProgressIndicator />}
                             {filteredTables.map((t) => (
                                 <TableCard
                                     key={t.table}
@@ -503,6 +628,27 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                 return null;
         }
     };
+
+    if (isDevantDb){
+        return (
+            <>
+                <ContentContainer hasFooterButton={true}>
+                    {isFetchingDevantCreds ? <LoadingRing message="Loading Devant Database Credentials..." />: renderStepContent(1)}
+                </ContentContainer>
+                <FooterContainer>
+                    <ActionButton
+                        appearance="primary"
+                        onClick={handleUpdateConnector}
+                        disabled={selectedTablesCount === 0 || isSaving}
+                        buttonSx={{ width: "100%", height: "35px" }}
+                        tooltip="Update connector with selected tables"
+                    >
+                        {isSaving ? "Updating..." : "Update Connector"}
+                    </ActionButton>
+                </FooterContainer>
+            </>
+        )
+    }
 
     return (
         <>

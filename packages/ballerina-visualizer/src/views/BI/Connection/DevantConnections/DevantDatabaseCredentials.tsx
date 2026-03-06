@@ -30,6 +30,7 @@ import {
     fetchConnectorCredentials,
     introspectDatabase,
     IntrospectDatabaseStep,
+    IntrospectDatabaseStepForm,
     LSErrorDetails,
     persistConnection,
     SelectPersistTablesStep,
@@ -45,7 +46,16 @@ import {
     ServiceInfoVisibilityEnum,
 } from "@wso2/wso2-platform-core";
 import { LoadingRing } from "../../../../components/Loader";
-import { DevantConnectionFlow, DevantConnectionFlowStep, generateInitialConnectionName, isValidDevantConnName, ProgressWrap } from "./utils";
+import {
+    buildDbPropertiesFromFieldValues,
+    dbCredentialsToFieldValues,
+    DevantConnectionFlow,
+    DevantConnectionFlowStep,
+    fieldValuesToDbConfig,
+    generateInitialConnectionName,
+    isValidDevantConnName,
+    ProgressWrap,
+} from "./utils";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ConnectorContentContainer, FormField, FormSection } from "../styles";
 
@@ -135,8 +145,7 @@ const ProvisionSection = styled.div`
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 10px;
-    padding-top: 10px;
+    margin-top: 8px;
 `;
 
 const SectionDesc = styled(Typography)`
@@ -158,8 +167,15 @@ export function getDbServerTypeDisplayName(type: string): string {
     }
 }
 
+const tempFieldValues: Record<string, string> = {
+    Host: "localhost",
+    Port: "3306",
+    Database: "root",
+    User: "admin",
+};
+
 interface DatabaseCredentialsTabsProps {
-    devantDatabases: MarketplaceDatabaseListResp;
+    devantDatabases?: MarketplaceDatabaseListResp;
     isLoadingDatabases: boolean;
     selectedDb: MarketplaceItem | null;
     onSelectDb: (db: MarketplaceItem) => void;
@@ -298,9 +314,7 @@ const DatabaseCredentialsTabs: FC<DatabaseCredentialsTabsProps> = ({
                     )}
                 </>
             </div>
-            <div id="manual">
-                {manualForm}
-            </div>
+            <div id="manual">{manualForm}</div>
         </Tabs>
     );
 };
@@ -318,67 +332,6 @@ interface Props {
     goToNextStep: () => void;
     selectedFlow: DevantConnectionFlow;
     setSelectedFlow: (flow: DevantConnectionFlow) => void;
-}
-
-/** Maps simple credential object to connector wizard fieldValues by matching property labels */
-function credentialsToFieldValues(
-    connectorCredentials: NonNullable<IntrospectCredentialsResponse["data"]>,
-    creds: { host: string; port: number; databaseName: string; username: string; password: string; databaseType: string },
-): Record<string, string> {
-    const props = connectorCredentials.properties || {};
-    const result: Record<string, string> = {};
-    const dbSystemLabel = Object.values(props).find((p) => {
-        const l = (p.metadata?.label || "").toLowerCase();
-        return l.includes("database system") || l.includes("db system");
-    })?.metadata?.label;
-    const portLabel = Object.values(props).find((p) => (p.metadata?.label || "").toLowerCase() === "port")?.metadata?.label;
-    const hostLabel = Object.values(props).find((p) => (p.metadata?.label || "").toLowerCase().includes("host"))?.metadata?.label;
-    const dbLabel = Object.values(props).find((p) => {
-        const l = (p.metadata?.label || "").toLowerCase();
-        return l === "database" || l === "database name";
-    })?.metadata?.label;
-    const userLabel = Object.values(props).find((p) => {
-        const l = (p.metadata?.label || "").toLowerCase();
-        return l === "user" || l === "username";
-    })?.metadata?.label;
-    const pwdLabel = Object.values(props).find((p) => (p.metadata?.label || "").toLowerCase().includes("password"))?.metadata?.label;
-
-    Object.values(props).forEach((prop) => {
-        const label = prop.metadata?.label || "";
-        if (label && !result[label]) {
-            if (dbSystemLabel && label === dbSystemLabel) {
-                result[label] = creds.databaseType?.toLowerCase().includes("postgres") ? "postgresql" : "mysql";
-            } else if (portLabel && label === portLabel) {
-                result[label] = String(creds.port ?? 3306);
-            } else if (hostLabel && label === hostLabel) {
-                result[label] = creds.host ?? "";
-            } else if (dbLabel && label === dbLabel) {
-                result[label] = creds.databaseName ?? "";
-            } else if (userLabel && label === userLabel) {
-                result[label] = creds.username ?? "";
-            } else if (pwdLabel && label === pwdLabel) {
-                result[label] = creds.password ?? "";
-            } else {
-                result[label] = (prop.value as string) ?? "";
-            }
-        }
-    });
-    return result;
-}
-
-/** Builds PropertyModel map from fieldValues for connector wizard RPC */
-function buildPropertiesFromFieldValues(
-    connectorCredentials: NonNullable<IntrospectCredentialsResponse["data"]>,
-    fieldValues: Record<string, string>,
-): { [key: string]: PropertyModel } {
-    const props = connectorCredentials?.properties ?? {};
-    const result: { [key: string]: PropertyModel } = {};
-    for (const [key, prop] of Object.entries(props)) {
-        const label = prop.metadata?.label || "";
-        const value = label in fieldValues ? fieldValues[label] : (prop.value as string) ?? "";
-        result[key] = { ...prop, value };
-    }
-    return result;
 }
 
 export const DevantDatabaseCredentials: FC<Props> = (props) => {
@@ -401,7 +354,9 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
     const { rpcClient } = useRpcContext();
     const [activeTab, setActiveTab] = React.useState<"devantDatabases" | "manual">("devantDatabases");
 
-    const [connectorCredentials, setConnectorCredentials] = useState<IntrospectCredentialsResponse["data"] | null>(null);
+    const [connectorCredentials, setConnectorCredentials] = useState<IntrospectCredentialsResponse["data"] | null>(
+        null,
+    );
     const [isLoadingCredentials, setIsLoadingCredentials] = useState(true);
     const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
     const [devantFieldValues, setDevantFieldValues] = useState<Record<string, string> | null>(null);
@@ -409,13 +364,13 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
     const [connectionName, setConnectionName] = useState("");
     const [selectedUserCredentialId, setSelectedUserCredentialId] = useState<string>("");
     const [connectionError, setConnectionError] = useState<string | null>(null);
-    const [lsErrorDetails, setLsErrorDetails] = useState<LSErrorDetails>({ errorMessage: null, isExpanded: false });
+    const [lsErrorDetails, setLsErrorDetails] = useState<LSErrorDetails>({ errorMessage: null });
     const [tableSearch, setTableSearch] = useState("");
 
     const updateFieldValue = useCallback((propKey: string, value: string) => {
         setFieldValues((prev) => ({ ...prev, [propKey]: value }));
         setConnectionError(null);
-        setLsErrorDetails({ errorMessage: null, isExpanded: false });
+        setLsErrorDetails({ errorMessage: null });
     }, []);
 
     const handleDbTypeChange = useCallback(
@@ -431,7 +386,7 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
                 return next;
             });
             setConnectionError(null);
-            setLsErrorDetails({ errorMessage: null, isExpanded: false });
+            setLsErrorDetails({ errorMessage: null });
         },
         [connectorCredentials?.properties],
     );
@@ -459,7 +414,14 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
 
     const getCredentialsFromSelectedDb = async (
         db: MarketplaceItem | null,
-    ): Promise<{ host: string; port: number; databaseName: string; username: string; password: string; databaseType: string } | null> => {
+    ): Promise<{
+        host: string;
+        port: number;
+        databaseName: string;
+        username: string;
+        password: string;
+        databaseType: string;
+    } | null> => {
         if (!db) {
             throw new Error("No Devant database selected to fetch credentials for introspection");
         }
@@ -483,14 +445,8 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
         };
     };
 
-    const {
-        mutate: runIntrospect,
-        isPending: isIntrospecting,
-    } = useMutation({
-        mutationFn: async (params: {
-            mode: "devantDb" | "thirdParty";
-            goToNextStep?: boolean;
-        }) => {
+    const { mutate: runIntrospect, isPending: isIntrospecting } = useMutation({
+        mutationFn: async (params: { mode: "devantDb" | "thirdParty"; goToNextStep?: boolean }) => {
             if (!connectorCredentials) throw new Error("Connector credentials not loaded");
             const visualizerLocation = await rpcClient.getVisualizerLocation();
             const projPath = visualizerLocation.projectPath;
@@ -499,13 +455,13 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
             if (params.mode === "devantDb") {
                 const creds = await getCredentialsFromSelectedDb(selectedMarketplaceItem);
                 if (!creds) throw new Error("No Devant database selected");
-                credsToUse = credentialsToFieldValues(connectorCredentials, creds);
+                credsToUse = dbCredentialsToFieldValues(connectorCredentials, creds);
                 setDevantFieldValues(credsToUse);
             } else {
                 credsToUse = fieldValues;
             }
 
-            const properties = buildPropertiesFromFieldValues(connectorCredentials, credsToUse);
+            const properties = buildDbPropertiesFromFieldValues(connectorCredentials, credsToUse);
             const result = await introspectDatabase({
                 connectorWizardRpcClient: rpcClient.getConnectorWizardRpcClient(),
                 projectPath: projPath,
@@ -527,7 +483,7 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
             if (data?.tables) {
                 setTables(data.tables);
                 setConnectionError(null);
-                setLsErrorDetails({ errorMessage: null, isExpanded: false });
+                setLsErrorDetails({ errorMessage: null });
             }
             if (data?.goToNextStep) {
                 goToNextStep();
@@ -539,16 +495,18 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
     });
 
     useEffect(() => {
-        if (
-            [
-                DevantConnectionFlow.CREATE_DATABASE_PERSIST_DB_SELECTED,
-                DevantConnectionFlow.IMPORT_DATABASE_PERSIST,
-            ].includes(selectedFlow) &&
-            selectedMarketplaceItem
-        ) {
-            runIntrospect({ mode: "devantDb" });
+        if (connectorCredentials) {
+            if (
+                [
+                    DevantConnectionFlow.CREATE_DATABASE_PERSIST_DB_SELECTED,
+                    DevantConnectionFlow.IMPORT_DATABASE_PERSIST,
+                ].includes(selectedFlow) &&
+                selectedMarketplaceItem
+            ) {
+                runIntrospect({ mode: "devantDb" });
+            }
         }
-    }, [selectedMarketplaceItem, selectedFlow]);
+    }, [selectedMarketplaceItem, selectedFlow, connectorCredentials]);
 
     const {
         mutate: saveDatabaseConnection,
@@ -560,6 +518,7 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
                 connectionName,
                 existingDevantConnNames,
                 biConnectionNames,
+                !!importedConnection,
             );
             if (connNameDiagnostic) {
                 throw new Error(connNameDiagnostic);
@@ -570,7 +529,7 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
             if (!connectorCredentials) throw new Error("Connector credentials not loaded");
 
             const activeFieldValues = selectedMarketplaceItem && devantFieldValues ? devantFieldValues : fieldValues;
-            const properties = buildPropertiesFromFieldValues(connectorCredentials, activeFieldValues);
+            const properties = buildDbPropertiesFromFieldValues(connectorCredentials, activeFieldValues);
 
             const visualizerLocation = await rpcClient.getVisualizerLocation();
             const projPath = visualizerLocation.projectPath;
@@ -606,18 +565,6 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
     const handleSelectAllTables = () => {
         const allSelected = tables.every((t) => t.selected);
         setTables(tables.map((t) => ({ ...t, selected: !allSelected })));
-    };
-
-    /** Extracts host, port, etc. from fieldValues for createDevantConnection */
-    const fieldValuesToConfig = (fv: Record<string, string>) => {
-        const get = (keys: string[]) => keys.map((k) => fv[k]).find(Boolean) ?? "";
-        return {
-            host: get(["Host", "Host Name", "host"]),
-            port: Number(get(["Port", "port"])) || 3306,
-            username: get(["User", "Username", "user"]),
-            password: get(["Password", "password"]),
-            databaseName: get(["Database", "Database Name", "database"]),
-        };
     };
 
     const handleConnectionNameChange = (value: string) => {
@@ -681,7 +628,7 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
         }
 
         const activeFv = selectedMarketplaceItem && devantFieldValues ? devantFieldValues : fieldValues;
-        const configs = fieldValuesToConfig(activeFv);
+        const configs = fieldValuesToDbConfig(activeFv);
 
         const newDevantConfigs: DevantTempConfig[] = [
             { id: "HostName", name: `${connectionName}Host`, value: configs.host, isSecret: false, type: "string" },
@@ -811,7 +758,7 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
     }, [dbConfigs, selectedUserCredentialId]);
 
     useEffect(() => {
-        let dbName = fieldValuesToConfig(fieldValues).databaseName;
+        let dbName = fieldValuesToDbConfig(fieldValues).databaseName;
         if (selectedMarketplaceItem) {
             dbName = selectedMarketplaceItem.name;
         }
@@ -834,44 +781,42 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
     const selectedTablesCount = tables.filter((t) => t.selected).length;
     const totalTablesCount = tables.length;
 
-    const handleBrowseMoreConnectors = useCallback(() => onClose?.(), [onClose]);
-
     const renderStepContent = () => {
         switch (selectedStep) {
             case DevantConnectionFlowStep.PERSIST_CONFIG:
                 return (
-                    <DatabaseCredentialsTabs
-                        devantDatabases={
-                            devantDatabases ?? {
-                                count: 0,
-                                data: [],
-                                pagination: { limit: 0, total: 0, offset: 0 },
-                            }
+                    <IntrospectDatabaseStep
+                        isLoadingCredentials={isLoadingCredentials}
+                        connectorCredentials={connectorCredentials}
+                        fieldValues={
+                            selectedMarketplaceItem && activeTab === "devantDatabases" ? tempFieldValues : fieldValues
                         }
-                        isLoadingDatabases={isLoadingDatabases}
-                        selectedDb={selectedMarketplaceItem ?? null}
-                        onSelectDb={(db) => setSelectedMarketplaceItem(db)}
-                        onTabChange={setActiveTab}
-                        manualForm={
-                            <IntrospectDatabaseStep
-                                isLoadingCredentials={isLoadingCredentials}
-                                connectorCredentials={connectorCredentials}
-                                fieldValues={fieldValues}
-                                connectionError={connectionError}
-                                lsErrorDetails={lsErrorDetails}
-                                onFieldValueChange={updateFieldValue}
-                                onDbTypeChange={handleDbTypeChange}
-                                onToggleErrorDetails={() =>
-                                    setLsErrorDetails((prev) => ({ ...prev, isExpanded: !prev.isExpanded }))
+                        connectionError={connectionError}
+                        lsErrorDetails={lsErrorDetails}
+                        showTitle={false}
+                        onIntrospect={() =>
+                            runIntrospect({
+                                goToNextStep: true,
+                                mode: activeTab === "devantDatabases" ? "devantDb" : "thirdParty",
+                            })
+                        }
+                        isIntrospecting={isIntrospecting}
+                        form={
+                            <DatabaseCredentialsTabs
+                                devantDatabases={devantDatabases}
+                                isLoadingDatabases={isLoadingDatabases}
+                                selectedDb={selectedMarketplaceItem ?? null}
+                                onSelectDb={(db) => setSelectedMarketplaceItem(db)}
+                                onTabChange={setActiveTab}
+                                manualForm={
+                                    <IntrospectDatabaseStepForm
+                                        connectorCredentials={connectorCredentials}
+                                        fieldValues={fieldValues}
+                                        onFieldValueChange={updateFieldValue}
+                                        onDbTypeChange={handleDbTypeChange}
+                                        isIntrospecting={isIntrospecting}
+                                    />
                                 }
-                                onBrowseMoreConnectors={handleBrowseMoreConnectors}
-                                onIntrospect={() =>
-                                    runIntrospect({
-                                        goToNextStep: true,
-                                        mode: activeTab === "devantDatabases" ? "devantDb" : "thirdParty",
-                                    })
-                                }
-                                isIntrospecting={isIntrospecting}
                             />
                         }
                     />
@@ -888,6 +833,7 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
                         onSelectAll={handleSelectAllTables}
                         onContinue={goToNextStep}
                         connectionError={connectionError}
+                        isIntrospecting={isIntrospecting}
                     />
                 );
             case DevantConnectionFlowStep.PERSIST_CREATE_CONNECTION:
@@ -897,36 +843,40 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
                             connectionName={connectionName}
                             onConnectionNameChange={importedConnection ? () => {} : handleConnectionNameChange}
                             connectorCredentials={connectorCredentials}
-                            fieldValues={
-                                selectedMarketplaceItem && devantFieldValues ? devantFieldValues : fieldValues
-                            }
+                            fieldValues={selectedMarketplaceItem && devantFieldValues ? devantFieldValues : fieldValues}
                             connectionError={saveDbConnError?.message ?? connectionError}
                             lsErrorDetails={lsErrorDetails}
-                            onToggleErrorDetails={() =>
-                                setLsErrorDetails((prev) => ({ ...prev, isExpanded: !prev.isExpanded }))
-                            }
-                            onBrowseMoreConnectors={handleBrowseMoreConnectors}
                             onSave={saveDatabaseConnection}
                             isSaving={isSavingDbConn}
+                            showConfigurablesPanel={!!!selectedMarketplaceItem}
+                            readOnlyConnectionName={!!importedConnection}
+                            additionalFields={
+                                !!selectedMarketplaceItem &&
+                                !!!importedConnection && (
+                                    <FormSection>
+                                        <FormField>
+                                            <Dropdown
+                                                id="userCredential"
+                                                items={dbConfigs}
+                                                label="Access Credentials"
+                                                value={selectedUserCredentialId}
+                                                onValueChange={(val) => setSelectedUserCredentialId(val)}
+                                                errorMsg={
+                                                    selectedUserCredentialId ? "" : "Credential is required to proceed"
+                                                }
+                                            />
+                                        </FormField>
+                                        <Typography variant="body2" sx={{ fontSize: "13px" }}>
+                                            Don't see your database credentials? Visit Devant to{" "}
+                                            <VSCodeLink onClick={onClickCreateDb}>
+                                                manage your database credentials
+                                            </VSCodeLink>
+                                            .
+                                        </Typography>
+                                    </FormSection>
+                                )
+                            }
                         />
-                        {selectedMarketplaceItem && !importedConnection && (
-                            <FormSection>
-                                <FormField>
-                                    <Dropdown
-                                        id="userCredential"
-                                        items={dbConfigs}
-                                        label="Access Credentials"
-                                        value={selectedUserCredentialId}
-                                        onValueChange={(val) => setSelectedUserCredentialId(val)}
-                                        errorMsg={selectedUserCredentialId ? "" : "Credential is required to proceed"}
-                                    />
-                                </FormField>
-                                <Typography variant="body2" sx={{ fontSize: "12px", margin: "5px 0" }}>
-                                    Don't see your database credentials? Visit Devant to{" "}
-                                    <VSCodeLink onClick={onClickCreateDb}>manage your database credentials</VSCodeLink>.
-                                </Typography>
-                            </FormSection>
-                        )}
                     </>
                 );
             default:
