@@ -285,7 +285,9 @@ import {
     WSDLApiClientGenerationResponse,
     CopilotSearchLibrariesBySearchRequest,
     CopilotSearchLibrariesBySearchResponse,
-    CreateConvertedVariableRequest
+    CreateConvertedVariableRequest,
+    GetSimpleTypeOfExpressionResponse,
+    GetSimpleTypeOfExpressionRequest
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -1338,6 +1340,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getType(params: GetTypeRequest): Promise<GetTypeResponse> {
         return this.sendRequest<GetTypeResponse>(EXTENDED_APIS.BI_GET_TYPE, params);
+    }
+
+    async getSimpleTypeOfExpression(params: GetSimpleTypeOfExpressionRequest): Promise<GetSimpleTypeOfExpressionResponse> {
+        return this.sendRequest<GetSimpleTypeOfExpressionResponse>(EXTENDED_APIS.BI_GET_SIMPLE_TYPE_OF_EXPRESSION, params);
     }
 
     async updateType(params: UpdateTypeRequest): Promise<UpdateTypeResponse> {

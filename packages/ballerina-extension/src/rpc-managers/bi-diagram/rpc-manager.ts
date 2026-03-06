@@ -1729,6 +1729,21 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
+    async getSimpleTypeOfExpression(params: GetSimpleTypeOfExpressionRequest): Promise<GetSimpleTypeOfExpressionResponse> {
+        return new Promise((resolve, reject) => {
+            StateMachine.langClient()
+                .getSimpleTypeOfExpression(params)
+                .then((type) => {
+                    console.log(">>> simple type from ls", type);
+                    resolve(type);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching simple type from ls", error);
+                    reject(error);
+                });
+        });
+    }
+
     async updateImports(params: UpdateImportsRequest): Promise<UpdateImportsResponse> {
         return new Promise((resolve, reject) => {
             StateMachine.langClient()
@@ -2350,11 +2365,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     resolve(undefined);
                 });
         });
-    }
-
-    async getSimpleTypeOfExpression(params: GetSimpleTypeOfExpressionRequest): Promise<GetSimpleTypeOfExpressionResponse> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
     }
 }
 
