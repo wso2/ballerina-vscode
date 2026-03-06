@@ -512,53 +512,8 @@ public class SearchDatabaseManager {
         List<UnifiedSearchResult> results = new ArrayList<>();
         String sanitizedQuery = sanitizeQuery(q);
 
-        String sql;
-        boolean isEmptyQuery = sanitizedQuery.isEmpty();
-
-        if (isEmptyQuery) {
-            // Return balanced functions and connectors when query is empty
-            sql = """
+        String sql = """
                 WITH FunctionResults AS (
-                    SELECT 'function' as result_type,
-                           f.name,
-                           f.description,
-                           p.org,
-                           p.name AS module_name,
-                           p.package_name,
-                           p.version,
-                           1.0 as relevance_score
-                    FROM Function f
-                    JOIN Package p ON f.package_id = p.id
-                    ORDER BY p.name, f.name
-                    LIMIT ?
-                ),
-                ConnectorResults AS (
-                    SELECT 'connector' as result_type,
-                           c.name,
-                           c.description,
-                           p.org,
-                           p.name AS module_name,
-                           p.package_name,
-                           p.version,
-                           1.0 as relevance_score
-                    FROM Connector c
-                    JOIN Package p ON c.package_id = p.id
-                    ORDER BY p.name, c.name
-                    LIMIT ?
-                )
-                SELECT * FROM (
-                    SELECT * FROM FunctionResults
-                    UNION ALL
-                    SELECT * FROM ConnectorResults
-                    ORDER BY result_type, name
-                )
-                LIMIT ? OFFSET ?
-                """;
-        } else {
-            // Search using FTS when query is provided
-            sql = """
-                WITH AllResults AS (
-                    -- Search Functions using FTS
                     SELECT 'function' as result_type,
                            f.name,
                            f.description,
@@ -571,10 +526,10 @@ public class SearchDatabaseManager {
                     JOIN Function f ON fts.rowid = f.id
                     JOIN Package p ON f.package_id = p.id
                     WHERE fts.FunctionFTS MATCH ?
-
-                    UNION ALL
-
-                    -- Search Connectors using FTS
+                    ORDER BY fts.rank
+                    LIMIT ?
+                ),
+                ConnectorResults AS (
                     SELECT 'connector' as result_type,
                            c.name,
                            c.description,
@@ -587,34 +542,31 @@ public class SearchDatabaseManager {
                     JOIN Connector c ON fts.rowid = c.id
                     JOIN Package p ON c.package_id = p.id
                     WHERE fts.ConnectorFTS MATCH ?
+                    ORDER BY fts.rank
+                    LIMIT ?
                 )
-                SELECT * FROM AllResults
-                ORDER BY relevance_score DESC, result_type, name
+                SELECT * FROM (
+                    SELECT * FROM FunctionResults
+                    UNION ALL
+                    SELECT * FROM ConnectorResults
+                    ORDER BY relevance_score DESC, result_type, name
+                )
                 LIMIT ? OFFSET ?
                 """;
-        }
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             int paramIndex = 1;
-
-            if (isEmptyQuery) {
-                // Set limits for functions and connectors separately
-                int functionsLimit = limit / 2;
-                int connectorsLimit = limit - functionsLimit;
-                stmt.setInt(paramIndex++, functionsLimit);
-                stmt.setInt(paramIndex++, connectorsLimit);
-                stmt.setInt(paramIndex++, limit); // For final LIMIT
-                stmt.setInt(paramIndex, offset);  // For final OFFSET
-            } else {
-                // Set FTS query parameters only when we have a search query
-                String ftsQuery = sanitizedQuery + "*";
-                stmt.setString(paramIndex++, ftsQuery);
-                stmt.setString(paramIndex++, ftsQuery);
-                stmt.setInt(paramIndex++, limit);
-                stmt.setInt(paramIndex, offset);
-            }
+            String ftsQuery = sanitizedQuery.isEmpty() ? "*" : sanitizedQuery + "*";
+            int functionsLimit = limit / 2;
+            int connectorsLimit = limit - functionsLimit;
+            stmt.setString(paramIndex++, ftsQuery);
+            stmt.setInt(paramIndex++, functionsLimit);
+            stmt.setString(paramIndex++, ftsQuery);
+            stmt.setInt(paramIndex++, connectorsLimit);
+            stmt.setInt(paramIndex++, limit);
+            stmt.setInt(paramIndex, offset);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {

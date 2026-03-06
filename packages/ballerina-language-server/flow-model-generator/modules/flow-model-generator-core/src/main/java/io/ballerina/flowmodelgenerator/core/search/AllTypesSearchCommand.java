@@ -35,10 +35,8 @@ import io.ballerina.tools.text.LineRange;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -46,6 +44,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static io.ballerina.flowmodelgenerator.core.model.Category.Name.IMPORTED_FUNCTIONS;
 import static io.ballerina.flowmodelgenerator.core.model.Category.Name.STANDARD_LIBRARY;
 
 /**
@@ -61,6 +60,7 @@ import static io.ballerina.flowmodelgenerator.core.model.Category.Name.STANDARD_
 public class AllTypesSearchCommand extends SearchCommand {
 
     private final Document functionsDoc;
+    private final List<String> moduleNames;
     private final ExecutorService executorService;
 
     // Database search types (fast path)
@@ -73,6 +73,9 @@ public class AllTypesSearchCommand extends SearchCommand {
                                  Document functionsDoc) {
         super(project, position, queryMap);
         this.functionsDoc = functionsDoc;
+        this.moduleNames = project.currentPackage().getDefaultModule().moduleDependencies().stream()
+                .map(moduleDependency -> moduleDependency.descriptor().name().packageName().value())
+                .toList();
         this.executorService = Executors.newCachedThreadPool();
     }
 
@@ -147,7 +150,6 @@ public class AllTypesSearchCommand extends SearchCommand {
         List<SearchDatabaseManager.UnifiedSearchResult> unifiedResults;
 
         if (isDefaultView) {
-            List<String> moduleNames = getModuleNames();
             if (moduleNames.isEmpty()) {
                 return Collections.emptyList();
             }
@@ -194,29 +196,26 @@ public class AllTypesSearchCommand extends SearchCommand {
     }
 
     /**
-     * Builds function nodes grouped by package modules under Standard Library.
+     * Builds function nodes grouped by package modules under Imported Functions or Standard Library.
      */
     private void buildLibraryNodesFromResults(List<SearchResult> results, Builder rootBuilder) {
         if (results.isEmpty()) {
             return;
         }
 
+        Builder importedFnBuilder = rootBuilder.stepIn(IMPORTED_FUNCTIONS);
         Builder stdLibBuilder = rootBuilder.stepIn(STANDARD_LIBRARY);
 
-        Map<String, List<SearchResult>> functionsByModule = new HashMap<>();
         for (SearchResult result : results) {
             String moduleName = result.packageInfo().moduleName();
-            functionsByModule.computeIfAbsent(moduleName, k -> new ArrayList<>()).add(result);
-        }
-
-        for (Map.Entry<String, List<SearchResult>> entry : functionsByModule.entrySet()) {
-            String moduleName = entry.getKey();
-            List<SearchResult> moduleResults = entry.getValue();
-
-            Builder moduleBuilder = stdLibBuilder.stepIn(moduleName, "", List.of());
-            for (SearchResult result : moduleResults) {
-                moduleBuilder.node(createFunctionNode(result));
+            Builder builder;
+            if (moduleNames.contains(moduleName)) {
+                builder = importedFnBuilder;
+            } else {
+                builder = stdLibBuilder;
             }
+            builder.stepIn(moduleName, "", List.of())
+                    .node(createFunctionNode(result));
         }
     }
 
@@ -376,15 +375,6 @@ public class AllTypesSearchCommand extends SearchCommand {
         }
 
         return item.getClass().getSimpleName() + ":" + System.identityHashCode(item);
-    }
-
-    /**
-     * Gets module names for the current project (used in default view filtering).
-     */
-    private List<String> getModuleNames() {
-        return project.currentPackage().getDefaultModule().moduleDependencies().stream()
-                .map(moduleDependency -> moduleDependency.descriptor().name().packageName().value())
-                .toList();
     }
 
     /**
