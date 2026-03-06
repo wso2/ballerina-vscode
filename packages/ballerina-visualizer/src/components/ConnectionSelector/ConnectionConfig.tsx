@@ -17,15 +17,18 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FlowNode, LineRange } from "@wso2/ballerina-core";
-import { FormField, FormValues } from "@wso2/ballerina-side-panel";
+import { FlowNode, LineRange, NodeKind, NodeProperties } from "@wso2/ballerina-core";
+import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormGeneratorNew } from "../../views/BI/Forms/FormGeneratorNew";
 import { RelativeLoader } from "../RelativeLoader";
 import { ConnectionConfigProps } from "./types";
 import { getConnectionKindConfig } from "./config";
-import { createConnectionSelectField, fetchConnectionValueForNode, updateNodeWithConnectionVariable } from "./utils";
+import { createConnectionSelectField, fetchConnectionValueForNode, updateFormFieldsWithData, updateNodeTemplateProperties, updateNodeWithConnectionVariable } from "./utils";
 import { LoaderContainer } from "../RelativeLoader/styles";
+import { convertNodePropertiesToFormFields } from "../../utils/bi";
+import { cloneDeep } from "lodash";
+import { URI, Utils } from "vscode-uri";
 
 export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     const { fileName, connectionKind, selectedNode, onSave, onNavigateToSelectionList } = props;
@@ -40,22 +43,17 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     const projectPath = useRef<string>("");
     const currentFilePath = useRef<string>("");
     const targetLineRangeRef = useRef<LineRange | undefined>(undefined);
+    const connectionNodesMap = useRef<Map<string, FlowNode>>(new Map());
+    const connectionConfigFields = useRef<FormField[]>([]);
 
     useEffect(() => {
         initPanel();
     }, []);
 
-    useEffect(() => {
-        if (selectedConnectionValue !== undefined) {
-            renderFormField();
-        }
-    }, [selectedConnectionValue]);
-
     const initPanel = async () => {
         setLoading(true);
         projectPath.current = await rpcClient.getVisualizerLocation().then((location) => location.projectPath);
         currentFilePath.current = fileName;
-
 
         const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
             filePath: currentFilePath.current
@@ -71,25 +69,89 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
             }
         };
 
-        await fetchSelectedConnection();
+        await fetchConnectionNodes();
+        const connectionValue = await fetchConnectionValueForNode(connectionKind, selectedNode);
+        updateFieldsForConnection(connectionValue);
         setLoading(false);
     };
 
-    const fetchSelectedConnection = async () => {
-        const connection = await fetchConnectionValueForNode(connectionKind, selectedNode);
-        setSelectedConnectionValue(connection);
+    const fetchConnectionNodes = async () => {
+        const response = await rpcClient.getBIDiagramRpcClient().searchNodes({
+            filePath: currentFilePath.current,
+            position: targetLineRangeRef.current?.startLine,
+            queryMap: { kind: connectionKind as NodeKind }
+        });
+        const nodes = response?.output ?? [];
+        const nodesMap = new Map<string, FlowNode>();
+        nodes.forEach(node => {
+            const varName = String(node.properties?.variable?.value ?? "");
+            if (varName) {
+                nodesMap.set(varName, node);
+            }
+        });
+        connectionNodesMap.current = nodesMap;
     };
 
-    const renderFormField = () => {
-        const connectionSelectField = createConnectionSelectField(selectedConnectionValue, config, onCreateNewConnection, connectionKind);
-        setSelectedConnectionFields([connectionSelectField]);
+    const getConnectionConfigFields = (connectionValue: string): FormField[] => {
+        const connectionNode = connectionNodesMap.current.get(connectionValue);
+        if (!connectionNode) return [];
+
+        const { variable, ...restProperties } = connectionNode.properties;
+        const fields = convertNodePropertiesToFormFields(restProperties as NodeProperties);
+        fields.forEach(field => {
+            if (field.key === "type") {
+                field.hidden = true;
+            }
+        });
+        return fields;
     };
 
-    const handleOnSave = useCallback(async (data: FormValues) => {
+    const updateFieldsForConnection = (connectionValue: string) => {
+        const connectionSelectField = createConnectionSelectField(connectionValue, config, onCreateNewConnection, connectionKind);
+        const configFields = connectionValue ? getConnectionConfigFields(connectionValue) : [];
+        connectionConfigFields.current = configFields;
+        setSelectedConnectionValue(connectionValue);
+        setSelectedConnectionFields([connectionSelectField, ...configFields]);
+    };
+
+    const handleOnSave = useCallback(async (data: FormValues, formImports?: FormImports) => {
         setSavingForm(true);
+
+        // 1. Update the parent node's connection reference
         updateNodeWithConnectionVariable(connectionKind, selectedNode, data["connection"]);
+
+        // 2. Save the connection node config if there are config fields with changes
+        const connectionNode = connectionNodesMap.current.get(data["connection"]);
+        const hasConfigChanges = connectionConfigFields.current.some(
+            field => data[field.key] !== undefined && data[field.key] !== field.value
+        );
+        if (connectionNode && connectionConfigFields.current.length > 0 && hasConfigChanges) {
+            const nodeToSave = cloneDeep(connectionNode);
+            updateFormFieldsWithData(connectionConfigFields.current, data, formImports);
+            updateNodeTemplateProperties(nodeToSave, connectionConfigFields.current);
+            try {
+                const relativeFileName = nodeToSave.codedata?.lineRange?.fileName;
+                const filePath = relativeFileName
+                    ? Utils.joinPath(URI.file(projectPath.current), relativeFileName).fsPath
+                    : currentFilePath.current;
+                await rpcClient.getBIDiagramRpcClient().getSourceCode({
+                    filePath,
+                    flowNode: nodeToSave,
+                    isConnector: true,
+                });
+            } catch (error) {
+                console.error(`>>> Error saving ${connectionKind} config`, error);
+            }
+        }
+
         onSave?.(selectedNode);
-    }, [onSave, rpcClient]);
+    }, [onSave, rpcClient, connectionKind]);
+
+    const handleOnChange = useCallback((fieldKey: string, value: any) => {
+        if (fieldKey === "connection" && value !== selectedConnectionValue) {
+            updateFieldsForConnection(value);
+        }
+    }, [selectedConnectionValue]);
 
     const onCreateNewConnection = useCallback(() => {
         onNavigateToSelectionList?.();
@@ -110,6 +172,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
                         targetLineRange={targetLineRangeRef.current}
                         fields={selectedConnectionFields}
                         onSubmit={handleOnSave}
+                        onChange={handleOnChange}
                         disableSaveButton={savingForm}
                         isSaving={savingForm}
                         helperPaneSide="left"
