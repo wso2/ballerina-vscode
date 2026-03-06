@@ -161,28 +161,12 @@ export function ArgManager(props: ArgManagerProps) {
         arg: string
     ) => {
         try {
-            const variableField = paramConfigs.formFields.find(f => f.key === "variable");
-            const property = getPropertyFromFormField(variableField);
-
-            const completionsResponse = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
+            const simpleTypeResponse = await rpcClient.getBIDiagramRpcClient().getSimpleTypeOfExpression({
                 filePath: fileName,
-                context: {
-                    expression: arg,
-                    startLine: targetLineRange.startLine,
-                    lineOffset: 0,
-                    offset: arg.length,
-                    codedata: undefined,
-                    property: property
-                },
-                completionContext: {
-                    triggerKind: TriggerKind.INVOKED,
-                    triggerCharacter: undefined
-                }
+                position: targetLineRange.startLine,
+                expression: arg
             });
-
-            const name = arg.split('.').pop();
-            const completionItem = completionsResponse.find(completion => completion.insertText === name);
-            return completionItem?.detail;
+            return simpleTypeResponse.type;
         } catch (error) {
             console.error(">>> Error getting type from FQN in ArgManager", error);
             return undefined;
@@ -246,7 +230,7 @@ export function ArgManager(props: ArgManagerProps) {
 
     const onSaveParam = (paramConfig: Parameter) => {
         getTypeFromArg(paramConfig.formValues['variable']).then((type) => {
-            paramConfig.formValues['type'] = type;
+            paramConfig.formValues['type'] = type?.name;
             onChangeParam(paramConfig);
             setEditingSegmentId(-1);
             setIsNew(false);
