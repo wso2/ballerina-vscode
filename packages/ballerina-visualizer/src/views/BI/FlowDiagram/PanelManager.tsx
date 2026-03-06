@@ -136,7 +136,6 @@ interface PanelManagerProps {
     onSearchChunker?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchTextChange?: (searchText: string) => void;
     searchText?: string;
-    isSearching?: boolean;
     onAddAgent?: () => void;
     onEditAgent?: () => void;
     onNavigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
