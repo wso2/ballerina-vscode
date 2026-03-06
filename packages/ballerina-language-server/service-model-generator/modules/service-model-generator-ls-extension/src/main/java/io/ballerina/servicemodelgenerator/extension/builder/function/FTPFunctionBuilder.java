@@ -46,6 +46,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.FTPFunctionModel
 import static io.ballerina.servicemodelgenerator.extension.util.FTPFunctionModelUtil.AFTER_PROCESS;
 import static io.ballerina.servicemodelgenerator.extension.util.FTPFunctionModelUtil.FUNCTION_CONFIG;
 import static io.ballerina.servicemodelgenerator.extension.util.FTPFunctionModelUtil.MOVE_TO;
+import static io.ballerina.servicemodelgenerator.extension.util.FTPFunctionModelUtil.ANNOTATIONS;
 import static io.ballerina.servicemodelgenerator.extension.util.FTPFunctionModelUtil.POST_PROCESS_ACTION;
 import static io.ballerina.servicemodelgenerator.extension.util.FTPFunctionModelUtil.POST_PROCESS_ACTION_ON_ERROR;
 import static io.ballerina.servicemodelgenerator.extension.util.FTPFunctionModelUtil.POST_PROCESS_ACTION_ON_SUCCESS;
@@ -148,8 +149,12 @@ public final class FTPFunctionBuilder extends AbstractFunctionBuilder {
     private void processPostProcessActions(Function function) {
         Map<String, Value> properties = function.getProperties();
 
-        // Handle nested postProcessAction property
-        Value postProcessAction = properties.get(POST_PROCESS_ACTION);
+        // Handle nested postProcessAction property (under annotations container)
+        Value annotationsContainer = properties.get(ANNOTATIONS);
+        if (annotationsContainer == null || annotationsContainer.getProperties() == null) {
+            return;
+        }
+        Value postProcessAction = annotationsContainer.getProperties().get(POST_PROCESS_ACTION);
         if (postProcessAction == null || postProcessAction.getProperties() == null) {
             return;
         }
@@ -165,8 +170,8 @@ public final class FTPFunctionBuilder extends AbstractFunctionBuilder {
         String successAnnotation = buildActionAnnotation(successChoice, AFTER_PROCESS);
         String errorAnnotation = buildActionAnnotation(errorChoice, AFTER_ERROR);
 
-        // Remove the source property
-        properties.remove(POST_PROCESS_ACTION);
+        // Remove the annotations container (it has been processed into a real annotation)
+        properties.remove(ANNOTATIONS);
 
         // If both are NONE or empty, don't create annotation
         if (successAnnotation.isEmpty() && errorAnnotation.isEmpty()) {

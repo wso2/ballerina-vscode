@@ -52,6 +52,7 @@ public final class FTPFunctionModelUtil {
     public static final String DATA_BINDING = "DATA_BINDING";
     public static final String STREAM = "stream";
     public static final String CONTENT = "content";
+    public static final String ANNOTATIONS = "annotations";
     public static final String POST_PROCESS_ACTION = "postProcessAction";
     public static final String POST_PROCESS_ACTION_ON_SUCCESS = "onSuccess";
     public static final String POST_PROCESS_ACTION_ON_ERROR = "onError";
@@ -88,7 +89,11 @@ public final class FTPFunctionModelUtil {
     public static void populatePostProcessActionsFromAnnotation(FunctionDefinitionNode functionNode, Function modelFunc,
                                                                 SemanticModel semanticModel,
                                                                 boolean disableRootProperty) {
-        Value postProcessAction = modelFunc.getProperties().get(POST_PROCESS_ACTION);
+        Value annotationsContainer = modelFunc.getProperties().get(ANNOTATIONS);
+        if (annotationsContainer == null || annotationsContainer.getProperties() == null) {
+            return;
+        }
+        Value postProcessAction = annotationsContainer.getProperties().get(POST_PROCESS_ACTION);
         if (postProcessAction == null || postProcessAction.getProperties() == null) {
             return;
         }
@@ -205,7 +210,7 @@ public final class FTPFunctionModelUtil {
             streamProperty = new Value.ValueBuilder()
                     .value(String.valueOf(isStream))
                     .enabled(isStream)
-                    .editable(false)
+                    .editable(true)
                     .optional(false)
                     .setAdvanced(false)
                     .build();
