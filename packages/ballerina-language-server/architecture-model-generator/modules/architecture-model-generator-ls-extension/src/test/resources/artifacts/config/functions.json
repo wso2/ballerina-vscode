@@ -91,7 +91,7 @@
         },
         "type": "FUNCTION",
         "name": "fn#with-Identifiers",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "greet": {

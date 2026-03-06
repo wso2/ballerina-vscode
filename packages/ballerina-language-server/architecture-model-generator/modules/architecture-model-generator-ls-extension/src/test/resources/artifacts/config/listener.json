@@ -19,7 +19,7 @@
         },
         "type": "LISTENER",
         "name": "httpDefaultListener",
-        "scope": "Global",
+        "scope": "Local",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
         "module": "http",
         "children": {}
@@ -39,7 +39,7 @@
         },
         "type": "LISTENER",
         "name": "httpListener",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "rabbitmqListener": {
@@ -57,7 +57,7 @@
         },
         "type": "LISTENER",
         "name": "rabbitmqListener",
-        "scope": "Global",
+        "scope": "Local",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.3.1.png",
         "module": "rabbitmq",
         "children": {}
@@ -77,7 +77,7 @@
         },
         "type": "LISTENER",
         "name": "refListener",
-        "scope": "Global",
+        "scope": "Local",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
         "module": "http",
         "children": {}

@@ -20,6 +20,7 @@ package io.ballerina.artifactsgenerator;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
+import io.ballerina.compiler.api.symbols.Qualifiable;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
@@ -117,6 +118,8 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
                     .name(functionName)
                     .type(Artifact.Type.FUNCTION);
         }
+        // Derive scope based on visibility and ownership (module-level vs object member)
+        functionBuilder.scope(determineScope(functionDefinitionNode));
         return Optional.of(functionBuilder.build());
     }
 
@@ -150,7 +153,9 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
         }
 
         // Generate the service path
-        serviceBuilder.type(Artifact.Type.SERVICE);
+        serviceBuilder
+                .type(Artifact.Type.SERVICE)
+                .scope(determineScope(serviceDeclarationNode));
 
         // Check for the child functions
         serviceDeclarationNode.members().forEach(member -> {
@@ -164,7 +169,8 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
     public Optional<Artifact> transform(ListenerDeclarationNode listenerDeclarationNode) {
         Artifact.Builder listenerBuilder = new Artifact.Builder(listenerDeclarationNode)
                 .name(listenerDeclarationNode.variableName().text())
-                .type(Artifact.Type.LISTENER);
+                .type(Artifact.Type.LISTENER)
+                .scope(determineScope(listenerDeclarationNode));
 
         // TODO: This does not work for declarations that does not have a type descriptor node such as
         //  `listener httpListener = new http:Listener(9090);`
@@ -180,14 +186,17 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
                         moduleVariableDeclarationNode.typedBindingPattern().bindingPattern()));
 
         if (hasQualifier(moduleVariableDeclarationNode.qualifiers(), SyntaxKind.CONFIGURABLE_KEYWORD)) {
-            variableBuilder.type(Artifact.Type.CONFIGURABLE);
+            variableBuilder
+                    .type(Artifact.Type.CONFIGURABLE)
+                    .scope(determineScope(moduleVariableDeclarationNode));
         } else {
             Optional<ClassSymbol> connection = getConnection(moduleVariableDeclarationNode);
             if (connection.isPresent()) {
                 ClassSymbol clientClassSymbol = connection.get();
                 variableBuilder
                         .type(Artifact.Type.CONNECTION)
-                        .icon(clientClassSymbol);
+                        .icon(clientClassSymbol)
+                        .scope(determineScope(moduleVariableDeclarationNode));
                 if (isPersistClient(clientClassSymbol, semanticModel)) {
                     variableBuilder
                             .addMetadata(CONNECTOR_TYPE, PERSIST);
@@ -195,7 +204,9 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
                             .ifPresent(modelFile -> variableBuilder.addMetadata(PERSIST_MODEL_FILE, modelFile));
                 }
             } else {
-                variableBuilder.type(Artifact.Type.VARIABLE);
+                variableBuilder
+                        .type(Artifact.Type.VARIABLE)
+                        .scope(determineScope(moduleVariableDeclarationNode));
             }
         }
 
@@ -206,7 +217,8 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
     public Optional<Artifact> transform(TypeDefinitionNode typeDefinitionNode) {
         Artifact.Builder typeBuilder = new Artifact.Builder(typeDefinitionNode)
                 .name(typeDefinitionNode.typeName().text())
-                .type(Artifact.Type.TYPE);
+                .type(Artifact.Type.TYPE)
+                .scope(determineScope(typeDefinitionNode));
         return Optional.of(typeBuilder.build());
     }
 
@@ -214,7 +226,8 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
     public Optional<Artifact> transform(EnumDeclarationNode enumDeclarationNode) {
         Artifact.Builder typeBuilder = new Artifact.Builder(enumDeclarationNode)
                 .name(enumDeclarationNode.identifier().text())
-                .type(Artifact.Type.TYPE);
+                .type(Artifact.Type.TYPE)
+                .scope(determineScope(enumDeclarationNode));
         return Optional.of(typeBuilder.build());
     }
 
@@ -222,7 +235,8 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
     public Optional<Artifact> transform(ClassDefinitionNode classDefinitionNode) {
         Artifact.Builder typeBuilder = new Artifact.Builder(classDefinitionNode)
                 .name(classDefinitionNode.className().text())
-                .type(Artifact.Type.TYPE);
+                .type(Artifact.Type.TYPE)
+                .scope(determineScope(classDefinitionNode));
 
         classDefinitionNode.members().forEach(member -> {
             member.apply(this).ifPresent(typeBuilder::child);
@@ -276,5 +290,41 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
 
     private static boolean hasQualifier(NodeList<Token> qualifierList, SyntaxKind kind) {
         return qualifierList.stream().anyMatch(qualifier -> qualifier.kind() == kind);
+    }
+
+    /**
+     * Determines the scope of a top-level declaration or member based on its qualifiers and parent node.
+     * <p>
+     * - Module-level declarations with the {@code public} qualifier are treated as {@code GLOBAL}.<br>
+     * - Module-level declarations without {@code public} are treated as {@code LOCAL}.<br>
+     * - Members of classes or other object-like constructs are treated as {@code OBJECT}.
+     * </p>
+     */
+    private Artifact.Scope determineScope(Node node) {
+        if (node == null) {
+            return Artifact.Scope.LOCAL;
+        }
+
+        Node parent = node.parent();
+
+        // Object members (e.g., methods inside classes) are treated as OBJECT-scoped.
+        if (parent != null && parent.kind() == SyntaxKind.CLASS_DEFINITION) {
+            return Artifact.Scope.OBJECT;
+        }
+
+        try {
+            Optional<Symbol> symbolOpt = semanticModel.symbol(node);
+            if (symbolOpt.isPresent()) {
+                Symbol symbol = symbolOpt.get();
+                if (symbol instanceof Qualifiable qualifiable
+                        && qualifiable.qualifiers().contains(Qualifier.PUBLIC)) {
+                    return Artifact.Scope.GLOBAL;
+                }
+            }
+        } catch (Throwable e) {
+            // If semantic model lookup fails, fall back to LOCAL scope.
+        }
+
+        return Artifact.Scope.LOCAL;
     }
 }
