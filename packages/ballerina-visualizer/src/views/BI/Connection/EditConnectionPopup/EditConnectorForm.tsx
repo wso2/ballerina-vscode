@@ -227,6 +227,12 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                 modelFilePath,
             });
 
+            if (!response) {
+                setConnectionError("Unable to connect to the database. Please try again.");
+                setLsErrorDetails({ errorMessage: "No response received from database introspection.", isExpanded: false });
+                return;
+            }
+
             if (response?.errorMsg) {
                 const errorMsg = response.errorMsg.toLowerCase();
                 if (errorMsg.includes("no tables found")) {
@@ -292,9 +298,7 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
             const visualizerLocation = await rpcClient.getVisualizerLocation();
             const projectPath = visualizerLocation.projectPath;
 
-          
             const propertiesMap = buildPropertiesFromFieldValues();
-         
 
             const response = await rpcClient.getConnectorWizardRpcClient().persistClientGenerate({
                 projectPath,
@@ -304,6 +308,12 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                 properties: propertiesMap,
                 tables: introspectDatabaseResponse.tables,
             });
+
+            if (!response) {
+                setConnectionError("Unable to update the connector. Please try again.");
+                setLsErrorDetails({ errorMessage: "No response received from connector update.", isExpanded: false });
+                return;
+            }
 
             if (response?.errorMsg) {
                 setConnectionError("Unable to update the connector. Please check the error details below.");
