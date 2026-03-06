@@ -123,7 +123,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [sidePanelView, setSidePanelView] = useState<SidePanelView>(SidePanelView.NODE_LIST);
     const [categories, setCategories] = useState<PanelCategory[]>([]); //
     const [searchText, setSearchText] = useState<string>("");
-    const [isSearching, setIsSearching] = useState(false);
     const [fetchingAiSuggestions, setFetchingAiSuggestions] = useState(false);
     const [showProgressIndicator, setShowProgressIndicator] = useState(false);
     const [showProgressSpinner, setShowProgressSpinner] = useState<boolean>(false);
@@ -985,51 +984,57 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             searchKind,
         };
         console.log(`>>> Search ${searchKind.toLowerCase()} request`, request);
-
+        setShowProgressIndicator(true);
         try {
             const response = await rpcClient.getBIDiagramRpcClient().search(request);
             console.log(`>>> Searched List of ${searchKind.toLowerCase()}`, response);
 
             if (response.categories) {
 
-                // Convert search API results
-                const searchCategories = convertFunctionCategoriesToSidePanelCategories(
-                    [...response.categories] as Category[],
-                    functionType
-                );
-
-                // Combine initial getAvailableNodes results with search API results
-                const allCategories = [...initialCategoriesRef.current, ...searchCategories];
-                console.log(">>> Combined categories before filtering:", allCategories.length);
-
-                // Filter both initial and search results with the same query
-                const filteredCategories = filterCategoriesLocally(allCategories, searchText);
-                console.log(">>> Filtered combined categories:", filteredCategories.length);
-
-                // Start fresh with filtered combined results
-                const currentCategories: PanelCategory[] = [];
-
-                filteredCategories.forEach(category => {
-                    const existingCategoryIndex = currentCategories.findIndex(
-                        existingCategory => existingCategory.title === category.title
+                if(searchKind==="ALL"){                // Convert search API results
+                    const searchCategories = convertFunctionCategoriesToSidePanelCategories(
+                        response.categories as Category[],
+                        functionType
                     );
 
-                    if (existingCategoryIndex >= 0) {
-                        // Merge items if category exists, avoiding duplicate items
-                        const existingCategory = currentCategories[existingCategoryIndex];
-                        const existingItemLabels = new Set(existingCategory.items.map((item: any) => item.label));
-                        const newItems = category.items.filter((item: any) => !existingItemLabels.has(item.label));
-                        currentCategories[existingCategoryIndex] = {
-                            ...existingCategory,
-                            items: [...existingCategory.items, ...newItems]
-                        };
-                    } else {
-                        // Add new category
-                        currentCategories.push(category);
-                    }
-                });
+                    // Combine initial getAvailableNodes results with search API results
+                    const allCategories = [...initialCategoriesRef.current, ...searchCategories];
+                    console.log(">>> Combined categories before filtering:", allCategories.length);
 
-                setCategories(currentCategories);
+                    // Filter both initial and search results with the same query
+                    const filteredCategories = filterCategoriesLocally(allCategories, searchText);
+                    console.log(">>> Filtered combined categories:", filteredCategories.length);
+
+                    // Start fresh with filtered combined results
+                    const currentCategories: PanelCategory[] = [];
+
+                    filteredCategories.forEach(category => {
+                        const existingCategoryIndex = currentCategories.findIndex(
+                            existingCategory => existingCategory.title === category.title
+                        );
+
+                        if (existingCategoryIndex >= 0) {
+                            // Merge items if category exists, avoiding duplicate items
+                            const existingCategory = currentCategories[existingCategoryIndex];
+                            const existingItemLabels = new Set(existingCategory.items.map((item: any) => item.label));
+                            const newItems = category.items.filter((item: any) => !existingItemLabels.has(item.label));
+                            currentCategories[existingCategoryIndex] = {
+                                ...existingCategory,
+                                items: [...existingCategory.items, ...newItems]
+                            };
+                        } else {
+                            // Add new category
+                            currentCategories.push(category);
+                        }
+                    });
+                    setCategories(currentCategories);
+                } else {
+                    const currentCategories = convertFunctionCategoriesToSidePanelCategories(
+                        [...response.categories] as Category[],
+                        functionType
+                    );
+                    setCategories(currentCategories);
+                }
 
                 // Set the appropriate side panel view based on search kind and function type
                 let panelView: SidePanelView;
@@ -1075,9 +1080,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         } catch (error) {
             console.error(">>> Error in search request", error);
             // Fallback to cached categories on error
+            setShowProgressIndicator(false);
             setCategories(initialCategoriesRef.current);
         } finally {
-            setIsSearching(false);
+            setShowProgressIndicator(false);
         }
     }, [rpcClient, model?.fileName]);
 
@@ -1119,7 +1125,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
         // Immediately reset searching state when text is cleared
         if (!text.trim()) {
-            setIsSearching(false);
+            // setIsSearching(false);
             setShowProgressIndicator(false);
         }
     };
@@ -1135,24 +1141,25 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
             return items.map((item: any) => {
                 // Check if this item matches the search
-                const itemMatches = item.label?.toLowerCase().includes(lowerSearchText);
-
+                const label = item.title || item.label;
+                const itemMatches = label.toLowerCase().includes(lowerSearchText);
+                if (itemMatches) {
+                    return item;
+                }
                 // If this item has nested items (subcategory), recursively filter them
                 if (item.items && Array.isArray(item.items)) {
                     const filteredSubItems = filterItemsRecursively(item.items);
 
                     // Include this subcategory if it matches OR has matching nested items
-                    if (itemMatches || filteredSubItems.length > 0) {
+                    if (filteredSubItems.length > 0) {
                         return {
                             ...item,
                             items: filteredSubItems
                         };
                     }
                     return null; // Filter out this subcategory
-                } else {
-                    // This is a leaf item - include it if it matches
-                    return itemMatches ? item : null;
-                }
+                } 
+                return null;
             }).filter(item => item !== null);
         };
 
@@ -1172,13 +1179,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 // setCategories(frontendFiltered);
 
                 // Then enhance with backend search
-                setIsSearching(true);
+                // setIsSearching(true);
+                setShowProgressIndicator(true);
                 console.log(">>> About to call handleSearch with:", searchText, "FUNCTION_TYPE.REGULAR", "ALL");
                 handleSearch(searchText, FUNCTION_TYPE.REGULAR, "ALL");
             } else {
                 // Reset to cached categories when search is empty
                 setCategories(initialCategoriesRef.current);
-                setIsSearching(false);
+                // setIsSearching(false);
                 setShowProgressIndicator(false);
             }
         }, 1100), // 1100ms delay like AddConnectionPopupContent
@@ -1201,7 +1209,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             console.log(">>> useEffect: Search text cleared, resetting state immediately");
             debouncedSearch.cancel(); // Cancel any pending search
             setCategories(initialCategoriesRef.current);
-            setIsSearching(false);
+            // setIsSearching(false);
             setShowProgressIndicator(false);
         }
         return () => debouncedSearch.cancel();
@@ -1504,6 +1512,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOnSelectNewConnection = async (nodeId: string, metadata?: any) => {
         // Push current state to navigation stack before navigating
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
         setShowProgressIndicator(true);
 
         try {
@@ -2804,7 +2813,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onSearchNpFunction={handleSearchNpFunction}
                 onSearchTextChange={handleSearchTextChange}
                 searchText={searchText}
-                isSearching={isSearching}
+                // isSearching={isSearching}
                 onSearchModelProvider={handleSearchModelProvider}
                 onSearchVectorStore={handleSearchVectorStore}
                 onSearchEmbeddingProvider={handleSearchEmbeddingProvider}
