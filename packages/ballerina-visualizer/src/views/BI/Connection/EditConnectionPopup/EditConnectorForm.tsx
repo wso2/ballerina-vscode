@@ -660,7 +660,7 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                 <FooterContainer>
                     <ActionButton
                         appearance="primary"
-                        onClick={handleConnectAndIntrospect}
+                        onClick={() => handleConnectAndIntrospect()}
                         disabled={isIntrospecting}
                         buttonSx={{ width: "100%", height: "35px" }}
                         tooltip="Connect to database and discover available tables"
