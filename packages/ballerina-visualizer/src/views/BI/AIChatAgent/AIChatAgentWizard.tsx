@@ -126,6 +126,14 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                 setNameError(`"${agentConnectionName}" already exists. Please choose a different name.`);
                 return false;
             }
+            const modelName = `${name}Model`;
+            const isModelExists = designModelRef.current.connections.some(
+                connection => connection.symbol === modelName
+            );
+            if (isModelExists) {
+                setNameError(`"${modelName}" already exists. Please choose a different name.`);
+                return false;
+            }
             const listenerName = `${name}Listener`;
             const isListenerExists = designModelRef.current.listeners.some(
                 listener => listener.symbol === listenerName
