@@ -50,7 +50,7 @@ const ErrorHeader = styled.div`
 
 export function ConnectorErrorView({ errorMessage, onBack }: { errorMessage?: string; onBack?: () => void }) {
     return (
-        <ErrorViewContainer>
+        <ErrorViewContainer role="alert" aria-live="polite">
             <ErrorHeader>
                 <Codicon name="error" iconSx={{ fontSize: "20px", color: ThemeColors.ERROR }} />
                 <Typography variant="h4" sx={{ margin: 0 }}>Error</Typography>
