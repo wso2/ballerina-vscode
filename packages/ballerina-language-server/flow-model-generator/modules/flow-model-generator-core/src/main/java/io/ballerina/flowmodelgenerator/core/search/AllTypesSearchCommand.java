@@ -201,10 +201,18 @@ public class AllTypesSearchCommand extends SearchCommand {
     }
 
     /**
-     * Builds function nodes grouped by package modules like in FunctionSearchCommand.
+     * Builds function nodes grouped by package modules under Standard Library.
      */
     private void buildLibraryNodesFromResults(FunctionSearchCommand command, List<SearchResult> results,
                                             io.ballerina.flowmodelgenerator.core.model.Category.Builder rootBuilder) {
+        if (results.isEmpty()) {
+            return;
+        }
+
+        // Create the "Standard Library" parent category
+        io.ballerina.flowmodelgenerator.core.model.Category.Builder stdLibBuilder =
+            rootBuilder.stepIn(io.ballerina.flowmodelgenerator.core.model.Category.Name.STANDARD_LIBRARY);
+
         // Group functions by module name (like io, log, etc.)
         Map<String, List<SearchResult>> functionsByModule = new HashMap<>();
 
@@ -213,14 +221,14 @@ public class AllTypesSearchCommand extends SearchCommand {
             functionsByModule.computeIfAbsent(moduleName, k -> new ArrayList<>()).add(result);
         }
 
-        // Create a category for each module with functions
+        // Create a category for each module with functions under Standard Library
         for (Map.Entry<String, List<SearchResult>> entry : functionsByModule.entrySet()) {
             String moduleName = entry.getKey();
             List<SearchResult> moduleResults = entry.getValue();
 
-            // Create category for this module (like "io", "log", etc.)
+            // Create category for this module under Standard Library
             io.ballerina.flowmodelgenerator.core.model.Category.Builder moduleBuilder =
-                rootBuilder.stepIn(moduleName, "", List.of());
+                stdLibBuilder.stepIn(moduleName, "", List.of());
 
             // Add all functions from this module
             for (SearchResult result : moduleResults) {
