@@ -72,7 +72,7 @@ import { PanelManager, SidePanelView } from "./PanelManager";
 import { findFunctionByName, transformCategories, getNodeTemplateForConnection } from "./utils";
 import { PanelOverlayProvider } from "./context/PanelOverlayContext";
 import { PanelOverlayRenderer } from "./PanelOverlayRenderer";
-import { ExpressionFormField, Category as PanelCategory } from "@wso2/ballerina-side-panel";
+import { ExpressionFormField, Category as PanelCategory, S } from "@wso2/ballerina-side-panel";
 import { cloneDeep, debounce } from "lodash";
 import { ConnectionKind } from "../../../components/ConnectionSelector";
 import {
@@ -206,6 +206,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 // Skip if the parent is a data mapper popup
                 return;
             }
+                setSearchText("");
             if (
                 parent.artifactType === DIRECTORY_MAP.FUNCTION ||
                 parent.artifactType === DIRECTORY_MAP.NP_FUNCTION ||
@@ -222,7 +223,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     return;
                 }
                 setShowProgressIndicator(true);
+                // Always clear search text when returning from popup
+                // (handles both save and cancel/close scenarios)
                 if (parent.artifactType === DIRECTORY_MAP.CONNECTION) {
+                    setSidePanelView(SidePanelView.NODE_LIST);
                     updateConnectionWithNewItem(parent.recentIdentifier);
                     platformRpcClient?.refreshConnectionList();
                 }
@@ -843,60 +847,61 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
                 setShowSidePanel(true);
                 setSidePanelView(SidePanelView.NODE_LIST);
+                setCategories(convertedCategories);
 
-                // Call search API with SearchCommand ALL for better NodeList
-                const searchAllRequest: BISearchRequest = {
-                    position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
-                    filePath: model.fileName,
-                    queryMap: undefined,
-                    searchKind: "ALL",
-                };
+                // // Call search API with SearchCommand ALL for better NodeList
+                // const searchAllRequest: BISearchRequest = {
+                //     position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                //     filePath: model.fileName,
+                //     queryMap: undefined,
+                //     searchKind: "ALL",
+                // };
 
-                rpcClient
-                    .getBIDiagramRpcClient()
-                    .search(searchAllRequest)
-                    .then((searchResponse) => {
-                        console.log(">>> Search ALL response for NodeList", searchResponse);
-                        if (searchResponse.categories) {
-                            // Update categories with search results, but merge with existing converted categories
-                            const allCategories = convertFunctionCategoriesToSidePanelCategories(
-                                searchResponse.categories as Category[],
-                                FUNCTION_TYPE.REGULAR
-                            );
+                // rpcClient
+                //     .getBIDiagramRpcClient()
+                //     .search(searchAllRequest)
+                //     .then((searchResponse) => {
+                //         console.log(">>> Search ALL response for NodeList", searchResponse);
+                //         if (searchResponse.categories) {
+                //             // Update categories with search results, but merge with existing converted categories
+                //             const allCategories = convertFunctionCategoriesToSidePanelCategories(
+                //                 searchResponse.categories as Category[],
+                //                 FUNCTION_TYPE.REGULAR
+                //             );
 
-                            // Merge categories while avoiding duplicates by checking category title/label
-                            const mergedCategories = [...convertedCategories];
+                //             // Merge categories while avoiding duplicates by checking category title/label
+                //             const mergedCategories = [...convertedCategories];
 
-                            allCategories.forEach(newCategory => {
-                                const existingCategoryIndex = mergedCategories.findIndex(
-                                    existingCategory => existingCategory.title === newCategory.title
-                                );
+                //             allCategories.forEach(newCategory => {
+                //                 const existingCategoryIndex = mergedCategories.findIndex(
+                //                     existingCategory => existingCategory.title === newCategory.title
+                //                 );
 
-                                if (existingCategoryIndex >= 0) {
-                                    // Merge items if category exists, avoiding duplicate items
-                                    const existingCategory = mergedCategories[existingCategoryIndex];
-                                    const existingItemLabels = new Set(existingCategory.items.map(item => item.description));
-                                    const newItems = newCategory.items.filter(item => !existingItemLabels.has(item.description));
-                                    mergedCategories[existingCategoryIndex] = {
-                                        ...existingCategory,
-                                        items: [...existingCategory.items, ...newItems]
-                                    };
-                                } else {
-                                    // Add new category
-                                    mergedCategories.push(newCategory);
-                                }
-                            });
+                //                 if (existingCategoryIndex >= 0) {
+                //                     // Merge items if category exists, avoiding duplicate items
+                //                     const existingCategory = mergedCategories[existingCategoryIndex];
+                //                     const existingItemLabels = new Set(existingCategory.items.map(item => item.description));
+                //                     const newItems = newCategory.items.filter(item => !existingItemLabels.has(item.description));
+                //                     mergedCategories[existingCategoryIndex] = {
+                //                         ...existingCategory,
+                //                         items: [...existingCategory.items, ...newItems]
+                //                     };
+                //                 } else {
+                //                     // Add new category
+                //                     mergedCategories.push(newCategory);
+                //                 }
+                //             });
 
-                            finalCategories = mergedCategories;
-                        }
-                    })
-                    .catch((error) => {
-                        console.error(">>> Error in search ALL request", error);
-                    })
-                    .finally(() => {
-                        // Set categories only once at the end of all operations
-                        setCategories(finalCategories);
-                    });
+                //             finalCategories = mergedCategories;
+                //         }
+                //     })
+                //     .catch((error) => {
+                //         console.error(">>> Error in search ALL request", error);
+                //     })
+                //     .finally(() => {
+                //         // Set categories only once at the end of all operations
+                //         setCategories(finalCategories);
+                //     });
             })
             .finally(() => {
                 setShowProgressIndicator(false);
@@ -1111,6 +1116,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const handleSearchTextChange = (text: string) => {
         console.log(">>> handleSearchTextChange called with:", text);
         setSearchText(text);
+
+        // Immediately reset searching state when text is cleared
+        if (!text.trim()) {
+            setIsSearching(false);
+            setShowProgressIndicator(false);
+        }
     };
 
     // Frontend filtering function for cached categories - handles nested structures
@@ -1168,6 +1179,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 // Reset to cached categories when search is empty
                 setCategories(initialCategoriesRef.current);
                 setIsSearching(false);
+                setShowProgressIndicator(false);
             }
         }, 1100), // 1100ms delay like AddConnectionPopupContent
         [handleSearch]
@@ -1186,9 +1198,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             debouncedSearch(searchText);
         } else {
             // Reset immediately when search is cleared
+            console.log(">>> useEffect: Search text cleared, resetting state immediately");
+            debouncedSearch.cancel(); // Cancel any pending search
             setCategories(initialCategoriesRef.current);
-            debouncedSearch.cancel();
             setIsSearching(false);
+            setShowProgressIndicator(false);
         }
         return () => debouncedSearch.cancel();
     }, [searchText, debouncedSearch]);
@@ -1490,7 +1504,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOnSelectNewConnection = async (nodeId: string, metadata?: any) => {
         // Push current state to navigation stack before navigating
-        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
         setShowProgressIndicator(true);
 
         try {
@@ -1509,10 +1522,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         } finally {
             setShowProgressIndicator(false);
         }
-    };
-
-    const handleOnSelectConnectorPopup = async (nodeId: string, metadata?: any) => {
-        
     };
 
     const handleOnFormSubmit = (
@@ -1924,7 +1933,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             },
             isPopup: true,
         });
-    }, [model, targetRef, categories, rpcClient]);
+    }, [model, targetRef, categories, rpcClient, sidePanelView]);
 
     const handleOnEditConnection = (connectionName: string) => {
         rpcClient.getVisualizerRpcClient().openView({
@@ -2794,6 +2803,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onSearchFunction={handleSearchFunction}
                 onSearchNpFunction={handleSearchNpFunction}
                 onSearchTextChange={handleSearchTextChange}
+                searchText={searchText}
                 isSearching={isSearching}
                 onSearchModelProvider={handleSearchModelProvider}
                 onSearchVectorStore={handleSearchVectorStore}

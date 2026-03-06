@@ -358,6 +358,7 @@ interface NodeListProps {
     onImportDevantConn?: (devantConn: ConnectionListItem) => void;
     onLinkDevantProject?: () => void;
     onRefreshDevantConnections?: () => void;
+    searchText?: string;
 }
 
 export function NodeList(props: NodeListProps) {
@@ -382,6 +383,12 @@ export function NodeList(props: NodeListProps) {
 
     const [searchText, setSearchText] = useState<string>("");
     const [showGeneratePanel, setShowGeneratePanel] = useState(false);
+
+    useEffect(() => {
+        if (props.searchText !== undefined) {
+            setSearchText(props.searchText);
+        }
+    }, [props.searchText]);
     const [isSearching, setIsSearching] = useState(false);
     const [expandedMoreSections, setExpandedMoreSections] = useState<Record<string, boolean>>({});
     const [expandedCategories, setExpandedCategoriesState] = useState<Record<string, boolean>>({});
@@ -412,6 +419,12 @@ export function NodeList(props: NodeListProps) {
 
     useEffect(() => {
         if (onSearchTextChange) {
+            if (!searchText.trim()) {
+                setIsSearching(false);
+                debouncedSearch.cancel();
+                onSearchTextChange("");
+                return;
+            }
             setIsSearching(true);
             debouncedSearch(searchText);
             return () => debouncedSearch.cancel();
