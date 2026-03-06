@@ -155,7 +155,7 @@ export const EditorContentColumn = styled.div`
     gap: 10px;
 `;
 
-export interface FTPFormProps {
+export interface FileIntegrationFormProps {
     functionModel?: FunctionModel;
     model: ServiceModel;
     isSaving: boolean;
@@ -171,7 +171,7 @@ type MoveToValidationState = {
     hasValidationFailure: boolean;
 };
 
-export function FTPForm(props: FTPFormProps) {
+export function FileIntegrationForm(props: FileIntegrationFormProps) {
     const { model, isSaving, onSave, onClose, isNew, selectedHandler } = props;
 
     const [serviceModel, setServiceModel] = useState<ServiceModel>(model);
