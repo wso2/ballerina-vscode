@@ -23,6 +23,8 @@ import {
     generateWSDLApiClient,
     getConnector,
     getConnectors,
+    introspectCredentials,
+    IntrospectCredentialsRequest,
     introspectDatabase,
     IntrospectDatabaseRequest,
     persistClientGenerate,
@@ -39,4 +41,5 @@ export function registerConnectorWizardRpcHandlers(messenger: Messenger) {
     messenger.onRequest(introspectDatabase, (args: IntrospectDatabaseRequest) => rpcManger.introspectDatabase(args));
     messenger.onRequest(persistClientGenerate, (args: PersistClientGenerateRequest) => rpcManger.persistClientGenerate(args));
     messenger.onRequest(generateWSDLApiClient, (args: WSDLApiClientGenerationRequest) => rpcManger.generateWSDLApiClient(args));
+    messenger.onRequest(introspectCredentials, (args: IntrospectCredentialsRequest) => rpcManger.introspectCredentials(args));
 }
