@@ -297,9 +297,6 @@ public class AiUtils {
      * @return the new property with SINGLE_SELECT type
      */
     public static Property convertToSingleSelect(Property original, List<String> options) {
-        if (original == null) {
-            throw new IllegalArgumentException("Original property cannot be null");
-        }
         List<PropertyType> selectTypes = List.of(
                 new PropertyType(Property.ValueType.SINGLE_SELECT, null, null, Option.of(options),
                         null, null, null, true)

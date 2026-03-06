@@ -198,9 +198,9 @@ public class AgentCallBuilder extends CallBuilder {
     }
 
     /**
-     * Post-processes the {@code td} inferred-type property on an AGENT_CALL node builder, converting
-     * it from a free-form expression field to a SINGLE_SELECT dropdown. Safe to call for any node
-     * builder or key — exits immediately when the conditions are not met.
+     * Post-processes the {@code td} inferred-type property on an AGENT_CALL node builder, converting it from a
+     * free-form expression field to a SINGLE_SELECT dropdown. Safe to call for any node builder or key — exits
+     * immediately when the conditions are not met.
      *
      * @param nodeBuilder the node builder to update
      * @param key         the inferred type parameter key
@@ -216,12 +216,12 @@ public class AgentCallBuilder extends CallBuilder {
             return;
         }
         // Ensure optional/advanced are set (needed when called from CodeAnalyzer for existing nodes)
-        Property updated = AiUtils.copyAsOptionalAdvanced(prop);
-        updated = AiUtils.createPropertyWithUpdatedLabel(updated, "Type Descriptor");
-        if (updated.value() == null || updated.value().toString().isEmpty()) {
-            updated = AiUtils.createUpdatedProperty(updated, STRING);
+        Property updatedProperty = AiUtils.copyAsOptionalAdvanced(prop);
+        updatedProperty = AiUtils.createPropertyWithUpdatedLabel(updatedProperty, "Type Descriptor");
+        if (updatedProperty.value() == null || updatedProperty.value().toString().isEmpty()) {
+            updatedProperty = AiUtils.createUpdatedProperty(updatedProperty, STRING);
         }
-        props.put(key, AiUtils.convertToSingleSelect(updated, TD_OPTIONS));
+        props.put(key, AiUtils.convertToSingleSelect(updatedProperty, TD_OPTIONS));
     }
 
     private Set<String> getVisibleSymbolNames(TemplateContext context) {
