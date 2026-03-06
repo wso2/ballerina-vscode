@@ -142,8 +142,8 @@ export class CreateLinkState extends State<DiagramEngine> {
 						if (element.attributes.portType === "IN") {
 							const isDisabled = element.isDisabled();
 							if (!isDisabled && !element.attributes.field.convertedField) {
-								element.fireEvent({}, "mappingFinishedTo");
 								if (this.sourcePort.canLinkToPort(element)) {
+									element.fireEvent({}, "mappingFinishedTo");
 
 									this.link?.setTargetPort(element);
 
