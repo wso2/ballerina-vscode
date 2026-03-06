@@ -626,7 +626,8 @@ public class SearchDatabaseManager {
                     String packageName = rs.getString("package_name");
                     String version = rs.getString("version");
 
-                    SearchResult searchResult = SearchResult.from(org, packageName, moduleName, version, name, description);
+                    SearchResult searchResult = SearchResult.from(org, packageName, moduleName, version, name,
+                            description);
                     results.add(new UnifiedSearchResult(resultType, searchResult));
                 }
             }
@@ -716,7 +717,8 @@ public class SearchDatabaseManager {
                     String packageName = rs.getString("package_name");
                     String version = rs.getString("version");
 
-                    SearchResult searchResult = SearchResult.from(org, packageName, moduleName, version, name, description);
+                    SearchResult searchResult = SearchResult.from(org, packageName, moduleName, version, name,
+                            description);
                     results.add(new UnifiedSearchResult(resultType, searchResult));
                 }
             }

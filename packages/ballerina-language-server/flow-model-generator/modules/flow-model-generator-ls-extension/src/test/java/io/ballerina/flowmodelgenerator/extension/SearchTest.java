@@ -24,7 +24,6 @@ import io.ballerina.flowmodelgenerator.extension.request.SearchRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LineRange;
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -39,13 +38,6 @@ import java.util.Map;
  */
 public class SearchTest extends AbstractLSTest {
 
-    @DataProvider(name = "data-provider")
-    @Override
-    protected Object[] getConfigsList() {
-        return new Object[][]{
-                {Path.of("functions/all_default.json")},
-                {Path.of("functions/all_search_query.json")},
-        };}
 
     @Override
     @Test(dataProvider = "data-provider")
@@ -62,7 +54,7 @@ public class SearchTest extends AbstractLSTest {
         if (!categories.equals(testConfig.categories())) {
             TestConfig updateConfig = new TestConfig(testConfig.description(), testConfig.kind(), testConfig.source(),
                     testConfig.position(), testConfig.queryMap(), categories);
-            updateConfig(configJsonPath, updateConfig);
+//            updateConfig(configJsonPath, updateConfig);
             compareJsonElements(categories, testConfig.categories());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }

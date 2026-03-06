@@ -18,7 +18,15 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
+import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
+import io.ballerina.flowmodelgenerator.core.model.Category;
+import io.ballerina.flowmodelgenerator.core.model.Category.Builder;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.Item;
+import io.ballerina.flowmodelgenerator.core.model.Metadata;
+import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.SearchDatabaseManager;
 import io.ballerina.modelgenerator.commons.SearchResult;
 import io.ballerina.projects.Document;
@@ -30,11 +38,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+
+import static io.ballerina.flowmodelgenerator.core.model.Category.Name.STANDARD_LIBRARY;
 
 /**
  * Optimized search command implementation that uses a hybrid approach:
@@ -58,7 +70,7 @@ public class AllTypesSearchCommand extends SearchCommand {
     );
 
     public AllTypesSearchCommand(Project project, LineRange position, Map<String, String> queryMap,
-                                          Document functionsDoc) {
+                                 Document functionsDoc) {
         super(project, position, queryMap);
         this.functionsDoc = functionsDoc;
         this.executorService = Executors.newCachedThreadPool();
@@ -78,13 +90,12 @@ public class AllTypesSearchCommand extends SearchCommand {
     protected Map<String, List<SearchResult>> fetchPopularItems() {
         Map<String, List<SearchResult>> popularItems = new HashMap<>();
 
-        // Fetch popular items from all search types
         for (Kind searchType : DATABASE_SEARCH_TYPES) {
             try {
                 SearchCommand command = createSearchCommand(searchType);
                 Map<String, List<SearchResult>> typePopularItems = command.fetchPopularItems();
                 popularItems.putAll(typePopularItems);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 // Continue with other search types if one fails
             }
         }
@@ -96,15 +107,12 @@ public class AllTypesSearchCommand extends SearchCommand {
     protected List<Item> searchCurrentOrganization(String currentOrg) {
         List<CompletableFuture<List<Item>>> futures = new ArrayList<>();
 
-        // Execute org search for all supported search types
         for (Kind searchType : DATABASE_SEARCH_TYPES) {
             CompletableFuture<List<Item>> future = CompletableFuture.supplyAsync(() -> {
                 try {
                     SearchCommand command = createSearchCommand(searchType);
                     return command.searchCurrentOrganization(currentOrg);
-                } catch (UnsupportedOperationException e) {
-                    return Collections.emptyList();
-                } catch (Exception e) {
+                } catch (RuntimeException e) {
                     return Collections.emptyList();
                 }
             }, executorService);
@@ -120,11 +128,10 @@ public class AllTypesSearchCommand extends SearchCommand {
     private List<Item> executeHybridSearch(boolean isDefaultView) {
         List<CompletableFuture<List<Item>>> futures = new ArrayList<>();
 
-        // Fast path: Execute a unified database query for functions/connectors
         CompletableFuture<List<Item>> databaseFuture = CompletableFuture.supplyAsync(() -> {
             try {
                 return executeDatabaseSearch(isDefaultView);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 return Collections.emptyList();
             }
         }, executorService);
@@ -140,14 +147,12 @@ public class AllTypesSearchCommand extends SearchCommand {
         List<SearchDatabaseManager.UnifiedSearchResult> unifiedResults;
 
         if (isDefaultView) {
-            // Get module names for filtering imported packages
             List<String> moduleNames = getModuleNames();
             if (moduleNames.isEmpty()) {
                 return Collections.emptyList();
             }
             unifiedResults = dbManager.searchAllTypesByPackages(moduleNames, limit, offset);
         } else {
-            // Use query-based search
             unifiedResults = dbManager.searchAllTypes(query, limit, offset);
         }
 
@@ -158,10 +163,8 @@ public class AllTypesSearchCommand extends SearchCommand {
      * Processes unified database results and converts them directly to Items.
      */
     private List<Item> processDatabaseResults(List<SearchDatabaseManager.UnifiedSearchResult> unifiedResults) {
-        io.ballerina.flowmodelgenerator.core.model.Category.Builder rootBuilder =
-            new io.ballerina.flowmodelgenerator.core.model.Category.Builder(null);
+        Builder rootBuilder = new Builder(null);
 
-        // Separate functions and connectors
         List<SearchDatabaseManager.UnifiedSearchResult> functions = new ArrayList<>();
         List<SearchDatabaseManager.UnifiedSearchResult> connectors = new ArrayList<>();
 
@@ -173,28 +176,18 @@ public class AllTypesSearchCommand extends SearchCommand {
             }
         }
 
-        // Process functions using FunctionSearchCommand approach
         if (!functions.isEmpty()) {
             List<SearchResult> functionResults = functions.stream()
-                .map(SearchDatabaseManager.UnifiedSearchResult::getSearchResult)
-                .collect(java.util.stream.Collectors.toList());
-
-            // Delegate to FunctionSearchCommand for proper category building
-            FunctionSearchCommand functionCmd = new FunctionSearchCommand(project, position,
-                    getQueryMapForType(Kind.FUNCTION), functionsDoc);
-            buildLibraryNodesFromResults(functionCmd, functionResults, rootBuilder);
+                    .map(SearchDatabaseManager.UnifiedSearchResult::getSearchResult)
+                    .collect(Collectors.toList());
+            buildLibraryNodesFromResults(functionResults, rootBuilder);
         }
 
-        // Process connectors using ConnectorSearchCommand approach
         if (!connectors.isEmpty()) {
             List<SearchResult> connectorResults = connectors.stream()
-                .map(SearchDatabaseManager.UnifiedSearchResult::getSearchResult)
-                .collect(java.util.stream.Collectors.toList());
-
-            // Delegate to ConnectorSearchCommand for proper category building
-            ConnectorSearchCommand connectorCmd = new ConnectorSearchCommand(project, position,
-                    getQueryMapForType(Kind.CONNECTOR));
-            buildLibraryNodesFromConnectorResults(connectorCmd, connectorResults, rootBuilder);
+                    .map(SearchDatabaseManager.UnifiedSearchResult::getSearchResult)
+                    .collect(Collectors.toList());
+            buildLibraryNodesFromConnectorResults(connectorResults, rootBuilder);
         }
 
         return rootBuilder.build().items();
@@ -203,87 +196,59 @@ public class AllTypesSearchCommand extends SearchCommand {
     /**
      * Builds function nodes grouped by package modules under Standard Library.
      */
-    private void buildLibraryNodesFromResults(FunctionSearchCommand command, List<SearchResult> results,
-                                            io.ballerina.flowmodelgenerator.core.model.Category.Builder rootBuilder) {
+    private void buildLibraryNodesFromResults(List<SearchResult> results, Builder rootBuilder) {
         if (results.isEmpty()) {
             return;
         }
 
-        // Create the "Standard Library" parent category
-        io.ballerina.flowmodelgenerator.core.model.Category.Builder stdLibBuilder =
-            rootBuilder.stepIn(io.ballerina.flowmodelgenerator.core.model.Category.Name.STANDARD_LIBRARY);
+        Builder stdLibBuilder = rootBuilder.stepIn(STANDARD_LIBRARY);
 
-        // Group functions by module name (like io, log, etc.)
         Map<String, List<SearchResult>> functionsByModule = new HashMap<>();
-
         for (SearchResult result : results) {
             String moduleName = result.packageInfo().moduleName();
             functionsByModule.computeIfAbsent(moduleName, k -> new ArrayList<>()).add(result);
         }
 
-        // Create a category for each module with functions under Standard Library
         for (Map.Entry<String, List<SearchResult>> entry : functionsByModule.entrySet()) {
             String moduleName = entry.getKey();
             List<SearchResult> moduleResults = entry.getValue();
 
-            // Create category for this module under Standard Library
-            io.ballerina.flowmodelgenerator.core.model.Category.Builder moduleBuilder =
-                stdLibBuilder.stepIn(moduleName, "", List.of());
-
-            // Add all functions from this module
+            Builder moduleBuilder = stdLibBuilder.stepIn(moduleName, "", List.of());
             for (SearchResult result : moduleResults) {
-                io.ballerina.flowmodelgenerator.core.model.AvailableNode node = createFunctionNode(result);
-                moduleBuilder.node(node);
+                moduleBuilder.node(createFunctionNode(result));
             }
         }
     }
 
     /**
-     * Builds connector nodes under a single "Connectors" category for default view.
+     * Builds connector nodes under a single "Connectors" category.
      */
-    private void buildLibraryNodesFromConnectorResults(ConnectorSearchCommand command, List<SearchResult> results,
-                                                     io.ballerina.flowmodelgenerator.core.model.Category.Builder rootBuilder) {
-        // For default view: group all connectors under "Connectors" category
-        if (!results.isEmpty()) {
-            io.ballerina.flowmodelgenerator.core.model.Category.Builder connectorsBuilder =
-                rootBuilder.stepIn("Connectors", null, null);
-
-            for (SearchResult result : results) {
-                io.ballerina.flowmodelgenerator.core.model.AvailableNode node = createConnectorNode(result);
-                connectorsBuilder.node(node);
-            }
+    private void buildLibraryNodesFromConnectorResults(List<SearchResult> results, Builder rootBuilder) {
+        if (results.isEmpty()) {
+            return;
         }
-    }
 
-    /**
-     * Finds the category for a connector based on the JSON mapping.
-     */
-    private String findConnectorCategory(String packageConnectorKey, Map<String, List<String>> categories) {
-        for (Map.Entry<String, List<String>> category : categories.entrySet()) {
-            if (category.getValue().contains(packageConnectorKey)) {
-                return category.getKey();
-            }
+        Builder connectorsBuilder = rootBuilder.stepIn("Connectors", null, null);
+        for (SearchResult result : results) {
+            connectorsBuilder.node(createConnectorNode(result));
         }
-        return null;
     }
 
     /**
      * Creates a function node with proper metadata.
      */
-    private io.ballerina.flowmodelgenerator.core.model.AvailableNode createFunctionNode(SearchResult result) {
-        String icon = io.ballerina.modelgenerator.commons.CommonUtils.generateIcon(
-            result.packageInfo().org(), result.packageInfo().packageName(), result.packageInfo().version());
+    private AvailableNode createFunctionNode(SearchResult result) {
+        String icon = CommonUtils.generateIcon(
+                result.packageInfo().org(), result.packageInfo().packageName(), result.packageInfo().version());
 
-        io.ballerina.flowmodelgenerator.core.model.Metadata metadata =
-            new io.ballerina.flowmodelgenerator.core.model.Metadata.Builder<>(null)
+        Metadata metadata = new Metadata.Builder<>(null)
                 .label(result.name())
                 .description(result.description())
                 .icon(icon)
                 .build();
 
-        io.ballerina.flowmodelgenerator.core.model.Codedata codedata =
-            new io.ballerina.flowmodelgenerator.core.model.Codedata.Builder<>(null)
-                .node(io.ballerina.flowmodelgenerator.core.model.NodeKind.FUNCTION_CALL)
+        Codedata codedata = new Codedata.Builder<>(null)
+                .node(NodeKind.FUNCTION_CALL)
                 .org(result.packageInfo().org())
                 .module(result.packageInfo().moduleName())
                 .packageName(result.packageInfo().packageName())
@@ -291,29 +256,26 @@ public class AllTypesSearchCommand extends SearchCommand {
                 .version(result.packageInfo().version())
                 .build();
 
-        return new io.ballerina.flowmodelgenerator.core.model.AvailableNode(metadata, codedata, true);
+        return new AvailableNode(metadata, codedata, true);
     }
 
     /**
      * Creates a connector node with proper metadata and connection structure.
      */
-    private io.ballerina.flowmodelgenerator.core.model.AvailableNode createConnectorNode(SearchResult result) {
-        String icon = io.ballerina.modelgenerator.commons.CommonUtils.generateIcon(
-            result.packageInfo().org(), result.packageInfo().packageName(), result.packageInfo().version());
+    private AvailableNode createConnectorNode(SearchResult result) {
+        String icon = CommonUtils.generateIcon(
+                result.packageInfo().org(), result.packageInfo().packageName(), result.packageInfo().version());
 
-        String connectorName = io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil
-            .getConnectorName(result.name(), result.packageInfo().moduleName());
+        String connectorName = ConnectorUtil.getConnectorName(result.name(), result.packageInfo().moduleName());
 
-        io.ballerina.flowmodelgenerator.core.model.Metadata metadata =
-            new io.ballerina.flowmodelgenerator.core.model.Metadata.Builder<>(null)
+        Metadata metadata = new Metadata.Builder<>(null)
                 .label(connectorName)
                 .description(result.description())
                 .icon(icon)
                 .build();
 
-        io.ballerina.flowmodelgenerator.core.model.Codedata codedata =
-            new io.ballerina.flowmodelgenerator.core.model.Codedata.Builder<>(null)
-                .node(io.ballerina.flowmodelgenerator.core.model.NodeKind.NEW_CONNECTION)
+        Codedata codedata = new Codedata.Builder<>(null)
+                .node(NodeKind.NEW_CONNECTION)
                 .org(result.packageInfo().org())
                 .module(result.packageInfo().moduleName())
                 .packageName(result.packageInfo().packageName())
@@ -322,21 +284,7 @@ public class AllTypesSearchCommand extends SearchCommand {
                 .version(result.packageInfo().version())
                 .build();
 
-        return new io.ballerina.flowmodelgenerator.core.model.AvailableNode(metadata, codedata, true);
-    }
-
-    /**
-     * Merges categories from one builder into another.
-     */
-    private void mergeBuilders(io.ballerina.flowmodelgenerator.core.model.Category.Builder source,
-                             io.ballerina.flowmodelgenerator.core.model.Category.Builder target) {
-        try {
-            // This would require deeper reflection to merge the builder state
-            // For now, we'll use the fallback approach in the catch block
-            throw new UnsupportedOperationException("Builder merging not implemented");
-        } catch (Exception e) {
-            // Fallback: the individual node creation handles the structure
-        }
+        return new AvailableNode(metadata, codedata, true);
     }
 
     /**
@@ -344,12 +292,16 @@ public class AllTypesSearchCommand extends SearchCommand {
      */
     private SearchCommand createSearchCommand(Kind searchType) {
         return switch (searchType) {
-            case FUNCTION -> new FunctionSearchCommand(project, position, getQueryMapForType(searchType), functionsDoc);
+            case FUNCTION ->
+                    new FunctionSearchCommand(project, position, getQueryMapForType(searchType), functionsDoc);
             case CONNECTOR -> new ConnectorSearchCommand(project, position, getQueryMapForType(searchType));
-            case NP_FUNCTION -> new NPFunctionSearchCommand(project, position, getQueryMapForType(searchType), functionsDoc);
+            case NP_FUNCTION ->
+                    new NPFunctionSearchCommand(project, position, getQueryMapForType(searchType), functionsDoc);
             case TYPE -> new TypeSearchCommand(project, position, getQueryMapForType(searchType));
-            case MODEL_PROVIDER -> new ModelProviderSearchCommand(project, position, getQueryMapForType(searchType));
-            case EMBEDDING_PROVIDER -> new EmbeddingProviderSearchCommand(project, position, getQueryMapForType(searchType));
+            case MODEL_PROVIDER ->
+                    new ModelProviderSearchCommand(project, position, getQueryMapForType(searchType));
+            case EMBEDDING_PROVIDER ->
+                    new EmbeddingProviderSearchCommand(project, position, getQueryMapForType(searchType));
             case VECTOR_STORE -> new VectorStoreSearchCommand(project, position, getQueryMapForType(searchType));
             case DATA_LOADER -> new DataLoaderSearchCommand(project, position, getQueryMapForType(searchType));
             case CHUNKER -> new ChunkerSearchCommand(project, position, getQueryMapForType(searchType));
@@ -358,7 +310,8 @@ public class AllTypesSearchCommand extends SearchCommand {
             case MEMORY -> new MemoryManagerSearchCommand(project, position, getQueryMapForType(searchType));
             case MEMORY_STORE -> new MemoryStoreSearchCommand(project, position, getQueryMapForType(searchType));
             case AGENT_TOOL -> new AgentToolSearchCommand(project, position, getQueryMapForType(searchType));
-            case KNOWLEDGE_BASE -> new KnowledgeBaseSearchCommand(project, position, getQueryMapForType(searchType));
+            case KNOWLEDGE_BASE ->
+                    new KnowledgeBaseSearchCommand(project, position, getQueryMapForType(searchType));
             default -> throw new IllegalArgumentException("Unsupported search type: " + searchType);
         };
     }
@@ -369,22 +322,20 @@ public class AllTypesSearchCommand extends SearchCommand {
     private List<Item> aggregateResults(List<CompletableFuture<List<Item>>> futures) {
         List<Item> allItems = new ArrayList<>();
 
-        // Wait for all futures to complete and collect results
         for (CompletableFuture<List<Item>> future : futures) {
             try {
                 List<Item> items = future.get();
                 if (items != null) {
                     allItems.addAll(items);
                 }
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
                 // Continue with other results if one fails
             }
         }
 
-        // Apply deduplication based on item properties
         List<Item> deduplicatedItems = deduplicateItems(allItems);
-
-        // Apply ranking and limit results
         return rankAndLimitResults(deduplicatedItems);
     }
 
@@ -408,7 +359,7 @@ public class AllTypesSearchCommand extends SearchCommand {
      * Generates a unique key for an item based on its properties.
      */
     private String generateItemKey(Item item) {
-        if (item instanceof io.ballerina.flowmodelgenerator.core.model.AvailableNode availableNode) {
+        if (item instanceof AvailableNode availableNode) {
             if (availableNode.codedata() != null && availableNode.codedata().node() != null) {
                 String symbol = availableNode.codedata().symbol() != null ?
                         availableNode.codedata().symbol() : "";
@@ -421,7 +372,7 @@ public class AllTypesSearchCommand extends SearchCommand {
             }
         }
 
-        if (item instanceof io.ballerina.flowmodelgenerator.core.model.Category category) {
+        if (item instanceof Category category) {
             return "category:" + (category.metadata() != null ? category.metadata().label() : "unknown");
         }
 
@@ -432,12 +383,10 @@ public class AllTypesSearchCommand extends SearchCommand {
      * Ranks items based on relevance and applies limit/offset.
      */
     private List<Item> rankAndLimitResults(List<Item> items) {
-        // Sort by relevance
         List<Item> sortedItems = items.stream()
                 .sorted(Comparator.comparing(this::calculateRelevanceScore).reversed())
                 .collect(Collectors.toList());
 
-        // Apply offset and limit
         int startIndex = Math.min(offset, sortedItems.size());
         int endIndex = Math.min(startIndex + limit, sortedItems.size());
 
@@ -449,43 +398,42 @@ public class AllTypesSearchCommand extends SearchCommand {
      */
     private double calculateRelevanceScore(Item item) {
         if (query == null || query.isEmpty()) {
-            return 1.0; // All items are equally relevant for default view
+            return 1.0;
         }
 
         double score = 0.0;
-        String queryLower = query.toLowerCase(java.util.Locale.ROOT);
+        String queryLower = query.toLowerCase(Locale.ROOT);
 
-        if (item instanceof io.ballerina.flowmodelgenerator.core.model.AvailableNode availableNode) {
+        if (item instanceof AvailableNode availableNode) {
             if (availableNode.metadata() != null && availableNode.metadata().label() != null) {
-                String labelLower = availableNode.metadata().label().toLowerCase();
+                String labelLower = availableNode.metadata().label().toLowerCase(Locale.ROOT);
                 if (labelLower.equals(queryLower)) {
-                    score += 100.0; // Exact match
+                    score += 100.0;
                 } else if (labelLower.startsWith(queryLower)) {
-                    score += 50.0; // Starts with query
+                    score += 50.0;
                 } else if (labelLower.contains(queryLower)) {
-                    score += 25.0; // Contains query
+                    score += 25.0;
                 }
             }
 
             if (availableNode.metadata() != null && availableNode.metadata().description() != null) {
-                String descLower = availableNode.metadata().description().toLowerCase();
+                String descLower = availableNode.metadata().description().toLowerCase(Locale.ROOT);
                 if (descLower.contains(queryLower)) {
-                    score += 10.0; // Description contains query
+                    score += 10.0;
                 }
             }
 
-            // Score based on symbol match
             if (availableNode.codedata() != null && availableNode.codedata().symbol() != null) {
-                String symbolLower = availableNode.codedata().symbol().toLowerCase();
+                String symbolLower = availableNode.codedata().symbol().toLowerCase(Locale.ROOT);
                 if (symbolLower.contains(queryLower)) {
-                    score += 15.0; // Symbol contains query
+                    score += 15.0;
                 }
             }
-        } else if (item instanceof io.ballerina.flowmodelgenerator.core.model.Category category) {
+        } else if (item instanceof Category category) {
             if (category.metadata() != null && category.metadata().label() != null) {
-                String labelLower = category.metadata().label().toLowerCase();
+                String labelLower = category.metadata().label().toLowerCase(Locale.ROOT);
                 if (labelLower.contains(queryLower)) {
-                    score += 20.0; // Category label contains query
+                    score += 20.0;
                 }
             }
         }
@@ -509,7 +457,6 @@ public class AllTypesSearchCommand extends SearchCommand {
         Map<String, String> typeQueryMap = new HashMap<>();
         typeQueryMap.put("q", query);
 
-        // Allocate more results for database types since they're faster
         int typeLimit = DATABASE_SEARCH_TYPES.contains(searchType) ?
                 Math.max(10, limit / 2) : Math.max(5, limit / 5);
 
