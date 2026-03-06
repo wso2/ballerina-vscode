@@ -108,7 +108,14 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
 
     const updateFieldsForConnection = (connectionValue: string) => {
         const connectionSelectField = createConnectionSelectField(connectionValue, config, onCreateNewConnection, connectionKind);
-        const configFields = connectionValue ? getConnectionConfigFields(connectionValue) : [];
+        const isExpression = connectionValue && !connectionNodesMap.current.has(connectionValue);
+        if (isExpression) {
+            connectionSelectField.types = connectionSelectField.types?.map(t => ({
+                ...t,
+                selected: t.fieldType === "EXPRESSION"
+            }));
+        }
+        const configFields = isExpression ? [] : (connectionValue ? getConnectionConfigFields(connectionValue) : []);
         connectionConfigFields.current = configFields;
         setSelectedConnectionValue(connectionValue);
         setSelectedConnectionFields([connectionSelectField, ...configFields]);
@@ -148,8 +155,14 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     }, [onSave, rpcClient, connectionKind]);
 
     const handleOnChange = useCallback((fieldKey: string, value: any) => {
-        if (fieldKey === "connection" && value !== selectedConnectionValue) {
+        if (fieldKey !== "connection" || value === selectedConnectionValue) return;
+
+        if (connectionNodesMap.current.has(value)) {
             updateFieldsForConnection(value);
+        } else if (connectionConfigFields.current.length > 0) {
+            // Switched to expression mode — hide config fields
+            connectionConfigFields.current = [];
+            setSelectedConnectionFields(prev => prev.filter(f => f.key === "connection"));
         }
     }, [selectedConnectionValue]);
 
