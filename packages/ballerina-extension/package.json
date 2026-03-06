@@ -415,23 +415,23 @@
             {
                 "command": "ballerina.newFileExplorerTree",
                 "title": "New File",
-                "icon": "$(distro-new-file)"
+                "icon": "$(ballerina-new-file)"
             },
             {
                 "command": "ballerina.newFolderExplorerTree",
                 "title": "New Folder",
-                "icon": "$(distro-new-folder)"
+                "icon": "$(ballerina-new-folder)"
             },
             {
                 "command": "ballerina.showVisualizer",
                 "title": "Show Visualizer",
-                "icon": "$(distro-design-view)",
+                "icon": "$(ballerina-design-view)",
                 "category": "Ballerina"
             },
             {
                 "command": "ballerina.force.update.artifacts",
                 "title": "Refresh Artifacts",
-                "icon": "$(distro-refresh)",
+                "icon": "$(ballerina-refresh)",
                 "category": "Ballerina",
                 "enablement": "isSupportedProject"
             },
@@ -455,7 +455,7 @@
             {
                 "command": "ballerina.source.debug",
                 "title": "Debug",
-                "icon": "$(distro-debug)",
+                "icon": "$(ballerina-debug)",
                 "category": "Ballerina"
             },
             {
@@ -497,7 +497,7 @@
             {
                 "command": "ballerina.notebook.restartNotebook",
                 "title": "Restart Notebook",
-                "icon": "$(distro-refresh)",
+                "icon": "$(ballerina-refresh)",
                 "category": "Ballerina",
                 "when": "notebookType == 'ballerina-notebook'"
             },
@@ -524,7 +524,7 @@
             {
                 "command": "ballerina.notebook.refreshVariableView",
                 "title": "Refresh Notebook Variables",
-                "icon": "$(distro-refresh)",
+                "icon": "$(ballerina-refresh)",
                 "category": "Ballerina",
                 "enablement": "isNotebookVariableViewEnabled"
             },
@@ -537,7 +537,7 @@
             {
                 "command": "ballerina.view.entityDiagram",
                 "title": "Entity Relationship Diagram",
-                "icon": "$(distro-persist-diagram)",
+                "icon": "$(ballerina-persist-diagram)",
                 "category": "Ballerina"
             },
             {
@@ -661,7 +661,7 @@
             {
                 "command": "BI.project-explorer.view-type-diagram",
                 "title": "View Type Diagram",
-                "icon": "$(distro-design-view)",
+                "icon": "$(ballerina-design-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -682,7 +682,7 @@
             {
                 "command": "BI.project-explorer.view-configuration",
                 "title": "View Configurations",
-                "icon": "$(distro-design-view)",
+                "icon": "$(ballerina-design-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -697,7 +697,7 @@
             {
                 "command": "BI.project-explorer.overview",
                 "title": "Show Overview",
-                "icon": "$(distro-design-view)",
+                "icon": "$(ballerina-design-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -1098,172 +1098,172 @@
             }
         ],
         "icons": {
-            "distro-new-module": {
+            "ballerina-new-module": {
                 "description": "new-module",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f135"
                 }
             },
-            "distro-refresh": {
+            "ballerina-refresh": {
                 "description": "refresh",
                 "default": {
                     "fontPath": "./resources/codicons/codicon.ttf",
                     "fontCharacter": "\\eb37"
                 }
             },
-            "distro-new-file": {
+            "ballerina-new-file": {
                 "description": "new-file",
                 "default": {
                     "fontPath": "./resources/codicons/codicon.ttf",
                     "fontCharacter": "\\ea7f"
                 }
             },
-            "distro-new-folder": {
+            "ballerina-new-folder": {
                 "description": "new-folder",
                 "default": {
                     "fontPath": "./resources/codicons/codicon.ttf",
                     "fontCharacter": "\\ea80"
                 }
             },
-            "distro-delete": {
+            "ballerina-delete": {
                 "description": "delete",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f114"
                 }
             },
-            "distro-agent-view": {
+            "ballerina-agent-view": {
                 "description": "agent-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f175"
                 }
             },
-            "distro-start": {
+            "ballerina-start": {
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f21f"
                 }
             },
-            "distro-debug": {
+            "ballerina-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f17a"
                 }
             },
-            "distro-source-view": {
+            "ballerina-source-view": {
                 "description": "source-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f149"
                 }
             },
-            "distro-persist-diagram": {
+            "ballerina-persist-diagram": {
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f1f9"
                 }
             },
-            "distro-cached-rounded": {
+            "ballerina-cached-rounded": {
                 "description": "cached-rounded",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f106"
                 }
             },
-            "distro-cached-round": {
+            "ballerina-cached-round": {
                 "description": "cached-round",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f107"
                 }
             },
-            "distro-fit-to-screen": {
+            "ballerina-fit-to-screen": {
                 "description": "fit-to-screen",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f120"
                 }
             },
-            "distro-explicit-outlined": {
+            "ballerina-explicit-outlined": {
                 "description": "explicit-outlined",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f11f"
                 }
             },
-            "distro-error-icon": {
+            "ballerina-error-icon": {
                 "description": "error-icon",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f11c"
                 }
             },
-            "distro-error-outline": {
+            "ballerina-error-outline": {
                 "description": "error-outline",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f11d"
                 }
             },
-            "distro-symbol-struct-icon": {
+            "ballerina-symbol-struct-icon": {
                 "description": "symbol-struct-icon",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f13d"
                 }
             },
-            "distro-add-circle-outline": {
+            "ballerina-add-circle-outline": {
                 "description": "add-circle-outline",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f102"
                 }
             },
-            "distro-radio-button-checked": {
+            "ballerina-radio-button-checked": {
                 "description": "radio-button-checked",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f134"
                 }
             },
-            "distro-radio-button-unchecked": {
+            "ballerina-radio-button-unchecked": {
                 "description": "radio-button-unchecked",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f135"
                 }
             },
-            "distro-file-upload": {
+            "ballerina-file-upload": {
                 "description": "file-upload",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f11f"
                 }
             },
-            "distro-file-submodule": {
+            "ballerina-file-submodule": {
                 "description": "file-submodule",
                 "default": {
                     "fontPath": "./resources/codicons/codicon.ttf",
                     "fontCharacter": "\\eaec"
                 }
             },
-            "distro-switch-project": {
+            "ballerina-switch-project": {
                 "description": "switch-project",
                 "default": {
                     "fontPath": "./resources/codicons/codicon.ttf",
                     "fontCharacter": "\\ea77"
                 }
             },
-            "distro-design-view": {
+            "ballerina-design-view": {
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f177"
+                    "fontCharacter": "\\f1bf"
                 }
             }
         },
