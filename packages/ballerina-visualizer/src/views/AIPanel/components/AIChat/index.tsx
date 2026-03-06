@@ -98,7 +98,7 @@ const MessageBody = styled.div<{ isUserMessage: boolean }>(({ isUserMessage }: {
     width: isUserMessage ? "fit-content" : "100%",
     maxWidth: isUserMessage ? "85%" : "100%",
     marginLeft: isUserMessage ? "auto" : "0",
-    padding: isUserMessage ? "12px 14px" : "0",
+    padding: isUserMessage ? "6px 12px" : "0",
     border: isUserMessage ? "1px solid var(--vscode-panel-border)" : "none",
     borderRadius: isUserMessage ? "12px" : "0",
     background: isUserMessage ? "var(--vscode-editor-inactiveSelectionBackground)" : "transparent",
