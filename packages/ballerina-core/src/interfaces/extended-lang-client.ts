@@ -1470,6 +1470,11 @@ export interface Type {
     allowAdditionalFields?: boolean;
 }
 
+export interface SimpleType {
+    name: string;
+    imports?: Imports;
+}
+
 type ServiceFunctionKind = "RESOURCE" | "REMOTE" | "FUNCTION";
 
 export interface TypeFunctionModel {
@@ -1593,6 +1598,16 @@ export interface GetTypesResponse {
 
 export interface GetTypeResponse {
     type: Type;
+}
+
+export interface GetSimpleTypeOfExpressionRequest {
+    filePath: string;
+    position: LinePosition;
+    expression: string;
+}
+
+export interface GetSimpleTypeOfExpressionResponse {
+    type: SimpleType;
 }
 
 export interface JsonToTypeRequest {
