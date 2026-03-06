@@ -128,7 +128,6 @@ import io.ballerina.flowmodelgenerator.core.model.McpToolKitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
-import io.ballerina.flowmodelgenerator.core.model.node.AgentBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.BinaryBuilder;
@@ -1684,6 +1683,37 @@ public class CodeAnalyzer extends NodeVisitor {
         return null;
     }
 
+    private record ReturnTypeNodeInfo(NodeKind nodeKind, ClassSymbol classSymbol) { }
+
+    private Optional<ReturnTypeNodeInfo> getReturnTypeNodeInfo(FunctionSymbol functionSymbol) {
+        Optional<TypeSymbol> returnType = functionSymbol.typeDescriptor().returnTypeDescriptor();
+        if (returnType.isEmpty()) {
+            return Optional.empty();
+        }
+        TypeSymbol typeSymbol = returnType.get();
+        if (typeSymbol.typeKind() == TypeDescKind.UNION) {
+            typeSymbol = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors().stream()
+                    .filter(tSymbol -> !tSymbol.subtypeOf(semanticModel.types().ERROR))
+                    .findFirst().orElse(null);
+            if (typeSymbol == null) {
+                return Optional.empty();
+            }
+        }
+        if (typeSymbol.typeKind() != TypeDescKind.TYPE_REFERENCE) {
+            return Optional.empty();
+        }
+        Symbol defSymbol = ((TypeReferenceTypeSymbol) typeSymbol).definition();
+        if (defSymbol.kind() != SymbolKind.CLASS) {
+            return Optional.empty();
+        }
+        ClassSymbol classSymbol = (ClassSymbol) defSymbol;
+        NodeKind kind = resolveNodeKind(classSymbol);
+        if (kind == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new ReturnTypeNodeInfo(kind, classSymbol));
+    }
+
     private FunctionData.Kind getFunctionResultKind(ClassSymbol classSymbol) {
         Map<Predicate<ClassSymbol>, FunctionData.Kind> kindMappings = Map.of(
                 CommonUtils::isAiModelProvider, FunctionData.Kind.MODEL_PROVIDER,
@@ -1859,8 +1889,12 @@ public class CodeAnalyzer extends NodeVisitor {
                     .editable()
                     .stepOut()
                     .addProperty(Property.VARIABLE_KEY);
-        } else if (nodeBuilder instanceof AgentBuilder) {
-            // If an agent node was identified, set the variable property on it
+        } else if (nodeBuilder instanceof CallBuilder
+                && !(nodeBuilder instanceof RemoteActionCallBuilder)
+                && !(nodeBuilder instanceof ResourceActionCallBuilder)
+                && !(nodeBuilder instanceof FunctionCall)
+                && !(nodeBuilder instanceof MethodCall)) {
+            // If an AI type node (agent, model provider, etc.) was identified, set the variable property on it
             String variableName = CommonUtils.getVariableName(assignmentStatementNode.varRef());
             nodeBuilder.properties().custom()
                     .metadata()
@@ -2008,6 +2042,41 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (naturalFunctions.containsKey(functionName)) {
             startNode(NodeKind.NP_FUNCTION_CALL, functionCallExpressionNode.parent());
         } else {
+            // Check if the function returns an AI type (e.g., MODEL_PROVIDER via factory function)
+            Optional<ReturnTypeNodeInfo> returnTypeInfo = getReturnTypeNodeInfo(functionSymbol);
+            if (returnTypeInfo.isPresent()) {
+                ReturnTypeNodeInfo info = returnTypeInfo.get();
+                startNode(info.nodeKind(), functionCallExpressionNode.parent());
+
+                FunctionDataBuilder functionDataBuilder =
+                        new FunctionDataBuilder()
+                                .name(functionName)
+                                .functionSymbol(functionSymbol)
+                                .functionResultKind(getFunctionResultKind(info.classSymbol()))
+                                .semanticModel(semanticModel)
+                                .userModuleInfo(moduleInfo);
+                FunctionData functionData = functionDataBuilder.build();
+
+                processFunctionSymbol(functionCallExpressionNode, functionCallExpressionNode.arguments(),
+                        functionSymbol, functionData);
+
+                nodeBuilder
+                        .metadata()
+                            .label(functionData.packageName())
+                            .description(functionData.description())
+                            .icon(CommonUtils.generateIcon(functionData.org(), functionData.packageName(),
+                                    functionData.version()))
+                            .stepOut()
+                        .codedata()
+                            .org(functionData.org())
+                            .module(functionData.moduleName())
+                            .symbol(functionName)
+                            .stepOut()
+                        .properties()
+                            .scope(connectionScope)
+                            .checkError(true, NewConnectionBuilder.CHECK_ERROR_DOC, false);
+                return;
+            }
             startNode(NodeKind.FUNCTION_CALL, functionCallExpressionNode.parent());
         }
 
