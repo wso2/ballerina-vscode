@@ -579,8 +579,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         const importKey = Object.keys(imports)?.[0];
 
         const prevImports = formImportsRef.current;
-        if (Object.keys(prevImports).includes(key)) {
-            if (importKey && !Object.keys(prevImports[key]).includes(importKey)) {
+        if (key in prevImports) {
+            if (importKey && importKey in prevImports[key]) {
                 formImportsRef.current = { ...prevImports, [key]: { ...prevImports[key], ...imports } };
             }
         } else {
@@ -845,7 +845,14 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 }
 
                 // Add form imports
-                const updatedProperty = { ...property, imports: formImportsRef.current[key] };
+                const existingImports = property.imports ?? undefined;
+                const newImports = formImportsRef.current[key];
+                const mergedImports = newImports
+                    ? { ...(existingImports || {}), ...newImports }
+                    : existingImports;
+                const updatedProperty = mergedImports !== undefined
+                    ? { ...property, imports: mergedImports }
+                    : property;
 
                 try {
                     const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
