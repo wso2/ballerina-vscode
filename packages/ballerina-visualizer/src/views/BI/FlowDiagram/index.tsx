@@ -847,60 +847,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setShowSidePanel(true);
                 setSidePanelView(SidePanelView.NODE_LIST);
                 setCategories(convertedCategories);
-
-                // // Call search API with SearchCommand ALL for better NodeList
-                // const searchAllRequest: BISearchRequest = {
-                //     position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
-                //     filePath: model.fileName,
-                //     queryMap: undefined,
-                //     searchKind: "ALL",
-                // };
-
-                // rpcClient
-                //     .getBIDiagramRpcClient()
-                //     .search(searchAllRequest)
-                //     .then((searchResponse) => {
-                //         console.log(">>> Search ALL response for NodeList", searchResponse);
-                //         if (searchResponse.categories) {
-                //             // Update categories with search results, but merge with existing converted categories
-                //             const allCategories = convertFunctionCategoriesToSidePanelCategories(
-                //                 searchResponse.categories as Category[],
-                //                 FUNCTION_TYPE.REGULAR
-                //             );
-
-                //             // Merge categories while avoiding duplicates by checking category title/label
-                //             const mergedCategories = [...convertedCategories];
-
-                //             allCategories.forEach(newCategory => {
-                //                 const existingCategoryIndex = mergedCategories.findIndex(
-                //                     existingCategory => existingCategory.title === newCategory.title
-                //                 );
-
-                //                 if (existingCategoryIndex >= 0) {
-                //                     // Merge items if category exists, avoiding duplicate items
-                //                     const existingCategory = mergedCategories[existingCategoryIndex];
-                //                     const existingItemLabels = new Set(existingCategory.items.map(item => item.description));
-                //                     const newItems = newCategory.items.filter(item => !existingItemLabels.has(item.description));
-                //                     mergedCategories[existingCategoryIndex] = {
-                //                         ...existingCategory,
-                //                         items: [...existingCategory.items, ...newItems]
-                //                     };
-                //                 } else {
-                //                     // Add new category
-                //                     mergedCategories.push(newCategory);
-                //                 }
-                //             });
-
-                //             finalCategories = mergedCategories;
-                //         }
-                //     })
-                //     .catch((error) => {
-                //         console.error(">>> Error in search ALL request", error);
-                //     })
-                //     .finally(() => {
-                //         // Set categories only once at the end of all operations
-                //         setCategories(finalCategories);
-                //     });
             })
             .finally(() => {
                 setShowProgressIndicator(false);
@@ -1174,19 +1120,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         () => debounce((searchText: string) => {
             console.log(">>> debouncedSearch executing with:", searchText);
             if (searchText.trim()) {
-                // First show frontend filtered results immediately (this runs after debounce)
-                // const frontendFiltered = filterCategoriesLocally(initialCategoriesRef.current, searchText);
-                // setCategories(frontendFiltered);
-
-                // Then enhance with backend search
-                // setIsSearching(true);
                 setShowProgressIndicator(true);
                 console.log(">>> About to call handleSearch with:", searchText, "FUNCTION_TYPE.REGULAR", "ALL");
                 handleSearch(searchText, FUNCTION_TYPE.REGULAR, "ALL");
             } else {
                 // Reset to cached categories when search is empty
                 setCategories(initialCategoriesRef.current);
-                // setIsSearching(false);
                 setShowProgressIndicator(false);
             }
         }, 1100), // 1100ms delay like AddConnectionPopupContent
@@ -1197,11 +1136,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     useEffect(() => {
         console.log(">>> useEffect searchText changed:", searchText);
         if (searchText.trim()) {
-            // Show instant frontend filtering
-            // const frontendFiltered = filterCategoriesLocally(initialCategoriesRef.current, searchText);
-            // setCategories(frontendFiltered);
-
-            // Then trigger debounced backend search enhancement
             console.log(">>> Calling debouncedSearch with:", searchText);
             debouncedSearch(searchText);
         } else {
@@ -1209,7 +1143,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             console.log(">>> useEffect: Search text cleared, resetting state immediately");
             debouncedSearch.cancel(); // Cancel any pending search
             setCategories(initialCategoriesRef.current);
-            // setIsSearching(false);
             setShowProgressIndicator(false);
         }
         return () => debouncedSearch.cancel();
