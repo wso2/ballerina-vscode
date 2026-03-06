@@ -335,8 +335,7 @@ public class AllTypesSearchCommand extends SearchCommand {
             }
         }
 
-        List<Item> deduplicatedItems = deduplicateItems(allItems);
-        return rankAndLimitResults(deduplicatedItems);
+        return deduplicateItems(allItems);
     }
 
     /**
@@ -377,68 +376,6 @@ public class AllTypesSearchCommand extends SearchCommand {
         }
 
         return item.getClass().getSimpleName() + ":" + System.identityHashCode(item);
-    }
-
-    /**
-     * Ranks items based on relevance and applies limit/offset.
-     */
-    private List<Item> rankAndLimitResults(List<Item> items) {
-        List<Item> sortedItems = items.stream()
-                .sorted(Comparator.comparing(this::calculateRelevanceScore).reversed())
-                .collect(Collectors.toList());
-
-        int startIndex = Math.min(offset, sortedItems.size());
-        int endIndex = Math.min(startIndex + limit, sortedItems.size());
-
-        return sortedItems.subList(startIndex, endIndex);
-    }
-
-    /**
-     * Calculates a relevance score for an item based on the search query.
-     */
-    private double calculateRelevanceScore(Item item) {
-        if (query == null || query.isEmpty()) {
-            return 1.0;
-        }
-
-        double score = 0.0;
-        String queryLower = query.toLowerCase(Locale.ROOT);
-
-        if (item instanceof AvailableNode availableNode) {
-            if (availableNode.metadata() != null && availableNode.metadata().label() != null) {
-                String labelLower = availableNode.metadata().label().toLowerCase(Locale.ROOT);
-                if (labelLower.equals(queryLower)) {
-                    score += 100.0;
-                } else if (labelLower.startsWith(queryLower)) {
-                    score += 50.0;
-                } else if (labelLower.contains(queryLower)) {
-                    score += 25.0;
-                }
-            }
-
-            if (availableNode.metadata() != null && availableNode.metadata().description() != null) {
-                String descLower = availableNode.metadata().description().toLowerCase(Locale.ROOT);
-                if (descLower.contains(queryLower)) {
-                    score += 10.0;
-                }
-            }
-
-            if (availableNode.codedata() != null && availableNode.codedata().symbol() != null) {
-                String symbolLower = availableNode.codedata().symbol().toLowerCase(Locale.ROOT);
-                if (symbolLower.contains(queryLower)) {
-                    score += 15.0;
-                }
-            }
-        } else if (item instanceof Category category) {
-            if (category.metadata() != null && category.metadata().label() != null) {
-                String labelLower = category.metadata().label().toLowerCase(Locale.ROOT);
-                if (labelLower.contains(queryLower)) {
-                    score += 20.0;
-                }
-            }
-        }
-
-        return score;
     }
 
     /**
