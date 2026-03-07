@@ -25,7 +25,7 @@ import { RelativeLoader } from "../RelativeLoader";
 import { InfoBox } from "../InfoBox";
 import { ConnectionConfigProps } from "./types";
 import { getConnectionKindConfig, getConnectionSpecialConfig } from "./config";
-import { createConnectionSelectField, fetchConnectionValueForNode, updateFormFieldsWithData, updateNodeTemplateProperties, updateNodeWithConnectionVariable } from "./utils";
+import { createConnectionSelectField, fetchConnectionValueForNode, updateFormFieldsWithData, updateNodeLineRange, updateNodeTemplateProperties, updateNodeWithConnectionVariable } from "./utils";
 import { LoaderContainer } from "../RelativeLoader/styles";
 import { convertNodePropertiesToFormFields } from "../../utils/bi";
 import { cloneDeep } from "lodash";
@@ -148,14 +148,15 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
                 const filePath = relativeFileName
                     ? Utils.joinPath(URI.file(projectPath.current), relativeFileName).fsPath
                     : currentFilePath.current;
-                await rpcClient.getBIDiagramRpcClient().getSourceCode({
+                const response = await rpcClient.getBIDiagramRpcClient().getSourceCode({
                     filePath,
                     flowNode: nodeToSave,
                     isConnector: true,
                 });
+                updateNodeLineRange(selectedNode, response.artifacts);
             }
 
-            onSave?.(selectedNode);
+            await onSave?.(selectedNode);
         } catch (error) {
             console.error(`>>> Error saving ${connectionKind} config`, error);
         } finally {
