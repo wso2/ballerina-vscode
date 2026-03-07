@@ -28,11 +28,19 @@ export const createConnectionSelectField = (
     value: string,
     config: ConnectionKindConfig,
     handleActionBtnClick: () => void,
-    connectionKind?: ConnectionKind
+    connectionKind?: ConnectionKind,
+    connectionNodesMap?: Map<string, FlowNode>
 ): FormField => {
     const selectLabel = `Select ${config.displayName}`;
     const description = `Choose an existing ${config.displayName} or create a new one.`;
     const createLabel = `Create New ${config.displayName}`;
+    const initialItems = connectionNodesMap ? Array.from(connectionNodesMap.entries())
+        .map(([varName, node]) => ({
+            id: varName,
+            label: varName,
+            value: varName,
+            codedata: node.codedata,
+        })) : undefined;
     return {
         "key": "connection",
         "label": selectLabel,
@@ -54,7 +62,8 @@ export const createConnectionSelectField = (
         "codedata": {
             "kind": "REQUIRED",
             "originalName": "connection",
-            ...(connectionKind && { searchNodesKind: connectionKind })
+            ...(connectionKind && { searchNodesKind: connectionKind }),
+            ...(initialItems && { initialItems })
         },
         "actionCallback": handleActionBtnClick,
         "actionLabel": <><Codicon name="add" />{createLabel}</>,
@@ -70,12 +79,12 @@ export const updateFormFieldsWithData = (
     connectionFields.forEach((field) => {
         if (field.type === "DROPDOWN_CHOICE") {
             field.dynamicFormFields[data[field.key]].forEach((dynamicField) => {
-                if (data[dynamicField.key]) {
+                if (dynamicField.key in data) {
                     dynamicField.value = data[dynamicField.key];
                 }
             });
             field.value = data[field.key];
-        } else if (data[field.key]) {
+        } else if (field.key in data) {
             field.value = data[field.key];
         }
         if (formImports) {

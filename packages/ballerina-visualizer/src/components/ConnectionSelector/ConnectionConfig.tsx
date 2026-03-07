@@ -40,6 +40,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     const [selectedConnectionFields, setSelectedConnectionFields] = useState<FormField[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [savingForm, setSavingForm] = useState<boolean>(false);
+    const [, forceRender] = useState(0);
 
     const projectPath = useRef<string>("");
     const currentFilePath = useRef<string>("");
@@ -108,7 +109,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     };
 
     const updateFieldsForConnection = (connectionValue: string) => {
-        const connectionSelectField = createConnectionSelectField(connectionValue, config, onCreateNewConnection, connectionKind);
+        const connectionSelectField = createConnectionSelectField(connectionValue, config, onCreateNewConnection, connectionKind, connectionNodesMap.current);
         const isExpression = connectionValue && !connectionNodesMap.current.has(connectionValue);
         if (isExpression) {
             connectionSelectField.types = connectionSelectField.types?.map(t => ({
@@ -125,19 +126,24 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
     const handleOnSave = useCallback(async (data: FormValues, formImports?: FormImports) => {
         setSavingForm(true);
 
-        // 1. Update the parent node's connection reference
-        updateNodeWithConnectionVariable(connectionKind, selectedNode, data["connection"]);
+        try {
+            // 1. Update the parent node's connection reference
+            updateNodeWithConnectionVariable(connectionKind, selectedNode, data["connection"]);
 
-        // 2. Save the connection node config if there are config fields with changes
-        const connectionNode = connectionNodesMap.current.get(data["connection"]);
-        const hasConfigChanges = connectionConfigFields.current.some(
-            field => data[field.key] !== undefined && data[field.key] !== field.value
-        );
-        if (connectionNode && connectionConfigFields.current.length > 0 && hasConfigChanges) {
-            const nodeToSave = cloneDeep(connectionNode);
-            updateFormFieldsWithData(connectionConfigFields.current, data, formImports);
-            updateNodeTemplateProperties(nodeToSave, connectionConfigFields.current);
-            try {
+            // 2. Save the connection node config if there are config fields with changes
+            const connectionNode = connectionNodesMap.current.get(data["connection"]);
+            const hasConfigChanges = connectionConfigFields.current.some(
+                field => data[field.key] !== undefined && data[field.key] !== field.value
+            );
+            if (connectionNode && connectionConfigFields.current.length > 0 && hasConfigChanges) {
+                const nodeToSave = cloneDeep(connectionNode);
+                updateFormFieldsWithData(connectionConfigFields.current, data, formImports);
+                updateNodeTemplateProperties(nodeToSave, connectionConfigFields.current);
+                Object.values(nodeToSave.properties).forEach((prop: any) => {
+                    if (prop) {
+                        prop.imports = {};
+                    }
+                });
                 const relativeFileName = nodeToSave.codedata?.lineRange?.fileName;
                 const filePath = relativeFileName
                     ? Utils.joinPath(URI.file(projectPath.current), relativeFileName).fsPath
@@ -147,24 +153,30 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
                     flowNode: nodeToSave,
                     isConnector: true,
                 });
-            } catch (error) {
-                console.error(`>>> Error saving ${connectionKind} config`, error);
             }
-        }
 
-        onSave?.(selectedNode);
-    }, [onSave, rpcClient, connectionKind]);
+            onSave?.(selectedNode);
+        } catch (error) {
+            console.error(`>>> Error saving ${connectionKind} config`, error);
+        } finally {
+            setSavingForm(false);
+        }
+    }, [onSave, rpcClient, connectionKind, selectedNode]);
 
     const handleOnChange = useCallback((fieldKey: string, value: any) => {
         if (fieldKey !== "connection" || value === selectedConnectionValue) return;
 
-        if (connectionNodesMap.current.has(value)) {
-            updateFieldsForConnection(value);
-        } else if (connectionConfigFields.current.length > 0) {
-            // Switched to expression mode — hide config fields
-            connectionConfigFields.current = [];
-            setSelectedConnectionFields(prev => prev.filter(f => f.key === "connection"));
+        const isKnownConnection = value && connectionNodesMap.current.has(value);
+
+        if (!isKnownConnection) {
+            if (connectionConfigFields.current.length > 0) {
+                connectionConfigFields.current.forEach(f => { f.hidden = true; });
+                connectionConfigFields.current = [];
+                forceRender(c => c + 1);
+            }
+            return;
         }
+        updateFieldsForConnection(value);
     }, [selectedConnectionValue]);
 
     const onCreateNewConnection = useCallback(() => {
