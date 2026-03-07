@@ -106,8 +106,8 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
         return new Promise(async (resolve) => {
             try {
                 const pattern = params.projectPath
-                    ? new vscode.RelativePattern(vscode.Uri.file(params.projectPath), '**/evalsets/**/*.evalset.json')
-                    : '**/evalsets/**/*.evalset.json';
+                    ? new vscode.RelativePattern(vscode.Uri.file(params.projectPath), '**/tests/evalsets/**/*.evalset.json')
+                    : '**/tests/evalsets/**/*.evalset.json';
                 const evalsetFiles = await vscode.workspace.findFiles(pattern);
                 const evalsets: EvalsetItem[] = [];
 
@@ -151,7 +151,7 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
     async getEvaluationHistory(params: GetEvaluationHistoryRequest): Promise<GetEvaluationHistoryResponse> {
         return new Promise(async (resolve) => {
             try {
-                const reportsDir = path.join(params.projectPath, "evaluation-reports");
+                const reportsDir = path.join(params.projectPath, "tests", "evaluation-reports");
                 const data = this.loadReportData(reportsDir);
                 resolve({ data });
             } catch (error) {

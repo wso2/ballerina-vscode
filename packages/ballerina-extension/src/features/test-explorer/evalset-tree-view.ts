@@ -85,7 +85,7 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
         }
 
         // Watch all evalset files in workspace
-        const pattern = '**/evalsets/**/*.evalset.json';
+        const pattern = '**/tests/evalsets/**/*.evalset.json';
         this.fileWatcher = vscode.workspace.createFileSystemWatcher(pattern);
 
         // Refresh on file changes
@@ -156,7 +156,7 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
             return [];
         }
 
-        const evalsetFiles = await vscode.workspace.findFiles('**/evalsets/**/*.evalset.json');
+        const evalsetFiles = await vscode.workspace.findFiles('**/tests/evalsets/**/*.evalset.json');
         const nodes: EvalsetFileNode[] = [];
 
         for (const uri of evalsetFiles) {

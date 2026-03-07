@@ -120,7 +120,7 @@ function buildTestCommand(test: TestItem, executor: string, projectName: string 
         // Evaluations tests use group-based execution with test report
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
         const projectPart = projectName ? ` ${projectName}` : '';
-        return `${executor} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=evaluation-reports${testsPart}${projectPart}`;
+        return `${executor} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=tests/evaluation-reports${testsPart}${projectPart}`;
     } else {
         // Standard tests use code coverage and optional test filtering
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
@@ -458,7 +458,7 @@ export async function readTestJson(file): Promise<JSON | undefined> {
 }
 
 async function findLatestEvaluationReport(workingDirectory: string): Promise<string | undefined> {
-    const reportsDir = path.join(workingDirectory, 'evaluation-reports');
+    const reportsDir = path.join(workingDirectory, 'tests', 'evaluation-reports');
 
     if (!fs.existsSync(reportsDir)) {
         return undefined;
