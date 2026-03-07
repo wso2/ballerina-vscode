@@ -16,14 +16,15 @@
  * under the License.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlowNode, LineRange, NodeKind, NodeProperties } from "@wso2/ballerina-core";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormGeneratorNew } from "../../views/BI/Forms/FormGeneratorNew";
 import { RelativeLoader } from "../RelativeLoader";
+import { InfoBox } from "../InfoBox";
 import { ConnectionConfigProps } from "./types";
-import { getConnectionKindConfig } from "./config";
+import { getConnectionKindConfig, getConnectionSpecialConfig } from "./config";
 import { createConnectionSelectField, fetchConnectionValueForNode, updateFormFieldsWithData, updateNodeTemplateProperties, updateNodeWithConnectionVariable } from "./utils";
 import { LoaderContainer } from "../RelativeLoader/styles";
 import { convertNodePropertiesToFormFields } from "../../utils/bi";
@@ -170,6 +171,26 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
         onNavigateToSelectionList?.();
     }, [onNavigateToSelectionList]);
 
+    const injectedComponents = useMemo(() => {
+        const connectionNode = selectedConnectionValue
+            ? connectionNodesMap.current.get(selectedConnectionValue)
+            : undefined;
+        const symbol = connectionNode?.codedata?.symbol || "";
+        const specialConfig = getConnectionSpecialConfig(symbol);
+        if (!specialConfig?.shouldShowInfo?.(symbol)) {
+            return undefined;
+        }
+        return [{
+            component: (
+                <InfoBox
+                    text="Configure this model provider using the VS Code command palette command:"
+                    codeCommand="> Ballerina: Configure default WSO2 model provider"
+                />
+            ),
+            index: Infinity,
+        }];
+    }, [selectedConnectionValue, selectedConnectionFields]);
+
     return (
         <>
             {loading && (
@@ -189,6 +210,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
                         disableSaveButton={savingForm}
                         isSaving={savingForm}
                         helperPaneSide="left"
+                        injectedComponents={injectedComponents}
                     />
                 </>
             )}
