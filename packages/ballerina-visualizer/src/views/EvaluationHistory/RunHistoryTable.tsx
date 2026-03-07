@@ -124,8 +124,8 @@ const RateBadge = styled.span<{ isPassed: boolean }>`
     font-size: 12px;
     color: ${(p: { isPassed: boolean }) =>
         p.isPassed
-            ? "var(--vscode-testing-iconPassed, #4caf50)"
-            : "var(--vscode-testing-iconFailed, #f44336)"};
+            ? "var(--vscode-editorGutter-addedBackground, #2ea043)"
+            : "var(--vscode-editorGutter-deletedBackground, #f85149)"};
 `;
 
 const RateTarget = styled.span`
@@ -140,11 +140,11 @@ const StatusChip = styled.span<{ isPassed: boolean }>`
     border-radius: 10px;
     white-space: nowrap;
     background: ${(p: { isPassed: boolean }) =>
-        p.isPassed ? "rgba(76, 175, 80, 0.15)" : "rgba(244, 67, 54, 0.12)"};
+        p.isPassed ? "rgba(76, 175, 80, 0.2)" : "rgba(244, 67, 54, 0.15)"};
     color: ${(p: { isPassed: boolean }) =>
         p.isPassed
-            ? "var(--vscode-testing-iconPassed, #4caf50)"
-            : "var(--vscode-testing-iconFailed, #f44336)"};
+            ? "var(--vscode-editorGutter-addedBackground, #2ea043)"
+            : "var(--vscode-editorGutter-deletedBackground, #f85149)"};
 `;
 
 const OutcomesCell = styled.td`
@@ -203,14 +203,14 @@ const OutcomePill = styled.span<{ passed: boolean }>`
     text-overflow: ellipsis;
     white-space: nowrap;
     background: ${(p: { passed: boolean }) =>
-        p.passed ? "rgba(76, 175, 80, 0.15)" : "rgba(244, 67, 54, 0.1)"};
+        p.passed ? "rgba(76, 175, 80, 0.2)" : "rgba(244, 67, 54, 0.15)"};
     color: ${(p: { passed: boolean }) =>
         p.passed
-            ? "var(--vscode-testing-iconPassed, #4caf50)"
-            : "var(--vscode-testing-iconFailed, #f44336)"};
+            ? "var(--vscode-editorGutter-addedBackground, #2ea043)"
+            : "var(--vscode-editorGutter-deletedBackground, #f85149)"};
     border: 1px solid
         ${(p: { passed: boolean }) =>
-        p.passed ? "rgba(76, 175, 80, 0.25)" : "rgba(244, 67, 54, 0.25)"};
+        p.passed ? "rgba(76, 175, 80, 0.4)" : "rgba(244, 67, 54, 0.4)"};
 `;
 
 const ViewBtn = styled.button`

@@ -68,16 +68,16 @@ const PassBadge = styled.span<{ isPassing: boolean }>`
     padding: 3px 10px;
     border-radius: 12px;
     background: ${(p: { isPassing: boolean }) =>
-        p.isPassing ? "rgba(76, 175, 80, 0.15)" : "rgba(244, 67, 54, 0.12)"};
+        p.isPassing ? "rgba(76, 175, 80, 0.2)" : "rgba(244, 67, 54, 0.15)"};
     color: ${(p: { isPassing: boolean }) =>
         p.isPassing
-            ? "var(--vscode-testing-iconPassed, #4caf50)"
-            : "var(--vscode-testing-iconFailed, #f44336)"};
+            ? "var(--vscode-editorGutter-addedBackground, #2ea043)"
+            : "var(--vscode-editorGutter-deletedBackground, #f85149)"};
     border: 1px solid
         ${(p: { isPassing: boolean }) =>
             p.isPassing
-                ? "rgba(76, 175, 80, 0.3)"
-                : "rgba(244, 67, 54, 0.3)"};
+                ? "rgba(76, 175, 80, 0.4)"
+                : "rgba(244, 67, 54, 0.4)"};
 `;
 
 const BadgeSep = styled.span`
@@ -92,9 +92,9 @@ const Trend = styled.span<{ direction: "up" | "down" | "flat" }>`
     color: ${(p: { direction: "up" | "down" | "flat" }) => {
         switch (p.direction) {
             case "up":
-                return "var(--vscode-testing-iconPassed, #4caf50)";
+                return "var(--vscode-editorGutter-addedBackground, #2ea043)";
             case "down":
-                return "var(--vscode-testing-iconFailed, #f44336)";
+                return "var(--vscode-editorGutter-deletedBackground, #f85149)";
             default:
                 return "var(--vscode-descriptionForeground)";
         }
