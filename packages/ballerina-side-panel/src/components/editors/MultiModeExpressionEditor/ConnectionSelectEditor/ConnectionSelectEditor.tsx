@@ -41,7 +41,8 @@ export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ 
     const { targetLineRange, fileName } = useFormContext();
 
     const searchNodesKind = field.codedata?.searchNodesKind;
-    const [selectItems, setSelectItems] = useState<ConnectionSelectItem[]>([]);
+    const initialItems: ConnectionSelectItem[] = field.codedata?.initialItems ?? [];
+    const [selectItems, setSelectItems] = useState<ConnectionSelectItem[]>(initialItems);
 
     useEffect(() => {
         if (!searchNodesKind) return;
@@ -51,12 +52,14 @@ export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ 
             queryMap: { kind: searchNodesKind }
         }).then((response) => {
             const nodes = response?.output ?? [];
-            const items: ConnectionSelectItem[] = nodes.map(node => ({
-                id: String(node.properties.variable.value),
-                label: node.properties.variable.value as string,
-                value: String(node.properties.variable.value),
-                codedata: node.codedata,
-            }));
+            const items: ConnectionSelectItem[] = nodes
+                .filter(node => node.properties?.variable?.value)
+                .map(node => ({
+                    id: String(node.properties.variable.value),
+                    label: node.properties.variable.value as string,
+                    value: String(node.properties.variable.value),
+                    codedata: node.codedata,
+                }));
             setSelectItems(items);
         });
     }, [searchNodesKind, fileName]);
