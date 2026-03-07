@@ -47,11 +47,11 @@ const StatValue = styled.span`
 `;
 
 const StatValuePass = styled(StatValue)`
-    color: var(--vscode-testing-iconPassed, #4caf50);
+    color: var(--vscode-editorGutter-addedBackground, #2ea043);
 `;
 
 const StatValueFail = styled(StatValue)`
-    color: var(--vscode-testing-iconFailed, #f44336);
+    color: var(--vscode-editorGutter-deletedBackground, #f85149);
 `;
 
 const StatLabel = styled.span`

@@ -70,8 +70,8 @@ const TtRate = styled.div<{ isPassed: boolean }>`
     margin-bottom: 2px;
     color: ${(p: { isPassed: boolean }) =>
         p.isPassed
-            ? "var(--vscode-testing-iconPassed, #4caf50)"
-            : "var(--vscode-testing-iconFailed, #f44336)"};
+            ? "var(--vscode-editorGutter-addedBackground, #2ea043)"
+            : "var(--vscode-editorGutter-deletedBackground, #f85149)"};
 `;
 
 const TtSep = styled.span`
@@ -86,8 +86,8 @@ const TtStatus = styled.div<{ isPassed: boolean }>`
     font-weight: 600;
     color: ${(p: { isPassed: boolean }) =>
         p.isPassed
-            ? "var(--vscode-testing-iconPassed, #4caf50)"
-            : "var(--vscode-testing-iconFailed, #f44336)"};
+            ? "var(--vscode-editorGutter-addedBackground, #2ea043)"
+            : "var(--vscode-editorGutter-deletedBackground, #f85149)"};
 `;
 
 const TtOutcomes = styled.div`
@@ -195,17 +195,15 @@ export function SparklineChart({ runs }: SparklineChartProps) {
                     y1={ty}
                     x2={width - PAD_X}
                     y2={ty}
-                    stroke="var(--vscode-charts-orange)"
+                    stroke="var(--vscode-terminal-ansiCyan, #0598bc)"
                     strokeWidth={1.5}
                     strokeDasharray="5,4"
-                    opacity={0.8}
                 />
                 <text
                     x={PAD_X}
                     y={targetLabelY}
                     fontSize={9}
-                    fill="var(--vscode-charts-orange)"
-                    opacity={0.85}
+                    fill="var(--vscode-terminal-ansiCyan, #0598bc)"
                 >
                     {targetPct}% target
                 </text>
@@ -229,8 +227,8 @@ export function SparklineChart({ runs }: SparklineChartProps) {
                             r={DOT_R}
                             fill={
                                 isPassed
-                                    ? "var(--vscode-testing-iconPassed, #4caf50)"
-                                    : "var(--vscode-testing-iconFailed, #f44336)"
+                                    ? "var(--vscode-editorGutter-addedBackground, #2ea043)"
+                                    : "var(--vscode-editorGutter-deletedBackground, #f85149)"
                             }
                             style={{ cursor: "pointer", transition: "r 0.1s" }}
                             onMouseEnter={(e) => handleMouseEnter(e, run)}

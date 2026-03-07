@@ -69,16 +69,16 @@ const PassBadge = styled.span<{ isPassing: boolean }>`
     padding: 3px 10px;
     border-radius: 12px;
     background: ${(p: { isPassing: boolean }) =>
-        p.isPassing ? "rgba(76, 175, 80, 0.15)" : "rgba(244, 67, 54, 0.12)"};
+        p.isPassing ? "rgba(76, 175, 80, 0.2)" : "rgba(244, 67, 54, 0.15)"};
     color: ${(p: { isPassing: boolean }) =>
         p.isPassing
-            ? "var(--vscode-testing-iconPassed, #4caf50)"
-            : "var(--vscode-testing-iconFailed, #f44336)"};
+            ? "var(--vscode-editorGutter-addedBackground, #2ea043)"
+            : "var(--vscode-editorGutter-deletedBackground, #f85149)"};
     border: 1px solid
         ${(p: { isPassing: boolean }) =>
         p.isPassing
-            ? "rgba(76, 175, 80, 0.3)"
-            : "rgba(244, 67, 54, 0.3)"};
+            ? "rgba(76, 175, 80, 0.4)"
+            : "rgba(244, 67, 54, 0.4)"};
 `;
 
 const BadgeSep = styled.span`
@@ -94,11 +94,11 @@ const StatusChip = styled.span<{ isPassed: boolean }>`
     border-radius: 10px;
     white-space: nowrap;
     background: ${(p: { isPassed: boolean }) =>
-        p.isPassed ? "rgba(76, 175, 80, 0.15)" : "rgba(244, 67, 54, 0.12)"};
+        p.isPassed ? "rgba(76, 175, 80, 0.2)" : "rgba(244, 67, 54, 0.15)"};
     color: ${(p: { isPassed: boolean }) =>
         p.isPassed
-            ? "var(--vscode-testing-iconPassed, #4caf50)"
-            : "var(--vscode-testing-iconFailed, #f44336)"};
+            ? "var(--vscode-editorGutter-addedBackground, #2ea043)"
+            : "var(--vscode-editorGutter-deletedBackground, #f85149)"};
 `;
 
 // ── Stats bar (inside card header) ──────────────────────────────────────────
@@ -158,10 +158,10 @@ const SectionTitle = styled.h3`
 const FailureSummaryBlock = styled.div`
     padding: 8px 12px;
     background: rgba(244, 67, 54, 0.08);
-    border-left: 3px solid var(--vscode-testing-iconFailed, #f44336);
+    border-left: 3px solid var(--vscode-editorGutter-deletedBackground, #f85149);
     border-radius: 0 4px 4px 0;
     font-size: 12px;
-    color: var(--vscode-testing-iconFailed, #f44336);
+    color: var(--vscode-editorGutter-deletedBackground, #f85149);
 `;
 
 // ── Evaluation runs section ─────────────────────────────────────────────────
@@ -214,11 +214,11 @@ const OutcomeIcon = styled.span<{ passed: boolean }>`
     flex-shrink: 0;
     margin-right: 10px;
     background: ${(p: { passed: boolean }) =>
-        p.passed ? "rgba(76, 175, 80, 0.15)" : "rgba(244, 67, 54, 0.12)"};
+        p.passed ? "rgba(76, 175, 80, 0.2)" : "rgba(244, 67, 54, 0.15)"};
     color: ${(p: { passed: boolean }) =>
         p.passed
-            ? "var(--vscode-testing-iconPassed, #4caf50)"
-            : "var(--vscode-testing-iconFailed, #f44336)"};
+            ? "var(--vscode-editorGutter-addedBackground, #2ea043)"
+            : "var(--vscode-editorGutter-deletedBackground, #f85149)"};
 `;
 
 const OutcomeName = styled.span`
@@ -234,8 +234,8 @@ const OutcomeStatus = styled.span<{ passed: boolean }>`
     white-space: nowrap;
     color: ${(p: { passed: boolean }) =>
         p.passed
-            ? "var(--vscode-testing-iconPassed, #4caf50)"
-            : "var(--vscode-testing-iconFailed, #f44336)"};
+            ? "var(--vscode-editorGutter-addedBackground, #2ea043)"
+            : "var(--vscode-editorGutter-deletedBackground, #f85149)"};
 `;
 
 const ExpandArrow = styled.span<{ expanded: boolean }>`
@@ -250,7 +250,7 @@ const OutcomeErrorBlock = styled.div`
     padding: 8px 12px 8px 38px;
     background: rgba(244, 67, 54, 0.06);
     font-size: 12px;
-    color: var(--vscode-testing-iconFailed, #f44336);
+    color: var(--vscode-editorGutter-deletedBackground, #f85149);
     border-bottom: 1px solid var(--vscode-panel-border);
 `;
 
