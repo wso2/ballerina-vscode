@@ -34,13 +34,13 @@ const Page = styled.div`
     font-size: var(--vscode-font-size, 13px);
     background: var(--vscode-editor-background);
     color: var(--vscode-editor-foreground);
-    padding: 24px;
     height: 100vh;
     overflow-y: auto;
     padding-bottom: 12px;
 `;
 
 const PageHeader = styled.header`
+    padding: 24px 24px 0;
     margin-bottom: 24px;
     padding-bottom: 16px;
     border-bottom: 1px solid var(--vscode-panel-border);
@@ -194,10 +194,12 @@ export function EvaluationHistory() {
     const { rpcClient } = useRpcContext();
     const [data, setData] = useState<EvaluationHistoryData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [projectPath, setProjectPath] = useState("");
 
     useEffect(() => {
         const container = document.getElementById("webview-container");
         const projectPath = container?.getAttribute("data-project-path") ?? "";
+        setProjectPath(projectPath);
 
         rpcClient
             .getTestManagerRpcClient()
@@ -235,7 +237,7 @@ export function EvaluationHistory() {
                 <>
                     <SummaryBar data={data} />
                     {data.tests.map((test, i) => (
-                        <TestCard key={i} history={test} />
+                        <TestCard key={i} history={test} projectPath={projectPath} />
                     ))}
                 </>
             ) : (

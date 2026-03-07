@@ -27,6 +27,7 @@ import { constructDebugConfig } from "../debugger";
 const fs = require('fs');
 import path from 'path';
 import { EvaluationReportWebview } from '../../views/evaluation-report/webview';
+import { captureGitState, createSnapshot, pinSnapshot, ensureEvalReportsGitignored } from '../../utils/git-utils';
 
 /**
  * Extract project path from a test item
@@ -118,6 +119,8 @@ function isAiEvaluations(test: TestItem): boolean {
 function buildTestCommand(test: TestItem, executor: string, projectName: string | undefined, testCaseNames?: string[]): string {
     if (isAiEvaluations(test)) {
         // Evaluations tests use group-based execution with test report
+        const projectPath = getProjectPathFromTestItem(test);
+        if (projectPath) { ensureEvalReportsGitignored(projectPath); }
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
         const projectPart = projectName ? ` ${projectName}` : '';
         return `${executor} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=tests/evaluation-reports${testsPart}${projectPart}`;
@@ -126,6 +129,25 @@ function buildTestCommand(test: TestItem, executor: string, projectName: string 
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
         const projectPart = projectName ? ` ${projectName}` : '';
         return `${executor} test --code-coverage${testsPart}${projectPart}`;
+    }
+}
+
+async function postProcessEvaluationReport(reportPath: string, workingDirectory: string): Promise<void> {
+    const gitState = await captureGitState(workingDirectory);
+
+    if (gitState.commitSha !== null && gitState.isDirty) {
+        const snapshotSha = await createSnapshot(workingDirectory);
+        if (snapshotSha) {
+            await pinSnapshot(workingDirectory, snapshotSha);
+            gitState.commitSha = snapshotSha;
+        }
+    }
+
+    if (gitState.commitSha !== null) {
+        const rawData = fs.readFileSync(reportPath, 'utf-8');
+        const jsonData = JSON.parse(rawData);
+        jsonData.gitState = { commitSha: gitState.commitSha, isDirty: gitState.isDirty, branch: gitState.branch };
+        fs.writeFileSync(reportPath, JSON.stringify(jsonData, null, 2), 'utf-8');
     }
 }
 
@@ -210,7 +232,10 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 if (isAiEvaluations(test)) {
                     testItems.forEach(item => run.passed(item, timeElapsed));
                     const reportPath = await findLatestEvaluationReport(workingDirectory);
-                    if (reportPath) { await openEvaluationReport(reportPath); }
+                    if (reportPath) {
+                        await postProcessEvaluationReport(reportPath, workingDirectory);
+                        await openEvaluationReport(reportPath);
+                    }
                     endGroup(test, true, run);
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
@@ -226,7 +251,10 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 if (isAiEvaluations(test)) {
                     testItems.forEach(item => run.failed(item, new TestMessage('Evaluation failed'), timeElapsed));
                     const reportPath = await findLatestEvaluationReport(workingDirectory);
-                    if (reportPath) { await openEvaluationReport(reportPath); }
+                    if (reportPath) {
+                        await postProcessEvaluationReport(reportPath, workingDirectory);
+                        await openEvaluationReport(reportPath);
+                    }
                     endGroup(test, false, run);
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
@@ -258,7 +286,10 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 if (isAiEvaluations(test)) {
                     testItems.forEach(item => run.passed(item, timeElapsed));
                     const reportPath = await findLatestEvaluationReport(workingDirectory);
-                    if (reportPath) { await openEvaluationReport(reportPath); }
+                    if (reportPath) {
+                        await postProcessEvaluationReport(reportPath, workingDirectory);
+                        await openEvaluationReport(reportPath);
+                    }
                     endGroup(test, true, run);
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
@@ -274,7 +305,10 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 if (isAiEvaluations(test)) {
                     testItems.forEach(item => run.failed(item, new TestMessage('Evaluation failed'), timeElapsed));
                     const reportPath = await findLatestEvaluationReport(workingDirectory);
-                    if (reportPath) { await openEvaluationReport(reportPath); }
+                    if (reportPath) {
+                        await postProcessEvaluationReport(reportPath, workingDirectory);
+                        await openEvaluationReport(reportPath);
+                    }
                     endGroup(test, false, run);
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
@@ -307,7 +341,10 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 if (isAiEvaluations(test)) {
                     run.passed(test, timeElapsed);
                     const reportPath = await findLatestEvaluationReport(workingDirectory);
-                    if (reportPath) { await openEvaluationReport(reportPath); }
+                    if (reportPath) {
+                        await postProcessEvaluationReport(reportPath, workingDirectory);
+                        await openEvaluationReport(reportPath);
+                    }
                     endGroup(test, true, run);
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
@@ -323,7 +360,10 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 if (isAiEvaluations(test)) {
                     run.failed(test, new TestMessage('Evaluation failed'), timeElapsed);
                     const reportPath = await findLatestEvaluationReport(workingDirectory);
-                    if (reportPath) { await openEvaluationReport(reportPath); }
+                    if (reportPath) {
+                        await postProcessEvaluationReport(reportPath, workingDirectory);
+                        await openEvaluationReport(reportPath);
+                    }
                     endGroup(test, false, run);
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {

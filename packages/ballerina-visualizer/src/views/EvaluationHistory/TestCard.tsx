@@ -26,6 +26,7 @@ const Card = styled.section`
     background: var(--vscode-sideBar-background);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 8px;
+    margin: 0 24px;
     margin-bottom: 16px;
     overflow: hidden;
 `;
@@ -75,9 +76,9 @@ const PassBadge = styled.span<{ isPassing: boolean }>`
             : "var(--vscode-editorGutter-deletedBackground, #f85149)"};
     border: 1px solid
         ${(p: { isPassing: boolean }) =>
-            p.isPassing
-                ? "rgba(76, 175, 80, 0.4)"
-                : "rgba(244, 67, 54, 0.4)"};
+        p.isPassing
+            ? "rgba(76, 175, 80, 0.4)"
+            : "rgba(244, 67, 54, 0.4)"};
 `;
 
 const BadgeSep = styled.span`
@@ -122,9 +123,10 @@ const SparklineLabels = styled.div`
 
 interface TestCardProps {
     history: EvaluationTestHistory;
+    projectPath?: string;
 }
 
-export function TestCard({ history }: TestCardProps) {
+export function TestCard({ history, projectPath }: TestCardProps) {
     const latest = history.runs[history.runs.length - 1];
     const latestPct = (latest.passRate * 100).toFixed(0);
     const targetPct = (latest.targetPassRate * 100).toFixed(0);
@@ -178,7 +180,7 @@ export function TestCard({ history }: TestCardProps) {
                 <SparklineChart runs={history.runs} />
             </SparklineWrap>
 
-            <RunHistoryTable runs={history.runs} />
+            <RunHistoryTable runs={history.runs} projectPath={projectPath} />
         </Card>
     );
 }

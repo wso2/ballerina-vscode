@@ -37,6 +37,8 @@ import {
     GetEvaluationReportRequest,
     GetEvaluationReportResponse,
     EvaluationReportData,
+    GitDiffRequest,
+    GitDiffResponse,
 } from "@wso2/ballerina-core";
 import { ModulePart, NodePosition, STKindChecker } from "@wso2/syntax-tree";
 import * as fs from 'fs';
@@ -46,6 +48,7 @@ import { updateSourceCode } from "../../utils/source-utils";
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { EvaluationReportWebview } from "../../views/evaluation-report/webview";
+import { getDiffStat, getDiffFull } from "../../utils/git-utils";
 
 export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
 
@@ -218,6 +221,7 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
                     failed: jsonData.failed ?? 0,
                     skipped: jsonData.skipped ?? 0,
                     moduleStatus,
+                    gitState: jsonData.gitState,
                 };
 
                 resolve({ data });
@@ -227,6 +231,15 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
             }
         });
     }
+
+    async getGitDiff(params: GitDiffRequest): Promise<GitDiffResponse> {
+        const [diffStat, diffFull] = await Promise.all([
+            getDiffStat(params.projectPath, params.fromSha, params.toSha),
+            getDiffFull(params.projectPath, params.fromSha, params.toSha),
+        ]);
+        return { diffStat, diffFull };
+    }
+
 
     private parseDateFromFilename(filename: string): Date | undefined {
         const match = filename.match(
@@ -325,6 +338,7 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
                         evaluationRuns,
                         jsonReportPath,
                         failureMessage: test.failureMessage,
+                        gitState: jsonData.gitState,
                     };
 
                     if (!testMap.has(testName)) {

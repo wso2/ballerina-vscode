@@ -96,6 +96,18 @@ const TtOutcomes = styled.div`
     margin-top: 2px;
 `;
 
+const TtGit = styled.div`
+    font-size: 10px;
+    color: var(--vscode-descriptionForeground);
+    margin-top: 4px;
+    font-family: var(--vscode-editor-font-family, monospace);
+`;
+
+const TtDirtyIndicator = styled.span`
+    color: var(--vscode-editorWarning-foreground, #cca700);
+    margin-left: 4px;
+`;
+
 function formatDate(isoDate: string): string {
     return new Date(isoDate).toLocaleString(undefined, {
         year: "numeric",
@@ -262,6 +274,14 @@ export function SparklineChart({ runs }: SparklineChartProps) {
                         )}{" "}
                         outcomes passed
                     </TtOutcomes>
+                    {tooltip.run.gitState?.commitSha && (
+                        <TtGit>
+                            {tooltip.run.gitState.isDirty ? "Snapshot" : "Committed"}
+                            {tooltip.run.gitState.isDirty && (
+                                <TtDirtyIndicator> (unsaved changes)</TtDirtyIndicator>
+                            )}
+                        </TtGit>
+                    )}
                 </Tooltip>
             )}
         </Container>

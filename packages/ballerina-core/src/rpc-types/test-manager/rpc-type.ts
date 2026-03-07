@@ -68,6 +68,7 @@ export interface EvaluationRunDataPoint {
     evaluationRuns: EvaluationRun[];
     jsonReportPath?: string;
     failureMessage?: string;
+    gitState?: GitState;
 }
 
 export interface EvaluationTestHistory {
@@ -130,6 +131,7 @@ export interface EvaluationReportData {
     failed: number;
     skipped: number;
     moduleStatus: EvaluationReportModuleStatus[];
+    gitState?: GitState;
 }
 
 export interface GetEvaluationReportRequest {
@@ -142,3 +144,26 @@ export interface GetEvaluationReportResponse {
 
 export const getEvaluationReport: RequestType<GetEvaluationReportRequest, GetEvaluationReportResponse> =
     { method: `${_preFix}/getEvaluationReport` };
+
+// ── Git State types ──────────────────────────────────────────────────────────
+
+export interface GitState {
+    commitSha: string | null;
+    isDirty: boolean;
+    branch: string | null;
+}
+
+export interface GitDiffRequest {
+    projectPath: string;
+    fromSha: string;
+    toSha: string;
+}
+
+export interface GitDiffResponse {
+    diffStat: string;
+    diffFull: string;
+}
+
+export const getGitDiff: RequestType<GitDiffRequest, GitDiffResponse> =
+    { method: `${_preFix}/getGitDiff` };
+

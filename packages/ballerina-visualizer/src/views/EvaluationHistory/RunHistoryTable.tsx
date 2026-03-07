@@ -20,6 +20,8 @@ import { useState } from "react";
 import styled from "@emotion/styled";
 import { EvaluationRunDataPoint } from "./types";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { DiffViewer } from "./DiffViewer";
+import { Codicon } from "@wso2/ui-toolkit";
 
 function formatDate(isoDate: string): string {
     return new Date(isoDate).toLocaleString(undefined, {
@@ -238,14 +240,35 @@ const NoReport = styled.span`
     color: var(--vscode-descriptionForeground);
 `;
 
+const CodeChangesCell = styled.td`
+    white-space: nowrap;
+    font-size: 11px;
+`;
+
+const StateLabel = styled.span<{ isDirty: boolean }>`
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: ${(p: { isDirty: boolean }) =>
+        p.isDirty
+            ? "var(--vscode-editorWarning-foreground, #cca700)"
+            : "var(--vscode-descriptionForeground)"};
+    cursor: default;
+`;
+
 interface RunHistoryTableProps {
     runs: EvaluationRunDataPoint[];
+    projectPath?: string;
 }
 
-export function RunHistoryTable({ runs }: RunHistoryTableProps) {
+export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
     const { rpcClient } = useRpcContext();
     const [expandedOutcomes, setExpandedOutcomes] = useState<Set<number>>(new Set());
+    const [diffModal, setDiffModal] = useState<{ sha: string; full: string } | null>(null);
     const reversedRuns = [...runs].reverse();
+
+    const hasGitData = runs.some((r) => r.gitState?.commitSha);
 
     const handleViewReport = (reportPath: string) => {
         rpcClient.getTestManagerRpcClient().openEvaluationReport({ reportPath });
@@ -263,129 +286,173 @@ export function RunHistoryTable({ runs }: RunHistoryTableProps) {
         });
     };
 
-    return (
-        <Details open={runs.length <= 3}>
-            <Summary>
-                <SummaryLabel>Run history</SummaryLabel>
-                <SummaryCount>{runs.length} entries</SummaryCount>
-            </Summary>
-            <TableWrap>
-                <Table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Pass Rate</th>
-                            <th>Status</th>
-                            <th>Outcomes</th>
-                            <th>Report</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {reversedRuns.map((run, i) => {
-                            const pct = (run.passRate * 100).toFixed(0);
-                            const targetPct = (run.targetPassRate * 100).toFixed(0);
-                            const isPassed = run.status === "PASSED";
-                            const totalOutcomes = run.evaluationRuns.reduce(
-                                (s, r) => s + r.outcomes.length,
-                                0
-                            );
+    const handleCompare = async (sha: string) => {
+        if (!projectPath) { return; }
+        const resp = await rpcClient.getTestManagerRpcClient().getGitDiff({
+            projectPath, fromSha: sha, toSha: "HEAD",
+        });
+        setDiffModal({ sha, full: resp.diffFull });
+    };
 
-                            return (
-                                <tr key={i}>
-                                    <RunDate>{formatDate(run.date)}</RunDate>
-                                    <td>
-                                        <RateBadge isPassed={isPassed}>
-                                            {pct}%
-                                        </RateBadge>{" "}
-                                        <RateTarget>/ {targetPct}%</RateTarget>
-                                    </td>
-                                    <td>
-                                        <StatusChip isPassed={isPassed}>
-                                            {isPassed ? "Passed" : "Failed"}
-                                        </StatusChip>
-                                    </td>
-                                    <OutcomesCell>
-                                        <details
-                                            open={expandedOutcomes.has(i)}
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                toggleOutcomes(i);
-                                            }}
-                                        >
-                                            <OutcomesSummary>
-                                                {totalOutcomes} outcomes
-                                            </OutcomesSummary>
-                                        </details>
-                                        {expandedOutcomes.has(i) &&
-                                            run.evaluationRuns.map((er, erIndex) => {
-                                                const passedCount =
-                                                    er.outcomes.filter(
-                                                        (o) => o.passed
-                                                    ).length;
-                                                return (
-                                                    <EvalRunOutcomes
-                                                        key={`${i}-${erIndex}`}
-                                                    >
-                                                        <EvalRunLabel>
-                                                            Run {er.id}
-                                                        </EvalRunLabel>
-                                                        <OutcomesRate>
-                                                            {passedCount}/
-                                                            {
-                                                                er.outcomes
-                                                                    .length
+    return (
+        <>
+            <Details open={runs.length <= 3}>
+                <Summary>
+                    <SummaryLabel>Run history</SummaryLabel>
+                    <SummaryCount>{runs.length} entries</SummaryCount>
+                </Summary>
+                <TableWrap>
+                    <Table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Pass Rate</th>
+                                <th>Status</th>
+                                {hasGitData && <th>Code Changes</th>}
+                                <th>Outcomes</th>
+                                <th>Report</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {reversedRuns.map((run, i) => {
+                                const pct = (run.passRate * 100).toFixed(0);
+                                const targetPct = (run.targetPassRate * 100).toFixed(0);
+                                const isPassed = run.status === "PASSED";
+                                const totalOutcomes = run.evaluationRuns.reduce(
+                                    (s, r) => s + r.outcomes.length,
+                                    0
+                                );
+
+                                return (
+                                    <tr key={i}>
+                                        <RunDate>{formatDate(run.date)}</RunDate>
+                                        <td>
+                                            <RateBadge isPassed={isPassed}>
+                                                {pct}%
+                                            </RateBadge>{" "}
+                                            <RateTarget>/ {targetPct}%</RateTarget>
+                                        </td>
+                                        <td>
+                                            <StatusChip isPassed={isPassed}>
+                                                {isPassed ? "Passed" : "Failed"}
+                                            </StatusChip>
+                                        </td>
+                                        {hasGitData && (
+                                            <CodeChangesCell>
+                                                {run.gitState?.commitSha ? (
+                                                    <>
+                                                        <StateLabel
+                                                            isDirty={run.gitState.isDirty}
+                                                            title={
+                                                                run.gitState.commitSha.substring(0, 7) +
+                                                                (run.gitState.branch ? ` (${run.gitState.branch})` : "")
                                                             }
-                                                        </OutcomesRate>
-                                                        <OutcomesPills>
-                                                            {er.outcomes.map(
-                                                                (o) => (
-                                                                    <OutcomePill
-                                                                        key={
-                                                                            o.id
-                                                                        }
-                                                                        passed={
-                                                                            o.passed
-                                                                        }
-                                                                        title={
-                                                                            o.passed
-                                                                                ? "Passed"
-                                                                                : o.errorMessage?.substring(
-                                                                                    0,
-                                                                                    120
-                                                                                ) ??
-                                                                                "Failed"
-                                                                        }
-                                                                    >
-                                                                        {o.id}
-                                                                    </OutcomePill>
-                                                                )
-                                                            )}
-                                                        </OutcomesPills>
-                                                    </EvalRunOutcomes>
-                                                );
-                                            })}
-                                    </OutcomesCell>
-                                    <td>
-                                        {run.jsonReportPath ? (
-                                            <ViewBtn
-                                                onClick={() =>
-                                                    handleViewReport(
-                                                        run.jsonReportPath!
-                                                    )
-                                                }
-                                            >
-                                                View Report
-                                            </ViewBtn>
-                                        ) : (
-                                            <NoReport>&mdash;</NoReport>
+                                                        >
+                                                            <Codicon name={run.gitState.isDirty ? "circle-filled" : "check"} />
+                                                            {run.gitState.isDirty ? "Snapshot" : "Committed"}
+                                                        </StateLabel>
+                                                        <ViewBtn
+                                                            style={{ marginLeft: 8 }}
+                                                            onClick={() => handleCompare(run.gitState!.commitSha!)}
+                                                        >
+                                                            View changes
+                                                        </ViewBtn>
+                                                    </>
+                                                ) : (
+                                                    <NoReport>&mdash;</NoReport>
+                                                )}
+                                            </CodeChangesCell>
                                         )}
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </Table>
-            </TableWrap>
-        </Details>
+                                        <OutcomesCell>
+                                            <details
+                                                open={expandedOutcomes.has(i)}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    toggleOutcomes(i);
+                                                }}
+                                            >
+                                                <OutcomesSummary>
+                                                    {totalOutcomes} outcomes
+                                                </OutcomesSummary>
+                                            </details>
+                                            {expandedOutcomes.has(i) &&
+                                                run.evaluationRuns.map((er, erIndex) => {
+                                                    const passedCount =
+                                                        er.outcomes.filter(
+                                                            (o) => o.passed
+                                                        ).length;
+                                                    return (
+                                                        <EvalRunOutcomes
+                                                            key={`${i}-${erIndex}`}
+                                                        >
+                                                            <EvalRunLabel>
+                                                                Run {er.id}
+                                                            </EvalRunLabel>
+                                                            <OutcomesRate>
+                                                                {passedCount}/
+                                                                {
+                                                                    er.outcomes
+                                                                        .length
+                                                                }
+                                                            </OutcomesRate>
+                                                            <OutcomesPills>
+                                                                {er.outcomes.map(
+                                                                    (o) => (
+                                                                        <OutcomePill
+                                                                            key={
+                                                                                o.id
+                                                                            }
+                                                                            passed={
+                                                                                o.passed
+                                                                            }
+                                                                            title={
+                                                                                o.passed
+                                                                                    ? "Passed"
+                                                                                    : o.errorMessage?.substring(
+                                                                                        0,
+                                                                                        120
+                                                                                    ) ??
+                                                                                    "Failed"
+                                                                            }
+                                                                        >
+                                                                            {o.id}
+                                                                        </OutcomePill>
+                                                                    )
+                                                                )}
+                                                            </OutcomesPills>
+                                                        </EvalRunOutcomes>
+                                                    );
+                                                })}
+                                        </OutcomesCell>
+                                        <td>
+                                            {run.jsonReportPath ? (
+                                                <ViewBtn
+                                                    onClick={() =>
+                                                        handleViewReport(
+                                                            run.jsonReportPath!
+                                                        )
+                                                    }
+                                                >
+                                                    View Report
+                                                </ViewBtn>
+                                            ) : (
+                                                <NoReport>&mdash;</NoReport>
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </Table>
+                </TableWrap>
+            </Details>
+            {diffModal && (
+                <DiffViewer
+                    diffFull={diffModal.full}
+                    sha={diffModal.sha}
+                    onClose={() => setDiffModal(null)}
+                />
+            )}
+        </>
     );
 }
