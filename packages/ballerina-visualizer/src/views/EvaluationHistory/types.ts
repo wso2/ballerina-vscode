@@ -22,4 +22,5 @@ export type {
     EvaluationRunDataPoint,
     EvaluationTestHistory,
     EvaluationHistoryData,
+    GitState,
 } from "@wso2/ballerina-core";

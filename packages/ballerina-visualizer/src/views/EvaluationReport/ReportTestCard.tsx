@@ -27,6 +27,7 @@ const Card = styled.section`
     background: var(--vscode-sideBar-background);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 8px;
+    margin: 0 24px;
     margin-bottom: 16px;
     overflow: hidden;
 `;

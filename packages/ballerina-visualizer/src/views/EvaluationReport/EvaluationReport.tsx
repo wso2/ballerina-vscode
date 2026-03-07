@@ -35,12 +35,12 @@ const Page = styled.div`
     font-size: var(--vscode-font-size, 13px);
     background: var(--vscode-editor-background);
     color: var(--vscode-editor-foreground);
-    padding: 24px;
     height: 100vh;
     overflow-y: auto;
 `;
 
 const PageHeader = styled.header`
+    padding: 24px 24px 0;
     margin-bottom: 24px;
     padding-bottom: 16px;
     border-bottom: 1px solid var(--vscode-panel-border);
@@ -104,6 +104,7 @@ const EmptyTitle = styled.p`
 const EmptySub = styled.p`
     font-size: 13px;
 `;
+
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -221,7 +222,6 @@ export function EvaluationReport() {
     const { rpcClient } = useRpcContext();
     const [data, setData] = useState<EvaluationReportData | null>(null);
     const [loading, setLoading] = useState(true);
-
     const handleBackToHistory = () => {
         rpcClient
             .getCommonRpcClient()
@@ -230,11 +230,11 @@ export function EvaluationReport() {
 
     useEffect(() => {
         const container = document.getElementById("webview-container");
-        const reportPath = container?.getAttribute("data-report-path") ?? "";
+        const rPath = container?.getAttribute("data-report-path") ?? "";
 
         rpcClient
             .getTestManagerRpcClient()
-            .getEvaluationReport({ reportPath })
+            .getEvaluationReport({ reportPath: rPath })
             .then((response) => {
                 setData(response.data);
                 setLoading(false);
@@ -245,6 +245,7 @@ export function EvaluationReport() {
                 setLoading(false);
             });
     }, []);
+
 
     if (loading) {
         return (

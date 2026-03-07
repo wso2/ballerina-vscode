@@ -22,7 +22,8 @@ import {
     SourceUpdateResponse, GetEvalsetsRequest, GetEvalsetsResponse, getEvalsets,
     GetEvaluationHistoryRequest, GetEvaluationHistoryResponse, getEvaluationHistory,
     OpenEvaluationReportRequest, openEvaluationReport,
-    GetEvaluationReportRequest, GetEvaluationReportResponse, getEvaluationReport
+    GetEvaluationReportRequest, GetEvaluationReportResponse, getEvaluationReport,
+    GitDiffRequest, GitDiffResponse, getGitDiff
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -61,5 +62,10 @@ export class TestManagerServiceRpcClient implements TestManagerServiceAPI {
     getEvaluationReport(params: GetEvaluationReportRequest): Promise<GetEvaluationReportResponse> {
         return this._messenger.sendRequest(getEvaluationReport, HOST_EXTENSION, params);
     }
+
+    getGitDiff(params: GitDiffRequest): Promise<GitDiffResponse> {
+        return this._messenger.sendRequest(getGitDiff, HOST_EXTENSION, params);
+    }
+
 }
 

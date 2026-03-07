@@ -22,7 +22,8 @@ import {
     GetEvalsetsRequest, GetEvalsetsResponse,
     GetEvaluationHistoryRequest, GetEvaluationHistoryResponse,
     OpenEvaluationReportRequest,
-    GetEvaluationReportRequest, GetEvaluationReportResponse
+    GetEvaluationReportRequest, GetEvaluationReportResponse,
+    GitDiffRequest, GitDiffResponse
 } from "./rpc-type";
 
 export interface TestManagerServiceAPI {
@@ -33,4 +34,5 @@ export interface TestManagerServiceAPI {
     getEvaluationHistory: (params: GetEvaluationHistoryRequest) => Promise<GetEvaluationHistoryResponse>;
     openEvaluationReport: (params: OpenEvaluationReportRequest) => Promise<void>;
     getEvaluationReport: (params: GetEvaluationReportRequest) => Promise<GetEvaluationReportResponse>;
+    getGitDiff: (params: GitDiffRequest) => Promise<GitDiffResponse>;
 }

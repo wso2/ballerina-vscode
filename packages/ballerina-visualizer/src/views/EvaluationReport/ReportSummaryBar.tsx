@@ -27,6 +27,7 @@ const Bar = styled.div`
     border: 1px solid var(--vscode-panel-border);
     border-radius: 6px;
     padding: 12px 20px;
+    margin: 0 24px;
     margin-bottom: 24px;
     flex-wrap: wrap;
 `;
