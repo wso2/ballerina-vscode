@@ -19,7 +19,7 @@
         },
         "type": "TYPE",
         "name": "Customer",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "CustomerSummary": {
@@ -37,7 +37,7 @@
         },
         "type": "TYPE",
         "name": "CustomerSummary",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "Employee": {
@@ -55,7 +55,7 @@
         },
         "type": "TYPE",
         "name": "Employee",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "Person": {
@@ -73,7 +73,7 @@
         },
         "type": "TYPE",
         "name": "Person",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       }
     },
@@ -93,7 +93,7 @@
         },
         "type": "DATA_MAPPER",
         "name": "celsiusToFahrenheit",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "concatenateStrings": {
@@ -111,7 +111,7 @@
         },
         "type": "DATA_MAPPER",
         "name": "concatenateStrings",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "createPerson": {
@@ -129,7 +129,7 @@
         },
         "type": "DATA_MAPPER",
         "name": "createPerson",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "customerToCustomerSummary": {
@@ -147,7 +147,7 @@
         },
         "type": "DATA_MAPPER",
         "name": "customerToCustomerSummary",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "doubleAllValues": {
@@ -165,7 +165,7 @@
         },
         "type": "DATA_MAPPER",
         "name": "doubleAllValues",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "extractNames": {
@@ -183,7 +183,7 @@
         },
         "type": "DATA_MAPPER",
         "name": "extractNames",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "fahrenheitToCelsius": {
@@ -201,7 +201,7 @@
         },
         "type": "DATA_MAPPER",
         "name": "fahrenheitToCelsius",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "personToEmployee": {
@@ -219,7 +219,7 @@
         },
         "type": "DATA_MAPPER",
         "name": "personToEmployee",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "stringToInt": {
@@ -237,7 +237,7 @@
         },
         "type": "DATA_MAPPER",
         "name": "stringToInt",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       }
     },

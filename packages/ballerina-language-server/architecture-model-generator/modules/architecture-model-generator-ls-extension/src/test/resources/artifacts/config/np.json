@@ -19,7 +19,7 @@
         },
         "type": "NP_FUNCTION",
         "name": "getMovieRating",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "suggestMovieGenre": {
@@ -37,7 +37,7 @@
         },
         "type": "NP_FUNCTION",
         "name": "suggestMovieGenre",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "suggestMovieName1": {
@@ -55,7 +55,7 @@
         },
         "type": "NP_FUNCTION",
         "name": "suggestMovieName1",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "suggestMovieName2": {
@@ -73,7 +73,7 @@
         },
         "type": "NP_FUNCTION",
         "name": "suggestMovieName2",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       }
     }

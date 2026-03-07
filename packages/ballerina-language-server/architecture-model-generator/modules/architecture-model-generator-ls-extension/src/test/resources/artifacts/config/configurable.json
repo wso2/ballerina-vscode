@@ -19,7 +19,7 @@
         },
         "type": "TYPE",
         "name": "User",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       }
     },
@@ -39,7 +39,7 @@
         },
         "type": "CONFIGURABLE",
         "name": "apiUrl",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "defaultSettings": {
@@ -57,7 +57,7 @@
         },
         "type": "CONFIGURABLE",
         "name": "defaultSettings",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "enableLogging": {
@@ -75,7 +75,7 @@
         },
         "type": "CONFIGURABLE",
         "name": "enableLogging",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "maxRetries": {
@@ -93,7 +93,7 @@
         },
         "type": "CONFIGURABLE",
         "name": "maxRetries",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "serverConfig": {
@@ -111,7 +111,7 @@
         },
         "type": "CONFIGURABLE",
         "name": "serverConfig",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "timeout": {
@@ -129,7 +129,7 @@
         },
         "type": "CONFIGURABLE",
         "name": "timeout",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "users": {
@@ -147,7 +147,7 @@
         },
         "type": "CONFIGURABLE",
         "name": "users",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       }
     }

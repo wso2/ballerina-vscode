@@ -19,7 +19,7 @@
         },
         "type": "CONNECTION",
         "name": "httpClient",
-        "scope": "Global",
+        "scope": "Local",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
         "module": "http",
         "children": {}
@@ -41,7 +41,7 @@
         },
         "type": "LISTENER",
         "name": "refListener",
-        "scope": "Global",
+        "scope": "Local",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
         "module": "http",
         "children": {}
@@ -61,7 +61,7 @@
         },
         "type": "LISTENER",
         "name": "securedEP",
-        "scope": "Global",
+        "scope": "Local",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
         "module": "http",
         "children": {}
@@ -83,7 +83,7 @@
         },
         "type": "SERVICE",
         "name": "HTTP Service - /root/path-id",
-        "scope": "Global",
+        "scope": "Local",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
         "module": "http",
         "children": {
@@ -103,7 +103,7 @@
             "type": "RESOURCE",
             "name": "data",
             "accessor": "post",
-            "scope": "Global",
+            "scope": "Local",
             "children": {}
           },
           "post#greeting": {
@@ -122,7 +122,7 @@
             "type": "RESOURCE",
             "name": "greeting",
             "accessor": "post",
-            "scope": "Global",
+            "scope": "Local",
             "children": {}
           },
           "get#gre\\#eting": {
@@ -141,7 +141,7 @@
             "type": "RESOURCE",
             "name": "gre#eting",
             "accessor": "get",
-            "scope": "Global",
+            "scope": "Local",
             "children": {}
           },
           "get#echo/[string message]": {
@@ -160,7 +160,7 @@
             "type": "RESOURCE",
             "name": "echo/[string message]",
             "accessor": "get",
-            "scope": "Global",
+            "scope": "Local",
             "children": {}
           },
           "get\\#gre#eting": {
@@ -179,7 +179,7 @@
             "type": "RESOURCE",
             "name": "eting",
             "accessor": "get#gre",
-            "scope": "Global",
+            "scope": "Local",
             "children": {}
           }
         }
@@ -199,7 +199,7 @@
         },
         "type": "SERVICE",
         "name": "HTTP Service - /",
-        "scope": "Global",
+        "scope": "Local",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
         "module": "http",
         "children": {
@@ -218,7 +218,7 @@
             },
             "type": "FUNCTION",
             "name": "init",
-            "scope": "Global",
+            "scope": "Local",
             "children": {}
           },
           "get#greeting": {
@@ -237,7 +237,7 @@
             "type": "RESOURCE",
             "name": "greeting",
             "accessor": "get",
-            "scope": "Global",
+            "scope": "Local",
             "children": {}
           }
         }
@@ -257,7 +257,7 @@
         },
         "type": "SERVICE",
         "name": "HTTP Service - /api/v1",
-        "scope": "Global",
+        "scope": "Local",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
         "module": "http",
         "children": {
@@ -277,7 +277,7 @@
             "type": "RESOURCE",
             "name": "path",
             "accessor": "get",
-            "scope": "Global",
+            "scope": "Local",
             "children": {}
           }
         }

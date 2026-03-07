@@ -20,7 +20,7 @@
           },
           "type": "CONNECTION",
           "name": "httpEp",
-          "scope": "Global",
+          "scope": "Local",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
           "module": "http",
           "children": {}
@@ -44,7 +44,7 @@
           },
           "type": "VARIABLE",
           "name": "_telegramAgentAgent",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "menuItems": {
@@ -62,7 +62,7 @@
           },
           "type": "VARIABLE",
           "name": "menuItems",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "_telegramAgentModel": {
@@ -80,7 +80,7 @@
           },
           "type": "VARIABLE",
           "name": "_telegramAgentModel",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "orders": {
@@ -98,7 +98,7 @@
           },
           "type": "VARIABLE",
           "name": "orders",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "orderCounter": {
@@ -116,7 +116,7 @@
           },
           "type": "VARIABLE",
           "name": "orderCounter",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         }
       }
@@ -138,7 +138,7 @@
           },
           "type": "TYPE",
           "name": "Order",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "OrderRequest": {
@@ -156,7 +156,7 @@
           },
           "type": "TYPE",
           "name": "OrderRequest",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "OrderItem": {
@@ -174,7 +174,7 @@
           },
           "type": "TYPE",
           "name": "OrderItem",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "MenuItem": {
@@ -192,7 +192,7 @@
           },
           "type": "TYPE",
           "name": "MenuItem",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         }
       }
@@ -214,7 +214,7 @@
           },
           "type": "LISTENER",
           "name": "telegramAgentListener",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "httpListener": {
@@ -232,7 +232,7 @@
           },
           "type": "LISTENER",
           "name": "httpListener",
-          "scope": "Global",
+          "scope": "Local",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
           "module": "http",
           "children": {}
@@ -292,7 +292,7 @@
           },
           "type": "FUNCTION",
           "name": "calculateOrderTotal",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "factorial": {
@@ -368,7 +368,7 @@
           },
           "type": "DATA_MAPPER",
           "name": "orderRequestToOrder",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "mapMenuItemV1ToV2": {
@@ -386,7 +386,7 @@
           },
           "type": "DATA_MAPPER",
           "name": "mapMenuItemV1ToV2",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "menuItemToJson": {
@@ -404,7 +404,7 @@
           },
           "type": "DATA_MAPPER",
           "name": "menuItemToJson",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "jsonToOrderItem": {
@@ -422,7 +422,7 @@
           },
           "type": "DATA_MAPPER",
           "name": "jsonToOrderItem",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "jsonToOrder": {
@@ -440,7 +440,7 @@
           },
           "type": "DATA_MAPPER",
           "name": "jsonToOrder",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "jsonToMenuItem": {
@@ -458,7 +458,7 @@
           },
           "type": "DATA_MAPPER",
           "name": "jsonToMenuItem",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "orderItemToJson": {
@@ -476,7 +476,7 @@
           },
           "type": "DATA_MAPPER",
           "name": "orderItemToJson",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         }
       }
@@ -498,7 +498,7 @@
           },
           "type": "SERVICE",
           "name": "/telegramAgent",
-          "scope": "Global",
+          "scope": "Local",
           "children": {
             "post#chat": {
               "id": "post#chat",
@@ -516,7 +516,7 @@
               "type": "RESOURCE",
               "name": "chat",
               "accessor": "post",
-              "scope": "Global",
+              "scope": "Local",
               "children": {}
             }
           }
@@ -536,7 +536,7 @@
           },
           "type": "SERVICE",
           "name": "HTTP Service - /restaurant",
-          "scope": "Global",
+          "scope": "Local",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
           "module": "http",
           "children": {
@@ -556,7 +556,7 @@
               "type": "RESOURCE",
               "name": "menu",
               "accessor": "get",
-              "scope": "Global",
+              "scope": "Local",
               "children": {}
             },
             "post#orders": {
@@ -575,7 +575,7 @@
               "type": "RESOURCE",
               "name": "orders",
               "accessor": "post",
-              "scope": "Global",
+              "scope": "Local",
               "children": {}
             }
           }

@@ -20,7 +20,7 @@
           },
           "type": "CONFIGURABLE",
           "name": "telegramToken",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "port": {
@@ -38,7 +38,7 @@
           },
           "type": "CONFIGURABLE",
           "name": "port",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "telegramChatId": {
@@ -56,7 +56,7 @@
           },
           "type": "CONFIGURABLE",
           "name": "telegramChatId",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         }
       }

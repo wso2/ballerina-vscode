@@ -20,7 +20,7 @@
           },
           "type": "VARIABLE",
           "name": "menuItems",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "orders": {
@@ -38,7 +38,7 @@
           },
           "type": "VARIABLE",
           "name": "orders",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "orderCounter": {
@@ -56,7 +56,7 @@
           },
           "type": "VARIABLE",
           "name": "orderCounter",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         }
       }
@@ -84,7 +84,7 @@
           },
           "type": "LISTENER",
           "name": "httpListener",
-          "scope": "Global",
+          "scope": "Local",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
           "module": "http",
           "children": {}
@@ -108,7 +108,7 @@
           },
           "type": "SERVICE",
           "name": "HTTP Service - /restaurant",
-          "scope": "Global",
+          "scope": "Local",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
           "module": "http",
           "children": {
@@ -128,7 +128,7 @@
               "type": "RESOURCE",
               "name": "orders",
               "accessor": "post",
-              "scope": "Global",
+              "scope": "Local",
               "children": {}
             },
             "get#items": {
@@ -147,7 +147,7 @@
               "type": "RESOURCE",
               "name": "items",
               "accessor": "get",
-              "scope": "Global",
+              "scope": "Local",
               "children": {}
             }
           }

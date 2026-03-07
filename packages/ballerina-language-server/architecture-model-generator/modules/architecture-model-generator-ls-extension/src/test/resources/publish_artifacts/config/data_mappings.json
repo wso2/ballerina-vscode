@@ -28,7 +28,7 @@
           },
           "type": "DATA_MAPPER",
           "name": "calculateOrderTotal",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "toOrder": {
@@ -46,7 +46,7 @@
           },
           "type": "DATA_MAPPER",
           "name": "toOrder",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         }
       },
@@ -84,7 +84,7 @@
           },
           "type": "DATA_MAPPER",
           "name": "mapMenuItemV1ToV2",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "menuItemToJson": {
@@ -102,7 +102,7 @@
           },
           "type": "DATA_MAPPER",
           "name": "menuItemToJson",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         },
         "orderItemToJson": {
@@ -120,7 +120,7 @@
           },
           "type": "DATA_MAPPER",
           "name": "orderItemToJson",
-          "scope": "Global",
+          "scope": "Local",
           "children": {}
         }
       }

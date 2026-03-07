@@ -19,7 +19,7 @@
         },
         "type": "TYPE",
         "name": "Album",
-        "scope": "Global",
+        "scope": "Local",
         "children": {}
       },
       "MusicService": {
@@ -54,7 +54,7 @@
             },
             "type": "FUNCTION",
             "name": "init",
-            "scope": "Global",
+            "scope": "Object",
             "children": {}
           },
           "getAlbumCount": {
@@ -72,7 +72,7 @@
             },
             "type": "FUNCTION",
             "name": "getAlbumCount",
-            "scope": "Global",
+            "scope": "Object",
             "children": {}
           },
           "post#albums": {
@@ -91,7 +91,7 @@
             "type": "RESOURCE",
             "name": "albums",
             "accessor": "post",
-            "scope": "Global",
+            "scope": "Object",
             "children": {}
           },
           "get#albums": {
@@ -110,7 +110,7 @@
             "type": "RESOURCE",
             "name": "albums",
             "accessor": "get",
-            "scope": "Global",
+            "scope": "Object",
             "children": {}
           },
           "get#albums/[string title]": {
@@ -129,7 +129,7 @@
             "type": "RESOURCE",
             "name": "albums/[string title]",
             "accessor": "get",
-            "scope": "Global",
+            "scope": "Object",
             "children": {}
           },
           "delete#albums/[string title]": {
@@ -148,7 +148,7 @@
             "type": "RESOURCE",
             "name": "albums/[string title]",
             "accessor": "delete",
-            "scope": "Global",
+            "scope": "Object",
             "children": {}
           }
         }

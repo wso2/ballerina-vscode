@@ -396,7 +396,7 @@
             },
             "type": "FUNCTION",
             "name": "init",
-            "scope": "Global",
+            "scope": "Object",
             "children": {}
           },
           "get#person/[string name]": {
@@ -415,7 +415,7 @@
             "type": "RESOURCE",
             "name": "person/[string name]",
             "accessor": "get",
-            "scope": "Global",
+            "scope": "Object",
             "children": {}
           },
           "post#person": {
@@ -434,7 +434,7 @@
             "type": "RESOURCE",
             "name": "person",
             "accessor": "post",
-            "scope": "Global",
+            "scope": "Object",
             "children": {}
           },
           "get#people": {
@@ -453,7 +453,7 @@
             "type": "RESOURCE",
             "name": "people",
             "accessor": "get",
-            "scope": "Global",
+            "scope": "Object",
             "children": {}
           }
         }
