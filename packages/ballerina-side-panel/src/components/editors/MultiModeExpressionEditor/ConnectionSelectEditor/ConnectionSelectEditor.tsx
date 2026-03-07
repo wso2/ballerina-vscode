@@ -71,11 +71,6 @@ export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ 
                 disabled={!field.editable}
                 onChange={(val) => onChange(val, val?.length)}
             />
-            {field.actionCallback && (
-                <LinkButton onClick={field.actionCallback} sx={actionButtonStyles}>
-                    {field.actionLabel}
-                </LinkButton>
-            )}
         </>
     );
 };
