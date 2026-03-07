@@ -201,6 +201,13 @@ export const ConnectionIconSelect: React.FC<ConnectionIconSelectProps> = ({
         setOpen(false);
     };
 
+    const focusOption = (index: number) => {
+        const options = containerRef.current?.querySelectorAll<HTMLElement>('[role="option"]');
+        if (options && options[index]) {
+            options[index].focus();
+        }
+    };
+
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (disabled) return;
         if (e.key === "Enter" || e.key === " ") {
@@ -208,6 +215,36 @@ export const ConnectionIconSelect: React.FC<ConnectionIconSelectProps> = ({
             setOpen(!open);
         } else if (e.key === "Escape") {
             setOpen(false);
+        } else if (e.key === "ArrowDown") {
+            e.preventDefault();
+            if (!open) {
+                setOpen(true);
+            }
+            // Focus first option after render
+            setTimeout(() => focusOption(0), 0);
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            if (!open) {
+                setOpen(true);
+            }
+            setTimeout(() => focusOption(items.length - 1), 0);
+        }
+    };
+
+    const handleOptionKeyDown = (e: React.KeyboardEvent, index: number, itemValue: string) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleSelect(itemValue);
+        } else if (e.key === "ArrowDown") {
+            e.preventDefault();
+            focusOption(index + 1 < items.length ? index + 1 : 0);
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            focusOption(index - 1 >= 0 ? index - 1 : items.length - 1);
+        } else if (e.key === "Escape") {
+            e.preventDefault();
+            setOpen(false);
+            containerRef.current?.querySelector<HTMLElement>('[role="combobox"]')?.focus();
         }
     };
 
@@ -244,13 +281,15 @@ export const ConnectionIconSelect: React.FC<ConnectionIconSelectProps> = ({
                 </SelectTrigger>
                 {open && (
                     <DropdownPanel role="listbox">
-                        {items.map((item) => (
+                        {items.map((item, index) => (
                             <OptionItem
                                 key={item.id}
                                 role="option"
                                 aria-selected={item.value === value}
                                 selected={item.value === value}
+                                tabIndex={0}
                                 onClick={() => handleSelect(item.value)}
+                                onKeyDown={(e: React.KeyboardEvent) => handleOptionKeyDown(e, index, item.value)}
                             >
                                 {item.codedata && getConnectionIcon(item.codedata)}
                                 <OptionLabel>{item.label}</OptionLabel>
