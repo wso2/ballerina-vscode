@@ -47,6 +47,7 @@ import { createBallerinaRunTool, BALLERINA_RUN_TOOL_NAME } from './tools/balleri
 import { createBallerinaGetLogsTool, BALLERINA_GET_LOGS_TOOL_NAME } from './tools/ballerina-get-logs';
 import { createBallerinaStopTool, BALLERINA_STOP_TOOL_NAME } from './tools/ballerina-stop';
 import { RunningServicesManager } from './tools/running-service-manager';
+import { createHurlTool, HURL_TOOL_NAME } from './tools/hurl-tool';
 
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
@@ -110,6 +111,7 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath, eventHandler),
         [TEST_RUNNER_TOOL_NAME]: createTestRunnerTool(tempProjectPath, eventHandler),
         [CURL_TOOL_NAME]: createCurlTool(eventHandler),
+        [HURL_TOOL_NAME]: createHurlTool(eventHandler),
         [BALLERINA_RUN_TOOL_NAME]: createBallerinaRunTool(tempProjectPath, opts.runningServices, eventHandler),
         [BALLERINA_GET_LOGS_TOOL_NAME]: createBallerinaGetLogsTool(opts.runningServices, eventHandler),
         [BALLERINA_STOP_TOOL_NAME]: createBallerinaStopTool(opts.runningServices, eventHandler),
