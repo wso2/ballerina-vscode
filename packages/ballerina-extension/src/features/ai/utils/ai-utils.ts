@@ -186,6 +186,11 @@ export function sendReviewActionsNotification(): void {
     sendAIPanelNotification(msg);
 }
 
+export function sendChatComponentNotification(componentType: string, data: Record<string, any>): void {
+    const msg: ChatNotify = { type: "chat_component", componentType, data };
+    sendAIPanelNotification(msg);
+}
+
 export function sendContentReplaceNotification(content: string): void {
     const msg: ChatNotify = {
         type: "content_replace",

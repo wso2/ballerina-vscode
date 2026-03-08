@@ -41,7 +41,6 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon } from "@wso2/ui-toolkit";
 
 import { AIChatInputRef } from "../AIChatInput";
-import ProgressTextSegment from "../ProgressTextSegment";
 import ToolCallSegment from "../ToolCallSegment";
 import ToolCallGroupSegment, { ToolCallItem } from "../ToolCallGroupSegment";
 import TryItScenariosSegment from "../TryItScenariosSegment";
@@ -619,6 +618,18 @@ const AIChat: React.FC = () => {
         } else if ((response as any).type === "review_actions") {
             setShowReviewActions(true);
 
+        } else if ((response as any).type === "chat_component") {
+            const { componentType, data } = response as any;
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
+                const entries = parseStream(last.content);
+                const updated = appendToLastEntry(entries, { kind: "component", componentType, data });
+                msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
+            });
+
         } else if (type === "messages") {
             messagesRef.current = response.messages;
 
@@ -1158,18 +1169,23 @@ const AIChat: React.FC = () => {
                 ],
             });
 
-            // Update the message content to show "Saved" state
+            // Update the stream item to show "Saved" state
             setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                const targetIndex = ensureAssistantMessage(newMessages);
-                const lastMessage = newMessages[targetIndex];
-                if (lastMessage && lastMessage.content) {
-                    lastMessage.content = lastMessage.content.replace(
-                        /<button type="save_documentation">Save Documentation<\/button>/g,
-                        '<button type="documentation_saved">Saved</button>'
-                    );
-                }
-                return newMessages;
+                const msgs = [...prevMessages];
+                const targetIndex = msgs.findLastIndex((m: any) => m.actor === "copilot");
+                if (targetIndex === -1) return prevMessages;
+                const last = msgs[targetIndex];
+                const entries = parseStream(last.content);
+                const updated = entries.map((entry: StreamEntry) => ({
+                    ...entry,
+                    items: entry.items.map((item: StreamItem) =>
+                        item.kind === "component" && (item as any).componentType === "button" && (item as any).data.buttonType === "save_documentation"
+                            ? { kind: "component" as const, componentType: "button", data: { buttonType: "documentation_saved" } }
+                            : item
+                    )
+                }));
+                msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
             });
         } catch (error) {
             console.error("Error saving documentation:", error);
@@ -1400,13 +1416,34 @@ const AIChat: React.FC = () => {
                                     <MessageBody isUserMessage={isUserMessage}>
                                         {segmentedContent.map((segment, i) => {
                                             if (segment.type === SegmentType.AgentStream) {
+                                                const stream = segment.stream ?? [];
+                                                const buttonItems = stream.flatMap((e: StreamEntry) => e.items).filter((item: StreamItem) => item.kind === "component" && (item as any).componentType === "button");
                                                 return (
-                                                    <AgentStreamView
-                                                        key={`agent-stream-${i}`}
-                                                        stream={segment.stream ?? []}
-                                                        isLoading={isLoading && isLatestAssistantMessage}
-                                                        rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
-                                                    />
+                                                    <React.Fragment key={`agent-stream-${i}`}>
+                                                        <AgentStreamView
+                                                            stream={stream}
+                                                            isLoading={isLoading && isLatestAssistantMessage}
+                                                            rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
+                                                            onReviewActionsChange={setShowReviewActions}
+                                                        />
+                                                        {buttonItems.map((item: StreamItem, ci: number) => {
+                                                            const buttonType = (item as any).data.buttonType;
+                                                            if (buttonType === "save_documentation" && !isCodeLoading && isLastResponse && !isLoading) {
+                                                                return (
+                                                                    <div key={`comp-${ci}`} style={{ display: "flex", gap: "10px" }}>
+                                                                        <VSCodeButton title="Save Documentation" onClick={saveDocumentation}>Save Documentation</VSCodeButton>
+                                                                        <VSCodeButton title="Regenerate documentation" appearance="secondary" onClick={regenerateDocumentation}>
+                                                                            <Codicon name="refresh" />
+                                                                        </VSCodeButton>
+                                                                    </div>
+                                                                );
+                                                            }
+                                                            if (buttonType === "documentation_saved") {
+                                                                return <VSCodeButton key={`comp-${ci}`} title="Documentation has been saved" disabled>Saved</VSCodeButton>;
+                                                            }
+                                                            return null;
+                                                        })}
+                                                    </React.Fragment>
                                                 );
                                             }
 
@@ -1462,15 +1499,6 @@ const AIChat: React.FC = () => {
                                                         />
                                                     );
                                                 }
-                                            } else if (segment.type === SegmentType.Progress) {
-                                                return (
-                                                    <ProgressTextSegment
-                                                        key={`progress-${i}`}
-                                                        text={segment.text}
-                                                        loading={segment.loading}
-                                                        failed={segment.failed}
-                                                    />
-                                                );
                                             } else if (segment.type === SegmentType.ToolCall) {
                                                 const currentToolName = segment.toolName;
 
@@ -1602,38 +1630,6 @@ const AIChat: React.FC = () => {
                                                 );
                                             } else if (segment.type === SegmentType.References) {
                                                 return <ReferenceDropdown key={`references-${i}`} links={JSON.parse(segment.text)} />;
-                                            } else if (segment.type === SegmentType.Button) {
-                                                if (
-                                                    "buttonType" in segment &&
-                                                    segment.buttonType === "save_documentation" &&
-                                                    !isCodeLoading &&
-                                                    isLastResponse &&
-                                                    !isLoading
-                                                ) {
-                                                    return (
-                                                        <div key={`btn-save-${i}`} style={{ display: "flex", gap: "10px" }}>
-                                                            <VSCodeButton title="Save Documentation" onClick={saveDocumentation}>
-                                                                {"Save Documentation"}
-                                                            </VSCodeButton>
-                                                            <VSCodeButton
-                                                                title="Regenerate documentation"
-                                                                appearance="secondary"
-                                                                onClick={regenerateDocumentation}
-                                                            >
-                                                                <Codicon name="refresh" />
-                                                            </VSCodeButton>
-                                                        </div>
-                                                    );
-                                                } else if (
-                                                    "buttonType" in segment &&
-                                                    segment.buttonType === "documentation_saved"
-                                                ) {
-                                                    return (
-                                                        <VSCodeButton key={`btn-saved-${i}`} title="Documentation has been saved" disabled>
-                                                            {"Saved"}
-                                                        </VSCodeButton>
-                                                    );
-                                                }
                                             } else {
                                                 if (message.type === "Error") {
                                                     return <ErrorBox key={`error-${i}`}>{segment.text}</ErrorBox>;
