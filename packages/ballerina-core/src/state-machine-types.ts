@@ -344,6 +344,7 @@ export type ChatNotify =
     | ConnectorGenerationNotification
     | ConfigurationCollectionEvent
     | CodeReviewActions
+    | ChatComponentEvent
     | PlanUpdated;
 
 export interface ChatStart {
@@ -484,6 +485,12 @@ export interface ConfigurationCollectionEvent {
 
 export interface CodeReviewActions {
     type: "review_actions";
+}
+
+export interface ChatComponentEvent {
+    type: "chat_component";
+    componentType: string;
+    data: Record<string, any>;
 }
 
 export interface PlanUpdated {

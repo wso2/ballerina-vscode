@@ -32,6 +32,7 @@ import {
     sendConnectorGenerationNotification,
     sendConfigurationCollectionNotification,
     sendReviewActionsNotification,
+    sendChatComponentNotification,
 } from "./ai-utils";
 
 export type CopilotEventHandler = (event: ChatNotify) => void;
@@ -106,6 +107,9 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 break;
             case "configuration_collection_event":
                 sendConfigurationCollectionNotification(event);
+                break;
+            case "chat_component":
+                sendChatComponentNotification(event.componentType, event.data);
                 break;
             default:
                 console.warn(`Unhandled event type: ${event}`);
