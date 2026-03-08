@@ -32,7 +32,7 @@
         "label": "Port",
         "description": "Database server port number"
       },
-      "value": "1433",
+      "value": "1434",
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -80,5 +80,5 @@
     }
   ],
   "expectError": true,
-  "expectedErrorMessage": "Error introspecting database"
+  "expectedErrorMessage": "No entities found in the database for the selected tables."
 }

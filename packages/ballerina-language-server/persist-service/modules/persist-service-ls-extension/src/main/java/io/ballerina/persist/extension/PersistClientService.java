@@ -19,8 +19,11 @@
 package io.ballerina.persist.extension;
 
 import com.google.gson.JsonElement;
+import io.ballerina.projects.ProjectException;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
@@ -92,7 +95,8 @@ public class PersistClientService implements ExtendedLanguageServerService {
                 String effectiveModelFilePath = (modelFilePath != null && !modelFilePath.isEmpty())
                         ? modelFilePath : null;
                 response.setTables(generator.introspectDatabase(effectiveModelFilePath));
-            } catch (Exception e) {
+            } catch (PersistClient.PersistClientException | ProjectException
+                     | WorkspaceDocumentException | EventSyncException e) {
                 response.setError(e);
             }
             return response;
@@ -123,7 +127,8 @@ public class PersistClientService implements ExtendedLanguageServerService {
 
                 IntrospectCredentialsResponse.CredentialsData data = introspector.introspect();
                 response.setData(data);
-            } catch (Exception e) {
+            } catch (PersistClient.PersistClientException | ProjectException
+                     | WorkspaceDocumentException | EventSyncException e) {
                 response.setError(e);
             }
             return response;
@@ -177,7 +182,8 @@ public class PersistClientService implements ExtendedLanguageServerService {
                 JsonElement source = generator.generateClient(selectedTables, request.getTargetModule(),
                         request.getModelFilePath());
                 response.setSource(source);
-            } catch (Exception e) {
+            } catch (PersistClient.PersistClientException | ProjectException
+                     | WorkspaceDocumentException | EventSyncException e) {
                 response.setError(e);
             }
             return response;

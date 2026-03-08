@@ -27,14 +27,14 @@ import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
-import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
+import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
@@ -256,12 +256,12 @@ public class CredentialsIntrospector {
                 current = current.parent();
             }
 
-            if (current instanceof ModuleVariableDeclarationNode varDecl) {
-                return extractConnectionInfo(varDecl, rootNode);
+            if (current == null) {
+                return null;
             }
 
-            return null;
-        } catch (Exception e) {
+            return extractConnectionInfo((ModuleVariableDeclarationNode) current, rootNode);
+        } catch (PersistClient.PersistClientException e) {
             // Any failure falls through to the syntax tree fallback
             return null;
         }
@@ -600,9 +600,11 @@ public class CredentialsIntrospector {
                 current = current.parent();
             }
 
-            if (!(current instanceof ModuleVariableDeclarationNode varDecl)) {
+            if (current == null) {
                 return null;
             }
+
+            ModuleVariableDeclarationNode varDecl = (ModuleVariableDeclarationNode) current;
 
             // Must be a configurable variable
             boolean isConfigurable = varDecl.qualifiers().stream()
@@ -623,7 +625,7 @@ public class CredentialsIntrospector {
             }
 
             return stripQuotes(rawValue);
-        } catch (Exception e) {
+        } catch (PersistClient.PersistClientException e) {
             return null;
         }
     }

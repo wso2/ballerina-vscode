@@ -2,7 +2,7 @@
   "description": "MySQL database introspection - marks tables as selected and existing when they match records in the model file",
   "testProjectFolder": "sample-project-with-model",
   "targetModule": "",
-  "modelFilePath": "",
+  "modelFilePath": "persist/model.bal",
   "connection": "testdb",
   "properties": {
     "dbSystem": {
@@ -73,17 +73,51 @@
     }
   },
   "tables": [
-    {"table": "employees", "selected": true, "existing": true},
-    {"table": "departments", "selected": true, "existing": true},
-    {"table": "projects", "selected": false, "existing": false},
-    {"table": "no_pk_table", "selected": false, "existing": false}
+    {
+      "table": "employees",
+      "selected": true,
+      "existing": true
+    },
+    {
+      "table": "departments",
+      "selected": true,
+      "existing": true
+    },
+    {
+      "table": "projects",
+      "selected": false,
+      "existing": false
+    },
+    {
+      "table": "no_pk_table",
+      "selected": false,
+      "existing": false
+    }
   ],
   "output": {
     "tables": [
-      {"table": "employees", "selected": true, "existing": true},
-      {"table": "departments", "selected": true, "existing": true},
-      {"table": "projects", "selected": false, "existing": false},
-      {"table": "no_pk_table", "selected": false, "existing": false}
+      {
+        "table": "departments",
+        "selected": true,
+        "existing": true
+      },
+      {
+        "table": "employees",
+        "selected": true,
+        "existing": true
+      },
+      {
+        "table": "no_pk_table",
+        "selected": false,
+        "existing": false
+      },
+      {
+        "table": "projects",
+        "selected": false,
+        "existing": false
+      }
     ]
-  }
+  },
+  "expectError": false,
+  "expectedErrorMessage": ""
 }

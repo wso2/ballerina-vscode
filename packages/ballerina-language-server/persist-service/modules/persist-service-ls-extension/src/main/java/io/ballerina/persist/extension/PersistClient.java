@@ -324,8 +324,9 @@ public class PersistClient {
         }
 
         boolean isConnectorUpdate = modelPath != null && !modelPath.isEmpty();
-        Path persistModelPath = modelPath != null && modelPath.isEmpty() ? Path.of(modelPath)
-                : this.projectPath.resolve(PERSIST_DIR).resolve(getModelBalFileName());
+        Path relvativeModelPath = isConnectorUpdate ? Path.of(modelPath)
+                : Path.of(PERSIST_DIR).resolve(getModelBalFileName());
+        Path persistModelPath = this.projectPath.resolve(relvativeModelPath);
 
         try {
             Project project = this.workspaceManager.loadProject(projectPath);
