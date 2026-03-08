@@ -48,12 +48,6 @@ public final class PersistClientUtils {
 
     /**
      * Extracts database connection credentials from a credential properties map.
-     * <p>
-     * Reads the well-known keys {@code "Database System"}, {@code "Host"}, {@code "Port"},
-     * {@code "User"}, {@code "Password"}, and {@code "Database"} from the supplied map and
-     * returns them as a {@link DatabaseCredentials} record. The port string is parsed to an
-     * {@link Integer}; {@code null} is returned for the port when the value is absent or
-     * cannot be parsed.
      *
      * @param properties Map of credential property values keyed by property label
      * @return A {@link DatabaseCredentials} record populated from the given properties

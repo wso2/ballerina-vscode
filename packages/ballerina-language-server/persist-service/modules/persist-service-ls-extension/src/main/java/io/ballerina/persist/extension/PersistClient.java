@@ -713,7 +713,7 @@ public class PersistClient {
                 "org = \"ballerina\"" + LS +
                 "name = \"tool.persist\"" + LS +
                 // This version is hardcoded as minimum compatible version
-                "version = \"1.8.0\"" + LS;
+                "version = \"1.9.0\"" + LS;
     }
 
     /**
