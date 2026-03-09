@@ -355,14 +355,3 @@ export function getRecordTypeFields(fields: FormField[]): RecordTypeField[] {
                 .filter(member => member.kind === "RECORD_TYPE")
         }));
 }
-
-export const mapDiagnosticsServerityToFormSeverity = (severity: 1 | 2 | 3 | 4) => {
-    switch (severity) {
-        case 1:
-            return "ERROR";
-        case 2:
-            return "WARNING";
-        default:
-            return "INFO";
-    }       
-}    
