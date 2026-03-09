@@ -104,7 +104,7 @@ const Table = styled.table`
     td {
         padding: 8px 12px;
         border-bottom: 1px solid var(--vscode-panel-border);
-        vertical-align: top;
+        vertical-align: middle;
     }
 
     tr:last-child td {
@@ -243,6 +243,8 @@ const NoReport = styled.span`
 const CodeChangesCell = styled.td`
     white-space: nowrap;
     font-size: 11px;
+    display: flex;
+    align-items: center;
 `;
 
 const StateLabel = styled.span<{ isDirty: boolean }>`

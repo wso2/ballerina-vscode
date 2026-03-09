@@ -120,9 +120,10 @@ function formatDate(isoDate: string): string {
 
 interface SparklineChartProps {
     runs: EvaluationRunDataPoint[];
+    onDotClick?: (run: EvaluationRunDataPoint) => void;
 }
 
-export function SparklineChart({ runs }: SparklineChartProps) {
+export function SparklineChart({ runs, onDotClick }: SparklineChartProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState(400);
     const [tooltip, setTooltip] = useState<TooltipData | null>(null);
@@ -189,7 +190,13 @@ export function SparklineChart({ runs }: SparklineChartProps) {
         setTooltip(null);
     }, []);
 
-    const tooltipX = tooltip ? (tooltip.x + 14) : 0;
+    const TOOLTIP_OFFSET = 14;
+    const TOOLTIP_MAX_WIDTH = 220;
+    const tooltipX = tooltip
+        ? (tooltip.x + TOOLTIP_OFFSET + TOOLTIP_MAX_WIDTH > window.innerWidth
+            ? tooltip.x - TOOLTIP_OFFSET - TOOLTIP_MAX_WIDTH
+            : tooltip.x + TOOLTIP_OFFSET)
+        : 0;
     const tooltipY = tooltip ? (tooltip.y - 10) : 0;
 
     return (
@@ -243,6 +250,7 @@ export function SparklineChart({ runs }: SparklineChartProps) {
                                     : "var(--vscode-editorGutter-deletedBackground, #f85149)"
                             }
                             style={{ cursor: "pointer", transition: "r 0.1s" }}
+                            onClick={() => onDotClick?.(run)}
                             onMouseEnter={(e) => handleMouseEnter(e, run)}
                             onMouseMove={handleMouseMove}
                             onMouseLeave={handleMouseLeave}
