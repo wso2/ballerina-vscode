@@ -39,9 +39,10 @@ export interface ProjectFormFieldsProps {
     integrationNameError?: string;
     pathError?: string;
     packageNameValidationError?: string;
+    workspaceNameError?: string;
 }
 
-export function ProjectFormFields({ formData, onFormDataChange, integrationNameError, pathError, packageNameValidationError }: ProjectFormFieldsProps) {
+export function ProjectFormFields({ formData, onFormDataChange, integrationNameError, pathError, packageNameValidationError, workspaceNameError }: ProjectFormFieldsProps) {
     const { rpcClient } = useRpcContext();
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
@@ -206,6 +207,7 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
                                 label="Workspace Name"
                                 placeholder="Enter workspace name"
                                 required={true}
+                                errorMsg={workspaceNameError || ""}
                             />
                         </FieldGroup>
                     )}

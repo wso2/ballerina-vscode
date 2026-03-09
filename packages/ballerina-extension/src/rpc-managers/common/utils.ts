@@ -35,6 +35,7 @@ import { readOrWriteReadmeContent, resolveReadmePath } from '../bi-diagram/utils
 import { README_FILE } from '../../utils/bi';
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
+const PACKAGE_FILE = "PACKAGE.md";
 
 interface ProgressMessage {
     message: string;
@@ -271,62 +272,120 @@ export function getTargetProjectForPublish(): {
     return { projectPath, projectName, artifactType };
 }
 
-export async function getReadmeStatus(projectPath: string): Promise<'missing' | 'empty' | 'ready'> {
-    if (!isReadmeExists(projectPath)) {
-        return 'missing';
+export type PublishDescriptionStatus = 'missing' | 'empty' | 'ready';
+
+export interface PublishDescriptionInfo {
+    status: PublishDescriptionStatus;
+    activeDocPath: string;
+    activeDocName: string;
+}
+
+export interface PublishPackageInfo {
+    orgName: string;
+    packageName: string;
+    version: string;
+}
+
+export async function getPublishDescriptionInfo(projectPath: string): Promise<PublishDescriptionInfo> {
+    const readmePath = resolveReadmePath(projectPath);
+    const packagePath = resolveDocPath(projectPath, PACKAGE_FILE);
+
+    const readmeContent = readmePath ? readFileContent(readmePath) : undefined;
+    const packageContent = packagePath ? readFileContent(packagePath) : undefined;
+
+    const hasReadyDescription = [readmeContent, packageContent].some((content) => hasNonEmptyContent(content));
+    if (hasReadyDescription) {
+        const activeDocPath = hasNonEmptyContent(readmeContent) && readmePath
+            ? readmePath
+            : hasNonEmptyContent(packageContent) && packagePath
+                ? packagePath
+                : path.join(projectPath, README_FILE);
+        return {
+            status: 'ready',
+            activeDocPath,
+            activeDocName: path.basename(activeDocPath)
+        };
     }
-    const { content } = await readOrWriteReadmeContent({ projectPath, read: true });
-    return content === '' ? 'empty' : 'ready';
+
+    const hasAnyDescriptionFile = readmePath !== undefined || packagePath !== undefined;
+    if (hasAnyDescriptionFile) {
+        const activeDocPath = readmePath ?? packagePath ?? path.join(projectPath, README_FILE);
+        return {
+            status: 'empty',
+            activeDocPath,
+            activeDocName: path.basename(activeDocPath)
+        };
+    }
+
+    return {
+        status: 'missing',
+        activeDocPath: path.join(projectPath, README_FILE),
+        activeDocName: README_FILE
+    };
 }
 
 export function getPublishConfirmation(
     projectName: string,
     artifactType: string,
-    readmeStatus: 'missing' | 'empty' | 'ready'
+    descriptionInfo: PublishDescriptionInfo,
+    packageInfo: PublishPackageInfo
 ): { message: string; primaryButton: string } {
-    if (readmeStatus === 'missing') {
+    const packageDetails = [
+        `Organization: ${packageInfo.orgName || '<required>'}`,
+        `Package: ${packageInfo.packageName || '<required>'}`,
+        `Version: ${packageInfo.version || '<required>'}`,
+        `Description file: ${descriptionInfo.activeDocName}`
+    ].join('\n');
+
+    if (descriptionInfo.status === 'missing') {
         return {
-            message: `"${projectName}" requires a README.md before it can be published to Ballerina Central. Please try again after creating the README.md file.`,
-            primaryButton: 'Create README'
+            message: `Publish "${projectName}" to Ballerina Central\n\n${packageDetails}\n\nA non-empty README.md file is required before publishing.`,
+            primaryButton: 'Create Description File'
         };
     }
-    if (readmeStatus === 'empty') {
+    if (descriptionInfo.status === 'empty') {
         return {
-            message: `"${projectName}" contains an empty README.md file. Please enter a description for your ${artifactType} and try again.`,
-            primaryButton: 'Edit README'
+            message: `Publish "${projectName}" to Ballerina Central\n\n${packageDetails}\n\nThe detected description file is empty. Please add a description for your ${artifactType}.`,
+            primaryButton: 'Edit Description File'
         };
     }
     return {
-        message: `Publish "${projectName}" to Ballerina Central? Your ${artifactType} will be made available to the Ballerina community.`,
+        message: `Publish "${projectName}" to Ballerina Central\n\n${packageDetails}\n\nYour ${artifactType} will be made available to the Ballerina community.`,
         primaryButton: 'Publish to Central'
     };
 }
 
 
-export async function handleReadmeSetup(
-    readmeStatus: 'missing' | 'empty' | 'ready',
+export async function handlePublishDescriptionSetup(
+    descriptionInfo: PublishDescriptionInfo,
     projectPath: string,
     projectName: string,
     artifactType: string
 ): Promise<boolean> {
-    if (readmeStatus === 'missing') {
+    if (descriptionInfo.status === 'missing') {
         const content = `# ${projectName} ${artifactType}\n\nAdd your ${artifactType} description here.`;
         await readOrWriteReadmeContent({ projectPath, content, read: false });
-        openReadmeInEditor(projectPath);
+        await openDescriptionInEditor(path.join(projectPath, README_FILE));
         return true;
     }
-    if (readmeStatus === 'empty') {
-        openReadmeInEditor(projectPath);
+    if (descriptionInfo.status === 'empty') {
+        await openDescriptionInEditor(descriptionInfo.activeDocPath);
         return true;
     }
     return false;
 }
 
-function openReadmeInEditor(projectPath: string): void {
-    const readmePath = resolveReadmePath(projectPath) ?? path.join(projectPath, README_FILE);
-    workspace.openTextDocument(readmePath).then((doc) => {
-        window.showTextDocument(doc, ViewColumn.Beside);
-    });
+export async function openPublishDescriptionInEditor(descriptionInfo: PublishDescriptionInfo): Promise<void> {
+    await openDescriptionInEditor(descriptionInfo.activeDocPath);
+}
+
+async function openDescriptionInEditor(docPath: string): Promise<void> {
+    try {
+        const doc = await workspace.openTextDocument(docPath);
+        await window.showTextDocument(doc, ViewColumn.Beside);
+    } catch (error) {
+        window.showErrorMessage(`Failed to open description file "${docPath}": ${error}`);
+    }
 }
 
 export function getFirstBalaPath(projectPath: string): string | null {
@@ -338,7 +397,26 @@ export function getFirstBalaPath(projectPath: string): string | null {
     return files.length > 0 ? path.join(balaDirPath, files[0]) : null;
 }
 
-export function isReadmeExists(projectPath: string): boolean {
-    const existingReadmePath = resolveReadmePath(projectPath);
-    return existingReadmePath !== undefined;
+function resolveDocPath(projectPath: string, fileName: string): string | undefined {
+    try {
+        const entries = fs.readdirSync(projectPath, { withFileTypes: true });
+        const match = entries.find(
+            (entry) => entry.isFile() && entry.name.toLowerCase() === fileName.toLowerCase()
+        );
+        return match ? path.join(projectPath, match.name) : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+function readFileContent(filePath: string): string {
+    try {
+        return fs.readFileSync(filePath, 'utf8');
+    } catch {
+        return '';
+    }
+}
+
+function hasNonEmptyContent(content: string | undefined): boolean {
+    return content !== undefined && content.trim() !== '';
 }

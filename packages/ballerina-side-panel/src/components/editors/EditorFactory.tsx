@@ -104,7 +104,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         fieldInputType.fieldType === "SQL_QUERY" ||
         fieldInputType.fieldType === "NUMBER" ||
         fieldInputType.fieldType === "PROMPT" ||
-        (fieldInputType.fieldType === "FLAG" && field.types?.length > 1)
+        (fieldInputType.fieldType === "FLAG" && field.types?.length > 1) ||
+        fieldInputType.fieldType === "CLAUSE_EXPRESSION"
     )
 
     if (!field.enabled || field.hidden) {

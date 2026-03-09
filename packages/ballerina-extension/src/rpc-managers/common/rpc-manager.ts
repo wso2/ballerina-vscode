@@ -71,12 +71,14 @@ import {
     BALLERINA_INTEGRATOR_ISSUES_URL,
     findWorkspaceTypeFromWorkspaceFolders,
     getFirstBalaPath,
+    getPublishDescriptionInfo,
     getPublishConfirmation,
-    getReadmeStatus,
+    PublishPackageInfo,
     getTargetProjectForPublish,
     getUpdatedSource,
     handleDownloadFile,
-    handleReadmeSetup,
+    handlePublishDescriptionSetup,
+    openPublishDescriptionInEditor,
     selectSampleDownloadPath
 } from "./utils";
 import { VisualizerWebview } from "../../views/visualizer/webview";
@@ -484,26 +486,193 @@ export class CommonRpcManager implements CommonRPCAPI {
         }
 
         const { projectPath, projectName, artifactType } = project;
-        const readmeStatus = await getReadmeStatus(projectPath);
-        const confirmation = getPublishConfirmation(projectName, artifactType, readmeStatus);
+        let packageInfo = await this.getPublishPackageInfo(projectPath, projectName);
 
-        const confirmed = await window.showInformationMessage(
-            confirmation.message,
-            { modal: true },
-            confirmation.primaryButton
-        );
-        if (!confirmed) {
-            return failResponse();
-        }
+        while (true) {
+            const descriptionInfo = await getPublishDescriptionInfo(projectPath);
+            const confirmation = getPublishConfirmation(projectName, artifactType, descriptionInfo, packageInfo);
+            const actionButtons = ['Edit Package Details'];
+            if (descriptionInfo.status !== 'missing') {
+                actionButtons.push('Open Description File');
+            }
 
-        const readmeHandled = await handleReadmeSetup(readmeStatus, projectPath, projectName, artifactType);
-        if (readmeHandled) {
-            return failResponse();
+            const selectedAction = await window.showInformationMessage(
+                confirmation.message,
+                { modal: true },
+                confirmation.primaryButton,
+                ...actionButtons
+            );
+
+            if (!selectedAction) {
+                return failResponse();
+            }
+
+            if (selectedAction === 'Edit Package Details') {
+                const updatedDetails = await this.promptForPublishPackageInfo(packageInfo);
+                if (!updatedDetails) {
+                    continue;
+                }
+
+                const updated = await this.updateProjectPackageInfo(projectPath, updatedDetails);
+                if (!updated) {
+                    window.showErrorMessage('Failed to update package details in Ballerina.toml');
+                    return failResponse();
+                }
+
+                packageInfo = updatedDetails;
+                continue;
+            }
+
+            if (selectedAction === 'Open Description File') {
+                await openPublishDescriptionInEditor(descriptionInfo);
+                continue;
+            }
+
+            const descriptionHandled = await handlePublishDescriptionSetup(descriptionInfo, projectPath, projectName, artifactType);
+            if (descriptionHandled) {
+                return failResponse();
+            }
+
+            break;
         }
 
         const result = await this.packAndPushToCentral(projectPath);
         this.showPublishResult(result);
         return result;
+    }
+
+    private async getPublishPackageInfo(projectPath: string, fallbackName: string): Promise<PublishPackageInfo> {
+        const tomlValues = await getProjectTomlValues(projectPath);
+        return {
+            orgName: tomlValues?.package?.org ?? getUsername(),
+            packageName: tomlValues?.package?.name ?? fallbackName,
+            version: tomlValues?.package?.version ?? '0.1.0'
+        };
+    }
+
+    private async promptForPublishPackageInfo(current: PublishPackageInfo): Promise<PublishPackageInfo | undefined> {
+        const orgName = await window.showInputBox({
+            title: 'Edit Package Details',
+            prompt: 'Organization name',
+            value: current.orgName,
+            ignoreFocusOut: true,
+            validateInput: (value) => value.trim() ? undefined : 'Organization name is required'
+        });
+        if (orgName === undefined) {
+            return undefined;
+        }
+
+        const packageName = await window.showInputBox({
+            title: 'Edit Package Details',
+            prompt: 'Package name',
+            value: current.packageName,
+            ignoreFocusOut: true,
+            validateInput: (value) => value.trim() ? undefined : 'Package name is required'
+        });
+        if (packageName === undefined) {
+            return undefined;
+        }
+
+        const version = await window.showInputBox({
+            title: 'Edit Package Version',
+            prompt: 'Version',
+            value: current.version,
+            ignoreFocusOut: true,
+            validateInput: (value) => value.trim() ? undefined : 'Version is required'
+        });
+        if (version === undefined) {
+            return undefined;
+        }
+
+        return {
+            orgName: orgName.trim(),
+            packageName: packageName.trim(),
+            version: version.trim()
+        };
+    }
+
+    private async updateProjectPackageInfo(projectPath: string, details: PublishPackageInfo): Promise<boolean> {
+        const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
+        if (!fs.existsSync(ballerinaTomlPath)) {
+            return false;
+        }
+
+        try {
+            const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+            const packageSection = this.getPackageSectionBoundaries(tomlContent);
+            const updatedPackageSection = this.upsertPackageFields(
+                packageSection.content,
+                details
+            );
+
+            const updatedToml = tomlContent.slice(0, packageSection.start)
+                + updatedPackageSection
+                + tomlContent.slice(packageSection.end);
+
+            await fs.promises.writeFile(ballerinaTomlPath, updatedToml, 'utf-8');
+            return true;
+        } catch (error) {
+            console.error('Failed to update Ballerina.toml package metadata:', error);
+            return false;
+        }
+    }
+
+    private getPackageSectionBoundaries(content: string): { content: string; start: number; end: number } {
+        const packageHeaderRegex = /^\s*\[package\]\s*$/m;
+        const packageHeaderMatch = packageHeaderRegex.exec(content);
+
+        if (!packageHeaderMatch || packageHeaderMatch.index === undefined) {
+            const start = content.length;
+            const prefix = content.endsWith('\n') || content.length === 0 ? '' : '\n';
+            return {
+                content: `${prefix}[package]\n`,
+                start,
+                end: start
+            };
+        }
+
+        const sectionStart = packageHeaderMatch.index;
+        const nextSectionRegex = /^\s*\[[^\]]+\]\s*$/gm;
+        nextSectionRegex.lastIndex = sectionStart + packageHeaderMatch[0].length;
+        const nextSectionMatch = nextSectionRegex.exec(content);
+        const sectionEnd = nextSectionMatch ? nextSectionMatch.index : content.length;
+
+        return {
+            content: content.slice(sectionStart, sectionEnd),
+            start: sectionStart,
+            end: sectionEnd
+        };
+    }
+
+    private upsertPackageFields(packageSection: string, details: PublishPackageInfo): string {
+        let updatedSection = packageSection;
+        updatedSection = this.upsertTomlField(updatedSection, 'org', details.orgName);
+        updatedSection = this.upsertTomlField(updatedSection, 'name', details.packageName);
+        updatedSection = this.upsertTomlField(updatedSection, 'version', details.version);
+        if (!updatedSection.endsWith('\n')) {
+            updatedSection = `${updatedSection}\n`;
+        }
+        return updatedSection;
+    }
+
+    private upsertTomlField(section: string, fieldName: string, fieldValue: string): string {
+        const escapedValue = fieldValue.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        const escapedFieldName = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const fieldRegex = new RegExp(`^\\s*${escapedFieldName}\\s*=\\s*.*$`, 'm');
+        const fieldLine = `${fieldName} = "${escapedValue}"`;
+
+        if (fieldRegex.test(section)) {
+            return section.replace(fieldRegex, fieldLine);
+        }
+
+        const headerLineBreak = section.indexOf('\n');
+        if (headerLineBreak === -1) {
+            return `${section}\n${fieldLine}\n`;
+        }
+
+        return section.slice(0, headerLineBreak + 1)
+            + `${fieldLine}\n`
+            + section.slice(headerLineBreak + 1);
     }
 
     private async packAndPushToCentral(projectPath: string): Promise<PublishToCentralResponse> {

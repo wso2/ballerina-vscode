@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, CreateLocalConnectionsConfigReq, CreateThirdPartyConnectionReq, CreateComponentConnectionReq, GetComponentsReq, ComponentKind } from "@wso2/wso2-platform-core"
+import { GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, CreateLocalConnectionsConfigReq, CreateThirdPartyConnectionReq, CreateComponentConnectionReq, GetComponentsReq, ComponentKind, GetDatabaseServerReq, DatabaseAdminCredential, DatabaseServer, MarketplaceDatabaseListResp, DatabaseCredential, GetProjectEnvsReq, Environment, CreateDatabaseConnectionReq, GetDatabaseItemReq, ResolveConnectionSecretsReq, ResolveConnectionSecretsResp } from "@wso2/wso2-platform-core"
 import { DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, GenerateCustomConnectorFromOASResp, AddDevantTempConfigReq, AddDevantTempConfigResp, ReplaceDevantTempConfigValuesReq, RegisterDevantMarketplaceServiceReq, InitializeDevantOASConnectionReq, InitializeDevantOASConnectionResp } from "./interfaces";
 export * from "./rpc-type"
 export * from "./utils"
@@ -29,11 +29,20 @@ export interface PlatformExtAPI {
     addDevantTempConfig: (params: AddDevantTempConfigReq) => Promise<AddDevantTempConfigResp>
     deleteDevantTempConfigs: (params: DeleteDevantTempConfigReq) => Promise<void>
     replaceDevantTempConfigValues: (params: ReplaceDevantTempConfigValuesReq) => Promise<void>
+    setConnectedToDevant: (connected: boolean) => void;
+    setSelectedComponent: (componentId: string) => void;
+    setSelectedEnv: (envId: string) => void;
     // Platform ext proxies
     createThirdPartyConnection: (params: CreateThirdPartyConnectionReq) => Promise<ConnectionDetailed>
     createInternalConnection: (params: CreateComponentConnectionReq) => Promise<ConnectionDetailed>
     registerDevantMarketplaceService: (params: RegisterDevantMarketplaceServiceReq) => Promise<MarketplaceItem>
     getMarketplaceItems: (params: GetMarketplaceListReq) => Promise<MarketplaceListResp>;
+    getMarketplaceDatabases: (params: { orgId: string }) => Promise<MarketplaceDatabaseListResp>;
+    getMarketplaceDatabaseItem: (params: GetDatabaseItemReq) => Promise<MarketplaceItem>;
+    getDatabaseServer: (params: GetDatabaseServerReq) => Promise<DatabaseServer>;
+    getDatabaseAdminCredential: (params: GetDatabaseServerReq) => Promise<DatabaseAdminCredential>;
+    getDatabaseCredentials: (params: GetDatabaseServerReq) => Promise<DatabaseCredential[]>;
+    createDatabaseConnection: (params: CreateDatabaseConnectionReq) => Promise<ConnectionDetailed>;
     getMarketplaceItem: (params: GetMarketplaceItemReq) => Promise<MarketplaceItem>;
     getMarketplaceIdl: (params: GetMarketplaceIdlReq) => Promise<MarketplaceIdlResp>;
     getConnections: (params: GetConnectionsReq) => Promise<ConnectionListItem[]>;
@@ -42,9 +51,8 @@ export interface PlatformExtAPI {
     deleteLocalConnectionsConfig: (params: DeleteLocalConnectionsConfigReq) => void;
     getDevantConsoleUrl: () => Promise<string>;
     refreshConnectionList: () => Promise<void>;
-    setConnectedToDevant: (connected: boolean) => void;
-    setSelectedComponent: (componentId: string) => void;
-    setSelectedEnv: (envId: string) => void;
+    getProjectEnvs: (params: GetProjectEnvsReq) => Promise<Environment[]>;
+    resolveConnectionSecrets: (params: ResolveConnectionSecretsReq) => Promise<ResolveConnectionSecretsResp>;
     deployIntegrationInDevant: () => void;
     createConnectionConfig: (params: CreateLocalConnectionsConfigReq) => Promise<string>;
 }
