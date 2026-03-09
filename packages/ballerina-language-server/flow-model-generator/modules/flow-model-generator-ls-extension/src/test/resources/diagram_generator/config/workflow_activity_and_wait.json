@@ -17,7 +17,7 @@
         "metadata": {
           "label": "Start",
           "data": {
-            "kind": "Function",
+            "kind": "WORKFLOW",
             "label": "orderWorkflow",
             "isServiceFunction": false,
             "parameters": [
@@ -93,8 +93,8 @@
         "id": "59724",
         "metadata": {
           "label": "callActivity",
-          "description": "Executes an activity function within the workflow context.\n\nActivities are non-deterministic operations (I/O, database calls, external APIs)\nthat should only be executed once during workflow execution and not during replay.\nThe workflow runtime ensures exactly-once execution semantics for activities.\n\nThe return type is determined by the `T` typedesc parameter, allowing compile-time\ntype checking when the expected return type is specified. The compiler plugin\nvalidates that the activity function's return type is compatible with `T`.\n\nExample:\n```ballerina\nstring result = check ctx->callActivity(sendEmailActivity, {\"email\": recipientEmail, \"subject\": subject});\n// For activities with no parameters, pass an empty record:\nstring result = check ctx->callActivity(noArgActivity, {});\n```\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.1.0.png"
+          "description": "Executes an activity function within the workflow context.\n\nActivities are non-deterministic operations (I/O, database calls, external APIs)\nthat should only be executed once during workflow execution and not during replay.\nThe workflow runtime ensures exactly-once execution semantics for activities.\n\nThe return type is determined by the `T` typedesc parameter, allowing compile-time\ntype checking when the expected return type is specified. The compiler plugin\nvalidates that the activity function's return type is compatible with `T`.\n\nBy default, if the activity function returns an error, it is treated as a failure\nand the engine will retry the activity based on the retry policy. To treat errors\nas normal completion values, set `failOnError` to `false` in the options.\n\nExample:\n```ballerina\n// Basic activity call (errors cause failure + retry by default)\nstring result = check ctx->callActivity(sendEmailActivity, {email: recipientEmail, subject: subject});\n// With custom retry policy\nstring result = check ctx->callActivity(sendEmailActivity, {email: recipientEmail}, \n    options = {retryPolicy: {maximumAttempts: 3, initialIntervalInSeconds: 2}});\n// Treat errors as normal completion (no retry on error)\nstring|error result = ctx->callActivity(riskyActivity, {data: input}, options = {failOnError: false});\n```\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.2.0.png"
         },
         "codedata": {
           "node": "ACTIVITY_CALL",
@@ -103,7 +103,7 @@
           "packageName": "workflow",
           "object": "Context",
           "symbol": "callActivity",
-          "version": "0.1.0",
+          "version": "0.2.0",
           "lineRange": {
             "fileName": "workflow_operations.bal",
             "startLine": {
@@ -163,26 +163,30 @@
           "args": {
             "metadata": {
               "label": "Args",
-              "description": "Record containing the arguments to pass to the activity function"
+              "description": "Map containing the arguments to pass to the activity function"
             },
             "types": [
               {
-                "fieldType": "RECORD_MAP_EXPRESSION",
-                "ballerinaType": "workflow:Parameters",
-                "typeMembers": [
-                  {
-                    "type": "Parameters",
-                    "packageInfo": "ballerina:workflow:0.1.0",
-                    "packageName": "workflow",
-                    "kind": "RECORD_TYPE",
-                    "selected": true
-                  }
-                ],
-                "selected": true
+                "fieldType": "REPEATABLE_MAP",
+                "ballerinaType": "map<anydata>",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "anydata",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "workflow:Parameters",
+                "ballerinaType": "map<anydata>",
                 "selected": false
               }
             ],
@@ -197,6 +201,43 @@
               "originalName": "args"
             },
             "defaultValue": "{}"
+          },
+          "options": {
+            "metadata": {
+              "label": "Options",
+              "description": "Optional activity options for retry policy and error handling behavior"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "workflow:ActivityOptions",
+                "typeMembers": [
+                  {
+                    "type": "ActivityOptions",
+                    "packageInfo": "ballerina:workflow:0.2.0",
+                    "packageName": "workflow",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "workflow:ActivityOptions?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "options"
+            },
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {
@@ -375,7 +416,7 @@
         "flags": 0
       },
       {
-        "id": "61579",
+        "id": "61577",
         "metadata": {
           "label": "Comment",
           "description": "Wait for data - should be WAIT_DATA"
@@ -390,7 +431,7 @@
             },
             "endLine": {
               "line": 31,
-              "offset": 44
+              "offset": 42
             }
           },
           "sourceCode": "Wait for data - should be WAIT_DATA"
@@ -421,7 +462,7 @@
         "id": "63666",
         "metadata": {
           "label": "Wait for Data",
-          "description": "Wait for a workflow event to be received"
+          "description": "Wait for workflow data to be received"
         },
         "codedata": {
           "node": "WAIT_DATA",

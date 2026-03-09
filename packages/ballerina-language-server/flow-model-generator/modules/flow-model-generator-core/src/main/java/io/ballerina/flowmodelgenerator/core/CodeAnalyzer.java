@@ -302,6 +302,8 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (functionDefinitionNode.qualifierList().stream()
                 .anyMatch(qualifier -> qualifier.kind() == SyntaxKind.REMOTE_KEYWORD)) {
             kind = FunctionKind.REMOTE_FUNCTION;
+        } else if (isWorkflowFunction(semanticModel.symbol(functionDefinitionNode).orElse(null))) {
+            kind = FunctionKind.WORKFLOW;
         } else {
             kind = FunctionKind.FUNCTION;
         }
@@ -2990,7 +2992,8 @@ public class CodeAnalyzer extends NodeVisitor {
         FUNCTION("Function"),
         REMOTE_FUNCTION("Remote Function"),
         RESOURCE("Resource"),
-        AI_CHAT_AGENT("AI Chat Agent");
+        AI_CHAT_AGENT("AI Chat Agent"),
+        WORKFLOW("WORKFLOW");
 
         private final String value;
 

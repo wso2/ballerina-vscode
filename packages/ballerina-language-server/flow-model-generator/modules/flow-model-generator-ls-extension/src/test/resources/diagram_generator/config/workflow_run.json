@@ -4,7 +4,7 @@
     "offset": 0
   },
   "end": {
-    "line": 50,
+    "line": 49,
     "offset": 1
   },
   "source": "workflow_operations.bal",
@@ -13,7 +13,7 @@
     "fileName": "workflow_operations.bal",
     "nodes": [
       {
-        "id": "74835",
+        "id": "74804",
         "metadata": {
           "label": "Start",
           "data": {
@@ -32,11 +32,11 @@
               "offset": 38
             },
             "endLine": {
-              "line": 50,
+              "line": 49,
               "offset": 1
             }
           },
-          "sourceCode": "public function main() returns error? {\n    // Workflow start - should be WORKFLOW_RUN\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});\n    io:println(\"Workflow started with ID: \" + workflowId);\n\n    // Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, {orderId: \"123\", approved: true, approverName: \"Admin\"}, \"approve\");\n    io:println(\"Event sent: \" + result.toString());\n}"
+          "sourceCode": "public function main() returns error? {\n    // Workflow run - should be WORKFLOW_RUN\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});\n    io:println(\"Workflow started with ID: \" + workflowId);\n\n    // Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, {approved: true, approverName: \"Admin\"}, \"approve\");\n}"
         },
         "returning": false,
         "diagnostics": {
@@ -45,10 +45,10 @@
         "flags": 0
       },
       {
-        "id": "74448",
+        "id": "74444",
         "metadata": {
           "label": "Comment",
-          "description": "Workflow start - should be WORKFLOW_RUN"
+          "description": "Workflow run - should be WORKFLOW_RUN"
         },
         "codedata": {
           "node": "COMMENT",
@@ -60,10 +60,10 @@
             },
             "endLine": {
               "line": 43,
-              "offset": 48
+              "offset": 44
             }
           },
-          "sourceCode": "Workflow start - should be WORKFLOW_RUN"
+          "sourceCode": "Workflow run - should be WORKFLOW_RUN"
         },
         "returning": false,
         "properties": {
@@ -78,7 +78,7 @@
                 "selected": true
               }
             ],
-            "value": "Workflow start - should be WORKFLOW_RUN",
+            "value": "Workflow run - should be WORKFLOW_RUN",
             "optional": false,
             "editable": true,
             "advanced": false,
@@ -88,11 +88,11 @@
         "flags": 0
       },
       {
-        "id": "75625",
+        "id": "75614",
         "metadata": {
-          "label": "Start Workflow",
-          "description": "Start a workflow process instance",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.1.0.png"
+          "label": "Run Workflow",
+          "description": "Run a workflow instance",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.2.0.png"
         },
         "codedata": {
           "node": "WORKFLOW_RUN",
@@ -100,7 +100,7 @@
           "module": "workflow",
           "packageName": "workflow",
           "symbol": "run",
-          "version": "0.1.0",
+          "version": "0.2.0",
           "lineRange": {
             "fileName": "workflow_operations.bal",
             "startLine": {
@@ -109,17 +109,17 @@
             },
             "endLine": {
               "line": 44,
-              "offset": 109
+              "offset": 98
             }
           },
-          "sourceCode": "// Workflow start - should be WORKFLOW_RUN\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});"
+          "sourceCode": "// Workflow run - should be WORKFLOW_RUN\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});"
         },
         "returning": false,
         "properties": {
           "processFunction": {
             "metadata": {
               "label": "Process Function",
-              "description": "The process function to execute (must be annotated with @Process)"
+              "description": "The process function to execute (must be annotated with @Workflow)"
             },
             "types": [
               {
@@ -142,7 +142,7 @@
           "input": {
             "metadata": {
               "label": "Input",
-              "description": "The workflow input data (must contain \"id\" field for correlation)"
+              "description": "Optional workflow input data. If nil, the workflow is created with no input."
             },
             "types": [
               {
@@ -165,20 +165,21 @@
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "map<anydata>",
+                "ballerinaType": "map<anydata>?",
                 "selected": false
               }
             ],
             "value": "{orderId: \"123\", customerName: \"John\"}",
-            "placeholder": "{}",
-            "optional": false,
+            "placeholder": "()",
+            "optional": true,
             "editable": true,
-            "advanced": false,
+            "advanced": true,
             "hidden": false,
             "codedata": {
-              "kind": "REQUIRED",
+              "kind": "DEFAULTABLE",
               "originalName": "input"
-            }
+            },
+            "defaultValue": "()"
           },
           "checkError": {
             "metadata": {
@@ -333,7 +334,7 @@
         "flags": 0
       },
       {
-        "id": "77447",
+        "id": "77445",
         "metadata": {
           "label": "Comment",
           "description": "Send data - should be SEND_DATA"
@@ -348,7 +349,7 @@
             },
             "endLine": {
               "line": 47,
-              "offset": 40
+              "offset": 38
             }
           },
           "sourceCode": "Send data - should be SEND_DATA"
@@ -376,11 +377,11 @@
         "flags": 0
       },
       {
-        "id": "79596",
+        "id": "79579",
         "metadata": {
           "label": "Send Data",
-          "description": "Send an event to an existing workflow instance",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.1.0.png"
+          "description": "Send data to an existing workflow instance",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.2.0.png"
         },
         "codedata": {
           "node": "SEND_DATA",
@@ -388,7 +389,7 @@
           "module": "workflow",
           "packageName": "workflow",
           "symbol": "sendData",
-          "version": "0.1.0",
+          "version": "0.2.0",
           "lineRange": {
             "fileName": "workflow_operations.bal",
             "startLine": {
@@ -397,17 +398,17 @@
             },
             "endLine": {
               "line": 48,
-              "offset": 112
+              "offset": 95
             }
           },
-          "sourceCode": "// Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, {orderId: \"123\", approved: true, approverName: \"Admin\"}, \"approve\");"
+          "sourceCode": "// Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, {approved: true, approverName: \"Admin\"}, \"approve\");"
         },
         "returning": false,
         "properties": {
-          "processFunction": {
+          "workflow": {
             "metadata": {
-              "label": "Process Function",
-              "description": "The process function that identifies the workflow type"
+              "label": "Workflow",
+              "description": "The workflow function that identifies the workflow type (must be annotated with @Workflow)"
             },
             "types": [
               {
@@ -422,56 +423,61 @@
             "editable": true,
             "advanced": false,
             "hidden": false,
+            "diagnostics": {
+              "hasDiagnostics": true,
+              "diagnostics": [
+                {
+                  "severity": "ERROR",
+                  "message": "missing required parameter 'data' in call to 'sendData()'"
+                }
+              ]
+            },
             "codedata": {
               "kind": "REQUIRED",
-              "originalName": "processFunction"
+              "originalName": "workflow"
             }
           },
-          "eventData": {
+          "workflowId": {
             "metadata": {
-              "label": "Event Data",
-              "description": "The signal data (must contain \"id\" field for workflow correlation)"
+              "label": "Workflow Id",
+              "description": "The unique workflow ID to send the data to (obtained from `run`)"
             },
             "types": [
               {
-                "fieldType": "REPEATABLE_MAP",
-                "ballerinaType": "map<anydata>",
-                "template": {
-                  "types": [
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "anydata",
-                      "selected": false
-                    }
-                  ],
-                  "optional": false,
-                  "editable": false,
-                  "advanced": false,
-                  "hidden": false
-                },
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
                 "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "map<anydata>",
+                "ballerinaType": "string",
                 "selected": false
               }
             ],
-            "value": "{orderId: \"123\", approved: true, approverName: \"Admin\"}",
-            "placeholder": "{}",
+            "value": "{approved: true, approverName: \"Admin\"}",
+            "placeholder": "\"\"",
             "optional": false,
             "editable": true,
             "advanced": false,
             "hidden": false,
+            "diagnostics": {
+              "hasDiagnostics": true,
+              "diagnostics": [
+                {
+                  "severity": "ERROR",
+                  "message": "a type compatible with mapping constructor expressions not found in type 'string'"
+                }
+              ]
+            },
             "codedata": {
               "kind": "REQUIRED",
-              "originalName": "eventData"
+              "originalName": "workflowId"
             }
           },
-          "signalName": {
+          "dataName": {
             "metadata": {
-              "label": "Signal Name",
-              "description": "Optional name of the signal. This should match a field name in the \nworkflow's events record parameter. If not provided, defaults to process name."
+              "label": "Data Name",
+              "description": "The name identifying the data. Must match a field name in the workflow's\nevents record parameter."
             },
             "types": [
               {
@@ -481,21 +487,42 @@
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string?",
+                "ballerinaType": "string",
                 "selected": false
               }
             ],
             "value": "\"approve\"",
-            "placeholder": "()",
-            "optional": true,
+            "placeholder": "\"\"",
+            "optional": false,
             "editable": true,
-            "advanced": true,
+            "advanced": false,
             "hidden": false,
             "codedata": {
-              "kind": "DEFAULTABLE",
-              "originalName": "signalName"
+              "kind": "REQUIRED",
+              "originalName": "dataName"
+            }
+          },
+          "data": {
+            "metadata": {
+              "label": "Data",
+              "description": "The data to send to the workflow"
             },
-            "defaultValue": "()"
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "anydata",
+                "selected": false
+              }
+            ],
+            "placeholder": "{}",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "data"
+            }
           },
           "checkError": {
             "metadata": {
@@ -516,101 +543,9 @@
           }
         },
         "diagnostics": {
-          "hasDiagnostics": true,
-          "diagnostics": [
-            {
-              "severity": "ERROR",
-              "message": "variable assignment is required"
-            }
-          ]
-        },
-        "flags": 1
-      },
-      {
-        "id": "80527",
-        "metadata": {
-          "label": "println",
-          "description": "Prints `any`, `error` or string templates(such as `The respective int value is ${val}`) value(s) to the STDOUT\nfollowed by a new line.\n```ballerina\nio:println(\"Start processing the CSV file from \", srcFileName);\n```\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
-        },
-        "codedata": {
-          "node": "FUNCTION_CALL",
-          "org": "ballerina",
-          "module": "io",
-          "packageName": "io",
-          "symbol": "println",
-          "version": "1.8.0",
-          "lineRange": {
-            "fileName": "workflow_operations.bal",
-            "startLine": {
-              "line": 49,
-              "offset": 4
-            },
-            "endLine": {
-              "line": 49,
-              "offset": 51
-            }
-          },
-          "sourceCode": "io:println(\"Event sent: \" + result.toString());"
-        },
-        "returning": false,
-        "properties": {
-          "values": {
-            "metadata": {
-              "label": "values",
-              "description": "The value(s) to be printed"
-            },
-            "types": [
-              {
-                "fieldType": "REPEATABLE_LIST",
-                "ballerinaType": "io:Printable",
-                "template": {
-                  "types": [
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "io:Printable",
-                      "selected": false
-                    }
-                  ],
-                  "optional": false,
-                  "editable": false,
-                  "advanced": false,
-                  "hidden": false
-                },
-                "selected": true
-              }
-            ],
-            "value": [
-              {
-                "types": [
-                  {
-                    "fieldType": "EXPRESSION",
-                    "ballerinaType": "io:Printable",
-                    "selected": true
-                  }
-                ],
-                "value": "\"Event sent: \" + result.toString()",
-                "optional": false,
-                "editable": false,
-                "advanced": false,
-                "hidden": false
-              }
-            ],
-            "placeholder": "()",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "REST_PARAMETER",
-              "originalName": "values"
-            }
-          }
-        },
-        "diagnostics": {
           "hasDiagnostics": true
         },
-        "flags": 0
+        "flags": 1
       }
     ],
     "connections": []
