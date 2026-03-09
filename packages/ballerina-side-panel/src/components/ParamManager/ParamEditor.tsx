@@ -107,9 +107,12 @@ export function ParamEditor(props: ParamProps) {
     const handleOnSave = async (data: FormValues) => {
         parameter.formValues = data;
         setIsSaving(true);
-        await onSave(parameter);
-        setFields([]);
-        setIsSaving(false);
+        try {
+            await onSave(parameter);
+            setFields([]);
+        } finally {
+            setIsSaving(false);
+        }
     }
 
     return (
