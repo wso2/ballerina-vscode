@@ -524,7 +524,6 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                 iconComponent: searchIcon,
                                 position: 'start',
                             }}
-                            autoFocus={true}
                         />
                     </SearchContainer>
                     <div style={{ width: "auto" }}>
