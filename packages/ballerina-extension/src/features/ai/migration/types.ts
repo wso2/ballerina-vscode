@@ -20,6 +20,18 @@ import { MigrationEnhancementMode } from "@wso2/ballerina-core";
 export const PENDING_MIGRATION_ENHANCEMENT_KEY = "ballerina.pendingMigrationEnhancement";
 
 /**
+ * Persistent globalState key that stores just the project root of the most
+ * recently migrated project.  Unlike `PENDING_MIGRATION_ENHANCEMENT_KEY` this
+ * entry is never TTL-expired so `getActiveMigrationSessionState` can always
+ * locate the `.ai-migrate-enhance.toml` even if the webview mounts before
+ * `checkAndRunPendingEnhancement` runs.
+ */
+export const MIGRATION_PROJECT_ROOT_KEY = "ballerina.migrationProjectRoot";
+
+/** Filename written by the migration tool into the project root */
+export const AI_ENHANCE_TOML_FILENAME = ".ai-migrate-enhance.toml";
+
+/**
  * Shape of the value stored in VS Code globalState before the
  * `vscode.openFolder` reload so that the enhancement pipeline can
  * be resumed in the freshly opened window.
@@ -35,6 +47,15 @@ export interface PendingMigrationEnhancement {
 export const PENDING_ENHANCEMENT_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 /**
+ * Shape of the `.ai-migrate-enhance.toml` file written at migration time.
+ */
+export interface EnhanceTomlData {
+    mode: MigrationEnhancementMode;
+    /** `true` once the AI enhancement pipeline has completed for this project. */
+    isEnhanced: boolean;
+}
+
+/**
  * Describes the current state of a migration AI enhancement session.
  * Mirrors `ActiveMigrationSession` from `@wso2/ballerina-core`.
  * Defined locally here to avoid cross-package build-order issues.
@@ -42,4 +63,6 @@ export const PENDING_ENHANCEMENT_TTL_MS = 10 * 60 * 1000; // 10 minutes
 export interface ActiveMigrationSessionLocal {
     isActive: boolean;
     mode: MigrationEnhancementMode;
+    /** `true` once the enhancement pipeline has completed (read from the toml). */
+    isEnhanced: boolean;
 }

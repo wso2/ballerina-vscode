@@ -18,8 +18,10 @@
 
 import styled from "@emotion/styled";
 import { Codicon } from "@wso2/ui-toolkit";
-import { MigrationEnhancementMode } from "@wso2/ballerina-core";
 import React, { useMemo } from "react";
+
+/** Local mirror – avoids depending on a rebuilt @wso2/ballerina-core */
+type MigrationEnhancementMode = 'auto-fix' | 'guided-review' | 'none';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Types
@@ -34,9 +36,13 @@ export interface StageInfo {
 
 export interface MigrationEnhancementBannerProps {
     mode: MigrationEnhancementMode;
+    isActive: boolean;
+    isEnhanced: boolean;
     /** All AI conversation messages – used to derive per-stage status. */
     messages: Array<{ role: string; content: string }>;
     onDismiss: () => void;
+    /** Called when user picks a mode from the "none" banner to kick off the pipeline. */
+    onStartEnhancement?: (mode: Exclude<MigrationEnhancementMode, 'none'>) => void;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -155,6 +161,32 @@ const ModeBadge = styled.span<{ mode: Exclude<MigrationEnhancementMode, "none"> 
                 : "var(--vscode-textLink-foreground)"};
 `;
 
+const StartButton = styled.button<{ variant: 'primary' | 'secondary' }>`
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid
+        ${(props: { variant: 'primary' | 'secondary' }) =>
+            props.variant === 'primary'
+                ? 'var(--vscode-gitDecoration-addedResourceForeground)'
+                : 'var(--vscode-textLink-foreground)'};
+    background-color: ${(props: { variant: 'primary' | 'secondary' }) =>
+        props.variant === 'primary' ? 'rgba(52, 163, 84, 0.15)' : 'rgba(0, 120, 212, 0.1)'};
+    color: ${(props: { variant: 'primary' | 'secondary' }) =>
+        props.variant === 'primary'
+            ? 'var(--vscode-gitDecoration-addedResourceForeground)'
+            : 'var(--vscode-textLink-foreground)'};
+
+    &:hover {
+        opacity: 0.85;
+    }
+`;
+
 const DismissButton = styled.button`
     display: flex;
     align-items: center;
@@ -257,32 +289,75 @@ function StageIcon({ state }: { state: StageState }) {
 
 export function MigrationEnhancementBanner({
     mode,
+    isActive,
+    isEnhanced,
     messages,
     onDismiss,
+    onStartEnhancement,
 }: MigrationEnhancementBannerProps) {
     const stages = useMemo(() => deriveStages(messages), [messages]);
 
-    if (mode === "none") {
+    // Banner is hidden once enhancement is completed
+    if (isEnhanced) {
         return null;
     }
 
-    const modeLabel = mode === "auto-fix" ? "Auto-fix" : "Guided Review";
-    const modeKey = mode as Exclude<MigrationEnhancementMode, "none">;
+    // ── "Skip" banner: user chose none, offer to start later ──────────────
+    if (mode === 'none') {
+        return (
+            <BannerContainer>
+                <BannerHeader>
+                    <BannerTitle>
+                        <span className="codicon codicon-sparkle" style={{ fontSize: '11px', opacity: 0.7 }} />
+                        AI Migration Enhancement available
+                    </BannerTitle>
+                    <DismissButton title="Dismiss" onClick={onDismiss} aria-label="Dismiss migration banner">
+                        <span className="codicon codicon-close" style={{ fontSize: '12px' }} />
+                    </DismissButton>
+                </BannerHeader>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '11px', opacity: 0.7 }}>Start AI enhancement pipeline:</span>
+                    <StartButton
+                        variant="primary"
+                        onClick={() => onStartEnhancement?.('auto-fix')}
+                        title="Automatically fix build errors, resolve TODOs, and run tests"
+                    >
+                        <span className="codicon codicon-zap" style={{ fontSize: '11px' }} />
+                        Auto-fix
+                    </StartButton>
+                    <StartButton
+                        variant="secondary"
+                        onClick={() => onStartEnhancement?.('guided-review')}
+                        title="Review and approve each step before it is applied"
+                    >
+                        <span className="codicon codicon-eye" style={{ fontSize: '11px' }} />
+                        Guided Review
+                    </StartButton>
+                </div>
+            </BannerContainer>
+        );
+    }
+
+    // ── Active / pending enhancement banner ───────────────────────────────
+    const modeLabel = mode === 'auto-fix' ? 'Auto-fix' : 'Guided Review';
+    const modeKey = mode as Exclude<MigrationEnhancementMode, 'none'>;
 
     return (
         <BannerContainer>
             <BannerHeader>
                 <BannerTitle>
-                    <span className="codicon codicon-rocket" style={{ fontSize: "11px", opacity: 0.7 }} />
+                    <span className="codicon codicon-rocket" style={{ fontSize: '11px', opacity: 0.7 }} />
                     Migration Enhancement
                     <ModeBadge mode={modeKey}>{modeLabel}</ModeBadge>
+                    {isActive && (
+                        <span
+                            className="codicon codicon-loading spin"
+                            style={{ fontSize: '11px', marginLeft: '4px' }}
+                        />
+                    )}
                 </BannerTitle>
-                <DismissButton
-                    title="Dismiss"
-                    onClick={onDismiss}
-                    aria-label="Dismiss migration banner"
-                >
-                    <span className="codicon codicon-close" style={{ fontSize: "12px" }} />
+                <DismissButton title="Dismiss" onClick={onDismiss} aria-label="Dismiss migration banner">
+                    <span className="codicon codicon-close" style={{ fontSize: '12px' }} />
                 </DismissButton>
             </BannerHeader>
             <StageList>

@@ -39,6 +39,8 @@ import { MigrateIntegrationRpcManager } from "./rpc-manager";
 
 // Defined locally to avoid depending on a rebuilt @wso2/ballerina-core
 const getActiveMigrationSession = { method: "migrate-integration/getActiveMigrationSession" } as const;
+const markEnhancementCompleteMethod = { method: "migrate-integration/markEnhancementComplete" } as const;
+const startMigrationEnhancementMethod = { method: "migrate-integration/startMigrationEnhancement" } as const;
 
 export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     const rpcManger = MigrateIntegrationRpcManager.getInstance();
@@ -51,4 +53,6 @@ export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     messenger.onNotification(saveMigrationReport, (args: SaveMigrationReportRequest) => rpcManger.saveMigrationReport(args));
     messenger.onNotification(migrateProject, (args: MigrateRequest) => rpcManger.migrateProject(args));
     messenger.onRequest(getActiveMigrationSession, () => rpcManger.getActiveMigrationSession());
+    messenger.onRequest(markEnhancementCompleteMethod, () => rpcManger.markEnhancementComplete());
+    messenger.onRequest(startMigrationEnhancementMethod, (args: { mode: 'auto-fix' | 'guided-review' }) => rpcManger.startMigrationEnhancement(args.mode));
 }
