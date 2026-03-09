@@ -223,9 +223,9 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
         hasViewRange &&
         model.node.codedata.node === "FUNCTION_CALL" &&
         model.node.codedata.org === project?.org;
-    const canViewWorkflowStartFunction = model.node.codedata.node === "WORKFLOW_START" && Boolean(workflowStartFunctionName);
+    const canViewWorkflowRunFunction = model.node.codedata.node === "WORKFLOW_RUN" && Boolean(workflowStartFunctionName);
     const canViewActivityFunction = model.node.codedata.node === "ACTIVITY_CALL" && Boolean(activityFunctionName);
-    const canViewFunction = canViewProjectFunction || canViewWorkflowStartFunction || canViewActivityFunction;
+    const canViewFunction = canViewProjectFunction || canViewWorkflowRunFunction || canViewActivityFunction;
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
         if (readOnly) {
@@ -332,7 +332,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             return;
         }
 
-        if (canViewWorkflowStartFunction && workflowStartFunctionName) {
+        if (canViewWorkflowRunFunction && workflowStartFunctionName) {
             const functionLocation = await project?.getFunctionLocation?.(workflowStartFunctionName);
             if (functionLocation) {
                 openView && openView(functionLocation);

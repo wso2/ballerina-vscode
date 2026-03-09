@@ -41,7 +41,7 @@ namespace CallActivityStyles {
         background-color: ${({ color }) => color};
         pointer-events: none;
         z-index: 1;
-        ${({ side }) => (side === "left" ? "left: 16px;" : "right: 16px;")}
+        ${({ side }) => (side === "left" ? "left: 8px;" : "right: 8px;")}
     `;
 }
 

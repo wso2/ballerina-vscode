@@ -20,19 +20,19 @@ import React from "react";
 import { AbstractReactFactory, GenerateModelEvent, GenerateWidgetEvent } from "@projectstorm/react-canvas-core";
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import { NodeTypes } from "../../../resources/constants";
-import { WorkflowStartNodeModel } from "./WorkflowStartNodeModel";
-import { WorkflowStartNodeWidget } from "./WorkflowStartNodeWidget";
+import { WaitDataNodeModel } from "./WaitDataNodeModel";
+import { WaitDataNodeWidget } from "./WaitDataNodeWidget";
 
-export class WorkflowStartNodeFactory extends AbstractReactFactory<WorkflowStartNodeModel, DiagramEngine> {
+export class WaitDataNodeFactory extends AbstractReactFactory<WaitDataNodeModel, DiagramEngine> {
     constructor() {
-        super(NodeTypes.WORKFLOW_START_NODE);
+        super(NodeTypes.WAIT_DATA_NODE);
     }
 
-    generateModel(event: GenerateModelEvent): WorkflowStartNodeModel {
-        return new WorkflowStartNodeModel(event.initialConfig);
+    generateModel(event: GenerateModelEvent): WaitDataNodeModel {
+        return new WaitDataNodeModel(event.initialConfig);
     }
 
-    generateReactWidget(event: GenerateWidgetEvent<WorkflowStartNodeModel>) {
-        return <WorkflowStartNodeWidget engine={this.engine} model={event.model} />;
+    generateReactWidget(event: GenerateWidgetEvent<WaitDataNodeModel>) {
+        return <WaitDataNodeWidget engine={this.engine} model={event.model} />;
     }
 }

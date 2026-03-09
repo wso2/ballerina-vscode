@@ -24,10 +24,10 @@ import { CommentNodeModel } from "../components/nodes/CommentNode";
 import { DraftNodeModel } from "../components/nodes/DraftNode/DraftNodeModel";
 import { EmptyNodeModel } from "../components/nodes/EmptyNode";
 import { IfNodeModel } from "../components/nodes/IfNode/IfNodeModel";
-import { SendEventNodeModel } from "../components/nodes/SendEventNode";
+import { SendDataNodeModel } from "../components/nodes/SendDataNode";
 import { StartNodeModel } from "../components/nodes/StartNode/StartNodeModel";
-import { WaitEventNodeModel } from "../components/nodes/WaitEventNode";
-import { WorkflowStartNodeModel } from "../components/nodes/WorkflowStartNode";
+import { WaitDataNodeModel } from "../components/nodes/WaitDataNode";
+import { WorkflowRunNodeModel } from "../components/nodes/WorkflowRunNode";
 import { WhileNodeModel } from "../components/nodes/WhileNode";
 import { EndNodeModel } from "../components/nodes/EndNode";
 
@@ -39,10 +39,10 @@ export type NodeModel =
     | WhileNodeModel
     | StartNodeModel
     | ApiCallNodeModel
-    | WorkflowStartNodeModel
+    | WorkflowRunNodeModel
     | CallActivityNodeModel
-    | SendEventNodeModel
-    | WaitEventNodeModel
+    | SendDataNodeModel
+    | WaitDataNodeModel
     | CommentNodeModel
     | ButtonNodeModel
     | EndNodeModel;

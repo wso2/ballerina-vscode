@@ -1126,10 +1126,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             handleExpressionEditorCancel();
         }
 
-        const typeHelperContext =
-            getPrimaryInputType(formField?.types)?.fieldType === "WORKFLOW_INPUT_TYPE"
-                ? TypeHelperContext.WORKFLOW_INPUT_TYPE
-                : TypeHelperContext.HTTP_STATUS_CODE;
+        const typeHelperContext = TypeHelperContext.HTTP_STATUS_CODE;
 
         return getTypeHelper({
             fieldKey: fieldKey,
@@ -1752,7 +1749,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         );
     }
 
-    if (node?.codedata.node === "SEND_EVENT") {
+    if (node?.codedata.node === "SEND_DATA") {
         return (
             <SendEventForm
                 fileName={fileName}

@@ -16,13 +16,18 @@
  * under the License.
  */
 
+import React from "react";
+import { DiagramEngine } from "@projectstorm/react-diagrams-core";
+import { BaseNodeWidget } from "../BaseNode";
 import { FlowNode } from "../../../utils/types";
-import { NodeTypes } from "../../../resources/constants";
-import { ApiCallNodeModel } from "../ApiCallNode";
+import { WorkflowRunNodeModel } from "./WorkflowRunNodeModel";
 
-export class SendEventNodeModel extends ApiCallNodeModel {
-    constructor(node: FlowNode) {
-        super(node);
-        this.getOptions().type = NodeTypes.SEND_EVENT_NODE;
-    }
+interface WorkflowRunNodeWidgetProps {
+    model: WorkflowRunNodeModel;
+    engine: DiagramEngine;
+    onClick?: (node: FlowNode) => void;
+}
+
+export function WorkflowRunNodeWidget(props: WorkflowRunNodeWidgetProps) {
+    return <BaseNodeWidget {...props} />;
 }

@@ -16,5 +16,13 @@
  * under the License.
  */
 
-export * from "./WaitEventNodeFactory";
-export * from "./WaitEventNodeModel";
+import { FlowNode } from "../../../utils/types";
+import { NodeTypes } from "../../../resources/constants";
+import { ApiCallNodeModel } from "../ApiCallNode";
+
+export class SendDataNodeModel extends ApiCallNodeModel {
+    constructor(node: FlowNode) {
+        super(node);
+        this.getOptions().type = NodeTypes.SEND_DATA_NODE;
+    }
+}

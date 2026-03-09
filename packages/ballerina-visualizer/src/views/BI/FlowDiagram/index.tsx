@@ -51,7 +51,6 @@ import {
     AIPanelPrompt,
     LinePosition,
     EditorDisplayMode,
-    getPrimaryInputType,
 } from "@wso2/ballerina-core";
 
 import {
@@ -977,11 +976,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             queryMap,
             searchKind,
         };
+        const isWorkflowSearch = searchKind === "WORKFLOW_RUN";
         console.log(`>>> Search ${searchKind.toLowerCase()} request`, request);
         setShowProgressIndicator(true);
-        rpcClient
-            .getBIDiagramRpcClient()
-            .search(request)
+        const searchPromise = rpcClient.getBIDiagramRpcClient().search(request);
+        searchPromise
             .then((response) => {
                 console.log(`>>> Searched List of ${searchKind.toLowerCase()}`, response);
                 const panelCategories = convertFunctionCategoriesToSidePanelCategories(
@@ -990,7 +989,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 );
                 const projectCategory = panelCategories.find((category) => category.title === "Project");
                 if (projectCategory && !projectCategory.items.length) {
-                    if (searchKind === "WORKFLOW_START") {
+                    if (isWorkflowSearch) {
                         projectCategory.description = "No workflows defined. Click below to create a new workflow.";
                     } else if (searchKind === "ACTIVITY_CALL") {
                         projectCategory.description = "No activities defined. Click below to create a new activity.";
@@ -1007,7 +1006,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                 ? SidePanelView.FUNCTION_LIST
                                 : SidePanelView.DATA_MAPPER_LIST;
                         break;
-                    case "WORKFLOW_START":
+                    case "WORKFLOW_RUN":
                         panelView = SidePanelView.WORKFLOW_LIST;
                         break;
                     case "ACTIVITY_CALL":
@@ -1055,7 +1054,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleSearchWorkflow = async (searchText: string, functionType: FUNCTION_TYPE) => {
-        await handleSearch(searchText, functionType, "WORKFLOW_START");
+        // NOTE: Backend payloads may still contain legacy "WORKFLOW_START" in some environments.
+        // FE is intentionally standardized on "WORKFLOW_RUN"; align API/LS payloads to avoid mismatches.
+        await handleSearch(searchText, functionType, "WORKFLOW_RUN");
     };
 
     const handleSearchActivity = async (searchText: string, functionType: FUNCTION_TYPE) => {
@@ -1210,18 +1211,18 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     });
                 break;
 
-            case "WORKFLOW_START":
+            case "WORKFLOW_RUN":
                 // First click from node list should open searchable workflow list.
                 if (sidePanelView === SidePanelView.NODE_LIST) {
                     setShowProgressIndicator(true);
-                    rpcClient
-                        .getBIDiagramRpcClient()
-                        .search({
-                            position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
-                            filePath: model?.fileName || fileName,
-                            queryMap: undefined,
-                            searchKind: "WORKFLOW_START",
-                        })
+                    const workflowSearchRequest: BISearchRequest = {
+                        position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                        filePath: model?.fileName || fileName,
+                        queryMap: undefined,
+                        searchKind: "WORKFLOW_RUN",
+                    };
+                    const searchPromise = rpcClient.getBIDiagramRpcClient().search(workflowSearchRequest);
+                    searchPromise
                         .then((response) => {
                             const panelCategories = convertFunctionCategoriesToSidePanelCategories(
                                 response.categories as Category[],
@@ -1515,116 +1516,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
-    const enrichWorkflowInputTypeModel = async (flowNode: FlowNode) => {
-        if (!model?.fileName || flowNode?.codedata?.node !== "WORKFLOW") {
-            return;
-        }
-
-        const properties = flowNode.properties as any;
-        const inputTypeProperty = properties?.inputType;
-        const primaryInputType = getPrimaryInputType(inputTypeProperty?.types);
-        if (!inputTypeProperty || primaryInputType?.fieldType !== "WORKFLOW_INPUT_TYPE") {
-            return;
-        }
-
-        const workflowInputType = `${inputTypeProperty.value ?? ""}`.trim();
-        if (!workflowInputType) {
-            return;
-        }
-
-        const existingTypeModel = (primaryInputType as any)?.typeModel;
-        if (existingTypeModel?.name === workflowInputType) {
-            return;
-        }
-
-        const resolveTypeByLinePosition = async (targetFilePath: string, linePosition: { line: number; offset: number }) => {
-            const typeResponse = await rpcClient.getBIDiagramRpcClient().getType({
-                filePath: targetFilePath,
-                linePosition
-            });
-            if (typeResponse?.type) {
-                (primaryInputType as any).typeModel = typeResponse.type;
-                return true;
-            }
-            return false;
-        };
-
-        try {
-            const typesResponse = await rpcClient.getBIDiagramRpcClient().getTypes({ filePath: model.fileName });
-            const matchingType = typesResponse?.types?.find((type) =>
-                type?.name === workflowInputType || workflowInputType.endsWith(`:${type?.name}`)
-            );
-            const typeLineRange = matchingType?.codedata?.lineRange;
-
-            if (typeLineRange?.startLine) {
-                const resolved = await resolveTypeByLinePosition(
-                    typeLineRange.fileName || model.fileName,
-                    typeLineRange.startLine
-                );
-                if (resolved) {
-                    return;
-                }
-            }
-
-            const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
-                filePath: model.fileName,
-                queryMap: {
-                    q: workflowInputType,
-                    offset: 0,
-                    limit: 1000
-                },
-                searchKind: "TYPE"
-            });
-
-            const findTypeItem = (items: any[]): any => {
-                for (const item of items || []) {
-                    if ((item as any)?.codedata) {
-                        const itemLabel = item?.metadata?.label;
-                        const isMatchingType = itemLabel === workflowInputType || workflowInputType.endsWith(`:${itemLabel}`);
-                        if (isMatchingType) {
-                            return item;
-                        }
-                        continue;
-                    }
-                    const nestedItem = findTypeItem(item?.items || []);
-                    if (nestedItem) {
-                        return nestedItem;
-                    }
-                }
-                return undefined;
-            };
-
-            const matchedTypeFromSearch = findTypeItem(searchResponse?.categories || []);
-            const matchedLineRange = matchedTypeFromSearch?.codedata?.lineRange;
-            if (matchedLineRange?.startLine) {
-                const resolved = await resolveTypeByLinePosition(
-                    matchedLineRange.fileName || model.fileName,
-                    matchedLineRange.startLine
-                );
-                if (resolved) {
-                    return;
-                }
-            }
-        } catch (error) {
-            console.error("Error resolving workflow input type model: ", error);
-        }
-
-        (primaryInputType as any).typeModel = {
-            name: workflowInputType,
-            editable: false,
-            metadata: {
-                label: workflowInputType,
-                description: ""
-            },
-            codedata: {
-                node: "RECORD"
-            },
-            properties: {},
-            members: [],
-            includes: []
-        };
-    };
-
     const handleOnFormSubmit = async (
         updatedNode?: FlowNode,
         editorConfig?: EditorConfig,
@@ -1668,7 +1559,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         if (nodeToSubmit?.codedata?.node === "ACTIVITY" && nodeToSubmit?.codedata?.isNew) {
             delete nodeToSubmit.codedata.lineRange;
         }
-        await enrichWorkflowInputTypeModel(nodeToSubmit);
 
         if (
             editorConfig &&

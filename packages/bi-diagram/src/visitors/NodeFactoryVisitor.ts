@@ -26,10 +26,10 @@ import { CommentNodeModel } from "../components/nodes/CommentNode";
 import { DraftNodeModel } from "../components/nodes/DraftNode/DraftNodeModel";
 import { EmptyNodeModel } from "../components/nodes/EmptyNode";
 import { IfNodeModel } from "../components/nodes/IfNode/IfNodeModel";
-import { SendEventNodeModel } from "../components/nodes/SendEventNode";
+import { SendDataNodeModel } from "../components/nodes/SendDataNode";
 import { StartNodeModel } from "../components/nodes/StartNode/StartNodeModel";
-import { WaitEventNodeModel } from "../components/nodes/WaitEventNode";
-import { WorkflowStartNodeModel } from "../components/nodes/WorkflowStartNode";
+import { WaitDataNodeModel } from "../components/nodes/WaitDataNode";
+import { WorkflowRunNodeModel } from "../components/nodes/WorkflowRunNode";
 import { WhileNodeModel } from "../components/nodes/WhileNode";
 import {
     BUTTON_NODE_HEIGHT,
@@ -112,22 +112,22 @@ export class NodeFactoryVisitor implements BaseVisitor {
         return nodeModel;
     }
 
-    private createWorkflowStartNode(node: FlowNode): NodeModel {
-        const nodeModel = new WorkflowStartNodeModel(node);
+    private createWorkflowRunNode(node: FlowNode): NodeModel {
+        const nodeModel = new WorkflowRunNodeModel(node);
         this.nodes.push(nodeModel);
         this.updateNodeLinks(node, nodeModel);
         return nodeModel;
     }
 
-    private createSendEventNode(node: FlowNode): NodeModel {
-        const nodeModel = new SendEventNodeModel(node);
+    private createSendDataNode(node: FlowNode): NodeModel {
+        const nodeModel = new SendDataNodeModel(node);
         this.nodes.push(nodeModel);
         this.updateNodeLinks(node, nodeModel);
         return nodeModel;
     }
 
-    private createWaitEventNode(node: FlowNode): NodeModel {
-        const nodeModel = new WaitEventNodeModel(node);
+    private createWaitDataNode(node: FlowNode): NodeModel {
+        const nodeModel = new WaitDataNodeModel(node);
         this.nodes.push(nodeModel);
         this.updateNodeLinks(node, nodeModel);
         return nodeModel;
@@ -644,26 +644,26 @@ export class NodeFactoryVisitor implements BaseVisitor {
         }
     }
 
-    beginVisitWorkflowStart(node: FlowNode, parent?: FlowNode): void {
+    beginVisitWorkflowRun(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         if (node.id) {
-            this.createWorkflowStartNode(node);
+            this.createWorkflowRunNode(node);
             this.addSuggestionsButton(node);
         }
     }
 
-    beginVisitSendEvent(node: FlowNode, parent?: FlowNode): void {
+    beginVisitSendData(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         if (node.id) {
-            this.createSendEventNode(node);
+            this.createSendDataNode(node);
             this.addSuggestionsButton(node);
         }
     }
 
-    beginVisitWaitEvent(node: FlowNode, parent?: FlowNode): void {
+    beginVisitWaitData(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         if (node.id) {
-            this.createWaitEventNode(node);
+            this.createWaitDataNode(node);
             this.addSuggestionsButton(node);
         }
     }

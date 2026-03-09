@@ -945,7 +945,7 @@ export type SearchKind =
     | "FUNCTION"
     | "CONNECTOR"
     | "TYPE"
-    | "WORKFLOW_START"
+    | "WORKFLOW_RUN"
     | "ACTIVITY_CALL"
     | "NP_FUNCTION"
     | "MODEL_PROVIDER"
@@ -971,21 +971,23 @@ export type BISearchResponse = {
     categories: Category[];
 }
 
-export interface WorkflowEventsRequest {
+export interface WorkflowDataRequest {
     workflowName: string;
     filePath: string;
 }
 
-export interface WorkflowEvent {
+export interface WorkflowData {
     name: string;
     type: string;
 }
 
-export interface WorkflowEventsResponse {
-    events?: WorkflowEvent[];
+export interface WorkflowDataResponse {
+    data?: WorkflowData[];
     output?: {
-        events?: WorkflowEvent[];
+        data?: WorkflowData[];
+        events?: WorkflowData[];
     };
+    events?: WorkflowData[];
     errorMsg?: string;
     stacktrace?: string;
 }
@@ -2070,7 +2072,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
     getTypes: (params: GetTypesRequest) => Promise<GetTypesResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
-    getAllEvents: (params: WorkflowEventsRequest) => Promise<WorkflowEventsResponse>;
+    getAllData: (params: WorkflowDataRequest) => Promise<WorkflowDataResponse>;
     updateImports: (params: UpdateImportsRequest) => Promise<ImportsInfoResponse>;
     addFunction: (params: AddFunctionRequest) => Promise<AddImportItemResponse>;
     convertJsonToRecordType: (params: JsonToRecordParams) => Promise<TypeDataWithReferences>;

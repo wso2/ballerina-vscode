@@ -96,10 +96,10 @@ const getSendEventFieldKeys = (fields: FormField[]): SendEventFieldKeys => {
 
 const extractWorkflowEvents = (response: any): WorkflowEventDefinition[] => {
     const events =
-        response?.events ??
-        response?.output?.events ??
-        response?.result?.events ??
-        response?.result?.output?.events;
+        response?.data ??
+        response?.output?.data ??
+        response?.result?.data ??
+        response?.result?.output?.data;
     if (!Array.isArray(events)) {
         return [];
     }
@@ -309,12 +309,12 @@ export function SendEventForm(props: SendEventFormProps) {
 
             try {
                 setIsLoadingWorkflowEvents(true);
-                console.log(">>> requesting workflowManager/getAllEvents", { workflowName: normalizedWorkflowName, filePath: fileName });
-                const response = await rpcClient.getBIDiagramRpcClient().getAllEvents({
+                console.log(">>> requesting workflowManager/getAllData", { workflowName: normalizedWorkflowName, filePath: fileName });
+                const response = await rpcClient.getBIDiagramRpcClient().getAllData({
                     workflowName: normalizedWorkflowName,
                     filePath: fileName,
                 });
-                console.log(">>> received workflowManager/getAllEvents response", response);
+                console.log(">>> received workflowManager/getAllData response", response);
 
                 const events = extractWorkflowEvents(response);
                 setWorkflowEventTypes(
@@ -325,7 +325,7 @@ export function SendEventForm(props: SendEventFormProps) {
                 );
                 applySendEventFields(normalizedWorkflowName, events, preferredEventName);
             } catch (error) {
-                console.error("Error fetching workflow events: ", error);
+                console.error("Error fetching workflow data: ", error);
                 setWorkflowEventTypes({});
                 applySendEventFields(normalizedWorkflowName, [], "");
             } finally {
@@ -396,7 +396,7 @@ export function SendEventForm(props: SendEventFormProps) {
     const notSupportedLabel =
         "This statement is not supported in low-code yet. Please use the Ballerina source code to modify it accordingly.";
     const baseInfoLabel = node.codedata.node === "EXPRESSION" ? notSupportedLabel : node.metadata.description;
-    const infoLabel = isLoadingWorkflowEvents ? `${baseInfoLabel}\nLoading workflow events...` : baseInfoLabel;
+    const infoLabel = isLoadingWorkflowEvents ? `${baseInfoLabel}\nLoading workflow data...` : baseInfoLabel;
 
     return (
         <Form

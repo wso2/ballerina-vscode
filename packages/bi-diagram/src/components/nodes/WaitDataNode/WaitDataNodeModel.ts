@@ -20,9 +20,9 @@ import { FlowNode } from "../../../utils/types";
 import { NodeTypes } from "../../../resources/constants";
 import { BaseNodeModel } from "../BaseNode";
 
-export class WorkflowStartNodeModel extends BaseNodeModel {
+export class WaitDataNodeModel extends BaseNodeModel {
     constructor(node: FlowNode) {
         super(node);
-        this.getOptions().type = NodeTypes.WORKFLOW_START_NODE;
+        this.getOptions().type = NodeTypes.WAIT_DATA_NODE;
     }
 }

@@ -958,8 +958,8 @@ export const Form = forwardRef((props: FormProps) => {
         handleSubmit(
             async (data) => {
                 try {
-                    //HACK: skip form validation for "ACTIVITY_CALL" and "WAIT_EVENT" nodes until fixed diagnostic issue from LS.
-                    if (selectedNode === "ACTIVITY_CALL" || selectedNode === "WAIT_EVENT") {
+                    // HACK: skip form validation for activity/wait-data workflow nodes until fixed diagnostic issue from LS.
+                    if (selectedNode === "ACTIVITY_CALL" || selectedNode === "WAIT_DATA") {
                         handleOnSave(data);
                         return;
                     }

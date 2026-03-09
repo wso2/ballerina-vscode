@@ -230,117 +230,6 @@ export function FunctionForm(props: FunctionFormProps) {
         console.log("Existing Function Node: ", flowNode);
     }
 
-    const enrichWorkflowInputTypeModel = async (flowNode: FunctionNode) => {
-        if (!isWorkflow) {
-            return;
-        }
-
-        const properties = flowNode.properties as NodeProperties;
-        const inputTypeProperty = properties?.inputType;
-        const primaryInputType = getPrimaryInputType(inputTypeProperty?.types);
-        if (!inputTypeProperty || primaryInputType?.fieldType !== "WORKFLOW_INPUT_TYPE") {
-            return;
-        }
-
-        const workflowInputType = `${inputTypeProperty.value ?? ""}`.trim();
-        if (!workflowInputType) {
-            return;
-        }
-
-        const existingTypeModel = (primaryInputType as any)?.typeModel;
-        if (existingTypeModel?.name === workflowInputType) {
-            return;
-        }
-
-        const resolveTypeByLinePosition = async (targetFilePath: string, linePosition: { line: number; offset: number }) => {
-            const typeResponse = await rpcClient.getBIDiagramRpcClient().getType({
-                filePath: targetFilePath,
-                linePosition
-            });
-            if (typeResponse?.type) {
-                (primaryInputType as any).typeModel = typeResponse.type;
-                return true;
-            }
-            return false;
-        };
-
-        try {
-            const typesResponse = await rpcClient.getBIDiagramRpcClient().getTypes({ filePath });
-            const matchingType = typesResponse?.types?.find((type) =>
-                type?.name === workflowInputType || workflowInputType.endsWith(`:${type?.name}`)
-            );
-            const typeLineRange = matchingType?.codedata?.lineRange;
-
-            if (typeLineRange?.startLine) {
-                const resolved = await resolveTypeByLinePosition(
-                    typeLineRange.fileName || filePath,
-                    typeLineRange.startLine
-                );
-                if (resolved) {
-                    return;
-                }
-            }
-
-            const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
-                filePath,
-                queryMap: {
-                    q: workflowInputType,
-                    offset: 0,
-                    limit: 1000
-                },
-                searchKind: "TYPE"
-            });
-
-            const findTypeItem = (items: any[]): any => {
-                for (const item of items || []) {
-                    if ((item as any)?.codedata) {
-                        const itemLabel = item?.metadata?.label;
-                        const isMatchingType = itemLabel === workflowInputType || workflowInputType.endsWith(`:${itemLabel}`);
-                        if (isMatchingType) {
-                            return item;
-                        }
-                        continue;
-                    }
-                    const nestedItem = findTypeItem(item?.items || []);
-                    if (nestedItem) {
-                        return nestedItem;
-                    }
-                }
-                return undefined;
-            };
-
-            const matchedTypeFromSearch = findTypeItem(searchResponse?.categories || []);
-            const matchedLineRange = matchedTypeFromSearch?.codedata?.lineRange;
-            if (matchedLineRange?.startLine) {
-                const resolved = await resolveTypeByLinePosition(
-                    matchedLineRange.fileName || filePath,
-                    matchedLineRange.startLine
-                );
-                if (resolved) {
-                    return;
-                }
-            }
-        } catch (error) {
-            console.error("Error resolving workflow input type model: ", error);
-        }
-
-        // Fallback to preserve input type name when type lookup fails.
-        (primaryInputType as any).typeModel = {
-            name: workflowInputType,
-            editable: false,
-            metadata: {
-                label: workflowInputType,
-                description: ""
-            },
-            codedata: {
-                node: "RECORD"
-            },
-            properties: {},
-            members: [],
-            includes: []
-        };
-    };
-
     const onSubmit = async (data: FormValues, formImports?: FormImports) => {
         console.log("Function Form Data: ", data);
         const functionNodeCopy = { ...functionNode };
@@ -407,7 +296,6 @@ export function FunctionForm(props: FunctionFormProps) {
             }
         }
 
-        await enrichWorkflowInputTypeModel(functionNodeCopy);
         console.log("Updated function node: ", functionNodeCopy);
         const sourceCode = await rpcClient
             .getBIDiagramRpcClient()
