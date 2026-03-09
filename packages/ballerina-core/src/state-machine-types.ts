@@ -209,11 +209,12 @@ export interface DataMapperMetadata {
 }
 
 export interface ReviewViewItem {
-    type: 'component' | 'flow';
+    type: 'component' | 'flow' | 'type';
     filePath: string;
     position: NodePosition;
     projectPath: string;
     label?: string;
+    changeType?: number;
 }
 
 export interface ReviewModeData {

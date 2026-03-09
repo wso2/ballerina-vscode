@@ -37,7 +37,10 @@ export interface VisualizerAPI {
     getThemeKind: () => Promise<ColorThemeKind>;
     updateCurrentArtifactLocation: (params: UpdatedArtifactsResponse) => Promise<ProjectStructureArtifactResponse>;
     reviewAccepted: () => void;
+    reviewDiscarded: () => void;
+    closeReviewMode: () => void;
     handleApprovalPopupClose: (params: HandleApprovalPopupCloseRequest) => void;
     reopenApprovalView: (params: ReopenApprovalViewRequest) => void;
     saveEvalThread: (params: SaveEvalThreadRequest) => Promise<SaveEvalThreadResponse>;
+    openReviewModeAtIndex: (index: number) => void;
 }

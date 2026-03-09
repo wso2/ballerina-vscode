@@ -82,7 +82,7 @@ import { getOnboardingOpens, incrementOnboardingOpens, convertToUIMessages, isCo
 import FeedbackBar from "./../FeedbackBar";
 import { useFeedback } from "./utils/useFeedback";
 import { SegmentType, splitContent } from "./segment";
-import ReviewActions from "../ReviewActions";
+import { ReviewBar } from "../ReviewBar";
 
 const NO_DRIFT_FOUND = "No drift identified between the code and the documentation.";
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
@@ -174,7 +174,7 @@ const AIChat: React.FC = () => {
     const [showSettings, setShowSettings] = useState(false);
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Edit);
-    const [showReviewActions, setShowReviewActions] = useState(false);
+
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
 
     const [approvalRequest, setApprovalRequest] = useState<TaskApprovalRequest | null>(null);
@@ -331,7 +331,6 @@ const AIChat: React.FC = () => {
             setCurrentFileArray([]);
             setLastQuestionIndex(-1);
             setCurrentGeneratingPromptIndex(-1);
-            setShowReviewActions(false);
         } catch (error) {
             console.error("Failed to restore checkpoint:", error);
         }
@@ -353,14 +352,6 @@ const AIChat: React.FC = () => {
     }, [rpcClient]);
 
 
-    useEffect(() => {
-        const handleHideReviewActions = () => {
-            console.log("[AIChat] Received hideReviewActions notification from extension");
-            setShowReviewActions(false);
-        };
-
-        rpcClient.onHideReviewActions(handleHideReviewActions);
-    }, [rpcClient]);
 
     useEffect(() => {
         const handleApprovalOverlay = (data: ApprovalOverlayState) => {
@@ -615,9 +606,6 @@ const AIChat: React.FC = () => {
         } else if (type === "diagnostics") {
             currentDiagnosticsRef.current = response.diagnostics;
 
-        } else if ((response as any).type === "review_actions") {
-            setShowReviewActions(true);
-
         } else if ((response as any).type === "chat_component") {
             const { componentType, data } = response as any;
             setMessages(prevMessages => {
@@ -758,11 +746,6 @@ const AIChat: React.FC = () => {
         attachments: Attachment[];
         metadata?: Record<string, any>;
     }) {
-        // Hide review actions when a new prompt is submitted
-        if (showReviewActions) {
-            setShowReviewActions(false);
-        }
-        
         // Clear previous generation refs
         currentDiagnosticsRef.current = [];
         functionsRef.current = [];
@@ -1125,7 +1108,6 @@ const AIChat: React.FC = () => {
     async function handleClearChat(): Promise<void> {
         setMessages([]);
         setApprovalRequest(null);
-        setShowReviewActions(false);
         await rpcClient.getAiPanelRpcClient().clearChat();
     }
 
@@ -1154,6 +1136,25 @@ const AIChat: React.FC = () => {
         }
     }, [otherMessages.length]);
 
+
+    const updateReviewStatus = (message: { role: string; content: string; type: string }, newStatus: "accepted" | "discarded") => {
+        setMessages(prevMessages => {
+            const msgs = [...prevMessages];
+            const idx = msgs.findIndex(m => m === message);
+            if (idx === -1) return prevMessages;
+            const entries = parseStream(msgs[idx].content);
+            const updated = entries.map(entry => ({
+                ...entry,
+                items: entry.items.map(item =>
+                    item.kind === "component" && (item as any).componentType === "review"
+                        ? { ...item, data: { ...(item as any).data, status: newStatus } }
+                        : item
+                )
+            }));
+            msgs[idx] = { ...msgs[idx], content: serializeStream(updated, msgs[idx].content) };
+            return msgs;
+        });
+    };
 
     const saveDocumentation = async () => {
         if (!docGenIntermediaryState) return;
@@ -1374,8 +1375,11 @@ const AIChat: React.FC = () => {
                             // Note: Cannot use useMemo here as it's inside map() callback
                             // The stateless regex implementation in splitContent() ensures no corruption during streaming
                             const segmentedContent = splitContent(message.content);
-                            const hasReviewActions = segmentedContent.some(
-                                (segment) => segment.type === SegmentType.ReviewActions
+                            const hasReviewActions = segmentedContent.some(segment =>
+                                segment.type === SegmentType.AgentStream &&
+                                (segment.stream ?? []).flatMap((e: StreamEntry) => e.items).some(
+                                    (item: StreamItem) => item.kind === "component" && (item as any).componentType === "review" && (item as any).data.status === "pending"
+                                )
                             );
                             return (
                                 <ChatMessage key={index}>
@@ -1417,15 +1421,27 @@ const AIChat: React.FC = () => {
                                         {segmentedContent.map((segment, i) => {
                                             if (segment.type === SegmentType.AgentStream) {
                                                 const stream = segment.stream ?? [];
-                                                const buttonItems = stream.flatMap((e: StreamEntry) => e.items).filter((item: StreamItem) => item.kind === "component" && (item as any).componentType === "button");
+                                                const allItems = stream.flatMap((e: StreamEntry) => e.items);
+                                                const buttonItems = allItems.filter((item: StreamItem) => item.kind === "component" && (item as any).componentType === "button");
+                                                const reviewItem = allItems.find((item: StreamItem) => item.kind === "component" && (item as any).componentType === "review");
                                                 return (
                                                     <React.Fragment key={`agent-stream-${i}`}>
                                                         <AgentStreamView
                                                             stream={stream}
                                                             isLoading={isLoading && isLatestAssistantMessage}
                                                             rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
-                                                            onReviewActionsChange={setShowReviewActions}
                                                         />
+                                                        {reviewItem && (
+                                                            <ReviewBar
+                                                                modifiedFiles={(reviewItem as any).data.modifiedFiles ?? []}
+                                                                semanticDiffs={(reviewItem as any).data.semanticDiffs}
+                                                                loadDesignDiagrams={(reviewItem as any).data.loadDesignDiagrams}
+                                                                status={(reviewItem as any).data.status ?? "pending"}
+                                                                rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
+                                                                isActive={isLatestAssistantMessage && !isLoading}
+                                                                onStatusChange={(newStatus) => updateReviewStatus(message, newStatus)}
+                                                            />
+                                                        )}
                                                         {buttonItems.map((item: StreamItem, ci: number) => {
                                                             const buttonType = (item as any).data.buttonType;
                                                             if (buttonType === "save_documentation" && !isCodeLoading && isLastResponse && !isLoading) {
@@ -1595,13 +1611,8 @@ const AIChat: React.FC = () => {
                                                     />
                                                 );
                                             } else if (segment.type === SegmentType.ReviewActions) {
-                                                return (
-                                                    <ReviewActions
-                                                        key={`review-actions-${i}`}
-                                                        rpcClient={rpcClient}
-                                                        onReviewActionsChange={setShowReviewActions}
-                                                    />
-                                                );
+                                                // Legacy segment — no longer emitted, kept for backward compat parsing
+                                                return null;
                                             } else if (segment.type === SegmentType.Attachment) {
                                                 return (
                                                     <AttachmentsContainer>
@@ -1651,15 +1662,6 @@ const AIChat: React.FC = () => {
                         })}
                         <div ref={messagesEndRef} />
                     </main>
-                    {/* Review Actions Component - positioned at bottom above input */}
-                    {showReviewActions && (
-                        <div style={{ padding: "10px 20px 0", borderTop: "1px solid var(--vscode-panel-border)" }}>
-                            <ReviewActions
-                                rpcClient={rpcClient}
-                                onReviewActionsChange={setShowReviewActions}
-                            />
-                        </div>
-                    )}
                     {approvalRequest ? (
                         <ApprovalFooter
                             approvalType={approvalRequest.approvalType}
