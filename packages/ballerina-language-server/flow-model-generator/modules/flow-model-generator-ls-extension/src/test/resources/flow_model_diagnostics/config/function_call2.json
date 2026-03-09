@@ -1,5 +1,5 @@
 {
-  "source": "function2.bal",
+  "source": "function3.bal",
   "description": "Test diagnostics with simple flow node",
   "flowNode": {
     "id": "31",
@@ -150,7 +150,7 @@
       "symbol": "foo",
       "version": "0.0.0",
       "lineRange": {
-        "fileName": "function2.bal",
+        "fileName": "function3.bal",
         "startLine": {
           "line": 3,
           "offset": 8
@@ -176,7 +176,7 @@
           }
         ],
         "value": {
-          "fileName": "function2.bal",
+          "fileName": "function3.bal",
           "startLine": {
             "line": 11,
             "offset": 0
