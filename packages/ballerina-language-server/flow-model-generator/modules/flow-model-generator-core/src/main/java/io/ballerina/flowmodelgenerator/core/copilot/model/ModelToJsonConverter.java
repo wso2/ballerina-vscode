@@ -87,19 +87,15 @@ public class ModelToJsonConverter {
                 json.addProperty("instructions", library.getInstructions());
             }
 
-            // Only include non-empty collections
-            if (library.getTypeDefs() != null && !library.getTypeDefs().isEmpty()) {
-                json.add("typeDefs", context.serialize(library.getTypeDefs()));
-            }
-            if (library.getClients() != null && !library.getClients().isEmpty()) {
-                json.add("clients", context.serialize(library.getClients()));
-            }
-            if (library.getFunctions() != null && !library.getFunctions().isEmpty()) {
-                json.add("functions", context.serialize(library.getFunctions()));
-            }
-            if (library.getServices() != null && !library.getServices().isEmpty()) {
-                json.add("services", context.serialize(library.getServices()));
-            }
+            // Always include collections (empty array if null or empty)
+            json.add("typeDefs", library.getTypeDefs() != null
+                    ? context.serialize(library.getTypeDefs()) : new JsonArray());
+            json.add("clients", library.getClients() != null
+                    ? context.serialize(library.getClients()) : new JsonArray());
+            json.add("functions", library.getFunctions() != null
+                    ? context.serialize(library.getFunctions()) : new JsonArray());
+            json.add("services", library.getServices() != null
+                    ? context.serialize(library.getServices()) : new JsonArray());
 
             return json;
         }
