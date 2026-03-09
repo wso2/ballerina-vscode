@@ -133,10 +133,11 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
             }
         }
 
-        // Generate text edits based on the line range. If a line range exists, update the signature of the existing
-        // workflow function. Otherwise, create a new function definition in "functions.bal".
+        // New workflow nodes may still carry a line range from the insertion context (for example, diagram creation
+        // from main.bal). Treat `isNew` as the source of truth so new workflow declarations are generated fully in
+        // functions.bal with imports and an empty body.
         LineRange lineRange = sourceBuilder.flowNode.codedata().lineRange();
-        if (lineRange == null) {
+        if (Boolean.TRUE.equals(sourceBuilder.flowNode.codedata().isNew()) || lineRange == null) {
             sourceBuilder
                     .token()
                         .openBrace()
