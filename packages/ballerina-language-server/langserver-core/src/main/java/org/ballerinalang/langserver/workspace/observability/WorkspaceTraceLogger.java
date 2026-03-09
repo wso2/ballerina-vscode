@@ -183,6 +183,7 @@ public class WorkspaceTraceLogger implements AutoCloseable {
                  DOCUMENT_SANDBOX_INVALIDATED,
                  WORKSPACE_PROJECT_TIER_CHANGED,
                  WORKSPACE_BATCH_PROJECTS_REGISTERED,
+                 WORKSPACE_LOCKING_MODE_CHANGED,
                  EXECUTION_PROCESS_OUTPUT,
                  CACHE_INVALIDATION_REQUESTED -> "TRACE";
         };

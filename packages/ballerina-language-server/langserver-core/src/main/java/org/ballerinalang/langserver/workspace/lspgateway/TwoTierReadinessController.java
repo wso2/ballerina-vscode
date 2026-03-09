@@ -18,7 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.lspgateway;
 
-import java.util.concurrent.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
