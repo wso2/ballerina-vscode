@@ -23,7 +23,8 @@ import {
     GetEvaluationHistoryRequest, GetEvaluationHistoryResponse, getEvaluationHistory,
     OpenEvaluationReportRequest, openEvaluationReport,
     GetEvaluationReportRequest, GetEvaluationReportResponse, getEvaluationReport,
-    GitDiffRequest, GitDiffResponse, getGitDiff
+    GitDiffRequest, GitDiffResponse, getGitDiff,
+    RestoreGitSnapshotRequest, RestoreGitSnapshotResponse, restoreGitSnapshot
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -65,6 +66,10 @@ export class TestManagerServiceRpcClient implements TestManagerServiceAPI {
 
     getGitDiff(params: GitDiffRequest): Promise<GitDiffResponse> {
         return this._messenger.sendRequest(getGitDiff, HOST_EXTENSION, params);
+    }
+
+    restoreGitSnapshot(params: RestoreGitSnapshotRequest): Promise<RestoreGitSnapshotResponse> {
+        return this._messenger.sendRequest(restoreGitSnapshot, HOST_EXTENSION, params);
     }
 
 }

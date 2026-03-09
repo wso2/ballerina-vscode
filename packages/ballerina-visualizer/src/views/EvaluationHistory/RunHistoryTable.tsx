@@ -267,7 +267,7 @@ interface RunHistoryTableProps {
 export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
     const { rpcClient } = useRpcContext();
     const [expandedOutcomes, setExpandedOutcomes] = useState<Set<number>>(new Set());
-    const [diffModal, setDiffModal] = useState<{ sha: string; full: string } | null>(null);
+    const [diffModal, setDiffModal] = useState<{ sha: string; full: string; isDirty: boolean } | null>(null);
     const reversedRuns = [...runs].reverse();
 
     const hasGitData = runs.some((r) => r.gitState?.commitSha);
@@ -288,12 +288,12 @@ export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
         });
     };
 
-    const handleCompare = async (sha: string) => {
+    const handleCompare = async (sha: string, isDirty: boolean) => {
         if (!projectPath) { return; }
         const resp = await rpcClient.getTestManagerRpcClient().getGitDiff({
             projectPath, fromSha: sha, toSha: "HEAD",
         });
-        setDiffModal({ sha, full: resp.diffFull });
+        setDiffModal({ sha, full: resp.diffFull, isDirty });
     };
 
     return (
@@ -355,7 +355,7 @@ export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
                                                         </StateLabel>
                                                         <ViewBtn
                                                             style={{ marginLeft: 8 }}
-                                                            onClick={() => handleCompare(run.gitState!.commitSha!)}
+                                                            onClick={() => handleCompare(run.gitState!.commitSha!, run.gitState!.isDirty)}
                                                         >
                                                             View changes
                                                         </ViewBtn>
@@ -452,6 +452,8 @@ export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
                 <DiffViewer
                     diffFull={diffModal.full}
                     sha={diffModal.sha}
+                    isDirty={diffModal.isDirty}
+                    projectPath={projectPath}
                     onClose={() => setDiffModal(null)}
                 />
             )}
