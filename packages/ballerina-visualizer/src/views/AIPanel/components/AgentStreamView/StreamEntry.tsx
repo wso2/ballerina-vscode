@@ -69,7 +69,7 @@ function getToolCallDisplay(toolName: string | undefined, toolInput: any): { pre
         case "ConfigCollector": return { prefix: "Reading config..." };
         case "ConnectorGeneratorTool": return { prefix: "Generating connector..." };
         case "runTests": return { prefix: "Running tests..." };
-        case "curlRequest": return { prefix: "Sending HTTP request..." };
+        case "hurlRunnerTool": return { prefix: "Sending HTTP request..." };
         case "runBallerinaPackage": return { prefix: `Running ${toolInput?.runType === "service" ? "service" : "program"}...` };
         case "getServiceLogs": return { prefix: "Fetching logs..." };
         case "stopBallerinaService": return { prefix: "Stopping service..." };
@@ -103,7 +103,7 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any): { 
         case "ConfigCollector": return { prefix: "Config loaded" };
         case "ConnectorGeneratorTool": return { prefix: "Connector ready" };
         case "runTests": return { prefix: toolOutput?.summary ?? "Tests completed" };
-        case "curlRequest": return { prefix: "HTTP request completed" };
+        case "hurlRunnerTool": return { prefix: "HTTP request completed" };
         case "runBallerinaPackage": {
             const status = toolOutput?.status ?? "completed";
             return { prefix: status === "started" ? "Service started" : status === "completed" ? "Program completed" : status === "timeout" ? "Program timed out" : "Run failed" };
@@ -134,7 +134,7 @@ function renderItem(item: StreamItem, idx: number, rpcClient?: any): React.React
             );
         }
         case "tool_call": {
-            if (item.toolName === "curlRequest") {
+            if (item.toolName === "hurlRunnerTool") {
                 return <TryItCard key={idx} input={item.toolInput} />;
             }
             const { prefix, fileName } = getToolCallDisplay(item.toolName, item.toolInput);
@@ -150,8 +150,8 @@ function renderItem(item: StreamItem, idx: number, rpcClient?: any): React.React
             );
         }
         case "tool_result": {
-            if (item.toolName === "curlRequest") {
-                return <TryItCard key={idx} input={item.toolOutput} output={item.toolOutput} />;
+            if (item.toolName === "hurlRunnerTool") {
+                return <TryItCard key={idx} output={item.toolOutput} />;
             }
             const { prefix, fileName } = getToolResultDisplay(item.toolName, item.toolOutput);
             return (
