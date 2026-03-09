@@ -328,6 +328,46 @@ public class ProjectServiceTest {
     }
 
     // =========================================================================
+    // registerWorkspace Tests
+    // =========================================================================
+
+    @Test(groups = "register-workspace")
+    public void registerWorkspace_batchRegistersAndPublishesWmE6() throws Exception {
+        // Create multiple workspace folders
+        Path folder1 = tempDir;
+        Path folder2 = Files.createTempDirectory("test-project-2");
+        Files.write(folder2.resolve("Ballerina.toml"), new byte[0]);
+
+        publishedEvents.clear();
+        service.registerWorkspace(List.of(folder1, folder2));
+
+        // Wait for async event delivery
+        Thread.sleep(200);
+        Assert.assertTrue(publishedEvents.stream()
+                .anyMatch(e -> e.eventKind() == EventKind.WORKSPACE_BATCH_PROJECTS_REGISTERED),
+                "WORKSPACE_BATCH_PROJECTS_REGISTERED (WM-E6) event should be published");
+
+        // Verify projects are registered
+        Collection<Project> projects = service.allProjects();
+        Assert.assertEquals(projects.size(), 2, "Should have registered both projects");
+    }
+
+    @Test(groups = "register-workspace")
+    public void registerWorkspace_emptyListIsNoOp() throws Exception {
+        publishedEvents.clear();
+        service.registerWorkspace(List.of());
+
+        Thread.sleep(100);
+        Assert.assertTrue(publishedEvents.isEmpty(), "Should be no-op for empty list");
+    }
+
+    @Test(groups = "register-workspace")
+    public void registerWorkspace_nullListThrowsNPE() {
+        Assert.assertThrows(NullPointerException.class,
+                () -> service.registerWorkspace(null));
+    }
+
+    // =========================================================================
     // PathToRootCache Invalidation Tests
     // =========================================================================
 

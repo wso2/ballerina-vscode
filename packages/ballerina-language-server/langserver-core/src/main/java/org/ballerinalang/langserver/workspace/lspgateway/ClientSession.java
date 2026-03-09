@@ -22,30 +22,58 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.eclipse.lsp4j.ClientCapabilities;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.Objects;
 
 /**
- * Aggregate root representing an active LSP client session.
- * Tracks negotiated capabilities and experimental feature flags.
+ * Immutable session record for a connected LSP client.
+ * Holds client capabilities, workspace folder URIs, session metadata,
+ * and provides capability negotiation helpers.
  *
+ * @param clientCapabilities LSP client capabilities; must not be null
+ * @param workspaceFolderUris list of workspace folder URIs; defensively copied; must not be null
+ * @param sessionId session identifier; must not be blank
  * @since 1.7.0
  */
-public class ClientSession {
+public record ClientSession(
+        ClientCapabilities clientCapabilities,
+        List<String> workspaceFolderUris,
+        String sessionId
+) {
+    /**
+     * Compact constructor with validation.
+     *
+     * @throws NullPointerException if clientCapabilities or workspaceFolderUris is null
+     * @throws IllegalArgumentException if sessionId is blank
+     */
+    public ClientSession {
+        Objects.requireNonNull(clientCapabilities, "clientCapabilities must not be null");
+        Objects.requireNonNull(workspaceFolderUris, "workspaceFolderUris must not be null");
+        requireNonBlank(sessionId, "sessionId must not be blank");
 
-    private final ClientCapabilities capabilities;
+        // Defensive copy of workspace folder URIs
+        workspaceFolderUris = List.copyOf(workspaceFolderUris);
+    }
 
-    public ClientSession(ClientCapabilities capabilities) {
-        this.capabilities = capabilities;
+    /**
+     * Checks if the client supports work-done progress reporting.
+     *
+     * @return true if client supports work-done progress, false otherwise
+     */
+    public boolean supportsWorkDoneProgress() {
+        return clientCapabilities != null
+                && clientCapabilities.getWindow() != null
+                && Boolean.TRUE.equals(clientCapabilities.getWindow().getWorkDoneProgress());
     }
 
     /**
      * Checks if a specific experimental capability is enabled by the client.
      *
-     * @param capabilityName Name of the capability (e.g., "runNotifications")
+     * @param capabilityName name of the capability (e.g., "runNotifications")
      * @return {@code true} if enabled, {@code false} otherwise
      */
     public boolean isCapabilityEnabled(String capabilityName) {
-        Object experimental = capabilities.getExperimental();
+        Object experimental = clientCapabilities.getExperimental();
         if (experimental instanceof JsonObject jsonObject) {
             JsonElement element = jsonObject.get(capabilityName);
             if (element != null && element.isJsonPrimitive()) {
@@ -55,12 +83,9 @@ public class ClientSession {
         return false;
     }
 
-    /**
-     * Returns the raw client capabilities.
-     *
-     * @return {@link ClientCapabilities}
-     */
-    public ClientCapabilities getCapabilities() {
-        return capabilities;
+    private static void requireNonBlank(String value, String message) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(message);
+        }
     }
 }

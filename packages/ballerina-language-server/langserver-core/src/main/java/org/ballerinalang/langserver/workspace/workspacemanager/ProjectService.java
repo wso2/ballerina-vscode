@@ -71,4 +71,12 @@ public interface ProjectService {
      * @return current locking mode
      */
     LockingMode getLockingMode();
+
+    /**
+     * Batch-registers all Ballerina projects found under the given workspace folder paths (WM-C2).
+     * Fires a single WM-E6 BatchProjectsRegistered event.
+     *
+     * @param workspaceFolders list of workspace root paths to scan; must not be null
+     */
+    void registerWorkspace(java.util.List<java.nio.file.Path> workspaceFolders);
 }

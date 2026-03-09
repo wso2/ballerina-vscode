@@ -28,12 +28,14 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Service layer implementation managing workspace projects.
@@ -69,7 +71,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     private final EventSyncPubSubHolder eventBus;
     private final ProjectLoader loader;
     private final ConcurrentHashMap<SourceRoot, Project> ballerinaProjects;
-    private final AtomicReference<LockingMode> currentMode;
+    private final LockingModeController lockingModeController;
     private final HeapPressureListener heapListener;
 
     /**
@@ -103,7 +105,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         this.eventBus = eventBus;
         this.loader = loader;
         this.ballerinaProjects = new ConcurrentHashMap<>();
-        this.currentMode = new AtomicReference<>(LockingMode.SOFT);
+        this.lockingModeController = new LockingModeController(eventBus);
 
         // 1. Wire PathToRootCache as registry listener (T-008 DO NOT constraint resolved here)
         registry.addListener(pathToRootCache);
@@ -196,12 +198,60 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         Objects.requireNonNull(mode, "mode must not be null");
         Objects.requireNonNull(authority, "authority must not be null");
 
-        currentMode.set(mode);
+        lockingModeController.setMode(mode, authority, "external-set");
     }
 
     @Override
     public LockingMode getLockingMode() {
-        return currentMode.get();
+        return lockingModeController.getMode();
+    }
+
+    @Override
+    public void registerWorkspace(List<Path> workspaceFolders) {
+        Objects.requireNonNull(workspaceFolders, "workspaceFolders must not be null");
+
+        if (workspaceFolders.isEmpty()) {
+            return; // No-op for empty list
+        }
+
+        // Scan all workspace folders and collect projects to register
+        Map<SourceRoot, org.ballerinalang.langserver.workspace.workspacemanager.Project> toRegister =
+                new HashMap<>();
+
+        for (Path folder : workspaceFolders) {
+            Path normalized = folder.toAbsolutePath().normalize();
+
+            // Resolve the source root and detect kind
+            SourceRoot root = resolveSourceRoot(normalized);
+            ProjectKind kind = detectKind(root);
+
+            // Check if already registered
+            if (ballerinaProjects.containsKey(root)) {
+                continue; // Skip already-registered projects
+            }
+
+            // Load Ballerina project
+            try {
+                Project bp = loader.load(root, kind);
+                ballerinaProjects.putIfAbsent(root, bp);
+
+                // Collect for batch registration in registry
+                toRegister.putIfAbsent(root,
+                        new org.ballerinalang.langserver.workspace.workspacemanager.Project(
+                                root, kind, HeapEstimate.ofMb(DEFAULT_HEAP_MB)));
+
+                pathToRootCache.put(normalized, root);
+            } catch (Exception e) {
+                // Log and continue with next folder
+                System.err.println("Warning: Failed to register workspace project at " + root + ": " + e);
+            }
+        }
+
+        // Batch-register all collected projects in the registry
+        // This triggers BATCH_UPDATE → onCacheInvalidation → publishWmNoRoot(WM-E6)
+        if (!toRegister.isEmpty()) {
+            registry.putAll(toRegister);
+        }
     }
 
     // =========================================================================
@@ -299,6 +349,15 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             project.transitionKind(target);
             publishWm(EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED, root);
         });
+    }
+
+    /**
+     * Returns the locking mode controller for package-internal access.
+     *
+     * @return the locking mode controller
+     */
+    LockingModeController lockingModeController() {
+        return lockingModeController;
     }
 
     /**

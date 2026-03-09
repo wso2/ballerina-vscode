@@ -20,8 +20,11 @@ package org.ballerinalang.langserver.workspace.lspgateway;
 
 import com.google.gson.JsonObject;
 import org.eclipse.lsp4j.ClientCapabilities;
+import org.eclipse.lsp4j.WindowClientCapabilities;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import java.util.List;
 
 /**
  * Tests for {@link ClientSession}.
@@ -30,7 +33,7 @@ import org.testng.annotations.Test;
  */
 public class ClientSessionTest {
 
-    @Test
+    @Test(groups = "client-session")
     public void testExperimentalFlagGating() {
         ClientCapabilities capabilities = new ClientCapabilities();
         JsonObject experimental = new JsonObject();
@@ -38,18 +41,77 @@ public class ClientSessionTest {
         experimental.addProperty("eventSync", false);
         capabilities.setExperimental(experimental);
 
-        ClientSession session = new ClientSession(capabilities);
+        ClientSession session = new ClientSession(capabilities, List.of(), "session-1");
 
         Assert.assertTrue(session.isCapabilityEnabled("runNotifications"));
         Assert.assertFalse(session.isCapabilityEnabled("eventSync"));
         Assert.assertFalse(session.isCapabilityEnabled("debugAttach"), "Non-existent flag should be false");
     }
 
-    @Test
+    @Test(groups = "client-session")
     public void testExperimentalFlagGating_NullExperimental() {
         ClientCapabilities capabilities = new ClientCapabilities();
-        ClientSession session = new ClientSession(capabilities);
+        ClientSession session = new ClientSession(capabilities, List.of(), "session-1");
 
         Assert.assertFalse(session.isCapabilityEnabled("runNotifications"));
+    }
+
+    @Test(groups = "client-session")
+    public void record_accessors() {
+        ClientCapabilities caps = new ClientCapabilities();
+        List<String> uris = List.of("file:///home/user/project1");
+
+        ClientSession session = new ClientSession(caps, uris, "session-123");
+
+        Assert.assertSame(session.clientCapabilities(), caps);
+        Assert.assertEquals(session.workspaceFolderUris(), uris);
+        Assert.assertEquals(session.sessionId(), "session-123");
+    }
+
+    @Test(groups = "client-session")
+    public void record_defensivelyCopiesToPreventMutation() {
+        ClientCapabilities caps = new ClientCapabilities();
+        List<String> mutableList = new java.util.ArrayList<>(List.of("file:///project1"));
+
+        ClientSession session = new ClientSession(caps, mutableList, "session-1");
+        mutableList.add("file:///project2");
+
+        Assert.assertEquals(session.workspaceFolderUris().size(), 1);
+    }
+
+    @Test(groups = "client-session")
+    public void supportsWorkDoneProgress_returnsTrueWhenSupported() {
+        ClientCapabilities caps = new ClientCapabilities();
+        WindowClientCapabilities window = new WindowClientCapabilities();
+        window.setWorkDoneProgress(true);
+        caps.setWindow(window);
+
+        ClientSession session = new ClientSession(caps, List.of(), "session-1");
+
+        Assert.assertTrue(session.supportsWorkDoneProgress());
+    }
+
+    @Test(groups = "client-session")
+    public void supportsWorkDoneProgress_returnsFalseWhenNotSupported() {
+        ClientCapabilities caps = new ClientCapabilities();
+        WindowClientCapabilities window = new WindowClientCapabilities();
+        window.setWorkDoneProgress(false);
+        caps.setWindow(window);
+
+        ClientSession session = new ClientSession(caps, List.of(), "session-1");
+
+        Assert.assertFalse(session.supportsWorkDoneProgress());
+    }
+
+    @Test(groups = "client-session")
+    public void constructor_nullClientCapabilitiesThrowsNPE() {
+        Assert.assertThrows(NullPointerException.class, () ->
+                new ClientSession(null, List.of(), "session-1"));
+    }
+
+    @Test(groups = "client-session")
+    public void constructor_blankSessionIdThrowsIAE() {
+        Assert.assertThrows(IllegalArgumentException.class, () ->
+                new ClientSession(new ClientCapabilities(), List.of(), ""));
     }
 }
