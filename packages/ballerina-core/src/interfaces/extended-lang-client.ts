@@ -2061,6 +2061,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getDesignModel: (params: BIDesignModelRequest) => Promise<BIDesignModelResponse>;
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
     getTypes: (params: GetTypesRequest) => Promise<GetTypesResponse>;
+    getSimpleTypeOfExpression: (params: GetSimpleTypeOfExpressionRequest) => Promise<GetSimpleTypeOfExpressionResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
     updateImports: (params: UpdateImportsRequest) => Promise<ImportsInfoResponse>;
     addFunction: (params: AddFunctionRequest) => Promise<AddImportItemResponse>;
@@ -2103,5 +2104,6 @@ export interface ExtendedLangClientInterface extends BIInterface {
     getDidOpenParams(): DidOpenParams;
     getProjectArtifacts(params: ProjectArtifactsRequest): Promise<ProjectArtifacts>;
     getProjectInfo(params: ProjectInfoRequest): Promise<ProjectInfo>;
+    getSimpleTypeOfExpression(params: GetSimpleTypeOfExpressionRequest): Promise<GetSimpleTypeOfExpressionResponse>;
     openConfigToml(params: OpenConfigTomlRequest): Promise<void>;
 }
