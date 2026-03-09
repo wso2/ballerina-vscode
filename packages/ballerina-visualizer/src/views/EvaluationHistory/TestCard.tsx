@@ -18,7 +18,8 @@
 
 import React from "react";
 import styled from "@emotion/styled";
-import { EvaluationTestHistory } from "./types";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { EvaluationRunDataPoint, EvaluationTestHistory } from "./types";
 import { SparklineChart } from "./SparklineChart";
 import { RunHistoryTable } from "./RunHistoryTable";
 
@@ -127,6 +128,7 @@ interface TestCardProps {
 }
 
 export function TestCard({ history, projectPath }: TestCardProps) {
+    const { rpcClient } = useRpcContext();
     const latest = history.runs[history.runs.length - 1];
     const latestPct = (latest.passRate * 100).toFixed(0);
     const targetPct = (latest.targetPassRate * 100).toFixed(0);
@@ -177,7 +179,14 @@ export function TestCard({ history, projectPath }: TestCardProps) {
                     <span>100%</span>
                     <span>0%</span>
                 </SparklineLabels>
-                <SparklineChart runs={history.runs} />
+                <SparklineChart
+                    runs={history.runs}
+                    onDotClick={(run: EvaluationRunDataPoint) => {
+                        if (run.jsonReportPath) {
+                            rpcClient.getTestManagerRpcClient().openEvaluationReport({ reportPath: run.jsonReportPath });
+                        }
+                    }}
+                />
             </SparklineWrap>
 
             <RunHistoryTable runs={history.runs} projectPath={projectPath} />
