@@ -395,6 +395,14 @@ const LineContent = styled.span`
     min-width: 0;
 `;
 
+const InlineHighlight = styled.span<{ lineType: "add" | "del" }>`
+    background: ${(p: { lineType: "add" | "del" }) =>
+        p.lineType === "add"
+            ? "rgba(76, 175, 80, 0.35)"
+            : "rgba(244, 67, 54, 0.35)"};
+    border-radius: 2px;
+`;
+
 const EmptyDiff = styled.div`
     display: flex;
     align-items: center;
@@ -413,6 +421,108 @@ const StatsSummary = styled.div`
     background: var(--vscode-sideBar-background);
     flex-shrink: 0;
 `;
+
+// --- Inline diff helpers ---
+
+interface InlineSegment {
+    text: string;
+    highlight: boolean;
+}
+
+function computeInlineSegments(
+    oldContent: string,
+    newContent: string
+): { oldSegments: InlineSegment[]; newSegments: InlineSegment[] } {
+    // Find common prefix length
+    let prefixLen = 0;
+    const minLen = Math.min(oldContent.length, newContent.length);
+    while (prefixLen < minLen && oldContent[prefixLen] === newContent[prefixLen]) {
+        prefixLen++;
+    }
+
+    // Find common suffix length (not overlapping with prefix)
+    let suffixLen = 0;
+    while (
+        suffixLen < minLen - prefixLen &&
+        oldContent[oldContent.length - 1 - suffixLen] === newContent[newContent.length - 1 - suffixLen]
+    ) {
+        suffixLen++;
+    }
+
+    const buildSegments = (content: string): InlineSegment[] => {
+        const segments: InlineSegment[] = [];
+        const midStart = prefixLen;
+        const midEnd = content.length - suffixLen;
+
+        if (midStart > 0) {
+            segments.push({ text: content.slice(0, midStart), highlight: false });
+        }
+        if (midEnd > midStart) {
+            segments.push({ text: content.slice(midStart, midEnd), highlight: true });
+        }
+        if (suffixLen > 0) {
+            segments.push({ text: content.slice(midEnd), highlight: false });
+        }
+        // If no segments (empty string), push the whole content
+        if (segments.length === 0) {
+            segments.push({ text: content, highlight: false });
+        }
+        return segments;
+    };
+
+    return { oldSegments: buildSegments(oldContent), newSegments: buildSegments(newContent) };
+}
+
+/**
+ * Pairs adjacent del/add lines within a hunk and computes inline highlights.
+ * Returns a map: line index -> InlineSegment[] for lines that have a paired counterpart.
+ */
+function computeHunkInlineHighlights(lines: DiffLine[]): Map<number, InlineSegment[]> {
+    const highlights = new Map<number, InlineSegment[]>();
+    let i = 0;
+
+    while (i < lines.length) {
+        // Collect consecutive del lines
+        const delStart = i;
+        while (i < lines.length && lines[i].type === "del") i++;
+        const delEnd = i;
+
+        // Collect consecutive add lines right after
+        const addStart = i;
+        while (i < lines.length && lines[i].type === "add") i++;
+        const addEnd = i;
+
+        // Pair them up
+        const delCount = delEnd - delStart;
+        const addCount = addEnd - addStart;
+        const pairCount = Math.min(delCount, addCount);
+
+        for (let p = 0; p < pairCount; p++) {
+            const delIdx = delStart + p;
+            const addIdx = addStart + p;
+            const { oldSegments, newSegments } = computeInlineSegments(
+                lines[delIdx].content,
+                lines[addIdx].content
+            );
+            // Only apply if there's an actual partial change (not entirely different)
+            const oldHasUnhighlighted = oldSegments.some((s) => !s.highlight && s.text.length > 0);
+            const newHasUnhighlighted = newSegments.some((s) => !s.highlight && s.text.length > 0);
+            if (oldHasUnhighlighted && newHasUnhighlighted) {
+                highlights.set(delIdx, oldSegments);
+                highlights.set(addIdx, newSegments);
+            }
+        }
+
+        // Skip context lines
+        if (i === addEnd && i < lines.length && lines[i].type === "context") {
+            i++;
+        }
+        // Avoid infinite loop if we didn't advance
+        if (i === delStart) i++;
+    }
+
+    return highlights;
+}
 
 // --- Component ---
 
@@ -568,27 +678,48 @@ export function DiffViewer({ diffFull, sha, isDirty, projectPath, onClose, onRes
                     <DiffPane>
                         {activeFile ? (
                             <>
-                                {activeFile.hunks.map((hunk, hi) => (
-                                    <div key={hi}>
-                                        {hi > 0 && <HunkSeparator>···</HunkSeparator>}
-                                        {hunk.lines.map((line, li) => (
-                                            <DiffLineRow
-                                                key={`${hi}-${li}`}
-                                                lineType={line.type}
-                                            >
-                                                <LineGutter>
-                                                    {line.type === "del"
-                                                        ? ""
-                                                        : line.newNum ?? line.oldNum}
-                                                </LineGutter>
-                                                <LineBar lineType={line.type} />
-                                                <LineContent>
-                                                    {line.content}
-                                                </LineContent>
-                                            </DiffLineRow>
-                                        ))}
-                                    </div>
-                                ))}
+                                {activeFile.hunks.map((hunk, hi) => {
+                                    const inlineHighlights = computeHunkInlineHighlights(hunk.lines);
+                                    return (
+                                        <div key={hi}>
+                                            {hi > 0 && <HunkSeparator>···</HunkSeparator>}
+                                            {hunk.lines.map((line, li) => {
+                                                const segments = inlineHighlights.get(li);
+                                                return (
+                                                    <DiffLineRow
+                                                        key={`${hi}-${li}`}
+                                                        lineType={line.type}
+                                                    >
+                                                        <LineGutter>
+                                                            {line.type === "del"
+                                                                ? ""
+                                                                : line.newNum ?? line.oldNum}
+                                                        </LineGutter>
+                                                        <LineBar lineType={line.type} />
+                                                        <LineContent>
+                                                            {segments ? (
+                                                                segments.map((seg, si) =>
+                                                                    seg.highlight ? (
+                                                                        <InlineHighlight
+                                                                            key={si}
+                                                                            lineType={line.type as "add" | "del"}
+                                                                        >
+                                                                            {seg.text}
+                                                                        </InlineHighlight>
+                                                                    ) : (
+                                                                        <span key={si}>{seg.text}</span>
+                                                                    )
+                                                                )
+                                                            ) : (
+                                                                line.content
+                                                            )}
+                                                        </LineContent>
+                                                    </DiffLineRow>
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                })}
                             </>
                         ) : (
                             <EmptyDiff>No changes to display</EmptyDiff>
