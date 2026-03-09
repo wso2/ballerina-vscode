@@ -17,22 +17,20 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { FormDiagnostics, InputType, Property } from "@wso2/ballerina-core";
+import { InputType } from "@wso2/ballerina-core";
 import { Form, FormField, FormFieldEditorProps, FormValues, S, useFormContext, useModeSwitcherContext } from "../..";
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
 import ModeSwitcher from "../ModeSwitcher";
-import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray, getRecordTypeFields, mapDiagnosticsServerityToFormSeverity } from "./utils";
+import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray, getRecordTypeFields } from "./utils";
 
 export const FormArrayEditor = (props: FormFieldEditorProps & {
     onChange: (value: any) => void;
     value: any;
 }) => {
     const [repeatableFields, setRepeatableFields] = useState<FormField[]>([]);
-    const [elementDiagnostics, setElementDiagnostics] = useState<FormDiagnostics[]>([]);
     const { expressionEditor } = useFormContext();
     const scrollableListRef = useRef<ScrollableListRef>(null);
-    const lastTypedField = useRef<string>(null);
 
     const modeSwitcherContext = useModeSwitcherContext();
 
@@ -69,45 +67,6 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
         props.onChange(newRepeatableFields);
     };
 
-    const handleSetDiagnosticsInfoChange = (diagnostics: FormDiagnostics) => {
-        const existingDiagnostics = [...elementDiagnostics];
-        existingDiagnostics.push(diagnostics);
-        setElementDiagnostics(existingDiagnostics);
-    }
-
-    const handleFormDiagnosticsChange = async (showDiagnostics: boolean, expression: string, key: string, property: Property, setDiagnosticsInfo: (diagnostics: FormDiagnostics) => void, shouldUpdateNode?: boolean, variableType?: string) => {
-        return expressionEditor?.getExpressionFormDiagnostics?.(
-            showDiagnostics,
-            expression,
-            key,
-            property,
-            (diagnostics: FormDiagnostics) => {
-                handleSetDiagnosticsInfoChange(diagnostics);
-                setDiagnosticsInfo(diagnostics);
-            },
-            shouldUpdateNode,
-            variableType);
-    };
-
-    const applyDiagnosticsToField = (field: FormField): FormField => {
-        const diagnostics = elementDiagnostics.find(diag => diag.key === field.key);
-        if (!diagnostics) return field;
-        return {
-            ...field,
-            diagnostics: diagnostics.diagnostics.map(diag => ({
-                message: diag.message,
-                severity: mapDiagnosticsServerityToFormSeverity(diag.severity)
-            }))
-        };
-    };
-
-    useEffect(() => {
-        if (!Array.isArray(props.value)) return;
-        const newRepeatableFields = repeatableFields.map(applyDiagnosticsToField);
-        setRepeatableFields(newRepeatableFields);
-        props.onChange(newRepeatableFields);
-    }, [elementDiagnostics]);
-
     useEffect(() => {
         if (!props.value) return;
         if (JSON.stringify(props.value) === JSON.stringify(repeatableFields)) return;
@@ -120,7 +79,7 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
                 value: val
             }
         });
-        setRepeatableFields(initialFields.map(applyDiagnosticsToField));
+        setRepeatableFields(initialFields);
     }, [props.value, props.field.types]);
 
     return (
@@ -171,7 +130,6 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
                             <Form
                                 key={formField.key}
                                 formFields={[formField]}
-
                                 recordTypeFields={getRecordTypeFields([formField])}
                                 openRecordEditor={props.openRecordEditor}
                                 onChange={(fieldKey: string, value: any, allValues: FormValues) => {
@@ -185,8 +143,7 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
                                     referenceTypes: expressionEditor?.referenceTypes,
                                     retrieveVisibleTypes: expressionEditor?.retrieveVisibleTypes,
                                     getTypeHelper: expressionEditor?.getTypeHelper,
-                                    helperPaneHeight: expressionEditor?.helperPaneHeight,
-                                    getExpressionFormDiagnostics: handleFormDiagnosticsChange,
+                                    helperPaneHeight: expressionEditor?.helperPaneHeight
                                 }}
                                 submitText={'Save'}
                                 nestedForm={true}
