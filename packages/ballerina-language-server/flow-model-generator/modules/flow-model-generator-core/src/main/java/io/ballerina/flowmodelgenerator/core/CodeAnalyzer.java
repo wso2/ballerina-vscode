@@ -2346,10 +2346,6 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(WaitActionNode waitActionNode) {
-        // Check if this is a workflow wait for data (wait events.dataName)
-        if (isWorkflowWaitData(waitActionNode)) {
-            startNode(NodeKind.WAIT_DATA, waitActionNode);
-        }
         // Capture the future nodes associated with the wait node
         boolean waitAll = false;
         Node waitFutureExpr = waitActionNode.waitFutureExpr();
@@ -2388,8 +2384,14 @@ public class CodeAnalyzer extends NodeVisitor {
 
         if (!waitAll) {
             // custom node
-            startNode(NodeKind.EXPRESSION, waitActionNode)
-                    .properties().statement(waitActionNode);
+            // Check if this is a workflow wait for data (wait events.dataName)
+            if (isWorkflowWaitData(waitActionNode)) {
+                startNode(NodeKind.WAIT_DATA, waitActionNode)
+                        .properties().custom().handleWaitNode(nodes).stepOut().addProperty(WaitBuilder.FUTURES_KEY);
+            } else {
+                startNode(NodeKind.EXPRESSION, waitActionNode)
+                        .properties().statement(waitActionNode);
+            }
             return;
         }
 

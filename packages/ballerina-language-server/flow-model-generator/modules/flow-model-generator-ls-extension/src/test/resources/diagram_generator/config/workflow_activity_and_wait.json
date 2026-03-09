@@ -481,85 +481,17 @@
         },
         "returning": false,
         "properties": {
-          "waitAll": {
-            "metadata": {
-              "label": "Wait All",
-              "description": "Wait for all tasks to complete"
-            },
-            "types": [
-              {
-                "fieldType": "FLAG",
-                "selected": true
-              }
-            ],
-            "value": false,
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false
-          },
           "futures": {
-            "metadata": {
-              "label": "Futures",
-              "description": "The futures to wait for"
-            },
-            "types": [
-              {
-                "fieldType": "REPEATABLE_PROPERTY",
-                "selected": false
-              }
-            ],
             "value": {
-              "future1": {
-                "metadata": {
-                  "label": "Future",
-                  "description": "The worker/async function to wait for"
-                },
+              "events.approve": {
                 "types": [
                   {
-                    "fieldType": "FIXED_PROPERTY",
-                    "selected": false
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "future<any|error>",
+                    "selected": true
                   }
                 ],
-                "value": {
-                  "variable": {
-                    "metadata": {
-                      "label": "Variable Name",
-                      "description": "Name of the variable"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "selected": true
-                      }
-                    ],
-                    "value": "",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false,
-                    "codedata": {
-                      "dependentProperty": "waitAll"
-                    }
-                  },
-                  "expression": {
-                    "metadata": {
-                      "label": "Expression",
-                      "description": "Expression"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "EXPRESSION",
-                        "selected": true
-                      }
-                    ],
-                    "value": "events.approve",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
-                  }
-                },
+                "value": "events.approve",
                 "optional": false,
                 "editable": false,
                 "advanced": false,
@@ -603,7 +535,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Variable Type",
+              "label": "Type of the variable",
               "description": "Type of the variable"
             },
             "types": [
@@ -617,7 +549,7 @@
             "optional": false,
             "editable": true,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },
