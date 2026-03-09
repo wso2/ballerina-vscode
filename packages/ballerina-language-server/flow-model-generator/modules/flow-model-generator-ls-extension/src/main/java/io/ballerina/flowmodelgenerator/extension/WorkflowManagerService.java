@@ -80,7 +80,7 @@ public class WorkflowManagerService implements ExtendedLanguageServerService {
      * Data are retrieved from the data type parameter (third parameter) of the workflow process function.
      *
      * @param request The request containing file path and workflow name
-     * @return Response containing array of event information
+     * @return Response containing array of data information
      */
     @JsonRequest
     public CompletableFuture<GetAllDataResponse> getAllData(GetAllDataRequest request) {
@@ -153,8 +153,8 @@ public class WorkflowManagerService implements ExtendedLanguageServerService {
     }
 
     /**
-     * Extracts event information from a record type.
-     * Each field in the record with type future<T> represents an event.
+     * Extracts workflow data information from a record type.
+     * Each field in the record with type future<T> represents a data point that can be awaited.
      *
      * @param dataType The data record type
      * @return JsonArray of event information
