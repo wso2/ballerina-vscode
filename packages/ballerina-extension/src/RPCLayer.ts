@@ -46,6 +46,7 @@ import { registerAgentChatRpcHandlers } from './rpc-managers/agent-chat/rpc-hand
 import { ArtifactsUpdated, ArtifactNotificationHandler } from './utils/project-artifacts-handler';
 import { registerMigrateIntegrationRpcHandlers } from './rpc-managers/migrate-integration/rpc-handler';
 import { registerPlatformExtRpcHandlers } from './rpc-managers/platform-ext/rpc-handler';
+import { MigrationPanelWebview } from './views/migration-panel/webview';
 
 export class RPCLayer {
     static _messenger: Messenger = new Messenger();
@@ -63,6 +64,9 @@ export class RPCLayer {
             window.onDidChangeActiveColorTheme((theme) => {
                 RPCLayer._messenger.sendNotification(currentThemeChanged, { type: 'webview', webviewType: VisualizerWebview.viewType }, theme.kind);
             });
+        } else if (isMigrationPanel(webViewPanel)) {
+            // Migration panel is a WebviewPanel but does not use the AI state machine.
+            RPCLayer._messenger.registerWebviewPanel(webViewPanel as WebviewPanel);
         } else {
             RPCLayer._messenger.registerWebviewView(webViewPanel as WebviewView);
             AIStateMachine.service().onTransition((state) => {
@@ -181,6 +185,10 @@ function isWebviewPanel(webview: WebviewPanel | WebviewView): boolean {
     return title === VisualizerWebview.webviewTitle;
 }
 
+function isMigrationPanel(webview: WebviewPanel | WebviewView): boolean {
+    return 'reveal' in webview && webview.title === "Migration Assistant";
+}
+
 export function notifyCurrentWebview() {
     RPCLayer._messenger.sendNotification(projectContentUpdated, { type: 'webview', webviewType: VisualizerWebview.viewType }, true);
 }
@@ -203,4 +211,8 @@ export function notifyCheckpointCaptured(payload: CheckpointCapturedPayload) {
 
 export function notifyApprovalOverlayState(state: ApprovalOverlayState) {
     RPCLayer._messenger.sendNotification(approvalOverlayState, { type: 'webview', webviewType: AiPanelWebview.viewType }, state);
+}
+
+export function notifyMigrationPanel(notificationType: typeof projectContentUpdated, data: any) {
+    RPCLayer._messenger.sendNotification(notificationType, { type: 'webview', webviewType: MigrationPanelWebview.viewType }, data);
 }

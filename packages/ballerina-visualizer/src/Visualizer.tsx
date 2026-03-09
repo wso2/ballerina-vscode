@@ -23,6 +23,7 @@ import MainPanel from "./MainPanel";
 import styled from '@emotion/styled';
 import AIPanel from "./views/AIPanel/AIPanel";
 import { AgentChat } from "./views/AgentChatPanel/AgentChat";
+import { MigrationPanel } from "./views/MigrationPanel/MigrationPanel";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { Global, css } from '@emotion/react';
 import { DownloadIcon } from "./components/DownloadIcon";
@@ -88,7 +89,8 @@ const MODES = {
     VISUALIZER: "visualizer",
     AI: "ai",
     RUNTIME_SERVICES: "runtime-services",
-    AGENT_CHAT: "agent-chat"
+    AGENT_CHAT: "agent-chat",
+    MIGRATION: "migration",
 };
 
 export function Visualizer({ mode }: { mode: string }) {
@@ -124,6 +126,8 @@ export function Visualizer({ mode }: { mode: string }) {
                         return <AIPanel state={aiState} />
                     case MODES.AGENT_CHAT:
                         return <AgentChat />
+                    case MODES.MIGRATION:
+                        return <MigrationPanel />
                 }
             })()}
         </>

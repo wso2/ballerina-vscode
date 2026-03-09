@@ -207,9 +207,10 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 threadId: 'default',
             });
 
-            // Stream LLM response
+            // Stream LLM response — use injected model if provided, else default Anthropic
+            const llmModel = this.config.model ?? await getAnthropicClient(ANTHROPIC_SONNET_4);
             const { fullStream, response, usage } = streamText({
-                model: await getAnthropicClient(ANTHROPIC_SONNET_4),
+                model: llmModel,
                 maxOutputTokens: 8192,
                 temperature: 0,
                 messages: allMessages,

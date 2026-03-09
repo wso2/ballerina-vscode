@@ -36,6 +36,7 @@ import { activate as activateLibraryBrowser } from './features/library-browser';
 import { activate as activateBIFeatures } from './features/bi';
 import { activate as activateERDiagram } from './views/persist-layer-diagram';
 import { activateAiPanel } from './views/ai-panel';
+import { activateMigrationPanel } from './views/migration-panel';
 import { debug, handleResolveMissingDependencies, log } from './utils';
 import { activateUriHandlers } from './utils/uri-handlers';
 import { StateMachine } from './stateMachine';
@@ -200,6 +201,9 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
 
         //activate ai panel
         activateAiPanel(ballerinaExtInstance);
+
+        // Activate migration enhancement panel
+        activateMigrationPanel(ballerinaExtInstance);
 
         // Activate AI features
         activateAIFeatures(ballerinaExtInstance);

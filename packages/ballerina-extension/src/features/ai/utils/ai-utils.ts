@@ -39,6 +39,7 @@ import { ModelMessage } from "ai";
 import { MessageRole } from "./ai-types";
 import { RPCLayer } from "../../../RPCLayer";
 import { AiPanelWebview } from "../../../views/ai-panel/webview";
+import { MigrationPanelWebview } from "../../../views/migration-panel/webview";
 import { GenerationType } from "./libs/libraries";
 // import { REQUIREMENTS_DOCUMENT_KEY } from "./code/np_prompts";
 
@@ -300,6 +301,14 @@ export function sendConfigurationCollectionNotification(event: ChatNotify & { ty
 
 function sendAIPanelNotification(msg: ChatNotify): void {
     RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
+}
+
+/**
+ * Sends a chat notification to the standalone Migration Enhancement Panel.
+ * Mirrors `sendAIPanelNotification` but targets `MigrationPanelWebview.viewType`.
+ */
+export function sendMigrationPanelNotification(msg: ChatNotify): void {
+    RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: MigrationPanelWebview.viewType }, msg);
 }
 
 export function getGenerationMode(generationType: GenerationType) {
