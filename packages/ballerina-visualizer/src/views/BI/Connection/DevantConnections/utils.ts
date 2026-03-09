@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { AvailableNode, Category } from "@wso2/ballerina-core";
+import { AvailableNode, Category, IntrospectCredentialsResponse, PropertyModel } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
 
 export const ProgressWrap = styled.div`
@@ -226,7 +226,7 @@ export const generateInitialConnectionName = (
     return uniqueName;
 };
 
-export const isValidDevantConnName = (value: string, devantConnNames: string[], biConnNames: string[]) => {
+export const isValidDevantConnName = (value: string, devantConnNames: string[], biConnNames: string[], isImporting: boolean) => {
     // Check minimum length
     if (!value) {
         return "Connection name is required";
@@ -249,7 +249,7 @@ export const isValidDevantConnName = (value: string, devantConnNames: string[], 
     }
 
     // Check for duplicates in Devant connections
-    if (devantConnNames?.some((conn) => conn === value)) {
+    if (!isImporting && devantConnNames?.some((conn) => conn === value)) {
         return "A Devant connection with this name already exists";
     }
 
@@ -266,3 +266,86 @@ export const getKnownAvailableNode = (categories: Category[], org: string, modul
     );
     return matchingNode as AvailableNode | undefined;
 };
+
+/** Builds PropertyModel map from fieldValues for connector wizard RPC */
+export const buildDbPropertiesFromFieldValues = (
+    connectorCredentials: NonNullable<IntrospectCredentialsResponse["data"]>,
+    fieldValues: Record<string, string>,
+): { [key: string]: PropertyModel } => {
+    const props = connectorCredentials?.properties ?? {};
+    const result: { [key: string]: PropertyModel } = {};
+    for (const [key, prop] of Object.entries(props)) {
+        const label = prop.metadata?.label || "";
+        const value = label in fieldValues ? fieldValues[label] : ((prop.value as string) ?? "");
+        result[key] = { ...prop, value };
+    }
+    return result;
+}
+
+/** Extracts host, port, etc. from fieldValues for createDevantConnection */
+export const fieldValuesToDbConfig = (fv: Record<string, string>) => {
+    const get = (keys: string[]) => keys.map((k) => fv[k]).find(Boolean) ?? "";
+    return {
+        host: get(["Host", "Host Name", "host", "HostName"]),
+        port: Number(get(["Port", "port"])) || 3306,
+        username: get(["User", "Username", "user"]),
+        password: get(["Password", "password"]),
+        databaseName: get(["Database", "Database Name", "database", "DatabaseName", "db"]),
+    };
+};
+
+/** Maps simple credential object to connector wizard fieldValues by matching property labels */
+export const dbCredentialsToFieldValues = (
+    connectorCredentials: NonNullable<IntrospectCredentialsResponse["data"]>,
+    creds: {
+        host: string;
+        port: number;
+        databaseName: string;
+        username: string;
+        password: string;
+        databaseType: string;
+    },
+): Record<string, string> =>{
+    const props = connectorCredentials.properties || {};
+    const result: Record<string, string> = {};
+    const dbSystemLabel = Object.values(props).find((p) => {
+        const l = (p.metadata?.label || "").toLowerCase();
+        return l.includes("database system") || l.includes("db system");
+    })?.metadata?.label;
+    const portLabel = Object.values(props).find((p) => (p.metadata?.label || "").toLowerCase() === "port")?.metadata
+        ?.label;
+    const hostLabel = Object.values(props).find((p) => (p.metadata?.label || "").toLowerCase().includes("host"))
+        ?.metadata?.label;
+    const dbLabel = Object.values(props).find((p) => {
+        const l = (p.metadata?.label || "").toLowerCase();
+        return l === "database" || l === "database name";
+    })?.metadata?.label;
+    const userLabel = Object.values(props).find((p) => {
+        const l = (p.metadata?.label || "").toLowerCase();
+        return l === "user" || l === "username";
+    })?.metadata?.label;
+    const pwdLabel = Object.values(props).find((p) => (p.metadata?.label || "").toLowerCase().includes("password"))
+        ?.metadata?.label;
+
+    Object.values(props).forEach((prop) => {
+        const label = prop.metadata?.label || "";
+        if (label && !result[label]) {
+            if (dbSystemLabel && label === dbSystemLabel) {
+                result[label] = creds.databaseType?.toLowerCase().includes("postgres") ? "postgresql" : "mysql";
+            } else if (portLabel && label === portLabel) {
+                result[label] = String(creds.port ?? 3306);
+            } else if (hostLabel && label === hostLabel) {
+                result[label] = creds.host ?? "";
+            } else if (dbLabel && label === dbLabel) {
+                result[label] = creds.databaseName ?? "";
+            } else if (userLabel && label === userLabel) {
+                result[label] = creds.username ?? "";
+            } else if (pwdLabel && label === pwdLabel) {
+                result[label] = creds.password ?? "";
+            } else {
+                result[label] = (prop.value as string) ?? "";
+            }
+        }
+    });
+    return result;
+}

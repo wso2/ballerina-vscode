@@ -334,7 +334,7 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
                             sx={{ width: "100%" }}
                             {...form.register("name", {
                                 validate: (value) =>
-                                    isValidDevantConnName(value, existingDevantConnNames, biConnectionNames),
+                                    isValidDevantConnName(value, existingDevantConnNames, biConnectionNames, false),
                             })}
                             errorMsg={form.formState.errors.name?.message}
                         />
