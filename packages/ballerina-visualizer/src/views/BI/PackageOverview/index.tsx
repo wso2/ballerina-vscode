@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useMemo, useState } from "react";
 import {
     ProjectStructure,
     EVENT_TYPE,
@@ -112,14 +112,14 @@ const MainContent = styled.div<{ fullWidth?: boolean }>`
     max-height: calc(100vh - 90px); // Adjust based on header and any margins
 `;
 
-const DiagramPanel = styled.div<{ noPadding?: boolean }>`
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+const DiagramPanel = styled.div<{ noPadding?: boolean, noBorder?: boolean }>`
+    border: ${(props: { noBorder?: boolean }) => props.noBorder ? "none" : `1px solid ${ThemeColors.OUTLINE_VARIANT}`};
     border-radius: 4px;
-    padding: ${(props: { noPadding: boolean; }) => (props.noPadding ? "0" : "16px")};
+    padding: ${(props: { noPadding?: boolean }) => (props.noPadding ? "0" : "16px")};
     overflow: auto;
     display: flex;
     flex-direction: column;
-    min-height: calc(60vh); // Subtracting header height (50px) and padding (32px)
+    min-height: calc(60vh);
 `;
 
 const LeftContent = styled.div`
@@ -155,68 +155,14 @@ const EmptyReadmeContainer = styled.div`
     height: 100%;
 `;
 
-const DiagramHeaderContainer = styled.div<{ withPadding?: boolean, isLibrary?: boolean }>`
+const DiagramHeaderContainer = styled.div<{ withPadding?: boolean }>`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: ${(props: { isLibrary?: boolean }) => props.isLibrary ? "0" : "16px"};
-    padding: ${(props: { withPadding?: boolean, isLibrary?: boolean }) =>
-        props.withPadding
-            ? props.isLibrary ? "16px 16px 12px 16px" : "16px 16px 0 16px"
-            : "0"};
-    ${(props: { isLibrary?: boolean }) => props.isLibrary ? `
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        background: var(--vscode-editor-background);
-    ` : ""}
+    margin-bottom: 16px;
+    padding: ${(props: { withPadding?: boolean }) => props.withPadding ? "16px 16px 0 16px" : "0"};
 `;
 
-const LibrarySearchBar = styled.div`
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: clamp(160px, 35vw, 400px);
-`;
-
-const LibrarySearchInput = styled.input`
-    width: 100%;
-    padding: 6px 24px 6px 28px;
-    background: var(--vscode-input-background);
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    color: var(--vscode-input-foreground);
-    font-size: 12px;
-    font-family: var(--vscode-font-family);
-    &:focus {
-        outline: none;
-        border-color: var(--vscode-focusBorder);
-    }
-    &::placeholder {
-        color: var(--vscode-input-placeholderForeground);
-    }
-`;
-
-const LibrarySearchIcon = styled.div`
-    position: absolute;
-    left: 8px;
-    color: var(--vscode-input-placeholderForeground);
-    pointer-events: none;
-    display: flex;
-    align-items: center;
-`;
-
-const LibrarySearchClearButton = styled.div`
-    position: absolute;
-    right: 6px;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    color: var(--vscode-input-placeholderForeground);
-    &:hover {
-        color: var(--vscode-input-foreground);
-    }
-`;
 
 const DiagramContent = styled.div`
     flex: 1;
@@ -705,9 +651,6 @@ export function PackageOverview(props: PackageOverviewProps) {
     const [isLibrary, setIsLibrary] = useState<boolean>(false);
     const [isNPSupported, setIsNPSupported] = useState<boolean>(false);
 
-    const [librarySearchQuery, setLibrarySearchQuery] = useState("");
-    const librarySearchRef = useRef<HTMLInputElement>(null);
-
     const fetchContext = () => {
         rpcClient
             .getBIDiagramRpcClient()
@@ -953,7 +896,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                 )}
                 <MainContent fullWidth={isLibrary}>
                     <LeftContent>
-                        <DiagramPanel noPadding={true}>
+                        <DiagramPanel noPadding={true} noBorder={isLibrary}>
                             {showAlert && (
                                 <AlertBoxWithClose
                                     subTitle={
@@ -972,44 +915,22 @@ export function PackageOverview(props: PackageOverviewProps) {
                                     btn2Id="Close"
                                 />
                             )}
-                            <DiagramHeaderContainer withPadding={true} isLibrary={isLibrary}>
-                                <Title variant="h2">{isLibrary ? "Artifacts" : "Design"}</Title>
-                                {!isEmptyProject() && !isLibrary && (<ActionContainer>
-                                    <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
-                                        <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate
-                                    </Button>
-                                    <Button appearance="primary" onClick={handleAddConstruct}>
-                                        <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
-                                    </Button>
-                                </ActionContainer>)}
-                                {isLibrary && (
-                                    <ActionContainer>
-                                        <LibrarySearchBar>
-                                            <LibrarySearchIcon>
-                                                <Codicon name="search" iconSx={{ fontSize: 12 }} />
-                                            </LibrarySearchIcon>
-                                            <LibrarySearchInput
-                                                ref={librarySearchRef}
-                                                type="text"
-                                                placeholder="Search Artifacts"
-                                                value={librarySearchQuery}
-                                                onChange={(e) => setLibrarySearchQuery(e.target.value)}
-                                            />
-                                            {librarySearchQuery.trim().length > 0 && (
-                                                <LibrarySearchClearButton
-                                                    onClick={() => {
-                                                        setLibrarySearchQuery("");
-                                                        librarySearchRef.current?.focus();
-                                                    }}
-                                                >
-                                                    <Codicon name="close" iconSx={{ fontSize: 12 }} />
-                                                </LibrarySearchClearButton>
-                                            )}
-                                        </LibrarySearchBar>
-                                    </ActionContainer>
-                                )}
-                            </DiagramHeaderContainer>
-                            {isLibrary && <LibraryOverview projectStructure={projectStructure} searchQuery={librarySearchQuery} isNPSupported={isNPSupported} />}
+                            {!isLibrary && (
+                                <DiagramHeaderContainer withPadding={true}>
+                                    <Title variant="h2">Design</Title>
+                                    {!isEmptyProject() && (
+                                        <ActionContainer>
+                                            <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
+                                                <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate
+                                            </Button>
+                                            <Button appearance="primary" onClick={handleAddConstruct}>
+                                                <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
+                                            </Button>
+                                        </ActionContainer>
+                                    )}
+                                </DiagramHeaderContainer>
+                            )}
+                            {isLibrary && <LibraryOverview projectStructure={projectStructure} isNPSupported={isNPSupported} projectPath={projectPath} onRefresh={fetchContext} />}
                             {!isLibrary && (
                                 <DiagramContent>
                                     {isEmptyProject() ? (
@@ -1038,33 +959,35 @@ export function PackageOverview(props: PackageOverviewProps) {
                                 </DiagramContent>
                             )}
                         </DiagramPanel>
-                        <FooterPanel>
-                            <ReadmeHeaderContainer>
-                                <Title variant="h2">README</Title>
-                                <ReadmeButtonContainer>
-                                    {readmeContent && isEmptyProject() && (
-                                        <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
-                                            <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
+                        {!isLibrary && (
+                            <FooterPanel>
+                                <ReadmeHeaderContainer>
+                                    <Title variant="h2">README</Title>
+                                    <ReadmeButtonContainer>
+                                        {readmeContent && isEmptyProject() && (
+                                            <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
+                                                <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
+                                            </Button>
+                                        )}
+                                        <Button appearance="icon" onClick={handleEditReadme} buttonSx={{ padding: "4px 8px" }}>
+                                            <Icon name="bi-edit" sx={{ marginRight: 8, fontSize: 16 }} /> Edit
                                         </Button>
+                                    </ReadmeButtonContainer>
+                                </ReadmeHeaderContainer>
+                                <ReadmeContent>
+                                    {readmeContent ? (
+                                        <ReactMarkdown>{readmeContent}</ReactMarkdown>
+                                    ) : (
+                                        <EmptyReadmeContainer>
+                                            <Description variant="body2">
+                                                Describe your integration and generate your artifacts with AI
+                                            </Description>
+                                            <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
+                                        </EmptyReadmeContainer>
                                     )}
-                                    <Button appearance="icon" onClick={handleEditReadme} buttonSx={{ padding: "4px 8px" }}>
-                                        <Icon name="bi-edit" sx={{ marginRight: 8, fontSize: 16 }} /> Edit
-                                    </Button>
-                                </ReadmeButtonContainer>
-                            </ReadmeHeaderContainer>
-                            <ReadmeContent>
-                                {readmeContent ? (
-                                    <ReactMarkdown>{readmeContent}</ReactMarkdown>
-                                ) : (
-                                    <EmptyReadmeContainer>
-                                        <Description variant="body2">
-                                            Describe your integration and generate your artifacts with AI
-                                        </Description>
-                                        <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
-                                    </EmptyReadmeContainer>
-                                )}
-                            </ReadmeContent>
-                        </FooterPanel>
+                                </ReadmeContent>
+                            </FooterPanel>
+                        )}
                     </LeftContent>
                     {!isLibrary && (
                         <SidePanel>
