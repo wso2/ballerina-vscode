@@ -38,5 +38,4 @@ export interface AgentStreamViewProps {
     stream: StreamEntry[];
     isLoading?: boolean;
     rpcClient?: any;
-    onReviewActionsChange?: (show: boolean) => void;
 }

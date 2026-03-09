@@ -17,7 +17,8 @@
  */
 
 import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
-import { Command, GenerateAgentCodeRequest, ProjectSource, MACHINE_VIEW, refreshReviewMode, ExecutionContext } from '@wso2/ballerina-core';
+import { Command, GenerateAgentCodeRequest, ProjectSource, MACHINE_VIEW, refreshReviewMode, ExecutionContext, SemanticDiff } from '@wso2/ballerina-core';
+import { StateMachine } from '../../../stateMachine';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
@@ -553,9 +554,31 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
      * Emits review actions and chat save events to UI.
      */
     private async emitReviewActions(context: StreamContext): Promise<void> {
-        // Emit review_actions only if there are modified files
+        // Emit review component only if there are modified files
         if (context.modifiedFiles.length > 0) {
-            context.eventHandler({ type: "review_actions" });
+            const semanticDiffs: SemanticDiff[] = [];
+            let loadDesignDiagrams = false;
+            let affectedPackages: string[] = [];
+            try {
+                const langClient = StateMachine.context().langClient;
+                const tempDir = context.ctx.tempProjectPath!;
+                affectedPackages = determineAffectedPackages(context.modifiedFiles, context.projects, context.ctx, tempDir);
+                for (const pkg of affectedPackages) {
+                    const res = await langClient.getSemanticDiff({ projectPath: pkg });
+                    if (res) {
+                        semanticDiffs.push(...res.semanticDiffs);
+                        loadDesignDiagrams = loadDesignDiagrams || res.loadDesignDiagrams;
+                    }
+                }
+            } catch {
+                // fall back to plain modifiedFiles chips on frontend
+            }
+
+            context.eventHandler({
+                type: "chat_component",
+                componentType: "review",
+                data: { modifiedFiles: context.modifiedFiles, semanticDiffs, loadDesignDiagrams, affectedPackages, status: "pending" }
+            });
         }
 
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);

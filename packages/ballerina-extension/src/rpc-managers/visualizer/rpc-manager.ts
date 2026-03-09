@@ -300,29 +300,15 @@ export class VisualizerRpcManager implements VisualizerAPI {
     }
 
     reviewAccepted(): void {
-        console.log("Review accepted - changes will be kept");
+        approvalViewManager.closeReviewMode();
+    }
 
-        const currentHistory = history.get();
-        const currentEntry = currentHistory[currentHistory.length - 1];
+    reviewDiscarded(): void {
+        approvalViewManager.closeReviewMode();
+    }
 
-        // If currently in review mode, drop it and restore the last non-review entry.
-        if (currentEntry?.location.view === MACHINE_VIEW.ReviewMode) {
-            history.pop();
-        }
-
-        // Restore the latest history entry when available.
-        if (history.get().length > 0) {
-            updateView();
-            return;
-        }
-
-        // If history is empty, fallback to the default overview.
-        const isWithinBallerinaWorkspace = !!StateMachine.context().workspacePath;
-        openView(EVENT_TYPE.OPEN_VIEW, {
-            view: isWithinBallerinaWorkspace
-                ? MACHINE_VIEW.WorkspaceOverview
-                : MACHINE_VIEW.PackageOverview
-        });
+    closeReviewMode(): void {
+        approvalViewManager.closeReviewMode();
     }
 
     handleApprovalPopupClose(params: HandleApprovalPopupCloseRequest): void {
@@ -331,6 +317,10 @@ export class VisualizerRpcManager implements VisualizerAPI {
 
     reopenApprovalView(params: ReopenApprovalViewRequest): void {
         approvalViewManager.reopenApprovalViewPopup(params.requestId);
+    }
+
+    openReviewModeAtIndex(index: number): void {
+        approvalViewManager.openReviewModeAtIndex(index);
     }
 
     async saveEvalThread(params: SaveEvalThreadRequest): Promise<SaveEvalThreadResponse> {
