@@ -204,14 +204,18 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     private void createPipelineIfAbsent(SourceRoot sourceRoot) {
-        pipelines.computeIfAbsent(sourceRoot, sr -> {
-            CircuitBreakerAction circuitAction = new CircuitBreakerAction(sr);
-            circuitActions.put(sr, circuitAction);
-            CompilationPipeline pipeline = new CompilationPipeline(sr, snapshotStore, eventBus, circuitAction);
-            // Trigger initial compilation
-            pipeline.requestCompilation(new ContentVersion(versionCounter.getAndIncrement()));
-            return pipeline;
-        });
+        if (pipelines.containsKey(sourceRoot)) {
+            return;
+        }
+        CircuitBreakerAction circuitAction = new CircuitBreakerAction(sourceRoot);
+        CompilationPipeline pipeline = new CompilationPipeline(sourceRoot, snapshotStore, eventBus, circuitAction);
+        CompilationPipeline existing = pipelines.putIfAbsent(sourceRoot, pipeline);
+        if (existing != null) {
+            pipeline.close();
+            return;
+        }
+        circuitActions.put(sourceRoot, circuitAction);
+        pipeline.requestCompilation(new ContentVersion(versionCounter.getAndIncrement()));
     }
 
     private void evictPipeline(SourceRoot sourceRoot) {
@@ -263,8 +267,9 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
             }
 
             try {
+                ProjectSnapshot result = baseAction.compile(task);
                 retryCount.set(0);
-                return baseAction.compile(task);
+                return result;
             } catch (Throwable e) {
                 FailureClass failureClass = classifyFailure(e);
                 scheduleRetryOrOpenCircuit(failureClass);
@@ -308,7 +313,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
         private void emitRecoveryExhausted() {
             try {
-                DomainEvent event = new DomainEvent(Instant.now(), sourceRoot.toString(),
+                DomainEvent event = new DomainEvent(Instant.now(), sourceRoot.path().toString(),
                         EventKind.COMPILER_RECOVERY_ATTEMPT_EXHAUSTED);
                 eventBus.publish(event);
             } catch (Exception e) {
@@ -317,7 +322,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
 
         private FailureClass classifyFailure(Throwable e) {
-            if (e instanceof java.io.IOException || e instanceof java.net.SocketTimeoutException) {
+            if (e instanceof java.io.IOException) {
                 return FailureClass.TRANSIENT;
             } else if (e instanceof IllegalArgumentException || e instanceof IllegalStateException) {
                 return FailureClass.PERSISTENT;
