@@ -1,0 +1,329 @@
+/*
+ *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
+ *
+ *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
+package org.ballerinalang.langserver.workspace.compilerengine;
+
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.projects.PackageCompilation;
+import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
+import org.ballerinalang.langserver.workspace.eventbus.EventKind;
+import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
+import org.eclipse.lsp4j.jsonrpc.CancelChecker;
+
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Service entry point for the compilation engine, managing per-project pipelines and circuit breaker.
+ *
+ * <p>Handles 3 LSP query methods (syntaxTree, semanticModel, compilation) and manages the lifecycle
+ * of per-project CompilationPipeline instances in response to workspace and document events.
+ * Implements a circuit breaker pattern per ADR-033 to prevent recovery loops on transient failures.
+ *
+ * @since 1.7.0
+ */
+public class CompilationServiceImpl implements CompilationService, AutoCloseable {
+
+    private static final Logger LOG = Logger.getLogger(CompilationServiceImpl.class.getName());
+
+    private final SnapshotStore snapshotStore;
+    private final EventSyncPubSubHolder eventBus;
+    private final CompilationPipeline.CompilationAction baseAction;
+    private final long retryDelayMs;
+    private final ScheduledExecutorService retryScheduler;
+    private final Map<SourceRoot, CompilationPipeline> pipelines;
+    private final Map<SourceRoot, CircuitBreakerAction> circuitActions;
+    private final AtomicInteger versionCounter;
+    private final AtomicBoolean closed;
+
+    /**
+     * Creates a compilation service with default retry delay (500ms).
+     *
+     * @param snapshotStore snapshot store for publishing compiled snapshots
+     * @param eventBus event bus for publishing/subscribing to domain events
+     * @param baseAction the underlying compilation action to wrap with circuit breaker
+     */
+    public CompilationServiceImpl(SnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
+                                 CompilationPipeline.CompilationAction baseAction) {
+        this(snapshotStore, eventBus, baseAction, 500L);
+    }
+
+    /**
+     * Creates a compilation service with configurable retry delay.
+     *
+     * @param snapshotStore snapshot store for publishing compiled snapshots
+     * @param eventBus event bus for publishing/subscribing to domain events
+     * @param baseAction the underlying compilation action to wrap with circuit breaker
+     * @param retryDelayMs delay in milliseconds before retrying a transient failure
+     */
+    public CompilationServiceImpl(SnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
+                                 CompilationPipeline.CompilationAction baseAction, long retryDelayMs) {
+        this.snapshotStore = Objects.requireNonNull(snapshotStore, "snapshotStore must not be null");
+        this.eventBus = Objects.requireNonNull(eventBus, "eventBus must not be null");
+        this.baseAction = Objects.requireNonNull(baseAction, "baseAction must not be null");
+        this.retryDelayMs = retryDelayMs;
+        this.pipelines = new ConcurrentHashMap<>();
+        this.circuitActions = new ConcurrentHashMap<>();
+        this.versionCounter = new AtomicInteger(0);
+        this.closed = new AtomicBoolean(false);
+        this.retryScheduler = Executors.newScheduledThreadPool(1, r -> {
+            Thread t = new Thread(r, "ce-retry-scheduler");
+            t.setDaemon(true);
+            return t;
+        });
+
+        subscribeToEvents();
+    }
+
+    @Override
+    public SyntaxTree syntaxTree(Path path, CancelChecker cancelChecker) {
+        return findSnapshot(path)
+                .map(ProjectSnapshot::syntaxTree)
+                .orElse(null);
+    }
+
+    @Override
+    public SemanticModel semanticModel(Path path, CancelChecker cancelChecker) {
+        return findSnapshot(path)
+                .map(ProjectSnapshot::semanticModel)
+                .orElse(null);
+    }
+
+    @Override
+    public PackageCompilation compilation(Path path, CancelChecker cancelChecker) {
+        return findSnapshot(path)
+                .map(ProjectSnapshot::compilation)
+                .orElse(null);
+    }
+
+    @Override
+    public void close() {
+        if (!closed.compareAndSet(false, true)) {
+            return;
+        }
+        pipelines.values().forEach(CompilationPipeline::close);
+        pipelines.keySet().forEach(snapshotStore::remove);
+        pipelines.clear();
+        circuitActions.clear();
+        retryScheduler.shutdownNow();
+    }
+
+    // ---- Private Methods ----
+
+    private void subscribeToEvents() {
+        eventBus.subscribe("ce-workspace-events", SubscriberTier.CRITICAL,
+                Set.of(EventKind.WORKSPACE_PROJECT_REGISTERED,
+                       EventKind.WORKSPACE_PROJECT_EVICTED,
+                       EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED),
+                this::handleWorkspaceEvent);
+
+        eventBus.subscribe("ce-document-events", SubscriberTier.COALESCEABLE,
+                Set.of(EventKind.DOCUMENT_CHANGED,
+                       EventKind.DOCUMENT_CONFIG_FILE_CHANGED),
+                this::handleDocumentEvent);
+    }
+
+    private void handleWorkspaceEvent(DomainEvent event) {
+        SourceRoot sourceRoot = reconstructSourceRoot(event);
+
+        switch (event.eventKind()) {
+            case WORKSPACE_PROJECT_REGISTERED -> createPipelineIfAbsent(sourceRoot);
+            case WORKSPACE_PROJECT_EVICTED -> evictPipeline(sourceRoot);
+            case WORKSPACE_PROJECT_KIND_TRANSITIONED -> {
+                evictPipeline(sourceRoot);
+                createPipelineIfAbsent(sourceRoot);
+            }
+            default -> {
+                // No-op for unexpected event kinds
+            }
+        }
+    }
+
+    private void handleDocumentEvent(DomainEvent event) {
+        switch (event.eventKind()) {
+            case DOCUMENT_CHANGED -> handleDocumentChanged(event);
+            case DOCUMENT_CONFIG_FILE_CHANGED -> handleConfigFileChanged(event);
+            default -> {
+                // No-op for unexpected event kinds
+            }
+        }
+    }
+
+    private void handleDocumentChanged(DomainEvent event) {
+        SourceRoot sourceRoot = reconstructSourceRoot(event);
+        CompilationPipeline pipeline = pipelines.get(sourceRoot);
+        if (pipeline != null) {
+            ContentVersion nextVersion = new ContentVersion(versionCounter.getAndIncrement());
+            pipeline.requestCompilation(nextVersion);
+        }
+    }
+
+    private void handleConfigFileChanged(DomainEvent event) {
+        SourceRoot sourceRoot = reconstructSourceRoot(event);
+        String scope = event.coalesceScope();
+        if ("DEPENDENCY_GRAPH".equals(scope)) {
+            CompilationPipeline pipeline = pipelines.get(sourceRoot);
+            if (pipeline != null) {
+                ContentVersion nextVersion = new ContentVersion(versionCounter.getAndIncrement());
+                pipeline.requestCompilation(nextVersion);
+            }
+        }
+        // "CONFIGURATION" scope is ignored
+    }
+
+    private void createPipelineIfAbsent(SourceRoot sourceRoot) {
+        pipelines.computeIfAbsent(sourceRoot, sr -> {
+            CircuitBreakerAction circuitAction = new CircuitBreakerAction(sr);
+            circuitActions.put(sr, circuitAction);
+            CompilationPipeline pipeline = new CompilationPipeline(sr, snapshotStore, eventBus, circuitAction);
+            // Trigger initial compilation
+            pipeline.requestCompilation(new ContentVersion(versionCounter.getAndIncrement()));
+            return pipeline;
+        });
+    }
+
+    private void evictPipeline(SourceRoot sourceRoot) {
+        CompilationPipeline pipeline = pipelines.remove(sourceRoot);
+        circuitActions.remove(sourceRoot);
+        if (pipeline != null) {
+            pipeline.close();
+            snapshotStore.remove(sourceRoot);
+        }
+    }
+
+    private Optional<ProjectSnapshot> findSnapshot(Path path) {
+        return pipelines.keySet().stream()
+                .filter(sr -> path.startsWith(sr.path()))
+                .findFirst()
+                .flatMap(snapshotStore::get);
+    }
+
+    private SourceRoot reconstructSourceRoot(DomainEvent event) {
+        return new SourceRoot(Path.of(event.sourceContext()).normalize());
+    }
+
+    // ---- Inner Class: CircuitBreakerAction ----
+
+    /**
+     * Wraps the base compilation action with retry/circuit-breaker logic per ADR-033.
+     *
+     * <p>Classifies failures into TRANSIENT (retryable), PERSISTENT (user fix required),
+     * and FATAL (compiler bug). Retries once on TRANSIENT; opens circuit and emits
+     * CE-E6 (recovery exhausted) otherwise.
+     */
+    private class CircuitBreakerAction implements CompilationPipeline.CompilationAction {
+
+        private final SourceRoot sourceRoot;
+        private final AtomicInteger retryCount;
+        private final AtomicBoolean circuitOpen;
+        private volatile ScheduledFuture<?> retryTask;
+
+        CircuitBreakerAction(SourceRoot sourceRoot) {
+            this.sourceRoot = sourceRoot;
+            this.retryCount = new AtomicInteger(0);
+            this.circuitOpen = new AtomicBoolean(false);
+        }
+
+        @Override
+        public ProjectSnapshot compile(CompileTask task) throws Exception {
+            if (circuitOpen.get()) {
+                throw new IllegalStateException("Circuit breaker is open for " + sourceRoot);
+            }
+
+            try {
+                retryCount.set(0);
+                return baseAction.compile(task);
+            } catch (Throwable e) {
+                FailureClass failureClass = classifyFailure(e);
+                scheduleRetryOrOpenCircuit(failureClass);
+                if (e instanceof Exception) {
+                    throw (Exception) e;
+                } else {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        boolean isOpen() {
+            return circuitOpen.get();
+        }
+
+        void reset() {
+            circuitOpen.set(false);
+            retryCount.set(0);
+            if (retryTask != null) {
+                retryTask.cancel(false);
+                retryTask = null;
+            }
+        }
+
+        private void scheduleRetryOrOpenCircuit(FailureClass failureClass) {
+            if (failureClass == FailureClass.TRANSIENT && retryCount.getAndIncrement() < 1) {
+                // Schedule a retry for the next compilation request
+                CompilationPipeline pipeline = pipelines.get(sourceRoot);
+                if (pipeline != null) {
+                    retryTask = retryScheduler.schedule(() -> {
+                        ContentVersion nextVersion = new ContentVersion(versionCounter.getAndIncrement());
+                        pipeline.requestCompilation(nextVersion);
+                    }, retryDelayMs, TimeUnit.MILLISECONDS);
+                }
+            } else {
+                // Open circuit and emit recovery exhausted event
+                circuitOpen.set(true);
+                emitRecoveryExhausted();
+            }
+        }
+
+        private void emitRecoveryExhausted() {
+            try {
+                DomainEvent event = new DomainEvent(Instant.now(), sourceRoot.toString(),
+                        EventKind.COMPILER_RECOVERY_ATTEMPT_EXHAUSTED);
+                eventBus.publish(event);
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Failed to emit CE-E6 for " + sourceRoot, e);
+            }
+        }
+
+        private FailureClass classifyFailure(Throwable e) {
+            if (e instanceof java.io.IOException || e instanceof java.net.SocketTimeoutException) {
+                return FailureClass.TRANSIENT;
+            } else if (e instanceof IllegalArgumentException || e instanceof IllegalStateException) {
+                return FailureClass.PERSISTENT;
+            } else {
+                return FailureClass.FATAL;
+            }
+        }
+    }
+}
