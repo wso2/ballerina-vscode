@@ -120,7 +120,7 @@ jobs:
       - name: Set up Ballerina
         uses: ballerina-platform/setup-ballerina@v1.1.1
         with:
-          version: 2201.12.3
+          version: 2201.13.1
 
       - name: Build with Gradle
         env:
