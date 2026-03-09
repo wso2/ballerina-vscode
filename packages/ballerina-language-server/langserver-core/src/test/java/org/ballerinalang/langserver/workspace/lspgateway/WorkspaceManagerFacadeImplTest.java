@@ -29,6 +29,7 @@ import org.ballerinalang.langserver.commons.workspace.RunResult;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentService;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
+import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
@@ -302,7 +303,7 @@ public class WorkspaceManagerFacadeImplTest {
     }
 
     @Test
-    public void testDidOpen_DelegatesToDocumentService() {
+    public void testDidOpen_DelegatesToDocumentService() throws Exception {
         DidOpenTextDocumentParams params = new DidOpenTextDocumentParams();
         params.setTextDocument(new TextDocumentItem("file:///test.bal", "ballerina", 1, ""));
 
@@ -312,7 +313,7 @@ public class WorkspaceManagerFacadeImplTest {
     }
 
     @Test
-    public void testDidChange_DelegatesToDocumentService() {
+    public void testDidChange_DelegatesToDocumentService() throws Exception {
         DidChangeTextDocumentParams params = new DidChangeTextDocumentParams();
         params.setTextDocument(new org.eclipse.lsp4j.VersionedTextDocumentIdentifier("file:///test.bal", 2));
 
@@ -332,7 +333,7 @@ public class WorkspaceManagerFacadeImplTest {
     }
 
     @Test
-    public void testDidChangeWatched_SingleEvent_DelegatesToDocumentService() {
+    public void testDidChangeWatched_SingleEvent_DelegatesToDocumentService() throws Exception {
         FileEvent event = new FileEvent();
 
         facade.didChangeWatched(testPath, event);
@@ -341,7 +342,7 @@ public class WorkspaceManagerFacadeImplTest {
     }
 
     @Test
-    public void testDidChangeWatched_BatchEvent_DelegatesToDocumentService() {
+    public void testDidChangeWatched_BatchEvent_DelegatesToDocumentService() throws Exception {
         DidChangeWatchedFilesParams params = new DidChangeWatchedFilesParams();
         params.setChanges(Collections.emptyList());
 
@@ -365,8 +366,8 @@ public class WorkspaceManagerFacadeImplTest {
     @Test
     public void testRun_DelegatesToExecutionService() throws IOException {
         RunContext context = new RunContext("java", testPath, Collections.emptyList(), Collections.emptyMap(), null);
-        Process mockProcess = Mockito.mock(Process.class);
-        Mockito.when(mockExecutionService.run(context)).thenReturn(mockProcess);
+        ProcessId mockProcessId = Mockito.mock(ProcessId.class);
+        Mockito.when(mockExecutionService.run(context)).thenReturn(mockProcessId);
 
         RunResult result = facade.run(context);
 
