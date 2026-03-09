@@ -538,7 +538,14 @@ interface DiffViewerProps {
 }
 
 export function DiffViewer({ diffFull, sha, isDirty, projectPath, onClose, onRestoreComplete }: DiffViewerProps) {
-    const files = useMemo(() => parseDiff(diffFull), [diffFull]);
+    const files = useMemo(() => {
+        const parsed = parseDiff(diffFull);
+        return parsed.sort((a, b) => {
+            const aIsBal = a.path.endsWith(".bal") ? 0 : 1;
+            const bIsBal = b.path.endsWith(".bal") ? 0 : 1;
+            return aIsBal - bIsBal;
+        });
+    }, [diffFull]);
     const [activeIndex, setActiveIndex] = useState(0);
     const [restoreState, setRestoreState] = useState<RestoreState>("idle");
     const [restoreError, setRestoreError] = useState("");
