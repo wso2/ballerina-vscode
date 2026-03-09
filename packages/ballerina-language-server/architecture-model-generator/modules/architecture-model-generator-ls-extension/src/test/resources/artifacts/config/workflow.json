@@ -1,0 +1,157 @@
+{
+  "description": "Test workflow and activity artifacts",
+  "source": "workflow.bal",
+  "packageName": ".",
+  "output": {
+    "Types": {
+      "ApprovalData": {
+        "id": "ApprovalData",
+        "location": {
+          "fileName": "workflow.bal",
+          "startLine": {
+            "line": 10,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 13,
+            "offset": 2
+          }
+        },
+        "type": "TYPE",
+        "name": "ApprovalData",
+        "scope": "Global",
+        "children": {}
+      },
+      "OrderInput": {
+        "id": "OrderInput",
+        "location": {
+          "fileName": "workflow.bal",
+          "startLine": {
+            "line": 5,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 8,
+            "offset": 2
+          }
+        },
+        "type": "TYPE",
+        "name": "OrderInput",
+        "scope": "Global",
+        "children": {}
+      },
+      "OrderWorkflowEvents": {
+        "id": "OrderWorkflowEvents",
+        "location": {
+          "fileName": "workflow.bal",
+          "startLine": {
+            "line": 15,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 17,
+            "offset": 3
+          }
+        },
+        "type": "TYPE",
+        "name": "OrderWorkflowEvents",
+        "scope": "Global",
+        "children": {}
+      }
+    },
+    "Workflows": {
+      "calculateDiscount": {
+        "id": "calculateDiscount",
+        "location": {
+          "fileName": "workflow.bal",
+          "startLine": {
+            "line": 41,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 45,
+            "offset": 1
+          }
+        },
+        "type": "ACTIVITY",
+        "name": "calculateDiscount",
+        "scope": "Global",
+        "children": {}
+      },
+      "orderWorkflow": {
+        "id": "orderWorkflow",
+        "location": {
+          "fileName": "workflow.bal",
+          "startLine": {
+            "line": 19,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 25,
+            "offset": 1
+          }
+        },
+        "type": "WORKFLOW",
+        "name": "orderWorkflow",
+        "scope": "Global",
+        "children": {}
+      },
+      "sendNotification": {
+        "id": "sendNotification",
+        "location": {
+          "fileName": "workflow.bal",
+          "startLine": {
+            "line": 34,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 39,
+            "offset": 1
+          }
+        },
+        "type": "ACTIVITY",
+        "name": "sendNotification",
+        "scope": "Global",
+        "children": {}
+      },
+      "simpleWorkflow": {
+        "id": "simpleWorkflow",
+        "location": {
+          "fileName": "workflow.bal",
+          "startLine": {
+            "line": 27,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 32,
+            "offset": 1
+          }
+        },
+        "type": "WORKFLOW",
+        "name": "simpleWorkflow",
+        "scope": "Global",
+        "children": {}
+      }
+    },
+    "Functions": {
+      "helperFunction": {
+        "id": "helperFunction",
+        "location": {
+          "fileName": "workflow.bal",
+          "startLine": {
+            "line": 48,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 50,
+            "offset": 1
+          }
+        },
+        "type": "FUNCTION",
+        "name": "helperFunction",
+        "scope": "Global",
+        "children": {}
+      }
+    }
+  }
+}

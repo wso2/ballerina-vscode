@@ -24,6 +24,7 @@ import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -64,7 +65,11 @@ public class WorkflowUtil {
      * @return true if the function has @workflow:Workflow annotation, false otherwise
      */
     public static boolean isWorkflowFunction(Symbol symbol) {
-        if ((symbol instanceof FunctionSymbol funcSymbol)) {
+        if (symbol == null) {
+            return false;
+        }
+        if (symbol.kind() == SymbolKind.FUNCTION) {
+            FunctionSymbol funcSymbol = (FunctionSymbol) symbol;
             List<AnnotationAttachmentSymbol> annotations = funcSymbol.annotAttachments();
             for (AnnotationAttachmentSymbol attachment : annotations) {
                 AnnotationSymbol annotation = attachment.typeDescriptor();
@@ -96,20 +101,26 @@ public class WorkflowUtil {
     /**
      * Checks if the given function symbol has the @workflow:Activity annotation.
      *
-     * @param funcSymbol The function symbol to check
+     * @param symbol symbol to check
      * @return true if the function has @workflow:Activity annotation, false otherwise
      */
-    public static boolean isActivityFunction(FunctionSymbol funcSymbol) {
-        List<AnnotationAttachmentSymbol> annotations = funcSymbol.annotAttachments();
-        for (AnnotationAttachmentSymbol attachment : annotations) {
-            AnnotationSymbol annotation = attachment.typeDescriptor();
-            Optional<String> annotationName = annotation.getName();
-            Optional<ModuleSymbol> moduleSymbol = annotation.getModule();
+    public static boolean isActivityFunction(Symbol symbol) {
+        if (symbol == null) {
+            return false;
+        }
+        if (symbol.kind() == SymbolKind.FUNCTION) {
+            FunctionSymbol funcSymbol = (FunctionSymbol) symbol;
+            List<AnnotationAttachmentSymbol> annotations = funcSymbol.annotAttachments();
+            for (AnnotationAttachmentSymbol attachment : annotations) {
+                AnnotationSymbol annotation = attachment.typeDescriptor();
+                Optional<String> annotationName = annotation.getName();
+                Optional<ModuleSymbol> moduleSymbol = annotation.getModule();
 
-            if (annotationName.isPresent() && moduleSymbol.isPresent()) {
-                String name = annotationName.get();
-                if (ACTIVITY_ANNOTATION.equals(name) && isWorkflowModule(moduleSymbol)) {
-                    return true;
+                if (annotationName.isPresent() && moduleSymbol.isPresent()) {
+                    String name = annotationName.get();
+                    if (ACTIVITY_ANNOTATION.equals(name) && isWorkflowModule(moduleSymbol)) {
+                        return true;
+                    }
                 }
             }
         }
