@@ -268,6 +268,43 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         setSelectedModule({ category, module });
     };
 
+    const resolveNextSelectedModule = (
+        categories: CategoryWithModules[],
+        currentSelection: PackageModuleState,
+        initialLoad: boolean = false
+    ): PackageModuleState => {
+        if (categories.length === 0) {
+            return null;
+        }
+
+        const currentCategory = categories.find(category => category.name === currentSelection?.category);
+        const currentModuleExists = !!currentCategory?.modules.includes(currentSelection?.module ?? '');
+        const currentCategoryLevelSelection = currentSelection?.module === '' && !!currentCategory;
+
+        if (currentSelection && (currentModuleExists || currentCategoryLevelSelection)) {
+            return {
+                category: currentSelection.category,
+                module: currentSelection.module
+            };
+        }
+
+        const firstCategoryWithModule = categories.find(category => category.modules.length > 0);
+        const firstCategory = firstCategoryWithModule ?? categories[0];
+        const fallbackModule = firstCategory.modules[0] ?? '';
+
+        if (!currentSelection || initialLoad) {
+            return {
+                category: firstCategory.name,
+                module: fallbackModule
+            };
+        }
+
+        return {
+            category: firstCategory.name,
+            module: fallbackModule
+        };
+    };
+
     const handleEnvironmentChange = (value: string) => {
         if (value === Environment.Test) {
             setIsTestsContext(true);
@@ -387,33 +424,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         // Preserve currently selected tab when still available after updates.
         // This is important for imported libraries where selection is category-level ("").
         const currentSelection = selectedModuleRef.current;
-        if (extractedCategories.length > 0) {
-            const currentCategory = extractedCategories.find(category => category.name === currentSelection?.category);
-            const currentModuleExists = !!currentCategory?.modules.includes(currentSelection?.module ?? '');
-            const currentCategoryLevelSelection = currentSelection?.module === '' && !!currentCategory;
-
-            if (currentModuleExists || currentCategoryLevelSelection) {
-                setSelectedModule({
-                    category: currentSelection.category,
-                    module: currentSelection.module
-                });
-            } else if (!currentSelection || initialLoad) {
-                const initialCategory = extractedCategories[0].name;
-                const initialModule = extractedCategories[0].modules[0];
-                setSelectedModule({
-                    category: initialCategory,
-                    module: initialModule
-                });
-            } else {
-                const fallbackCategory = extractedCategories[0];
-                setSelectedModule({
-                    category: fallbackCategory.name,
-                    module: fallbackCategory.modules[0]
-                });
-            }
-        } else {
-            setSelectedModule(null);
-        }
+        setSelectedModule(resolveNextSelectedModule(extractedCategories, currentSelection, initialLoad));
         setIsLoading(false);
     };
 
@@ -432,23 +443,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         }));
         setTestCategoriesWithModules(categories);
         const currentSelection = selectedModuleRef.current;
-        if (categories.length > 0) {
-            const currentCategory = categories.find(category => category.name === currentSelection?.category);
-            const currentModuleExists = !!currentCategory?.modules.includes(currentSelection?.module ?? '');
-            const currentCategoryLevelSelection = currentSelection?.module === '' && !!currentCategory;
-
-            if (currentModuleExists || currentCategoryLevelSelection) {
-                setSelectedModule({
-                    category: currentSelection.category,
-                    module: currentSelection.module
-                });
-            } else {
-                const firstCat = categories[0];
-                setSelectedModule({ category: firstCat.name, module: firstCat.modules[0] });
-            }
-        } else {
-            setSelectedModule(null);
-        }
+        setSelectedModule(resolveNextSelectedModule(categories, currentSelection));
         setIsLoading(false);
     };
 
