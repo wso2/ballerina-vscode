@@ -29,6 +29,13 @@ import { FUNCTION_CALL } from "../../../constants";
 // Module-level cache: avoids re-fetching the same agent node when switching between modes
 const agentNodeCache = new Map<string, FlowNode>();
 
+function getAgentCacheKey(node: FlowNode): string {
+    const agentName = node.properties?.connection?.value ?? "";
+    const fileName = node.codedata?.lineRange?.fileName;
+    const fileId = fileName ?? JSON.stringify(node.codedata?.lineRange ?? "");
+    return `${fileId}-${agentName}`;
+}
+
 const LoaderContainer = styled.div`
     display: flex;
     justify-content: center;
@@ -75,9 +82,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
     };
 
     const fetchAgentNode = async () => {
-        const agentName = agentCallNode.properties?.connection?.value;
-        const fileName = agentCallNode.codedata?.lineRange?.fileName;
-        const cacheKey = `${fileName}-${agentName}`;
+        const cacheKey = getAgentCacheKey(agentCallNode);
 
         const cached = agentNodeCache.get(cacheKey);
         if (cached) {
@@ -112,9 +117,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
             await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: agentFile, flowNode: updatedAgentNode });
 
             // Invalidate cache so the updated agent node is re-fetched next time
-            const agentName = agentCallNode.properties?.connection?.value;
-            const fileName = agentCallNode.codedata?.lineRange?.fileName;
-            agentNodeCache.delete(`${fileName}-${agentName}`);
+            agentNodeCache.delete(getAgentCacheKey(agentCallNode));
 
             // Fetch the newly created function to get its source position
             const agentsFileName = "agents.bal";
@@ -144,6 +147,10 @@ export function NewTool(props: NewToolProps): JSX.Element {
     };
 
     const handleOnSubmit = async (data: ExtendedAgentToolRequest) => {
+        if (!agentNode) {
+            console.error("Agent node not found");
+            return;
+        }
         if (!data.toolName) {
             console.error("Tool name is required");
             return;
@@ -195,6 +202,10 @@ export function NewTool(props: NewToolProps): JSX.Element {
             }
 
             const updatedAgentNode = await addToolToAgentNode(agentNode, data.toolName);
+            if (!updatedAgentNode) {
+                console.error("Failed to add tool to agent node");
+                return;
+            }
 
             // Find the updated agent node in the response artifacts and update the local state
             if (toolResponse.artifacts?.length > 0) {
@@ -216,10 +227,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
             await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath, flowNode: updatedAgentNode });
 
             // Invalidate cache so the updated agent node is re-fetched next time
-            const agentName = agentCallNode.properties?.connection?.value;
-            const fileName = agentCallNode.codedata?.lineRange?.fileName;
-            console.log(">>> invalidating cache", { agentName, fileName, cacheKey: `${fileName}-${agentName}` });
-            agentNodeCache.delete(`${fileName}-${agentName}`);
+            agentNodeCache.delete(getAgentCacheKey(agentCallNode));
             onSave?.();
         } catch (error) {
             console.error("Error saving tool", { error });
