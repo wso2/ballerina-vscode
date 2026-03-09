@@ -20,6 +20,7 @@ import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { EvaluationReportTestResult, EvaluationRun } from "./types";
 import { Codicon } from "@wso2/ui-toolkit";
+import { RunPassRateChart } from "./RunPassRateChart";
 
 // ── Card shell ──────────────────────────────────────────────────────────────
 
@@ -140,6 +141,18 @@ const StatDivider = styled.div`
     width: 1px;
     height: 28px;
     background: var(--vscode-panel-border);
+`;
+
+const ChartSection = styled.div`
+    padding: 14px 18px;
+    border-top: 1px solid var(--vscode-panel-border);
+`;
+
+const ChartTitle = styled.h3`
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--vscode-editor-foreground);
+    margin: 0 0 10px 0;
 `;
 
 // ── Failure summary section ─────────────────────────────────────────────────
@@ -310,6 +323,17 @@ export function ReportTestCard({ test, moduleName }: ReportTestCardProps) {
                     </StatItem>
                 </StatsRow>
             </CardHeader>
+
+            {/* Pass rate chart (only when more than 1 run) */}
+            {evalSummary && evalSummary.evaluationRuns.length > 1 && (
+                <ChartSection>
+                    <ChartTitle>Pass Rate by Run</ChartTitle>
+                    <RunPassRateChart
+                        runs={evalSummary.evaluationRuns}
+                        targetPassRate={evalSummary.targetPassRate}
+                    />
+                </ChartSection>
+            )}
 
             {/* Failure summary (only when test failed) */}
             {test.failureMessage && (
