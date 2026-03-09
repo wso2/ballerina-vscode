@@ -38,6 +38,14 @@ export interface AICommandConfig<TParams = any> {
     /** Command-specific parameters */
     params: TParams;
 
+    /**
+     * Optional LLM model override.
+     * When provided, the executor uses this model instead of the default
+     * (Anthropic Sonnet via WSO2/direct key). This enables plugging in
+     * models from the VS Code Language Model API or other providers.
+     */
+    model?: any;
+
     /** Optional chat storage configuration */
     chatStorage?: {
         workspaceId: string;

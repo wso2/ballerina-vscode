@@ -19,7 +19,7 @@ import * as path from "path";
 import { MigrationEnhancementMode } from "@wso2/ballerina-core";
 import { window, workspace } from "vscode";
 import { extension } from "../../../BalExtensionContext";
-import { openAIPanelWithPrompt } from "../../../views/ai-panel/aiMachine";
+import { openMigrationPanel } from "../../../views/migration-panel/activate";
 import { getAutoFixPrompt, getGuidedReviewPrompt } from "./prompts";
 import {
     AI_ENHANCE_TOML_FILENAME,
@@ -247,12 +247,10 @@ export async function checkAndRunPendingEnhancement(): Promise<void> {
 async function runAutoFixPipeline(): Promise<void> {
     try {
         _activeSession = { isActive: true, mode: "auto-fix", isEnhanced: false };
-        openAIPanelWithPrompt({
-            type: "text",
-            text: getAutoFixPrompt(),
-            planMode: false,
-        });
-        console.log("[MigrationEnhancement] Auto-fix pipeline started.");
+        // Open the standalone migration panel — the pipeline prompt will be
+        // sent via the migration event handler once the panel is ready.
+        openMigrationPanel();
+        console.log("[MigrationEnhancement] Auto-fix pipeline started – migration panel opened.");
     } catch (error) {
         console.error("[MigrationEnhancement] Failed to start auto-fix pipeline:", error);
         window.showErrorMessage(
@@ -264,12 +262,9 @@ async function runAutoFixPipeline(): Promise<void> {
 function runGuidedReviewPipeline(): void {
     try {
         _activeSession = { isActive: true, mode: "guided-review", isEnhanced: false };
-        openAIPanelWithPrompt({
-            type: "text",
-            text: getGuidedReviewPrompt(),
-            planMode: true,
-        });
-        console.log("[MigrationEnhancement] Guided-review pipeline opened.");
+        // Open the standalone migration panel for guided review.
+        openMigrationPanel();
+        console.log("[MigrationEnhancement] Guided-review pipeline opened – migration panel opened.");
     } catch (error) {
         console.error("[MigrationEnhancement] Failed to open guided-review pipeline:", error);
         window.showErrorMessage(
