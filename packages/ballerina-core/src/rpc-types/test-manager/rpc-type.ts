@@ -167,3 +167,20 @@ export interface GitDiffResponse {
 export const getGitDiff: RequestType<GitDiffRequest, GitDiffResponse> =
     { method: `${_preFix}/getGitDiff` };
 
+// ── Restore Git Snapshot types ───────────────────────────────────────────────
+
+export interface RestoreGitSnapshotRequest {
+    projectPath: string;
+    sha: string;
+    isDirty: boolean;
+}
+
+export interface RestoreGitSnapshotResponse {
+    success: boolean;
+    error?: string;
+    safetyStashSha?: string;
+}
+
+export const restoreGitSnapshot: RequestType<RestoreGitSnapshotRequest, RestoreGitSnapshotResponse> =
+    { method: `${_preFix}/restoreGitSnapshot` };
+

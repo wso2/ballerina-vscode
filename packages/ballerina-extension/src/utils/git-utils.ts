@@ -87,6 +87,7 @@ export async function createSnapshot(cwd: string): Promise<string | null> {
 
 export async function pinSnapshot(cwd: string, sha: string): Promise<void> {
     try {
+        assertSha(sha);
         await run(`git update-ref refs/eval-snapshots/${sha} ${sha}`, cwd);
     } catch { /* non-fatal: snapshot works short-term without pin */ }
 }
@@ -107,6 +108,54 @@ export async function getDiffFull(cwd: string, from: string, to: string): Promis
         return await run(`git diff ${from}${toArg} ${DIFF_EXCLUDES}`, cwd);
     } catch {
         return '';
+    }
+}
+
+export async function objectExists(cwd: string, sha: string): Promise<boolean> {
+    try {
+        assertSha(sha);
+        await run(`git cat-file -t ${sha}`, cwd);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+export async function restoreToCheckpoint(
+    cwd: string,
+    sha: string,
+    isDirty: boolean
+): Promise<{ safetyStashSha?: string }> {
+    assertSha(sha);
+
+    // Safety stash current changes (including untracked files)
+    let safetyStashSha: string | undefined;
+    const currentStatus = await run('git status --porcelain', cwd);
+    if (currentStatus.length > 0) {
+        await run('git stash push --include-untracked -m "Auto-saved before eval checkpoint restore"', cwd);
+        const stashSha = await run('git rev-parse stash@{0}', cwd);
+        if (stashSha) {
+            safetyStashSha = stashSha;
+        }
+    }
+
+    // Clean working tree
+    await run('git checkout -- .', cwd);
+    await run('git clean -fd --exclude=tests/evaluation-reports --exclude=target', cwd);
+
+    // Apply the checkpoint
+    if (isDirty) {
+        await run(`git stash apply ${sha}`, cwd);
+    } else {
+        await run(`git checkout ${sha} -- .`, cwd);
+    }
+
+    return { safetyStashSha };
+}
+
+function assertSha(sha: string): void {
+    if (!/^[a-f0-9]{4,64}$/i.test(sha)) {
+        throw new Error(`Invalid git SHA: ${sha}`);
     }
 }
 

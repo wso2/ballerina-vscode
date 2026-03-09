@@ -21,7 +21,8 @@ import {
     getEvaluationHistory, GetEvaluationHistoryRequest,
     openEvaluationReport, OpenEvaluationReportRequest,
     getEvaluationReport, GetEvaluationReportRequest,
-    getGitDiff, GitDiffRequest
+    getGitDiff, GitDiffRequest,
+    restoreGitSnapshot, RestoreGitSnapshotRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { TestServiceManagerRpcManager } from "./rpc-manager";
@@ -36,5 +37,6 @@ export function registerTestManagerRpcHandlers(messenger: Messenger) {
     messenger.onRequest(openEvaluationReport, (args: OpenEvaluationReportRequest) => rpcManger.openEvaluationReport(args));
     messenger.onRequest(getEvaluationReport, (args: GetEvaluationReportRequest) => rpcManger.getEvaluationReport(args));
     messenger.onRequest(getGitDiff, (args: GitDiffRequest) => rpcManger.getGitDiff(args));
+    messenger.onRequest(restoreGitSnapshot, (args: RestoreGitSnapshotRequest) => rpcManger.restoreGitSnapshot(args));
 }
 

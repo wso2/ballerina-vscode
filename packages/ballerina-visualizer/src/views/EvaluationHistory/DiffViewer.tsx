@@ -18,6 +18,8 @@
 
 import { useState, useMemo } from "react";
 import styled from "@emotion/styled";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { Codicon } from "@wso2/ui-toolkit";
 
 interface FileDiff {
     path: string;
@@ -167,6 +169,12 @@ const ModalTitle = styled.span`
     color: var(--vscode-editor-foreground);
 `;
 
+const HeaderActions = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+`;
+
 const CloseBtn = styled.button`
     background: none;
     border: none;
@@ -181,6 +189,70 @@ const CloseBtn = styled.button`
         background: var(--vscode-list-hoverBackground);
         color: var(--vscode-editor-foreground);
     }
+`;
+
+const RestoreBtn = styled.button`
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
+    background: var(--vscode-button-secondaryBackground, transparent);
+    color: var(--vscode-button-secondaryForeground, var(--vscode-editor-foreground));
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+        background: var(--vscode-button-secondaryHoverBackground, var(--vscode-list-hoverBackground));
+    }
+`;
+
+const ConfirmBar = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--vscode-editorWarning-foreground, #cca700);
+`;
+
+const ConfirmBtn = styled.button`
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    border: none;
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+        background: var(--vscode-button-hoverBackground);
+    }
+`;
+
+const CancelBtn = styled.button`
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
+    background: transparent;
+    color: var(--vscode-editor-foreground);
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+        background: var(--vscode-list-hoverBackground);
+    }
+`;
+
+const StatusLabel = styled.span<{ variant: "success" | "error" }>`
+    font-size: 11px;
+    color: ${(p: { variant: "success" | "error" }) =>
+        p.variant === "success"
+            ? "var(--vscode-editorGutter-addedBackground, #2ea043)"
+            : "var(--vscode-editorGutter-deletedBackground, #f85149)"};
 `;
 
 const ModalBody = styled.div`
@@ -344,20 +416,98 @@ const StatsSummary = styled.div`
 
 // --- Component ---
 
+type RestoreState = "idle" | "confirming" | "restoring" | "success" | "error";
+
 interface DiffViewerProps {
     diffFull: string;
     sha?: string;
+    isDirty?: boolean;
+    projectPath?: string;
     onClose: () => void;
+    onRestoreComplete?: () => void;
 }
 
-export function DiffViewer({ diffFull, onClose }: DiffViewerProps) {
+export function DiffViewer({ diffFull, sha, isDirty, projectPath, onClose, onRestoreComplete }: DiffViewerProps) {
     const files = useMemo(() => parseDiff(diffFull), [diffFull]);
     const [activeIndex, setActiveIndex] = useState(0);
+    const [restoreState, setRestoreState] = useState<RestoreState>("idle");
+    const [restoreError, setRestoreError] = useState("");
+    const [wasStashed, setWasStashed] = useState(false);
+    const { rpcClient } = useRpcContext();
 
     const activeFile = files[activeIndex];
 
     const totalAdditions = files.reduce((s, f) => s + f.additions, 0);
     const totalDeletions = files.reduce((s, f) => s + f.deletions, 0);
+
+    const canRestore = sha && projectPath && files.length > 0;
+
+    const handleRestore = async () => {
+        if (restoreState === "idle") {
+            setRestoreState("confirming");
+            return;
+        }
+        if (restoreState !== "confirming" || !sha || !projectPath) return;
+
+        setRestoreState("restoring");
+        try {
+            const resp = await rpcClient.getTestManagerRpcClient().restoreGitSnapshot({
+                projectPath,
+                sha,
+                isDirty: isDirty ?? false,
+            });
+            if (resp.success) {
+                setWasStashed(!!resp.safetyStashSha);
+                setRestoreState("success");
+                onRestoreComplete?.();
+            } else {
+                setRestoreError(resp.error ?? "Unknown error");
+                setRestoreState("error");
+            }
+        } catch (e: any) {
+            setRestoreError(e?.message ?? "Unknown error");
+            setRestoreState("error");
+        }
+    };
+
+    const renderRestoreAction = () => {
+        if (!canRestore) return null;
+
+        switch (restoreState) {
+            case "idle":
+                return (
+                    <RestoreBtn onClick={handleRestore}>
+                        <Codicon name="discard" />
+                        Restore to this state
+                    </RestoreBtn>
+                );
+            case "confirming":
+                return (
+                    <ConfirmBar>
+                        <span>This will overwrite your current code. Continue?</span>
+                        <ConfirmBtn onClick={handleRestore}>Restore</ConfirmBtn>
+                        <CancelBtn onClick={() => setRestoreState("idle")}>Cancel</CancelBtn>
+                    </ConfirmBar>
+                );
+            case "restoring":
+                return <StatusLabel variant="success">Restoring...</StatusLabel>;
+            case "success":
+                return (
+                    <StatusLabel variant="success">
+                        {wasStashed ? "Restored (previous changes stashed)" : "Restored"}
+                    </StatusLabel>
+                );
+            case "error":
+                return (
+                    <ConfirmBar>
+                        <StatusLabel variant="error">{restoreError}</StatusLabel>
+                        <CancelBtn onClick={() => { setRestoreState("idle"); setRestoreError(""); }}>
+                            Dismiss
+                        </CancelBtn>
+                    </ConfirmBar>
+                );
+        }
+    };
 
     if (files.length === 0) {
         return (
@@ -378,7 +528,10 @@ export function DiffViewer({ diffFull, onClose }: DiffViewerProps) {
             <Modal onClick={(e) => e.stopPropagation()}>
                 <ModalHeader>
                     <ModalTitle>Code changes since this run</ModalTitle>
-                    <CloseBtn onClick={onClose}>&times;</CloseBtn>
+                    <HeaderActions>
+                        {renderRestoreAction()}
+                        <CloseBtn onClick={onClose}>&times;</CloseBtn>
+                    </HeaderActions>
                 </ModalHeader>
                 <StatsSummary>
                     {files.length} file{files.length !== 1 ? "s" : ""} modified

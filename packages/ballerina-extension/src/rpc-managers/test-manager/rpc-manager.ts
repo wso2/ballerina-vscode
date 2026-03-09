@@ -39,6 +39,8 @@ import {
     EvaluationReportData,
     GitDiffRequest,
     GitDiffResponse,
+    RestoreGitSnapshotRequest,
+    RestoreGitSnapshotResponse,
 } from "@wso2/ballerina-core";
 import { ModulePart, NodePosition, STKindChecker } from "@wso2/syntax-tree";
 import * as fs from 'fs';
@@ -48,7 +50,7 @@ import { updateSourceCode } from "../../utils/source-utils";
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { EvaluationReportWebview } from "../../views/evaluation-report/webview";
-import { getDiffStat, getDiffFull } from "../../utils/git-utils";
+import { getDiffStat, getDiffFull, objectExists, restoreToCheckpoint } from "../../utils/git-utils";
 
 export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
 
@@ -240,6 +242,25 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
         return { diffStat, diffFull };
     }
 
+    async restoreGitSnapshot(params: RestoreGitSnapshotRequest): Promise<RestoreGitSnapshotResponse> {
+        try {
+            const exists = await objectExists(params.projectPath, params.sha);
+            if (!exists) {
+                return {
+                    success: false,
+                    error: "Snapshot no longer available — it may have been garbage collected.",
+                };
+            }
+
+            const result = await restoreToCheckpoint(params.projectPath, params.sha, params.isDirty);
+            return { success: true, safetyStashSha: result.safetyStashSha };
+        } catch (error: any) {
+            return {
+                success: false,
+                error: error?.message ?? "Failed to restore checkpoint",
+            };
+        }
+    }
 
     private parseDateFromFilename(filename: string): Date | undefined {
         const match = filename.match(
