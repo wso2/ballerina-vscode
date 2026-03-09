@@ -31,33 +31,30 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Tests for {@link ProgressTracker}.
+ * Tests for {@link LspProgressTracker}.
  *
  * @since 1.7.0
  */
 public class ProgressTrackerTest {
 
+    private static final String TOKEN = "BallerinaLS/indexing";
+
     @Test
     public void testProgressLifecycle() {
         MockLanguageClient client = new MockLanguageClient();
-        ProgressTracker tracker = new ProgressTracker(client);
+        LspProgressTracker tracker = new LspProgressTracker(client);
 
-        String projectRoot = "file:///path/to/project";
-        String projectName = "my-project";
-        
         // 1. Begin
-        String token = tracker.begin(projectRoot, projectName);
-        Assert.assertTrue(token.startsWith("ballerina-compile-"), "Token should match pattern");
-        Assert.assertEquals(token.length(), "ballerina-compile-".length() + 8, "Token should have 8-char hash");
-        
+        tracker.begin(TOKEN, "Indexing", "Scanning workspace...", 0);
         Assert.assertEquals(client.notifications.size(), 1);
         WorkDoneProgressNotification beginNotif = client.notifications.get(0).value();
         Assert.assertTrue(beginNotif instanceof WorkDoneProgressBegin);
-        Assert.assertEquals(((WorkDoneProgressBegin) beginNotif).getTitle(), "Compiling");
-        Assert.assertEquals(((WorkDoneProgressBegin) beginNotif).getMessage(), projectName);
+        Assert.assertEquals(((WorkDoneProgressBegin) beginNotif).getTitle(), "Indexing");
+        Assert.assertEquals(((WorkDoneProgressBegin) beginNotif).getMessage(), "Scanning workspace...");
+        Assert.assertEquals(((WorkDoneProgressBegin) beginNotif).getPercentage(), Integer.valueOf(0));
 
         // 2. Report
-        tracker.report(token, "Analyzing...", 50);
+        tracker.report(TOKEN, "Analyzing...", 50);
         Assert.assertEquals(client.notifications.size(), 2);
         WorkDoneProgressNotification reportNotif = client.notifications.get(1).value();
         Assert.assertTrue(reportNotif instanceof WorkDoneProgressReport);
@@ -65,34 +62,34 @@ public class ProgressTrackerTest {
         Assert.assertEquals(((WorkDoneProgressReport) reportNotif).getPercentage(), Integer.valueOf(50));
 
         // 3. End
-        tracker.end(token);
+        tracker.end(TOKEN, "Workspace indexed");
         Assert.assertEquals(client.notifications.size(), 3);
         WorkDoneProgressNotification endNotif = client.notifications.get(2).value();
         Assert.assertTrue(endNotif instanceof WorkDoneProgressEnd);
+        Assert.assertEquals(((WorkDoneProgressEnd) endNotif).getMessage(), "Workspace indexed");
     }
 
     @Test
     public void testMultipleTokens() {
         MockLanguageClient client = new MockLanguageClient();
-        ProgressTracker tracker = new ProgressTracker(client);
+        LspProgressTracker tracker = new LspProgressTracker(client);
 
-        String token1 = tracker.begin("file:///p1", "p1");
-        String token2 = tracker.begin("file:///p2", "p2");
+        tracker.begin("token-1", "Op 1", "Starting...", 0);
+        tracker.begin("token-2", "Op 2", "Starting...", 0);
 
-        Assert.assertNotEquals(token1, token2);
         Assert.assertEquals(client.notifications.size(), 2);
     }
 
     @Test
     public void testEndRemovesToken() {
         MockLanguageClient client = new MockLanguageClient();
-        ProgressTracker tracker = new ProgressTracker(client);
+        LspProgressTracker tracker = new LspProgressTracker(client);
 
-        String token = tracker.begin("file:///p1", "p1");
-        tracker.end(token);
-        
-        // Sending report after end should be ignored.
-        tracker.report(token, "Stale report", 100);
+        tracker.begin(TOKEN, "Indexing", "Starting...", 0);
+        tracker.end(TOKEN, "Done");
+
+        // Report after end should be ignored
+        tracker.report(TOKEN, "Stale report", 100);
         Assert.assertEquals(client.notifications.size(), 2, "Report after end should be ignored");
     }
 
@@ -116,7 +113,8 @@ public class ProgressTrackerTest {
         public void showMessage(org.eclipse.lsp4j.MessageParams messageParams) {}
 
         @Override
-        public CompletableFuture<org.eclipse.lsp4j.MessageActionItem> showMessageRequest(org.eclipse.lsp4j.ShowMessageRequestParams showMessageRequestParams) {
+        public CompletableFuture<org.eclipse.lsp4j.MessageActionItem> showMessageRequest(
+                org.eclipse.lsp4j.ShowMessageRequestParams showMessageRequestParams) {
             return null;
         }
 

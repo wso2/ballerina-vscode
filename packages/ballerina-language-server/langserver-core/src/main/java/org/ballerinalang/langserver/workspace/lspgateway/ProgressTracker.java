@@ -18,96 +18,41 @@
 
 package org.ballerinalang.langserver.workspace.lspgateway;
 
-import org.eclipse.lsp4j.ProgressParams;
-import org.eclipse.lsp4j.WorkDoneProgressBegin;
-import org.eclipse.lsp4j.WorkDoneProgressEnd;
-import org.eclipse.lsp4j.WorkDoneProgressReport;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import org.eclipse.lsp4j.services.LanguageClient;
-
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
- * Manages $/progress token lifecycle for compilation progress notifications.
- * Ensures proper pairing of begin/end signals.
+ * Contract for reporting progress to a connected LSP client.
+ * Implements the LSP `$/progress` lifecycle: begin → report* → end.
  *
  * @since 1.7.0
  */
-public class ProgressTracker {
-
-    private final LanguageClient client;
-    private final Map<String, String> activeTokens = new ConcurrentHashMap<>();
-
-    public ProgressTracker(LanguageClient client) {
-        this.client = client;
-    }
+public interface ProgressTracker {
 
     /**
-     * Begins a progress session for a project.
+     * Begins a new progress report with the given token.
+     * Sent once at the start of a long-running operation.
      *
-     * @param projectRoot Project root URI
-     * @param projectName Project name
-     * @return The generated progress token
+     * @param token unique progress token; must not be null or blank
+     * @param title human-readable operation title; must not be null
+     * @param message initial status message; must not be null
+     * @param percentage initial progress percentage (0-100)
      */
-    public String begin(String projectRoot, String projectName) {
-        String token = generateToken(projectRoot);
-        activeTokens.put(token, projectRoot);
-
-        WorkDoneProgressBegin begin = new WorkDoneProgressBegin();
-        begin.setTitle("Compiling");
-        begin.setMessage(projectName);
-        begin.setPercentage(0);
-
-        client.notifyProgress(new ProgressParams(Either.forLeft(token), Either.forLeft(begin)));
-        return token;
-    }
+    void begin(String token, String title, String message, int percentage);
 
     /**
-     * Reports progress for an active session.
+     * Reports progress update for an ongoing operation.
+     * Called zero or more times between begin and end.
      *
-     * @param token      Progress token
-     * @param message    Progress message
-     * @param percentage Progress percentage
+     * @param token progress token matching the begin call; must not be null or blank
+     * @param message updated status message; must not be null
+     * @param percentage current progress percentage (0-100)
      */
-    public void report(String token, String message, int percentage) {
-        if (!activeTokens.containsKey(token)) {
-            return;
-        }
-        WorkDoneProgressReport report = new WorkDoneProgressReport();
-        report.setMessage(message);
-        report.setPercentage(percentage);
-        client.notifyProgress(new ProgressParams(Either.forLeft(token), Either.forLeft(report)));
-    }
+    void report(String token, String message, int percentage);
 
     /**
-     * Ends a progress session.
+     * Ends the progress report for the given token.
+     * Sent once when the operation completes (success or failure).
      *
-     * @param token Progress token
+     * @param token progress token matching the begin call; must not be null or blank
+     * @param message final status message; must not be null
      */
-    public void end(String token) {
-        if (activeTokens.remove(token) == null) {
-            return;
-        }
-        WorkDoneProgressEnd end = new WorkDoneProgressEnd();
-        client.notifyProgress(new ProgressParams(Either.forLeft(token), Either.forLeft(end)));
-    }
-
-    private String generateToken(String projectRoot) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] hash = md.digest(projectRoot.getBytes(StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder("ballerina-compile-");
-            for (int i = 0; i < 4; i++) {
-                sb.append(String.format("%02x", hash[i]));
-            }
-            return sb.toString();
-        } catch (NoSuchAlgorithmException e) {
-            // Fallback to hashCode if MD5 is unavailable
-            return "ballerina-compile-" + String.format("%08x", projectRoot.hashCode());
-        }
-    }
+    void end(String token, String message);
 }
