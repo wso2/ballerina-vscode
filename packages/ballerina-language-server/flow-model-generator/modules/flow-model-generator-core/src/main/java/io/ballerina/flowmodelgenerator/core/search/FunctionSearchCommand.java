@@ -36,6 +36,7 @@ import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.node.AutomationBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
@@ -192,6 +193,7 @@ class FunctionSearchCommand extends SearchCommand {
                 .filter(symbol -> symbol.kind().equals(SymbolKind.FUNCTION) &&
                         !symbol.nameEquals(AutomationBuilder.MAIN_FUNCTION_NAME))
                 .map(symbol -> (FunctionSymbol) symbol)
+                .filter(func -> !WorkflowUtil.isWorkflowFunction(func))
                 .toList();
     }
 
