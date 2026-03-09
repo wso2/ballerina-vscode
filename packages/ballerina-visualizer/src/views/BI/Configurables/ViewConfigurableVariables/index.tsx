@@ -132,6 +132,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isTestsContext, setIsTestsContext] = useState<boolean>(false);
     const isTestsContextRef = useRef<boolean>(false);
+    const selectedModuleRef = useRef<PackageModuleState>(null);
     const [testConfigVariables, setTestConfigVariables] = useState<ConfigVariablesState>({});
     const [testCategoriesWithModules, setTestCategoriesWithModules] = useState<CategoryWithModules[]>([]);
 
@@ -151,6 +152,10 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     useEffect(() => {
         isTestsContextRef.current = isTestsContext;
     }, [isTestsContext]);
+
+    useEffect(() => {
+        selectedModuleRef.current = selectedModule;
+    }, [selectedModule]);
 
     useEffect(() => {
         rpcClient.onProjectContentUpdated(() => {
@@ -372,21 +377,42 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         setConfigVariables(data);
         setErrorMessage(errorMsg);
 
-        // Only set initial selected module if none is selected
-        if (!selectedModule || initialLoad) {
-            // Extract and set the available categories with their modules
-            const extractedCategories = Object.keys(data).map(category => ({
-                name: category,
-                modules: Object.keys(data[category])
-            }));
-            setCategoriesWithModules(extractedCategories);
+        // Always refresh available categories/modules after fetching latest data.
+        const extractedCategories = Object.keys(data).map(category => ({
+            name: category,
+            modules: Object.keys(data[category])
+        }));
+        setCategoriesWithModules(extractedCategories);
 
-            const initialCategory = extractedCategories[0].name;
-            const initialModule = extractedCategories[0].modules[0];
-            setSelectedModule({
-                category: initialCategory,
-                module: initialModule
-            });
+        // Preserve currently selected tab when still available after updates.
+        // This is important for imported libraries where selection is category-level ("").
+        const currentSelection = selectedModuleRef.current;
+        if (extractedCategories.length > 0) {
+            const currentCategory = extractedCategories.find(category => category.name === currentSelection?.category);
+            const currentModuleExists = !!currentCategory?.modules.includes(currentSelection?.module ?? '');
+            const currentCategoryLevelSelection = currentSelection?.module === '' && !!currentCategory;
+
+            if (currentModuleExists || currentCategoryLevelSelection) {
+                setSelectedModule({
+                    category: currentSelection.category,
+                    module: currentSelection.module
+                });
+            } else if (!currentSelection || initialLoad) {
+                const initialCategory = extractedCategories[0].name;
+                const initialModule = extractedCategories[0].modules[0];
+                setSelectedModule({
+                    category: initialCategory,
+                    module: initialModule
+                });
+            } else {
+                const fallbackCategory = extractedCategories[0];
+                setSelectedModule({
+                    category: fallbackCategory.name,
+                    module: fallbackCategory.modules[0]
+                });
+            }
+        } else {
+            setSelectedModule(null);
         }
         setIsLoading(false);
     };
@@ -405,9 +431,23 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
             modules: Object.keys(data[category])
         }));
         setTestCategoriesWithModules(categories);
+        const currentSelection = selectedModuleRef.current;
         if (categories.length > 0) {
-            const firstCat = categories[0];
-            setSelectedModule({ category: firstCat.name, module: firstCat.modules[0] });
+            const currentCategory = categories.find(category => category.name === currentSelection?.category);
+            const currentModuleExists = !!currentCategory?.modules.includes(currentSelection?.module ?? '');
+            const currentCategoryLevelSelection = currentSelection?.module === '' && !!currentCategory;
+
+            if (currentModuleExists || currentCategoryLevelSelection) {
+                setSelectedModule({
+                    category: currentSelection.category,
+                    module: currentSelection.module
+                });
+            } else {
+                const firstCat = categories[0];
+                setSelectedModule({ category: firstCat.name, module: firstCat.modules[0] });
+            }
+        } else {
+            setSelectedModule(null);
         }
         setIsLoading(false);
     };
