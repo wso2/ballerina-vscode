@@ -102,7 +102,7 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
         description: node.metadata.description,
         enabled: node.enabled,
         metadata: node,
-        icon: node.metadata.icon ? (
+        icon: node.codedata.node === "NEW_CONNECTION" ? (
             <ConnectorIcon
                 url={node.metadata.icon}
                 style={{ width: "16px", height: "16px", fontSize: "16px" }}
@@ -122,47 +122,6 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
     };
 }
 
-// Helper function to recursively find the first AvailableNode with an icon in nested categories
-function findFirstAvailableNodeWithIcon(category: Category): AvailableNode | undefined {
-    if (!category.items) return undefined;
-
-    for (const item of category.items) {
-        if ("codedata" in item) {
-            // This is an AvailableNode - check if it has an icon
-            const availableNode = item as AvailableNode;
-            if (availableNode.metadata?.icon) {
-                return availableNode;
-            }
-        } else {
-            // This is a nested category - search recursively
-            const found = findFirstAvailableNodeWithIcon(item as Category);
-            if (found) return found;
-        }
-    }
-    return undefined;
-}
-
-// Helper function to check if a category has any AvailableNodes (functions) nested within it
-function hasAvailableNodesRecursively(category: Category, functionType?: FUNCTION_TYPE): boolean {
-    if (!category.items) return false;
-
-    for (const item of category.items) {
-        if ("codedata" in item) {
-            // This is an AvailableNode - check if it passes the function type filter
-            const availableNode = item as AvailableNode;
-            const convertedNode = convertAvailableNodeToPanelNode(availableNode, functionType);
-            if (convertedNode !== undefined) {
-                return true;
-            }
-        } else {
-            // This is a nested category - check recursively
-            if (hasAvailableNodesRecursively(item as Category, functionType)) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
 
 function convertDiagramCategoryToSidePanelCategory(category: Category, functionType?: FUNCTION_TYPE): PanelCategory {
     const items: PanelItem[] = category.items
@@ -184,21 +143,11 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
             return true;
         });
 
-    // Extract icon URL, codedata and connectorType for the ConnectorIcon
-    // First try to get the icon from the category metadata itself
-    let icon = category?.metadata?.icon;
-    let codedata = undefined;
-
-    // If no icon in category metadata, recursively search for first AvailableNode with icon
-    if (!icon) {
-        const firstAvailableNode = findFirstAvailableNodeWithIcon(category);
-        if (firstAvailableNode) {
-            icon = firstAvailableNode.metadata?.icon;
-            codedata = firstAvailableNode.codedata;
-        }
-    }
 
     const connectorType = (category?.metadata?.data as NodeMetadata)?.connectorType;
+
+    const icon = category.items.at(0)?.metadata.icon;
+    const codedata = (category.items.at(0) as AvailableNode)?.codedata;
 
     return {
         title: category.metadata.label,
@@ -474,7 +423,7 @@ export function updateNodeProperties(
                     const template = primaryType?.template;
                     expression.value = {};
                     // Go through the parameters array
-                    for (const [_repeatKey, repeatValue] of Object.entries(dataValue)) {
+                    for (const [repeatKey, repeatValue] of Object.entries(dataValue)) {
                         // Create a deep copy for each iteration
                         const valueConstraint = JSON.parse(JSON.stringify(template));
                         // Fill the values of the parameter constraint
@@ -1121,7 +1070,7 @@ export function convertConfig(properties: NodeProperties, skipKeys: string[] = [
     return formFields;
 }
 
-export function isNaturalFunction(_node: STNode, view: FocusFlowDiagramView): _node is FunctionDefinition {
+export function isNaturalFunction(node: STNode, view: FocusFlowDiagramView): node is FunctionDefinition {
     return view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
 }
 
