@@ -1143,6 +1143,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             console.log(">>> useEffect: Search text cleared, resetting state immediately");
             debouncedSearch.cancel(); // Cancel any pending search
             setCategories(initialCategoriesRef.current);
+            setSidePanelView(SidePanelView.NODE_LIST);
             setShowProgressIndicator(false);
         }
         return () => debouncedSearch.cancel();

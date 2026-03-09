@@ -21,7 +21,6 @@ import ReactMarkdown from "react-markdown";
 import {
     Button,
     Codicon,
-    ProgressRing,
     SearchBox,
     SidePanelBody,
     Switch,
@@ -33,7 +32,7 @@ import styled from "@emotion/styled";
 import { BackIcon, CloseIcon, LogIcon } from "../../resources";
 import { Category, Item, Node } from "./types";
 import { cloneDeep, debounce } from "lodash";
-import { GroupListSkeleton } from "../Skeletons";
+import { GroupListSkeleton, NodeListSkeleton } from "../Skeletons";
 import GroupList from "../GroupList";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { getExpandedCategories, setExpandedCategories, getDefaultExpandedState } from "../../utils/localStorage";
@@ -925,9 +924,7 @@ export function NodeList(props: NodeListProps) {
             </S.HeaderContainer>
             {isSearching && (
                 <S.PanelBody>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
-                        <ProgressRing />
-                    </div>
+                    <NodeListSkeleton />
                 </S.PanelBody>
             )}
             {!showGeneratePanel && !isSearching && (
