@@ -120,12 +120,17 @@
           "MyType"
         ],
         "type": "MyType",
+        "typeName": "test_pack:MyType",
         "name": "name1",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "imports": {
+          "test_pack": "testorg/suffixed.test_pack:0.1.0"
+        },
+        "selected": false
       },
       {
         "kind": "FIELD",
@@ -133,12 +138,14 @@
           "\"Red\""
         ],
         "type": "\"Red\"",
+        "typeName": "\"Red\"",
         "name": "selectedColor",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       },
       {
         "kind": "FIELD",
@@ -146,12 +153,17 @@
           "Color"
         ],
         "type": "Color",
+        "typeName": "test_pack:Color",
         "name": "colorOptions",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "imports": {
+          "test_pack": "testorg/suffixed.test_pack:0.1.0"
+        },
+        "selected": false
       }
     ],
     "includes": [],
@@ -272,12 +284,14 @@
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "name1",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         }
       ],
       "includes": [],
@@ -380,28 +394,34 @@
           "kind": "NAME",
           "refs": [],
           "type": "\"Red\"",
+          "typeName": "\"Red\"",
           "name": "Red",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "selected": false
         },
         {
           "kind": "NAME",
           "refs": [],
           "type": "\"Green\"",
+          "typeName": "\"Green\"",
           "name": "Green",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "selected": false
         },
         {
           "kind": "NAME",
           "refs": [],
           "type": "\"Blue\"",
+          "typeName": "\"Blue\"",
           "name": "Blue",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "selected": false
         }
       ],
       "allowAdditionalFields": false

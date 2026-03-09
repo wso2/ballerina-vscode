@@ -127,10 +127,15 @@
               "ballerina/graphql:Context"
             ],
             "type": "graphql:Context",
+            "typeName": "graphql:Context",
             "name": "context",
             "optional": false,
             "readonly": false,
-            "isGraphqlId": false
+            "isGraphqlId": false,
+            "imports": {
+              "graphql": "ballerina/graphql:1.17.0"
+            },
+            "selected": false
           }
         ],
         "kind": "RESOURCE",
@@ -184,19 +189,26 @@
                 "ProfileType"
               ],
               "type": "ProfileType",
+              "typeName": "ProfileType",
               "name": "ProfileType",
               "optional": false,
               "readonly": false,
-              "isGraphqlId": false
+              "isGraphqlId": false,
+              "imports": {
+                "test_pack2": "testorg/test_pack2:0.1.0"
+              },
+              "selected": false
             },
             {
               "kind": "TYPE",
               "refs": [],
               "type": "string",
+              "typeName": "string",
               "name": "string",
               "optional": false,
               "readonly": false,
-              "isGraphqlId": false
+              "isGraphqlId": false,
+              "selected": false
             }
           ],
           "allowAdditionalFields": false
@@ -357,20 +369,24 @@
           "kind": "NAME",
           "refs": [],
           "type": "\"teacher\"",
+          "typeName": "\"teacher\"",
           "name": "TEACHER",
           "defaultValue": "\"teacher\"",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "selected": false
         },
         {
           "kind": "NAME",
           "refs": [],
           "type": "\"STUDENT\"",
+          "typeName": "\"STUDENT\"",
           "name": "STUDENT",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "selected": false
         }
       ],
       "allowAdditionalFields": false

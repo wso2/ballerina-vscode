@@ -199,11 +199,13 @@
         "kind": "FIELD",
         "refs": [],
         "type": "int",
+        "typeName": "int",
         "name": "uuid",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "selected": false
       }
     ],
     "includes": [],

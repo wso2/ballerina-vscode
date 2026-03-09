@@ -167,7 +167,7 @@ public class ModelGenerator {
         // Analyze the code block to find the flow nodes
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, dataMappings,
                 naturalFunctions, textDocument, ModuleInfo.from(document.module().descriptor()), true,
-                workspaceManager);
+                workspaceManager, filePath);
         canvasNode.accept(codeAnalyzer);
 
         // Generate the flow model
@@ -220,10 +220,10 @@ public class ModelGenerator {
                 continue;
             }
             Location location = optLocation.get();
-            DocumentId documentId = project.documentId(
-                    project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
-                            project.sourceRoot().resolve(location.lineRange().fileName()));
-            Document document = project.currentPackage().getDefaultModule().document(documentId);
+            Path docFilePath = project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                    project.sourceRoot().resolve(location.lineRange().fileName());
+            DocumentId documentId = project.documentId(docFilePath);
+            Document document = project.currentPackage().module(documentId.moduleId()).document(documentId);
             NonTerminalNode node = CommonUtils.getNode(document.syntaxTree(), location.textRange());
             if (node.kind() != SyntaxKind.SERVICE_DECLARATION) {
                 continue;
@@ -250,7 +250,7 @@ public class ModelGenerator {
                     }
                     CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.SERVICE_SCOPE,
                             Map.of(), Map.of(), document.textDocument(),
-                            ModuleInfo.from(document.module().descriptor()), false, workspaceManager);
+                            ModuleInfo.from(document.module().descriptor()), false, workspaceManager, docFilePath);
                     statement.accept(codeAnalyzer);
                     List<FlowNode> nodes = codeAnalyzer.getFlowNodes();
                     connections.add(nodes.stream().findFirst().orElseThrow());
@@ -324,6 +324,7 @@ public class ModelGenerator {
         TypeSymbol typeSymbol;
         String scope;
         Document document;
+        Path docFilePath = null;
 
         switch (symbol.kind()) {
             case VARIABLE -> {
@@ -346,10 +347,10 @@ public class ModelGenerator {
                 return Optional.empty();
             }
             Location location = symbol.getLocation().orElseThrow();
-            DocumentId documentId = project.documentId(
-                    project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
-                            project.sourceRoot().resolve(location.lineRange().fileName()));
-            document = project.currentPackage().getDefaultModule().document(documentId);
+            docFilePath = project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                    project.sourceRoot().resolve(location.lineRange().fileName());
+            DocumentId documentId = project.documentId(docFilePath);
+            document = project.currentPackage().module(documentId.moduleId()).document(documentId);
             NonTerminalNode childNode =
                     symbol.getLocation().map(loc -> CommonUtils.getNode(document.syntaxTree(), loc.textRange()))
                             .orElseThrow();
@@ -362,7 +363,7 @@ public class ModelGenerator {
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
                 document.textDocument(), ModuleInfo.from(document.module().descriptor()), false,
-                workspaceManager);
+                workspaceManager, docFilePath);
         statementNode.accept(codeAnalyzer);
         List<FlowNode> connections = codeAnalyzer.getFlowNodes();
         return connections.stream().findFirst();
@@ -374,6 +375,7 @@ public class ModelGenerator {
         TypeSymbol typeSymbol;
         String scope;
         Document document;
+        Path docFilePath = null;
 
         switch (symbol.kind()) {
             case VARIABLE -> {
@@ -396,10 +398,10 @@ public class ModelGenerator {
                 return Optional.empty();
             }
             Location location = symbol.getLocation().orElseThrow();
-            DocumentId documentId = project.documentId(
-                    project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
-                            project.sourceRoot().resolve(location.lineRange().fileName()));
-            document = project.currentPackage().getDefaultModule().document(documentId);
+            docFilePath = project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                    project.sourceRoot().resolve(location.lineRange().fileName());
+            DocumentId documentId = project.documentId(docFilePath);
+            document = project.currentPackage().module(documentId.moduleId()).document(documentId);
             NonTerminalNode childNode =
                     symbol.getLocation().map(loc -> CommonUtils.getNode(document.syntaxTree(), loc.textRange()))
                             .orElseThrow();
@@ -412,7 +414,7 @@ public class ModelGenerator {
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
                 document.textDocument(), ModuleInfo.from(document.module().descriptor()),
-                false, workspaceManager);
+                false, workspaceManager, docFilePath);
         statementNode.accept(codeAnalyzer);
         List<FlowNode> connections = codeAnalyzer.getFlowNodes();
         return connections.stream().findFirst();
@@ -424,6 +426,7 @@ public class ModelGenerator {
         TypeSymbol typeSymbol;
         String scope;
         Document document;
+        Path docFilePath = null;
 
         switch (symbol.kind()) {
             case VARIABLE -> {
@@ -445,10 +448,10 @@ public class ModelGenerator {
                     // Get the document for the assignment
                     try {
                         Location location = classFieldSymbol.getLocation().orElseThrow();
-                        DocumentId documentId = project.documentId(
-                                project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
-                                        project.sourceRoot().resolve(location.lineRange().fileName()));
-                        document = project.currentPackage().getDefaultModule().document(documentId);
+                        docFilePath = project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                                project.sourceRoot().resolve(location.lineRange().fileName());
+                        DocumentId documentId = project.documentId(docFilePath);
+                        document = project.currentPackage().module(documentId.moduleId()).document(documentId);
                     } catch (RuntimeException ignored) {
                         return Optional.empty();
                     }
@@ -479,7 +482,7 @@ public class ModelGenerator {
 
                     CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
                             document.textDocument(), ModuleInfo.from(document.module().descriptor()), false,
-                            workspaceManager);
+                            workspaceManager, docFilePath);
                     statementNode.accept(codeAnalyzer);
                     return codeAnalyzer.getFlowNodes().stream().findFirst();
                 }
@@ -521,10 +524,10 @@ public class ModelGenerator {
         // Continue with common processing
         try {
             Location location = symbol.getLocation().orElseThrow();
-            DocumentId documentId = project.documentId(
-                    project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
-                            project.sourceRoot().resolve(location.lineRange().fileName()));
-            document = project.currentPackage().getDefaultModule().document(documentId);
+            docFilePath = project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
+                    project.sourceRoot().resolve(location.lineRange().fileName());
+            DocumentId documentId = project.documentId(docFilePath);
+            document = project.currentPackage().module(documentId.moduleId()).document(documentId);
             NonTerminalNode childNode =
                     symbol.getLocation().map(loc -> CommonUtils.getNode(document.syntaxTree(), loc.textRange()))
                             .orElseThrow();
@@ -539,7 +542,7 @@ public class ModelGenerator {
 
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, scope, Map.of(), Map.of(),
                 document.textDocument(), ModuleInfo.from(document.module().descriptor()), false,
-                workspaceManager);
+                workspaceManager, docFilePath);
         statementNode.accept(codeAnalyzer);
         return codeAnalyzer.getFlowNodes().stream().findFirst();
     }
@@ -565,7 +568,7 @@ public class ModelGenerator {
                     DocumentId documentId = project.documentId(
                             project.kind() == ProjectKind.SINGLE_FILE_PROJECT ? project.sourceRoot() :
                                     project.sourceRoot().resolve(location.lineRange().fileName()));
-                    Document document = project.currentPackage().getDefaultModule().document(documentId);
+                    Document document = project.currentPackage().module(documentId.moduleId()).document(documentId);
                     NonTerminalNode node = CommonUtils.getNode(document.syntaxTree(), location.textRange());
 
                     // Check if this reference is within an assignment statement

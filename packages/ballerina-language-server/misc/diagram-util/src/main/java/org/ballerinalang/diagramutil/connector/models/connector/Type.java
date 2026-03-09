@@ -607,7 +607,8 @@ public class Type {
             String pkgName = packageName != null ? packageName : moduleID.packageName();
             String version = moduleID.version();
 
-            Optional<Package> packageOpt = PackageUtil.getModulePackage(org, pkgName, version);
+            Optional<Package> packageOpt = PackageUtil.resolveModulePackage(org, pkgName,
+                    version);
             resolvedPackage = packageOpt.orElse(null);
         }
 

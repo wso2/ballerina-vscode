@@ -12,9 +12,9 @@
       "orgName": "ballerina",
       "packageName": "ftp",
       "moduleName": "ftp",
-      "version": "2.16.0",
+      "version": "2.17.0",
       "type": "ftp",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.16.0.png",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.17.0.png",
       "properties": {
         "designApproach": {
           "metadata": {
@@ -78,33 +78,6 @@
                     {
                       "fieldType": "EXPRESSION",
                       "ballerinaType": "int",
-                      "selected": false
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": false,
-                  "advanced": false
-                },
-                "folderPath": {
-                  "metadata": {
-                    "label": "Folder Path",
-                    "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
-                  },
-                  "codedata": {
-                    "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
-                  },
-                  "placeholder": "/",
-                  "value": "\"/\"",
-                  "types": [
-                    {
-                      "fieldType": "TEXT",
-                      "ballerinaType": "string",
-                      "selected": true
-                    },
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "string",
                       "selected": false
                     }
                   ],
@@ -275,33 +248,6 @@
                   "optional": false,
                   "advanced": false
                 },
-                "folderPath": {
-                  "metadata": {
-                    "label": "Folder Path",
-                    "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
-                  },
-                  "codedata": {
-                    "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
-                  },
-                  "placeholder": "/",
-                  "value": "\"/\"",
-                  "types": [
-                    {
-                      "fieldType": "TEXT",
-                      "ballerinaType": "string",
-                      "selected": true
-                    },
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "string",
-                      "selected": false
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": false,
-                  "advanced": false
-                },
                 "authentication": {
                   "metadata": {
                     "label": "Authentication",
@@ -347,7 +293,7 @@
                               "typeMembers": [
                                 {
                                   "type": "PrivateKey",
-                                  "packageInfo": "ballerina:ftp:2.16.0",
+                                  "packageInfo": "ballerina:ftp:2.17.0",
                                   "packageName": "ftp",
                                   "kind": "RECORD_TYPE",
                                   "selected": true
@@ -479,33 +425,6 @@
                   "optional": false,
                   "advanced": false
                 },
-                "folderPath": {
-                  "metadata": {
-                    "label": "Folder Path",
-                    "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
-                  },
-                  "codedata": {
-                    "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
-                  },
-                  "placeholder": "/",
-                  "value": "\"/\"",
-                  "types": [
-                    {
-                      "fieldType": "TEXT",
-                      "ballerinaType": "string",
-                      "selected": true
-                    },
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "string",
-                      "selected": false
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": false,
-                  "advanced": false
-                },
                 "authentication": {
                   "metadata": {
                     "label": "Authentication",
@@ -621,7 +540,7 @@
                       "typeMembers": [
                         {
                           "type": "SecureSocket",
-                          "packageInfo": "ballerina:ftp:2.16.0",
+                          "packageInfo": "ballerina:ftp:2.17.0",
                           "packageName": "ftp",
                           "kind": "RECORD_TYPE",
                           "selected": true
@@ -651,6 +570,35 @@
             {
               "fieldType": "CHOICE",
               "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "path": {
+          "metadata": {
+            "label": "Monitoring Path",
+            "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
+          },
+          "codedata": {
+            "type": "SERVICE_ANNOTATION",
+            "originalName": "ServiceConfig",
+            "moduleName": "ftp"
+          },
+          "placeholder": "/",
+          "value": "\"/\"",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
             }
           ],
           "enabled": true,

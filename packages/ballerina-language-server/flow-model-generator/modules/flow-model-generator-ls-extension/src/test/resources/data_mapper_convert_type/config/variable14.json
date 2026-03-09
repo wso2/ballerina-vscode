@@ -1,0 +1,70 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 45,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 45,
+        "offset": 67
+      }
+    },
+    "isNew": true,
+    "sourceCode": ""
+  },
+  "typeName": "school:Student",
+  "parentTypeName": "xml",
+  "variableName": "transform8",
+  "isInput": false,
+  "imports": {
+    "school": "ballerinax/school:0.1.0"
+  },
+  "output": {
+    "variable1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerina/data.xmldata;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 45,
+            "character": 60
+          },
+          "end": {
+            "line": 45,
+            "character": 66
+          }
+        },
+        "newText": "let school:Student transform8 = {} in xmldata:toXml(transform8)"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerinax/school;\n"
+      }
+    ]
+  }
+}

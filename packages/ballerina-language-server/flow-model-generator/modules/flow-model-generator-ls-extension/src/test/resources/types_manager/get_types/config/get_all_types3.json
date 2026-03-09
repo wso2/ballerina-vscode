@@ -132,23 +132,27 @@
           "kind": "FIELD",
           "refs": [],
           "type": "int",
+          "typeName": "int",
           "name": "id",
           "optional": false,
           "readonly": true,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "name",
           "optional": false,
           "readonly": true,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         }
       ],
       "includes": [],
@@ -415,23 +419,27 @@
           "kind": "FIELD",
           "refs": [],
           "type": "int",
+          "typeName": "int",
           "name": "id",
           "optional": false,
           "readonly": true,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "name",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         }
       ],
       "includes": [],
@@ -568,23 +576,27 @@
           "kind": "FIELD",
           "refs": [],
           "type": "int",
+          "typeName": "int",
           "name": "id",
           "optional": false,
           "readonly": true,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "name",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         }
       ],
       "includes": [],
@@ -721,34 +733,40 @@
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "name",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "int",
+          "typeName": "int",
           "name": "age",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "boolean",
+          "typeName": "boolean",
           "name": "isAdult",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
@@ -801,20 +819,30 @@
                   "Person"
                 ],
                 "type": "Person",
+                "typeName": "Person",
                 "name": "Person",
                 "optional": false,
                 "readonly": false,
-                "isGraphqlId": false
+                "isGraphqlId": false,
+                "imports": {
+                  "test_pack3": "testorg/test_pack3:0.1.0"
+                },
+                "selected": false
               }
             ],
             "allowAdditionalFields": false
           },
+          "typeName": "Person[]",
           "name": "children",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "imports": {
+            "test_pack3": "testorg/test_pack3:0.1.0"
+          },
+          "selected": false
         }
       ],
       "includes": [],
@@ -998,10 +1026,15 @@
                   "PersonWithChildren"
                 ],
                 "type": "PersonWithChildren",
+                "typeName": "PersonWithChildren",
                 "name": "PersonWithChildren",
                 "optional": false,
                 "readonly": false,
-                "isGraphqlId": false
+                "isGraphqlId": false,
+                "imports": {
+                  "test_pack3": "testorg/test_pack3:0.1.0"
+                },
+                "selected": false
               },
               {
                 "kind": "TYPE",
@@ -1009,18 +1042,28 @@
                   "Person"
                 ],
                 "type": "Person",
+                "typeName": "Person",
                 "name": "Person",
                 "optional": false,
                 "readonly": false,
-                "isGraphqlId": false
+                "isGraphqlId": false,
+                "imports": {
+                  "test_pack3": "testorg/test_pack3:0.1.0"
+                },
+                "selected": false
               }
             ],
             "allowAdditionalFields": false
           },
+          "typeName": "PersonWithChildren|Person",
           "name": "PersonWithChildren|Person",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "imports": {
+            "test_pack3": "testorg/test_pack3:0.1.0"
+          },
+          "selected": false
         }
       ],
       "annotationAttachments": [],
@@ -1139,10 +1182,12 @@
           "kind": "TYPE",
           "refs": [],
           "type": "readonly",
+          "typeName": "readonly",
           "name": "readonly",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "selected": false
         },
         {
           "kind": "TYPE",
@@ -1150,10 +1195,15 @@
             "Human2"
           ],
           "type": "Human2",
+          "typeName": "Human2",
           "name": "Human2",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "imports": {
+            "test_pack3": "testorg/test_pack3:0.1.0"
+          },
+          "selected": false
         }
       ],
       "annotationAttachments": [],
@@ -1272,10 +1322,12 @@
           "kind": "TYPE",
           "refs": [],
           "type": "readonly",
+          "typeName": "readonly",
           "name": "readonly",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "selected": false
         },
         {
           "kind": "TYPE",
@@ -1283,10 +1335,15 @@
             "Human2"
           ],
           "type": "Human2",
+          "typeName": "Human2",
           "name": "Human2",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "imports": {
+            "test_pack3": "testorg/test_pack3:0.1.0"
+          },
+          "selected": false
         }
       ],
       "annotationAttachments": [],
@@ -1467,23 +1524,27 @@
                 "kind": "FIELD",
                 "refs": [],
                 "type": "int",
+                "typeName": "int",
                 "name": "id",
                 "optional": false,
                 "readonly": true,
                 "isGraphqlId": false,
                 "docs": "",
-                "annotationAttachments": []
+                "annotationAttachments": [],
+                "selected": false
               },
               {
                 "kind": "FIELD",
                 "refs": [],
                 "type": "string",
+                "typeName": "string",
                 "name": "name",
                 "optional": false,
                 "readonly": false,
                 "isGraphqlId": false,
                 "docs": "",
-                "annotationAttachments": []
+                "annotationAttachments": [],
+                "selected": false
               },
               {
                 "kind": "FIELD",
@@ -1491,21 +1552,28 @@
                   "Names"
                 ],
                 "type": "Names",
+                "typeName": "Names",
                 "name": "otherNames",
                 "optional": false,
                 "readonly": false,
                 "isGraphqlId": false,
                 "docs": "",
-                "annotationAttachments": []
+                "annotationAttachments": [],
+                "imports": {
+                  "test_pack3": "testorg/test_pack3:0.1.0"
+                },
+                "selected": false
               }
             ],
             "includes": [],
             "allowAdditionalFields": false
           },
+          "typeName": "record {|readonly int id; string name; Names otherNames;|}",
           "name": "record {|readonly int id; string name; Names otherNames;|}",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "selected": false
         }
       ],
       "annotationAttachments": [],
@@ -1641,23 +1709,27 @@
           "kind": "FIELD",
           "refs": [],
           "type": "int",
+          "typeName": "int",
           "name": "id",
           "optional": false,
           "readonly": true,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "name",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         }
       ],
       "includes": [],
@@ -1794,23 +1866,27 @@
           "kind": "FIELD",
           "refs": [],
           "type": "int",
+          "typeName": "int",
           "name": "id",
           "optional": false,
           "readonly": true,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "name",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         }
       ],
       "includes": [],
@@ -1994,27 +2070,39 @@
                   "Person"
                 ],
                 "type": "Person",
+                "typeName": "Person",
                 "name": "Person",
                 "optional": false,
                 "readonly": false,
-                "isGraphqlId": false
+                "isGraphqlId": false,
+                "imports": {
+                  "test_pack3": "testorg/test_pack3:0.1.0"
+                },
+                "selected": false
               },
               {
                 "kind": "TYPE",
                 "refs": [],
                 "type": "string",
+                "typeName": "string",
                 "name": "string",
                 "optional": false,
                 "readonly": false,
-                "isGraphqlId": false
+                "isGraphqlId": false,
+                "selected": false
               }
             ],
             "allowAdditionalFields": false
           },
+          "typeName": "Person|string",
           "name": "Person|string",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "imports": {
+            "test_pack3": "testorg/test_pack3:0.1.0"
+          },
+          "selected": false
         }
       ],
       "annotationAttachments": [],
@@ -2150,10 +2238,12 @@
           "kind": "TYPE",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "string",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "selected": false
         }
       ],
       "annotationAttachments": [],
@@ -2291,10 +2381,15 @@
             "Person"
           ],
           "type": "Person",
+          "typeName": "Person",
           "name": "Person",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "imports": {
+            "test_pack3": "testorg/test_pack3:0.1.0"
+          },
+          "selected": false
         }
       ],
       "annotationAttachments": [],
@@ -2430,34 +2525,40 @@
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "name",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "int",
+          "typeName": "int",
           "name": "age",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "boolean",
+          "typeName": "boolean",
           "name": "isAdult",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         }
       ],
       "includes": [],

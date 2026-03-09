@@ -340,8 +340,8 @@ public class AgentsGenerator {
         SourceBuilder sourceBuilder = new SourceBuilder(flowNode, workspaceManager, filePath);
         String path = flowNode.metadata().icon();
         sourceBuilder.acceptImport(Constants.Ai.BALLERINA_ORG, Constants.Ai.AI_PACKAGE);
-        if (nodeKind == NodeKind.FUNCTION_DEFINITION) {
-            boolean hasDescription = genDescription(description, flowNode, sourceBuilder);
+        if (nodeKind == NodeKind.FUNCTION_DEFINITION || nodeKind == NodeKind.FUNCTION_CALL) {
+            boolean hasDescription = genDescription(description, sourceBuilder);
             List<String> paramList = populateToolParams(toolParams, hasDescription, sourceBuilder);
 
             sourceBuilder.token()
@@ -378,8 +378,19 @@ public class AgentsGenerator {
                         .keyword(SyntaxKind.EQUAL_TOKEN);
             }
             Optional<Property> optFuncName = flowNode.getProperty(Property.FUNCTION_NAME_KEY);
-            if (optFuncName.isEmpty()) {
+            String funcName;
+            if (optFuncName.isPresent()) {
+                funcName = optFuncName.get().value().toString();
+            } else if (flowNode.codedata().symbol() != null) {
+                funcName = flowNode.codedata().symbol();
+            } else {
                 throw new IllegalStateException("Function name is not present");
+            }
+            if (nodeKind == NodeKind.FUNCTION_CALL) {
+                String module = flowNode.codedata().module();
+                if (module != null) {
+                    funcName = flowNode.codedata().getModulePrefix() + ":" + funcName;
+                }
             }
 
             List<String> args = new ArrayList<>();
@@ -397,7 +408,7 @@ public class AgentsGenerator {
             }
 
             sourceBuilder.token()
-                    .name(optFuncName.get().value().toString())
+                    .name(funcName)
                     .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
             sourceBuilder.token()
                     .name(String.join(", ", args))
@@ -415,13 +426,13 @@ public class AgentsGenerator {
             sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION).acceptImport();
             Map<Path, List<TextEdit>> textEdits = sourceBuilder.build();
             List<TextEdit> te = new ArrayList<>();
-            Path p = addIsolateKeyword(optFuncName.get().value().toString().trim(), filePath, te, workspaceManager);
+            Path p = addIsolateKeyword(funcName.trim(), filePath, te, workspaceManager);
             if (p != null) {
                 textEdits.put(p, te);
             }
             return gson.toJsonTree(textEdits);
         } else if (nodeKind == NodeKind.REMOTE_ACTION_CALL) {
-            boolean hasDescription = genDescription(description, flowNode, sourceBuilder);
+            boolean hasDescription = genDescription(description, sourceBuilder);
             Set<String> ignoredKeys = new HashSet<>(List.of(Property.VARIABLE_KEY, Property.TYPE_KEY, TARGET_TYPE,
                     Property.CONNECTION_KEY, Property.CHECK_ERROR_KEY));
 
@@ -491,7 +502,7 @@ public class AgentsGenerator {
             sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION).acceptImport();
             return gson.toJsonTree(sourceBuilder.build());
         } else if (nodeKind == NodeKind.RESOURCE_ACTION_CALL) {
-            boolean hasDescription = genDescription(description, flowNode, sourceBuilder);
+            boolean hasDescription = genDescription(description, sourceBuilder);
             Map<String, Property> properties = flowNode.properties();
             Set<String> keys = new LinkedHashSet<>(properties != null ? properties.keySet() : Set.of());
             Set<String> ignoredKeys = new HashSet<>(List.of(Property.CONNECTION_KEY, Property.VARIABLE_KEY,
@@ -661,17 +672,10 @@ public class AgentsGenerator {
         return false;
     }
 
-    private boolean genDescription(String description, FlowNode flowNode, SourceBuilder sourceBuilder) {
-        String desc = "";
-        String flowNodeDesc = flowNode.metadata().description();
-        if (!description.isEmpty()) {
-            desc = description;
-        } else if (flowNodeDesc != null && !flowNodeDesc.isEmpty()) {
-            desc = flowNodeDesc;
-        }
-        boolean hasDescription = !desc.isEmpty();
+    private boolean genDescription(String description, SourceBuilder sourceBuilder) {
+        boolean hasDescription = !description.isEmpty();
         if (hasDescription) {
-            sourceBuilder.token().descriptionDoc(desc);
+            sourceBuilder.token().descriptionDoc(description);
         }
         return hasDescription;
     }
@@ -810,7 +814,7 @@ public class AgentsGenerator {
     }
 
     public JsonElement getMethodCallFlowNode(FunctionDefinitionNode functionDefinitionNode, Project project,
-                                             Document document, WorkspaceManager workspaceManager) {
+                                             Document document, WorkspaceManager workspaceManager, Path filePath) {
         FunctionBodyNode fnBodyNode = functionDefinitionNode.functionBody();
         if (functionDefinitionNode.functionBody().kind() != SyntaxKind.FUNCTION_BODY_BLOCK) {
             return null;
@@ -821,7 +825,7 @@ public class AgentsGenerator {
         }
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, Map.of(), Map.of(),
                 document.textDocument(), ModuleInfo.from(document.module().descriptor()),
-                false, workspaceManager);
+                false, workspaceManager, filePath);
         StatementNode firstStmt = statements.get(0);
         firstStmt.accept(codeAnalyzer);
 

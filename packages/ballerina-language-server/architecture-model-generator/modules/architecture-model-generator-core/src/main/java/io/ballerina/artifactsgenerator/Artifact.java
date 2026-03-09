@@ -103,7 +103,8 @@ public record Artifact(String id, LineRange location, String type, String name, 
      */
     private static final Map<String, String[]> moduleAnnotationFields = Map.of(
             "solace", new String[]{"queueName", "topicName"},
-            "mssql", new String[]{"tables"}
+            "mssql", new String[]{"tables"},
+            "ftp", new String[]{"path"}
     );
 
     public static String getCategory(String type) {

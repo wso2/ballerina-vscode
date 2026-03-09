@@ -73,7 +73,7 @@
         "newText": "\nconfigurable string productdbHost = \"localhost\";\nconfigurable int productdbPort = 5432;\nconfigurable string productdbUser = \"postgres\";\nconfigurable string productdbPassword = ?;\nconfigurable string productdbDatabase = \"testdb\";\n"
       }
     ],
-    "sample-project-with-connections/persist/model.bal": [
+    "sample-project-with-connections/persist/productdb/model.bal": [
       {
         "range": {
           "start": {
@@ -100,7 +100,7 @@
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"sample_project_with_connections.products\"\ntargetModule = \"sample_project_with_connections.products\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.8.0\"\n"
+        "newText": "\n[[tool.persist]]\nid = \"sample_project_with_connections.products\"\ntargetModule = \"sample_project_with_connections.products\"\nfilePath = \"persist/productdb/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.9.0\"\n"
       }
     ]
   },

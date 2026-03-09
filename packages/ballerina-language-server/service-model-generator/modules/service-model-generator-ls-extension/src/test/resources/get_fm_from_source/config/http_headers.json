@@ -389,7 +389,7 @@
           "advanced": false
         },
         "headerName": {
-          "value": "contentType",
+          "value": "USER_X_HEADER",
           "types": [
             {
               "fieldType": "IDENTIFIER",
@@ -415,6 +415,7 @@
               "originalName": "Header",
               "moduleName": "http"
             },
+            "value": "{name: USER_X_HEADER }",
             "enabled": false,
             "editable": false,
             "optional": false,

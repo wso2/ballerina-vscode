@@ -206,22 +206,26 @@
             "kind": "FIELD",
             "refs": [],
             "type": "string",
+            "typeName": "string",
             "name": "username",
             "optional": false,
             "readonly": false,
             "isGraphqlId": true,
             "imports": {
               "graphql": "ballerina/graphql"
-            }
+            },
+            "selected": false
           },
           {
             "kind": "FIELD",
             "refs": [],
             "type": "string",
+            "typeName": "string",
             "name": "lastName",
             "optional": false,
             "readonly": false,
-            "isGraphqlId": false
+            "isGraphqlId": false,
+            "selected": false
           }
         ],
         "kind": "RESOURCE",

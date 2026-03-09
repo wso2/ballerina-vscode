@@ -34,6 +34,7 @@ import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.LiteralAttachPoint;
 import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ObjectFieldSymbol;
 import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
@@ -52,6 +53,7 @@ import io.ballerina.compiler.api.symbols.TypeDescTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.values.ConstantValue;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
 import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
@@ -74,6 +76,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static io.ballerina.modelgenerator.commons.CommonUtils.getTypeSignature;
 
 /**
  * Transformer to transform Ballerina type symbols to type data.
@@ -164,7 +168,7 @@ public class TypeTransformer {
         // inclusions
         List<String> includes = new ArrayList<>();
         classSymbol.typeInclusions().forEach(typeInclusion -> {
-            includes.add(CommonUtils.getTypeSignature(typeInclusion, this.moduleInfo));
+            includes.add(getTypeSignature(typeInclusion, this.moduleInfo));
         });
         typeDataBuilder.includes(includes);
 
@@ -194,7 +198,7 @@ public class TypeTransformer {
         // inclusions
         List<String> includes = new ArrayList<>();
         objectTypeSymbol.typeInclusions().forEach(typeInclusion -> {
-            includes.add(CommonUtils.getTypeSignature(typeInclusion, this.moduleInfo));
+            includes.add(getTypeSignature(typeInclusion, this.moduleInfo));
         });
         typeDataBuilder.includes(includes);
 
@@ -308,7 +312,7 @@ public class TypeTransformer {
         // includes
         List<String> includes = new ArrayList<>();
         recordTypeSymbol.typeInclusions().forEach(typeInclusion -> {
-            includes.add(CommonUtils.getTypeSignature(typeInclusion, this.moduleInfo));
+            includes.add(getTypeSignature(typeInclusion, this.moduleInfo));
         });
         typeDataBuilder.includes(includes);
 
@@ -322,9 +326,11 @@ public class TypeTransformer {
             if (transformedRestType.equals(BUILT_IN_ANYDATA)) {
                 typeDataBuilder.allowAdditionalFields(true);
             } else {
+                addRequiredImports(restTypeSymbol.get(), memberBuilder);
                 Member restMember = memberBuilder
                         .kind(Member.MemberKind.FIELD)
                         .type(transformedRestType)
+                        .typeName(getTypeSignature(restTypeSymbol.get(), this.moduleInfo))
                         .refs(getTypeRefs(transformedRestType, restTypeSymbol.get()))
                         .build();
                 typeDataBuilder.restMember(restMember);
@@ -348,11 +354,13 @@ public class TypeTransformer {
             }
 
             analyzeAnnotAttachments(fieldSymbol.annotAttachments(), memberBuilder);
+            addRequiredImports(fieldSymbol.typeDescriptor(), memberBuilder);
 
             Member member = memberBuilder
                     .name(fieldSymbol.getName().orElse(fieldName))
                     .kind(Member.MemberKind.FIELD)
                     .type(transformedFieldType)
+                    .typeName(getTypeSignature(fieldSymbol.typeDescriptor(), this.moduleInfo))
                     .optional(fieldSymbol.isOptional())
                     .readonly(fieldSymbol.qualifiers().contains(Qualifier.READONLY))
                     .isGraphqlId(isGraphqlId)
@@ -387,7 +395,7 @@ public class TypeTransformer {
         Member.MemberBuilder memberBuilder = new Member.MemberBuilder();
         List<Member> memberTypes = new ArrayList<>();
         unionTypeSymbol.userSpecifiedMemberTypes().forEach(memberTypeSymbol -> {
-            String name = CommonUtils.getTypeSignature(memberTypeSymbol, this.moduleInfo);
+            String name = getTypeSignature(memberTypeSymbol, this.moduleInfo);
             Member member = transformTypeAsMember(name, memberTypeSymbol, memberBuilder);
             memberTypes.add(member);
         });
@@ -408,7 +416,7 @@ public class TypeTransformer {
         Member.MemberBuilder memberBuilder = new Member.MemberBuilder();
         List<Member> memberTypes = new ArrayList<>();
         intersectionTypeSymbol.memberTypeDescriptors().forEach(memberTypeSymbol -> {
-            String name = CommonUtils.getTypeSignature(memberTypeSymbol, this.moduleInfo);
+            String name = getTypeSignature(memberTypeSymbol, this.moduleInfo);
             Member member = transformTypeAsMember(name, memberTypeSymbol, memberBuilder);
             memberTypes.add(member);
         });
@@ -437,6 +445,7 @@ public class TypeTransformer {
                 .name("rowType")
                 .kind(Member.MemberKind.TYPE)
                 .type(transformedRowType)
+                .typeName(rowTypeSymbol.signature())
                 .refs(getTypeRefs(transformedRowType, rowTypeSymbol))
                 .build();
         memberTypes.add(rowTypeMember);
@@ -448,6 +457,7 @@ public class TypeTransformer {
                     .name("keyConstraintType")
                     .kind(Member.MemberKind.TYPE)
                     .type(transformedKeyConstraintType)
+                    .typeName(getTypeSignature(typeSymbol, this.moduleInfo))
                     .refs(getTypeRefs(transformedRowType, typeSymbol))
                     .build();
             memberTypes.add(keyConstraintTypeMember);
@@ -500,7 +510,7 @@ public class TypeTransformer {
         Member.MemberBuilder memberBuilder = new Member.MemberBuilder();
         List<Member> memberTypes = new ArrayList<>();
         tupleTypeSymbol.memberTypeDescriptors().forEach(memberTypeSymbol -> {
-            String name = CommonUtils.getTypeSignature(memberTypeSymbol, this.moduleInfo);
+            String name = getTypeSignature(memberTypeSymbol, this.moduleInfo);
             Member member = transformTypeAsMember(name, memberTypeSymbol, memberBuilder);
             memberTypes.add(member);
         });
@@ -523,9 +533,9 @@ public class TypeTransformer {
             case OBJECT -> transform((ObjectTypeSymbol) typeSymbol, typeDataBuilder);
             case TABLE -> transform((TableTypeSymbol) typeSymbol, typeDataBuilder);
             case TUPLE -> transform((TupleTypeSymbol) typeSymbol, typeDataBuilder);
-            default -> CommonUtils.isWithinPackage(typeSymbol, moduleInfo) && typeSymbol.getName().isPresent()
+            default -> CommonUtils.isWithinPackageModule(typeSymbol, moduleInfo) && typeSymbol.getName().isPresent()
                     ? typeSymbol.getName().get()
-                    : CommonUtils.getTypeSignature(typeSymbol, this.moduleInfo);
+                    : getTypeSignature(typeSymbol, this.moduleInfo);
         };
     }
 
@@ -591,7 +601,7 @@ public class TypeTransformer {
             return typeDataBuilder.build();
         }
 
-        String memberTypeName = CommonUtils.getTypeSignature(memberTypeDesc, moduleInfo);
+        String memberTypeName = getTypeSignature(memberTypeDesc, moduleInfo);
         Member memberType = transformTypeAsMember(memberTypeName, memberTypeDesc, memberBuilder);
         typeDataBuilder.members(List.of(memberType));
 
@@ -673,10 +683,12 @@ public class TypeTransformer {
                     }
                 }
 
+                addRequiredImports(param.typeDescriptor(), memberBuilder);
                 return memberBuilder
                         .name(param.getName().orElse(null))
                         .kind(Member.MemberKind.FIELD)
                         .type(transformedParamType)
+                        .typeName(getTypeSignature(param.typeDescriptor(), this.moduleInfo))
                         .isGraphqlId(isGraphqlId)
                         .refs(getTypeRefs(transformedParamType, param.typeDescriptor()))
                         .build();
@@ -687,10 +699,12 @@ public class TypeTransformer {
         // rest param
         functionTypeSymbol.restParam().ifPresent(restParam -> {
             Object transformedRestParamType = transform(restParam.typeDescriptor(), new TypeData.TypeDataBuilder());
+            addRequiredImports(restParam.typeDescriptor(), memberBuilder);
             Member restParameter = memberBuilder
                     .name(restParam.getName().get())
                     .kind(Member.MemberKind.FIELD)
                     .type(transformedRestParamType)
+                    .typeName(getTypeSignature(restParam.typeDescriptor(), this.moduleInfo))
                     .refs(getTypeRefs(transformedRestParamType, restParam.typeDescriptor()))
                     .build();
             functionBuilder.restParameter(restParameter);
@@ -710,10 +724,13 @@ public class TypeTransformer {
     private Member transformObjectFieldAsMember(String fieldName, ObjectFieldSymbol fieldSymbol) {
         TypeData.TypeDataBuilder attributeTypeDataBuilder = new TypeData.TypeDataBuilder();
         Object transformedAttributeType = transform(fieldSymbol.typeDescriptor(), attributeTypeDataBuilder);
-        return (new Member.MemberBuilder())
+        Member.MemberBuilder memberBuilder = new Member.MemberBuilder();
+        addRequiredImports(fieldSymbol.typeDescriptor(), memberBuilder);
+        return memberBuilder
                 .name(fieldName)
                 .kind(Member.MemberKind.FIELD)
                 .type(transformedAttributeType)
+                .typeName(getTypeSignature(fieldSymbol.typeDescriptor(), this.moduleInfo))
                 .refs(getTypeRefs(transformedAttributeType, fieldSymbol.typeDescriptor()))
                 .docs(getDocumentString(fieldSymbol))
                 .build();
@@ -723,10 +740,12 @@ public class TypeTransformer {
                                          Member.MemberBuilder memberBuilder) {
         TypeData.TypeDataBuilder memberTypeDataBuilder = new TypeData.TypeDataBuilder();
         Object transformedMemberType = transform(memberTypeDesc, memberTypeDataBuilder);
+        addRequiredImports(memberTypeDesc, memberBuilder);
         return memberBuilder
                 .name(typeName)
                 .kind(Member.MemberKind.TYPE)
                 .type(transformedMemberType)
+                .typeName(getTypeSignature(memberTypeDesc, this.moduleInfo))
                 .refs(getTypeRefs(transformedMemberType, memberTypeDesc))
                 .build();
     }
@@ -825,19 +844,90 @@ public class TypeTransformer {
     }
 
     private String getTypeName(Symbol symbol) {
-        String typeName;
-        if (CommonUtils.isWithinPackage(symbol, this.moduleInfo)) {
-            typeName = symbol.getName().get();
-        } else {
-            ModuleID recTypeModuleId = symbol.getModule().get().id();
-            typeName = String.format("%s/%s:%s",
-                    recTypeModuleId.orgName(), recTypeModuleId.packageName(), symbol.getName().get());
+        Optional<ModuleSymbol> moduleSymbol = symbol.getModule();
+        String symbolName = symbol.getName().orElse(symbol instanceof TypeSymbol ?
+                ((TypeSymbol) symbol).signature() : symbol.toString());
+        if (moduleSymbol.isEmpty()) {
+            // No module context — return the simple name, falling back to the full signature
+            // for anonymous or module-less symbols where getName() is absent.
+            return symbolName;
         }
-        return typeName;
+
+        ModuleID moduleId = moduleSymbol.get().id();
+        if (CommonUtils.isWithinPackage(symbol, moduleInfo)) {
+            String moduleName = moduleId.moduleName();
+            if (moduleName.equals(moduleInfo.moduleName())) {
+                return symbolName;
+            }
+            return String.format("%s:%s", moduleId.modulePrefix(), symbolName);
+        } else {
+            return String.format("%s/%s:%s", moduleId.orgName(), moduleId.moduleName(), symbolName);
+        }
     }
 
     private List<String> getTypeRefs(Object type, TypeSymbol typeDescriptor) {
         return type instanceof String ? TypeUtils.getTypeRefIds(typeDescriptor, moduleInfo) : List.of();
+    }
+
+    /**
+     * Recursively resolves the import statements required to reference the given {@link TypeSymbol} in the
+     * generated source and registers them on the provided {@link AbstractBuilder}.
+     *
+     * <p>For {@code TYPE_REFERENCE} kinds every encountered type is stored unconditionally using the
+     * canonical format {@code orgName/moduleName:version} (e.g. {@code ballerina/http:2.10.0}).
+     * {@link io.ballerina.flowmodelgenerator.core.TypesManager#addImportsToTextEdits(Map, ModulePartNode,
+     * List, Module)} is responsible
+     * for filtering out same-package references and validating the format before emitting actual
+     * {@code import} declarations.
+     *
+     * <p>Composite types ({@code ARRAY}, {@code MAP}, {@code STREAM}, {@code FUTURE}, {@code UNION},
+     * {@code INTERSECTION}, {@code TABLE}, {@code TUPLE}, {@code ERROR}, {@code TYPEDESC}) are handled
+     * by recursing into their constituent type parameters.
+     *
+     * @param typeSymbol the type symbol to inspect
+     * @param builder    the builder on which to register discovered import statements
+     */
+    private void addRequiredImports(TypeSymbol typeSymbol, AbstractBuilder builder) {
+        switch (typeSymbol.typeKind()) {
+            case TYPE_REFERENCE -> {
+                Optional<ModuleSymbol> moduleSymbol = typeSymbol.getModule();
+                if (typeSymbol.getName().isEmpty() || moduleSymbol.isEmpty()) {
+                    return;  // anonymous type
+                }
+                ModuleID moduleId = moduleSymbol.get().id();
+                builder.addImport(moduleId.modulePrefix(),
+                        String.format("%s/%s:%s", moduleId.orgName(), moduleId.moduleName(), moduleId.version()));
+            }
+            case ARRAY -> addRequiredImports(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor(), builder);
+            case MAP -> addRequiredImports(((MapTypeSymbol) typeSymbol).typeParam(), builder);
+            case STREAM -> addRequiredImports(((StreamTypeSymbol) typeSymbol).typeParameter(), builder);
+            case FUTURE -> ((FutureTypeSymbol) typeSymbol).typeParameter()
+                    .ifPresent(t -> addRequiredImports(t, builder));
+            case UNION -> ((UnionTypeSymbol) typeSymbol).userSpecifiedMemberTypes()
+                    .forEach(t -> addRequiredImports(t, builder));
+            case INTERSECTION -> ((IntersectionTypeSymbol) typeSymbol).memberTypeDescriptors()
+                    .forEach(t -> addRequiredImports(t, builder));
+            case TABLE -> {
+                addRequiredImports(((TableTypeSymbol) typeSymbol).rowTypeParameter(), builder);
+                ((TableTypeSymbol) typeSymbol).keyConstraintTypeParameter()
+                        .ifPresent(t -> addRequiredImports(t, builder));
+            }
+            case TUPLE -> {
+                ((TupleTypeSymbol) typeSymbol).memberTypeDescriptors()
+                        .forEach(t -> addRequiredImports(t, builder));
+                ((TupleTypeSymbol) typeSymbol).restTypeDescriptor()
+                        .ifPresent(t -> addRequiredImports(t, builder));
+            }
+            case ERROR -> {
+                TypeSymbol detailType = ((ErrorTypeSymbol) typeSymbol).detailTypeDescriptor();
+                if (detailType != null) {
+                    addRequiredImports(detailType, builder);
+                }
+            }
+            case TYPEDESC -> ((TypeDescTypeSymbol) typeSymbol).typeParameter()
+                    .ifPresent(t -> addRequiredImports(t, builder));
+            default -> { }
+        }
     }
 
     private Object handleAsFirstClassNonIntersectionType(IntersectionTypeSymbol intersectionTypeSymbol,

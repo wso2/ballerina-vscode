@@ -71,75 +71,35 @@
         "optional": false,
         "advanced": false
       },
-      "authentication": {
+      "userName": {
         "metadata": {
-          "label": "Authentication",
-          "description": "Select the authentication method"
+          "label": "Username",
+          "description": ""
+        },
+        "codedata": {
+          "type": "IDENTIFIER"
         },
         "placeholder": "",
-        "value": 0.0,
-        "choices": [
-          {
-            "metadata": {
-              "label": "Basic Authentication",
-              "description": ""
-            },
-            "placeholder": "true",
-            "value": "true",
-            "properties": {
-              "userName": {
-                "metadata": {
-                  "label": "Username",
-                  "description": ""
-                },
-                "codedata": {
-                  "type": "IDENTIFIER"
-                },
-                "placeholder": "",
-                "value": "string `asasj \" dsad \n jans \r\n`",
-                "enabled": true,
-                "editable": true,
-                "optional": true,
-                "advanced": false
-              },
-              "password": {
-                "metadata": {
-                  "label": "Password",
-                  "description": ""
-                },
-                "codedata": {
-                  "type": "IDENTIFIER"
-                },
-                "placeholder": "",
-                "value": "\"testpwd\"",
-                "enabled": true,
-                "editable": true,
-                "optional": true,
-                "advanced": false
-              }
-            },
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          {
-            "metadata": {
-              "label": "No Authentication",
-              "description": ""
-            },
-            "placeholder": "true",
-            "value": "true",
-            "enabled": false,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          }
-        ],
+        "value": "string `asasj \" dsad \n jans \r\n`",
         "enabled": true,
         "editable": true,
-        "optional": false,
-        "advanced": true
+        "optional": true,
+        "advanced": false
+      },
+      "password": {
+        "metadata": {
+          "label": "Password",
+          "description": ""
+        },
+        "codedata": {
+          "type": "IDENTIFIER"
+        },
+        "placeholder": "",
+        "value": "\"testpwd\"",
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
       }
     }
   },
@@ -169,7 +129,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener ftp:Listener ftpListener = new(protocol= ftp:FTP, host= \"127.0.0.1\", auth= { credentials: { username: string `asasj \" dsad \n jans \n`, password: \"testpwd\" } }, port= 21, path= \"/\" );\n\nservice on ftpListener {\n}\n"
+        "newText": "\nlistener ftp:Listener ftpListener = new(protocol= ftp:FTP, host=\"127.0.0.1\", auth= { credentials: { username: string `asasj \" dsad \n jans \n`, password: \"testpwd\" } }, port= 21);\n\n@ftp:ServiceConfig {\n    path: \"/\"\n}\nservice on ftpListener {\n}\n"
       }
     ]
   }

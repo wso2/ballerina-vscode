@@ -20,5 +20,9 @@ package io.ballerina.servicemodelgenerator.extension.model.request;
 
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 
-public record ListenerModelRequest(Codedata codedata, String filePath) {
+public record ListenerModelRequest(Codedata codedata, String filePath, Boolean removeDeprecated) {
+
+    public ListenerModelRequest(Codedata codedata, String filePath) {
+        this(codedata, filePath, null);
+    }
 }

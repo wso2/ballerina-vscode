@@ -58,7 +58,7 @@
       "convertedVariable": {
         "fields": [],
         "name": "secondaryPhones",
-        "displayName": "secondaryPhones",
+        "displayName": "secondaryPhonesConverted",
         "typeName": "SecondaryPhones",
         "kind": "record",
         "category": "converted-variable",

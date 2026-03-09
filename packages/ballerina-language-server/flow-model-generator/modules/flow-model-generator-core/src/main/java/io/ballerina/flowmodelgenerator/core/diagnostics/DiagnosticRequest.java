@@ -81,8 +81,9 @@ public class DiagnosticRequest implements Callable<JsonElement> {
             return null;
         }
         Optional<Document> document = workspaceManager.document(path);
+        Optional<SemanticModel> semanticModelOp = workspaceManager.semanticModel(path);
 
-        if (document.isEmpty()) {
+        if (document.isEmpty() || semanticModelOp.isEmpty()) {
             return null;
         }
 
@@ -96,6 +97,7 @@ public class DiagnosticRequest implements Callable<JsonElement> {
         SourceBuilder sourceBuilder = new SourceBuilder(flowNodeObj, workspaceManager, path);
         Map<Path, List<TextEdit>> textEdits = NodeBuilder
                 .getNodeFromKind(flowNodeObj.codedata().node())
+                .semanticModel(semanticModelOp.get())
                 .toSource(sourceBuilder);
 
         // Apply text edits to the document
@@ -172,7 +174,7 @@ public class DiagnosticRequest implements Callable<JsonElement> {
                 .getSemanticModel(project.currentPackage().getDefaultModule().moduleId());
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, Map.of(),
                 Map.of(), updatedTextDocument, ModuleInfo.from(updatedDoc.module().descriptor()), true,
-                workspaceManager);
+                workspaceManager, path);
         node.accept(codeAnalyzer);
         List<FlowNode> flowNodes = codeAnalyzer.getFlowNodes();
         if (flowNodes.size() != 1) {
