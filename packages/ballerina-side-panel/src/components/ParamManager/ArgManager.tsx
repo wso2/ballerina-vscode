@@ -231,19 +231,18 @@ export function ArgManager(props: ArgManagerProps) {
         onChange({ ...paramConfigs, paramValues: updatedParameters });
     };
 
-    const onSaveParam = (paramConfig: Parameter) => {
-        getTypeFromArg(paramConfig.formValues['variable']).then((type) => {
-            if (type) {
-                paramConfig.formValues['type'] = type.name;
-                if (type.imports) {
-                    updateImports?.(propertyKey, type.imports);
-                }
+    const onSaveParam = async (paramConfig: Parameter) => {
+        const type = await getTypeFromArg(paramConfig.formValues['variable']);
+        if (type) {
+            paramConfig.formValues['type'] = type.name;
+            if (type.imports) {
+                updateImports?.(propertyKey, type.imports);
             }
-            onChangeParam(paramConfig);
-            setEditingSegmentId(-1);
-            setIsNew(false);
-            setSubComponentEnabled?.(false);
-        });
+        }
+        onChangeParam(paramConfig);
+        setEditingSegmentId(-1);
+        setIsNew(false);
+        setSubComponentEnabled?.(false);
     };
 
     const onParamEditCancel = (param: Parameter) => {
