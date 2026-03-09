@@ -225,7 +225,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             const startTime = Date.now();
             // For workspace, run from workspace root; for single project, run from project path
             const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
-            runCommand(command, workingDirectory).then(async () => {
+            runCommand(command, workingDirectory, run).then(async () => {
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
@@ -279,7 +279,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             const startTime = Date.now();
             // For workspace, run from workspace root; for single project, run from project path
             const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
-            runCommand(command, workingDirectory).then(async () => {
+            runCommand(command, workingDirectory, run).then(async () => {
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
@@ -334,7 +334,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             const startTime = Date.now();
             // For workspace, run from workspace root; for single project, run from project path
             const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
-            runCommand(command, workingDirectory).then(async () => {
+            runCommand(command, workingDirectory, run).then(async () => {
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
@@ -544,14 +544,31 @@ function endGroup(test: TestItem, allPassed: boolean, run: TestRun) {
     run.end();
 }
 
-async function runCommand(command: string, projectPath: string): Promise<void> {
+async function runCommand(command: string, projectPath: string, run?: TestRun): Promise<{ stdout: string; stderr: string }> {
     return new Promise((resolve, reject) => {
-        exec(command, { cwd: projectPath }, (error, stdout, stderr) => {
-            if (error) {
-                // Report test failure
+        let stdout = '';
+        let stderr = '';
+        const proc = exec(command, { cwd: projectPath });
+
+        proc.stdout?.on('data', (data: string) => {
+            stdout += data;
+            if (run) {
+                run.appendOutput(data.toString().replace(/\r?\n/g, '\r\n'));
+            }
+        });
+
+        proc.stderr?.on('data', (data: string) => {
+            stderr += data;
+            if (run) {
+                run.appendOutput(data.toString().replace(/\r?\n/g, '\r\n'));
+            }
+        });
+
+        proc.on('close', (code) => {
+            if (code !== 0) {
                 reject(new Error(stderr || 'Test failed!'));
             } else {
-                resolve();
+                resolve({ stdout, stderr });
             }
         });
     });
