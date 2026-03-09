@@ -92,7 +92,7 @@ export const executeHurlRequest = async (input: HURLInput, eventHandler: Copilot
 		eventHandler({
             type: "tool_call",
             toolName: HURL_TOOL_NAME,
-            toolInput: { hurlScript },
+            toolInput: { hurlScript: input.hurlScript, scenario: input.testScenario },
             toolCallId
         });
 		const lmToolResult = await vscode.lm.invokeTool(HURL_LM_TOOL_NAME, { input: { hurlScript }, toolInvocationToken: undefined });
@@ -123,10 +123,11 @@ export const executeHurlRequest = async (input: HURLInput, eventHandler: Copilot
 				warnings: [`Failed to execute Hurl script. Error: ${error instanceof Error ? error.message : String(error)}`]
 			}
         };
+        const toolOutput = { hurlScript: input.hurlScript, scenario: input.testScenario, runResult: genericErrorOutput };
         eventHandler({
             type: "tool_result",
             toolName: HURL_TOOL_NAME,
-            toolOutput: genericErrorOutput,
+            toolOutput: toolOutput,
             toolCallId
         });
         return genericErrorOutput;
