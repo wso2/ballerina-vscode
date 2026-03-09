@@ -1494,6 +1494,16 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
             } else {
                 builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder);
+                if (value instanceof ListConstructorExpressionNode listConstructor) {
+                    TypeSymbol rawType = CommonUtil.getRawType(paramData.typeSymbol());
+                    if (rawType.typeKind() == TypeDescKind.ARRAY) {
+                        List<Node> itemNodes = new ArrayList<>();
+                        for (Node item : listConstructor.expressions()) {
+                            itemNodes.add(item);
+                        }
+                        builder.handleRestArguments(builder, itemNodes, diagnosticHandler);
+                    }
+                }
             }
         }
     }
