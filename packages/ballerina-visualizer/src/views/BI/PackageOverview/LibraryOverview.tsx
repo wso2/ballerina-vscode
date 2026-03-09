@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     DIRECTORY_MAP,
     EVENT_TYPE,
@@ -25,7 +25,7 @@ import {
     ProjectStructureArtifactResponse,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, Icon, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, ThemeColors, Typography } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
 // ── Layout ──────────────────────────────────────────────────────────────
@@ -33,133 +33,107 @@ import styled from "@emotion/styled";
 const SectionsContainer = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 32px;
     padding: 16px;
     width: 100%;
 `;
 
-const ColumnsLayout = styled.div`
-    display: flex;
-    gap: 12px;
-    align-items: stretch;
-`;
+// ── Section panel ────────────────────────────────────────────────────────
 
-const PrimaryColumn = styled.div`
-    flex: 2;
-    position: relative;
-    min-width: 0;
-`;
-
-const PrimaryColumnInner = styled.div`
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: row;
-    gap: 12px;
-    align-items: stretch;
-`;
-
-const SecondaryColumn = styled.div`
-    flex: 3;
+const SectionPanel = styled.div`
     display: flex;
     flex-direction: column;
     gap: 10px;
-    min-width: 0;
 `;
 
-// ── Section ─────────────────────────────────────────────────────────────
-
-const Section = styled.div<{ vertical?: boolean }>`
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    border-radius: 4px;
-    overflow: hidden;
-    background: var(--vscode-sideBar-background);
-    ${(props: { vertical?: boolean }) => props.vertical ? "flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column;" : ""}
-`;
-
-const SectionHeader = styled.div<{ accentColor: string }>`
+const SectionHeader = styled.div`
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 12px 12px;
-    user-select: none;
-    background-color: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 6%, transparent);
+    align-items: flex-start;
 `;
 
-const SectionHeaderLeft = styled.div`
+const SectionInfo = styled.div`
+    display: flex;
+    flex-direction: column;
+`;
+
+const SectionTitleRow = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
 `;
 
-const SectionTitle = styled.span`
-    font-size: 14px;
-    font-weight: 500;
-    color: ${ThemeColors.ON_SURFACE};
+const SectionTitle = styled(Typography)`
+    margin: 4px 0;
+    font-size: 16px;
 `;
 
 const ItemCount = styled.span`
-    font-size: 11px;
+    font-size: 12px;
     color: ${ThemeColors.ON_SURFACE};
     opacity: 0.6;
 `;
 
-const SectionContent = styled.div<{ vertical?: boolean }>`
-    display: flex;
-    flex-wrap: ${(props: { vertical?: boolean }) => props.vertical ? "nowrap" : "wrap"};
-    flex-direction: ${(props: { vertical?: boolean }) => props.vertical ? "column" : "row"};
-    gap: 6px;
-    padding: 12px 12px;
-    ${(props: { vertical?: boolean }) => props.vertical ? "flex: 1; overflow-y: auto;" : ""}
-`;
-
-// ── Empty state label ────────────────────────────────────────────────────
-
-const EmptySectionLabel = styled.span`
+const SectionDescription = styled.p`
+    margin: 0;
     font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE};
-    opacity: 0.7;
+    color: var(--vscode-descriptionForeground);
 `;
 
+// ── Card grid ────────────────────────────────────────────────────────────
 
-// ── Construct chip ──────────────────────────────────────────────────────
-
-const ConstructItem = styled.div<{ accentColor: string; fullWidth?: boolean }>`
-    display: ${(props: { fullWidth?: boolean }) => props.fullWidth ? "flex" : "inline-flex"};
-    align-items: center;
+const CardGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 12px;
-    padding: 8px 10px;
-    border: 1px solid color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 25%, transparent);
+    width: 100%;
+`;
+
+// ── Artifact card (custom variant — supports ReactNode title for search highlight) ──
+
+const ArtifactCardRoot = styled.div`
+    padding: 12px;
     border-radius: 4px;
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    background-color: ${ThemeColors.SURFACE_DIM};
     cursor: pointer;
-    font-size: 12px;
-    color: ${(props: { accentColor: string }) => props.accentColor};
-    background: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 12%, transparent);
     &:hover {
-        background: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 20%, transparent);
-        border-color: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 40%, transparent);
-    }
-    &:hover .delete-btn {
-        display: flex;
+        background-color: ${ThemeColors.PRIMARY_CONTAINER};
+        border-color: ${ThemeColors.HIGHLIGHT};
     }
 `;
 
-const ConstructItemIcon = styled.div`
+const ArtifactCardInner = styled.div`
+    display: flex;
+    gap: 12px;
+    align-items: center;
+`;
+
+const ArtifactCardIconContainer = styled.div`
     flex-shrink: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
     > div:first-child {
-        width: 14px;
-        height: 14px;
-        font-size: 14px;
+        width: 24px;
+        height: 24px;
+        font-size: 24px;
     }
 `;
 
-const ConstructItemName = styled.span<{ flex?: boolean }>`
+const ArtifactCardContent = styled.div`
+    flex: 1;
     overflow: hidden;
+`;
+
+const ArtifactCardTitle = styled.p`
+    font-size: 13px;
+    font-weight: bold;
+    color: ${ThemeColors.ON_SURFACE};
+    margin: 0;
     white-space: nowrap;
+    overflow: hidden;
     text-overflow: ellipsis;
-    ${(props: { flex?: boolean }) => props.flex ? "flex: 1; min-width: 0;" : "max-width: 160px;"}
 `;
 
 const HighlightMatch = styled.span`
@@ -169,20 +143,62 @@ const HighlightMatch = styled.span`
     text-underline-offset: 2px;
 `;
 
-const DeleteButton = styled.div`
+// ── Empty-section "Add" card ─────────────────────────────────────────────
+
+const AddArtifactCard = styled.div`
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px dashed ${ThemeColors.OUTLINE_VARIANT};
+    background-color: transparent;
+    cursor: pointer;
+    opacity: 0.6;
+    &:hover {
+        opacity: 1;
+        background-color: ${ThemeColors.PRIMARY_CONTAINER};
+        border-color: ${ThemeColors.PRIMARY};
+        border-style: solid;
+    }
+`;
+
+// ── Card wrapper with hover delete overlay ───────────────────────────────
+
+const CardWrapper = styled.div`
+    position: relative;
+    &:hover .delete-overlay {
+        display: flex;
+    }
+`;
+
+const DeleteOverlay = styled.div`
     display: none;
+    position: absolute;
+    top: 8px;
+    right: 8px;
     align-items: center;
     justify-content: center;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
     cursor: pointer;
     color: ${ThemeColors.ON_SURFACE};
-    opacity: 0.7;
+    background: var(--vscode-sideBar-background);
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    opacity: 0.9;
+    z-index: 1;
     &:hover {
         color: ${ThemeColors.ERROR};
+        background: color-mix(in srgb, ${ThemeColors.ERROR} 10%, var(--vscode-sideBar-background));
+        border-color: color-mix(in srgb, ${ThemeColors.ERROR} 40%, transparent);
         opacity: 1;
     }
+`;
+
+// ── No-results label (search only) ───────────────────────────────────────
+
+const NoResultsLabel = styled.span`
+    font-size: 12px;
+    color: ${ThemeColors.ON_SURFACE};
+    opacity: 0.6;
 `;
 
 // ── Config ──────────────────────────────────────────────────────────────
@@ -191,10 +207,11 @@ interface SectionConfig {
     key: DIRECTORY_MAP;
     title: string;
     icon: string;
-    emptyMessage: string;
-    accentColor: string;
+    description: string;
+    addLabel: string;
     addTooltip: string;
-    column: "primary" | "secondary";
+    /** Hides the section unless isNPSupported && experimentalEnabled */
+    npOnly?: boolean;
 }
 
 const SECTIONS: SectionConfig[] = [
@@ -202,74 +219,87 @@ const SECTIONS: SectionConfig[] = [
         key: DIRECTORY_MAP.TYPE,
         title: "Types",
         icon: "bi-type",
-        emptyMessage: "No types yet",
-        accentColor: "var(--vscode-charts-purple)",
+        description: "Custom data types defined in your library.",
+        addLabel: "Add a Type",
         addTooltip: "Add New Type",
-        column: "primary",
-    },
-    {
-        key: DIRECTORY_MAP.CONFIGURABLE,
-        title: "Configurations",
-        icon: "bi-config",
-        emptyMessage: "No configurations yet",
-        accentColor: "var(--vscode-charts-yellow)",
-        addTooltip: "Add New Configuration",
-        column: "primary",
-    },
-    {
-        key: DIRECTORY_MAP.CONNECTION,
-        title: "Connections",
-        icon: "bi-connection",
-        emptyMessage: "No connections yet",
-        accentColor: "var(--vscode-charts-blue)",
-        addTooltip: "Add New Connection",
-        column: "secondary",
     },
     {
         key: DIRECTORY_MAP.FUNCTION,
         title: "Functions",
         icon: "bi-function",
-        emptyMessage: "No functions yet",
-        accentColor: "var(--vscode-charts-green)",
+        description: "Reusable functions exposed by your library.",
+        addLabel: "Add a Function",
         addTooltip: "Add New Function",
-        column: "secondary",
-    },
-    {
-        key: DIRECTORY_MAP.NP_FUNCTION,
-        title: "Natural Functions",
-        icon: "bi-ai-function",
-        emptyMessage: "No natural functions yet",
-        accentColor: "var(--vscode-charts-orange)",
-        addTooltip: "Add New Natural Function",
-        column: "secondary",
     },
     {
         key: DIRECTORY_MAP.DATA_MAPPER,
         title: "Data Mappers",
         icon: "dataMapper",
-        emptyMessage: "No data mappers yet",
-        accentColor: "var(--vscode-charts-lines)",
+        description: "Data transformation mappings for your library.",
+        addLabel: "Add a Data Mapper",
         addTooltip: "Add New Data Mapper",
-        column: "secondary",
+    },
+    {
+        key: DIRECTORY_MAP.CONNECTION,
+        title: "Connections",
+        icon: "bi-connection",
+        description: "Client connections to external services.",
+        addLabel: "Add a Connection",
+        addTooltip: "Add New Connection",
+    },
+    {
+        key: DIRECTORY_MAP.CONFIGURABLE,
+        title: "Configurations",
+        icon: "bi-config",
+        description: "Configurable values exposed by your library.",
+        addLabel: "Add a Configuration",
+        addTooltip: "Add New Configuration",
+    },
+    {
+        key: DIRECTORY_MAP.NP_FUNCTION,
+        title: "Natural Functions",
+        icon: "bi-ai-function",
+        description: "AI-powered functions written in natural language.",
+        addLabel: "Add a Natural Function",
+        addTooltip: "Add New Natural Function",
+        npOnly: true,
     },
 ];
 
-// ── Helpers ─────────────────────────────────────────────────────────────
+// ── Inline ArtifactCard component ────────────────────────────────────────
 
-function highlightName(name: string, query: string) {
-    if (!query) {
-        return <>{name}</>;
-    }
-    const idx = name.toLowerCase().indexOf(query);
-    if (idx === -1) {
-        return <>{name}</>;
-    }
+interface ArtifactCardProps {
+    icon: React.ReactNode;
+    title: string;
+    query: string;
+    onClick: () => void;
+}
+
+function ArtifactCard({ icon, title, query, onClick }: ArtifactCardProps) {
+    const highlightedTitle = useMemo(() => {
+        if (!query) return <>{title}</>;
+        const idx = title.toLowerCase().indexOf(query);
+        if (idx === -1) return <>{title}</>;
+        return (
+            <>
+                {title.slice(0, idx)}
+                <HighlightMatch>{title.slice(idx, idx + query.length)}</HighlightMatch>
+                {title.slice(idx + query.length)}
+            </>
+        );
+    }, [title, query]);
+
     return (
-        <>
-            {name.slice(0, idx)}
-            <HighlightMatch>{name.slice(idx, idx + query.length)}</HighlightMatch>
-            {name.slice(idx + query.length)}
-        </>
+        <ArtifactCardRoot onClick={onClick}>
+            <ArtifactCardInner>
+                <ArtifactCardIconContainer>
+                    {icon}
+                </ArtifactCardIconContainer>
+                <ArtifactCardContent>
+                    <ArtifactCardTitle>{highlightedTitle}</ArtifactCardTitle>
+                </ArtifactCardContent>
+            </ArtifactCardInner>
+        </ArtifactCardRoot>
     );
 }
 
@@ -278,13 +308,22 @@ function highlightName(name: string, query: string) {
 interface LibraryOverviewProps {
     projectStructure: ProjectStructure;
     searchQuery: string;
+    isNPSupported: boolean;
 }
 
 export function LibraryOverview(props: LibraryOverviewProps) {
-    const { projectStructure, searchQuery } = props;
+    const { projectStructure, searchQuery, isNPSupported } = props;
     const { rpcClient } = useRpcContext();
+    const [experimentalEnabled, setExperimentalEnabled] = useState(false);
+
+    useEffect(() => {
+        rpcClient.getCommonRpcClient().experimentalEnabled().then(setExperimentalEnabled);
+    }, [rpcClient]);
 
     const isSearching = searchQuery.trim().length > 0;
+    const query = searchQuery.trim().toLowerCase();
+
+    const showNaturalFunctions = isNPSupported && experimentalEnabled;
 
     const handleAdd = (key: DIRECTORY_MAP) => {
         if (key === DIRECTORY_MAP.CONNECTION) {
@@ -371,103 +410,100 @@ export function LibraryOverview(props: LibraryOverviewProps) {
     };
 
     const dirMap = projectStructure.directoryMap as Record<string, ProjectStructureArtifactResponse[]>;
-    const query = searchQuery.trim().toLowerCase();
 
     const sectionsWithItems = useMemo(() => {
-        return SECTIONS.map((section) => {
-            const allItems: ProjectStructureArtifactResponse[] = dirMap[section.key] ?? [];
-            const filteredItems = isSearching
-                ? allItems.filter((item) => item.name.toLowerCase().includes(query))
-                : allItems;
-            return { section, allItems, filteredItems };
-        });
-    }, [dirMap, query, isSearching]);
-
-    const primarySections = sectionsWithItems.filter((s) => s.section.column === "primary");
-    const secondarySections = sectionsWithItems.filter((s) => s.section.column === "secondary");
-
-    const renderSection = (
-        { section, allItems, filteredItems }: typeof sectionsWithItems[number],
-        vertical?: boolean,
-    ) => {
-        const displayItems = isSearching ? filteredItems : allItems;
-        const hasItems = displayItems.length > 0;
-
-        return (
-            <Section key={section.key} id={`section-${section.key}`} vertical={vertical}>
-                <SectionHeader accentColor={section.accentColor}>
-                    <SectionHeaderLeft>
-                        <Icon name={section.icon} sx={{ fontSize: 18, width: 18, height: 18 }} />
-                        <SectionTitle>{section.title}</SectionTitle>
-                        {hasItems && (
-                            <ItemCount>
-                                ({isSearching ? `${filteredItems.length}/${allItems.length}` : allItems.length})
-                            </ItemCount>
-                        )}
-                    </SectionHeaderLeft>
-                    <span title={section.addTooltip}>
-                        <Button
-                            appearance="icon"
-                            onClick={() => handleAdd(section.key)}
-                            buttonSx={{ padding: "2px 8px" }}
-                        >
-                            <Codicon name="add" sx={{ marginRight: 4 }} /> Add
-                        </Button>
-                    </span>
-                </SectionHeader>
-                {hasItems && (
-                    <SectionContent vertical={vertical}>
-                        {displayItems.map((item) => (
-                            <ConstructItem
-                                key={item.id}
-                                accentColor={section.accentColor}
-                                fullWidth={vertical}
-                                onClick={() => handleItemClick(section.key, item)}
-                            >
-                                <ConstructItemIcon>
-                                    <Icon name={section.icon} />
-                                </ConstructItemIcon>
-                                <ConstructItemName flex={vertical}>
-                                    {highlightName(item.name, query)}
-                                </ConstructItemName>
-                                {item.position && item.path && (
-                                    <DeleteButton
-                                        className="delete-btn"
-                                        onClick={(e: React.MouseEvent) => {
-                                            e.stopPropagation();
-                                            handleDelete(item);
-                                        }}
-                                    >
-                                        <Codicon name="trash" iconSx={{ fontSize: 14 }} />
-                                    </DeleteButton>
-                                )}
-                            </ConstructItem>
-                        ))}
-                    </SectionContent>
-                )}
-                {!hasItems && (
-                    <SectionContent vertical={vertical}>
-                        <EmptySectionLabel>
-                            {isSearching ? `No matching ${section.title.toLowerCase()}` : section.emptyMessage}
-                        </EmptySectionLabel>
-                    </SectionContent>
-                )}
-            </Section>
-        );
-    };
+        return SECTIONS
+            .filter((section) => !section.npOnly || showNaturalFunctions)
+            .map((section) => {
+                const allItems: ProjectStructureArtifactResponse[] = dirMap[section.key] ?? [];
+                const filteredItems = isSearching
+                    ? allItems.filter((item) => item.name.toLowerCase().includes(query))
+                    : allItems;
+                return { section, allItems, filteredItems };
+            });
+    }, [dirMap, query, isSearching, showNaturalFunctions]);
 
     return (
         <SectionsContainer>
-            <ColumnsLayout>
-                <PrimaryColumn>
-                    <PrimaryColumnInner>
-                        {primarySections.map((s) => renderSection(s, true))}
-                    </PrimaryColumnInner>
-                </PrimaryColumn>
-                <SecondaryColumn>
-                    {secondarySections.map((s) => renderSection(s))}
-                </SecondaryColumn>
-            </ColumnsLayout>
+            {sectionsWithItems.map(({ section, allItems, filteredItems }) => {
+                const displayItems = isSearching ? filteredItems : allItems;
+                const hasItems = displayItems.length > 0;
+                const isEmptyBeforeSearch = allItems.length === 0;
+
+                return (
+                    <SectionPanel key={section.key} id={`section-${section.key}`}>
+                        <SectionHeader>
+                            <SectionInfo>
+                                <SectionTitleRow>
+                                    <SectionTitle variant="h2">{section.title}</SectionTitle>
+                                    {allItems.length > 0 && (
+                                        <ItemCount>
+                                            {isSearching
+                                                ? `${filteredItems.length}/${allItems.length}`
+                                                : allItems.length}
+                                        </ItemCount>
+                                    )}
+                                </SectionTitleRow>
+                                <SectionDescription>{section.description}</SectionDescription>
+                            </SectionInfo>
+                            <span title={section.addTooltip}>
+                                <Button
+                                    appearance="icon"
+                                    onClick={() => handleAdd(section.key)}
+                                    buttonSx={{ padding: "4px 8px" }}
+                                >
+                                    <Codicon name="add" sx={{ marginRight: 4 }} /> Add
+                                </Button>
+                            </span>
+                        </SectionHeader>
+
+                        <CardGrid>
+                            {hasItems && displayItems.map((item) => (
+                                <CardWrapper key={item.id}>
+                                    <ArtifactCard
+                                        icon={<Icon name={section.icon} />}
+                                        title={item.name}
+                                        query={query}
+                                        onClick={() => handleItemClick(section.key, item)}
+                                    />
+                                    {item.position && item.path && (
+                                        <DeleteOverlay
+                                            className="delete-overlay"
+                                            onClick={(e: React.MouseEvent) => {
+                                                e.stopPropagation();
+                                                handleDelete(item);
+                                            }}
+                                        >
+                                            <Codicon name="trash" iconSx={{ fontSize: 16 }} />
+                                        </DeleteOverlay>
+                                    )}
+                                </CardWrapper>
+                            ))}
+
+                            {/* Show dashed Add card only when not searching and section is empty */}
+                            {isEmptyBeforeSearch && !isSearching && (
+                                <AddArtifactCard onClick={() => handleAdd(section.key)}>
+                                    <ArtifactCardInner>
+                                        <ArtifactCardIconContainer>
+                                            <Codicon name="add" iconSx={{ fontSize: 24, width: 24, height: 24 }} />
+                                        </ArtifactCardIconContainer>
+                                        <ArtifactCardContent>
+                                            <ArtifactCardTitle>{section.addLabel}</ArtifactCardTitle>
+                                        </ArtifactCardContent>
+                                    </ArtifactCardInner>
+                                </AddArtifactCard>
+                            )}
+
+                            {/* No search results */}
+                            {isSearching && !hasItems && (
+                                <NoResultsLabel>
+                                    No matching {section.title.toLowerCase()}
+                                </NoResultsLabel>
+                            )}
+                        </CardGrid>
+                    </SectionPanel>
+                );
+            })}
         </SectionsContainer>
     );
 }

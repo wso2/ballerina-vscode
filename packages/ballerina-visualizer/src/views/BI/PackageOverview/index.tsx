@@ -160,7 +160,16 @@ const DiagramHeaderContainer = styled.div<{ withPadding?: boolean, isLibrary?: b
     justify-content: space-between;
     align-items: center;
     margin-bottom: ${(props: { isLibrary?: boolean }) => props.isLibrary ? "0" : "16px"};
-    padding: ${(props: { withPadding: boolean; }) => (props.withPadding ? "16px 16px 0 16px" : "0")};
+    padding: ${(props: { withPadding?: boolean, isLibrary?: boolean }) =>
+        props.withPadding
+            ? props.isLibrary ? "16px 16px 12px 16px" : "16px 16px 0 16px"
+            : "0"};
+    ${(props: { isLibrary?: boolean }) => props.isLibrary ? `
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--vscode-editor-background);
+    ` : ""}
 `;
 
 const LibrarySearchBar = styled.div`
@@ -694,6 +703,7 @@ export function PackageOverview(props: PackageOverviewProps) {
     const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
     const [isWorkspace, setIsWorkspace] = useState(false);
     const [isLibrary, setIsLibrary] = useState<boolean>(false);
+    const [isNPSupported, setIsNPSupported] = useState<boolean>(false);
 
     const [librarySearchQuery, setLibrarySearchQuery] = useState("");
     const librarySearchRef = useRef<HTMLInputElement>(null);
@@ -710,6 +720,8 @@ export function PackageOverview(props: PackageOverviewProps) {
                     setIsLibrary(project.isLibrary ?? false);
                 }
             });
+
+        rpcClient.getCommonRpcClient().isNPSupported().then(setIsNPSupported);
 
         rpcClient
             .getBIDiagramRpcClient()
@@ -997,7 +1009,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                                     </ActionContainer>
                                 )}
                             </DiagramHeaderContainer>
-                            {isLibrary && <LibraryOverview projectStructure={projectStructure} searchQuery={librarySearchQuery} />}
+                            {isLibrary && <LibraryOverview projectStructure={projectStructure} searchQuery={librarySearchQuery} isNPSupported={isNPSupported} />}
                             {!isLibrary && (
                                 <DiagramContent>
                                     {isEmptyProject() ? (
