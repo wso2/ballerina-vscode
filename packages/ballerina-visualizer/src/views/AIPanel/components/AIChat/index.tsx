@@ -41,6 +41,7 @@ import {
 interface ActiveMigrationSession {
     isActive: boolean;
     mode: 'auto-fix' | 'guided-review' | 'none';
+    isEnhanced: boolean;
 }
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -164,6 +165,9 @@ const AIChat: React.FC = () => {
     const [activeMigrationSession, setActiveMigrationSession] = useState<ActiveMigrationSession | null>(null);
     const [bannerDismissed, setBannerDismissed] = useState(false);
 
+    // Buffer the default prompt text so the migration auto-send effect can fire it
+    const [pendingAutoSendText, setPendingAutoSendText] = useState<string | null>(null);
+
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
 
@@ -216,6 +220,11 @@ const AIChat: React.FC = () => {
                         if (defaultPrompt.type === 'text') {
                             setAgentMode(defaultPrompt.planMode ? AgentMode.Plan : AgentMode.Edit);
                         }
+
+                        // Store text so the migration auto-send effect can pick it up
+                        if (defaultPrompt.type === 'text' && defaultPrompt.text) {
+                            setPendingAutoSendText(defaultPrompt.text);
+                        }
                     }
                 });
         };
@@ -237,33 +246,68 @@ const AIChat: React.FC = () => {
     }, []);
 
     /**
+     * Effect: Auto-execute the AI enhancement prompt when a migration session is active.
+     * Fires once both the session state and the default prompt text have been fetched.
+     * This prevents the prompt from sitting idle in the input box requiring manual submission.
+     */
+    useEffect(function autoSubmitMigrationPrompt() {
+        if (
+            activeMigrationSession?.isActive &&
+            pendingAutoSendText &&
+            !isPromptExecutedInCurrentWindow
+        ) {
+            // Clear the input box so the prompt text is not left sitting there
+            aiChatInputRef.current?.setInputContent({ type: 'text', text: '' } as AIPanelPrompt);
+            // Consume the pending text to prevent re-triggering
+            setPendingAutoSendText(null);
+            // Auto-submit the enhancement prompt
+            handleSend({
+                input: [{ content: pendingAutoSendText }],
+                attachments: [],
+            });
+        }
+    }, [activeMigrationSession, pendingAutoSendText]);
+
+    /**
      * Effect: Fetch active migration session state once on mount.
-     * If an enhancement pipeline was started in this window, the banner
-     * will be shown in the AI chat above the messages area.
+     * Stores the session if enhancement has not been completed yet (for any mode).
+     * Retries after a delay to handle cases where the extension host (and thus
+     * `checkAndRunPendingEnhancement`) hasn't finished initializing yet.
      */
     useEffect(function fetchMigrationSession() {
-        // Wrapped in try/catch: getActiveMigrationSession may not exist on the
-        // unbuilt RPC client, causing a synchronous TypeError before the Promise
-        // chain starts (which .catch() alone cannot intercept).
-        try {
-            const client = rpcClient.getMigrateIntegrationRpcClient() as any;
-            if (typeof client?.getActiveMigrationSession !== "function") {
-                return;
+        let cancelled = false;
+
+        const tryFetch = () => {
+            try {
+                const client = rpcClient.getMigrateIntegrationRpcClient() as any;
+                console.log("[AIChat] getMigrateIntegrationRpcClient:", client);
+                if (typeof client?.getActiveMigrationSession !== "function") {
+                    console.log("[AIChat] getActiveMigrationSession not available on client");
+                    return;
+                }
+                client
+                    .getActiveMigrationSession()
+                    .then((session: ActiveMigrationSession) => {
+                        console.log("[AIChat] getActiveMigrationSession result:", JSON.stringify(session));
+                        if (!cancelled && session && !session.isEnhanced) {
+                            setActiveMigrationSession(session);
+                        }
+                    })
+                    .catch((err: unknown) => {
+                        console.log("[AIChat] Migration session fetch failed:", err);
+                    });
+            } catch (e) {
+                console.log("[AIChat] Migration session fetch error:", e);
             }
-            client
-                .getActiveMigrationSession()
-                .then((session: ActiveMigrationSession) => {
-                    if (session?.isActive) {
-                        setActiveMigrationSession(session);
-                    }
-                })
-                .catch((err: unknown) => {
-                    console.debug("[AIChat] Migration session fetch skipped:", err);
-                });
-        } catch {
-            // Non-critical – silently ignore if the RPC method is unavailable
-        }
-    }, []);
+        };
+
+        tryFetch();
+        // Retry after the extension host finishes initializing.
+        // `checkAndRunPendingEnhancement` fires on `extensionReady` which can
+        // take a few seconds after the webview first mounts.
+        const retryTimer = setTimeout(() => { if (!cancelled) tryFetch(); }, 4000);
+        return () => { cancelled = true; clearTimeout(retryTimer); };
+    }, [rpcClient]);
     /* REFACTORED CODE END [2] */
 
     const handleCheckpointRestore = async (checkpointId: string) => {
@@ -770,6 +814,20 @@ const AIChat: React.FC = () => {
             console.log("Received stop signal");
             setIsCodeLoading(false);
             setIsLoading(false);
+            // If this was a migration enhancement run, mark it complete so the banner
+            // is hidden on next reload and the toml is updated.
+            if (activeMigrationSession?.isActive) {
+                try {
+                    const client = rpcClient.getMigrateIntegrationRpcClient() as any;
+                    if (typeof client?.markEnhancementComplete === "function") {
+                        client.markEnhancementComplete().then(() => {
+                            setActiveMigrationSession((prev) =>
+                                prev ? { ...prev, isActive: false, isEnhanced: true } : prev
+                            );
+                        }).catch(console.debug);
+                    }
+                } catch { /* non-critical */ }
+            }
         } else if (type === "abort") {
             console.log("Received abort signal");
             const interruptedMessage = "\n\n*[Request interrupted by user]*";
@@ -939,6 +997,26 @@ const AIChat: React.FC = () => {
             }
         }
     }
+
+    /**
+     * Handles the user clicking "Auto-fix" or "Guided Review" fromthe "none" banner.
+     * Calls the backend to update the toml and start the pipeline, which will
+     * push a new default prompt – the `onPromptUpdated` listener picks it up and
+     * triggers the auto-submit effect.
+     */
+    const handleStartEnhancement = async (mode: 'auto-fix' | 'guided-review') => {
+        try {
+            const client = rpcClient.getMigrateIntegrationRpcClient() as any;
+            if (typeof client?.startMigrationEnhancement === "function") {
+                await client.startMigrationEnhancement(mode);
+                setActiveMigrationSession((prev) =>
+                    prev ? { ...prev, mode, isActive: true, isEnhanced: false } : prev
+                );
+            }
+        } catch (err) {
+            console.error("[AIChat] Failed to start migration enhancement:", err);
+        }
+    };
 
     async function handleSend(content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) {
         setCurrentGeneratingPromptIndex(otherMessages.length);
@@ -1467,11 +1545,14 @@ const AIChat: React.FC = () => {
                             </Button>
                         </HeaderButtons>
                     </Header>
-                    {activeMigrationSession?.isActive && !bannerDismissed && (
+                    {activeMigrationSession && !activeMigrationSession.isEnhanced && !bannerDismissed && (
                         <MigrationEnhancementBanner
                             mode={activeMigrationSession.mode}
+                            isActive={activeMigrationSession.isActive}
+                            isEnhanced={activeMigrationSession.isEnhanced}
                             messages={otherMessages}
                             onDismiss={() => setBannerDismissed(true)}
+                            onStartEnhancement={handleStartEnhancement}
                         />
                     )}
                     <main style={{ flex: 1, overflowY: "auto" }}>

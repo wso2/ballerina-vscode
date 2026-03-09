@@ -28,7 +28,6 @@ import {
     OpenSubProjectReportRequest,
     SaveMigrationReportRequest,
     StoreSubProjectReportsRequest,
-    ActiveMigrationSession
 } from "@wso2/ballerina-core";
 import os from "os";
 import path from "path";
@@ -37,7 +36,15 @@ import { StateMachine } from "../../stateMachine";
 import { createBIProjectFromMigration, getUsername, sanitizeName } from "../../utils/bi";
 import { pullMigrationTool } from "../../utils/migrate-integration";
 import { MigrationReportWebview } from "../../views/migration-report/webview";
-import { getActiveMigrationSessionState } from "../../features/ai/migration/orchestrator";
+import { getActiveMigrationSessionState, markEnhancementComplete, startMigrationEnhancement } from "../../features/ai/migration/orchestrator";
+
+type MigrationEnhancementMode = 'auto-fix' | 'guided-review' | 'none';
+
+interface ActiveMigrationSession {
+    isActive: boolean;
+    mode: MigrationEnhancementMode;
+    isEnhanced: boolean;
+}
 
 export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
     private static instance: MigrateIntegrationRpcManager;
@@ -156,7 +163,7 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
                 const aggregateReportPath = path.join(baseDir.fsPath, params.defaultFileName);
                 await vscode.workspace.fs.writeFile(
                     vscode.Uri.file(aggregateReportPath),
-                    Buffer.from(params.reportContent, 'utf8')
+                    new TextEncoder().encode(params.reportContent)
                 );
                 console.log(`Aggregate migration report saved to ${aggregateReportPath}`);
 
@@ -171,7 +178,7 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
                     // Write project report
                     await vscode.workspace.fs.writeFile(
                         vscode.Uri.file(projectReportPath),
-                        Buffer.from(reportContent, 'utf8')
+                        new TextEncoder().encode(reportContent)
                     );
                     console.log(`Project migration report saved to ${projectReportPath}`);
                 }
@@ -195,7 +202,7 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
 
             if (saveUri) {
                 // Write the report content to the selected file
-                await vscode.workspace.fs.writeFile(saveUri, Buffer.from(params.reportContent, 'utf8'));
+                await vscode.workspace.fs.writeFile(saveUri, new TextEncoder().encode(params.reportContent));
                 vscode.window.showInformationMessage(`Migration report saved to ${saveUri.fsPath}`);
             }
         }
@@ -206,6 +213,14 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
     }
 
     async getActiveMigrationSession(): Promise<ActiveMigrationSession> {
-        return getActiveMigrationSessionState();
+        return getActiveMigrationSessionState() as ActiveMigrationSession;
+    }
+
+    async markEnhancementComplete(): Promise<void> {
+        markEnhancementComplete();
+    }
+
+    async startMigrationEnhancement(mode: 'auto-fix' | 'guided-review'): Promise<void> {
+        await startMigrationEnhancement(mode);
     }
 }

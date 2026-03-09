@@ -42,7 +42,7 @@ import { debug } from "./logger";
 import { parse } from "@iarna/toml";
 import { getProjectTomlValues } from "./config";
 import { extension } from "../BalExtensionContext";
-import { scheduleMigrationEnhancement } from "../features/ai/migration/orchestrator";
+import { scheduleMigrationEnhancement, writeEnhanceToml } from "../features/ai/migration/orchestrator";
 
 export const README_FILE = "README.md";
 export const FUNCTIONS_FILE = "functions.bal";
@@ -616,11 +616,17 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
 
     debug(`BI project created successfully at ${projectRoot}`);
 
-    // Persist the AI enhancement mode so the pipeline resumes after the
-    // window reloads when vscode.openFolder is executed.
-    scheduleMigrationEnhancement(params.enhancementMode ?? 'none', path.resolve(projectRoot));
+    // Write the AI enhancement state file – acts as the source of truth for the
+    // migration UI banner.  This is done for ALL modes including "none" so the
+    // banner can offer a "Start Enhancement" button even when the user skipped.
+    const resolvedRoot = path.resolve(projectRoot);
+    writeEnhanceToml(resolvedRoot, params.enhancementMode ?? 'none', false);
 
-    commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
+    // Persist the chosen mode to VS Code global state so that
+    // checkAndRunPendingEnhancement can locate the toml after the window reload.
+    scheduleMigrationEnhancement(params.enhancementMode ?? 'none', resolvedRoot);
+
+    commands.executeCommand('vscode.openFolder', Uri.file(resolvedRoot));
 }
 
 async function createProjectFiles(project: ProjectMigrationResult, projectRoot: string) {

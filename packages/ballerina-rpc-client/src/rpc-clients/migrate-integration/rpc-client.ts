@@ -42,11 +42,14 @@ import { Messenger } from "vscode-messenger-webview";
 
 // Defined locally to avoid depending on a rebuilt @wso2/ballerina-core
 const _getActiveMigrationSession = { method: "migrate-integration/getActiveMigrationSession" } as const;
+const _markEnhancementComplete = { method: "migrate-integration/markEnhancementComplete" } as const;
+const _startMigrationEnhancement = { method: "migrate-integration/startMigrationEnhancement" } as const;
 
 /** Local mirror until @wso2/ballerina-core is rebuilt. */
-interface ActiveMigrationSession {
+export interface ActiveMigrationSession {
     isActive: boolean;
     mode: 'auto-fix' | 'guided-review' | 'none';
+    isEnhanced: boolean;
 }
 
 export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
@@ -90,5 +93,13 @@ export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
 
     getActiveMigrationSession(): Promise<ActiveMigrationSession> {
         return this._messenger.sendRequest(_getActiveMigrationSession as any, HOST_EXTENSION);
+    }
+
+    markEnhancementComplete(): Promise<void> {
+        return this._messenger.sendRequest(_markEnhancementComplete as any, HOST_EXTENSION);
+    }
+
+    startMigrationEnhancement(mode: 'auto-fix' | 'guided-review'): Promise<void> {
+        return this._messenger.sendRequest(_startMigrationEnhancement as any, HOST_EXTENSION, { mode });
     }
 }

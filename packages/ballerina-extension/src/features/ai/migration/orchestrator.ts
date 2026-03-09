@@ -14,13 +14,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import * as fs from "fs";
+import * as path from "path";
 import { MigrationEnhancementMode } from "@wso2/ballerina-core";
-import { window } from "vscode";
+import { window, workspace } from "vscode";
 import { extension } from "../../../BalExtensionContext";
 import { openAIPanelWithPrompt } from "../../../views/ai-panel/aiMachine";
 import { getAutoFixPrompt, getGuidedReviewPrompt } from "./prompts";
 import {
+    AI_ENHANCE_TOML_FILENAME,
     ActiveMigrationSessionLocal,
+    EnhanceTomlData,
+    MIGRATION_PROJECT_ROOT_KEY,
     PENDING_ENHANCEMENT_TTL_MS,
     PENDING_MIGRATION_ENHANCEMENT_KEY,
     PendingMigrationEnhancement,
@@ -31,15 +36,119 @@ import {
 // ===========================================================================
 
 /** Module-level session state – reset on each extension host lifecycle. */
-let _activeSession: ActiveMigrationSessionLocal = { isActive: false, mode: "none" };
+let _activeSession: ActiveMigrationSessionLocal = { isActive: false, mode: "none", isEnhanced: true };
+
+// ===========================================================================
+// Toml helpers – `.ai-migrate-enhance.toml`
+// ===========================================================================
+
+/**
+ * Reads and parses the `.ai-migrate-enhance.toml` from the given directory.
+ * Returns `null` if the file does not exist or cannot be parsed.
+ */
+export function readEnhanceToml(projectRoot: string): EnhanceTomlData | null {
+    try {
+        const filePath = path.join(projectRoot, AI_ENHANCE_TOML_FILENAME);
+        if (!fs.existsSync(filePath)) {
+            return null;
+        }
+        const content = fs.readFileSync(filePath, "utf8");
+        const modeMatch = content.match(/mode\s*=\s*"([^"]+)"/);
+        const enhancedMatch = content.match(/isEnhanced\s*=\s*(true|false)/);
+        return {
+            mode: (modeMatch?.[1] ?? "none") as MigrationEnhancementMode,
+            isEnhanced: enhancedMatch?.[1] === "true",
+        };
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Writes the `.ai-migrate-enhance.toml` to the given directory.
+ */
+export function writeEnhanceToml(projectRoot: string, mode: MigrationEnhancementMode, isEnhanced: boolean): void {
+    const filePath = path.join(projectRoot, AI_ENHANCE_TOML_FILENAME);
+    const content = `[enhancement]\nmode = "${mode}"\nisEnhanced = ${isEnhanced}\n`;
+    fs.writeFileSync(filePath, content);
+}
+
+// ===========================================================================
+// Session state access
+// ===========================================================================
 
 /**
  * Returns the current migration enhancement session state.
- * Used by the RPC manager to answer `getActiveMigrationSession` requests
- * from the webview.
+ * Prefers the in-memory active session; falls back to reading the toml from the
+ * current workspace/project folder when no pipeline is actively running.
  */
 export function getActiveMigrationSessionState(): ActiveMigrationSessionLocal {
+    console.log("[MigrationEnhancement] getActiveMigrationSessionState called, _activeSession:", JSON.stringify(_activeSession));
+
+    // If a pipeline is currently running in this window, return it immediately.
+    if (_activeSession.isActive) {
+        return { ..._activeSession };
+    }
+
+    // Determine the project root from the open workspace/project.
+    // _resolveCurrentProjectRoot returns the path that actually contains the toml.
+    const projectRoot = _resolveCurrentProjectRoot();
+    console.log("[MigrationEnhancement] resolved projectRoot:", projectRoot);
+    if (!projectRoot) {
+        return { ..._activeSession };
+    }
+
+    const data = readEnhanceToml(projectRoot);
+    console.log("[MigrationEnhancement] readEnhanceToml result:", JSON.stringify(data));
+    // If the toml is found, it is the source of truth.
+    if (data) {
+        return {
+            isActive: false,
+            mode: data.mode,
+            isEnhanced: data.isEnhanced,
+        };
+    }
+
+    // Toml not found – fall back to whatever _activeSession reports.
+    // checkAndRunPendingEnhancement may have set it to { isEnhanced: false }
+    // for mode="none".  If it's still the cold default (isEnhanced: true)
+    // the banner will remain hidden – that is correct for non-migration projects.
     return { ..._activeSession };
+}
+
+/**
+ * Marks the enhancement as complete by updating `isEnhanced = true` in the
+ * toml file and clearing the in-memory active session.
+ */
+export function markEnhancementComplete(): void {
+    const projectRoot = _resolveCurrentProjectRoot();
+    if (projectRoot) {
+        const data = readEnhanceToml(projectRoot);
+        if (data) {
+            writeEnhanceToml(projectRoot, data.mode, true);
+        }
+    }
+    _activeSession = { isActive: false, mode: _activeSession.mode, isEnhanced: true };
+    console.log("[MigrationEnhancement] Enhancement marked as complete.");
+}
+
+/**
+ * Allows the user to start (or re-trigger) the enhancement pipeline from the
+ * "skip" (none) state, or to switch modes.
+ * - Updates the toml with the new mode and `isEnhanced = false`.
+ * - Starts the appropriate pipeline.
+ */
+export async function startMigrationEnhancement(mode: Exclude<MigrationEnhancementMode, "none">): Promise<void> {
+    const projectRoot = _resolveCurrentProjectRoot();
+    if (projectRoot) {
+        writeEnhanceToml(projectRoot, mode, false);
+    }
+
+    if (mode === "auto-fix") {
+        await runAutoFixPipeline();
+    } else {
+        runGuidedReviewPipeline();
+    }
 }
 
 // ===========================================================================
@@ -47,31 +156,25 @@ export function getActiveMigrationSessionState(): ActiveMigrationSessionLocal {
 // ===========================================================================
 
 /**
- * Persists the chosen enhancement mode to VS Code global state so the
- * pipeline can be resumed in the freshly opened project window.
+ * Persists the chosen enhancement mode (including "none") to VS Code global
+ * state so that `checkAndRunPendingEnhancement` can find the toml file in the
+ * freshly opened project window.
  *
  * Call this right before `commands.executeCommand('vscode.openFolder', …)`.
- *
- * @param mode          The mode selected by the user in the wizard.
- * @param projectRoot   Absolute path to the new Ballerina project root.
  */
 export function scheduleMigrationEnhancement(
     mode: MigrationEnhancementMode,
     projectRoot: string
 ): void {
-    if (mode === "none") {
-        // Nothing to schedule – clear any stale entry
-        extension.context.globalState.update(PENDING_MIGRATION_ENHANCEMENT_KEY, undefined);
-        return;
-    }
-
     const entry: PendingMigrationEnhancement = {
         mode,
         projectRoot,
         timestamp: Date.now(),
     };
-
     extension.context.globalState.update(PENDING_MIGRATION_ENHANCEMENT_KEY, entry);
+    // Also persist the project root without expiry so getActiveMigrationSessionState
+    // can always resolve the toml even if the webview beats checkAndRunPendingEnhancement.
+    extension.context.globalState.update(MIGRATION_PROJECT_ROOT_KEY, projectRoot);
     console.log(`[MigrationEnhancement] Scheduled '${mode}' enhancement for project: ${projectRoot}`);
 }
 
@@ -80,13 +183,12 @@ export function scheduleMigrationEnhancement(
 // ===========================================================================
 
 /**
- * Checks whether a migration enhancement was scheduled in a previous window
- * (set by `scheduleMigrationEnhancement` before the folder reload).
- *
- * If found and still fresh, launches the appropriate pipeline:
- * - **auto-fix**:    Submits the multi-stage agent prompt without user intervention.
- * - **guided-review**: Opens the AI panel in plan mode so the user reviews
- *                      each step before it is applied.
+ * Checks whether a migration enhancement was scheduled in a previous window.
+ * Reads the `.ai-migrate-enhance.toml` from the stored project root and decides
+ * what action to take:
+ * - `mode = "auto-fix"` / `"guided-review"` + `isEnhanced = false` → run pipeline
+ * - `mode = "none"` → no pipeline, but session is set so the banner shows
+ * - `isEnhanced = true` → nothing to do
  *
  * Safe to call on every activation – a no-op when there is no pending entry.
  */
@@ -109,18 +211,31 @@ export async function checkAndRunPendingEnhancement(): Promise<void> {
         return;
     }
 
-    console.log(
-        `[MigrationEnhancement] Resuming '${stored.mode}' pipeline for: ${stored.projectRoot}`
-    );
+    // Read the toml from disk – it is the single source of truth
+    const data = readEnhanceToml(stored.projectRoot);
+    if (!data) {
+        console.warn(`[MigrationEnhancement] No toml found at: ${stored.projectRoot}`);
+        return;
+    }
 
-    switch (stored.mode) {
+    if (data.isEnhanced) {
+        console.log("[MigrationEnhancement] Enhancement already completed – nothing to do.");
+        return;
+    }
+
+    console.log(`[MigrationEnhancement] Resuming '${data.mode}' pipeline for: ${stored.projectRoot}`);
+
+    switch (data.mode) {
         case "auto-fix":
             await runAutoFixPipeline();
             break;
         case "guided-review":
             runGuidedReviewPipeline();
             break;
-        default:
+        case "none":
+            // User skipped – expose the session so the banner shows with a "Start" button.
+            _activeSession = { isActive: false, mode: "none", isEnhanced: false };
+            console.log("[MigrationEnhancement] Skip mode – banner will be shown for manual trigger.");
             break;
     }
 }
@@ -129,22 +244,14 @@ export async function checkAndRunPendingEnhancement(): Promise<void> {
 // Pipeline implementations
 // ===========================================================================
 
-/**
- * **Auto-fix pipeline**
- *
- * Opens the AI panel and immediately submits the comprehensive multi-stage
- * migration prompt.  The agent runs without requiring user confirmation
- * at each step (plan mode is disabled).
- */
 async function runAutoFixPipeline(): Promise<void> {
     try {
-        _activeSession = { isActive: true, mode: "auto-fix" };
+        _activeSession = { isActive: true, mode: "auto-fix", isEnhanced: false };
         openAIPanelWithPrompt({
             type: "text",
             text: getAutoFixPrompt(),
             planMode: false,
         });
-
         console.log("[MigrationEnhancement] Auto-fix pipeline started.");
     } catch (error) {
         console.error("[MigrationEnhancement] Failed to start auto-fix pipeline:", error);
@@ -154,22 +261,14 @@ async function runAutoFixPipeline(): Promise<void> {
     }
 }
 
-/**
- * **Guided-review pipeline**
- *
- * Opens the AI panel in plan mode with the guided-review prompt
- * pre-populated.  The agent will propose a plan for each step and the
- * user approves or modifies it before changes are applied.
- */
 function runGuidedReviewPipeline(): void {
     try {
-        _activeSession = { isActive: true, mode: "guided-review" };
+        _activeSession = { isActive: true, mode: "guided-review", isEnhanced: false };
         openAIPanelWithPrompt({
             type: "text",
             text: getGuidedReviewPrompt(),
             planMode: true,
         });
-
         console.log("[MigrationEnhancement] Guided-review pipeline opened.");
     } catch (error) {
         console.error("[MigrationEnhancement] Failed to open guided-review pipeline:", error);
@@ -177,4 +276,39 @@ function runGuidedReviewPipeline(): void {
             `Migration AI enhancement failed to open: ${error instanceof Error ? error.message : String(error)}`
         );
     }
+}
+
+// ===========================================================================
+// Internal helpers
+// ===========================================================================
+
+function _resolveCurrentProjectRoot(): string | undefined {
+    // Build a list of candidate paths to check for the toml file.
+    const candidates: string[] = [];
+
+    const folders = workspace.workspaceFolders;
+    if (folders && folders.length > 0) {
+        candidates.push(folders[0].uri.fsPath);
+    }
+
+    // Also check the project root stored persistently at migration time.
+    const stored = extension.context.globalState.get<string>(MIGRATION_PROJECT_ROOT_KEY);
+    console.log("[MigrationEnhancement] stored MIGRATION_PROJECT_ROOT_KEY:", stored);
+    if (stored && !candidates.includes(stored)) {
+        candidates.push(stored);
+    }
+
+    // Return the first candidate that actually contains the toml file.
+    for (const candidate of candidates) {
+        const tomlPath = path.join(candidate, AI_ENHANCE_TOML_FILENAME);
+        const exists = fs.existsSync(tomlPath);
+        console.log("[MigrationEnhancement] checking toml at:", tomlPath, "exists:", exists);
+        if (exists) {
+            return candidate;
+        }
+    }
+
+    // No toml found in any candidate – still return the workspace folder so
+    // the caller can decide (it will get null from readEnhanceToml and fall back).
+    return candidates[0];
 }
