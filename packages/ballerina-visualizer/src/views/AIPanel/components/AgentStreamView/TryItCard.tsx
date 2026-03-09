@@ -18,7 +18,7 @@
 
 import styled from "@emotion/styled";
 import React, { useState } from "react";
-import { HTTPErrorResponse, HTTPResponse, ParsedHTTPRequest } from "../TryItScenariosSegment/types";
+import { HTTPErrorResponse, HTTPResponse, ParsedHTTPRequest, HurlToolOutput } from "../TryItScenariosSegment/types";
 import {
     InlineCard,
     InlineCardHeader,
@@ -273,6 +273,12 @@ interface HTTPRequestDetailProps {
     output?: HTTPResponse | HTTPErrorResponse;
 }
 
+interface HTTPTestScenarioDetailProps {
+    loading:boolean;
+    input?: HurlToolOutput["input"];
+    output?: HurlToolOutput["output"];
+}
+
 const HTTPRequestDetail: React.FC<HTTPRequestDetailProps> = ({ request, output }) => {
     const [expanded, setExpanded] = useState(false);
 
@@ -361,23 +367,142 @@ const HTTPRequestDetail: React.FC<HTTPRequestDetailProps> = ({ request, output }
     );
 };
 
+interface HTTPEntryRowProps {
+    entry: HurlToolOutput["output"]["entries"][number];
+    request?: HurlToolOutput["input"]["requests"][number];
+}
+
+const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request }) => {
+    const [expanded, setExpanded] = useState(false);
+    const isPassed = entry.status === "passed";
+
+    return (
+        <>
+            <RequestRow>
+                <InlineCardIcon style={{ fontSize: 12, color: isPassed ? "var(--vscode-charts-green, #388a34)" : "var(--vscode-errorForeground)" }}>
+                    <span className={`codicon ${isPassed ? "codicon-check" : "codicon-chrome-close"}`} />
+                </InlineCardIcon>
+                {entry.method && <MethodBadge method={entry.method}>{entry.method}</MethodBadge>}
+                <UrlLabel>{entry.url ?? entry.name}</UrlLabel>
+                {entry.statusCode !== undefined && <StatusBadge status={entry.statusCode}>{entry.statusCode}</StatusBadge>}
+                <ExpandButton onClick={() => setExpanded(p => !p)} title={expanded ? "Collapse" : "Expand"}>
+                    <span className={`codicon ${expanded ? "codicon-chevron-up" : "codicon-chevron-down"}`} />
+                </ExpandButton>
+            </RequestRow>
+
+            {expanded && (
+                <DetailsBlock>
+                    {request && (
+                        <Section>
+                            <SectionLabel>Request</SectionLabel>
+                            <CodeBlock>
+                                <InnerSection>
+                                    <StatusLine>
+                                        <span style={{ color: METHOD_COLORS[request.method?.toUpperCase()] ?? "#666", fontWeight: 700, fontSize: 11 }}>
+                                            {request.method}
+                                        </span>
+                                        <span style={{ color: "var(--vscode-textLink-foreground)", fontSize: 11 }}>{request.url}</span>
+                                    </StatusLine>
+                                </InnerSection>
+                                {request.headers?.length > 0 && renderHeaders(Object.fromEntries(request.headers.map(h => [h.key, h.value])))}
+                                {renderBody(request.body)}
+                            </CodeBlock>
+                        </Section>
+                    )}
+
+                    <Section>
+                        <SectionLabel>Response</SectionLabel>
+                        <CodeBlock>
+                            {entry.statusCode !== undefined && (
+                                <InnerSection>
+                                    <StatusLine>
+                                        <StatusCode status={entry.statusCode}>{entry.statusCode}</StatusCode>
+                                    </StatusLine>
+                                </InnerSection>
+                            )}
+                            {entry.responseHeaders && entry.responseHeaders.length > 0 && renderHeaders(Object.fromEntries(entry.responseHeaders.map(h => [h.name, h.value])))}
+                            {renderBody(entry.responseBody)}
+                        </CodeBlock>
+                    </Section>
+
+                    {entry.assertions && entry.assertions.length > 0 && (
+                        <Section>
+                            <SectionLabel>Assertions</SectionLabel>
+                            {entry.assertions.map((assertion, aidx) => (
+                                <CodeBlock key={aidx} style={{ borderColor: assertion.status === "passed" ? "var(--vscode-charts-green, #388a34)" : "var(--vscode-errorForeground)" }}>
+                                    <span style={{ color: assertion.status === "passed" ? "var(--vscode-charts-green, #388a34)" : "var(--vscode-errorForeground)", fontWeight: 700 }}>
+                                        {assertion.status.toUpperCase()}
+                                    </span>
+                                    {" "}{assertion.expression}
+                                    {assertion.message && <span style={{ color: "var(--vscode-descriptionForeground)" }}> — {assertion.message}</span>}
+                                    {assertion.expected !== undefined && assertion.actual !== undefined && (
+                                        <span style={{ color: "var(--vscode-descriptionForeground)" }}> (Expected: {assertion.expected}, Actual: {assertion.actual})</span>
+                                    )}
+                                </CodeBlock>
+                            ))}
+                        </Section>
+                    )}
+
+                    {entry.errorMessage && (
+                        <Section>
+                            <SectionLabel>Error</SectionLabel>
+                            <ErrorMessage>{entry.errorMessage}</ErrorMessage>
+                        </Section>
+                    )}
+                </DetailsBlock>
+            )}
+        </>
+    );
+};
+
+const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading, input, output }) => {
+    if (loading) {
+        return (
+            <StatusLine>
+                <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
+                    <span className="codicon codicon-loading codicon-modifier-spin" />
+                </InlineCardIcon>
+                <span>Running test scenario...</span>
+            </StatusLine>
+        );
+    }
+
+    if (!output) return null;
+
+    return (
+        <>
+            <SubHeader>Summary</SubHeader>
+            <StatusLine style={{ marginBottom: 6 }}>
+                <span>Total: {output.summary.totalEntries}</span>
+                <span style={{ color: "var(--vscode-charts-green, #388a34)", marginLeft: 10 }}>Passed: {output.summary.passedEntries}</span>
+                <span style={{ color: "var(--vscode-errorForeground)", marginLeft: 10 }}>Failed: {output.summary.failedEntries}</span>
+            </StatusLine>
+
+            {output.entries.map((entry, idx) => (
+                <HTTPEntryRow key={idx} entry={entry} request={input?.requests[idx]} />
+            ))}
+        </>
+    );
+}
+
 // ── TryItCard ─────────────────────────────────────────────────────────────────
 
 interface TryItCardProps {
     input?: any;
-    output?: any;
+    output?: {hurlScript: string; scenario?: string; runResult: HurlToolOutput};
 }
 
 const TryItCard: React.FC<TryItCardProps> = ({ input, output }) => {
-    if (!input?.request) return null;
+    if (!input?.hurlScript && !output?.hurlScript) return null;
 
-    const hasScenario = !!(input.scenario || output?.scenario);
-    const scenario = input.scenario ?? output?.scenario;
+    const hasScenario = !!(input?.scenario || output?.scenario);
+    const scenario = input?.scenario ?? output?.scenario;
 
     const content = (
-        <HTTPRequestDetail
-            request={output?.request ?? input.request}
-            output={output?.output}
+        <HTTPTestScenarioDetail
+            loading={!output}
+            input={output?.runResult?.input}
+            output={output?.runResult?.output}
         />
     );
 
@@ -387,7 +512,7 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output }) => {
                 <InlineCardIcon>
                     <span className="codicon codicon-send" />
                 </InlineCardIcon>
-                <InlineCardTitle>HTTP Request</InlineCardTitle>
+                <InlineCardTitle>HTTP Test Scenario</InlineCardTitle>
             </InlineCardHeader>
 
             {hasScenario ? (
