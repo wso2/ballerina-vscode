@@ -70,6 +70,7 @@ export interface DataMapperExpressionBarState {
     lastFocusedPort: InputOutputPortModel;
     lastFocusedFilter: Node;
     inputPort: InputOutputPortModel;
+    allowInputs: boolean;
     setFocusedPort: (port: InputOutputPortModel) => void;
     setFocusedFilter: (port: Node) => void;
     setLastFocusedPort: (port: InputOutputPortModel) => void;
@@ -137,17 +138,19 @@ export const useDMExpressionBarStore = create<DataMapperExpressionBarState>((set
     focusedFilter: undefined,
     lastFocusedPort: undefined,
     lastFocusedFilter: undefined,
+    inputPort: undefined,
+    allowInputs: undefined,
     setFocusedPort: (focusedPort: InputOutputPortModel) => set((state) => ({ lastFocusedPort: state.focusedPort, focusedPort })),
     setFocusedFilter: (focusedFilter: Node) => set({ focusedFilter }),
     setLastFocusedPort: (lastFocusedPort: InputOutputPortModel) => set({ lastFocusedPort }),
     setLastFocusedFilter: (lastFocusedFilter: Node) => set({ lastFocusedFilter }),
-    inputPort: undefined,
     setInputPort: (inputPort: InputOutputPortModel) => set({ inputPort }),
     resetFocus: () => set((state) => ({
         lastFocusedPort: state.focusedPort,
         lastFocusedFilter: state.focusedFilter,
         focusedPort: undefined,
-        focusedFilter: undefined
+        focusedFilter: undefined,
+        allowInputs: undefined
     })),
     resetInputPort: () => set({ inputPort: undefined }),
     // Complete state cleanup for component unmounting to prevent stale references
@@ -156,7 +159,8 @@ export const useDMExpressionBarStore = create<DataMapperExpressionBarState>((set
         focusedFilter: undefined,
         lastFocusedPort: undefined,
         lastFocusedFilter: undefined,
-        inputPort: undefined
+        inputPort: undefined,
+        allowInputs: undefined
     })
 }));
 

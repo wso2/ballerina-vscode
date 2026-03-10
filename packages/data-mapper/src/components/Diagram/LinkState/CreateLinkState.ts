@@ -53,7 +53,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 					const isValueConfig = (actionEvent.event.target as Element)
 						.closest('div[id^="value-config"]');
 
-					const { focusedPort, focusedFilter } = useDMExpressionBarStore.getState();
+					const { focusedPort, focusedFilter, allowInputs } = useDMExpressionBarStore.getState();
 					const isExprBarFocused = focusedPort || focusedFilter;
 
 					if (element === null) {
@@ -114,7 +114,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 						this.temporaryLink = undefined;
 					}
 
-					if (isExprBarFocused && element instanceof InputOutputPortModel && element.attributes.portType === "OUT") {
+					if (isExprBarFocused && allowInputs && element instanceof InputOutputPortModel && element.attributes.portType === "OUT") {
 						element.fireEvent({}, "addToExpression");
 						this.clearState();
 						this.eject();
