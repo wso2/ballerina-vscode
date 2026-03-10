@@ -43,9 +43,12 @@ import {
     runMigrationAgent,
     abortMigrationAgent,
     setMigrationModelId,
+    setWizardProjectRoot,
+    runWizardMigrationEnhancement,
+    openMigratedProject,
 } from "../../features/ai/migration/orchestrator";
 
-type MigrationEnhancementMode = 'auto-fix' | 'guided-review' | 'none';
+type MigrationEnhancementMode = 'auto-fix' | 'none';
 
 interface ActiveMigrationSession {
     isActive: boolean;
@@ -216,7 +219,14 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
     }
 
     async migrateProject(params: MigrateRequest): Promise<void> {
-        createBIProjectFromMigration(params);
+        const projectRoot = await createBIProjectFromMigration(params);
+
+        if (params.enhancementMode === 'auto-fix' && projectRoot) {
+            // Store the project root for wizard-level AI enhancement.
+            // The webview will call wizardEnhancementReady once it shows the
+            // enhancement step, which triggers the agent.
+            setWizardProjectRoot(projectRoot, params.sourcePath);
+        }
     }
 
     async getActiveMigrationSession(): Promise<ActiveMigrationSession> {
@@ -227,7 +237,7 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
         markEnhancementComplete();
     }
 
-    async startMigrationEnhancement(mode: 'auto-fix' | 'guided-review'): Promise<void> {
+    async startMigrationEnhancement(mode: 'auto-fix'): Promise<void> {
         await startMigrationEnhancement(mode);
     }
 
@@ -244,6 +254,25 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
                 console.error("[MigrateIntegrationRpc] Migration agent failed:", err)
             );
         }
+    }
+
+    /**
+     * Called by the Visualizer webview (ImportIntegration wizard) once the
+     * AI enhancement step is visible and ready to receive streaming events.
+     * Kicks off the wizard-level migration agent.
+     */
+    async wizardEnhancementReady(): Promise<void> {
+        runWizardMigrationEnhancement().catch((err) =>
+            console.error("[MigrateIntegrationRpc] Wizard migration agent failed:", err)
+        );
+    }
+
+    /**
+     * Opens the migrated project in VS Code after wizard-level AI enhancement
+     * completes or the user skips it.
+     */
+    async openMigratedProjectInVSCode(): Promise<void> {
+        openMigratedProject();
     }
 
     async abortMigrationAgent(): Promise<void> {

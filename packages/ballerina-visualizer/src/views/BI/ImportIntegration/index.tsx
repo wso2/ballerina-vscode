@@ -34,6 +34,7 @@ import { useEffect, useState } from "react";
 import { ConfigureProjectForm } from "./ConfigureProjectForm";
 import { ImportIntegrationForm } from "./ImportIntegrationForm";
 import { MigrationProgressView } from "./MigrationProgressView";
+import { WizardAIEnhancementView } from "./WizardAIEnhancementView";
 import { FormContainer, TitleContainer, IconButton } from "./styles";
 import { FinalIntegrationParams, MigrationEnhancementMode } from "./types";
 
@@ -53,8 +54,11 @@ export function ImportIntegration() {
     const [migrationCompleted, setMigrationCompleted] = useState(false);
     const [migrationSuccessful, setMigrationSuccessful] = useState(false);
     const [migrationResponse, setMigrationResponse] = useState<ImportIntegrationResponse | null>(null);
+    const [aiEnhancementEnabled, setAiEnhancementEnabled] = useState(false);
 
-    const defaultSteps = ["Select Source Project", "Migration Status", "Create and Open Project"];
+    const steps = aiEnhancementEnabled
+        ? ["Select Source Project", "Migration Status", "Configure Project", "AI Enhancement"]
+        : ["Select Source Project", "Migration Status", "Create and Open Project"];
 
     const isMultiProject = migratedProjects.length! > 0;
 
@@ -107,8 +111,18 @@ export function ImportIntegration() {
                 textEdits: migrationResponse.textEdits,
                 projects: migratedProjects,
                 enhancementMode,
+                sourcePath: importParams?.importSourcePath,
             };
             rpcClient.getMigrateIntegrationRpcClient().migrateProject(params);
+
+            // Track whether AI enhancement is enabled for the stepper
+            setAiEnhancementEnabled(enhancementMode === 'auto-fix');
+
+            if (enhancementMode === 'auto-fix') {
+                // Advance to the AI Enhancement step (step 3)
+                setStep(3);
+            }
+            // When mode is 'none', migrateProject opens the project directly
         }
     };
 
@@ -188,7 +202,7 @@ export function ImportIntegration() {
             </TitleContainer>
 
             <StepperContainer style={{ marginBottom: "4%" }}>
-                <Stepper alignment="flex-start" steps={defaultSteps} currentStep={step} />
+                <Stepper alignment="flex-start" steps={steps} currentStep={step} />
             </StepperContainer>
             {step === 0 && (
                 <ImportIntegrationForm
@@ -216,7 +230,8 @@ export function ImportIntegration() {
                     onBack={handleStepBack}
                 />
             )}
-            {step === 2 && <ConfigureProjectForm isMultiProject={isMultiProject} onNext={handleCreateIntegrationFiles} onBack={handleStepBack} />}
+            {step === 2 && <ConfigureProjectForm isMultiProject={isMultiProject} importSourcePath={importParams?.importSourcePath} onNext={handleCreateIntegrationFiles} onBack={handleStepBack} />}
+            {step === 3 && <WizardAIEnhancementView />}
         </FormContainer>
     );
 }

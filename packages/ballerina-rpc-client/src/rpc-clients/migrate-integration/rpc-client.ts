@@ -44,11 +44,14 @@ import { Messenger } from "vscode-messenger-webview";
 const _getActiveMigrationSession = { method: "migrate-integration/getActiveMigrationSession" } as const;
 const _markEnhancementComplete = { method: "migrate-integration/markEnhancementComplete" } as const;
 const _startMigrationEnhancement = { method: "migrate-integration/startMigrationEnhancement" } as const;
+const _wizardEnhancementReady = { method: "migrate-integration/wizardEnhancementReady" } as const;
+const _openMigratedProject = { method: "migrate-integration/openMigratedProject" } as const;
+const _abortMigrationAgent = { method: "migrate-integration/abortMigrationAgent" } as const;
 
 /** Local mirror until @wso2/ballerina-core is rebuilt. */
 export interface ActiveMigrationSession {
     isActive: boolean;
-    mode: 'auto-fix' | 'guided-review' | 'none';
+    mode: 'auto-fix' | 'none';
     isEnhanced: boolean;
 }
 
@@ -99,7 +102,31 @@ export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
         return this._messenger.sendRequest(_markEnhancementComplete as any, HOST_EXTENSION);
     }
 
-    startMigrationEnhancement(mode: 'auto-fix' | 'guided-review'): Promise<void> {
+    startMigrationEnhancement(mode: 'auto-fix'): Promise<void> {
         return this._messenger.sendRequest(_startMigrationEnhancement as any, HOST_EXTENSION, { mode });
+    }
+
+    /**
+     * Tells the extension backend that the wizard AI enhancement view is
+     * visible and ready to receive streaming events.  Triggers the
+     * wizard-level migration agent.
+     */
+    wizardEnhancementReady(): Promise<void> {
+        return this._messenger.sendRequest(_wizardEnhancementReady as any, HOST_EXTENSION);
+    }
+
+    /**
+     * Opens the migrated project in VS Code.
+     * Called after wizard-level AI enhancement completes or the user skips it.
+     */
+    openMigratedProject(): Promise<void> {
+        return this._messenger.sendRequest(_openMigratedProject as any, HOST_EXTENSION);
+    }
+
+    /**
+     * Aborts the currently running migration AI agent.
+     */
+    abortMigrationAgent(): Promise<void> {
+        return this._messenger.sendRequest(_abortMigrationAgent as any, HOST_EXTENSION);
     }
 }

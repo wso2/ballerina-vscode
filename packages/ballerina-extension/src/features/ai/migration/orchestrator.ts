@@ -17,14 +17,14 @@
 import * as fs from "fs";
 import * as path from "path";
 import { Command, MigrationEnhancementMode } from "@wso2/ballerina-core";
-import { window, workspace } from "vscode";
+import { commands, Uri, window, workspace } from "vscode";
 import { extension } from "../../../BalExtensionContext";
 import { StateMachine } from "../../../stateMachine";
 import { openMigrationPanel } from "../../../views/migration-panel/activate";
 import { AgentExecutor } from "../agent/AgentExecutor";
 import { AICommandConfig } from "../executors/base/AICommandExecutor";
-import { createMigrationEventHandler } from "../utils/events";
-import { getAutoFixPrompt, getGuidedReviewPrompt } from "./prompts";
+import { createMigrationEventHandler, createVisualizerMigrationEventHandler } from "../utils/events";
+import { getAutoFixPrompt } from "./prompts";
 import {
     AI_ENHANCE_TOML_FILENAME,
     ActiveMigrationSessionLocal,
@@ -59,9 +59,11 @@ export function readEnhanceToml(projectRoot: string): EnhanceTomlData | null {
         const content = fs.readFileSync(filePath, "utf8");
         const modeMatch = content.match(/mode\s*=\s*"([^"]+)"/);
         const enhancedMatch = content.match(/isEnhanced\s*=\s*(true|false)/);
+        const sourcePathMatch = content.match(/sourcePath\s*=\s*"([^"]+)"/);
         return {
             mode: (modeMatch?.[1] ?? "none") as MigrationEnhancementMode,
             isEnhanced: enhancedMatch?.[1] === "true",
+            sourcePath: sourcePathMatch?.[1],
         };
     } catch {
         return null;
@@ -71,9 +73,17 @@ export function readEnhanceToml(projectRoot: string): EnhanceTomlData | null {
 /**
  * Writes the `.ai-migrate-enhance.toml` to the given directory.
  */
-export function writeEnhanceToml(projectRoot: string, mode: MigrationEnhancementMode, isEnhanced: boolean): void {
+export function writeEnhanceToml(
+    projectRoot: string,
+    mode: MigrationEnhancementMode,
+    isEnhanced: boolean,
+    sourcePath?: string,
+): void {
     const filePath = path.join(projectRoot, AI_ENHANCE_TOML_FILENAME);
-    const content = `[enhancement]\nmode = "${mode}"\nisEnhanced = ${isEnhanced}\n`;
+    let content = `[enhancement]\nmode = "${mode}"\nisEnhanced = ${isEnhanced}\n`;
+    if (sourcePath) {
+        content += `sourcePath = "${sourcePath}"\n`;
+    }
     fs.writeFileSync(filePath, content);
 }
 
@@ -129,7 +139,7 @@ export function markEnhancementComplete(): void {
     if (projectRoot) {
         const data = readEnhanceToml(projectRoot);
         if (data) {
-            writeEnhanceToml(projectRoot, data.mode, true);
+            writeEnhanceToml(projectRoot, data.mode, true, data.sourcePath);
         }
     }
     _activeSession = { isActive: false, mode: _activeSession.mode, isEnhanced: true };
@@ -145,14 +155,11 @@ export function markEnhancementComplete(): void {
 export async function startMigrationEnhancement(mode: Exclude<MigrationEnhancementMode, "none">): Promise<void> {
     const projectRoot = _resolveCurrentProjectRoot();
     if (projectRoot) {
-        writeEnhanceToml(projectRoot, mode, false);
+        const existing = readEnhanceToml(projectRoot);
+        writeEnhanceToml(projectRoot, mode, false, existing?.sourcePath);
     }
 
-    if (mode === "auto-fix") {
-        await runAutoFixPipeline();
-    } else {
-        runGuidedReviewPipeline();
-    }
+    await runAutoFixPipeline();
 }
 
 // ===========================================================================
@@ -168,12 +175,14 @@ export async function startMigrationEnhancement(mode: Exclude<MigrationEnhanceme
  */
 export function scheduleMigrationEnhancement(
     mode: MigrationEnhancementMode,
-    projectRoot: string
+    projectRoot: string,
+    sourcePath?: string,
 ): void {
     const entry: PendingMigrationEnhancement = {
         mode,
         projectRoot,
         timestamp: Date.now(),
+        sourcePath,
     };
     extension.context.globalState.update(PENDING_MIGRATION_ENHANCEMENT_KEY, entry);
     // Also persist the project root without expiry so getActiveMigrationSessionState
@@ -190,7 +199,7 @@ export function scheduleMigrationEnhancement(
  * Checks whether a migration enhancement was scheduled in a previous window.
  * Reads the `.ai-migrate-enhance.toml` from the stored project root and decides
  * what action to take:
- * - `mode = "auto-fix"` / `"guided-review"` + `isEnhanced = false` → run pipeline
+ * - `mode = "auto-fix"` + `isEnhanced = false` → run pipeline
  * - `mode = "none"` → no pipeline, but session is set so the banner shows
  * - `isEnhanced = true` → nothing to do
  *
@@ -233,9 +242,6 @@ export async function checkAndRunPendingEnhancement(): Promise<void> {
         case "auto-fix":
             await runAutoFixPipeline();
             break;
-        case "guided-review":
-            runGuidedReviewPipeline();
-            break;
         case "none":
             // User skipped – expose the session so the banner shows with a "Start" button.
             _activeSession = { isActive: false, mode: "none", isEnhanced: false };
@@ -259,20 +265,6 @@ async function runAutoFixPipeline(): Promise<void> {
         console.error("[MigrationEnhancement] Failed to start auto-fix pipeline:", error);
         window.showErrorMessage(
             `Migration AI enhancement failed to start: ${error instanceof Error ? error.message : String(error)}`
-        );
-    }
-}
-
-function runGuidedReviewPipeline(): void {
-    try {
-        _activeSession = { isActive: true, mode: "guided-review", isEnhanced: false };
-        // Open the standalone migration panel for guided review.
-        openMigrationPanel();
-        console.log("[MigrationEnhancement] Guided-review pipeline opened – migration panel opened.");
-    } catch (error) {
-        console.error("[MigrationEnhancement] Failed to open guided-review pipeline:", error);
-        window.showErrorMessage(
-            `Migration AI enhancement failed to open: ${error instanceof Error ? error.message : String(error)}`
         );
     }
 }
@@ -316,7 +308,7 @@ export async function runMigrationAgent(): Promise<void> {
         return;
     }
 
-    const prompt = mode === "auto-fix" ? getAutoFixPrompt() : getGuidedReviewPrompt();
+    const prompt = getAutoFixPrompt();
 
     _migrationAbortController = new AbortController();
 
@@ -331,7 +323,7 @@ export async function runMigrationAgent(): Promise<void> {
         params: {
             usecase: prompt,
             fileAttachmentContents: [],
-            isPlanMode: mode === "guided-review",
+            isPlanMode: false,
         },
         // No chat storage – migration runs are single-shot
         chatStorage: undefined,
@@ -366,6 +358,105 @@ export function abortMigrationAgent(): void {
         _migrationAbortController.abort();
         console.log("[MigrationEnhancement] Abort signal sent to migration agent.");
     }
+}
+
+// ===========================================================================
+// Wizard-level AI Enhancement
+// ===========================================================================
+
+/** The project root created by the wizard that hasn't been opened yet. */
+let _wizardProjectRoot: string | undefined;
+/** The original source path for the wizard enhancement. */
+let _wizardSourcePath: string | undefined;
+
+/**
+ * Called by the RPC manager after `createBIProjectFromMigration` returns the
+ * project root (when `enhancementMode === 'auto-fix'`).  Stores the project
+ * root so the wizard enhancement can be kicked off from the webview.
+ */
+export function setWizardProjectRoot(projectRoot: string, sourcePath?: string): void {
+    _wizardProjectRoot = projectRoot;
+    _wizardSourcePath = sourcePath;
+}
+
+/**
+ * Runs the AI enhancement agent against the wizard-created project.
+ * Streams events to the Visualizer webview instead of the Migration Panel.
+ * Called when the wizard enhancement step is ready.
+ */
+export async function runWizardMigrationEnhancement(): Promise<void> {
+    const projectRoot = _wizardProjectRoot;
+    if (!projectRoot) {
+        window.showErrorMessage("Migration enhancement: no project root set for wizard enhancement.");
+        return;
+    }
+
+    const prompt = getAutoFixPrompt();
+
+    _migrationAbortController = new AbortController();
+
+    const config: AICommandConfig = {
+        executionContext: {
+            projectPath: projectRoot,
+            workspacePath: projectRoot,
+        },
+        eventHandler: createVisualizerMigrationEventHandler(Command.Agent),
+        generationId: `wizard-migration-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        abortController: _migrationAbortController,
+        params: {
+            usecase: prompt,
+            fileAttachmentContents: [],
+            isPlanMode: false,
+        },
+        chatStorage: undefined,
+        lifecycle: {
+            cleanupStrategy: "immediate",
+        },
+    };
+
+    console.log(`[MigrationEnhancement] Starting wizard migration agent – projectRoot: ${projectRoot}`);
+
+    try {
+        await new AgentExecutor(config).run();
+        // Agent finished successfully – mark enhancement as complete in the toml
+        const data = readEnhanceToml(projectRoot);
+        if (data) {
+            writeEnhanceToml(projectRoot, data.mode, true, data.sourcePath);
+        }
+        console.log("[MigrationEnhancement] Wizard migration agent completed successfully.");
+    } catch (error) {
+        if (_migrationAbortController.signal.aborted) {
+            console.log("[MigrationEnhancement] Wizard migration agent was aborted by user.");
+        } else {
+            console.error("[MigrationEnhancement] Wizard migration agent error:", error);
+        }
+    } finally {
+        _migrationAbortController = undefined;
+    }
+}
+
+/**
+ * Opens the migrated project in VS Code.
+ * Called by the wizard after AI enhancement completes or is skipped.
+ */
+export function openMigratedProject(): void {
+    const projectRoot = _wizardProjectRoot;
+    if (!projectRoot) {
+        window.showErrorMessage("Migration enhancement: no project root to open.");
+        return;
+    }
+
+    // Schedule the enhancement state for the new window
+    const data = readEnhanceToml(projectRoot);
+    const mode = data?.mode ?? 'none';
+    const sourcePath = data?.sourcePath ?? _wizardSourcePath;
+    scheduleMigrationEnhancement(mode, projectRoot, sourcePath);
+
+    // Clear the wizard state
+    _wizardProjectRoot = undefined;
+    _wizardSourcePath = undefined;
+
+    commands.executeCommand('vscode.openFolder', Uri.file(projectRoot));
 }
 
 // ===========================================================================

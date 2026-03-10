@@ -25,6 +25,9 @@
 export function getAutoFixPrompt(): string {
     return `You are enhancing a Ballerina project that was automatically migrated from a legacy integration platform (MuleSoft or TIBCO). The migration tool produced a working structural skeleton but left TODO comments and may have compilation errors. Your goal is to make the project fully functional by completing all four stages below. Work through them in order without stopping.
 
+## Original Source Context
+The original source project may be available alongside the migrated Ballerina project. When resolving TODO comments or fixing migration gaps, **read the corresponding original source files** (e.g. Mule XML configurations, DataWeave transforms, TIBCO process definitions) to understand the intended behaviour. This context is critical for producing accurate implementations rather than guesses.
+
 ## Stage 1 - Fix Compilation Errors
 Use the diagnostics tool to inspect the project for compilation errors.
 - Resolve every error-level diagnostic. Common issues include missing imports, incorrect type references, incompatible function signatures, and unsupported constructs.
@@ -33,6 +36,7 @@ Use the diagnostics tool to inspect the project for compilation errors.
 ## Stage 2 - Resolve TODO Comments
 Scan every \`.bal\` source file (excluding the \`tests/\` directory for now) for lines containing \`// TODO\`.
 - Read the surrounding code to understand the intent.
+- Where a TODO references an original source construct, read the corresponding original source file to understand the exact transformation or logic that was intended.
 - Implement each TODO with correct, idiomatic Ballerina code.
 - After implementing all TODOs, re-run diagnostics to confirm no new errors were introduced.
 
@@ -55,21 +59,4 @@ Use the test-runner tool to execute \`bal test\`.
 - All test cases pass.
 
 Work methodically through each stage. Do not declare the task complete until all four stages succeed.`;
-}
-
-/**
- * Returns the prompt used in **guided-review** mode.
- * The panel opens in plan mode so the user can review and approve each step.
- */
-export function getGuidedReviewPrompt(): string {
-    return `Your Ballerina project has just been migrated from a legacy integration platform (MuleSoft or TIBCO). The migration produced a structural skeleton that may still have compilation errors and unimplemented TODO comments. You are in **guided-review** mode, which means the AI will propose a plan for each step and you approve or modify it before it is applied.
-
-Please work through the following four stages with me:
-
-1. **Fix Compilation Errors** - Identify and fix all compilation errors in the project source files.
-2. **Resolve TODO Comments** - Find every \`// TODO\` in the source files and implement the missing logic with correct, idiomatic Ballerina code.
-3. **Refine Test Files** - Review test files in the \`tests/\` directory, complete any TODO stubs, and ensure all test functions have meaningful assertions.
-4. **Run Tests** - Execute \`bal test\`, analyse failures, and apply fixes until all tests pass.
-
-Let's start with **Stage 1**: please run the diagnostics tool and show me all compilation errors.`;
 }

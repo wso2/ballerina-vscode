@@ -903,7 +903,7 @@ const AIChat: React.FC = () => {
     }
 
     /**
-     * Handles the user clicking "Auto-fix" or "Guided Review" fromthe "none" banner.
+     * Handles the user clicking "Auto-fix" from the "none" banner.
      * Calls the backend to update the toml and start the pipeline, which will
      * push a new default prompt – the `onPromptUpdated` listener picks it up and
      * triggers the auto-submit effect.

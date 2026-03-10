@@ -33,6 +33,7 @@ import {
     sendConfigurationCollectionNotification,
     sendReviewActionsNotification,
     sendMigrationPanelNotification,
+    sendVisualizerMigrationNotification,
 } from "./ai-utils";
 
 export type CopilotEventHandler = (event: ChatNotify) => void;
@@ -126,5 +127,17 @@ export function createMigrationEventHandler(command: Command): CopilotEventHandl
     return (event: ChatNotify) => {
         // Route all events through the migration-panel notification channel
         sendMigrationPanelNotification(event);
+    };
+}
+
+/**
+ * Event handler factory that routes agent/executor events to the Visualizer
+ * webview.  Used for the wizard-level migration AI enhancement so the
+ * ImportIntegration wizard can show live streaming progress before the project
+ * is opened in VS Code.
+ */
+export function createVisualizerMigrationEventHandler(command: Command): CopilotEventHandler {
+    return (event: ChatNotify) => {
+        sendVisualizerMigrationNotification(event);
     };
 }
