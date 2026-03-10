@@ -18,7 +18,7 @@
 
 import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { SemanticDiff, ChangeTypeEnum, ReviewViewItem } from "@wso2/ballerina-core";
+import { SemanticDiff, ChangeTypeEnum } from "@wso2/ballerina-core";
 import { Button } from "@wso2/ui-toolkit";
 
 const Container = styled.div`
@@ -78,13 +78,34 @@ const ButtonRow = styled.div`
     flex-wrap: wrap;
 `;
 
-const StatusLabel = styled.div`
+const CompactContainer = styled.div`
+    display: inline-flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 10px;
+    background-color: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    margin: 4px 0;
+    align-self: flex-start;
+`;
+
+const TitleRow = styled.button`
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 400;
     color: var(--vscode-descriptionForeground);
-    font-weight: 500;
+    text-align: left;
+    &:hover {
+        opacity: 0.8;
+    }
 `;
 
 // nodeKind === 2 is TYPE in semantic diffs
@@ -121,10 +142,6 @@ function getSymbol(changeType: number): string {
     }
 }
 
-function getDiagramType(nodeKind: number): 'flow' | 'type' {
-    return nodeKind === NODE_KIND_TYPE ? 'type' : 'flow';
-}
-
 function getNodeKindLabel(nodeKind: number): string {
     switch (nodeKind) {
         case 0: return "fn";
@@ -144,29 +161,18 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     onStatusChange,
 }) => {
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     // Build chips and prebuiltViews from semanticDiffs, mirroring ReviewMode's allViews construction:
     // 1. Design diagram views first (one per package when loadDesignDiagrams=true)
     // 2. Semantic diff views with type dedup
-    const { chips, prebuiltViews } = useMemo(() => {
+    const { chips } = useMemo(() => {
         if (!semanticDiffs || semanticDiffs.length === 0) {
-            return { chips: null, prebuiltViews: [] as ReviewViewItem[] };
+            return { chips: null as DiffEntry[] | null };
         }
 
-        const views: ReviewViewItem[] = [];
         const diffChips: DiffEntry[] = [];
-
-        // Design diagram: one view at index 0 if loadDesignDiagrams
         const designCount = loadDesignDiagrams ? 1 : 0;
-        if (loadDesignDiagrams) {
-            views.push({
-                type: 'component',
-                filePath: '',
-                position: { startLine: 0, endLine: 0, startColumn: 0, endColumn: 0 },
-                projectPath: '',
-            });
-        }
-
         let hasTypeView = false;
         let viewIndex = designCount;
 
@@ -181,22 +187,10 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
                 nodeKind: diff.nodeKind,
                 viewIndex,
             });
-            views.push({
-                type: getDiagramType(diff.nodeKind),
-                filePath: diff.uri,
-                position: {
-                    startLine: diff.lineRange.startLine.line,
-                    endLine: diff.lineRange.endLine.line,
-                    startColumn: diff.lineRange.startLine.offset,
-                    endColumn: diff.lineRange.endLine.offset,
-                },
-                projectPath: '',
-                changeType: diff.changeType,
-            });
             viewIndex++;
         }
 
-        return { chips: diffChips, prebuiltViews: views };
+        return { chips: diffChips };
     }, [semanticDiffs, loadDesignDiagrams]);
 
     const openReviewMode = (index = 0) => {
@@ -234,34 +228,65 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
         }
     };
 
-    const titleText = status === "accepted"
-        ? "Changes accepted"
-        : status === "discarded"
-        ? "Changes discarded"
-        : "Changes ready to review";
-    const chipsDisabled = status !== "pending";
+    if (status !== "pending") {
+        return (
+            <CompactContainer>
+                <TitleRow onClick={() => setIsExpanded(v => !v)}>
+                    <span
+                        className={`codicon ${isExpanded ? "codicon-chevron-down" : "codicon-chevron-right"}`}
+                        style={{ fontSize: "11px" }}
+                    />
+                    {status === "accepted" ? "Changes accepted" : "Changes discarded"}
+                </TitleRow>
+                {isExpanded && (
+                    chips && chips.length > 0
+                        ? (
+                            <FileList>
+                                {chips.map((entry, i) => (
+                                    <FileChip key={i} disabled title={entry.filename}>
+                                        <ChipSymbol>{entry.symbol}</ChipSymbol>
+                                        <span style={{ opacity: 0.7, fontSize: "10px" }}>{getNodeKindLabel(entry.nodeKind)}</span>
+                                        {entry.filename}
+                                    </FileChip>
+                                ))}
+                            </FileList>
+                        )
+                        : modifiedFiles.length > 0 && (
+                            <FileList>
+                                {modifiedFiles.map((file, i) => (
+                                    <FileChip key={i} disabled title={file}>
+                                        <span className="codicon codicon-file" style={{ fontSize: "10px" }} />
+                                        {getFileName(file)}
+                                    </FileChip>
+                                ))}
+                            </FileList>
+                        )
+                )}
+            </CompactContainer>
+        );
+    }
 
     return (
         <Container>
-            <Title>{titleText}</Title>
+            <Title>Changes ready to review</Title>
             <FileList>
                 {chips && chips.length > 0
                     ? chips.map((entry, i) => (
-                        <FileChip key={i} disabled={chipsDisabled} onClick={() => openReviewMode(entry.viewIndex)} title={entry.filename}>
+                        <FileChip key={i} onClick={() => openReviewMode(entry.viewIndex)} title={entry.filename}>
                             <ChipSymbol>{entry.symbol}</ChipSymbol>
                             <span style={{ opacity: 0.7, fontSize: "10px" }}>{getNodeKindLabel(entry.nodeKind)}</span>
                             {entry.filename}
                         </FileChip>
                     ))
                     : modifiedFiles.map((file, i) => (
-                        <FileChip key={i} disabled={chipsDisabled} onClick={() => openReviewMode(0)} title={file}>
+                        <FileChip key={i} onClick={() => openReviewMode(0)} title={file}>
                             <span className="codicon codicon-file" style={{ fontSize: "10px" }} />
                             {getFileName(file)}
                         </FileChip>
                     ))
                 }
             </FileList>
-            {status === "pending" && isActive && (
+            {isActive && (
                 <ButtonRow>
                     <Button appearance="secondary" onClick={handleDiscard} disabled={isProcessing}>
                         Discard
@@ -273,18 +298,6 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
                         Review
                     </Button>
                 </ButtonRow>
-            )}
-            {status === "accepted" && (
-                <StatusLabel>
-                    <span className="codicon codicon-pass-filled" />
-                    Accepted
-                </StatusLabel>
-            )}
-            {status === "discarded" && (
-                <StatusLabel>
-                    <span className="codicon codicon-error" />
-                    Discarded
-                </StatusLabel>
             )}
         </Container>
     );

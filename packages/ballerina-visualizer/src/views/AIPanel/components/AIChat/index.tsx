@@ -613,7 +613,22 @@ const AIChat: React.FC = () => {
                 const targetIndex = ensureAssistantMessage(msgs);
                 const last = msgs[targetIndex];
                 const entries = parseStream(last.content);
-                const updated = appendToLastEntry(entries, { kind: "component", componentType, data });
+                // For "review" components, update the existing item by merging data instead of appending
+                let found = false;
+                let updated = entries.map(entry => {
+                    const idx = entry.items.findIndex(item => item.kind === "component" && (item as any).componentType === componentType);
+                    if (idx === -1) return entry;
+                    found = true;
+                    return {
+                        ...entry,
+                        items: entry.items.map((item, i) =>
+                            i === idx
+                                ? { ...item, data: { ...(item as any).data, ...data } }
+                                : item
+                        )
+                    };
+                });
+                if (!found) updated = appendToLastEntry(entries, { kind: "component", componentType, data });
                 msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
