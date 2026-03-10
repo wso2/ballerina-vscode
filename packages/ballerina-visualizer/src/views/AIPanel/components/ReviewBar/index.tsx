@@ -38,38 +38,80 @@ const Title = styled.div`
     color: var(--vscode-foreground);
 `;
 
-const FileList = styled.div`
+const ChangeList = styled.div`
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    flex-direction: column;
+    gap: 4px;
 `;
 
-const FileChip = styled.button`
-    display: inline-flex;
+const ChangeCard = styled.button`
+    display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    font-size: 11px;
-    font-family: var(--vscode-font-family);
-    background-color: var(--vscode-badge-background);
-    color: var(--vscode-badge-foreground);
-    border: none;
-    border-radius: 10px;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 5px 8px;
+    background-color: var(--vscode-textCodeBlock-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
     cursor: pointer;
-    white-space: nowrap;
+    font-family: var(--vscode-font-family);
+    text-align: left;
+    width: 100%;
     &:hover {
-        opacity: 0.8;
+        background-color: var(--vscode-list-hoverBackground);
+        border-color: var(--vscode-focusBorder);
     }
     &:disabled {
         cursor: default;
-        opacity: 0.5;
         pointer-events: none;
+        opacity: 0.6;
     }
 `;
 
-const ChipSymbol = styled.span`
-    font-weight: 700;
-    opacity: 0.8;
+const CardLeft = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+`;
+
+const CardKindLabel = styled.span`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    flex-shrink: 0;
+`;
+
+const CardFileName = styled.span`
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--vscode-foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`;
+
+const TypePill = styled.span<{ changeType: number }>`
+    font-size: 11px;
+    font-weight: 500;
+    padding: 1px 6px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    color: ${({ changeType }: { changeType: number }) => {
+        switch (changeType) {
+            case ChangeTypeEnum.ADDITION: return "var(--vscode-charts-green)";
+            case ChangeTypeEnum.DELETION: return "var(--vscode-charts-red)";
+            case ChangeTypeEnum.MODIFICATION: return "var(--vscode-charts-yellow)";
+            default: return "var(--vscode-charts-blue)";
+        }
+    }};
+    background-color: ${({ changeType }: { changeType: number }) => {
+        switch (changeType) {
+            case ChangeTypeEnum.ADDITION: return "color-mix(in srgb, var(--vscode-charts-green) 15%, transparent)";
+            case ChangeTypeEnum.DELETION: return "color-mix(in srgb, var(--vscode-charts-red) 15%, transparent)";
+            case ChangeTypeEnum.MODIFICATION: return "color-mix(in srgb, var(--vscode-charts-yellow) 15%, transparent)";
+            default: return "color-mix(in srgb, var(--vscode-charts-blue) 15%, transparent)";
+        }
+    }};
 `;
 
 const ButtonRow = styled.div`
@@ -113,6 +155,7 @@ const NODE_KIND_TYPE = 2;
 
 interface DiffEntry {
     symbol: string;
+    changeType: number;
     filename: string;
     nodeKind: number;
     viewIndex: number;
@@ -151,6 +194,15 @@ function getNodeKindLabel(nodeKind: number): string {
     }
 }
 
+function getChangeTypeLabel(changeType: number): string {
+    switch (changeType) {
+        case ChangeTypeEnum.ADDITION: return "+ Added";
+        case ChangeTypeEnum.DELETION: return "- Deleted";
+        case ChangeTypeEnum.MODIFICATION: return "~ Modified";
+        default: return "~ Modified";
+    }
+}
+
 export const ReviewBar: React.FC<ReviewBarProps> = ({
     modifiedFiles,
     semanticDiffs,
@@ -163,7 +215,7 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     const [isProcessing, setIsProcessing] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
 
-    // Build chips and prebuiltViews from semanticDiffs, mirroring ReviewMode's allViews construction:
+    // Build chips from semanticDiffs, mirroring ReviewMode's allViews construction:
     // 1. Design diagram views first (one per package when loadDesignDiagrams=true)
     // 2. Semantic diff views with type dedup
     const { chips } = useMemo(() => {
@@ -183,6 +235,7 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
 
             diffChips.push({
                 symbol: getSymbol(diff.changeType),
+                changeType: diff.changeType,
                 filename: getFileName(diff.uri),
                 nodeKind: diff.nodeKind,
                 viewIndex,
@@ -241,25 +294,29 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
                 {isExpanded && (
                     chips && chips.length > 0
                         ? (
-                            <FileList>
+                            <ChangeList>
                                 {chips.map((entry, i) => (
-                                    <FileChip key={i} disabled title={entry.filename}>
-                                        <ChipSymbol>{entry.symbol}</ChipSymbol>
-                                        <span style={{ opacity: 0.7, fontSize: "10px" }}>{getNodeKindLabel(entry.nodeKind)}</span>
-                                        {entry.filename}
-                                    </FileChip>
+                                    <ChangeCard key={i} disabled title={entry.filename}>
+                                        <CardLeft>
+                                            <CardKindLabel>{getNodeKindLabel(entry.nodeKind)}</CardKindLabel>
+                                            <CardFileName>{entry.filename}</CardFileName>
+                                        </CardLeft>
+                                        <TypePill changeType={entry.changeType}>{getChangeTypeLabel(entry.changeType)}</TypePill>
+                                    </ChangeCard>
                                 ))}
-                            </FileList>
+                            </ChangeList>
                         )
                         : modifiedFiles.length > 0 && (
-                            <FileList>
+                            <ChangeList>
                                 {modifiedFiles.map((file, i) => (
-                                    <FileChip key={i} disabled title={file}>
-                                        <span className="codicon codicon-file" style={{ fontSize: "10px" }} />
-                                        {getFileName(file)}
-                                    </FileChip>
+                                    <ChangeCard key={i} disabled title={file}>
+                                        <CardLeft>
+                                            <span className="codicon codicon-file" style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }} />
+                                            <CardFileName>{getFileName(file)}</CardFileName>
+                                        </CardLeft>
+                                    </ChangeCard>
                                 ))}
-                            </FileList>
+                            </ChangeList>
                         )
                 )}
             </CompactContainer>
@@ -269,23 +326,27 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     return (
         <Container>
             <Title>Changes ready to review</Title>
-            <FileList>
+            <ChangeList>
                 {chips && chips.length > 0
                     ? chips.map((entry, i) => (
-                        <FileChip key={i} onClick={() => openReviewMode(entry.viewIndex)} title={entry.filename}>
-                            <ChipSymbol>{entry.symbol}</ChipSymbol>
-                            <span style={{ opacity: 0.7, fontSize: "10px" }}>{getNodeKindLabel(entry.nodeKind)}</span>
-                            {entry.filename}
-                        </FileChip>
+                        <ChangeCard key={i} onClick={() => openReviewMode(entry.viewIndex)} title={entry.filename}>
+                            <CardLeft>
+                                <CardKindLabel>{getNodeKindLabel(entry.nodeKind)}</CardKindLabel>
+                                <CardFileName>{entry.filename}</CardFileName>
+                            </CardLeft>
+                            <TypePill changeType={entry.changeType}>{getChangeTypeLabel(entry.changeType)}</TypePill>
+                        </ChangeCard>
                     ))
                     : modifiedFiles.map((file, i) => (
-                        <FileChip key={i} onClick={() => openReviewMode(0)} title={file}>
-                            <span className="codicon codicon-file" style={{ fontSize: "10px" }} />
-                            {getFileName(file)}
-                        </FileChip>
+                        <ChangeCard key={i} onClick={() => openReviewMode(0)} title={file}>
+                            <CardLeft>
+                                <span className="codicon codicon-file" style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }} />
+                                <CardFileName>{getFileName(file)}</CardFileName>
+                            </CardLeft>
+                        </ChangeCard>
                     ))
                 }
-            </FileList>
+            </ChangeList>
             {isActive && (
                 <ButtonRow>
                     <Button appearance="secondary" onClick={handleDiscard} disabled={isProcessing}>
