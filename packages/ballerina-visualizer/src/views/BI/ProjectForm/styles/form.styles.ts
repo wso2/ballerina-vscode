@@ -48,7 +48,7 @@ export const OptionalSectionsLabel = styled.div`
     margin-bottom: 12px;
 `;
 
-export const WorkspaceSection = styled.div`
+export const ProjectSection = styled.div`
     margin-bottom: 24px;
     padding-bottom: 24px;
     border-bottom: 1px solid var(--vscode-panel-border);
@@ -267,4 +267,3 @@ export const Note = styled.div`
     border-left: 3px solid var(--vscode-textBlockQuote-border);
     border-radius: 0 4px 4px 0;
 `;
-
