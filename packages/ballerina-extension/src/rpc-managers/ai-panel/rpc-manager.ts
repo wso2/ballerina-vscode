@@ -69,7 +69,7 @@ import {
 } from "./constants";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
 import { BACKEND_URL } from "../../features/ai/utils";
-import { sendChatComponentNotification } from "../../features/ai/utils/ai-utils";
+import { sendChatComponentNotification, sendSaveChatNotification } from "../../features/ai/utils/ai-utils";
 import { addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
 
 import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent } from '../../features/ai/agent/index';
@@ -473,8 +473,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
             console.log("[Review Actions] Cleared affected packages from accepted generations");
 
-            // Notify webview to update review component status
+            // Notify webview to update review component status and persist
             sendChatComponentNotification("review", { status: "accepted" });
+            const latestGeneration = underReviewGenerations[underReviewGenerations.length - 1];
+            sendSaveChatNotification(Command.Agent, latestGeneration.id);
         } catch (error) {
             console.error("[Review Actions] Error accepting changes:", error);
             throw error;
@@ -526,8 +528,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
             console.log("[Review Actions] Cleared affected packages from declined generations");
 
-            // Notify webview to update review component status
+            // Notify webview to update review component status and persist
             sendChatComponentNotification("review", { status: "discarded" });
+            const latestGeneration = underReviewGenerations[underReviewGenerations.length - 1];
+            sendSaveChatNotification(Command.Agent, latestGeneration.id);
         } catch (error) {
             console.error("[Review Actions] Error declining changes:", error);
             throw error;
