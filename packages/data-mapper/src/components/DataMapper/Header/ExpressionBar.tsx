@@ -138,7 +138,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     }, [inputPort]);
 
     const disabled = useMemo(() => {
-        let disabled;
+        let disabled = true;
 
         if (focusedPort) {
             setPlaceholder('Insert a value for the selected port.');
