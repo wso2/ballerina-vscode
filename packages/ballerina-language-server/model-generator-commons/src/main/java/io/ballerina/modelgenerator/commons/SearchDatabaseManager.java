@@ -549,7 +549,7 @@ public class SearchDatabaseManager {
                     SELECT * FROM FunctionResults
                     UNION ALL
                     SELECT * FROM ConnectorResults
-                    ORDER BY relevance_score DESC, result_type, name
+                    ORDER BY relevance_score ASC, result_type, name
                 )
                 LIMIT ? OFFSET ?
                 """;

@@ -38,7 +38,6 @@ import java.util.Map;
  */
 public class SearchTest extends AbstractLSTest {
 
-
     @Override
     @Test(dataProvider = "data-provider")
     public void test(Path config) throws IOException {
