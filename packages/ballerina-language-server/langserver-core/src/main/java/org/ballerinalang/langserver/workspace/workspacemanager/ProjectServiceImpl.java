@@ -473,7 +473,12 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             current = current.getParent();
         }
 
-        // Not found; use the current directory as root (for single-file projects)
+        // No Ballerina.toml found. For standalone .bal files, use the file path itself
+        // as the source root so the projectLoader receives a file path that
+        // BallerinaCompilerApi can recognise as a SingleFileProject.
+        if (normalized.toFile().isFile()) {
+            return new SourceRoot(normalized);
+        }
         return new SourceRoot(currentCheck != null ? currentCheck : normalized);
     }
 
@@ -484,6 +489,10 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * @return BUILD if Ballerina.toml exists, SINGLE_FILE otherwise
      */
     private ProjectKind detectKind(SourceRoot root) {
+        // A file-as-root means it's a standalone .bal file (single-file project).
+        if (root.path().toFile().isFile()) {
+            return ProjectKind.SINGLE_FILE;
+        }
         if (root.path().resolve("Ballerina.toml").toFile().exists()) {
             return ProjectKind.BUILD;
         }
