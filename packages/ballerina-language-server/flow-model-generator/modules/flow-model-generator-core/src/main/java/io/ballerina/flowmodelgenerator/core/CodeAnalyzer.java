@@ -128,18 +128,27 @@ import io.ballerina.flowmodelgenerator.core.model.McpToolKitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.node.AgentBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.BinaryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.CallBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.ChunkerBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DataLoaderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FailBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionCall;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.IfBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.JsonPayloadBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.KnowledgeBaseBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.MemoryBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.MemoryStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MethodCall;
+import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NewConnectionBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.PanicBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RemoteActionCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ResourceActionCallBuilder;
@@ -181,6 +190,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Stack;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -1683,6 +1693,17 @@ public class CodeAnalyzer extends NodeVisitor {
         return null;
     }
 
+    private static final Set<NodeKind> AI_COMPONENT_KINDS = Set.of(
+            NodeKind.MODEL_PROVIDER, NodeKind.EMBEDDING_PROVIDER,
+            NodeKind.KNOWLEDGE_BASE, NodeKind.VECTOR_STORE,
+            NodeKind.DATA_LOADER, NodeKind.CHUNKER,
+            NodeKind.MEMORY, NodeKind.MEMORY_STORE
+    );
+
+    private static boolean isAiComponentKind(NodeKind kind) {
+        return AI_COMPONENT_KINDS.contains(kind);
+    }
+
     private record ReturnTypeNodeInfo(NodeKind nodeKind, ClassSymbol classSymbol) { }
 
     private Optional<ReturnTypeNodeInfo> getReturnTypeNodeInfo(FunctionSymbol functionSymbol) {
@@ -1889,11 +1910,15 @@ public class CodeAnalyzer extends NodeVisitor {
                     .editable()
                     .stepOut()
                     .addProperty(Property.VARIABLE_KEY);
-        } else if (nodeBuilder instanceof CallBuilder
-                && !(nodeBuilder instanceof RemoteActionCallBuilder)
-                && !(nodeBuilder instanceof ResourceActionCallBuilder)
-                && !(nodeBuilder instanceof FunctionCall)
-                && !(nodeBuilder instanceof MethodCall)) {
+        } else if (nodeBuilder instanceof AgentBuilder
+                || nodeBuilder instanceof ModelProviderBuilder
+                || nodeBuilder instanceof EmbeddingProviderBuilder
+                || nodeBuilder instanceof KnowledgeBaseBuilder
+                || nodeBuilder instanceof VectorStoreBuilder
+                || nodeBuilder instanceof DataLoaderBuilder
+                || nodeBuilder instanceof ChunkerBuilder
+                || nodeBuilder instanceof MemoryBuilder
+                || nodeBuilder instanceof MemoryStoreBuilder) {
             // If an AI type node (agent, model provider, etc.) was identified, set the variable property on it
             String variableName = CommonUtils.getVariableName(assignmentStatementNode.varRef());
             nodeBuilder.properties().custom()
@@ -2044,7 +2069,7 @@ public class CodeAnalyzer extends NodeVisitor {
         } else {
             // Check if the function returns an AI type (e.g., MODEL_PROVIDER via factory function)
             Optional<ReturnTypeNodeInfo> returnTypeInfo = getReturnTypeNodeInfo(functionSymbol);
-            if (returnTypeInfo.isPresent()) {
+            if (returnTypeInfo.isPresent() && isAiComponentKind(returnTypeInfo.get().nodeKind())) {
                 ReturnTypeNodeInfo info = returnTypeInfo.get();
                 startNode(info.nodeKind(), functionCallExpressionNode.parent());
 
