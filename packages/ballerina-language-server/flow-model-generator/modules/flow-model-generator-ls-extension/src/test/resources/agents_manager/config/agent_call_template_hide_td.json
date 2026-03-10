@@ -493,11 +493,21 @@
         },
         "types": [
           {
-            "fieldType": "TYPE",
-            "ballerinaType": "ai:Trace|string",
-            "selected": false
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              {
+                "label": "string",
+                "value": "string"
+              },
+              {
+                "label": "ai:Trace",
+                "value": "ai:Trace"
+              }
+            ],
+            "selected": true
           }
         ],
+        "value": "string",
         "placeholder": "ai:Trace|string",
         "optional": true,
         "editable": true,
