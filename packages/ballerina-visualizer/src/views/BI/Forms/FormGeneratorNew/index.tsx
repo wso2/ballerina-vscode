@@ -339,6 +339,14 @@ export function FormGeneratorNew(props: FormProps) {
         closePopup: closeModal
     }
 
+    const isFunctionParameterForm = () => {
+        return (
+            selectedNode === "FUNCTION_DEFINITION" &&
+            typeEditorState.field?.key === "parameters" &&
+            getPrimaryInputType(typeEditorState?.field?.types)?.fieldType === "REPEATABLE_PROPERTY"
+        );
+    }
+
     const defaultType = (typeName?: string): Type => {
         if (!isGraphqlEditor || typeEditorState.field?.type === 'PARAM_MANAGER') {
             return {
@@ -351,7 +359,19 @@ export function FormGeneratorNew(props: FormProps) {
                 codedata: {
                     node: "RECORD",
                 },
-                properties: {},
+                properties: {
+                    isPublic: {
+                        metadata: {
+                            label: "public",
+                            description: "Make visible across the workspace"
+                        },
+                        valueType: "FLAG",
+                        value: isFunctionParameterForm() ? "true" : "false",
+                        optional: false,
+                        editable: true,
+                        advanced: false
+                    }
+                },
                 members: [],
                 includes: [] as string[],
                 allowAdditionalFields: false
