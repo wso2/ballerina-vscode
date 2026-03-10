@@ -109,6 +109,7 @@ interface PanelManagerProps {
 
     // Action handlers
     onClose: () => void;
+    onSaveAndRefresh?: () => void;
     onBack?: () => void;
     onSelectNode: (nodeId: string, metadata?: any) => void;
     onAddConnection?: () => void;
@@ -180,6 +181,7 @@ export function PanelManager(props: PanelManagerProps) {
         progressMessage = "Loading...",
         setSidePanelView,
         onClose,
+        onSaveAndRefresh,
         onBack,
         onSelectNode,
         onAddConnection,
@@ -313,7 +315,7 @@ export function PanelManager(props: PanelManagerProps) {
                     <NewTool
                         agentCallNode={selectedNode}
                         mode={NewToolSelectionMode.ALL}
-                        onSave={onClose}
+                        onSave={onSaveAndRefresh ?? onClose}
                         onBack={handleOnBackToAddTool}
                         onSetBackOverride={handleSetBackOverride}
                     />
@@ -324,7 +326,7 @@ export function PanelManager(props: PanelManagerProps) {
                     <NewTool
                         agentCallNode={selectedNode}
                         mode={NewToolSelectionMode.CUSTOM_TOOL}
-                        onSave={onClose}
+                        onSave={onSaveAndRefresh ?? onClose}
                         onBack={handleOnBackToAddTool}
                         onSetBackOverride={handleSetBackOverride}
                     />
@@ -335,7 +337,7 @@ export function PanelManager(props: PanelManagerProps) {
                     <NewTool
                         agentCallNode={selectedNode}
                         mode={NewToolSelectionMode.CONNECTION}
-                        onSave={onClose}
+                        onSave={onSaveAndRefresh ?? onClose}
                         onBack={handleOnBackToAddTool}
                         onSetBackOverride={handleSetBackOverride}
                     />
@@ -346,7 +348,7 @@ export function PanelManager(props: PanelManagerProps) {
                     <NewTool
                         agentCallNode={selectedNode}
                         mode={NewToolSelectionMode.FUNCTION}
-                        onSave={onClose}
+                        onSave={onSaveAndRefresh ?? onClose}
                         onBack={handleOnBackToAddTool}
                         onSetBackOverride={handleSetBackOverride}
                     />
