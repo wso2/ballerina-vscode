@@ -107,12 +107,7 @@ if (moduleVersion.indexOf('-') != -1) {
 
 // TODO: Remove this once the workspace manager is refactored to import modules where necessary.
 def pullBallerinaModule(String packageName, String version = null, String orgName = "ballerinax") {
-    def taskName = "pull${orgName.capitalize()}Module_${packageName.replace('/', '_')}"
-    def existingTask = tasks.findByName(taskName)
-    if (existingTask != null) {
-        return existingTask
-    }
-    tasks.register(taskName) {
+    tasks.register("pull${orgName.capitalize()}Module_${packageName.replace('/', '_')}") {
         doLast {
             def errOutput = new ByteArrayOutputStream()
             def result = exec {
@@ -350,6 +345,7 @@ task pullBallerinaModules {
     dependsOn pullBallerinaModule('mssql.cdc.driver', ballerinaxMSSQLCDCDriverVersion)
     dependsOn pullBallerinaModule('trigger.github', ballerinaxGithubTriggerVersion)
     dependsOn pullBallerinaModule('np', ballerinaxNp)
+    dependsOn pullBallerinaModule('workflow', ballerinaWorkflowVersion, "ballerina")
 }
 
 test {

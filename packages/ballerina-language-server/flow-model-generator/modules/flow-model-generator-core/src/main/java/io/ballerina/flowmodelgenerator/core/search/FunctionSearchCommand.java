@@ -193,7 +193,6 @@ class FunctionSearchCommand extends SearchCommand {
                 .filter(symbol -> symbol.kind().equals(SymbolKind.FUNCTION) &&
                         !symbol.nameEquals(AutomationBuilder.MAIN_FUNCTION_NAME))
                 .map(symbol -> (FunctionSymbol) symbol)
-                .filter(func -> !WorkflowUtil.isWorkflowFunction(func))
                 .toList();
     }
 
@@ -252,7 +251,8 @@ class FunctionSearchCommand extends SearchCommand {
         List<Item> availableTools = new ArrayList<>();
 
         for (FunctionSymbol func : filteredFunctions) {
-            if (isNaturalExprBodiedFunction(func)) {
+            if (isNaturalExprBodiedFunction(func) || WorkflowUtil.isActivityFunction(func) ||
+                    WorkflowUtil.isWorkflowFunction(func)) {
                 continue;
             }
 
