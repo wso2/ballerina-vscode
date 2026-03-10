@@ -154,11 +154,11 @@ import {
 import * as fs from "fs";
 import * as path from 'path';
 import * as vscode from "vscode";
-
 import {
-    ICreateComponentCmdParams,
+    WICommandIds,
     IWso2PlatformExtensionAPI,
-    CommandIds as PlatformExtCommandIds
+    ICreateNewIntegrationCmdParams,
+    ICreateNewIntegrationCmdIntegrations,
 } from "@wso2/wso2-platform-core";
 import {
     ShellExecution,
@@ -200,6 +200,7 @@ import * as toml from "@iarna/toml";
 import { readOrWriteReadmeContent } from "./utils";
 import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
 import { getRepoRoot } from "../platform-ext/platform-utils";
+import { WI_EXTENSION_ID } from "../../utils";
 
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
@@ -1144,14 +1145,12 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             return { isCompleted: true };
         }
 
-        const deploymentParams: ICreateComponentCmdParams = {
-            integrationType: integrationType as any,
-            buildPackLang: "ballerina",
-            name: path.basename(StateMachine.context().projectPath),
-            componentDir: StateMachine.context().projectPath,
-            extName: "Devant"
+        const deploymentParams: ICreateNewIntegrationCmdParams = {
+            buildPackLang:"ballerina",
+            integrations:[{ fsPath: StateMachine.context().projectPath, supportedIntegrationTypes: [integrationType] }],
+            workspaceDir: StateMachine.context().workspacePath || StateMachine.context().projectPath,
         };
-        await commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deploymentParams);
+        await commands.executeCommand(WICommandIds.CreateNewComponent, deploymentParams);
 
         return { isCompleted: true };
     }
@@ -1162,7 +1161,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             window.showWarningMessage("No deployable projects found in the workspace.");
             return { isCompleted: true };
         }
-        const deploymentParams: ICreateComponentCmdParams[] = [];
+        const deploymentParams: ICreateNewIntegrationCmdIntegrations[]= [];
 
         // If there is only one project in the workspace and it has multiple integration types,
         // ask the user to pick the type similar to the single project deploy flow.
@@ -1175,15 +1174,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 return { isCompleted: true };
             }
 
-            const deployementParam: ICreateComponentCmdParams = {
-                integrationType: integrationType as any,
-                buildPackLang: "ballerina",
-                name: path.basename(projectPath),
-                componentDir: projectPath,
-                extName: "Devant",
-                supportedIntegrationTypes: integrationTypes as any[]
-            };
-            deploymentParams.push(deployementParam);
+            deploymentParams.push({fsPath: projectPath, supportedIntegrationTypes: [integrationType] });
         } else {
             for (const projectScope of projectScopes) {
                 const { projectPath, integrationTypes } = projectScope;
@@ -1192,17 +1183,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     continue;
                 }
 
-                const deployementParam: ICreateComponentCmdParams = {
-                    // Use the first type as default, user can change in the UI
-                    integrationType: integrationTypes[0] as any,
-                    buildPackLang: "ballerina",
-                    name: path.basename(projectPath),
-                    componentDir: projectPath,
-                    extName: "Devant",
-                    // Pass all available types so user can select in the component form
-                    supportedIntegrationTypes: integrationTypes as any[]
-                };
-                deploymentParams.push(deployementParam);
+                deploymentParams.push({fsPath: projectPath, supportedIntegrationTypes: integrationTypes });
             }
         }
 
@@ -1211,7 +1192,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
 
         await commands.executeCommand(
-            PlatformExtCommandIds.CreateMultipleNewComponents,
+            WICommandIds.CreateNewComponent,
             deploymentParams,
             params.rootDirectory
         );
@@ -1974,11 +1955,14 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 }
             }
 
-            const platformExt = extensions.getExtension("wso2.wso2-platform");
+            const platformExt = extensions.getExtension(WI_EXTENSION_ID);
             if (!platformExt) {
                 return { hasComponent: hasContextYaml, isLoggedIn: false };
             }
-            const platformExtAPI: IWso2PlatformExtensionAPI = await platformExt.activate();
+            if (!platformExt.isActive) {
+                await platformExt.activate();
+            }
+            const platformExtAPI: IWso2PlatformExtensionAPI = platformExt.exports?.cloudAPIs;
             hasLocalChanges = await platformExtAPI.localRepoHasChanges(projectPath);
             isLoggedIn = platformExtAPI.isLoggedIn();
             if (isLoggedIn) {
@@ -2011,7 +1995,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 return { isLoggedIn: false, hasAnyComponent: false, hasLocalChanges: false };
             }
 
-            const platformExt = extensions.getExtension("wso2.wso2-platform");
+            const platformExt = extensions.getExtension(WI_EXTENSION_ID);
             if (!platformExt) {
                 // Check for context.yaml as fallback
                 const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
@@ -2023,7 +2007,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 };
             }
 
-            const platformExtAPI: IWso2PlatformExtensionAPI = await platformExt.activate();
+            if (!platformExt.isActive) {
+                await platformExt.activate();
+            }
+            const platformExtAPI: IWso2PlatformExtensionAPI = platformExt.exports?.cloudAPIs;
             isLoggedIn = platformExtAPI.isLoggedIn();
             hasLocalChanges = await platformExtAPI.localRepoHasChanges(repoRoot);
 
