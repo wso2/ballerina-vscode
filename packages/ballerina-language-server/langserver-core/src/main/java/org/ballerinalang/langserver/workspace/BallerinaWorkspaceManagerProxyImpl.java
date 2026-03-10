@@ -73,20 +73,9 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
     public BallerinaWorkspaceManagerProxyImpl(LanguageServerContext serverContext) {
         Objects.requireNonNull(serverContext, "serverContext must not be null");
         this.fileWorkspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
-        this.exprWorkspaceManager = createSandboxWorkspaceManager(serverContext, "expr");
-        this.aiWorkspaceManager = createSandboxWorkspaceManager(serverContext, "ai");
-        this.untitledWorkspaceManager = createSandboxWorkspaceManager(serverContext, "untitled");
-    }
-
-    private WorkspaceManager createSandboxWorkspaceManager(LanguageServerContext serverContext, String scheme) {
-        // Placeholder: In full implementation, these would be facade instances
-        // with sandbox-aware configuration
-        return new BallerinaWorkspaceManager(serverContext) {
-            @Override
-            public String uriScheme() {
-                return scheme;
-            }
-        };
+        this.exprWorkspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
+        this.aiWorkspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
+        this.untitledWorkspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
     }
 
     @Override
