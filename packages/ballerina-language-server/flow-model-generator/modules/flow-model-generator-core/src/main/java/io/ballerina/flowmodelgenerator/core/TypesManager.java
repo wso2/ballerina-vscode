@@ -92,6 +92,7 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
 public class TypesManager {
 
     private static final Gson gson = new Gson();
+    public static final String ANY_ERROR_VARIABLE = "any|error __reserved__ = ";
     private final Module module;
     private final Document typeDocument;
     private static final List<SymbolKind> supportedSymbolKinds = List.of(SymbolKind.TYPE_DEFINITION, SymbolKind.ENUM,
@@ -197,7 +198,7 @@ public class TypesManager {
 
     public JsonElement getTypeOfExpression(Project project, String fileName, Document document, LinePosition position,
                                            String expression) {
-        String statement = String.format("any|error __reserved__ = %s;", expression);
+        String statement = String.format(ANY_ERROR_VARIABLE + "%s;", expression);
         TextDocument textDocument = document.textDocument();
         int startTextPosition = textDocument.textPositionFrom(position);
 
@@ -211,9 +212,9 @@ public class TypesManager {
                         .document(document.documentId()).modify().withContent(String.join(System.lineSeparator(),
                                 apply.textLines())).apply();
         int line = position.line();
-        int offset = position.offset();
-        LinePosition exprStart = LinePosition.from(line, offset + 25);
-        LinePosition exprEnd = LinePosition.from(line, offset + 25 + expression.length());
+        int offset = position.offset() + ANY_ERROR_VARIABLE.length();
+        LinePosition exprStart = LinePosition.from(line, offset);
+        LinePosition exprEnd = LinePosition.from(line, offset + expression.length());
         SemanticModel semanticModel =
                 proj.currentPackage().getCompilation().getSemanticModel(modifiedDoc.module().moduleId());
         Optional<TypeSymbol> optTypeSymbol = semanticModel.typeOf(LineRange.from(fileName, exprStart, exprEnd));
@@ -1058,7 +1059,12 @@ public class TypesManager {
             if (matcher.matches()) {
                 String orgName = matcher.group(1);
                 String modulePart = matcher.group(2);
-                imports.put(modulePart, orgName + "/" + modulePart);
+                String modulePrefix = modulePart;
+                if (modulePart.contains(".")) {
+                    String[] splits = modulePart.split("\\.");
+                    modulePrefix = splits[splits.length - 1];
+                }
+                imports.put(modulePrefix, orgName + "/" + modulePart);
             }
         }
         return imports;

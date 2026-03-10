@@ -9,7 +9,7 @@
   "type": {
     "name": "redis:Options|jsondata:Error",
     "imports": {
-      "data.jsondata": "ballerina/data.jsondata",
+      "jsondata": "ballerina/data.jsondata",
       "redis": "ballerinax/redis"
     }
   }

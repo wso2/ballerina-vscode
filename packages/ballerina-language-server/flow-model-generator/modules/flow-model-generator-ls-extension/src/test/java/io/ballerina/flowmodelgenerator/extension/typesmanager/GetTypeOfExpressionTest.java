@@ -34,7 +34,7 @@ import java.nio.file.Path;
 /**
  * Test cases for retrieving type of the expression.
  *
- * @since 2.0.0
+ * @since 1.7.0
  */
 public class GetTypeOfExpressionTest extends AbstractLSTest {
 
