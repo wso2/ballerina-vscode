@@ -16,10 +16,14 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { MigrationEnhancementMode } from "@wso2/ballerina-core";
+import { Command, MigrationEnhancementMode } from "@wso2/ballerina-core";
 import { window, workspace } from "vscode";
 import { extension } from "../../../BalExtensionContext";
+import { StateMachine } from "../../../stateMachine";
 import { openMigrationPanel } from "../../../views/migration-panel/activate";
+import { AgentExecutor } from "../agent/AgentExecutor";
+import { AICommandConfig } from "../executors/base/AICommandExecutor";
+import { createMigrationEventHandler } from "../utils/events";
 import { getAutoFixPrompt, getGuidedReviewPrompt } from "./prompts";
 import {
     AI_ENHANCE_TOML_FILENAME,
@@ -274,6 +278,97 @@ function runGuidedReviewPipeline(): void {
 }
 
 // ===========================================================================
+// Agent execution – called when the migration panel signals readiness
+// ===========================================================================
+
+/** Module-level abort controller for the currently running migration agent. */
+let _migrationAbortController: AbortController | undefined;
+
+/** Module-level selected model ID (set by the UI's model selector). */
+let _selectedModelId: string = "wso2"; // default to WSO2 BI Copilot
+
+/**
+ * Update the selected model ID from the webview.
+ */
+export function setMigrationModelId(modelId: string): void {
+    _selectedModelId = modelId;
+    console.log(`[MigrationEnhancement] Model set to: ${modelId}`);
+}
+
+/**
+ * Fired by `migrationPanelReady` RPC – creates an `AICommandConfig` with the
+ * migration event handler and runs `AgentExecutor` to stream results to the
+ * standalone Migration Panel.
+ */
+export async function runMigrationAgent(): Promise<void> {
+    const mode = _activeSession.mode;
+    if (mode === "none") {
+        console.log("[MigrationEnhancement] runMigrationAgent called with mode=none – skipping.");
+        return;
+    }
+
+    // Determine the project root (workspace folder)
+    const projectRoot = _resolveCurrentProjectRoot()
+        ?? workspace.workspaceFolders?.[0]?.uri.fsPath;
+
+    if (!projectRoot) {
+        window.showErrorMessage("Migration enhancement: unable to determine project root.");
+        return;
+    }
+
+    const prompt = mode === "auto-fix" ? getAutoFixPrompt() : getGuidedReviewPrompt();
+
+    _migrationAbortController = new AbortController();
+
+    const config: AICommandConfig = {
+        executionContext: {
+            projectPath: projectRoot,
+            workspacePath: projectRoot,
+        },
+        eventHandler: createMigrationEventHandler(Command.Agent),
+        generationId: `migration-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        abortController: _migrationAbortController,
+        params: {
+            usecase: prompt,
+            fileAttachmentContents: [],
+            isPlanMode: mode === "guided-review",
+        },
+        // No chat storage – migration runs are single-shot
+        chatStorage: undefined,
+        lifecycle: {
+            cleanupStrategy: "immediate",
+        },
+    };
+
+    console.log(`[MigrationEnhancement] Starting migration agent – mode: ${mode}, model: ${_selectedModelId}`);
+
+    try {
+        await new AgentExecutor(config).run();
+        // Agent finished successfully – mark enhancement as complete
+        markEnhancementComplete();
+        console.log("[MigrationEnhancement] Migration agent completed successfully.");
+    } catch (error) {
+        if (_migrationAbortController.signal.aborted) {
+            console.log("[MigrationEnhancement] Migration agent was aborted by user.");
+        } else {
+            console.error("[MigrationEnhancement] Migration agent error:", error);
+        }
+    } finally {
+        _migrationAbortController = undefined;
+    }
+}
+
+/**
+ * Abort the currently running migration agent (if any).
+ */
+export function abortMigrationAgent(): void {
+    if (_migrationAbortController) {
+        _migrationAbortController.abort();
+        console.log("[MigrationEnhancement] Abort signal sent to migration agent.");
+    }
+}
+
+// ===========================================================================
 // Internal helpers
 // ===========================================================================
 
@@ -291,6 +386,24 @@ function _resolveCurrentProjectRoot(): string | undefined {
     console.log("[MigrationEnhancement] stored MIGRATION_PROJECT_ROOT_KEY:", stored);
     if (stored && !candidates.includes(stored)) {
         candidates.push(stored);
+    }
+
+    // Also check the active Ballerina project path from the state machine —
+    // this is the most reliable source when the panel is opened manually
+    // without going through the migration wizard first.
+    try {
+        const smCtx = StateMachine.context();
+        const smProjectPath = smCtx?.projectPath;
+        const smWorkspacePath = smCtx?.workspacePath;
+        if (smProjectPath && !candidates.includes(smProjectPath)) {
+            candidates.push(smProjectPath);
+        }
+        if (smWorkspacePath && !candidates.includes(smWorkspacePath)) {
+            candidates.push(smWorkspacePath);
+        }
+        console.log("[MigrationEnhancement] StateMachine candidates:", smProjectPath, smWorkspacePath);
+    } catch {
+        // StateMachine may not be initialized yet — ignore
     }
 
     // Return the first candidate that actually contains the toml file.
