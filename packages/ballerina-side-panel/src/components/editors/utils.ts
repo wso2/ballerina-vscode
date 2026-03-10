@@ -190,7 +190,7 @@ export function stringToRawArrayElements(input: string): string[] {
     const s = input.trim().slice(1, -1);
 
     if (s === "") {
-        return [""];
+        return [];
     }
 
     const result: string[] = [];

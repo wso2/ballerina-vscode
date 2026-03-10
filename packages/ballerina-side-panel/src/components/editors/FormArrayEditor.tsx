@@ -29,10 +29,9 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
     value: any;
 }) => {
     const [repeatableFields, setRepeatableFields] = useState<FormField[]>([]);
-    const [elementDiagnostics, setElementDiagnostics] = useState<FormDiagnostics[]>([]);
     const { expressionEditor } = useFormContext();
+    const elementDiagnosticsRef = useRef<FormDiagnostics[]>([]);
     const scrollableListRef = useRef<ScrollableListRef>(null);
-    const lastTypedField = useRef<string>(null);
 
     const modeSwitcherContext = useModeSwitcherContext();
 
@@ -70,9 +69,9 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
     };
 
     const handleSetDiagnosticsInfoChange = (diagnostics: FormDiagnostics) => {
-        const existingDiagnostics = [...elementDiagnostics];
+        const existingDiagnostics = [...elementDiagnosticsRef.current];
         existingDiagnostics.push(diagnostics);
-        setElementDiagnostics(existingDiagnostics);
+        elementDiagnosticsRef.current = existingDiagnostics;
     }
 
     const handleFormDiagnosticsChange = async (showDiagnostics: boolean, expression: string, key: string, property: Property, setDiagnosticsInfo: (diagnostics: FormDiagnostics) => void, shouldUpdateNode?: boolean, variableType?: string) => {
@@ -90,7 +89,7 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
     };
 
     const applyDiagnosticsToField = (field: FormField): FormField => {
-        const diagnostics = elementDiagnostics.find(diag => diag.key === field.key);
+        const diagnostics = elementDiagnosticsRef.current.find(diag => diag.key === field.key);
         if (!diagnostics) return field;
         return {
             ...field,
@@ -104,23 +103,59 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
     useEffect(() => {
         if (!Array.isArray(props.value)) return;
         const newRepeatableFields = repeatableFields.map(applyDiagnosticsToField);
+        const hasNewDiagnostics = newRepeatableFields.some((field, i) =>
+            JSON.stringify(field.diagnostics) !== JSON.stringify(repeatableFields[i]?.diagnostics)
+        );
+        if (!hasNewDiagnostics) return;
         setRepeatableFields(newRepeatableFields);
         props.onChange(newRepeatableFields);
-    }, [elementDiagnostics]);
+    }, [repeatableFields]);
 
     useEffect(() => {
         if (!props.value) return;
         if (JSON.stringify(props.value) === JSON.stringify(repeatableFields)) return;
+        const keyArray: string[] = [];
+        if (Array.isArray(props.value)) {
+            const initialDioagnostics: FormDiagnostics[] = props.value.map((val: any) => {
+                const key = crypto.randomUUID();
+                keyArray.push(key);
+                return {
+                    key: `ar-elm-${key}`,
+                    diagnostics: Array.isArray(val.diagnostics)
+                        ? val.diagnostics.map((diag: any) => ({
+                            message: diag.message,
+                            severity: mapDiagnosticsServerityToFormSeverity(diag.severity),
+                        }))
+                        : Array.isArray(val.diagnostics?.diagnostics)
+                            ? val.diagnostics.diagnostics.map((diag: any) => ({
+                                message: diag.message,
+                                severity: mapDiagnosticsServerityToFormSeverity(diag.severity),
+                            }))
+                            : []
+                }
+            });
+            elementDiagnosticsRef.current = initialDioagnostics;
+        }
         let newValue = buildStringArray(props.value);
         const initialValues = stringToRawArrayElements(newValue);
-        const initialFields = initialValues.map((val) => {
-            const key = crypto.randomUUID();
+        if (!Array.isArray(props.value)) {
+            initialValues.forEach((val: any, index: number) => {
+                const key = crypto.randomUUID();
+                keyArray.push(key);
+            })
+        }
+        if (keyArray.length !== initialValues.length) {
+            throw new Error("Key array length and initial values length do not match");
+        }
+        const initialFields = initialValues.map((val, index) => {
+            const key = keyArray[index];
             return {
                 ...getArraySubFormFieldFromTypes(key, (props.field.types[0] as any).template.types as InputType[]),
                 value: val
             }
         });
         setRepeatableFields(initialFields.map(applyDiagnosticsToField));
+
     }, [props.value, props.field.types]);
 
     return (
