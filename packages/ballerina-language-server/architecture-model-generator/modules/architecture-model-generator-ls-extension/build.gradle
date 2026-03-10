@@ -143,6 +143,7 @@ test {
 
 test.dependsOn pullBallerinaTool('migrate-tibco', migrateTibcoVersion)
 test.dependsOn pullBallerinaTool('migrate-mule', migrateMuleVersion)
+test.dependsOn rootProject.pullBallerinaModule('workflow', ballerinaWorkflowVersion, "ballerina")
 
 ext.moduleName = 'io.ballerina.architecturemodelgenerator.extension'
 

@@ -107,7 +107,12 @@ if (moduleVersion.indexOf('-') != -1) {
 
 // TODO: Remove this once the workspace manager is refactored to import modules where necessary.
 def pullBallerinaModule(String packageName, String version = null, String orgName = "ballerinax") {
-    tasks.register("pull${orgName.capitalize()}Module_${packageName.replace('/', '_')}") {
+    def taskName = "pull${orgName.capitalize()}Module_${packageName.replace('/', '_')}"
+    def existingTask = tasks.findByName(taskName)
+    if (existingTask != null) {
+        return existingTask
+    }
+    tasks.register(taskName) {
         doLast {
             def errOutput = new ByteArrayOutputStream()
             def result = exec {
