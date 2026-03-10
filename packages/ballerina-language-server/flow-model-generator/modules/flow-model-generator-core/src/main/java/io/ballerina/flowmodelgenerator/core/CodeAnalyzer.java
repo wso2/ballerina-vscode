@@ -131,12 +131,12 @@ import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
-import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.BinaryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.CallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ChunkerBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataLoaderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FailBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionCall;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionDefinitionBuilder;
@@ -148,7 +148,6 @@ import io.ballerina.flowmodelgenerator.core.model.node.MemoryStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MethodCall;
 import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NewConnectionBuilder;
-import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.PanicBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RemoteActionCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ResourceActionCallBuilder;
@@ -156,6 +155,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.ReturnBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RollbackBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.XmlPayloadBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
@@ -1641,7 +1641,7 @@ public class CodeAnalyzer extends NodeVisitor {
      *
      * @param functionData the function data containing the module name
      * @param packageName  the package name to strip from the module name
-     * @param classSymbol the class symbol representing the persist client
+     * @param classSymbol  the class symbol representing the persist client
      */
     private void updatePersistRelatedMetadata(FunctionData functionData, String packageName, ClassSymbol classSymbol) {
         String moduleName = functionData.moduleName();
@@ -2090,7 +2090,7 @@ public class CodeAnalyzer extends NodeVisitor {
                             .label(functionData.packageName())
                             .description(functionData.description())
                             .icon(CommonUtils.generateIcon(functionData.org(), functionData.packageName(),
-                                    functionData.version()))
+                                functionData.version()))
                             .stepOut()
                         .codedata()
                             .org(functionData.org())
@@ -2975,7 +2975,6 @@ public class CodeAnalyzer extends NodeVisitor {
                 .map(node -> node.toString().trim())
                 .collect(Collectors.joining());
     }
-
 
     private boolean isAgent(ServiceDeclarationNode serviceDeclarationNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceDeclarationNode.expressions();
