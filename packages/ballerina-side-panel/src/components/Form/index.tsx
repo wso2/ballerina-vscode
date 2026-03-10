@@ -50,6 +50,7 @@ import {
     getPrimaryInputType,
     MACHINE_VIEW,
     EditorDisplayMode,
+    Imports,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -404,6 +405,7 @@ export interface FormProps {
     changeOptionalFieldTitle?: string; // Option to change the title of optional fields
     openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
+    updateImports?: (key: string, imports: Imports) => void;
 }
 
 export const Form = forwardRef((props: FormProps) => {
@@ -445,7 +447,8 @@ export const Form = forwardRef((props: FormProps) => {
         onValidityChange,
         changeOptionalFieldTitle = undefined,
         openFormTypeEditor,
-        derivedFields = []
+        derivedFields = [],
+        updateImports,
     } = props;
 
     const {
@@ -1068,6 +1071,7 @@ export const Form = forwardRef((props: FormProps) => {
                                         openFormTypeEditor &&
                                         ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
                                     }
+                                    updateImports={updateImports}
                                 />
                                 {updatedField.key === "scope" && scopeFieldAddon}
                             </S.Row>
