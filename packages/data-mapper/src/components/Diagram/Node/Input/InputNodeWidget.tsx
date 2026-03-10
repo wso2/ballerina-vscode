@@ -28,7 +28,7 @@ import { TreeBody, TreeContainer, TreeHeader } from '../commons/Tree/Tree';
 import { FieldActionButton } from '../commons/FieldActionButton';
 import { InputNodeTreeItemWidget } from "./InputNodeTreeItemWidget";
 import { useIONodesStyles } from "../../../styles";
-import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMExpressionBarStore, useDMIOConfigPanelStore } from '../../../../store/store';
+import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { getTypeName } from "../../utils/type-utils";
 import { useShallow } from "zustand/react/shallow";
 import { InputCategoryIcon } from "./InputCategoryIcon";
@@ -55,8 +55,6 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
 
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
     const expandedFieldsStore = useDMExpandedFieldsStore();
-
-    const allowInputs = useDMExpressionBarStore(state => state.allowInputs);
 
 	const { setIsIOConfigPanelOpen, setIOConfigPanelType, setIsSchemaOverridden } = useDMIOConfigPanelStore(
         useShallow(state => ({
@@ -143,7 +141,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
 
     return (
         <>
-            <TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick} className={allowInputs ? classes.nodeContainerActive : undefined}>
+            <TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick}>
                 <TreeHeader
                     id={"recordfield-" + id}
                     isSelected={portState !== PortState.Unselected}
