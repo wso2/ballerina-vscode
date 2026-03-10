@@ -134,9 +134,6 @@ export const useIONodesStyles = () => ({
     treeLabelPortExprFocused: css({
         outline: "2px solid var(--vscode-list-focusAndSelectionOutline, var(--vscode-contrastActiveBorder, var(--vscode-editorLink-activeForeground, var(--vscode-list-focusOutline))))",
     }),
-    nodeContainerActive: css({
-        borderColor: "var(--vscode-list-focusAndSelectionOutline, var(--vscode-contrastActiveBorder, var(--vscode-editorLink-activeForeground, var(--vscode-list-focusOutline)))) !important",
-    }),
     treeLabelParentHovered: css({
         backgroundColor: 'var(--vscode-list-hoverBackground)',
     }),
