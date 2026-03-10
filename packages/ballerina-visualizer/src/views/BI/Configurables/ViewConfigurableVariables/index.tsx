@@ -476,7 +476,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     return (
         <View>
             <TopNavigationBar projectPath={props.projectPath} />
-            <TitleBar title="Configurable Variables" subtitle="View and manage configurable variables" actions={
+            <TitleBar title="Configurable Variables" subtitle="View and manage configurable variables" hideUndoRedo={true} actions={
                 <div style={{ display: "flex", gap: '8px', alignItems: 'center' }}>
                     {errorMessage &&
                         <Tooltip content={errorMessage}>
