@@ -44,6 +44,8 @@ const startMigrationEnhancementMethod = { method: "migrate-integration/startMigr
 const migrationPanelReadyMethod = { method: "migrate-integration/migrationPanelReady" } as const;
 const abortMigrationAgentMethod = { method: "migrate-integration/abortMigrationAgent" } as const;
 const setMigrationModelMethod = { method: "migrate-integration/setMigrationModel" } as const;
+const wizardEnhancementReadyMethod = { method: "migrate-integration/wizardEnhancementReady" } as const;
+const openMigratedProjectMethod = { method: "migrate-integration/openMigratedProject" } as const;
 
 export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     const rpcManger = MigrateIntegrationRpcManager.getInstance();
@@ -57,8 +59,10 @@ export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     messenger.onNotification(migrateProject, (args: MigrateRequest) => rpcManger.migrateProject(args));
     messenger.onRequest(getActiveMigrationSession, () => rpcManger.getActiveMigrationSession());
     messenger.onRequest(markEnhancementCompleteMethod, () => rpcManger.markEnhancementComplete());
-    messenger.onRequest(startMigrationEnhancementMethod, (args: { mode: 'auto-fix' | 'guided-review' }) => rpcManger.startMigrationEnhancement(args.mode));
+    messenger.onRequest(startMigrationEnhancementMethod, (args: { mode: 'auto-fix' }) => rpcManger.startMigrationEnhancement(args.mode));
     messenger.onRequest(migrationPanelReadyMethod, () => rpcManger.migrationPanelReady());
+    messenger.onRequest(wizardEnhancementReadyMethod, () => rpcManger.wizardEnhancementReady());
+    messenger.onRequest(openMigratedProjectMethod, () => rpcManger.openMigratedProjectInVSCode());
     messenger.onRequest(abortMigrationAgentMethod, () => rpcManger.abortMigrationAgent());
     messenger.onRequest(setMigrationModelMethod, (args: { modelId: string }) => rpcManger.setMigrationModel(args.modelId));
 }

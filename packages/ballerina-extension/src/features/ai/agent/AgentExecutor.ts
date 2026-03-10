@@ -322,6 +322,8 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 throw error;
             }
 
+            console.error("[AgentExecutor] Non-abort error in execute():", error);
+
             this.config.eventHandler({
                 type: "error",
                 content: "An error occurred during agent execution. Please check the logs for details."

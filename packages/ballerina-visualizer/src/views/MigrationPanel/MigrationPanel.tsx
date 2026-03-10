@@ -27,7 +27,7 @@ import MigrationEnhancementBanner from "../AIPanel/components/MigrationEnhanceme
 // Types
 // ──────────────────────────────────────────────────────────────────────────────
 
-type MigrationEnhancementMode = "auto-fix" | "guided-review" | "none";
+type MigrationEnhancementMode = "auto-fix" | "none";
 
 interface MigrationSessionState {
     isActive: boolean;
@@ -432,7 +432,7 @@ export function MigrationPanel() {
     }, [rpcClient]);
 
     const handleStartEnhancement = useCallback(
-        async (mode: "auto-fix" | "guided-review") => {
+        async (mode: "auto-fix") => {
             try {
                 // Reset for a fresh run
                 setMessages([]);
@@ -531,16 +531,7 @@ export function MigrationPanel() {
                                     Auto-Fix
                                 </ModeCardTitle>
                                 <ModeCardDesc>
-                                    Run all 4 stages automatically without intervention
-                                </ModeCardDesc>
-                            </ModeCard>
-                            <ModeCard onClick={() => handleStartEnhancement("guided-review")} disabled={isStreaming}>
-                                <ModeCardTitle>
-                                    <span className="codicon codicon-eye" style={{ fontSize: "13px" }} />
-                                    Guided Review
-                                </ModeCardTitle>
-                                <ModeCardDesc>
-                                    Review and approve each stage before it is applied
+                                    Automatically fix build errors, resolve TODOs, and run tests
                                 </ModeCardDesc>
                             </ModeCard>
                         </ModeCardRow>

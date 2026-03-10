@@ -21,7 +21,7 @@ import { Codicon } from "@wso2/ui-toolkit";
 import React, { useMemo } from "react";
 
 /** Local mirror – avoids depending on a rebuilt @wso2/ballerina-core */
-type MigrationEnhancementMode = 'auto-fix' | 'guided-review' | 'none';
+type MigrationEnhancementMode = 'auto-fix' | 'none';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Types
@@ -325,21 +325,14 @@ export function MigrationEnhancementBanner({
                         <span className="codicon codicon-zap" style={{ fontSize: '11px' }} />
                         Auto-fix
                     </StartButton>
-                    <StartButton
-                        variant="secondary"
-                        onClick={() => onStartEnhancement?.('guided-review')}
-                        title="Review and approve each step before it is applied"
-                    >
-                        <span className="codicon codicon-eye" style={{ fontSize: '11px' }} />
-                        Guided Review
-                    </StartButton>
+
                 </div>
             </BannerContainer>
         );
     }
 
     // ── Active / pending enhancement banner ───────────────────────────────
-    const modeLabel = mode === 'auto-fix' ? 'Auto-fix' : 'Guided Review';
+    const modeLabel = 'Auto-fix';
     const modeKey = mode as Exclude<MigrationEnhancementMode, 'none'>;
 
     return (

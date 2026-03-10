@@ -25,82 +25,51 @@ import { ProjectFormData, ProjectFormFields } from "../ProjectForm/ProjectFormFi
 import { validatePackageName } from "../ProjectForm/utils";
 import { MultiProjectFormData, MultiProjectFormFields } from "./components/MultiProjectFormFields";
 import {
-    AIBadge,
     AIEnhancementSection,
     AIEnhancementTitle,
+    AIEnhancementToggleRow,
+    AIEnhancementDescription,
     ButtonWrapper,
-    RadioDot,
-    RadioOptionCard,
-    RadioOptionDescription,
-    RadioOptionLabel,
-    RadioOptionList,
-    RadioOptionTitle,
 } from "./styles";
 import { ConfigureProjectFormProps, MigrationEnhancementMode } from "./types";
 
-interface AIEnhancementOption {
-    mode: MigrationEnhancementMode;
-    title: string;
-    description: string;
-    badge?: string;
+interface AIEnhancementToggleProps {
+    enabled: boolean;
+    onChange: (enabled: boolean) => void;
 }
 
-const AI_ENHANCEMENT_OPTIONS: AIEnhancementOption[] = [
-    {
-        mode: 'auto-fix',
-        title: 'Auto-fix',
-        description: 'AI automatically resolves unmapped elements, fixes build errors, refines tests, and runs them. No prompts needed.',
-        badge: 'Recommended',
-    },
-    {
-        mode: 'guided-review',
-        title: 'Guided Review',
-        description: 'AI walks through each issue one at a time. Review and accept each change before it is applied.',
-    },
-    {
-        mode: 'none',
-        title: 'Skip for now',
-        description: 'Open the project as-is. You can trigger AI enhancement later from the project or migration report.',
-    },
-];
-
-interface AIEnhancementRadioGroupProps {
-    mode: MigrationEnhancementMode;
-    onChange: (mode: MigrationEnhancementMode) => void;
-}
-
-function AIEnhancementRadioGroup({ mode, onChange }: AIEnhancementRadioGroupProps) {
+function AIEnhancementToggle({ enabled, onChange }: AIEnhancementToggleProps) {
     return (
         <AIEnhancementSection>
             <AIEnhancementTitle>
                 <Codicon name="sparkle" />
                 AI Enhancement
             </AIEnhancementTitle>
-            <RadioOptionList>
-                {AI_ENHANCEMENT_OPTIONS.map((option) => (
-                    <RadioOptionCard
-                        key={option.mode}
-                        selected={mode === option.mode}
-                        onClick={() => onChange(option.mode)}
-                    >
-                        <RadioDot selected={mode === option.mode} />
-                        <RadioOptionLabel>
-                            <RadioOptionTitle>
-                                {option.title}
-                                {option.badge && <AIBadge>{option.badge}</AIBadge>}
-                            </RadioOptionTitle>
-                            <RadioOptionDescription>{option.description}</RadioOptionDescription>
-                        </RadioOptionLabel>
-                    </RadioOptionCard>
-                ))}
-            </RadioOptionList>
+            <AIEnhancementToggleRow onClick={() => onChange(!enabled)}>
+                <input
+                    type="checkbox"
+                    checked={enabled}
+                    onChange={(e) => onChange(e.target.checked)}
+                    style={{ margin: 0, cursor: "pointer" }}
+                />
+                <div>
+                    <span style={{ fontWeight: 500, fontSize: 13, color: "var(--vscode-foreground)" }}>
+                        {enabled ? "Enabled" : "Disabled"}
+                    </span>
+                    <AIEnhancementDescription>
+                        {enabled
+                            ? "AI will automatically resolve unmapped elements, fix build errors, refine tests, and run them before opening the project."
+                            : "Open the project as-is. You can trigger AI enhancement later from the Migration Assistance panel."}
+                    </AIEnhancementDescription>
+                </div>
+            </AIEnhancementToggleRow>
         </AIEnhancementSection>
     );
 }
 
 export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: ConfigureProjectFormProps) {
     const { rpcClient } = useRpcContext();
-    const [enhancementMode, setEnhancementMode] = useState<MigrationEnhancementMode>('auto-fix');
+    const [aiEnhancementEnabled, setAiEnhancementEnabled] = useState(true);
     const [singleProjectData, setSingleProjectData] = useState<ProjectFormData>({
         integrationName: "",
         packageName: "",
@@ -215,7 +184,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                 workspaceName: singleProjectData.workspaceName,
                 orgName: singleProjectData.orgName || undefined,
                 version: singleProjectData.version || undefined,
-            }, enhancementMode);
+            }, aiEnhancementEnabled ? 'auto-fix' : 'none');
         } catch (error) {
             setSingleProjectPathError("An error occurred during validation");
             setIsValidating(false);
@@ -271,7 +240,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                 projectPath: multiProjectData.path,
                 createDirectory: multiProjectData.createDirectory,
                 createAsWorkspace: false,
-            }, enhancementMode);
+            }, aiEnhancementEnabled ? 'auto-fix' : 'none');
         } catch (error) {
             setPathError("An error occurred during validation");
             setIsValidating(false);
@@ -292,7 +261,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                         folderNameError={folderNameError || undefined}
                     />
 
-                    {<AIEnhancementRadioGroup mode={enhancementMode} onChange={setEnhancementMode} />}
+                    {<AIEnhancementToggle enabled={aiEnhancementEnabled} onChange={setAiEnhancementEnabled} />}
 
                     <ButtonWrapper>
                         <ActionButtons
@@ -322,7 +291,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                         packageNameValidationError={singleProjectPackageNameError || undefined}
                     />
 
-                    {<AIEnhancementRadioGroup mode={enhancementMode} onChange={setEnhancementMode} />}
+                    {<AIEnhancementToggle enabled={aiEnhancementEnabled} onChange={setAiEnhancementEnabled} />}
 
                     <ButtonWrapper>
                         <ActionButtons

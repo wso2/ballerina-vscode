@@ -65,7 +65,7 @@ export interface SaveMigrationReportRequest {
     };
 }
 
-export type MigrationEnhancementMode = 'auto-fix' | 'guided-review' | 'none';
+export type MigrationEnhancementMode = 'auto-fix' | 'none';
 
 /**
  * Describes the current state of a migration AI enhancement session.
@@ -85,6 +85,8 @@ export interface MigrateRequest {
     };
     projects?: ProjectMigrationResult[];
     enhancementMode?: MigrationEnhancementMode;
+    /** Absolute path to the original source project (e.g. Mule XML directory). */
+    sourcePath?: string;
 }
 
 export interface OpenSubProjectReportRequest {

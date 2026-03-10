@@ -40,6 +40,7 @@ import { MessageRole } from "./ai-types";
 import { RPCLayer } from "../../../RPCLayer";
 import { AiPanelWebview } from "../../../views/ai-panel/webview";
 import { MigrationPanelWebview } from "../../../views/migration-panel/webview";
+import { VisualizerWebview } from "../../../views/visualizer/webview";
 import { GenerationType } from "./libs/libraries";
 // import { REQUIREMENTS_DOCUMENT_KEY } from "./code/np_prompts";
 
@@ -309,6 +310,15 @@ function sendAIPanelNotification(msg: ChatNotify): void {
  */
 export function sendMigrationPanelNotification(msg: ChatNotify): void {
     RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: MigrationPanelWebview.viewType }, msg);
+}
+
+/**
+ * Sends a chat notification to the Visualizer webview.
+ * Used by the wizard-level migration AI enhancement to stream progress
+ * back to the ImportIntegration wizard before the project is opened.
+ */
+export function sendVisualizerMigrationNotification(msg: ChatNotify): void {
+    RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: VisualizerWebview.viewType }, msg);
 }
 
 export function getGenerationMode(generationType: GenerationType) {

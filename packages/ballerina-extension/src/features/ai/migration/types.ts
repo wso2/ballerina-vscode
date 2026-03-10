@@ -41,6 +41,8 @@ export interface PendingMigrationEnhancement {
     projectRoot: string;
     /** epoch ms – used to discard stale entries (>10 min) */
     timestamp: number;
+    /** Absolute path to the original source project (e.g. Mule XML directory). */
+    sourcePath?: string;
 }
 
 /** Seconds before a stale pending-enhancement entry is discarded */
@@ -53,6 +55,8 @@ export interface EnhanceTomlData {
     mode: MigrationEnhancementMode;
     /** `true` once the AI enhancement pipeline has completed for this project. */
     isEnhanced: boolean;
+    /** Absolute path to the original source project (e.g. Mule XML directory). */
+    sourcePath?: string;
 }
 
 /**
