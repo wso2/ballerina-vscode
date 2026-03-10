@@ -89,15 +89,16 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     const [textFieldValue, setTextFieldValue] = useState<string>('');
     const [placeholder, setPlaceholder] = useState<string>();
 
-    const { focusedPort, focusedFilter, lastFocusedPort, inputPort, resetInputPort, setLastFocusedPort, resetExprBarFocus } =
+    const { focusedPort, focusedFilter, lastFocusedPort, inputPort, setLastFocusedPort, setAllowInputs, resetInputPort, resetExprBarFocus } =
         useDMExpressionBarStore(
             useShallow((state) => ({
                 focusedPort: state.focusedPort,
                 focusedFilter: state.focusedFilter,
                 lastFocusedPort: state.lastFocusedPort,
                 inputPort: state.inputPort,
-                resetInputPort: state.resetInputPort,
                 setLastFocusedPort: state.setLastFocusedPort,
+                setAllowInputs: state.setAllowInputs,
+                resetInputPort: state.resetInputPort,
                 resetExprBarFocus: state.resetFocus
             }))
         );
@@ -216,7 +217,10 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
         triggerCompletions(outputId, viewId, textFieldValue, cursorPosition);
     };
 
-    
+    const handleManualInteraction = () => {
+        console.log('manual interaction');
+        setAllowInputs(true);
+    };
 
     const handleCancel = () => {
         setTextFieldValue('');
@@ -311,6 +315,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
                 onBlur={handleBlur}
                 useTransaction={useDisableOnChange}
                 onManualCompletionRequest={handleManualCompletionRequest}
+                onManualInteraction={handleManualInteraction}
                 sx={{ display: 'flex', alignItems: 'center' }}
             />
         </div>
