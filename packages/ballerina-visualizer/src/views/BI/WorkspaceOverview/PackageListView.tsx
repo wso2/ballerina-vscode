@@ -192,7 +192,7 @@ const ICPBadgeText = styled.span`
 `;
 
 export interface PackageListViewProps {
-    workspaceStructure: ProjectStructureResponse;
+    projectCollection: ProjectStructureResponse;
     icpStatusByProjectPath?: Record<string, boolean>;
     showICPBadge?: boolean;
 }
@@ -260,12 +260,12 @@ const renderPackageIcon = (types: SCOPE[]) => {
 
 export function PackageListView(props: PackageListViewProps) {
     const { rpcClient } = useRpcContext();
-    const workspaceStructure = props.workspaceStructure;
+    const projectCollection = props.projectCollection;
     const icpStatusByProjectPath = props.icpStatusByProjectPath ?? {};
     const showICPBadge = props.showICPBadge ?? false;
 
-    const packages = useMemo(() => {
-        return workspaceStructure.projects.map((project) => {
+    const integrationItems = useMemo(() => {
+        return projectCollection.projects.map((project) => {
             return {
                 id: project.projectName,
                 name: project.projectTitle,
@@ -274,9 +274,9 @@ export function PackageListView(props: PackageListViewProps) {
                 types: getIntegrationTypes(project)
             }
         });
-    }, [workspaceStructure]);
+    }, [projectCollection]);
 
-    const handlePackageClick = async (packageId: string, event: React.MouseEvent) => {
+    const handleItemClick = async (itemId: string, event: React.MouseEvent) => {
         // Don't trigger if clicking on delete button
         if ((event.target as HTMLElement).closest('.delete-button')) {
             return;
@@ -284,16 +284,16 @@ export function PackageListView(props: PackageListViewProps) {
         await rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
-                projectPath: packages.find((pkg) => pkg.id === packageId)?.projectPath,
+                projectPath: integrationItems.find((item) => item.id === itemId)?.projectPath,
                 view: MACHINE_VIEW.PackageOverview,
-                package: packageId
+                package: itemId
             },
         });
     };
 
-    const handleDeleteClick = async (projectPath: string, event: React.MouseEvent) => {
+    const handleDeleteClick = async (projectPath: string, isLibrary: boolean, event: React.MouseEvent) => {
         event.stopPropagation();
-        console.log('Deleting package:', projectPath);
+        console.log(`Deleting ${isLibrary ? "library" : "integration"}: ${projectPath}`);
         await rpcClient.getBIDiagramRpcClient().deleteProject({
             projectPath: projectPath
         });
@@ -302,20 +302,20 @@ export function PackageListView(props: PackageListViewProps) {
     return (
         <Container>
             <CardGrid>
-                {packages.map((pkg) => (
-                    <PackageCard key={pkg.id} onClick={(e) => handlePackageClick(pkg.id, e)}>
+                {integrationItems.map((item) => (
+                    <PackageCard key={item.id} onClick={(e) => handleItemClick(item.id, e)}>
                         <PackageHeader>
-                            <PackageTitleRow title={pkg.name}>
+                            <PackageTitleRow title={item.name}>
                                 <PackageIcon>
-                                    {renderPackageIcon(pkg.types)}
+                                    {renderPackageIcon(item.types)}
                                 </PackageIcon>
-                                <PackageName>{pkg.name}</PackageName>
+                                <PackageName>{item.name}</PackageName>
                             </PackageTitleRow>
                             <PackageActions>
                                 <DeleteButton 
                                     className="delete-button"
-                                    onClick={(e) => handleDeleteClick(pkg.projectPath, e)}
-                                    title="Delete package"
+                                    onClick={(e) => handleDeleteClick(item.projectPath, item.isLibrary, e)}
+                                    title={item.isLibrary ? "Delete library" : "Delete integration"}
                                 >
                                     <Codicon name="trash" iconSx={{ fontSize: 18 }} />
                                 </DeleteButton>
@@ -324,14 +324,14 @@ export function PackageListView(props: PackageListViewProps) {
                         </PackageHeader>
                         <MetaRow>
                             <ChipContainer>
-                                {pkg.types.length > 0 && pkg.types.map((type) => (
+                                {item.types.length > 0 && item.types.map((type) => (
                                     <Chip key={type} color={getTypeColor(type)}>
                                         {type !== SCOPE.ANY ? getTypeLabel(type) : ''}
                                     </Chip>
                                 ))}
                             </ChipContainer>
-                            {showICPBadge && !pkg.isLibrary && icpStatusByProjectPath[pkg.projectPath] && (
-                                <Tooltip content="Integration Control Plane is enabled for this package">
+                            {showICPBadge && !item.isLibrary && icpStatusByProjectPath[item.projectPath] && (
+                                <Tooltip content="Integration Control Plane is enabled for this integration">
                                     <ICPBadge>
                                         <ICPBadgeIcon>
                                             <Codicon name="pass-filled" iconSx={{ fontSize: 14, display: "block", lineHeight: 1 }} />

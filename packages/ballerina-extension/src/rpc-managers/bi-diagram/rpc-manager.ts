@@ -94,6 +94,8 @@ import {
     GetRecordConfigResponse,
     GetRecordModelFromSourceRequest,
     GetRecordModelFromSourceResponse,
+    GetSimpleTypeOfExpressionRequest,
+    GetSimpleTypeOfExpressionResponse,
     GetTypeRequest,
     GetTypeResponse,
     GetTypesRequest,
@@ -1722,6 +1724,21 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 })
                 .catch((error) => {
                     console.log(">>> error fetching type from ls", error);
+                    reject(error);
+                });
+        });
+    }
+
+    async getSimpleTypeOfExpression(params: GetSimpleTypeOfExpressionRequest): Promise<GetSimpleTypeOfExpressionResponse> {
+        return new Promise((resolve, reject) => {
+            StateMachine.langClient()
+                .getSimpleTypeOfExpression(params)
+                .then((type) => {
+                    console.log(">>> simple type from ls", type);
+                    resolve(type);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching simple type from ls", error);
                     reject(error);
                 });
         });

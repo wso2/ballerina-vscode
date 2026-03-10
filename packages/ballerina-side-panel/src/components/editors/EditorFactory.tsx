@@ -18,7 +18,7 @@
 
 import React from "react";
 
-import { InputType, isDropDownType, isTemplateType, NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { Imports, InputType, isDropDownType, isTemplateType, NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 
 import { FormField } from "../Form/types";
 import { MultiSelectEditor } from "./MultiSelectEditor";
@@ -70,6 +70,7 @@ export interface FormFieldEditorProps {
     scopeFieldAddon?: React.ReactNode;
     isContextTypeEditorSupported?: boolean;
     openFormTypeEditor?: (open: boolean, newType?: string) => void;
+    updateImports?: (key: string, imports: Imports) => void;
 }
 
 export const EditorFactory = (props: FormFieldEditorProps) => {
@@ -89,7 +90,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         setSubComponentEnabled,
         handleNewTypeSelected,
         isContextTypeEditorSupported,
-        openFormTypeEditor
+        openFormTypeEditor,
+        updateImports,
     } = props;
 
     const showWithExpressionEditor = (
@@ -210,7 +212,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         // Skip this property
         return <></>;
     } else if(fieldInputType.fieldType === "REPEATABLE_PROPERTY" && (selectedNode === "DATA_MAPPER_CREATION" || selectedNode === "FUNCTION_CREATION")) {
-        return <ArgManagerEditor setSubComponentEnabled={setSubComponentEnabled} field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} />;
+        return <ArgManagerEditor setSubComponentEnabled={setSubComponentEnabled} field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} updateImports={updateImports} />;
     }else if (
         (fieldInputType.fieldType === "PARAM_MANAGER") ||
         (fieldInputType.fieldType === "REPEATABLE_PROPERTY" && isTemplateType(fieldInputType))
