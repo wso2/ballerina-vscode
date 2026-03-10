@@ -162,8 +162,18 @@ export function WizardAIEnhancementView() {
     const [completedContent, setCompletedContent] = useState<string[]>([]);
     const [toolCalls, setToolCalls] = useState<ToolCallEntry[]>([]);
 
+    // Track terminal status in a ref so the callback always sees the latest
+    // value without needing `status` in its dependency array.
+    const terminalRef = useRef(false);
+
     // ── Chat event handler ────────────────────────────────────────────────
     const handleChatEvent = useCallback((event: ChatNotify) => {
+        // Once we reach a terminal state, ignore further events (the SDK
+        // may still have in-flight tool calls that emit events).
+        if (terminalRef.current) {
+            return;
+        }
+
         switch (event.type) {
             case "start":
                 setStatus("running");
@@ -198,6 +208,7 @@ export function WizardAIEnhancementView() {
                     }
                     return "";
                 });
+                terminalRef.current = true;
                 setStatus("completed");
                 break;
 
@@ -212,10 +223,12 @@ export function WizardAIEnhancementView() {
                     ...msgs,
                     `**Error:** ${event.content ?? "An unexpected error occurred."}`,
                 ]);
+                terminalRef.current = true;
                 setStatus("error");
                 break;
 
             case "abort":
+                terminalRef.current = true;
                 setStatus("aborted");
                 setCurrentContent("");
                 break;

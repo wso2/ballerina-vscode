@@ -324,9 +324,15 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
             console.error("[AgentExecutor] Non-abort error in execute():", error);
 
+            // Abort the controller so that any in-flight tool executions
+            // managed by the AI SDK are cancelled and stop emitting events.
+            if (!this.config.abortController.signal.aborted) {
+                this.config.abortController.abort();
+            }
+
             this.config.eventHandler({
                 type: "error",
-                content: "An error occurred during agent execution. Please check the logs for details."
+                content: getErrorMessage(error)
             });
 
             // For other errors, return result with error
