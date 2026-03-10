@@ -1435,7 +1435,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   <div
                     class="css-60"
                   >
-                    Click to edit 
+                    Click to view 
                     appendKey
                   </div>
                 </foreignobject>
@@ -1565,7 +1565,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   <div
                     class="css-60"
                   >
-                    Click to edit 
+                    Click to view 
                     getNameTool
                   </div>
                 </foreignobject>
@@ -1695,7 +1695,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   <div
                     class="css-60"
                   >
-                    Click to edit 
+                    Click to view 
                     mcpClient
                   </div>
                 </foreignobject>
@@ -8289,7 +8289,7 @@ exports[`BI Diagram - Snapshot Tests renders all nodes flow correctly: all-nodes
                   <div
                     class="css-85"
                   >
-                    Click to edit 
+                    Click to view 
                     createEventTool
                   </div>
                 </foreignobject>
@@ -8419,7 +8419,7 @@ exports[`BI Diagram - Snapshot Tests renders all nodes flow correctly: all-nodes
                   <div
                     class="css-85"
                   >
-                    Click to edit 
+                    Click to view 
                     getRandomName
                   </div>
                 </foreignobject>
@@ -8549,7 +8549,7 @@ exports[`BI Diagram - Snapshot Tests renders all nodes flow correctly: all-nodes
                   <div
                     class="css-85"
                   >
-                    Click to edit 
+                    Click to view 
                     aiMcpbasetoolkit
                   </div>
                 </foreignobject>
