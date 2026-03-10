@@ -18,34 +18,40 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { Codicon, Icon, OpenAiIcon, AzureOpenAiIcon, AnthropicIcon, OllamaIcon, MistralAIIcon, DeepseekIcon, DefaultLlmIcon } from "@wso2/ui-toolkit";
+import { Codicon, Icon, DefaultLlmIcon, getAIModuleIcon } from "@wso2/ui-toolkit";
 import { CodeData } from "@wso2/ballerina-core";
 
 const ICON_SIZE = 16;
 
 export function getConnectionIcon(codedata: CodeData): React.ReactElement {
-    switch (codedata.module) {
-        case "OpenAiProvider":
-        case "ai.openai":
-            return <OpenAiIcon size={ICON_SIZE} />;
-        case "AzureOpenAiProvider":
-        case "OpenAiModelProvider":
-        case "ai.azure":
-            return <AzureOpenAiIcon size={ICON_SIZE} />;
-        case "AnthropicProvider":
-        case "ai.anthropic":
-            return <AnthropicIcon size={ICON_SIZE} />;
-        case "OllamaProvider":
-        case "ai.ollama":
-            return <OllamaIcon size={ICON_SIZE} />;
-        case "MistralAiProvider":
-        case "ai.mistral":
-            return <MistralAIIcon size={ICON_SIZE} />;
-        case "DeepseekProvider":
-        case "ai.deepseek":
-            return <DeepseekIcon size={ICON_SIZE} />;
-        case "ai":
-            return <Icon name="bi-wso2" sx={{ width: 16, height: 16, fontSize: 16 }} />;
+    // Check AI module icon map first
+    if (codedata.module) {
+        const icon = getAIModuleIcon(codedata.module, ICON_SIZE);
+        if (icon) return icon;
+    }
+
+    // Handle WSO2 AI module
+    if (codedata.module === "ai") {
+        if (codedata.node === "VECTOR_STORE") {
+            return <Icon name="bi-db" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
+        }
+        return <Icon name="bi-wso2" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
+    }
+
+    // Fallback by node type
+    switch (codedata?.node) {
+        case "MODEL_PROVIDER":
+            return <Icon name="bi-ai-model" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
+        case "VECTOR_STORE":
+            return <Icon name="bi-db" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
+        case "EMBEDDING_PROVIDER":
+            return <Icon name="bi-doc" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
+        case "DATA_LOADER":
+            return <Icon name="bi-data-table" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
+        case "CHUNKER":
+            return <Icon name="bi-cut" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
+        case "MEMORY_STORE":
+            return <Icon name="bi-memory" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
         default:
             return <DefaultLlmIcon size={ICON_SIZE} />;
     }
