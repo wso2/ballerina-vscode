@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
+ *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -28,8 +28,8 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.PackageUtil;
-import io.ballerina.modelgenerator.commons.SearchDatabaseManager;
 import io.ballerina.modelgenerator.commons.SearchResult;
+import io.ballerina.modelgenerator.commons.UnifiedSearchResult;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
@@ -51,13 +51,13 @@ import static io.ballerina.flowmodelgenerator.core.model.Category.Name.STANDARD_
 
 /**
  * Optimized search command implementation that uses a hybrid approach:
- * - Fast database queries using existing unified SearchDatabaseManager methods for functions/connectors/types
+ * - Fast database queries using existing unified SearchDatabaseManager methods for functions/connectors
  * - Parallel local searches for project-specific search types (AI components, local utilities, etc.)
  * - Unified result processing and deduplication
  *
  * This provides complete coverage of all 15 search types while maintaining performance.
  *
- * @since 1.0.0
+ * @since 1.7.0
  */
 public class AllTypesSearchCommand extends SearchCommand {
 
@@ -85,12 +85,12 @@ public class AllTypesSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> defaultView() {
-        return executeHybridSearch(false);
+        return executeHybridSearch();
     }
 
     @Override
     protected List<Item> search() {
-        return executeHybridSearch(false);
+        return executeHybridSearch();
     }
 
     @Override
@@ -110,34 +110,16 @@ public class AllTypesSearchCommand extends SearchCommand {
         return popularItems;
     }
 
-    @Override
-    protected List<Item> searchCurrentOrganization(String currentOrg) {
-        List<CompletableFuture<List<Item>>> futures = new ArrayList<>();
-
-        for (Kind searchType : DATABASE_SEARCH_TYPES) {
-            CompletableFuture<List<Item>> future = CompletableFuture.supplyAsync(() -> {
-                try {
-                    SearchCommand command = createSearchCommand(searchType);
-                    return command.searchCurrentOrganization(currentOrg);
-                } catch (RuntimeException e) {
-                    return Collections.emptyList();
-                }
-            }, executorService);
-            futures.add(future);
-        }
-
-        return aggregateResults(futures);
-    }
-
     /**
      * Executes hybrid search combining fast database queries with parallel local searches.
      */
-    private List<Item> executeHybridSearch(boolean isDefaultView) {
+    private List<Item> executeHybridSearch() {
         List<CompletableFuture<List<Item>>> futures = new ArrayList<>();
 
         CompletableFuture<List<Item>> databaseFuture = CompletableFuture.supplyAsync(() -> {
             try {
-                return executeDatabaseSearch(isDefaultView);
+                List<UnifiedSearchResult> unifiedResults = dbManager.searchAllTypes(query, limit, offset);
+                return processDatabaseResults(unifiedResults);
             } catch (RuntimeException e) {
                 return Collections.emptyList();
             }
@@ -148,33 +130,15 @@ public class AllTypesSearchCommand extends SearchCommand {
     }
 
     /**
-     * Executes optimized database search using existing SearchDatabaseManager methods.
-     */
-    private List<Item> executeDatabaseSearch(boolean isDefaultView) {
-        List<SearchDatabaseManager.UnifiedSearchResult> unifiedResults;
-
-        if (isDefaultView) {
-            if (moduleNames.isEmpty()) {
-                return Collections.emptyList();
-            }
-            unifiedResults = dbManager.searchAllTypesByPackages(moduleNames, limit, offset);
-        } else {
-            unifiedResults = dbManager.searchAllTypes(query, limit, offset);
-        }
-
-        return processDatabaseResults(unifiedResults);
-    }
-
-    /**
      * Processes unified database results and converts them directly to Items.
      */
-    private List<Item> processDatabaseResults(List<SearchDatabaseManager.UnifiedSearchResult> unifiedResults) {
+    private List<Item> processDatabaseResults(List<UnifiedSearchResult> unifiedResults) {
         Builder rootBuilder = new Builder(null);
 
-        List<SearchDatabaseManager.UnifiedSearchResult> functions = new ArrayList<>();
-        List<SearchDatabaseManager.UnifiedSearchResult> connectors = new ArrayList<>();
+        List<UnifiedSearchResult> functions = new ArrayList<>();
+        List<UnifiedSearchResult> connectors = new ArrayList<>();
 
-        for (SearchDatabaseManager.UnifiedSearchResult result : unifiedResults) {
+        for (UnifiedSearchResult result : unifiedResults) {
             if ("function".equals(result.getResultType())) {
                 functions.add(result);
             } else if ("connector".equals(result.getResultType())) {
@@ -184,14 +148,14 @@ public class AllTypesSearchCommand extends SearchCommand {
 
         if (!functions.isEmpty()) {
             List<SearchResult> functionResults = functions.stream()
-                    .map(SearchDatabaseManager.UnifiedSearchResult::getSearchResult)
+                    .map(UnifiedSearchResult::getSearchResult)
                     .collect(Collectors.toList());
             buildLibraryNodesFromResults(functionResults, rootBuilder);
         }
 
         if (!connectors.isEmpty()) {
             List<SearchResult> connectorResults = connectors.stream()
-                    .map(SearchDatabaseManager.UnifiedSearchResult::getSearchResult)
+                    .map(UnifiedSearchResult::getSearchResult)
                     .collect(Collectors.toList());
             buildLibraryNodesFromConnectorResults(connectorResults, rootBuilder);
         }
@@ -298,23 +262,6 @@ public class AllTypesSearchCommand extends SearchCommand {
             case FUNCTION ->
                     new FunctionSearchCommand(project, position, getQueryMapForType(searchType), functionsDoc);
             case CONNECTOR -> new ConnectorSearchCommand(project, position, getQueryMapForType(searchType));
-            case NP_FUNCTION ->
-                    new NPFunctionSearchCommand(project, position, getQueryMapForType(searchType), functionsDoc);
-            case TYPE -> new TypeSearchCommand(project, position, getQueryMapForType(searchType));
-            case MODEL_PROVIDER ->
-                    new ModelProviderSearchCommand(project, position, getQueryMapForType(searchType));
-            case EMBEDDING_PROVIDER ->
-                    new EmbeddingProviderSearchCommand(project, position, getQueryMapForType(searchType));
-            case VECTOR_STORE -> new VectorStoreSearchCommand(project, position, getQueryMapForType(searchType));
-            case DATA_LOADER -> new DataLoaderSearchCommand(project, position, getQueryMapForType(searchType));
-            case CHUNKER -> new ChunkerSearchCommand(project, position, getQueryMapForType(searchType));
-            case AGENT -> new AgentSearchCommand(project, position, getQueryMapForType(searchType));
-            case CLASS_INIT -> new ClassInitSearchCommand(project, position, getQueryMapForType(searchType));
-            case MEMORY -> new MemoryManagerSearchCommand(project, position, getQueryMapForType(searchType));
-            case MEMORY_STORE -> new MemoryStoreSearchCommand(project, position, getQueryMapForType(searchType));
-            case AGENT_TOOL -> new AgentToolSearchCommand(project, position, getQueryMapForType(searchType));
-            case KNOWLEDGE_BASE ->
-                    new KnowledgeBaseSearchCommand(project, position, getQueryMapForType(searchType));
             default -> throw new IllegalArgumentException("Unsupported search type: " + searchType);
         };
     }

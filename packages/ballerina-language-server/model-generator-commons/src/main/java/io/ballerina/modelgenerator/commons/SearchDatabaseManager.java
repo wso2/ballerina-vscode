@@ -499,7 +499,7 @@ public class SearchDatabaseManager {
     }
 
     /**
-     * Unified search across all types (functions, connectors, types) using a single SQL query.
+     * Unified search across functions and connectors using a single SQL query.
      * This provides better performance than multiple separate queries.
      *
      * @param q      the search query string
@@ -592,115 +592,6 @@ public class SearchDatabaseManager {
         }
 
         return results;
-    }
-
-    /**
-     * Unified search for default view across all types from specified packages.
-     *
-     * @param packageNames list of package names to search in
-     * @param limit       the maximum number of results to return
-     * @param offset      the offset from which to start returning results
-     * @return a list of unified search results from specified packages
-     * @throws RuntimeException if there is an error executing the search
-     */
-    public List<UnifiedSearchResult> searchAllTypesByPackages(List<String> packageNames, int limit, int offset) {
-        if (packageNames.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<UnifiedSearchResult> results = new ArrayList<>();
-
-        StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("WITH AllResults AS (");
-
-        // Functions from specified packages
-        sqlBuilder.append("SELECT 'function' as result_type, ")
-                .append("f.name, ")
-                .append("f.description, ")
-                .append("p.org, ")
-                .append("p.name AS module_name, ")
-                .append("p.package_name, ")
-                .append("p.version ")
-                .append("FROM Function f ")
-                .append("JOIN Package p ON f.package_id = p.id ")
-                .append("WHERE p.name IN (")
-                .append(String.join(",", Collections.nCopies(packageNames.size(), "?")))
-                .append(") ");
-
-        // Connectors from specified packages
-        sqlBuilder.append("UNION ALL ")
-                .append("SELECT 'connector' as result_type, ")
-                .append("c.name, ")
-                .append("c.description, ")
-                .append("p.org, ")
-                .append("p.name AS module_name, ")
-                .append("p.package_name, ")
-                .append("p.version ")
-                .append("FROM Connector c ")
-                .append("JOIN Package p ON c.package_id = p.id ")
-                .append("WHERE p.name IN (")
-                .append(String.join(",", Collections.nCopies(packageNames.size(), "?")))
-                .append(") ");
-
-        sqlBuilder.append(") SELECT * FROM AllResults ORDER BY result_type, name LIMIT ? OFFSET ?");
-
-        try (Connection conn = DriverManager.getConnection(dbPath);
-             PreparedStatement stmt = conn.prepareStatement(sqlBuilder.toString())) {
-
-            // Set parameters for both package name lists (functions and connectors)
-            int paramIndex = 1;
-            for (int i = 0; i < 2; i++) { // Two queries: function, connector
-                for (String packageName : packageNames) {
-                    stmt.setString(paramIndex++, packageName);
-                }
-            }
-
-            // Set limit and offset
-            stmt.setInt(paramIndex++, limit);
-            stmt.setInt(paramIndex, offset);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    String resultType = rs.getString("result_type");
-                    String name = rs.getString("name");
-                    String description = rs.getString("description");
-                    String org = rs.getString("org");
-                    String moduleName = rs.getString("module_name");
-                    String packageName = rs.getString("package_name");
-                    String version = rs.getString("version");
-
-                    SearchResult searchResult = SearchResult.from(org, packageName, moduleName, version, name,
-                            description);
-                    results.add(new UnifiedSearchResult(resultType, searchResult));
-                }
-            }
-        } catch (SQLException e) {
-            LOGGER.severe("Error searching all types by packages: " + e.getMessage());
-            throw new RuntimeException("Failed to search all types by packages", e);
-        }
-
-        return results;
-    }
-
-    /**
-     * Container class for unified search results that includes type information.
-     */
-    public static class UnifiedSearchResult {
-        private final String resultType; // 'function', 'connector', 'type'
-        private final SearchResult searchResult;
-
-        public UnifiedSearchResult(String resultType, SearchResult searchResult) {
-            this.resultType = resultType;
-            this.searchResult = searchResult;
-        }
-
-        public String getResultType() {
-            return resultType;
-        }
-
-        public SearchResult getSearchResult() {
-            return searchResult;
-        }
     }
 
     private static String sanitizeQuery(String q) {
