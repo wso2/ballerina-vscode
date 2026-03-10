@@ -16,14 +16,16 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { Command, MigrationEnhancementMode } from "@wso2/ballerina-core";
+import { AIMachineEventType, Command, MigrationEnhancementMode } from "@wso2/ballerina-core";
 import { commands, Uri, window, workspace } from "vscode";
 import { extension } from "../../../BalExtensionContext";
 import { StateMachine } from "../../../stateMachine";
+import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
 import { openMigrationPanel } from "../../../views/migration-panel/activate";
 import { AgentExecutor } from "../agent/AgentExecutor";
 import { AICommandConfig } from "../executors/base/AICommandExecutor";
 import { createMigrationEventHandler, createVisualizerMigrationEventHandler } from "../utils/events";
+import { sendVisualizerMigrationNotification } from "../utils/ai-utils";
 import { getAutoFixPrompt, getWizardEnhancementPrompt } from "./prompts";
 import {
     AI_ENHANCE_TOML_FILENAME,
@@ -384,10 +386,99 @@ export function setWizardProjectRoot(projectRoot: string, sourcePath?: string): 
  * Streams events to the Visualizer webview instead of the Migration Panel.
  * Called when the wizard enhancement step is ready.
  */
+/**
+ * Ensures the user is authenticated before running the AI agent.
+ * If not authenticated, triggers the login flow and waits for completion.
+ * Returns true if authenticated, false if auth was cancelled or timed out.
+ */
+async function ensureAuthenticated(): Promise<boolean> {
+    const AUTH_TIMEOUT_MS = 120_000; // 2 minutes
+
+    const state = AIStateMachine.state();
+    if (state === "Authenticated") {
+        return true;
+    }
+
+    // Tell the wizard UI we're signing in
+    sendVisualizerMigrationNotification({
+        type: "content_block",
+        content: "Signing in to BI Copilot...\n\n",
+    });
+
+    // If state is Initialize, wait for it to resolve first
+    if (state === "Initialize") {
+        const resolved = await new Promise<boolean>((resolve) => {
+            const timeout = setTimeout(() => {
+                sub.unsubscribe();
+                resolve(false);
+            }, AUTH_TIMEOUT_MS);
+
+            const sub = AIStateMachine.service().subscribe((snapshot) => {
+                const s = snapshot.value;
+                if (s === "Authenticated") {
+                    clearTimeout(timeout);
+                    sub.unsubscribe();
+                    resolve(true);
+                } else if (s === "Unauthenticated" || s === "Disabled") {
+                    clearTimeout(timeout);
+                    sub.unsubscribe();
+                    resolve(false);
+                }
+            });
+        });
+
+        if (resolved) {
+            return true;
+        }
+        // Fell through to Unauthenticated – continue to trigger login below
+        if (AIStateMachine.state() === "Disabled") {
+            return false;
+        }
+    }
+
+    // Trigger the login flow (same as AI Chat's LOGIN event)
+    AIStateMachine.sendEvent(AIMachineEventType.LOGIN);
+
+    // Wait for Authenticated, or timeout / cancellation
+    return new Promise<boolean>((resolve) => {
+        const timeout = setTimeout(() => {
+            sub.unsubscribe();
+            resolve(false);
+        }, AUTH_TIMEOUT_MS);
+
+        const sub = AIStateMachine.service().subscribe((snapshot) => {
+            const s = snapshot.value;
+            if (s === "Authenticated") {
+                clearTimeout(timeout);
+                sub.unsubscribe();
+                resolve(true);
+            } else if (s === "Unauthenticated" || s === "Disabled") {
+                // Login was cancelled or failed
+                clearTimeout(timeout);
+                sub.unsubscribe();
+                resolve(false);
+            }
+        });
+    });
+}
+
 export async function runWizardMigrationEnhancement(): Promise<void> {
     const projectRoot = _wizardProjectRoot;
     if (!projectRoot) {
         window.showErrorMessage("Migration enhancement: no project root set for wizard enhancement.");
+        return;
+    }
+
+    // Ensure the user is authenticated before running the AI agent
+    const eventHandler = createVisualizerMigrationEventHandler(Command.Agent);
+    eventHandler({ type: "start" });
+
+    const isAuthenticated = await ensureAuthenticated();
+    if (!isAuthenticated) {
+        eventHandler({
+            type: "error",
+            content: "Please sign in to BI Copilot to use AI enhancement. You can sign in from the AI Chat panel and retry.",
+        });
         return;
     }
 
@@ -400,7 +491,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
             projectPath: projectRoot,
             workspacePath: projectRoot,
         },
-        eventHandler: createVisualizerMigrationEventHandler(Command.Agent),
+        eventHandler,
         generationId: `wizard-migration-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         abortController: _migrationAbortController,
         params: {
