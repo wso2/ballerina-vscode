@@ -79,4 +79,28 @@ public interface ProjectService {
      * @param workspaceFolders list of workspace root paths to scan; must not be null
      */
     void registerWorkspace(java.util.List<java.nio.file.Path> workspaceFolders);
+
+    /**
+     * Applies in-memory content to a document in the cached project so that the
+     * synchronous {@code syntaxTree()} fallback returns the latest editor content.
+     *
+     * @param path absolute path of the changed file
+     * @param content  the current content to apply
+     */
+    void applyDocumentContent(Path path, String content);
+
+    /**
+     * Removes a document from the cached project when its file is deleted.
+     *
+     * @param filePath absolute path of the deleted file
+     */
+    void removeDocumentFromProject(Path filePath);
+
+    /**
+     * Evicts the cached project for the given file path, forcing a fresh reload from
+     * disk on the next {@code loadOrCreate} call.
+     *
+     * @param filePath a file path within the project to evict
+     */
+    void evictProject(Path filePath);
 }

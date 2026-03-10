@@ -98,4 +98,21 @@ public interface DocumentService {
      * @param params watched file batch event
      */
     void didChangeWatched(DidChangeWatchedFilesParams params);
+
+    /**
+     * Returns the current VFS content for a file that is open in the editor,
+     * or {@code null} if the file is not overlaid (not currently open).
+     *
+     * @param path file path
+     * @return in-memory editor content, or {@code null} if not open
+     */
+    String openFileContent(Path path);
+
+    /**
+     * Closes the VFS overlay for a file that has been deleted by the file system,
+     * so subsequent {@code openFileContent} calls return {@code null} for this file.
+     *
+     * @param path file path to close in the VFS
+     */
+    void closeDeletedDocument(Path path);
 }

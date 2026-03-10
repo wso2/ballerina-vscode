@@ -18,6 +18,9 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import io.ballerina.projects.Document;
+import io.ballerina.projects.DocumentId;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
@@ -137,7 +140,6 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     @Override
     public Project loadOrCreate(Path path, CancelChecker cancelChecker) {
         Objects.requireNonNull(path, "path must not be null");
-        Objects.requireNonNull(cancelChecker, "cancelChecker must not be null");
 
         Path normalized = path.toAbsolutePath().normalize();
 
@@ -182,7 +184,6 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     @Override
     public io.ballerina.projects.Module module(Path path, CancelChecker cancelChecker) {
         Objects.requireNonNull(path, "path must not be null");
-        Objects.requireNonNull(cancelChecker, "cancelChecker must not be null");
 
         Project project = loadOrCreate(path, cancelChecker);
         try {
@@ -358,6 +359,74 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      */
     LockingModeController lockingModeController() {
         return lockingModeController;
+    }
+
+    /**
+     * Evicts the cached project for the given file path, forcing a fresh reload from
+     * disk on the next loadOrCreate call.
+     *
+     * @param filePath a file path within the project to evict
+     */
+    public void evictProject(Path filePath) {
+        Path normalized = filePath.toAbsolutePath().normalize();
+        try {
+            Optional<SourceRoot> cached = pathToRootCache.get(normalized);
+            SourceRoot root = cached.orElseGet(() -> resolveSourceRoot(normalized));
+            ballerinaProjects.remove(root);
+        } catch (Exception ignored) {
+            // Path not resolvable — no-op.
+        }
+    }
+
+    /**
+     * Removes a document from the cached project when its file is deleted.
+     * After removal, syntaxTree() fallback will find no document and return empty.
+     *
+     * @param filePath absolute path of the deleted file
+     */
+    public void removeDocumentFromProject(Path filePath) {
+        Path normalized = filePath.toAbsolutePath().normalize();
+        try {
+            Optional<SourceRoot> cached = pathToRootCache.get(normalized);
+            if (cached.isEmpty()) {
+                return;
+            }
+            Project project = ballerinaProjects.get(cached.get());
+            if (project == null) {
+                return;
+            }
+            DocumentId docId = project.documentId(normalized);
+            Document document = project.currentPackage().module(docId.moduleId()).document(docId);
+            Project updated = document.module().modify().removeDocument(docId).apply().project();
+            ballerinaProjects.put(cached.get(), updated);
+        } catch (Exception ignored) {
+            // Document may not be in project or project not loaded — skip.
+        }
+    }
+
+    /**
+     * Applies in-memory content to a document in the cached project.
+     * Called by WiringConfiguration when DS-E2 fires, so the synchronous
+     * syntaxTree() fallback returns the latest editor content.
+     *
+     * @param filePath absolute, normalized path of the changed file
+     * @param content  the current content to apply
+     */
+    public void applyDocumentContent(Path filePath, String content) {
+        Path normalized = filePath.toAbsolutePath().normalize();
+        try {
+            // loadOrCreate is idempotent: returns cached project if already loaded.
+            Project project = loadOrCreate(normalized, null);
+            DocumentId docId = project.documentId(normalized);
+            Module module = project.currentPackage().module(docId.moduleId());
+            Document document = module.document(docId);
+            // Ballerina project API is immutable: apply() returns a new Document in a new Project.
+            Document updated = document.modify().withContent(content).apply();
+            SourceRoot root = resolveSourceRoot(normalized);
+            ballerinaProjects.put(root, updated.module().project());
+        } catch (Exception ignored) {
+            // File not yet in project or project not supporting this op — skip.
+        }
     }
 
     /**

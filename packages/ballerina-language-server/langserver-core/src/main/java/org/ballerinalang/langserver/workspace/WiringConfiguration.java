@@ -22,6 +22,7 @@ import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationServiceImpl;
 import org.ballerinalang.langserver.workspace.compilerengine.SnapshotStore;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentServiceImpl;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.documentstore.VirtualFileSystem;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
@@ -37,6 +38,7 @@ import org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Set;
@@ -57,6 +59,7 @@ public final class WiringConfiguration implements AutoCloseable {
     private static final String STRUCTURAL_TIER = "STRUCTURAL";
 
     private final EventSyncPubSubHolder eventBus;
+    private final VirtualFileSystem virtualFileSystem;
     private final DocumentServiceImpl documentService;
     private final ProjectServiceImpl projectService;
     private final CompilationServiceImpl compilationService;
@@ -69,6 +72,7 @@ public final class WiringConfiguration implements AutoCloseable {
         this.eventBus = builder.eventBus;
         this.snapshotStore = builder.snapshotStore;
         this.projectRegistry = builder.projectRegistry;
+        this.virtualFileSystem = builder.virtualFileSystem;
 
         // Construction order matters — services self-subscribe in constructors.
         // 1. DocumentService (subscribes to CE-E1, WM-E2)
@@ -106,6 +110,42 @@ public final class WiringConfiguration implements AutoCloseable {
         // (SINGLE_FILE ↔ BUILD), triggering CE pipeline teardown/create.
         eventBus.subscribe("wiring-config-structural-bridge", SubscriberTier.CRITICAL,
                 Set.of(EventKind.DOCUMENT_CONFIG_FILE_CHANGED), this::onStructuralConfigChange);
+
+        // Bridge: DS-E2 (document changed) → apply VFS content to the cached project.
+        // This keeps the in-memory Project up-to-date so the synchronous syntaxTree()
+        // fallback in WorkspaceManagerFacadeImpl returns the latest editor content.
+        eventBus.subscribe("wiring-doc-changed-bridge", SubscriberTier.CRITICAL,
+                Set.of(EventKind.DOCUMENT_CHANGED), this::onDocumentChanged);
+    }
+
+    /**
+     * On DS-E2: apply the current VFS content of the changed .bal file to the
+     * cached Ballerina {@code Project} so the synchronous fallback path returns
+     * up-to-date syntax trees without waiting for the async compilation pipeline.
+     */
+    private void onDocumentChanged(DomainEvent event) {
+        String uriString = event.coalesceScope();
+        if (uriString == null || !uriString.startsWith("file:")) {
+            return;
+        }
+        try {
+            URI uri = URI.create(uriString);
+            Path filePath = Path.of(uri).toAbsolutePath().normalize();
+            if (!filePath.toString().endsWith(".bal")) {
+                return;
+            }
+            DocumentUri.FileUri docUri = new DocumentUri.FileUri(uri);
+            if (virtualFileSystem.isOverlaid(docUri)) {
+                // Editor change: apply current editor content to the cached project.
+                String content = virtualFileSystem.content(docUri);
+                projectService.applyDocumentContent(filePath, content);
+            } else {
+                // Disk change: evict cached project so next loadOrCreate reloads from disk.
+                projectService.evictProject(filePath);
+            }
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "Could not apply document content for DS-E2 event: " + uriString, e);
+        }
     }
 
     /**

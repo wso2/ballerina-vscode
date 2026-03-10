@@ -21,6 +21,7 @@ package org.ballerinalang.langserver.workspace.lspgateway;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
@@ -38,10 +39,12 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
+import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -146,19 +149,42 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     @Override
     public Optional<SyntaxTree> syntaxTree(Path filePath) {
         SyntaxTree tree = compilationService.syntaxTree(filePath, null);
-        return Optional.ofNullable(tree);
+        if (tree != null) {
+            return Optional.of(tree);
+        }
+        try {
+            String vfsContent = documentService.openFileContent(filePath);
+            if (vfsContent != null) {
+                projectService.applyDocumentContent(filePath, vfsContent);
+            }
+            Project project = projectService.loadOrCreate(filePath, null);
+            DocumentId docId = project.documentId(filePath);
+            return Optional.of(project.currentPackage().module(docId.moduleId()).document(docId).syntaxTree());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     @Override
     public Optional<SyntaxTree> syntaxTree(Path filePath, CancelChecker cancelChecker) {
-        SyntaxTree tree = compilationService.syntaxTree(filePath, cancelChecker);
-        return Optional.ofNullable(tree);
+        return Optional.ofNullable(compilationService.syntaxTree(filePath, cancelChecker))
+                .or(() -> syntaxTree(filePath));
     }
 
     @Override
     public Optional<SemanticModel> semanticModel(Path filePath) {
         SemanticModel model = compilationService.semanticModel(filePath, null);
-        return Optional.ofNullable(model);
+        if (model != null) {
+            return Optional.of(model);
+        }
+        try {
+            Project project = projectService.loadOrCreate(filePath, null);
+            DocumentId docId = project.documentId(filePath);
+            PackageCompilation compilation = project.currentPackage().getCompilation();
+            return Optional.of(compilation.getSemanticModel(docId.moduleId()));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -170,7 +196,15 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     @Override
     public Optional<PackageCompilation> waitAndGetPackageCompilation(Path filePath) {
         PackageCompilation compilation = compilationService.compilation(filePath, null);
-        return Optional.ofNullable(compilation);
+        if (compilation != null) {
+            return Optional.of(compilation);
+        }
+        try {
+            Project project = projectService.loadOrCreate(filePath, null);
+            return Optional.of(project.currentPackage().getCompilation());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -202,6 +236,21 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     @Override
     public List<Path> didChangeWatched(DidChangeWatchedFilesParams params) throws WorkspaceDocumentException {
         documentService.didChangeWatched(params);
+        if (params != null && params.getChanges() != null) {
+            for (FileEvent event : params.getChanges()) {
+                try {
+                    Path filePath = Path.of(URI.create(event.getUri()));
+                    if (event.getType() == FileChangeType.Deleted) {
+                        documentService.closeDeletedDocument(filePath);
+                        projectService.removeDocumentFromProject(filePath);
+                    } else if (event.getType() == FileChangeType.Changed
+                            && documentService.openFileContent(filePath) == null) {
+                        projectService.evictProject(filePath);
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        }
         return List.of();
     }
 

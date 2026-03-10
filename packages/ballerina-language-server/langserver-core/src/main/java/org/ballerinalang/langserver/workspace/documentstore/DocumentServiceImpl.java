@@ -266,6 +266,38 @@ public final class DocumentServiceImpl implements DocumentService {
     }
 
     /**
+     * Returns the current VFS content for a file that is open in the editor,
+     * or {@code null} if the file is not overlaid.
+     *
+     * @param path file path
+     * @return in-memory editor content, or {@code null} if not open
+     */
+    @Override
+    public String openFileContent(Path path) {
+        Objects.requireNonNull(path, "path must not be null");
+        DocumentUri.FileUri uri = fileUri(path);
+        return virtualFileSystem.isOverlaid(uri) ? virtualFileSystem.content(uri) : null;
+    }
+
+    /**
+     * Closes the VFS overlay for a deleted file without writing to disk,
+     * so subsequent {@code openFileContent} calls return {@code null} for this file.
+     *
+     * @param path file path to close in the VFS
+     */
+    @Override
+    public void closeDeletedDocument(Path path) {
+        if (path == null) {
+            return;
+        }
+        try {
+            virtualFileSystem.removeOverlay(fileUri(path));
+        } catch (Exception ignored) {
+            // File may not be in VFS — no-op.
+        }
+    }
+
+    /**
      * Registers a self-write token for Dependencies.toml suppression.
      *
      * @param dependenciesTomlPath dependencies file path

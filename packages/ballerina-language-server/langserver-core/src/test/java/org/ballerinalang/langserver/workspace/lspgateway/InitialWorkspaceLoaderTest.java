@@ -205,7 +205,7 @@ public class InitialWorkspaceLoaderTest {
         Thread.sleep(300);
 
         Mockito.verify(projectService).registerWorkspace(Mockito.argThat(
-                list -> list.size() >= 1 && list.stream().anyMatch(p -> p.endsWith("Ballerina.toml"))
+                list -> list.size() >= 1 && list.stream().anyMatch(p -> p.resolve("Ballerina.toml").toFile().exists())
         ));
     }
 
@@ -328,7 +328,7 @@ public class InitialWorkspaceLoaderTest {
 
         // Progress end should still be called despite exception
         Mockito.verify(progressTracker).end(
-                InitialWorkspaceLoader.IWL_PROGRESS_TOKEN,
+                Mockito.eq(InitialWorkspaceLoader.IWL_PROGRESS_TOKEN),
                 Mockito.anyString()
         );
     }

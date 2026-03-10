@@ -156,9 +156,10 @@ public final class InitialWorkspaceLoader {
 
     /**
      * Background task: scan workspace folders and register projects.
-     * Ensures progress end is sent in finally block.
+     * Only sends progress end on error paths; CE-E1 handles the success path.
      */
     private void executeIwl(ClientSession session) {
+        boolean scanSucceeded = false;
         try {
             List<Path> allRoots = new ArrayList<>();
             int folderCount = session.workspaceFolderUris().size();
@@ -186,12 +187,13 @@ public final class InitialWorkspaceLoader {
 
             // Mark syntax tier ready (WM-E6 signals syntax readiness)
             readinessController.markSyntaxReady();
+            scanSucceeded = true;
 
         } catch (Exception e) {
             System.err.println("Error during initial workspace load: " + e);
         } finally {
-            // Ensure progress end is sent (unless CE-E1 fires first)
-            if (progressEndSent.compareAndSet(false, true)) {
+            // Only send fallback progress end if scan failed; CE-E1 handles the success path
+            if (!scanSucceeded && progressEndSent.compareAndSet(false, true)) {
                 progressTracker.end(IWL_PROGRESS_TOKEN, "Workspace indexed");
             }
         }

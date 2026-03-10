@@ -72,9 +72,7 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
      */
     public BallerinaWorkspaceManagerProxyImpl(LanguageServerContext serverContext) {
         Objects.requireNonNull(serverContext, "serverContext must not be null");
-        // For now, create the legacy workspace managers
-        // In the full implementation, these would be WorkspaceManagerFacadeImpl instances
-        this.fileWorkspaceManager = new BallerinaWorkspaceManager(serverContext);
+        this.fileWorkspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
         this.exprWorkspaceManager = createSandboxWorkspaceManager(serverContext, "expr");
         this.aiWorkspaceManager = createSandboxWorkspaceManager(serverContext, "ai");
         this.untitledWorkspaceManager = createSandboxWorkspaceManager(serverContext, "untitled");
@@ -154,10 +152,7 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
      * @param buildOptions the build options to set
      */
     public void setBuildOptions(BuildOptions buildOptions) {
-        if (fileWorkspaceManager instanceof BallerinaWorkspaceManager bwm) {
-            bwm.setBuildOptions(buildOptions);
-        }
-        // Sandbox managers don't support build options in this simplified implementation
+        // WorkspaceManagerFacadeImpl manages build options internally.
     }
 
     /**

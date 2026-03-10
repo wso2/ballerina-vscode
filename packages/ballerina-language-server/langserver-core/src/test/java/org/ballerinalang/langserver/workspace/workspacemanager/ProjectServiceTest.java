@@ -240,9 +240,9 @@ public class ProjectServiceTest {
     }
 
     @Test(groups = "load-or-create")
-    public void loadOrCreate_nullCancelCheckerThrowsNPE() {
-        Assert.assertThrows(NullPointerException.class,
-                () -> service.loadOrCreate(tempDir, null));
+    public void loadOrCreate_nullCancelCheckerIsAccepted() {
+        // null cancelChecker means "no cancellation" — must not throw
+        Assert.assertNotNull(service.loadOrCreate(tempDir, null));
     }
 
     // =========================================================================

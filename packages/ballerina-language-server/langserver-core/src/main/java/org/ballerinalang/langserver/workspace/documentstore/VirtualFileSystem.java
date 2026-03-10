@@ -158,6 +158,24 @@ public final class VirtualFileSystem {
     }
 
     /**
+     * Removes the editor overlay for a document without writing to disk.
+     * After this call, {@code isOverlaid} returns {@code false} for the document.
+     * Use this when a file is deleted and the editor content must not be persisted.
+     *
+     * @param uri document identity
+     */
+    public void removeOverlay(DocumentUri uri) {
+        Objects.requireNonNull(uri, "uri must not be null");
+        Document doc = documents.get(uri);
+        if (doc == null) {
+            return;
+        }
+        // Close to disk authority using the current disk content (not the editor buffer).
+        String diskContent = readFromDisk(uri);
+        doc.close(diskContent);
+    }
+
+    /**
      * Refreshes content from disk for a closed document.
      * Has no effect if document is open.
      *

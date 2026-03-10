@@ -113,6 +113,7 @@ import static io.ballerina.runtime.api.constants.RuntimeConstants.MODULE_INIT_CL
  *
  * @since 1.0.0
  */
+@Deprecated
 public class BallerinaWorkspaceManager implements WorkspaceManager {
 
     // workspace run related constants
