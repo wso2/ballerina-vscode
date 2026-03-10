@@ -478,8 +478,11 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             }
         );
 
-        // Update chat state storage
-        await this.updateChatState(context, assistantMessages, tempProjectPath);
+        // Update chat state storage (skip for flows without chat storage,
+        // e.g. wizard migration, which has no review mode)
+        if (this.config.chatStorage) {
+            await this.updateChatState(context, assistantMessages, tempProjectPath);
+        }
 
         // Emit UI events
         await this.emitReviewActions(context);
