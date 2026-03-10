@@ -512,7 +512,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             // If the field is a repeatable list, store a copy of collected diagnostics for each element in the root
             // level so that the exp mode also can show the diagnostics. Property-level diagnostics don't have a
             // `range`, so use a simple message-based dedupe and provide explicit typing to satisfy TypeScript.
-            if (isRepeatableList && !(Array.isArray(propertyDiagnostics) && propertyDiagnostics.length >= 0)) {
+            if (isRepeatableList && !(Array.isArray(propertyDiagnostics) && propertyDiagnostics.length > 0)) {
                 const collectedDiagnostics = (
                     nodeProperties?.[field.key]?.value?.map((val: any) => val?.diagnostics?.diagnostics) ?? []
                 ).flat().filter(Boolean) as Array<{ message?: string; severity?: string }>;
