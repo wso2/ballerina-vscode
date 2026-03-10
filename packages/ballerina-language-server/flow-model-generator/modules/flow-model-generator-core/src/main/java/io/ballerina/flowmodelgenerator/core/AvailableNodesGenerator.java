@@ -407,7 +407,7 @@ public class AvailableNodesGenerator {
 
         AvailableNode agent = new AvailableNode(
                 new Metadata.Builder<>(null).label(AgentRunBuilder.LABEL)
-                        .description(AgentRunBuilder.DESCRIPTION).build(),
+                        .description(AgentRunBuilder.CATEGORY_DESCRIPTION).build(),
                 new Codedata.Builder<>(null).node(NodeKind.AGENTS).build(), true);
 
         Category agentCategory = new Category.Builder(null).name(Category.Name.AGENT)

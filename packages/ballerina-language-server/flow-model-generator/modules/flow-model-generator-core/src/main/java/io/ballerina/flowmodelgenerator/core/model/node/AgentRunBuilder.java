@@ -57,9 +57,13 @@ public class AgentRunBuilder extends CallBuilder {
     private static final String CONTEXT = "context";
 
     public static final String LABEL = "Agent";
-    public static final String DESCRIPTION = "Create or reuse an Agent.";
+    public static final String DESCRIPTION = "Executes the agent for a given user query.";
+    public static final String CATEGORY_DESCRIPTION = "Create or reuse an Agent.";
+
     static final Set<String> AGENT_CALL_PARAMS_TO_SHOW = Set.of(QUERY, SESSION_ID, CONTEXT);
     private static final String STRING = "string";
+    private static final String AI_TRACE = "ai:Trace";
+    private static final List<String> TD_OPTIONS = List.of(STRING, AI_TRACE);
 
     // Cache for agent run function templates to avoid repeated FunctionDataBuilder.build() calls
     private static final Map<String, FlowNode> agentRunFnCache = new ConcurrentHashMap<>();
@@ -149,6 +153,12 @@ public class AgentRunBuilder extends CallBuilder {
                 // Update the label to "Type Descriptor" for better clarity
                 if ("td".equals(entry.getKey()) && updatedProp.metadata() != null) {
                     updatedProp = AiUtils.createPropertyWithUpdatedLabel(updatedProp, "Type Descriptor");
+                    // Default to "string" if no value is set, then convert to a select box
+                    Object currentValue = updatedProp.value();
+                    if (currentValue == null || currentValue.toString().isEmpty()) {
+                        updatedProp = AiUtils.createUpdatedProperty(updatedProp, STRING);
+                    }
+                    updatedProp = AiUtils.convertToSingleSelect(updatedProp, TD_OPTIONS);
                 }
                 props.put(entry.getKey(), updatedProp);
             }

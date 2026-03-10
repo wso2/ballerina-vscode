@@ -493,6 +493,106 @@
         },
         "enabled": true,
         "editable": true
+      },
+      {
+        "statusCode": {
+          "enabled": true,
+          "editable": false,
+          "value": "500",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [],
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "placeholder": "",
+          "optional": false,
+          "advanced": false,
+          "items": []
+        },
+        "body": {
+          "enabled": true,
+          "editable": false,
+          "value": "error",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "mediaType": {
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "name": {
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "OPTIONAL_IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "type": {
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "headers": {
+          "metadata": {
+            "label": "Headers",
+            "description": "Add mandatory or optional headers to the response"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "HEADER_SET",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "enabled": true,
+        "editable": false
       }
     ],
     "schema": {
