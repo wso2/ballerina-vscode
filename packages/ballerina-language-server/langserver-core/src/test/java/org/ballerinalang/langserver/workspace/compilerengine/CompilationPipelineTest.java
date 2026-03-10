@@ -220,20 +220,22 @@ public class CompilationPipelineTest {
     @Test
     public void pipeline_lifoReplacementCancelsPreviousTask() throws InterruptedException {
         CountDownLatch firstStarted = new CountDownLatch(1);
-        CountDownLatch cancelSignalled = new CountDownLatch(1);
-        ProjectSnapshot snap1 = createMockSnapshot(new ContentVersion(1));
         ProjectSnapshot snap2 = createMockSnapshot(new ContentVersion(2));
-        List<Boolean> firstCancelledState = Collections.synchronizedList(new ArrayList<>());
+        CountDownLatch firstCancelled = new CountDownLatch(1);
         CountDownLatch allDone = new CountDownLatch(1);
 
         pipeline = createPipeline(task -> {
             if (task.contentVersion().equals(new ContentVersion(1))) {
                 firstStarted.countDown();
-                // Wait for the debounce to fire and cancel us
-                cancelSignalled.await(5, TimeUnit.SECONDS);
-                firstCancelledState.add(task.isCancelled());
-                task.advancePhase(CompilationPhase.POST_PARSE);
-                return snap1;
+                try {
+                    // Block until interrupted by superseding request (ADR-018 Mandate 8)
+                    new CountDownLatch(1).await(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    firstCancelled.countDown();
+                    Thread.currentThread().interrupt();
+                    throw new CancellationException("interrupted by superseding request");
+                }
+                throw new AssertionError("Should have been interrupted");
             } else {
                 allDone.countDown();
                 return snap2;
@@ -244,15 +246,12 @@ public class CompilationPipelineTest {
         pipeline.requestCompilation(new ContentVersion(1));
         Assert.assertTrue(firstStarted.await(3, TimeUnit.SECONDS), "First compilation did not start");
 
-        // Request version 2 — triggers LIFO cancellation after 150ms debounce
+        // Request version 2 — triggers LIFO cancellation + interrupt after 150ms debounce
         pipeline.requestCompilation(new ContentVersion(2));
-        // Wait for debounce to fire (150ms) + margin
-        Thread.sleep(300);
-        cancelSignalled.countDown();
 
+        Assert.assertTrue(firstCancelled.await(3, TimeUnit.SECONDS),
+                "First task should have been interrupted by superseding request");
         Assert.assertTrue(allDone.await(3, TimeUnit.SECONDS), "Second compilation did not complete");
-        Assert.assertFalse(firstCancelledState.isEmpty(), "First task should have checked cancellation");
-        Assert.assertTrue(firstCancelledState.get(0), "First task should have been cancelled");
     }
 
     @Test
@@ -442,6 +441,88 @@ public class CompilationPipelineTest {
         ProjectSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
         pipeline = createPipeline(task -> snapshot);
         pipeline.requestCompilation(null);
+    }
+
+    @Test
+    public void pipeline_interruptsActiveWorkerOnSupersedingRequest() throws InterruptedException {
+        CountDownLatch firstStarted = new CountDownLatch(1);
+        CountDownLatch interrupted = new CountDownLatch(1);
+        ProjectSnapshot snap2 = createMockSnapshot(new ContentVersion(2));
+
+        pipeline = createPipeline(task -> {
+            if (task.contentVersion().equals(new ContentVersion(1))) {
+                firstStarted.countDown();
+                try {
+                    new CountDownLatch(1).await(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    interrupted.countDown();
+                    Thread.currentThread().interrupt();
+                    throw new CancellationException("interrupted");
+                }
+            }
+            return snap2;
+        });
+
+        pipeline.requestCompilation(new ContentVersion(1));
+        Assert.assertTrue(firstStarted.await(3, TimeUnit.SECONDS), "First compilation did not start");
+        pipeline.requestCompilation(new ContentVersion(2));
+
+        Assert.assertTrue(interrupted.await(3, TimeUnit.SECONDS),
+                "Superseding request must interrupt the active worker thread (ADR-018 Mandate 8)");
+    }
+
+    @Test
+    public void pipeline_emitsCEE3WhenCancelledTaskCompletesNormally() throws InterruptedException {
+        CountDownLatch firstStarted = new CountDownLatch(1);
+        CountDownLatch releaseCancelledTask = new CountDownLatch(1);
+        CountDownLatch cancellationEvent = new CountDownLatch(1);
+        List<EventKind> receivedKinds = Collections.synchronizedList(new ArrayList<>());
+
+        eventBus = new EventSyncPubSubHolder();
+        eventBus.subscribe("test-cancel-event", SubscriberTier.CRITICAL,
+                Set.of(EventKind.COMPILER_COMPILATION_CANCELLED), event -> {
+                    receivedKinds.add(event.eventKind());
+                    cancellationEvent.countDown();
+                });
+
+        pipeline = new CompilationPipeline(testSourceRoot(), new SnapshotStore(10), eventBus, task -> {
+            if (task.contentVersion().equals(new ContentVersion(1))) {
+                firstStarted.countDown();
+                releaseCancelledTask.await(5, TimeUnit.SECONDS);
+            }
+            return createMockSnapshot(task.contentVersion());
+        });
+
+        pipeline.requestCompilation(new ContentVersion(1));
+        Assert.assertTrue(firstStarted.await(3, TimeUnit.SECONDS), "First compilation did not start");
+        pipeline.requestCompilation(new ContentVersion(2));
+        releaseCancelledTask.countDown();
+
+        Assert.assertTrue(cancellationEvent.await(3, TimeUnit.SECONDS),
+                "Cancelled task that completes normally must emit CE-E3 (COMPILER_COMPILATION_CANCELLED)");
+        Assert.assertTrue(receivedKinds.contains(EventKind.COMPILER_COMPILATION_CANCELLED));
+    }
+
+    @Test
+    public void pipeline_treatsInterruptedExceptionAsCancellation() throws InterruptedException {
+        CountDownLatch eventReceived = new CountDownLatch(1);
+        List<EventKind> receivedKinds = Collections.synchronizedList(new ArrayList<>());
+
+        eventBus = new EventSyncPubSubHolder();
+        eventBus.subscribe("test-sub", SubscriberTier.CRITICAL,
+                Set.of(EventKind.COMPILER_COMPILATION_CANCELLED), event -> {
+                    receivedKinds.add(event.eventKind());
+                    eventReceived.countDown();
+                });
+
+        pipeline = new CompilationPipeline(testSourceRoot(), new SnapshotStore(10), eventBus, task -> {
+            throw new InterruptedException("Thread interrupted during compilation");
+        });
+
+        pipeline.requestCompilation(new ContentVersion(1));
+        Assert.assertTrue(eventReceived.await(3, TimeUnit.SECONDS),
+                "InterruptedException must be treated as cancellation and emit CE-E3");
+        Assert.assertTrue(receivedKinds.contains(EventKind.COMPILER_COMPILATION_CANCELLED));
     }
 
     // ---- Helpers ----

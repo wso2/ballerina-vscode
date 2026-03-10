@@ -64,6 +64,7 @@ public class CompilationPipeline implements AutoCloseable {
     private final AtomicReference<ScheduledFuture<?>> pendingDebounce;
     private final AtomicReference<CompileTask> inflightTask;
     private final AtomicReference<ContentVersion> latestRequestedVersion;
+    private final AtomicReference<Thread> activeWorkerThread;
     private final AtomicBoolean closed;
 
     /**
@@ -95,6 +96,7 @@ public class CompilationPipeline implements AutoCloseable {
         this.pendingDebounce = new AtomicReference<>();
         this.inflightTask = new AtomicReference<>();
         this.latestRequestedVersion = new AtomicReference<>();
+        this.activeWorkerThread = new AtomicReference<>();
         this.closed = new AtomicBoolean(false);
     }
 
@@ -157,10 +159,14 @@ public class CompilationPipeline implements AutoCloseable {
         if (closed.get()) {
             return;
         }
-        // LIFO: cancel inflight task
+        // LIFO: cancel inflight task and interrupt worker thread (ADR-018 Mandate 8)
         CompileTask previous = inflightTask.get();
         if (previous != null) {
             previous.cancel();
+            Thread workerThread = activeWorkerThread.get();
+            if (workerThread != null) {
+                workerThread.interrupt();
+            }
         }
 
         // Staleness check: use latestRequestedVersion, not the debounced version
@@ -177,29 +183,59 @@ public class CompilationPipeline implements AutoCloseable {
     }
 
     private void executeCompilation(CompileTask task) {
+        activeWorkerThread.set(Thread.currentThread());
         try {
             ProjectSnapshot snapshot = compilationAction.compile(task);
+
+            // Publication guard: discard result if cancelled (ADR-018 Mandate 8)
+            if (task.isCancelled()) {
+                LOG.fine(() -> "Cancelled compilation result discarded for " + sourceRoot);
+                emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
+                return;
+            }
 
             // Staleness guard before publish
             ContentVersion latest = latestRequestedVersion.get();
             if (latest != null && latest.compareTo(task.contentVersion()) > 0) {
                 LOG.fine(() -> "Stale compilation discarded for " + sourceRoot + " version="
                         + task.contentVersion());
+                emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
                 return;
             }
 
-            if (!task.isCancelled()) {
-                snapshotStore.publish(sourceRoot, snapshot);
-                emitEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED);
-            }
+            snapshotStore.publish(sourceRoot, snapshot);
+            emitEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED);
         } catch (CancellationException e) {
             LOG.fine(() -> "Compilation cancelled for " + sourceRoot);
+            emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
+        } catch (InterruptedException e) {
+            LOG.fine(() -> "Compilation interrupted for " + sourceRoot);
             emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Compilation failed for " + sourceRoot, e);
             emitEvent(EventKind.COMPILER_COMPILATION_FAILED);
         } finally {
+            activeWorkerThread.compareAndSet(Thread.currentThread(), null);
             inflightTask.compareAndSet(task, null);
+            // Clear interrupt flag so the worker thread can pick up the next task
+            Thread.interrupted();
+            // If a newer version is pending, submit it immediately (skip debounce)
+            scheduleLatestIfPending(task.contentVersion());
+        }
+    }
+
+    private void scheduleLatestIfPending(ContentVersion completedVersion) {
+        if (closed.get()) {
+            return;
+        }
+        ContentVersion latest = latestRequestedVersion.get();
+        if (latest != null && latest.compareTo(completedVersion) > 0 && inflightTask.get() == null) {
+            compilationWorker.submit(() -> {
+                // Re-check to avoid duplicate work if debounce already fired
+                if (!closed.get() && inflightTask.get() == null) {
+                    submitCompilation(latest);
+                }
+            });
         }
     }
 
