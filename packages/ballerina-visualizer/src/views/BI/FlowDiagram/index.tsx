@@ -798,10 +798,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const closeSidePanelAndFetchUpdatedFlowModel = () => {
         resetNodeSelectionStates();
-        // Complete draft and fetch new flow model
+        // Fetch the updated flow model
+        debouncedGetFlowModel();
         if (hasDraft) {
             // completeDraft();
-            debouncedGetFlowModel();
             setSuggestedModel(undefined);
             suggestedText.current = undefined;
         }
@@ -2598,6 +2598,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 progressMessage={progressMessage}
                 // Regular callbacks
                 onClose={handleOnCloseSidePanel}
+                onSaveAndRefresh={closeSidePanelAndFetchUpdatedFlowModel}
                 onBack={handleOnFormBack}
                 onSelectNode={handleOnSelectNode}
                 // Add node callbacks
