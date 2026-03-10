@@ -153,7 +153,7 @@ export const getArraySubFormFieldFromTypes = (formId: string, types: InputType[]
         editable: true,
         documentation: "",
         value: "",
-        types: types,
+        types: types.map(type => ({ ...type })),
         enabled: true
     }
 }
