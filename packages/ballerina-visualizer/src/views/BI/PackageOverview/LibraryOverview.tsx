@@ -40,11 +40,15 @@ const LibraryWrapper = styled.div`
     min-height: 0;
 `;
 
-const ArtifactsPanel = styled.div`
+const ArtifactsPanel = styled.div<{ constrainHeight?: boolean }>`
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 4px;
     display: flex;
     flex-direction: column;
+    ${(props: { constrainHeight?: boolean }) => props.constrainHeight
+        ? `max-height: 380px; overflow: auto; flex-shrink: 0;`
+        : `flex: 1; min-height: 0; overflow: auto;`
+    }
 `;
 
 // ── Sticky header ─────────────────────────────────────────────────────────────
@@ -327,7 +331,8 @@ const CardWrapper = styled.div`
 const DeleteOverlay = styled.div`
     display: none;
     position: absolute;
-    top: 8px;
+    top: 50%;
+    transform: translateY(-50%);
     right: 8px;
     align-items: center;
     justify-content: center;
@@ -363,6 +368,11 @@ const ReadmeSection = styled.div`
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 4px;
     padding: 16px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 `;
 
 const ReadmeHeaderRow = styled.div`
@@ -378,6 +388,8 @@ const ReadmeTitle = styled(Typography)`
 
 const ReadmeContentArea = styled.div`
     margin-top: 16px;
+    flex: 1;
+    overflow: auto;
     text-wrap: pretty;
     overflow-wrap: break-word;
     p, li, td, th, blockquote { overflow-wrap: break-word; }
@@ -429,7 +441,7 @@ const SECTIONS: SectionConfig[] = [
         key: DIRECTORY_MAP.FUNCTION,
         title: "Functions",
         icon: "bi-function",
-        description: "Reusable functions exposed by your library.",
+        description: "Functions defined in your library.",
         addLabel: "Add a Function",
         addTooltip: "Add New Function",
     },
@@ -453,7 +465,7 @@ const SECTIONS: SectionConfig[] = [
         key: DIRECTORY_MAP.CONFIGURABLE,
         title: "Configurations",
         icon: "bi-config",
-        description: "Configurable values exposed by your library.",
+        description: "Configurable values defined in your library.",
         addLabel: "Add a Configuration",
         addTooltip: "Add New Configuration",
     },
@@ -730,7 +742,7 @@ export function LibraryOverview({ projectStructure, isNPSupported, projectPath, 
                             <SearchInput
                                 ref={sectionSearchRef}
                                 type="text"
-                                placeholder={`Search ${activeSection.title.toLowerCase()}...`}
+                                placeholder={`Search ${activeSection.title.toLowerCase()}`}
                                 value={sectionSearch}
                                 onChange={(e) => setSectionSearch(e.target.value)}
                                 autoFocus
@@ -745,7 +757,7 @@ export function LibraryOverview({ projectStructure, isNPSupported, projectPath, 
                             appearance="primary"
                             onClick={() => handleAdd(activeSection.key)}
                         >
-                            <Codicon name="add" sx={{ marginRight: 8 }} /> Add
+                            <Codicon name="add" sx={{ marginRight: 8 }} /> Add {activeSection.addLabel.replace("Add a ", "")}
                         </Button>
                     </LibraryHeaderRight>
                 </LibraryHeader>
@@ -783,7 +795,7 @@ export function LibraryOverview({ projectStructure, isNPSupported, projectPath, 
 
     return (
         <LibraryWrapper>
-            <ArtifactsPanel>
+            <ArtifactsPanel constrainHeight>
             <LibraryHeader>
                 <LibraryHeaderLeft>
                     <LibraryHeaderTitle variant="h2">Artifacts</LibraryHeaderTitle>
@@ -795,7 +807,7 @@ export function LibraryOverview({ projectStructure, isNPSupported, projectPath, 
                             <SearchInput
                                 ref={overviewSearchRef}
                                 type="text"
-                                placeholder="Search across all sections..."
+                                placeholder="Search across all sections"
                                 value={overviewSearch}
                                 onChange={(e) => setOverviewSearch(e.target.value)}
                             />
