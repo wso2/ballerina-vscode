@@ -223,6 +223,49 @@ const EmptyStateDesc = styled.div`
     line-height: 1.6;
 `;
 
+const ModeCardRow = styled.div`
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+`;
+
+const ModeCard = styled.button`
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 18px;
+    border-radius: 6px;
+    border: 1px solid var(--vscode-panel-border);
+    background: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+    cursor: pointer;
+    text-align: left;
+    width: 180px;
+    font-family: var(--vscode-font-family);
+    transition: border-color 0.15s, background-color 0.15s;
+
+    &:hover {
+        border-color: var(--vscode-focusBorder);
+        background: var(--vscode-list-hoverBackground);
+    }
+`;
+
+const ModeCardTitle = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+`;
+
+const ModeCardDesc = styled.div`
+    font-size: 11px;
+    opacity: 0.7;
+    line-height: 1.5;
+`;
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Component
 // ──────────────────────────────────────────────────────────────────────────────
@@ -230,6 +273,8 @@ const EmptyStateDesc = styled.div`
 export function MigrationPanel() {
     const { rpcClient } = useRpcContext();
     const messageEndRef = useRef<HTMLDivElement>(null);
+    // Guard to ensure migrationPanelReady is only called once per mount
+    const readySignalSent = useRef(false);
 
     // Session state from the backend
     const [session, setSession] = useState<MigrationSessionState>({
@@ -237,6 +282,8 @@ export function MigrationPanel() {
         mode: "none",
         isEnhanced: true,
     });
+    // Tracks whether we've received at least one real session state from the backend
+    const [sessionLoaded, setSessionLoaded] = useState(false);
 
     // Streaming state
     const [messages, setMessages] = useState<StreamMessage[]>([]);
@@ -253,6 +300,16 @@ export function MigrationPanel() {
                 const state = await client.getActiveMigrationSession();
                 console.log("[MigrationPanel] session state:", JSON.stringify(state));
                 setSession(state);
+                setSessionLoaded(true);
+
+                // Signal the backend that the panel is ready — this triggers
+                // the migration agent if the session is active and not enhanced.
+                if (state && state.isActive && !state.isEnhanced && !readySignalSent.current) {
+                    readySignalSent.current = true;
+                    client.migrationPanelReady().catch((e: unknown) =>
+                        console.error("[MigrationPanel] migrationPanelReady failed:", e)
+                    );
+                }
             } catch (err) {
                 console.error("[MigrationPanel] Failed to fetch session:", err);
             }
@@ -377,9 +434,20 @@ export function MigrationPanel() {
     const handleStartEnhancement = useCallback(
         async (mode: "auto-fix" | "guided-review") => {
             try {
+                // Reset for a fresh run
+                setMessages([]);
+                setCurrentContent("");
+                setBannerDismissed(false);
+                readySignalSent.current = false;
+
                 const client = rpcClient.getMigrateIntegrationRpcClient() as any;
                 await client.startMigrationEnhancement(mode);
                 setSession({ isActive: true, mode, isEnhanced: false });
+                // Panel is already open — directly trigger the agent
+                readySignalSent.current = true;
+                client.migrationPanelReady().catch((e: unknown) =>
+                    console.error("[MigrationPanel] migrationPanelReady after start failed:", e)
+                );
             } catch (err) {
                 console.error("[MigrationPanel] Failed to start enhancement:", err);
             }
@@ -397,7 +465,7 @@ export function MigrationPanel() {
         }
     }, [rpcClient]);
 
-    const showBanner = !session.isEnhanced && !bannerDismissed;
+    const showBanner = session.isActive && !session.isEnhanced && !bannerDismissed && messages.length > 0;
 
     // Derive simple messages array for banner stage derivation
     const bannerMessages = messages.map((m) => ({
@@ -417,7 +485,15 @@ export function MigrationPanel() {
                 <HeaderActions>
                     <ModelSelector
                         value={selectedModel}
-                        onChange={(e) => setSelectedModel(e.target.value)}
+                        onChange={(e) => {
+                            const modelId = e.target.value;
+                            setSelectedModel(modelId);
+                            // Notify backend of model change
+                            try {
+                                const client = rpcClient.getMigrateIntegrationRpcClient() as any;
+                                client.setMigrationModel({ modelId }).catch(console.debug);
+                            } catch { /* non-critical */ }
+                        }}
                         title="Select LLM model"
                     >
                         <option value="copilot">VS Code Copilot</option>
@@ -443,13 +519,36 @@ export function MigrationPanel() {
             <MessageArea>
                 {messages.length === 0 && !isStreaming && !currentContent ? (
                     <EmptyState>
-                        <span className="codicon codicon-sparkle" />
-                        <EmptyStateTitle>Migration Enhancement</EmptyStateTitle>
+                        <span className="codicon codicon-rocket" style={{ fontSize: "36px", opacity: 0.4 }} />
+                        <EmptyStateTitle>Migration AI Enhancement</EmptyStateTitle>
                         <EmptyStateDesc>
-                            {session.isEnhanced
-                                ? "Enhancement is complete. You can re-run it from the banner above if needed."
-                                : "Choose a mode from the banner above to start the AI-powered migration enhancement pipeline."}
+                            Automatically fix compilation errors, resolve TODO comments, and ensure all tests pass in your migrated Ballerina project.
                         </EmptyStateDesc>
+                        <ModeCardRow>
+                            <ModeCard onClick={() => handleStartEnhancement("auto-fix")} disabled={isStreaming}>
+                                <ModeCardTitle>
+                                    <span className="codicon codicon-run-all" style={{ fontSize: "13px" }} />
+                                    Auto-Fix
+                                </ModeCardTitle>
+                                <ModeCardDesc>
+                                    Run all 4 stages automatically without intervention
+                                </ModeCardDesc>
+                            </ModeCard>
+                            <ModeCard onClick={() => handleStartEnhancement("guided-review")} disabled={isStreaming}>
+                                <ModeCardTitle>
+                                    <span className="codicon codicon-eye" style={{ fontSize: "13px" }} />
+                                    Guided Review
+                                </ModeCardTitle>
+                                <ModeCardDesc>
+                                    Review and approve each stage before it is applied
+                                </ModeCardDesc>
+                            </ModeCard>
+                        </ModeCardRow>
+                        {sessionLoaded && session.isEnhanced && (
+                            <EmptyStateDesc style={{ opacity: 0.5, marginTop: 8 }}>
+                                Previous enhancement complete &mdash; start a new run above.
+                            </EmptyStateDesc>
+                        )}
                     </EmptyState>
                 ) : (
                     <>
@@ -496,9 +595,14 @@ export function MigrationPanel() {
                         <ActionButton
                             variant="danger"
                             style={{ marginLeft: "auto" }}
-                            onClick={() => {
-                                // TODO: Wire up abort via RPC
-                                console.log("[MigrationPanel] Abort requested");
+                            onClick={async () => {
+                                try {
+                                    const client = rpcClient.getMigrateIntegrationRpcClient() as any;
+                                    await client.abortMigrationAgent();
+                                    console.log("[MigrationPanel] Abort requested");
+                                } catch (e) {
+                                    console.error("[MigrationPanel] abort failed:", e);
+                                }
                             }}
                         >
                             <span className="codicon codicon-debug-stop" style={{ fontSize: "11px" }} />
@@ -510,6 +614,21 @@ export function MigrationPanel() {
                         <span style={{ opacity: 0.6 }}>
                             Model: {selectedModel === "copilot" ? "VS Code Copilot" : selectedModel === "wso2" ? "WSO2 BI Copilot" : "Anthropic"}
                         </span>
+                        {messages.length > 0 && (
+                            <ActionButton
+                                variant="secondary"
+                                style={{ marginLeft: "auto" }}
+                                onClick={() => {
+                                    setMessages([]);
+                                    setCurrentContent("");
+                                    setBannerDismissed(false);
+                                    readySignalSent.current = false;
+                                }}
+                            >
+                                <span className="codicon codicon-refresh" style={{ fontSize: "11px" }} />
+                                New Run
+                            </ActionButton>
+                        )}
                         {!session.isEnhanced && messages.length > 0 && (
                             <ActionButton
                                 variant="primary"

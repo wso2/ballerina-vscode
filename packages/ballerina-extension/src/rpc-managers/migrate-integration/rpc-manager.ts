@@ -36,7 +36,14 @@ import { StateMachine } from "../../stateMachine";
 import { createBIProjectFromMigration, getUsername, sanitizeName } from "../../utils/bi";
 import { pullMigrationTool } from "../../utils/migrate-integration";
 import { MigrationReportWebview } from "../../views/migration-report/webview";
-import { getActiveMigrationSessionState, markEnhancementComplete, startMigrationEnhancement } from "../../features/ai/migration/orchestrator";
+import {
+    getActiveMigrationSessionState,
+    markEnhancementComplete,
+    startMigrationEnhancement,
+    runMigrationAgent,
+    abortMigrationAgent,
+    setMigrationModelId,
+} from "../../features/ai/migration/orchestrator";
 
 type MigrationEnhancementMode = 'auto-fix' | 'guided-review' | 'none';
 
@@ -222,5 +229,28 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
 
     async startMigrationEnhancement(mode: 'auto-fix' | 'guided-review'): Promise<void> {
         await startMigrationEnhancement(mode);
+    }
+
+    /**
+     * Called by the migration panel webview once it's mounted and ready to
+     * receive streaming events. If the session is active and not yet enhanced,
+     * kicks off the migration agent.
+     */
+    async migrationPanelReady(): Promise<void> {
+        const session = getActiveMigrationSessionState();
+        if (session.isActive && !session.isEnhanced && session.mode !== "none") {
+            // Fire and forget – the agent streams events back to the panel
+            runMigrationAgent().catch((err) =>
+                console.error("[MigrateIntegrationRpc] Migration agent failed:", err)
+            );
+        }
+    }
+
+    async abortMigrationAgent(): Promise<void> {
+        abortMigrationAgent();
+    }
+
+    async setMigrationModel(modelId: string): Promise<void> {
+        setMigrationModelId(modelId);
     }
 }
