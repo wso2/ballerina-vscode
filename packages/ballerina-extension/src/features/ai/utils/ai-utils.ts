@@ -335,13 +335,28 @@ export function getErrorMessage(error: unknown): string {
             return "Usage limit exceeded. Please try again later.";
         }
         if (error.name === "AI_RetryError") {
-            return "An error occured connecting with the AI service. Please try again later.";
+            return "An error occurred connecting with the AI service. Please try again later.";
         }
         if (error.name === "AbortError") {
             return "Generation stopped by the user.";
         }
 
-        return error.message;
+        // Friendly message for connection / stream interruption errors
+        const msg = error.message;
+        if (
+            msg.includes("Remote host closed the connection") ||
+            msg.includes("reading stream") ||
+            msg.includes("inbound response body") ||
+            msg.includes("ECONNRESET") ||
+            msg.includes("socket hang up")
+        ) {
+            return "The AI service connection was interrupted. Please try again.";
+        }
+        if (msg.includes("JSON parsing failed")) {
+            return "The AI service returned an invalid response. Please try again.";
+        }
+
+        return msg;
     }
     // If it's an object with a .message field, use that
     if (
