@@ -19,6 +19,8 @@
 import * as vscode from 'vscode';
 import { MESSAGES, PALETTE_COMMANDS } from '../../features/project/cmds/cmd-runner';
 import { StateMachine, openView } from '../../stateMachine';
+import { openPopupView, StateMachinePopup } from '../../stateMachinePopup';
+import { hasOpenForm, clearFormState } from '../../rpc-managers/bi-diagram/form-state';
 import { extension } from '../../BalExtensionContext';
 import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, ProjectInfo, SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { buildProjectsStructure } from '../../utils/project-artifacts';
@@ -67,6 +69,27 @@ export function activateSubscriptions() {
                 position,
                 resetHistory = false
             ) => {
+                // When a form is open (popup or side panel), prompt user before navigating away
+                const isPopupFormOpen = StateMachinePopup.isActive();
+                const isSidePanelFormOpen = hasOpenForm();
+                if (isPopupFormOpen || isSidePanelFormOpen) {
+                    const discardAndNavigate = "Discard and Navigate";
+                    const result = await vscode.window.showWarningMessage(
+                        "You have unsaved changes in the open form. Discard changes and navigate?",
+                        { modal: true },
+                        discardAndNavigate
+                    );
+                    if (result !== discardAndNavigate) {
+                        return;
+                    }
+                    if (isPopupFormOpen) {
+                        openPopupView(EVENT_TYPE.CLOSE_VIEW, { view: null });
+                    }
+                    if (isSidePanelFormOpen) {
+                        clearFormState();
+                    }
+                }
+
                 // Check if position is a LineRange object (has 'start' and 'end' keys)
                 let nodePosition: NodePosition = position;
                 if (position && typeof position === "object" && "start" in position && "end" in position) {
