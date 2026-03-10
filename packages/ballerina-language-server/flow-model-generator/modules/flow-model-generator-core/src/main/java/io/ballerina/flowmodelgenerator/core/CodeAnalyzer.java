@@ -2092,7 +2092,8 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.codedata().inferredReturnType(functionData.returnError() ? returnType : null);
             Module module = workspaceManager.module(filePath)
                     .orElse(project.currentPackage().getDefaultModule());
-            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType, callNode);
+            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType,
+                    callNode);
             AgentCallBuilder.postProcessTdProperty(nodeBuilder, key);
         });
     }
