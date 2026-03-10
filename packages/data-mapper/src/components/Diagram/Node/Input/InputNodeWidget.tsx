@@ -143,7 +143,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
 
     return (
         <>
-            <TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick} style={allowInputs ? { borderColor: "var(--vscode-list-focusAndSelectionOutline, var(--vscode-contrastActiveBorder, var(--vscode-editorLink-activeForeground, var(--vscode-list-focusOutline))))" } : undefined}>
+            <TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick} className={allowInputs ? classes.nodeContainerActive : undefined}>
                 <TreeHeader
                     id={"recordfield-" + id}
                     isSelected={portState !== PortState.Unselected}
