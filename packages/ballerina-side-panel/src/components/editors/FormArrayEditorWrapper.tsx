@@ -30,7 +30,7 @@ export const FormArrayEditorWrapper = (props: FormFieldEditorProps) => {
         if (Array.isArray(props.field.value)) {
             setValue(props.field.key, props.field.value);
         }
-    }, [props.field.value]);
+    }, [props.field.value, props.field.key]);
 
     return (
         <Controller
