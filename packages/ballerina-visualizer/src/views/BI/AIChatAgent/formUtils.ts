@@ -231,13 +231,18 @@ export const cleanServerUrl = (url: string): string | null => {
     return url.replace(/^"|"$/g, '').trim();
 };
 
-export const HIDDEN_TOOL_NODE_PROPERTY_KEYS = ["targetType", "variable", "checkError", "connection", "resourcePath"];
+export const HIDDEN_TOOL_NODE_PROPERTY_KEYS = ["variable", "checkError", "connection", "resourcePath"];
 
 export function prepareToolInputFields(fields: FormField[]): FormField[] {
     const includedKeys: string[] = [];
     fields.forEach((field, idx) => {
         if (HIDDEN_TOOL_NODE_PROPERTY_KEYS.includes(field.key)) {
             field.hidden = true;
+            return;
+        }
+        if (field.key === "targetType") {
+            field.optional = true;
+            field.advanced = true;
             return;
         }
         if (field.key === "type") {
