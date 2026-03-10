@@ -24,7 +24,7 @@ import { openMigrationPanel } from "../../../views/migration-panel/activate";
 import { AgentExecutor } from "../agent/AgentExecutor";
 import { AICommandConfig } from "../executors/base/AICommandExecutor";
 import { createMigrationEventHandler, createVisualizerMigrationEventHandler } from "../utils/events";
-import { getAutoFixPrompt } from "./prompts";
+import { getAutoFixPrompt, getWizardEnhancementPrompt } from "./prompts";
 import {
     AI_ENHANCE_TOML_FILENAME,
     ActiveMigrationSessionLocal,
@@ -391,7 +391,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
         return;
     }
 
-    const prompt = getAutoFixPrompt();
+    const prompt = getWizardEnhancementPrompt();
 
     _migrationAbortController = new AbortController();
 
@@ -410,7 +410,11 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
         },
         chatStorage: undefined,
         lifecycle: {
-            cleanupStrategy: "immediate",
+            // Work directly on the wizard-created project (not a temp copy)
+            // so changes persist when the user opens it in VS Code.
+            existingTempPath: projectRoot,
+            // Don't delete the project directory after the agent finishes.
+            cleanupStrategy: "review",
         },
     };
 

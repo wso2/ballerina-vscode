@@ -148,6 +148,9 @@ export abstract class AICommandExecutor<TParams = any> {
      * Stage 1: Initialize workspace/thread in chat storage (if enabled)
      */
     protected async initializeWorkspaceThread(): Promise<void> {
+        if (!this.config.chatStorage) {
+            return;
+        }
         try {
             const { workspaceId, threadId } = this.config.chatStorage;
 

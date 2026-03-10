@@ -60,3 +60,19 @@ Use the test-runner tool to execute \`bal test\`.
 
 Work methodically through each stage. Do not declare the task complete until all four stages succeed.`;
 }
+
+/**
+ * Returns a lightweight prompt for the wizard-level AI enhancement step.
+ * Scoped to quick, verifiable changes so the end-to-end flow can be
+ * validated without long-running LLM sessions.
+ */
+export function getWizardEnhancementPrompt(): string {
+    return `You are enhancing a Ballerina project that was automatically migrated from a legacy integration platform.
+
+Perform the following quick improvements:
+
+1. **Add WSO2 license headers** – For every \`.bal\` file that does NOT already have a license header at the top, prepend the standard Apache 2.0 / WSO2 license comment block.
+2. **Run diagnostics** – Use the diagnostics tool to check for compilation errors. If there are any obvious one-line fixes (e.g. missing imports, unused variables), fix them. Do NOT attempt large refactors.
+
+Stop once license headers have been added and trivial diagnostics are resolved.`;
+}
