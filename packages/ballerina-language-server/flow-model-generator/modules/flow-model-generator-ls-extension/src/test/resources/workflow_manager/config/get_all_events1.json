@@ -1,9 +1,9 @@
 {
   "source": "workflow_project/main.bal",
-  "description": "Get all events for a workflow with multiple events",
+  "description": "Get all data for a workflow with multiple data fields",
   "workflowName": "orderWorkflow",
   "output": {
-    "events": [
+    "data": [
       {
         "name": "approve",
         "type": "ApprovalData"

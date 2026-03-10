@@ -17,7 +17,7 @@
         "metadata": {
           "label": "Start",
           "data": {
-            "kind": "WORKFLOW",
+            "kind": "Workflow",
             "label": "orderWorkflow",
             "isServiceFunction": false,
             "parameters": [

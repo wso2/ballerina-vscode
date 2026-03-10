@@ -19,7 +19,7 @@
 package io.ballerina.flowmodelgenerator.extension.request;
 
 /**
- * A request to retrieve all events for a given workflow function.
+ * A request to retrieve all data definitions for a given workflow function.
  *
  * @param filePath     path of the file
  * @param workflowName name of the workflow function
@@ -27,4 +27,3 @@ package io.ballerina.flowmodelgenerator.extension.request;
  */
 public record GetAllDataRequest(String filePath, String workflowName) {
 }
-

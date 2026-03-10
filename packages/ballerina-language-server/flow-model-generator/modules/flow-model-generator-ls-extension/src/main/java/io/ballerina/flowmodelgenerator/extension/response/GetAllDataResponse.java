@@ -39,4 +39,3 @@ public class GetAllDataResponse extends AbstractFlowModelResponse {
         this.data = data;
     }
 }
-
