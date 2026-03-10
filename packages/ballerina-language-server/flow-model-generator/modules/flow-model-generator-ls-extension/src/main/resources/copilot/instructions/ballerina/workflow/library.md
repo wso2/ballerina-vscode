@@ -1,34 +1,22 @@
 # Ballerina Workflow Library Instructions
 
-The `ballerina/workflow` library provides support for creating and managing durable, fault-tolerant workflows in Ballerina applications. It is backed by [Temporal](https://temporal.io/) as the workflow engine.
+The `ballerina/workflow` library provides support for creating and managing durable, fault-tolerant workflow orchestrations in Ballerina applications. It is backed by [Temporal](https://temporal.io/) as the workflow engine.
 
-## Key Concepts
+## Key Features
 
 1. **Workflow**: Durable workflow orchestration with automatic state persistence. The main workflow logic function annotated with `@workflow:Workflow`.
 2. **Activity**: A function annotated with `@workflow:Activity` that performs reliable execution of side effects functions (I/O, database calls, external APIs). 
 3. **Context (`workflow:Context`)**: provides workflow execution capabilities — call activities, durable sleep, inspect workflow state.
-4. **Data**: External data sent to a running workflow using `workflow:sendData`. Received as `future<T>` fields and awaited using Ballerina's `wait` action.
-5. **Inputs**: A parameter which is type of `anydata` passed when starting a workflow. The workflow function can declare the input parameter to receive this data.
+4. **Data Handling**: Future-based data handling for waiting on external data/signals using `workflow:sendData`
+Received as `future<T>` fields and awaited using Ballerina's `wait` action.
+5. **Run Workflows**: workflowConfiginConfig.toml is required to run workflows.
 
-## Configuration
-
-The workflow module is configured via `Config.toml`. It defaults to a local Temporal server:
-
-```toml
-[ballerina.workflow.workflowConfig]
-provider = "TEMPORAL"
-url = "localhost:7233"
-namespace = "default"
-
-[ballerina.workflow.workflowConfig.params]
-taskQueue = "MY_TASK_QUEUE"
-maxConcurrentWorkflows = 100
-maxConcurrentActivities = 100
-```
 
 ## Defining Activities
 
-Activities perform non-deterministic operations. Annotate with `@workflow:Activity`. Return type must be `T|error`. Activity functions must be defined in `functions.bal`.
+Activities perform non-deterministic operations. Annotate with `@workflow:Activity`. Return type must be `T|error`.
+
+**All activity functions must be placed in the `functions.bal` file in the project.**
 
 ```ballerina
 import ballerina/workflow;
@@ -40,127 +28,154 @@ function checkInventory(string item, int quantity) returns InventoryStatus|error
 }
 ```
 
-**Important**: Activities must be called via ctx->callActivity() within process functions. Direct activity calls are not allowed and will produce a compiler error.
+**Important**: Activities must be called via `ctx->callActivity()` within workflow functions. Direct activity calls are not allowed and will produce a compiler error.
 
 ## Defining Workflow Functions
 
-A workflow function defines the workflow logic. It must be annotated with `@workflow:Workflow`. Workflow functions must be defined in `functions.bal`.
+A workflow function defines the workflow logic. It must be annotated with `@workflow:Workflow`.
 
-Use `workflow:Context` as the first parameter to call activities via `ctx->callActivity(activityFn, args)`. The `args` record keys must match the activity function's parameter names exactly.
+**All workflow functions must be placed in the `functions.bal` file in the project.**
+
+**Important**: Workflow functions should only contain orchestration logic (control flow, waiting for data). All business logic, computations, non-deterministic operations (database calls, external API calls, I/O operations) must be implemented in activity functions and called via `ctx->callActivity()`.
+
+Use `workflow:Context` as the first parameter to call activities.
+
+**Important**: When calling activities, pass args as a record where keys exactly match the activity function's parameter names.
 
 ```ballerina
+type OrderRequest record {|
+    string orderId;
+    string item;
+|};
 
 @workflow:Workflow
 function processOrder(workflow:Context ctx, OrderRequest request) returns OrderResult|error {
     // Deterministic workflow orchestration logic
-    InventoryStatus inventory = check ctx->callActivity(checkInventory, {item: request.item, quantity: request.quantity});
+    int stock = check ctx->callActivity(checkInventory, {"item": request.item});
     
-    if inventory.available {
-        string reservationId = check ctx->callActivity(reserveStock, {orderId: request.orderId, item: request.item});
-        return {status: "completed", reservationId};
+    if stock <= 0 {
+        return {orderId: request.orderId, status: "FAILED", message: "Out of stock"};
     }
-    return {status: "insufficient_stock"};
+    return {orderId: request.orderId, status: "COMPLETED", message: "Order completed successfully"};
 }
 ```
 
-**Important**: Activity arguments are passed as a `map<anydata>` record where keys match the activity function's parameter names.
+## Starting a Workflow
+
+Use `workflow:run()` to start a workflow. Returns the workflow ID. **Store the workflow ID so you can send signals to the workflow when calling the `workflow:sendData()`.**
+
+```ballerina
+import ballerina/workflow;
+
+// Tracks running workflow IDs keyed by orderId so payment signals can be
+// routed to the correct workflow instance.
+map<string> orderWorkflowIds = {};
+
+resource function post .(OrderRequest request) returns json|error {
+    string workflowId = check workflow:run(processOrderWithPayment, request);
+    orderWorkflowIds[request.orderId] = workflowId;
+
+    return {
+        "status": "success",
+        "workflowId": workflowId,
+        "orderId": request.orderId,
+        "message": "Order placed. Awaiting payment."
+    };
+}
+```
 
 ## Data Handling
 
-Data allow external systems to send data to a running workflow. The workflow declares expected data as a `record {| future<DataType> dataName; |} data` parameter and awaits them using Ballerina's `wait` action.
-
-### Workflow Signature with Data
+Workflows can wait for external data using future-based events. Declare data as a `record {| future<DataType> dataName; |} data` parameter and await with Ballerina's `wait` action.
 
 ```ballerina
-public type OrderInput record {|
-    readonly string orderId;
+type OrderRequest record {|
+    string orderId;
+    string item;
 |};
 
-public type PaymentEvent record {|
-    readonly string orderId;
+type PaymentConfirmation record {|
     decimal amount;
+|};
+
+type OrderResult record {|
+    string orderId;
+    string status;
+    string message;
 |};
 
 @workflow:Workflow
 function processOrderWithPayment(
     workflow:Context ctx, 
-    OrderInput input,
-    record {| future<PaymentEvent> payment; |} data
+    OrderRequest request,
+    record {| future<PaymentConfirmation> paymentReceived; |} dataEvents
 ) returns OrderResult|error {
     // Check inventory
-    check ctx->callActivity(checkInventory, {item: input.item, quantity: input.quantity});
+    int stock = check ctx->callActivity(checkInventory, {"item": request.item});
     
-    // Wait for payment data
-    PaymentEvent payment = check wait data.payment;
+    if stock <= 0 {
+        return {orderId: request.orderId, status: "FAILED", message: "Out of stock"};
+    }
+
+    // Wait for payment data event using Ballerina's native wait
+    PaymentConfirmation payment = check wait dataEvents.paymentReceived;
     
-    // Complete order
-    return {status: "paid", amount: payment.amount};
+    return {orderId: request.orderId, status: "COMPLETED", message: "Order completed successfully"};
 }
 ```
 
-### Sending Data to a Running Workflow
+Send data to a running workflow with `workflow:sendData()`.  
 
-Use `workflow:sendData` to send a data to a running workflow. The `dataName` must match the field name in the Data record:
+**The first argument must be the workflow function reference, and the second argument must be the workflow ID returned by `workflow:run()`.**  
+
+The `dataName`:  the name identifying the data. Must match a field name in the workflow's events record parameter.
 
 ```ballerina
-    // Send payment data
-    // The field name 'paymentReceived' in the data record determines the data name
-    PaymentConfirmation payment = {orderId: orderId, amount: paymentData.amount};
-    boolean sent = check workflow:sendData(processOrderWithPayment, payment, "paymentReceived");
+// Start the workflow and keep the workflow ID
+string workflowId = check workflow:run(processOrderWithPayment, request);
+
+// ... later, to send data to the running workflow
+PaymentConfirmation payment = {amount: paymentData.amount};
+check workflow:sendData(processOrderWithPayment, workflowId, "paymentReceived", payment);
 ```
 
-## Running a Workflow
+## Activity Options
 
-Use `workflow:run` to run a workflow. It returns the workflow ID:
+Configure retry behavior and error handling per activity call using `ActivityOptions`:
 
 ```ballerina
-// Run workflow using workflow:run function
-string workflowId = check workflow:run(processOrderWithPayment, request);
+// Custom retry policy
+string result = check ctx->callActivity(sendEmailActivity, 
+    {email: recipientEmail}, 
+    options = {retryPolicy: {maximumAttempts: 3, initialIntervalInSeconds: 2}});
+
+// Treat errors as normal completion (no retry on error)
+string|error result = ctx->callActivity(riskyActivity, 
+    {data: input}, 
+    options = {failOnError: false});
 ```
 
 ## Context APIs
 
-The `workflow:Context` provides:
-
 | Method | Description |
 |---|---|
-| `ctx->callActivity(fn, args)` | Execute activities with automatic retry and result caching |
+| `ctx->callActivity(fn, args, options?)` | Execute an activity with exactly-once semantics |
 | `ctx.sleep(duration)` | Durable sleep that survives worker restarts |
 | `ctx.isReplaying()` | Returns `true` if the workflow is replaying history |
 | `ctx.getWorkflowId()` | Returns the unique workflow ID |
 | `ctx.getWorkflowType()` | Returns the workflow type name |
 
-### Durable Sleep
+Use `ctx.sleep()` for durable delays and `ctx.isReplaying()` to skip side effects (e.g., logging) during replay.
 
-```ballerina
-import ballerina/time;
-import ballerina/workflow;
 
-@workflow:Process
-function reminderWorkflow(workflow:Context ctx, ReminderInput input) returns string|error {
-    // Send initial notification
-    _ = check ctx->callActivity(sendEmailActivity, {"to": input.email, "subject": "Reminder scheduled"});
+## Testing Workflows
 
-    // Durable sleep for 24 hours — survives worker restarts
-    check ctx.sleep({hours: 24, minutes: 0, seconds: 0d});
+When generating workflow code, also update `Config.toml` in the project with the `workflowConfig` section shown below. This enables in-memory mode for easy local testing without requiring a Temporal server.
 
-    // Send reminder
-    _ = check ctx->callActivity(sendEmailActivity, {"to": input.email, "subject": "Your reminder"});
-    return "Reminder sent";
-}
+```toml
+[ballerina.workflow.workflowConfig]
+mode = "IN_MEMORY"
 ```
 
-### Conditional Side Effects with isReplaying
-
-```ballerina
-@workflow:Process
-function trackedWorkflow(workflow:Context ctx, TrackInput input) returns string|error {
-    // Skip logging during replay to avoid duplicate log entries
-    if !ctx.isReplaying() {
-        // log:printInfo("Starting workflow: " + input.id);
-    }
-    string result = check ctx->callActivity(processActivity, {"data": input.data});
-    return result;
-}
-```
+Other supported modes: `LOCAL`, `CLOUD`, `SELF_HOSTED`.
 
