@@ -138,7 +138,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     }, [inputPort]);
 
     const disabled = useMemo(() => {
-        let disabled = true;
+        let disabled;
 
         if (focusedPort) {
             setPlaceholder('Insert a value for the selected port.');
@@ -155,19 +155,13 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
 
             disabled = false;
         } else if (textFieldRef.current) {
-            // If displaying a focused view
-            if (views.length > 1) {
-                setPlaceholder('Click on an output field or a filter to add/edit expressions.');
-            } else {
-                setPlaceholder('Click on an output field to add/edit expressions.');
-            }
-
+            setPlaceholder('Click on an output field to add/edit expressions.');
             textFieldRef.current.blur();
         }
 
         return disabled;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [focusedPort, focusedFilter, views]);
+    }, [focusedPort, focusedFilter]);
 
     const handleChange = async (text: string, cursorPosition?: number) => {
         if (textFieldValue === text) {
@@ -218,8 +212,9 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     };
 
     const handleManualInteraction = () => {
-        console.log('manual interaction');
-        setAllowInputs(true);
+        if (focusedPort) {
+            setAllowInputs(true);
+        }
     };
 
     const handleCancel = () => {
