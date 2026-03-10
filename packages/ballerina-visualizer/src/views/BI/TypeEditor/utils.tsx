@@ -176,7 +176,7 @@ export const getFilteredTypesByKind = (types: Category[], kind: FunctionKind) =>
 
                 let subCategoryKind = categoryKind;
                 if (kind === functionKinds.CURRENT) {
-                    // HACK: If item is under the current workspace category,
+                    // HACK: If item is under the current project category,
                     // but it is not in the current integration, then 
                     // treat is as an imported item.
                     subCategoryKind = getFunctionItemKind(categoryItem.metadata.label);

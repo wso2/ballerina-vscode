@@ -200,7 +200,7 @@ function openTypeDiagramView(projectPath?: string, resetHistory = false): void {
 async function openTypeDiagramForWorkspace(projectInfo: ProjectInfo): Promise<boolean> {
     const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
 
-    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select a package to open type diagram");
+    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select an integration to open type diagram");
     if (!selectedPackage) {
         return false;
     }
