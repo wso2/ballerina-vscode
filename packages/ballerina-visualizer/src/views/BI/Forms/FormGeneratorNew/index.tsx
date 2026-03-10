@@ -342,7 +342,7 @@ export function FormGeneratorNew(props: FormProps) {
 
     const isFunctionParameterForm = () => {
         return (
-            (selectedNode === "FUNCTION_DEFINITION" || selectedNode === "NP_FUNCTION_DEFINITION") &&
+            (selectedNode === "FUNCTION_DEFINITION" || selectedNode === "NP_FUNCTION_DEFINITION" || selectedNode === "DATA_MAPPER_DEFINITION") &&
             typeEditorState.field?.key === "parameters" &&
             getPrimaryInputType(typeEditorState?.field?.types)?.fieldType === "REPEATABLE_PROPERTY"
         );
