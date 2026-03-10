@@ -55,7 +55,7 @@ import static io.ballerina.flowmodelgenerator.core.model.Category.Name.STANDARD_
  * - Parallel local searches for project-specific search types (AI components, local utilities, etc.)
  * - Unified result processing and deduplication
  *
- * This provides complete coverage of all 15 search types while maintaining performance.
+ * This provides complete coverage of functions and connectors search types while maintaining performance.
  *
  * @since 1.7.0
  */
