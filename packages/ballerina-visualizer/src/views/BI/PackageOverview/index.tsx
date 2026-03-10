@@ -33,7 +33,7 @@ import { ThemeColors } from "@wso2/ui-toolkit";
 import ComponentDiagram from "../ComponentDiagram";
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
 import ReactMarkdown from "react-markdown";
-import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
+import { IOpenInConsoleCmdParams, WICommandIds } from "@wso2/wso2-platform-core";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { getIntegrationTypes } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
@@ -491,53 +491,54 @@ function DeploymentOptions({
             <div>
                 <Title variant="h3">Deployment Options</Title>
 
-                <DeploymentOption
-                    title={
-                        isDeployed ? (
-                            <DevantHeaderWrap>
-                                <span>Deployed in Devant</span>
-                                <Button
-                                    appearance="icon"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        rpcClient.getCommonRpcClient().executeCommand({
-                                            commands: [PlatformExtCommandIds.RefreshDirectoryContext],
-                                        });
-                                    }}
-                                >
-                                    <Codicon name="refresh" />
-                                </Button>
-                            </DevantHeaderWrap>
-                        ) : (
-                            "Deploy to Devant"
-                        )
-                    }
-                    description={
-                        isDeployed
-                            ? "This integration is already deployed in Devant."
-                            : "Deploy your integration to the cloud using Devant by WSO2."
-                    }
-                    buttonText={isDeployed ? "View in Devant" : "Deploy"}
-                    isExpanded={expandedOptions.has("devant")}
-                    onToggle={() => toggleOption("devant")}
-                    onDeploy={isDeployed? () => goToDevant() : handleDeploy}
-                    learnMoreLink={"https://wso2.com/devant/docs"}
-                    hasDeployableIntegration={hasDeployableIntegration}
-                    secondaryAction={
-                        isDeployed && platformExtState?.hasLocalChanges
-                            ? {
-                                description: "To redeploy in Devant, please commit and push your changes.",
-                                buttonText: "Open Source Control",
-                                onClick: () =>
-                                    rpcClient
-                                        .getCommonRpcClient()
-                                        .executeCommand({ commands: ["workbench.scm.focus"] }),
-                            }
-                            : undefined
-                    }
-                />
-
-
+                {platformExtState.isExtInstalled && (
+                    <DeploymentOption
+                        title={
+                            isDeployed ? (
+                                <DevantHeaderWrap>
+                                    <span>Deployed in Devant</span>
+                                    <Button
+                                        appearance="icon"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            rpcClient.getCommonRpcClient().executeCommand({
+                                                commands: [WICommandIds.RefreshDirectoryContext],
+                                            });
+                                        }}
+                                    >
+                                        <Codicon name="refresh" />
+                                    </Button>
+                                </DevantHeaderWrap>
+                            ) : (
+                                "Deploy to Devant"
+                            )
+                        }
+                        description={
+                            isDeployed
+                                ? "This integration is already deployed in Devant."
+                                : "Deploy your integration to the cloud using Devant by WSO2."
+                        }
+                        buttonText={isDeployed ? "View in Devant" : "Deploy"}
+                        isExpanded={expandedOptions.has("devant")}
+                        onToggle={() => toggleOption("devant")}
+                        onDeploy={isDeployed? () => goToDevant() : handleDeploy}
+                        learnMoreLink={"https://wso2.com/devant/docs"}
+                        hasDeployableIntegration={hasDeployableIntegration}
+                        secondaryAction={
+                            isDeployed && platformExtState?.hasLocalChanges
+                                ? {
+                                    description: "To redeploy in Devant, please commit and push your changes.",
+                                    buttonText: "Open Source Control",
+                                    onClick: () =>
+                                        rpcClient
+                                            .getCommonRpcClient()
+                                            .executeCommand({ commands: ["workbench.scm.focus"] }),
+                                }
+                                : undefined
+                        }
+                    />
+                )}
+                
                 <DeploymentOption
                     title="Deploy with Docker"
                     description="Create a Docker image of your integration and deploy it to any Docker-enabled system."
@@ -854,9 +855,8 @@ export function PackageOverview(props: PackageOverviewProps) {
     const goToDevant = () => {
         rpcClient.getCommonRpcClient().executeCommand({
             commands: [
-                PlatformExtCommandIds.OpenInConsole,
+                WICommandIds.OpenInConsole,
                 {
-                    extName: "Devant",
                     componentFsPath: projectPath,
                     component: platformExtState?.selectedComponent,
                     newComponentParams: { buildPackLang: "ballerina" }
