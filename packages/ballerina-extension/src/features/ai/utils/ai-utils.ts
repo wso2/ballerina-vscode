@@ -355,6 +355,9 @@ export function getErrorMessage(error: unknown): string {
         if (msg.includes("JSON parsing failed")) {
             return "The AI service returned an invalid response. Please try again.";
         }
+        if (msg.includes("Unsupported login method")) {
+            return "Please sign in to BI Copilot to use AI features.";
+        }
 
         return msg;
     }

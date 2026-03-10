@@ -20,9 +20,9 @@ import styled from "@emotion/styled";
 import { Button, Codicon, Typography } from "@wso2/ui-toolkit";
 
 // Main container styles
-export const FormContainer = styled.div`
-    max-width: 660px;
-    margin: 80px 120px;
+export const FormContainer = styled.div<{ wide?: boolean }>`
+    max-width: ${(props: { wide?: boolean }) => (props.wide ? "960px" : "660px")};
+    margin: ${(props: { wide?: boolean }) => (props.wide ? "40px 60px" : "80px 120px")};
     overflow-y: auto;
     max-height: calc(100vh - 100px);
 

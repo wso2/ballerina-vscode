@@ -193,7 +193,7 @@ export function ImportIntegration() {
     }, [toolPullProgress, importParams, selectedIntegration]);
 
     return (
-        <FormContainer>
+        <FormContainer wide={step === 3}>
             <TitleContainer>
                 <IconButton onClick={gotToWelcome}>
                     <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
