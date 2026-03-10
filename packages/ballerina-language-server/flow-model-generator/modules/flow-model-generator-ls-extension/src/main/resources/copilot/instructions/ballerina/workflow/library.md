@@ -9,8 +9,6 @@ The `ballerina/workflow` library provides support for creating and managing dura
 3. **Context (`workflow:Context`)**: provides workflow execution capabilities — call activities, durable sleep, inspect workflow state.
 4. **Data Handling**: Future-based data handling for waiting on external data/signals using `workflow:sendData`
 Received as `future<T>` fields and awaited using Ballerina's `wait` action.
-5. **Run Workflows**: workflowConfiginConfig.toml is required to run workflows.
-
 
 ## Defining Activities
 
@@ -166,16 +164,4 @@ string|error result = ctx->callActivity(riskyActivity,
 | `ctx.getWorkflowType()` | Returns the workflow type name |
 
 Use `ctx.sleep()` for durable delays and `ctx.isReplaying()` to skip side effects (e.g., logging) during replay.
-
-
-## Testing Workflows
-
-When generating workflow code, also update `Config.toml` in the project with the `workflowConfig` section shown below. This enables in-memory mode for easy local testing without requiring a Temporal server.
-
-```toml
-[ballerina.workflow.workflowConfig]
-mode = "IN_MEMORY"
-```
-
-Other supported modes: `LOCAL`, `CLOUD`, `SELF_HOSTED`.
 

@@ -92,5 +92,13 @@
         ]
       }
     ]
+  },
+  {
+    "name": "ballerina/workflow",
+    "functions": [
+      {
+        "name": "registerProcess"
+      }
+    ]
   }
 ]
