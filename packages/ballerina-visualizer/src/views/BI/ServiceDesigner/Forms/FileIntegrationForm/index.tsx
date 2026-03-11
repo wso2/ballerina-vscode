@@ -263,6 +263,7 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
     // Stream property from the model (present only on functions that support it, editable:true = user can toggle)
     const streamProperty = functionModel?.properties?.stream;
     const isStreamEditable = streamProperty?.editable === true;
+    const shouldShowStream = isStreamEditable || streamProperty?.enabled === true;
 
     // The first parameter is always the content parameter (DATA_BINDING or REQUIRED raw bytes)
     const contentIsDataBinding = functionModel?.parameters?.[0]?.kind === 'DATA_BINDING';
@@ -727,37 +728,37 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
                                         )
                                     )}
 
-                                    {/* Stream toggle — shown when model marks stream.editable:true */}
-                                    {isStreamEditable && (
-                                        <Tooltip content={streamProperty?.metadata?.description} position="right">
-                                            <CheckBoxGroup direction="vertical">
-                                                <CheckBox
-                                                    label={streamProperty?.metadata?.label}
-                                                    checked={functionModel.properties.stream.enabled}
-                                                    onChange={(checked) => {
-                                                        const updatedParameters = functionModel.parameters.map(param => {
-                                                            if (param.kind === 'DATA_BINDING' && param.enabled && param.type?.value) {
-                                                                return { ...param, type: { ...param.type, value: selectType(param.type.value, checked) } };
-                                                            }
-                                                            // RAW REQUIRED content param
-                                                            if (!contentIsDataBinding && param.kind === 'REQUIRED' && param.name.value === 'content' && param.enabled && param.type?.value) {
-                                                                return { ...param, type: { ...param.type, value: selectType(param.type.value, checked) } };
-                                                            }
-                                                            return param;
-                                                        });
-                                                        setFunctionModel({
-                                                            ...functionModel,
-                                                            properties: {
-                                                                ...functionModel.properties,
-                                                                stream: { ...functionModel.properties.stream, enabled: checked },
-                                                            },
-                                                            parameters: updatedParameters
-                                                        });
-                                                    }}
-                                                    sx={{ marginTop: 8 }}
-                                                />
-                                            </CheckBoxGroup>
-                                        </Tooltip>
+                                    {/* Stream toggle — shown when stream is editable or currently enabled */}
+                                    {shouldShowStream && (
+                                        <CheckBoxGroup direction="vertical">
+                                            <CheckBox
+                                                label={streamProperty?.metadata?.label}
+                                                checked={functionModel.properties.stream.enabled}
+                                                disabled={!isStreamEditable}
+                                                onChange={(checked) => {
+                                                    if (!isStreamEditable) return;
+                                                    const updatedParameters = functionModel.parameters.map(param => {
+                                                        if (param.kind === 'DATA_BINDING' && param.enabled && param.type?.value) {
+                                                            return { ...param, type: { ...param.type, value: selectType(param.type.value, checked) } };
+                                                        }
+                                                        // RAW REQUIRED content param
+                                                        if (!contentIsDataBinding && param.kind === 'REQUIRED' && param.name.value === 'content' && param.enabled && param.type?.value) {
+                                                            return { ...param, type: { ...param.type, value: selectType(param.type.value, checked) } };
+                                                        }
+                                                        return param;
+                                                    });
+                                                    setFunctionModel({
+                                                        ...functionModel,
+                                                        properties: {
+                                                            ...functionModel.properties,
+                                                            stream: { ...functionModel.properties.stream, enabled: checked },
+                                                        },
+                                                        parameters: updatedParameters
+                                                    });
+                                                }}
+                                                sx={{ marginTop: 8, description: streamProperty?.metadata?.description || '' }}
+                                            />
+                                        </CheckBoxGroup>
                                     )}
                                 </FileConfigContent>
                             </FileConfigSection>
