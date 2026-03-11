@@ -472,7 +472,7 @@ export function ReviewMode(): JSX.Element {
     };
 
     const handleClose = () => {
-        rpcClient.getVisualizerRpcClient().closeReviewMode();
+        rpcClient.getVisualizerRpcClient().goBack();
     };
 
     const handleModelLoaded = (metadata: ItemMetadata) => {
@@ -481,29 +481,21 @@ export function ReviewMode(): JSX.Element {
 
     const handleAccept = async () => {
         try {
-            // Accept the changes (integrate code to workspace and hide review actions)
             await rpcClient.getAiPanelRpcClient().acceptChanges();
-
-            // Navigate back to previous view
             rpcClient.getVisualizerRpcClient().reviewAccepted();
         } catch (error) {
             console.error("[Review Mode] Error accepting changes:", error);
-            // Still navigate back even if there's an error
             rpcClient.getVisualizerRpcClient().reviewAccepted();
         }
     };
 
     const handleReject = async () => {
         try {
-            // Decline the changes (cleanup without integrating and hide review actions)
             await rpcClient.getAiPanelRpcClient().declineChanges();
-
-            // Navigate to overview
-            rpcClient.getVisualizerRpcClient().reviewDiscarded();
+            rpcClient.getVisualizerRpcClient().goBack();
         } catch (error) {
             console.error("[Review Mode] Error declining changes:", error);
-            // Still navigate even if there's an error
-            rpcClient.getVisualizerRpcClient().reviewDiscarded();
+            rpcClient.getVisualizerRpcClient().goBack();
         }
     };
 

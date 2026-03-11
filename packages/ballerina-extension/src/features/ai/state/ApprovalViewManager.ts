@@ -19,7 +19,7 @@
 import { MACHINE_VIEW, EVENT_TYPE, VisualizerLocation, PopupVisualizerLocation, AgentMetadata } from '@wso2/ballerina-core';
 import { AiPanelWebview } from '../../../views/ai-panel/webview';
 import { VisualizerWebview } from '../../../views/visualizer/webview';
-import { openView as openMainView, StateMachine, history, updateView } from '../../../stateMachine';
+import { openView as openMainView, StateMachine } from '../../../stateMachine';
 import { openPopupView, StateMachinePopup } from '../../../stateMachinePopup';
 import { notifyApprovalOverlayState } from '../../../RPCLayer';
 
@@ -330,41 +330,6 @@ export class ApprovalViewManager {
 
         console.log(`[ApprovalViewManager] Opening ${machineView} in main view`);
         openMainView(EVENT_TYPE.OPEN_VIEW, { view: machineView });
-    }
-
-    /**
-     * Close ReviewMode by popping all ReviewMode entries from history, then restoring the prior view.
-     * Falls back to overview if history is empty or no prior non-ReviewMode entry exists.
-     */
-    closeReviewMode(): void {
-        console.log('[ApprovalViewManager] Closing ReviewMode');
-        // Pop all ReviewMode entries from the top of the history stack
-        const historyStack = history?.get() ?? [];
-        let poppedCount = 0;
-        for (let i = historyStack.length - 1; i >= 0; i--) {
-            if (historyStack[i].location.view === MACHINE_VIEW.ReviewMode) {
-                history.pop();
-                poppedCount++;
-            } else {
-                break;
-            }
-        }
-        console.log(`[ApprovalViewManager] Popped ${poppedCount} ReviewMode history entries`);
-
-        // Check if there's a prior entry to restore
-        const remaining = history?.get() ?? [];
-        if (remaining.length > 0) {
-            updateView();
-        } else {
-            const ctx = StateMachine.context();
-            const isWithinBallerinaWorkspace = !!ctx.workspacePath;
-            openMainView(EVENT_TYPE.OPEN_VIEW, {
-                view: isWithinBallerinaWorkspace
-                    ? MACHINE_VIEW.WorkspaceOverview
-                    : MACHINE_VIEW.PackageOverview,
-                projectPath: ctx.projectPath
-            });
-        }
     }
 
     /**

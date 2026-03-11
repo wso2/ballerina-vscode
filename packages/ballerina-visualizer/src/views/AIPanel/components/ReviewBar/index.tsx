@@ -271,11 +271,11 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
         try {
             setIsProcessing(true);
             await rpcClient.getAiPanelRpcClient().declineChanges();
+            rpcClient.getVisualizerRpcClient().goBack();
             onStatusChange?.("discarded");
-            rpcClient.getVisualizerRpcClient().reviewDiscarded();
         } catch (error) {
             console.error("[ReviewBar] Error discarding changes:", error);
-            rpcClient.getVisualizerRpcClient().reviewDiscarded();
+            rpcClient.getVisualizerRpcClient().goBack();
         } finally {
             setIsProcessing(false);
         }
