@@ -20,7 +20,7 @@ import React, { useRef } from "react";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import styled from '@emotion/styled';
 import { EditorFactory, FormField, InputMode, useFormContext, Provider as FormContextProvider } from "../..";
-import { InputType, ExpressionProperty } from "@wso2/ballerina-core";
+import { Imports, InputType, ExpressionProperty } from "@wso2/ballerina-core";
 import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
@@ -47,6 +47,7 @@ type FieldFactoryProps = {
     scopeFieldAddon?: React.ReactNode;
     isContextTypeEditorSupported?: boolean;
     openFormTypeEditor?: (open: boolean, newType?: string) => void;
+    updateImports?: (key: string, imports: Imports) => void;
 }
 
 
