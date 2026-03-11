@@ -67,7 +67,7 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
 
         // Command: start Ballerina service (no old Try It UI), then open WSO2 HttpBook notebook
         const startServiceDisposable = commands.registerCommand('ballerina.startService',
-            async (hurlContent?: string, options?: { savable?: boolean }, serviceMetadata?: ServiceMetadata, filePath?: string) => {
+            async (content?: string | object[], options?: { savable?: boolean }, serviceMetadata?: ServiceMetadata, filePath?: string) => {
                 try {
                     const projectAndServices = await getProjectPathAndServices(serviceMetadata, filePath);
                     if (!projectAndServices) { return; }
@@ -76,8 +76,8 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
                     const processesRunning = await checkBallerinaProcessRunning(projectPath);
                     if (!processesRunning) { return; }
 
-                    if (hurlContent) {
-                        await vscode.commands.executeCommand('wso2-http-book.importHurlString', hurlContent, options);
+                    if (content) {
+                        await vscode.commands.executeCommand('wso2-http-book.importHurlString', content, options);
                     }
                 } catch (error) {
                     handleError(error, "Starting Ballerina service");

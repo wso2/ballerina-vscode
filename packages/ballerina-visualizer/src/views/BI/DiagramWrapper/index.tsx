@@ -34,7 +34,7 @@ import { SwitchSkeleton, TitleBarSkeleton } from "../../../components/Skeletons"
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { ResourceForm } from "../ServiceDesigner/Forms/ResourceForm";
 import { removeForwardSlashes } from "../ServiceDesigner/utils";
-import { buildBaseUrl, buildHurlString } from "../ServiceDesigner/buildHurlString";
+import { buildBaseUrl, buildHurlString, buildMarkdownDoc } from "../ServiceDesigner/buildHurlString";
 
 const ActionButton = styled(Button)`
     display: flex;
@@ -319,6 +319,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         const baseUrl = buildBaseUrl(listener, basePath);
 
         let hurlContent: string;
+        let markdownDoc: string | undefined;
         try {
             const location = await rpcClient.getVisualizerLocation();
             const pos = location.position;
@@ -338,6 +339,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             });
 
             hurlContent = buildHurlString(result.function, baseUrl);
+            markdownDoc = buildMarkdownDoc(result.function);
         } catch {
             // Fallback: generate a minimal hurl entry without FunctionModel
             const normalizedPath = pathValue.replace(
@@ -348,8 +350,11 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         }
 
         // Start the Ballerina service (checks if running, prompts user if not), then open notebook
+        const cells = markdownDoc
+            ? [{ kind: "markdown" as const, content: markdownDoc }, { kind: "hurl" as const, content: hurlContent }]
+            : [{ kind: "hurl" as const, content: hurlContent }];
         rpcClient.getCommonRpcClient().executeCommand({
-            commands: ["ballerina.startService", hurlContent, { savable: false }, { basePath, listener }]
+            commands: ["ballerina.startService", cells, { savable: false }, { basePath, listener }]
         });
     };
 
