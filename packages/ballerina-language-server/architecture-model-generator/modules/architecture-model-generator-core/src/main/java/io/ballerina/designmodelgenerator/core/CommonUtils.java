@@ -367,15 +367,20 @@ public class CommonUtils {
                         if (valueExpr.isEmpty()) {
                             return Optional.empty();
                         }
+                        String value = "";
                         ExpressionNode expr = valueExpr.get();
                         if (expr instanceof BasicLiteralNode literalNode) {
-                            String value = literalNode.literalToken().text().trim();
-                            // Remove quotes if present
-                            return Optional.of(value.replace("\"", ""));
+                            value = literalNode.literalToken().text().trim();
+                            // Removes quotes
+                            value = value.replaceAll("\"", "");
                         }
                         // Handles variables etc
-                        String value = expr.toSourceCode().trim();
-                        return Optional.of(value);
+                        value = expr.toSourceCode().trim();
+                        if (!value.isEmpty()) {
+                            return Optional.of(value);
+                        }
+                        // So - doesnt get appended when value is empty
+                        return Optional.empty();
                     }
                 }
             }
