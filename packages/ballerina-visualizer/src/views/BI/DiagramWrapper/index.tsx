@@ -34,7 +34,7 @@ import { SwitchSkeleton, TitleBarSkeleton } from "../../../components/Skeletons"
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { ResourceForm } from "../ServiceDesigner/Forms/ResourceForm";
 import { removeForwardSlashes } from "../ServiceDesigner/utils";
-import { buildBaseUrl, buildHurlString, buildMarkdownDoc } from "../ServiceDesigner/buildHurlString";
+import { buildBaseUrl, buildHurlString, buildMarkdownDoc, buildPayloadContext } from "../ServiceDesigner/buildHurlString";
 
 const ActionButton = styled(Button)`
     display: flex;
@@ -104,6 +104,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [loadingDiagram, setLoadingDiagram] = useState(true);
     const [fileName, setFileName] = useState("");
     const [serviceType, setServiceType] = useState("");
+    const [serviceName, setServiceName] = useState("");
     const [basePath, setBasePath] = useState("");
     const [listener, setListener] = useState("");
     const [parentMetadata, setParentMetadata] = useState<ParentMetadata>();
@@ -159,6 +160,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                                     endColumn: serviceModel.service?.codedata.lineRange.endLine.offset,
                                 });
                                 setServiceType(serviceModel.service?.type);
+                                setServiceName(serviceModel.service?.name ?? "");
                                 setBasePath(serviceModel.service?.properties?.basePath?.value?.trim());
                                 setListener(serviceModel.service?.properties?.listener?.value?.trim());
                             });
@@ -338,7 +340,16 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                 codedata: codeData
             });
 
-            hurlContent = buildHurlString(result.function, baseUrl);
+            const payloadCtx = buildPayloadContext(result.function, serviceName, basePath);
+            let examplePayload: object | undefined;
+            if (payloadCtx) {
+                try {
+                    examplePayload = await rpcClient.getServiceDesignerRpcClient().generateExamplePayloadJson(payloadCtx);
+                } catch {
+                    // AI unavailable — fall back to empty body
+                }
+            }
+            hurlContent = buildHurlString(result.function, baseUrl, examplePayload);
             markdownDoc = buildMarkdownDoc(result.function);
         } catch {
             // Fallback: generate a minimal hurl entry without FunctionModel

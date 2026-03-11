@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { FunctionModel } from "@wso2/ballerina-core";
+import { FunctionModel, HttpPayloadContext, Protocol } from "@wso2/ballerina-core";
 
 /** A notebook cell passed to `wso2-http-book.importHurlString` when rich cells are needed. */
 export interface NotebookCell {
@@ -61,6 +61,33 @@ function toHurlPath(resourcePath: string): string {
         "{{$1}}"
     );
     return converted.startsWith("/") ? converted : `/${converted}`;
+}
+
+/**
+ * Build the HttpPayloadContext for the AI payload generator from a FunctionModel.
+ * Returns undefined if the resource has no PAYLOAD parameters (no body to generate).
+ */
+export function buildPayloadContext(
+    functionModel: FunctionModel,
+    serviceName: string,
+    basePath: string
+): HttpPayloadContext | undefined {
+    const payloadParams = (functionModel.parameters ?? []).filter(
+        p => p.enabled !== false && p.httpParamType === "PAYLOAD"
+    );
+    if (payloadParams.length === 0) { return undefined; }
+
+    return {
+        protocol: Protocol.HTTP,
+        serviceName,
+        serviceBasePath: basePath,
+        resourceBasePath: functionModel.name?.value,
+        resourceMethod: functionModel.accessor?.value,
+        resourceDocumentation: functionModel.documentation?.value,
+        paramDetails: (functionModel.parameters ?? [])
+            .filter(p => p.enabled !== false)
+            .map(p => ({ name: p.name?.value ?? "", type: p.type?.value ?? "" }))
+    };
 }
 
 /**
@@ -156,7 +183,7 @@ export function buildMarkdownDoc(functionModel: FunctionModel): string {
  *   [QueryStringParams]
  *   filter: {{filter}}
  */
-export function buildHurlString(functionModel: FunctionModel, baseUrl: string): string {
+export function buildHurlString(functionModel: FunctionModel, baseUrl: string, examplePayload?: object): string {
     const method = (functionModel.accessor?.value ?? "GET").toUpperCase();
     const resourcePath = functionModel.name?.value ?? "";
 
@@ -199,8 +226,12 @@ export function buildHurlString(functionModel: FunctionModel, baseUrl: string): 
             ? "application/xml"
             : "application/json";
         lines.push(`Content-Type: ${contentType}`);
-        lines.push(`# Body: ${typeName}`);
-        lines.push("{}");
+        if (examplePayload && Object.keys(examplePayload).length > 0) {
+            lines.push(JSON.stringify(examplePayload, null, 2));
+        } else {
+            lines.push(`# Body: ${typeName}`);
+            lines.push("{}");
+        }
     }
 
     // 4. Request-sections ([QueryStringParams] etc.) — always after body

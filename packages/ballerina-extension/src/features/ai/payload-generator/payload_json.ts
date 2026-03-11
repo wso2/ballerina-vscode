@@ -14,10 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { generateObject } from "ai";
+import { generateText } from "ai";
 import { PayloadContext } from "@wso2/ballerina-core";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../utils/ai-client";
-import { ExamplePayloadSchema, ExamplePayload } from "./schema";
 import { getPayloadGenerationSystemPrompt, getPayloadGenerationUserPrompt } from "./prompts";
 
 /**
@@ -32,18 +31,19 @@ export async function generateExamplePayload(context: PayloadContext): Promise<o
     const userPrompt = getPayloadGenerationUserPrompt(context);
 
     try {
-        const { object } = await generateObject({
+        const { text } = await generateText({
             model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-            maxOutputTokens: 4096*2,
+            maxOutputTokens: 4096 * 2,
             temperature: 0,
             system: systemPrompt,
             prompt: userPrompt,
-            schema: ExamplePayloadSchema,
             abortSignal: new AbortController().signal,
         });
 
-        const result = object as ExamplePayload;
-        return result.payload;
+        // Extract the JSON object from the response (strip any markdown fences)
+        const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/) ?? text.match(/(\{[\s\S]*\})/);
+        const jsonText = jsonMatch ? jsonMatch[1].trim() : text.trim();
+        return JSON.parse(jsonText);
     } catch (error) {
         console.error("Failed to generate example payload:", error);
         throw new Error(`Failed to generate example payload: ${error}`);
