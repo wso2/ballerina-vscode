@@ -43,7 +43,8 @@ import {
     InputType,
     getPrimaryInputType,
     functionKinds,
-    NodeProperties
+    NodeProperties,
+    DiagnosticMessage
 } from "@wso2/ballerina-core";
 import {
     FieldDerivation,
@@ -483,8 +484,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         const updatedFields = fields.map((field) => {
             const updatedField = { ...field };
 
-            const isRepeatableList = field.types?.some((t: any) => t?.fieldType === "REPEATABLE_LIST");
-            const selectedInputType = field.types?.find(t => t.selected);
+            const isRepeatableList = field.types?.length === 1 && getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_LIST";
+            const selectedInputType = isRepeatableList? getPrimaryInputType(field.types) : field.types?.find(t => t.selected);
 
             const nodeProperties = nodeWithDiagnostics?.properties as any;
             let propertyDiagnostics: any = nodeProperties?.[field.key]?.diagnostics?.diagnostics;
@@ -837,7 +838,14 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         }
 
         return Object.values(nodeProperties).some((property) => {
-            const diagnostics = property?.diagnostics?.diagnostics;
+            let diagnostics: DiagnosticMessage[] = [];
+            if ( property?.types?.length === 1 && getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_LIST") {
+                // For repeatable list, check diagnostics for each element in the list
+                const valueDiagnostics = (property.value as any[])?.map((val) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
+                diagnostics = [...diagnostics, ...valueDiagnostics];
+            } else {
+                diagnostics = property.diagnostics?.diagnostics ?? [];
+            }
             return Array.isArray(diagnostics) && diagnostics.some((diagnostic) => Boolean(diagnostic?.message?.trim()));
         });
     };
