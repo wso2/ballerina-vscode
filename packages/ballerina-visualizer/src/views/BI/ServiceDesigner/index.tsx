@@ -29,11 +29,11 @@ import {
     ServiceModel,
     Protocol
 } from "@wso2/ballerina-core";
-import { buildBaseUrl, buildHurlString, buildMarkdownDoc } from "./buildHurlString";
+import { buildBaseUrl, buildHurlString, buildMarkdownDoc, buildPayloadContext } from "./buildHurlString";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { NodePosition } from "@wso2/syntax-tree";
-import { Button, Codicon, Icon, LinkButton, TextField, Typography, View } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, ProgressRing, TextField, Typography, View } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { LoadingRing } from "../../../components/Loader";
@@ -224,6 +224,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [initFunction, setInitFunction] = useState<FunctionModel>(undefined);
     const [selectedFTPHandler, setSelectedFTPHandler] = useState<string>(undefined);
     const [addMore, setAddMore] = useState<boolean>(false);
+    const [isTryItLoading, setIsTryItLoading] = useState<boolean>(false);
 
     const handleCloseInitFunction = () => {
         setInitFunction(undefined);
@@ -734,30 +735,45 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             .sort((a, b) => (a.position?.startLine ?? 0) - (b.position?.startLine ?? 0));
         if (httpResources.length === 0) { return; }
 
+        setIsTryItLoading(true);
+
         const cells: { kind: "markdown" | "hurl"; content: string }[] = [];
 
-        for (const resource of httpResources) {
-            if (!resource.position || !resource.path) { continue; }
+        try {
+            for (const resource of httpResources) {
+                if (!resource.position || !resource.path) { continue; }
 
-            try {
-                const codeData: CodeData = {
-                    lineRange: {
-                        fileName: resource.path,
-                        startLine: { line: resource.position.startLine, offset: resource.position.startColumn },
-                        endLine: { line: resource.position.endLine, offset: resource.position.endColumn },
+                try {
+                    const codeData: CodeData = {
+                        lineRange: {
+                            fileName: resource.path,
+                            startLine: { line: resource.position.startLine, offset: resource.position.startColumn },
+                            endLine: { line: resource.position.endLine, offset: resource.position.endColumn },
+                        }
+                    };
+                    const result = await rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({
+                        filePath: resource.path,
+                        codedata: codeData
+                    });
+                    const payloadCtx = buildPayloadContext(result.function, serviceModel.name || "", basePath || "");
+                    let examplePayload: object | undefined;
+                    if (payloadCtx) {
+                        try {
+                            examplePayload = await rpcClient.getServiceDesignerRpcClient().generateExamplePayloadJson(payloadCtx);
+                        } catch {
+                            // AI unavailable — fall back to empty body
+                        }
                     }
-                };
-                const result = await rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({
-                    filePath: resource.path,
-                    codedata: codeData
-                });
-                cells.push({ kind: "markdown", content: buildMarkdownDoc(result.function) });
-                cells.push({ kind: "hurl", content: buildHurlString(result.function, baseUrl) });
-            } catch {
-                // Fallback: minimal entry from resource metadata
-                const method = resource.icon?.split("-")[0]?.toUpperCase() ?? "GET";
-                cells.push({ kind: "hurl", content: `${method} ${baseUrl}${resource.name}` });
+                    cells.push({ kind: "markdown", content: buildMarkdownDoc(result.function) });
+                    cells.push({ kind: "hurl", content: buildHurlString(result.function, baseUrl, examplePayload) });
+                } catch {
+                    // Fallback: minimal entry from resource metadata
+                    const method = resource.icon?.split("-")[0]?.toUpperCase() ?? "GET";
+                    cells.push({ kind: "hurl", content: `${method} ${baseUrl}${resource.name}` });
+                }
             }
+        } finally {
+            setIsTryItLoading(false);
         }
 
         if (cells.length === 0) { return; }
@@ -903,8 +919,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     {
                                         serviceModel && (isHttpService || isMcpService) && (
                                             <>
-                                                <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
-                                                    <Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText>
+                                                <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt} disabled={isTryItLoading}>
+                                                    {isTryItLoading
+                                                        ? <><ProgressRing sx={{ width: 16, height: 16, marginRight: 8 }} /> <ButtonText>Preparing...</ButtonText></>
+                                                        : <><Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText></>
+                                                    }
                                                 </Button>
                                             </>
                                         )
