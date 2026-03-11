@@ -134,6 +134,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.BinaryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.CallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ChunkerBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.ClassInitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataLoaderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
@@ -1918,7 +1919,8 @@ public class CodeAnalyzer extends NodeVisitor {
                 || nodeBuilder instanceof DataLoaderBuilder
                 || nodeBuilder instanceof ChunkerBuilder
                 || nodeBuilder instanceof MemoryBuilder
-                || nodeBuilder instanceof MemoryStoreBuilder) {
+                || nodeBuilder instanceof MemoryStoreBuilder
+                || nodeBuilder instanceof ClassInitBuilder) {
             // If an AI type node (agent, model provider, etc.) was identified, set the variable property on it
             String variableName = CommonUtils.getVariableName(assignmentStatementNode.varRef());
             nodeBuilder.properties().custom()
