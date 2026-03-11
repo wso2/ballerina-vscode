@@ -29,7 +29,7 @@ import {
     ServiceModel,
     Protocol
 } from "@wso2/ballerina-core";
-import { buildBaseUrl, buildHurlString } from "./buildHurlString";
+import { buildBaseUrl, buildHurlString, buildMarkdownDoc } from "./buildHurlString";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { NodePosition } from "@wso2/syntax-tree";
@@ -732,7 +732,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         const httpResources = resources.filter(r => r.type === DIRECTORY_MAP.RESOURCE);
         if (httpResources.length === 0) { return; }
 
-        const hurlBlocks: string[] = [];
+        const cells: { kind: "markdown" | "hurl"; content: string }[] = [];
 
         for (const resource of httpResources) {
             if (!resource.position || !resource.path) { continue; }
@@ -749,21 +749,20 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                     filePath: resource.path,
                     codedata: codeData
                 });
-                hurlBlocks.push(buildHurlString(result.function, baseUrl));
+                cells.push({ kind: "markdown", content: buildMarkdownDoc(result.function) });
+                cells.push({ kind: "hurl", content: buildHurlString(result.function, baseUrl) });
             } catch {
                 // Fallback: minimal entry from resource metadata
                 const method = resource.icon?.split("-")[0]?.toUpperCase() ?? "GET";
-                hurlBlocks.push(`${method} ${baseUrl}${resource.name}`);
+                cells.push({ kind: "hurl", content: `${method} ${baseUrl}${resource.name}` });
             }
         }
 
-        if (hurlBlocks.length === 0) { return; }
-
-        const hurlContent = hurlBlocks.join("\n\n");
+        if (cells.length === 0) { return; }
 
         // Start the Ballerina service (checks if running, prompts user if not), then open notebook
         rpcClient.getCommonRpcClient().executeCommand({
-            commands: ["ballerina.startService", hurlContent, { savable: true }, { basePath, listener }]
+            commands: ["ballerina.startService", cells, { savable: true }, { basePath, listener }]
         });
     }
 

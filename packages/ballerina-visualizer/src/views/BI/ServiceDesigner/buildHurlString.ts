@@ -18,6 +18,12 @@
 
 import { FunctionModel } from "@wso2/ballerina-core";
 
+/** A notebook cell passed to `wso2-http-book.importHurlString` when rich cells are needed. */
+export interface NotebookCell {
+    kind: "markdown" | "hurl";
+    content: string;
+}
+
 /**
  * Build the base URL from the service listener and base path.
  * listener may be a full URL ("http://localhost:9090"), a bare port ("9090" / ":9090"),
@@ -55,6 +61,79 @@ function toHurlPath(resourcePath: string): string {
         "{{$1}}"
     );
     return converted.startsWith("/") ? converted : `/${converted}`;
+}
+
+/**
+ * Extract path parameters from a Ballerina resource path.
+ * `[string petId]` → { type: "string", name: "petId" }
+ */
+function extractPathParams(resourcePath: string): { type: string; name: string }[] {
+    const params: { type: string; name: string }[] = [];
+    const regex = /\[([a-zA-Z][\w]*)\s+([a-zA-Z][\w]*)\]/g;
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(resourcePath)) !== null) {
+        params.push({ type: match[1], name: match[2] });
+    }
+    return params;
+}
+
+/**
+ * Generate a markdown documentation cell for a resource FunctionModel.
+ * Shows method + path as header, then sections for path/query/header/body parameters.
+ */
+export function buildMarkdownDoc(functionModel: FunctionModel): string {
+    const method = (functionModel.accessor?.value ?? "GET").toUpperCase();
+    const resourcePath = functionModel.name?.value ?? "";
+    const hurlPath = toHurlPath(resourcePath);
+
+    const lines: string[] = [];
+    lines.push(`## ${method} ${hurlPath}`);
+
+    const doc = functionModel.documentation?.value?.trim();
+    if (doc) {
+        lines.push("");
+        lines.push(doc);
+    }
+
+    const pathParams = extractPathParams(resourcePath);
+    if (pathParams.length > 0) {
+        lines.push("");
+        lines.push("**Path Parameters:**");
+        for (const p of pathParams) {
+            lines.push(`- \`${p.name}\` [${p.type}] (Required)`);
+        }
+    }
+
+    const enabledParams = (functionModel.parameters ?? []).filter(p => p.enabled !== false);
+    const queryParams = enabledParams.filter(p => p.httpParamType === "QUERY");
+    const headerParams = enabledParams.filter(p => p.httpParamType === "HEADER");
+    const payloadParams = enabledParams.filter(p => p.httpParamType === "PAYLOAD");
+
+    if (queryParams.length > 0) {
+        lines.push("");
+        lines.push("**Query Parameters:**");
+        for (const p of queryParams) {
+            const required = p.kind === "REQUIRED" ? " (Required)" : "";
+            lines.push(`- \`${p.name?.value}\` [${p.type?.value ?? "string"}]${required}`);
+        }
+    }
+
+    if (headerParams.length > 0) {
+        lines.push("");
+        lines.push("**Headers:**");
+        for (const p of headerParams) {
+            const required = p.kind === "REQUIRED" ? " (Required)" : "";
+            lines.push(`- \`${p.headerName?.value ?? p.name?.value}\` [${p.type?.value ?? "string"}]${required}`);
+        }
+    }
+
+    if (payloadParams.length > 0) {
+        lines.push("");
+        lines.push("**Body:**");
+        lines.push(`- \`${payloadParams[0].type?.value ?? "object"}\``);
+    }
+
+    return lines.join("\n");
 }
 
 /**
