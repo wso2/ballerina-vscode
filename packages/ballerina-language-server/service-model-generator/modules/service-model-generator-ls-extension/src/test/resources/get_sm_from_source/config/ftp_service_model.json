@@ -108,7 +108,7 @@
       {
         "metadata": {
           "label": "onCreate",
-          "description": "Handle file deletion on remote server"
+          "description": "Handle file creation on remote server"
         },
         "kind": "REMOTE",
         "name": {
