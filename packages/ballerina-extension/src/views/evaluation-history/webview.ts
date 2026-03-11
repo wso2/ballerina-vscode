@@ -37,16 +37,26 @@ export class EvaluationHistoryWebview {
     public static currentPanel: EvaluationHistoryWebview | undefined;
     public static readonly viewType = "ballerina.evaluation-history";
     private readonly _panel: WebviewPanel;
+    private _workspaceRoot: string;
     private _disposables: Disposable[] = [];
 
-    private constructor(panel: WebviewPanel) {
+    private constructor(panel: WebviewPanel, workspaceRoot: string) {
         this._panel = panel;
+        this._workspaceRoot = workspaceRoot;
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
         RPCLayer.create(this._panel);
     }
 
     public static async createOrShow(workspaceRoot: string): Promise<void> {
         if (EvaluationHistoryWebview.currentPanel) {
+            if (EvaluationHistoryWebview.currentPanel._workspaceRoot !== workspaceRoot) {
+                EvaluationHistoryWebview.currentPanel._workspaceRoot = workspaceRoot;
+                EvaluationHistoryWebview.currentPanel._panel.webview.html =
+                    EvaluationHistoryWebview.currentPanel.getWebviewContent(
+                        EvaluationHistoryWebview.currentPanel._panel.webview,
+                        workspaceRoot
+                    );
+            }
             EvaluationHistoryWebview.currentPanel._panel.reveal(
                 ViewColumn.Active
             );
@@ -72,7 +82,8 @@ export class EvaluationHistoryWebview {
         );
 
         EvaluationHistoryWebview.currentPanel = new EvaluationHistoryWebview(
-            panel
+            panel,
+            workspaceRoot
         );
         EvaluationHistoryWebview.currentPanel._panel.webview.html =
             EvaluationHistoryWebview.currentPanel.getWebviewContent(

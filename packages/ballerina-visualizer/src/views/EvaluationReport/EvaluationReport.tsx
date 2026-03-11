@@ -222,6 +222,7 @@ export function EvaluationReport() {
     const { rpcClient } = useRpcContext();
     const [data, setData] = useState<EvaluationReportData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const handleBackToHistory = () => {
         rpcClient
             .getCommonRpcClient()
@@ -241,6 +242,7 @@ export function EvaluationReport() {
             })
             .catch((err) => {
                 console.error("Failed to load evaluation report:", err);
+                setError(err?.message || "Failed to load evaluation report");
                 setData(null);
                 setLoading(false);
             });
@@ -255,8 +257,12 @@ export function EvaluationReport() {
         );
     }
 
-    if (!data) {
-        return null;
+    if (error || !data) {
+        return (
+            <EmptyState>
+                <EmptyTitle>{error || "No report data available"}</EmptyTitle>
+            </EmptyState>
+        );
     }
 
     const evaluationTests = data.moduleStatus.flatMap((mod) =>

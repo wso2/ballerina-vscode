@@ -97,6 +97,26 @@ export function RunPassRateChart({ runs, targetPassRate }: RunPassRateChartProps
         return () => observer.disconnect();
     }, []);
 
+    const handleMouseEnter = useCallback(
+        (e: React.MouseEvent, run: EvaluationRun) => {
+            setTooltip({ x: e.clientX, y: e.clientY, run });
+        },
+        []
+    );
+
+    const handleMouseMove = useCallback(
+        (e: React.MouseEvent) => {
+            if (tooltip) {
+                setTooltip((prev) => (prev ? { ...prev, x: e.clientX, y: e.clientY } : null));
+            }
+        },
+        [tooltip]
+    );
+
+    const handleMouseLeave = useCallback(() => {
+        setTooltip(null);
+    }, []);
+
     if (runs.length <= 1) return null;
 
     const scaleX = (i: number) =>
@@ -122,26 +142,6 @@ export function RunPassRateChart({ runs, targetPassRate }: RunPassRateChartProps
         ` ${PAD_X},${(CHART_HEIGHT - PAD_Y).toFixed(1)}`;
 
     const gradId = `runGrad-${Math.random().toString(36).slice(2)}`;
-
-    const handleMouseEnter = useCallback(
-        (e: React.MouseEvent, run: EvaluationRun) => {
-            setTooltip({ x: e.clientX, y: e.clientY, run });
-        },
-        []
-    );
-
-    const handleMouseMove = useCallback(
-        (e: React.MouseEvent) => {
-            if (tooltip) {
-                setTooltip((prev) => (prev ? { ...prev, x: e.clientX, y: e.clientY } : null));
-            }
-        },
-        [tooltip]
-    );
-
-    const handleMouseLeave = useCallback(() => {
-        setTooltip(null);
-    }, []);
 
     const TOOLTIP_OFFSET = 14;
     const TOOLTIP_MAX_WIDTH = 220;

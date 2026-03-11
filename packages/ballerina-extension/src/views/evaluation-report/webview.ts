@@ -88,7 +88,7 @@ export class EvaluationReportWebview {
 
         const body = `<div class="container" id="webview-container" data-report-path="${escapedPath}">
                 <div class="loader-wrapper">
-                    <div class="loader" /></div>
+                    <div class="loader"></div>
                 </div>
             </div>`;
         const bodyCss = ``;
