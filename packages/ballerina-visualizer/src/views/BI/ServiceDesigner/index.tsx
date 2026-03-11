@@ -22,12 +22,14 @@ import {
     EVENT_TYPE,
     FunctionModel,
     LineRange,
+    CodeData,
     MACHINE_VIEW,
     ProjectStructureArtifactResponse,
     ComponentInfo,
     ServiceModel,
     Protocol
 } from "@wso2/ballerina-core";
+import { buildBaseUrl, buildHurlString } from "./buildHurlString";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { NodePosition } from "@wso2/syntax-tree";
@@ -721,11 +723,48 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         setIsNew(false);
     };
 
-    const handleServiceTryIt = () => {
+    const handleServiceTryIt = async () => {
         const basePath = serviceModel.properties?.basePath?.value?.trim();
         const listener = serviceModel.properties?.listener?.value?.trim();
-        const commands = ["ballerina.tryIt", false, undefined, { basePath, listener }];
-        rpcClient.getCommonRpcClient().executeCommand({ commands });
+
+        const baseUrl = buildBaseUrl(listener, basePath);
+
+        const httpResources = resources.filter(r => r.type === DIRECTORY_MAP.RESOURCE);
+        if (httpResources.length === 0) { return; }
+
+        const hurlBlocks: string[] = [];
+
+        for (const resource of httpResources) {
+            if (!resource.position || !resource.path) { continue; }
+
+            try {
+                const codeData: CodeData = {
+                    lineRange: {
+                        fileName: resource.path,
+                        startLine: { line: resource.position.startLine, offset: resource.position.startColumn },
+                        endLine: { line: resource.position.endLine, offset: resource.position.endColumn },
+                    }
+                };
+                const result = await rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({
+                    filePath: resource.path,
+                    codedata: codeData
+                });
+                hurlBlocks.push(buildHurlString(result.function, baseUrl));
+            } catch {
+                // Fallback: minimal entry from resource metadata
+                const method = resource.icon?.split("-")[0]?.toUpperCase() ?? "GET";
+                hurlBlocks.push(`${method} ${baseUrl}${resource.name}`);
+            }
+        }
+
+        if (hurlBlocks.length === 0) { return; }
+
+        const hurlContent = hurlBlocks.join("\n\n");
+
+        // Start the Ballerina service (checks if running, prompts user if not), then open notebook
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: ["ballerina.startService", hurlContent, { savable: true }, { basePath, listener }]
+        });
     }
 
     const handleExportOAS = () => {

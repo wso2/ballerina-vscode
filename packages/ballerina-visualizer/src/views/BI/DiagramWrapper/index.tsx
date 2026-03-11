@@ -34,6 +34,7 @@ import { SwitchSkeleton, TitleBarSkeleton } from "../../../components/Skeletons"
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { ResourceForm } from "../ServiceDesigner/Forms/ResourceForm";
 import { removeForwardSlashes } from "../ServiceDesigner/utils";
+import { buildBaseUrl, buildHurlString } from "../ServiceDesigner/buildHurlString";
 
 const ActionButton = styled(Button)`
     display: flex;
@@ -312,10 +313,44 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     let isAgent = parentMetadata?.kind === "AI Chat Agent" && parentMetadata?.label === "chat";
     let isNPFunction = view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
 
-    const handleResourceTryIt = (methodValue: string, pathValue: string) => {
-        const resource = serviceType === "http" ? { methodValue, pathValue } : undefined;
-        const commands = ["ballerina.tryIt", false, resource, { basePath, listener }];
-        rpcClient.getCommonRpcClient().executeCommand({ commands });
+    const handleResourceTryIt = async (methodValue: string, pathValue: string) => {
+        if (serviceType !== "http") { return; }
+
+        const baseUrl = buildBaseUrl(listener, basePath);
+
+        let hurlContent: string;
+        try {
+            const location = await rpcClient.getVisualizerLocation();
+            const pos = location.position;
+            const docUri = filePath ?? location.documentUri;
+
+            const codeData: CodeData = {
+                lineRange: {
+                    fileName: docUri,
+                    startLine: { line: pos.startLine, offset: pos.startColumn },
+                    endLine: { line: pos.endLine, offset: pos.endColumn },
+                }
+            };
+
+            const result = await rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({
+                filePath: docUri,
+                codedata: codeData
+            });
+
+            hurlContent = buildHurlString(result.function, baseUrl);
+        } catch {
+            // Fallback: generate a minimal hurl entry without FunctionModel
+            const normalizedPath = pathValue.replace(
+                /\[(?:[a-zA-Z][\w]*\s+)?([a-zA-Z][\w]*)\]/g, "{{$1}}"
+            );
+            const url = `${baseUrl}/${normalizedPath.replace(/^\//, "")}`;
+            hurlContent = `${methodValue.toUpperCase()} ${url}`;
+        }
+
+        // Start the Ballerina service (checks if running, prompts user if not), then open notebook
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: ["ballerina.startService", hurlContent, { savable: false }, { basePath, listener }]
+        });
     };
 
     // Calculate title based on conditions
