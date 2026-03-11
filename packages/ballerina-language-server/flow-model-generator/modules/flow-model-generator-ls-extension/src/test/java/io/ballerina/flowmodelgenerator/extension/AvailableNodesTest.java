@@ -91,6 +91,7 @@ public class AvailableNodesTest extends AbstractLSTest {
      * @param position    The position of the node to be added
      * @param source      The source file path
      * @param categories  The available categories for the given input
+     * @param queryMap    The query parameters for the request
      */
     private record TestConfig(String description, LinePosition position, String source, JsonArray categories,
                               Map<String, String> queryMap) {
