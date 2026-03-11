@@ -290,10 +290,14 @@ export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
 
     const handleCompare = async (sha: string, isDirty: boolean) => {
         if (!projectPath) { return; }
-        const resp = await rpcClient.getTestManagerRpcClient().getGitDiff({
-            projectPath, fromSha: sha, toSha: "HEAD",
-        });
-        setDiffModal({ sha, full: resp.diffFull, isDirty });
+        try {
+            const resp = await rpcClient.getTestManagerRpcClient().getGitDiff({
+                projectPath, fromSha: sha, toSha: "HEAD",
+            });
+            setDiffModal({ sha, full: resp.diffFull, isDirty });
+        } catch (error) {
+            console.error("Failed to fetch git diff:", error);
+        }
     };
 
     return (
@@ -355,7 +359,7 @@ export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
                                                         </StateLabel>
                                                         <ViewBtn
                                                             style={{ marginLeft: 8 }}
-                                                            onClick={() => handleCompare(run.gitState!.commitSha!, run.gitState!.isDirty)}
+                                                            onClick={() => handleCompare(run.gitState!.commitSha, run.gitState?.isDirty ?? false)}
                                                         >
                                                             View changes
                                                         </ViewBtn>

@@ -167,71 +167,64 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
     }
 
     async openEvaluationReport(params: OpenEvaluationReportRequest): Promise<void> {
-        return new Promise(async (resolve) => {
-            try {
-                await EvaluationReportWebview.createOrShow(params.reportPath);
-                resolve();
-            } catch (error) {
-                vscode.window.showErrorMessage(`Failed to open evaluation report: ${error}`);
-                resolve();
-            }
-        });
+        try {
+            await EvaluationReportWebview.createOrShow(params.reportPath);
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to open evaluation report: ${error}`);
+        }
     }
 
     async getEvaluationReport(params: GetEvaluationReportRequest): Promise<GetEvaluationReportResponse> {
-        return new Promise(async (resolve) => {
-            try {
-                const reportPath = params.reportPath;
-                if (!fs.existsSync(reportPath)) {
-                    resolve({ data: { projectName: "Unknown", totalTests: 0, passed: 0, failed: 0, skipped: 0, moduleStatus: [] } });
-                    return;
-                }
-                const rawData = fs.readFileSync(reportPath, 'utf-8');
-                const jsonData = JSON.parse(rawData);
-
-                const moduleStatus = (jsonData.moduleStatus ?? []).map((mod: any) => ({
-                    name: mod.name,
-                    totalTests: mod.totalTests ?? 0,
-                    passed: mod.passed ?? 0,
-                    failed: mod.failed ?? 0,
-                    skipped: mod.skipped ?? 0,
-                    tests: (mod.tests ?? []).map((test: any) => ({
-                        name: test.name,
-                        status: test.status,
-                        failureMessage: test.failureMessage,
-                        isEvaluation: test.isEvaluation ?? false,
-                        evaluationSummary: test.evaluationSummary ? {
-                            evaluationRuns: (test.evaluationSummary.evaluationRuns ?? []).map((r: any) => ({
-                                id: r.id,
-                                passRate: r.passRate ?? 0,
-                                outcomes: (r.outcomes ?? []).map((o: any) => ({
-                                    id: o.id,
-                                    passed: !o.errorMessage,
-                                    errorMessage: o.errorMessage,
-                                })),
-                            })),
-                            targetPassRate: test.evaluationSummary.targetPassRate ?? 0.8,
-                            observedPassRate: test.evaluationSummary.observedPassRate ?? 0,
-                        } : undefined,
-                    })),
-                }));
-
-                const data: EvaluationReportData = {
-                    projectName: jsonData.projectName ?? "Unknown",
-                    totalTests: jsonData.totalTests ?? 0,
-                    passed: jsonData.passed ?? 0,
-                    failed: jsonData.failed ?? 0,
-                    skipped: jsonData.skipped ?? 0,
-                    moduleStatus,
-                    gitState: jsonData.gitState,
-                };
-
-                resolve({ data });
-            } catch (error) {
-                console.error('Failed to load evaluation report:', error);
-                resolve({ data: { projectName: "Unknown", totalTests: 0, passed: 0, failed: 0, skipped: 0, moduleStatus: [] } });
+        try {
+            const reportPath = params.reportPath;
+            if (!fs.existsSync(reportPath)) {
+                return { data: { projectName: "Unknown", totalTests: 0, passed: 0, failed: 0, skipped: 0, moduleStatus: [] } };
             }
-        });
+            const rawData = fs.readFileSync(reportPath, 'utf-8');
+            const jsonData = JSON.parse(rawData);
+
+            const moduleStatus = (jsonData.moduleStatus ?? []).map((mod: any) => ({
+                name: mod.name,
+                totalTests: mod.totalTests ?? 0,
+                passed: mod.passed ?? 0,
+                failed: mod.failed ?? 0,
+                skipped: mod.skipped ?? 0,
+                tests: (mod.tests ?? []).map((test: any) => ({
+                    name: test.name,
+                    status: test.status,
+                    failureMessage: test.failureMessage,
+                    isEvaluation: test.isEvaluation ?? false,
+                    evaluationSummary: test.evaluationSummary ? {
+                        evaluationRuns: (test.evaluationSummary.evaluationRuns ?? []).map((r: any) => ({
+                            id: r.id,
+                            passRate: r.passRate ?? 0,
+                            outcomes: (r.outcomes ?? []).map((o: any) => ({
+                                id: o.id,
+                                passed: !o.errorMessage,
+                                errorMessage: o.errorMessage,
+                            })),
+                        })),
+                        targetPassRate: test.evaluationSummary.targetPassRate ?? 0.8,
+                        observedPassRate: test.evaluationSummary.observedPassRate ?? 0,
+                    } : undefined,
+                })),
+            }));
+
+            const data: EvaluationReportData = {
+                projectName: jsonData.projectName ?? "Unknown",
+                totalTests: jsonData.totalTests ?? 0,
+                passed: jsonData.passed ?? 0,
+                failed: jsonData.failed ?? 0,
+                skipped: jsonData.skipped ?? 0,
+                moduleStatus,
+                gitState: jsonData.gitState,
+            };
+
+            return { data };
+        } catch (error) {
+            console.error('Failed to load evaluation report:', error);
+            return { data: { projectName: "Unknown", totalTests: 0, passed: 0, failed: 0, skipped: 0, moduleStatus: [] } };
+        }
     }
 
     async getGitDiff(params: GitDiffRequest): Promise<GitDiffResponse> {

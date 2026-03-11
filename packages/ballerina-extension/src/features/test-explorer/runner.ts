@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
 import { CancellationToken, TestRunRequest, TestMessage, TestRun, TestItem, debug, Uri, WorkspaceFolder, DebugConfiguration, workspace, TestRunProfileKind, commands, window } from 'vscode';
 import { EVALUATION_GROUP, testController } from './activator';
 import { StateMachine } from "../../stateMachine";
@@ -231,12 +231,17 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
                 if (isAiEvaluations(test)) {
                     testItems.forEach(item => run.passed(item, timeElapsed));
-                    const reportPath = await findLatestEvaluationReport(workingDirectory);
-                    if (reportPath) {
-                        await postProcessEvaluationReport(reportPath, workingDirectory);
-                        await openEvaluationReport(reportPath);
-                    }
+
                     endGroup(test, true, run);
+                    try {
+                        const reportPath = await findLatestEvaluationReport(workingDirectory);
+                        if (reportPath) {
+                            await postProcessEvaluationReport(reportPath, workingDirectory);
+                            await openEvaluationReport(reportPath);
+                        }
+                    } catch (error) {
+                        console.error('Error processing evaluation report:', error);
+                    }
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                         endGroup(test, true, run);
@@ -250,12 +255,16 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
                 if (isAiEvaluations(test)) {
                     testItems.forEach(item => run.failed(item, new TestMessage('Evaluation failed'), timeElapsed));
-                    const reportPath = await findLatestEvaluationReport(workingDirectory);
-                    if (reportPath) {
-                        await postProcessEvaluationReport(reportPath, workingDirectory);
-                        await openEvaluationReport(reportPath);
-                    }
                     endGroup(test, false, run);
+                    try {
+                        const reportPath = await findLatestEvaluationReport(workingDirectory);
+                        if (reportPath) {
+                            await postProcessEvaluationReport(reportPath, workingDirectory);
+                            await openEvaluationReport(reportPath);
+                        }
+                    } catch (error) {
+                        console.error('Error processing evaluation report:', error);
+                    }
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                         endGroup(test, true, run);
@@ -285,12 +294,16 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
                 if (isAiEvaluations(test)) {
                     testItems.forEach(item => run.passed(item, timeElapsed));
-                    const reportPath = await findLatestEvaluationReport(workingDirectory);
-                    if (reportPath) {
-                        await postProcessEvaluationReport(reportPath, workingDirectory);
-                        await openEvaluationReport(reportPath);
-                    }
                     endGroup(test, true, run);
+                    try {
+                        const reportPath = await findLatestEvaluationReport(workingDirectory);
+                        if (reportPath) {
+                            await postProcessEvaluationReport(reportPath, workingDirectory);
+                            await openEvaluationReport(reportPath);
+                        }
+                    } catch (error) {
+                        console.error('Error processing evaluation report:', error);
+                    }
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                         endGroup(test, true, run);
@@ -304,12 +317,16 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
                 if (isAiEvaluations(test)) {
                     testItems.forEach(item => run.failed(item, new TestMessage('Evaluation failed'), timeElapsed));
-                    const reportPath = await findLatestEvaluationReport(workingDirectory);
-                    if (reportPath) {
-                        await postProcessEvaluationReport(reportPath, workingDirectory);
-                        await openEvaluationReport(reportPath);
-                    }
                     endGroup(test, false, run);
+                    try {
+                        const reportPath = await findLatestEvaluationReport(workingDirectory);
+                        if (reportPath) {
+                            await postProcessEvaluationReport(reportPath, workingDirectory);
+                            await openEvaluationReport(reportPath);
+                        }
+                    } catch (error) {
+                        console.error('Error processing evaluation report:', error);
+                    }
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                         endGroup(test, true, run);
@@ -340,12 +357,16 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
                 if (isAiEvaluations(test)) {
                     run.passed(test, timeElapsed);
-                    const reportPath = await findLatestEvaluationReport(workingDirectory);
-                    if (reportPath) {
-                        await postProcessEvaluationReport(reportPath, workingDirectory);
-                        await openEvaluationReport(reportPath);
-                    }
                     endGroup(test, true, run);
+                    try {
+                        const reportPath = await findLatestEvaluationReport(workingDirectory);
+                        if (reportPath) {
+                            await postProcessEvaluationReport(reportPath, workingDirectory);
+                            await openEvaluationReport(reportPath);
+                        }
+                    } catch (error) {
+                        console.error('Error processing evaluation report:', error);
+                    }
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
                         endGroup(test, true, run);
@@ -359,12 +380,16 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
                 if (isAiEvaluations(test)) {
                     run.failed(test, new TestMessage('Evaluation failed'), timeElapsed);
-                    const reportPath = await findLatestEvaluationReport(workingDirectory);
-                    if (reportPath) {
-                        await postProcessEvaluationReport(reportPath, workingDirectory);
-                        await openEvaluationReport(reportPath);
-                    }
                     endGroup(test, false, run);
+                    try {
+                        const reportPath = await findLatestEvaluationReport(workingDirectory);
+                        if (reportPath) {
+                            await postProcessEvaluationReport(reportPath, workingDirectory);
+                            await openEvaluationReport(reportPath);
+                        }
+                    } catch (error) {
+                        console.error('Error processing evaluation report:', error);
+                    }
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
                         endGroup(test, true, run);
@@ -548,20 +573,26 @@ async function runCommand(command: string, projectPath: string, run?: TestRun): 
     return new Promise((resolve, reject) => {
         let stdout = '';
         let stderr = '';
-        const proc = exec(command, { cwd: projectPath });
+        const proc = spawn(command, { shell: true, cwd: projectPath });
 
-        proc.stdout?.on('data', (data: string) => {
-            stdout += data;
+        proc.stdout.on('data', (data: Buffer) => {
+            const str = data.toString();
+            stdout += str;
             if (run) {
-                run.appendOutput(data.toString().replace(/\r?\n/g, '\r\n'));
+                run.appendOutput(str.replace(/\r?\n/g, '\r\n'));
             }
         });
 
-        proc.stderr?.on('data', (data: string) => {
-            stderr += data;
+        proc.stderr.on('data', (data: Buffer) => {
+            const str = data.toString();
+            stderr += str;
             if (run) {
-                run.appendOutput(data.toString().replace(/\r?\n/g, '\r\n'));
+                run.appendOutput(str.replace(/\r?\n/g, '\r\n'));
             }
+        });
+
+        proc.on('error', (err) => {
+            reject(err);
         });
 
         proc.on('close', (code) => {

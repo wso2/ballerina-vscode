@@ -129,6 +129,20 @@ interface TestCardProps {
 
 export function TestCard({ history, projectPath }: TestCardProps) {
     const { rpcClient } = useRpcContext();
+
+    if (!history.runs.length) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitleRow>
+                        <TestName>{history.testName}</TestName>
+                    </CardTitleRow>
+                    <CardMeta>0 runs &middot; {history.projectName}</CardMeta>
+                </CardHeader>
+            </Card>
+        );
+    }
+
     const latest = history.runs[history.runs.length - 1];
     const latestPct = (latest.passRate * 100).toFixed(0);
     const targetPct = (latest.targetPassRate * 100).toFixed(0);

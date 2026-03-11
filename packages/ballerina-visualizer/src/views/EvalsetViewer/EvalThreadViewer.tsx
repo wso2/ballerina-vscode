@@ -569,12 +569,21 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
     const [deleteToolCall, setDeleteToolCall] = useState<{ traceId: string; toolCallIndex: number } | null>(null);
     const [availableToolsCache, setAvailableToolsCache] = useState<EvalToolSchema[] | null>(null);
     const [isEditingThreadName, setIsEditingThreadName] = useState(false);
-    const [threadNameValue, setThreadNameValue] = useState(evalThread.id);
+    const [threadNameValue, setThreadNameValue] = useState(workingEvalThread.id);
     const [isSavingName, setIsSavingName] = useState(false);
     const threadNameInputRef = useRef<HTMLInputElement>(null);
     const [isEditingDescription, setIsEditingDescription] = useState(false);
-    const [descriptionValue, setDescriptionValue] = useState(evalThread.description);
+    const [descriptionValue, setDescriptionValue] = useState(workingEvalThread.description);
     const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+        if (!isEditingThreadName) {
+            setThreadNameValue(workingEvalThread.id);
+        }
+        if (!isEditingDescription) {
+            setDescriptionValue(workingEvalThread.description);
+        }
+    }, [workingEvalThread]);
 
     useEffect(() => {
         if (isEditingThreadName && threadNameInputRef.current) {
@@ -595,25 +604,25 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
 
     const handleRenameThread = async (newName: string) => {
         const trimmed = newName.trim();
-        if (!trimmed || trimmed === evalThread.id) {
-            setThreadNameValue(evalThread.id);
+        if (!trimmed || trimmed === workingEvalThread.id) {
+            setThreadNameValue(workingEvalThread.id);
             setIsEditingThreadName(false);
             return;
         }
 
-        const nameExists = evalSet.threads.some(t => t.id !== evalThread.id && t.id === trimmed);
+        const nameExists = evalSet.threads.some(t => t.id !== workingEvalThread.id && t.id === trimmed);
         if (nameExists) {
-            setThreadNameValue(evalThread.id);
+            setThreadNameValue(workingEvalThread.id);
             setIsEditingThreadName(false);
             return;
         }
 
         setIsSavingName(true);
         try {
-            const renamedThread = { ...evalThread, id: trimmed };
+            const renamedThread = { ...workingEvalThread, id: trimmed };
             const updatedEvalSet: EvalSet = {
                 ...evalSet,
-                threads: evalSet.threads.map(t => t.id === evalThread.id ? renamedThread : t)
+                threads: evalSet.threads.map(t => t.id === workingEvalThread.id ? renamedThread : t)
             };
 
             const response = await rpcClient.getVisualizerRpcClient().saveEvalThread({ filePath, updatedEvalSet });
@@ -624,11 +633,11 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                 });
             } else {
                 rpcClient.getCommonRpcClient().showErrorMessage({ message: response.error || 'Failed to rename thread.' });
-                setThreadNameValue(evalThread.id);
+                setThreadNameValue(workingEvalThread.id);
             }
         } catch (error: any) {
             rpcClient.getCommonRpcClient().showErrorMessage({ message: error?.message || 'An unexpected error occurred while renaming.' });
-            setThreadNameValue(evalThread.id);
+            setThreadNameValue(workingEvalThread.id);
         } finally {
             setIsSavingName(false);
             setIsEditingThreadName(false);
@@ -637,28 +646,28 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
 
     const handleSaveDescription = async (newDescription: string) => {
         const trimmed = newDescription.trim();
-        if (trimmed === evalThread.description) {
-            setDescriptionValue(evalThread.description);
+        if (trimmed === workingEvalThread.description) {
+            setDescriptionValue(workingEvalThread.description);
             setIsEditingDescription(false);
             return;
         }
 
         try {
-            const updatedThread = { ...evalThread, description: trimmed };
+            const updatedThread = { ...workingEvalThread, description: trimmed };
             const updatedEvalSet: EvalSet = {
                 ...evalSet,
-                threads: evalSet.threads.map(t => t.id === evalThread.id ? updatedThread : t)
+                threads: evalSet.threads.map(t => t.id === workingEvalThread.id ? updatedThread : t)
             };
 
             const response = await rpcClient.getVisualizerRpcClient().saveEvalThread({ filePath, updatedEvalSet });
 
             if (!response.success) {
                 rpcClient.getCommonRpcClient().showErrorMessage({ message: response.error || 'Failed to save description.' });
-                setDescriptionValue(evalThread.description);
+                setDescriptionValue(workingEvalThread.description);
             }
         } catch (error: any) {
             rpcClient.getCommonRpcClient().showErrorMessage({ message: error?.message || 'An unexpected error occurred while saving.' });
-            setDescriptionValue(evalThread.description);
+            setDescriptionValue(workingEvalThread.description);
         } finally {
             setIsEditingDescription(false);
         }

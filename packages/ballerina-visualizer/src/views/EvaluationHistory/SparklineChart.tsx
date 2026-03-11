@@ -143,6 +143,26 @@ export function SparklineChart({ runs, onDotClick }: SparklineChartProps) {
         return () => observer.disconnect();
     }, []);
 
+    const handleMouseEnter = useCallback(
+        (e: React.MouseEvent, run: EvaluationRunDataPoint) => {
+            setTooltip({ x: e.clientX, y: e.clientY, run });
+        },
+        []
+    );
+
+    const handleMouseMove = useCallback(
+        (e: React.MouseEvent) => {
+            if (tooltip) {
+                setTooltip((prev) => (prev ? { ...prev, x: e.clientX, y: e.clientY } : null));
+            }
+        },
+        [tooltip]
+    );
+
+    const handleMouseLeave = useCallback(() => {
+        setTooltip(null);
+    }, []);
+
     if (!runs.length) return <Container ref={containerRef} />;
 
     const target = runs[0].targetPassRate;
@@ -169,26 +189,6 @@ export function SparklineChart({ runs, onDotClick }: SparklineChartProps) {
         ` ${PAD_X},${(CHART_HEIGHT - PAD_Y).toFixed(1)}`;
 
     const gradId = `sparkGrad-${Math.random().toString(36).slice(2)}`;
-
-    const handleMouseEnter = useCallback(
-        (e: React.MouseEvent, run: EvaluationRunDataPoint) => {
-            setTooltip({ x: e.clientX, y: e.clientY, run });
-        },
-        []
-    );
-
-    const handleMouseMove = useCallback(
-        (e: React.MouseEvent) => {
-            if (tooltip) {
-                setTooltip((prev) => (prev ? { ...prev, x: e.clientX, y: e.clientY } : null));
-            }
-        },
-        [tooltip]
-    );
-
-    const handleMouseLeave = useCallback(() => {
-        setTooltip(null);
-    }, []);
 
     const TOOLTIP_OFFSET = 14;
     const TOOLTIP_MAX_WIDTH = 220;
