@@ -22,17 +22,7 @@ import { ComponentListView } from './ComponentListView';
 import { TitleBar } from './components/TitleBar';
 import { WorkspacesFileResponse, VisualizerLocation } from '@wso2/ballerina-core';
 import { URI } from 'vscode-uri';
-// Create a interface for the data
-interface Data {
-    packages: Package[];
-}
-// Create a interface for the package
-interface Package {
-    name: string;
-    filePath: string;
-    modules: Module[];
-}
-// Create a interface for the module
+// Create an interface for the module
 interface Module {
     functions: any[];
     services: any[];
@@ -44,6 +34,16 @@ interface Module {
     enums: any[];
     listeners: any[];
     moduleVariables: any[];
+}
+// Create an interface for the package
+interface Package {
+    name: string;
+    filePath: string;
+    modules: Module[];
+}
+// Create an interface for the data
+interface Data {
+    packages: Package[];
 }
 
 export const SELECT_ALL_FILES = 'All';
