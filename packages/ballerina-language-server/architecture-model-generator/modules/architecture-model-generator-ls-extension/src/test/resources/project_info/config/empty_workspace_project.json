@@ -1,0 +1,11 @@
+{
+  "description": "Test workspace project with no packages returns empty children list",
+  "source": "empty_workspace_proj",
+  "output": {
+    "projectKind": "WORKSPACE_PROJECT",
+    "name": "empty_workspace_proj",
+    "title": "Empty Workspace Project",
+    "projectPath": "empty_workspace_proj",
+    "children": []
+  }
+}

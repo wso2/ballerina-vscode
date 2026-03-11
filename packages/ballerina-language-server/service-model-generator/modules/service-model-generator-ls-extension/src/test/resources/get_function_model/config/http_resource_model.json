@@ -468,6 +468,96 @@
           "enabled": true,
           "editable": true,
           "advanced": false
+        },
+        {
+          "statusCode": {
+            "placeholder": "",
+            "value": "500",
+            "items": [],
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "options": [],
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "value": "error",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": false,
+            "optional": true,
+            "advanced": true
+          },
+          "mediaType": {
+            "value": "",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "name": {
+            "value": "",
+            "types": [
+              {
+                "fieldType": "OPTIONAL_IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "type": {
+            "value": "",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "headers": {
+            "metadata": {
+              "label": "Headers",
+              "description": "Add mandatory or optional headers to the response"
+            },
+            "value": "",
+            "types": [
+              {
+                "fieldType": "HEADER_SET",
+                "selected": true
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true
+          },
+          "enabled": true,
+          "editable": false,
+          "advanced": false
         }
       ],
       "schema": {

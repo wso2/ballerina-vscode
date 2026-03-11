@@ -131,7 +131,7 @@ public class SourceBuilder {
         Path targetPath = workspaceManager.projectRoot(requestFilePath).resolve(relativePath);
         try {
             workspaceManager.loadProject(targetPath);
-            if (codedata.lineRange() != null) {
+            if (codedata.lineRange() != null && !hasDefaultFile(codedata.node())) {
                 defaultRange = CommonUtils.toRange(codedata.lineRange());
             } else {
                 Document document = FileSystemUtils.getDocument(workspaceManager, targetPath);
@@ -141,6 +141,16 @@ public class SourceBuilder {
             throw new RuntimeException(e);
         }
         return targetPath;
+    }
+
+    private boolean hasDefaultFile(NodeKind node) {
+        return switch (node) {
+            case NEW_CONNECTION, MODEL_PROVIDER, EMBEDDING_PROVIDER, VECTOR_STORE, KNOWLEDGE_BASE,
+                 DATA_LOADER, CHUNKER, CLASS_INIT, DATA_MAPPER_DEFINITION,
+                 FUNCTION_DEFINITION, NP_FUNCTION, NP_FUNCTION_DEFINITION, AUTOMATION,
+                 AGENT, MEMORY, MEMORY_STORE, MCP_TOOL_KIT -> true;
+            default -> false;
+        };
     }
 
     private Path resolvePath(Path inputPath, NodeKind node, LineRange lineRange, Boolean isNew) {

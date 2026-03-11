@@ -247,6 +247,17 @@ public class LibraryDatabaseAccessor {
     }
 
     /**
+     * Sanitizes a keyword for safe use in FTS5 queries by replacing characters that are
+     * special in FTS5 syntax (e.g. '.', '-', '/', '(', ')') with spaces.
+     *
+     * @param keyword the raw keyword
+     * @return sanitized keyword, or empty string if nothing remains
+     */
+    private static String sanitizeForFTS(String keyword) {
+        return keyword.replaceAll("[^a-zA-Z0-9 ]", " ").trim().replaceAll("\\s+", " ");
+    }
+
+    /**
      * Formats keywords for PackageFTS which searches in package_name, description, and keywords columns.
      * Uses column filters to explicitly search across all three columns.
      *
@@ -260,9 +271,12 @@ public class LibraryDatabaseAccessor {
             if (keyword == null || keyword.trim().isEmpty()) {
                 continue;
             }
-
+            String sanitized = sanitizeForFTS(keyword);
+            if (sanitized.isEmpty()) {
+                continue;
+            }
             // Search in package_name, description, and keywords columns
-            tokens.add("{package_name description keywords}: " + keyword.trim());
+            tokens.add("{package_name description keywords}: " + sanitized);
         }
 
         // Combine tokens with OR operator
@@ -283,9 +297,12 @@ public class LibraryDatabaseAccessor {
             if (keyword == null || keyword.trim().isEmpty()) {
                 continue;
             }
-
+            String sanitized = sanitizeForFTS(keyword);
+            if (sanitized.isEmpty()) {
+                continue;
+            }
             // Search in name and description columns
-            tokens.add("{name description}: " + keyword.trim());
+            tokens.add("{name description}: " + sanitized);
         }
 
         // Combine tokens with OR operator

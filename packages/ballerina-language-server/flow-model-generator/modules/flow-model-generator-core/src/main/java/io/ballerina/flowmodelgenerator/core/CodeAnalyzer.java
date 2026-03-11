@@ -2094,6 +2094,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     .orElse(project.currentPackage().getDefaultModule());
             CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType,
                     callNode);
+            AgentCallBuilder.postProcessTdProperty(nodeBuilder, key);
         });
     }
 
