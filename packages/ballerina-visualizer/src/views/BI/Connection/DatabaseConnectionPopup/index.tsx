@@ -18,6 +18,7 @@
 
 import React, { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
+import { debounce } from "lodash";
 import { Button, Codicon, ThemeColors, Typography, TextField, Dropdown, OptionProps, Icon, SearchBox, ProgressRing, ProgressIndicator } from "@wso2/ui-toolkit";
 import { Stepper } from "@wso2/ui-toolkit";
 import {
@@ -55,7 +56,10 @@ import {
     ErrorDetailsContent,
     ErrorDetailsText,
 } from "../styles";
+import { URI, Utils } from "vscode-uri";
+import { CONNECTIONS_FILE } from "../../../../constants";
 import { isDatabaseSystemProperty, isPasswordProperty, formatDatabaseTypeDisplay } from "../utils";
+import { removeDuplicateDiagnostics } from "../../../../utils/bi";
 
 const StepperContainer = styled.div`
     padding: 24px 32px;
@@ -729,6 +733,7 @@ export function SelectPersistTablesStep(props: SelectPersistTablesStepProps) {
 export interface CreatePersistConnectionStepProps {
     connectionName: string;
     onConnectionNameChange: (value: string) => void;
+    connectionNameError?: string | null;
     connectorCredentials: IntrospectCredentialsResponse["data"] | null;
     fieldValues: Record<string, string>;
     connectionError: string | null;
@@ -745,6 +750,7 @@ export function CreatePersistConnectionStep(props: CreatePersistConnectionStepPr
     const {
         connectionName,
         onConnectionNameChange,
+        connectionNameError,
         connectorCredentials,
         fieldValues,
         connectionError,
@@ -782,6 +788,7 @@ export function CreatePersistConnectionStep(props: CreatePersistConnectionStepPr
                                 placeholder="Database connection name"
                                 value={connectionName}
                                 onTextChange={onConnectionNameChange}
+                                errorMsg={connectionNameError ?? undefined}
                                 {...(isSaving || readOnlyConnectionName ? { readonly: true } : {})}
                             />
                         </FormField>
@@ -820,7 +827,7 @@ export function CreatePersistConnectionStep(props: CreatePersistConnectionStepPr
                 <ActionButton
                     appearance="primary"
                     onClick={onSave}
-                    disabled={!connectionName || isSaving}
+                    disabled={!connectionName || !!connectionNameError || isSaving}
                     buttonSx={{ width: "100%", height: "35px" }}
                 >
                     {isSaving ? "Saving..." : "Save Connection"}
@@ -841,6 +848,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
     const [introspectDatabaseResponse, setIntrospectDatabaseResponse] = useState<IntrospectDatabaseResponse | null>(null);
     const [isIntrospecting, setIsIntrospecting] = useState(false);
     const [connectionName, setConnectionName] = useState("");
+    const [connectionNameError, setConnectionNameError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [connectionError, setConnectionError] = useState<string | null>(null);
     const [lsErrorDetails, setLsErrorDetails] = useState<LSErrorDetails>({
@@ -1017,13 +1025,67 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
         [tables, tableSearch]
     );
 
-    const handleConnectionNameChange = useCallback((value: string) => {
-        setConnectionName(value);
-        if (connectionError) {
-            setConnectionError(null);
-            setLsErrorDetails({ errorMessage: null });
-        }
-    }, [connectionError]);
+    const validateConnectionName = useCallback(
+        debounce(async (value: string) => {
+            if (!value) {
+                setConnectionNameError(null);
+                return;
+            }
+            try {
+                const { projectPath } = await rpcClient.getVisualizerLocation();
+                const connectionsFilePath = Utils.joinPath(URI.file(projectPath), CONNECTIONS_FILE).fsPath;
+                const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
+                    filePath: connectionsFilePath,
+                });
+                const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
+                    filePath: connectionsFilePath,
+                    context: {
+                        expression: value,
+                        startLine: {
+                            line: endPosition.line,
+                            offset: endPosition.offset,
+                        },
+                        offset: 0,
+                        lineOffset: 0,
+                        codedata: {
+                            node: "VARIABLE",
+                            lineRange: {
+                                startLine: { line: endPosition.line, offset: endPosition.offset },
+                                endLine: { line: endPosition.line, offset: endPosition.offset },
+                                fileName: CONNECTIONS_FILE,
+                            },
+                        },
+                        property: {
+                            metadata: { label: "", description: "" },
+                            value: "",
+                            types: [{ fieldType: "IDENTIFIER", scope: "Object", selected: false }],
+                            optional: false,
+                            editable: true,
+                        },
+                    },
+                });
+                const uniqueDiagnostics = removeDuplicateDiagnostics(response.diagnostics || []);
+                const errorDiagnostic = uniqueDiagnostics.find((d) => d.severity === 1);
+                setConnectionNameError(errorDiagnostic ? errorDiagnostic.message : null);
+            } catch (e) {
+                setConnectionNameError(null);
+            }
+        }, 250),
+        [rpcClient]
+    );
+
+    const handleConnectionNameChange = useCallback(
+        (value: string) => {
+            setConnectionName(value);
+            setConnectionNameError(null);
+            validateConnectionName(value);
+            if (connectionError) {
+                setConnectionError(null);
+                setLsErrorDetails({ errorMessage: null });
+            }
+        },
+        [connectionError, validateConnectionName]
+    );
 
     const renderStep = () => {
         switch (currentStep) {
@@ -1066,6 +1128,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                     <CreatePersistConnectionStep
                         connectionName={connectionName}
                         onConnectionNameChange={handleConnectionNameChange}
+                        connectionNameError={connectionNameError}
                         connectorCredentials={connectorCredentials}
                         fieldValues={fieldValues}
                         connectionError={connectionError}
