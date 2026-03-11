@@ -250,6 +250,9 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             const getNodeRequest: BIAvailableNodesRequest = {
                 position: targetRef.current.startLine,
                 filePath: agentFilePath.current,
+                queryMap: {
+                    "checkAgentToolCompatibility": "true"
+                }
             };
             const response = await rpcClient.getBIDiagramRpcClient().getAvailableNodes(getNodeRequest);
             console.log(">>> Available nodes", response);
@@ -260,11 +263,19 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             const connectionsCategory = response.categories.filter(
                 (item) => item.metadata.label === "Connections"
             ) as Category[];
-            // remove connections which names start with _ underscore
+            // remove connections which names start with _ underscore or are not tool compatible
             if (connectionsCategory.at(0)?.items) {
                 const filteredConnectionsCategory = connectionsCategory
                     .at(0)
                     ?.items.filter((item) => !item.metadata.label.startsWith("_"));
+                // filter out tool-incompatible nodes within each sub-category
+                filteredConnectionsCategory?.forEach((subCategory) => {
+                    if ("items" in subCategory && subCategory.items) {
+                        subCategory.items = subCategory.items.filter((node) =>
+                            String((node as AvailableNode).codedata?.data?.agentToolCompatible) !== "false"
+                        );
+                    }
+                });
                 connectionsCategory.at(0).items = filteredConnectionsCategory;
             }
             const convertedCategories = convertBICategoriesToSidePanelCategories(connectionsCategory);

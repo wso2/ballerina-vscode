@@ -526,7 +526,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             StateMachine.langClient()
                 .getAvailableNodes({
                     position: params.position,
-                    filePath
+                    filePath,
+                    queryMap: params.queryMap
                 })
                 .then((model) => {
                     console.log(">>> bi available nodes from ls", model);
