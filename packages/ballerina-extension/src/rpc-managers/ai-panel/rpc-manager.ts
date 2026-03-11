@@ -42,7 +42,7 @@ import {
     TestGenerationMentions,
     UIChatMessage,
     UpdateChatMessageRequest,
-    UsageResponse
+    UsageResponse,
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";

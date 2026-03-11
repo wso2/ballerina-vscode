@@ -50,8 +50,6 @@ import {
     undoRedoState,
     updateCurrentArtifactLocation,
     reviewAccepted,
-    reviewDiscarded,
-    closeReviewMode,
     openReviewModeAtIndex,
     GoBackRequest
 } from "@wso2/ballerina-core";
@@ -123,14 +121,6 @@ export class VisualizerRpcClient implements VisualizerAPI {
 
     reviewAccepted(): void {
         return this._messenger.sendNotification(reviewAccepted, HOST_EXTENSION);
-    }
-
-    reviewDiscarded(): void {
-        return this._messenger.sendNotification(reviewDiscarded, HOST_EXTENSION);
-    }
-
-    closeReviewMode(): void {
-        return this._messenger.sendNotification(closeReviewMode, HOST_EXTENSION);
     }
 
     openReviewModeAtIndex(index: number): void {

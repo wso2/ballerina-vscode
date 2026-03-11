@@ -39,8 +39,6 @@ export const joinProjectPath: RequestType<JoinProjectPathRequest, JoinProjectPat
 export const getThemeKind: RequestType<void, ColorThemeKind> = { method: `${_preFix}/getThemeKind` };
 export const updateCurrentArtifactLocation: RequestType<UpdatedArtifactsResponse, ProjectStructureArtifactResponse> = { method: `${_preFix}/updateCurrentArtifactLocation` };
 export const reviewAccepted: NotificationType<void> = { method: `${_preFix}/reviewAccepted` };
-export const reviewDiscarded: NotificationType<void> = { method: `${_preFix}/reviewDiscarded` };
-export const closeReviewMode: NotificationType<void> = { method: `${_preFix}/closeReviewMode` };
 export const refreshReviewMode: NotificationType<void> = { method: `${_preFix}/refreshReviewMode` };
 export const openReviewModeAtIndex: NotificationType<number> = { method: `${_preFix}/openReviewModeAtIndex` };
 export const handleApprovalPopupClose: NotificationType<HandleApprovalPopupCloseRequest> = { method: `${_preFix}/handleApprovalPopupClose` };
