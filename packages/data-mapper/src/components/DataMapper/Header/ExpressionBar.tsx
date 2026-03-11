@@ -29,7 +29,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { DataMapperNodeModel } from '../../Diagram/Node/commons/DataMapperNode';
 import { InputOutputPortModel } from '../../Diagram/Port';
 
-const useStyles = () => ({
+const useStyles = (isFocused: boolean) => ({
     exprBarContainer: css({
         display: 'flex',
         gap: '8px',
@@ -38,7 +38,11 @@ const useStyles = () => ({
         height: '100%',
         backgroundColor: 'var(--vscode-input-background)',
         marginBottom: '16px',
-        borderBottom: '1px solid var(--dropdown-border)'
+        border: '1px solid transparent',
+        borderBottom: '1px solid var(--dropdown-border)',
+        ...(isFocused && {
+            borderColor: 'var(--vscode-list-focusAndSelectionOutline, var(--vscode-contrastActiveBorder, var(--vscode-editorLink-activeForeground, var(--vscode-list-focusOutline))))'
+        })
     }),
     field: css({
         display: 'flex',
@@ -74,7 +78,6 @@ export interface ExpressionBarProps {
 }
 
 export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
-    const classes = useStyles();
     const {
         completions,
         isUpdatingSource,
@@ -102,6 +105,8 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
                 resetExprBarFocus: state.resetFocus
             }))
         );
+
+    const classes = useStyles(!!(focusedPort || focusedFilter));
 
     const portChanged = !!(focusedPort || lastFocusedPort)
         && lastFocusedPort?.attributes.optionalOmittedFieldFQN !== focusedPort?.attributes.optionalOmittedFieldFQN;
