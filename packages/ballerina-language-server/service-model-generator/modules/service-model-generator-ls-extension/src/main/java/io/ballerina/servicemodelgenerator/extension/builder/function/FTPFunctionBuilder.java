@@ -55,7 +55,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.FTPFunctionModel
  * Represents the FTP function builder of the service model generator.
  * Handles post-processing actions for FTP functions.
  *
- * @since 1.5.0
+ * @since 1.7.0
  */
 public final class FTPFunctionBuilder extends AbstractFunctionBuilder {
 
