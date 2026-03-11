@@ -114,6 +114,9 @@ public class AllTypesSearchCommand extends SearchCommand {
      * Executes hybrid search combining fast database queries with parallel local searches.
      */
     private List<Item> executeHybridSearch() {
+        // Add workspace functions to the root builder
+        WorkspaceFunctionNodeBuilder.buildWorkspaceNodes(rootBuilder, project, position, query, functionsDoc);
+
         List<CompletableFuture<List<Item>>> futures = new ArrayList<>();
 
         CompletableFuture<List<Item>> databaseFuture = CompletableFuture.supplyAsync(() -> {
@@ -126,7 +129,13 @@ public class AllTypesSearchCommand extends SearchCommand {
         }, executorService);
         futures.add(databaseFuture);
 
-        return aggregateResults(futures);
+        List<Item> dbItems = aggregateResults(futures);
+
+        // Combine workspace items (already in rootBuilder) with database items
+        List<Item> workspaceItems = rootBuilder.build().items();
+        List<Item> allItems = new ArrayList<>(workspaceItems);
+        allItems.addAll(dbItems);
+        return deduplicateItems(allItems);
     }
 
     /**
