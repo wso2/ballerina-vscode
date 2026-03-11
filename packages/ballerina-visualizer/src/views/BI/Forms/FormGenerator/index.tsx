@@ -1687,6 +1687,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     onChange={onChange}
                     injectedComponents={injectedComponents}
                     derivedFields={props.derivedFields}
+                    updateImports={handleUpdateImports}
                 />
             )}
             {stack.map((item, i) => (

@@ -285,14 +285,14 @@ async function handleDebugCommandWithContext() {
 }
 
 /**
- * Prompts user to select a package and starts debugging.
+ * Prompts user to select an integration and starts debugging.
  * @param projectInfo - The project info
  * @returns void
  */
 async function handleDebugCommandWithPackageSelection(projectInfo: ProjectInfo) {
     const availablePackages = projectInfo?.children.map((child: ProjectInfo) => child.projectPath) ?? [];
 
-    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select a package to debug");
+    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select an integration to debug");
     if (!selectedPackage) {
         return;
     }
