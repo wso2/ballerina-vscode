@@ -26,27 +26,13 @@
           "Function"
         ]
       },
-      "items": []
-    },
-    {
-      "metadata": {
-        "label": "Current Integration",
-        "description": "Components defined within the current integration",
-        "keywords": [
-          "Project",
-          "Local",
-          "Function",
-          "Types",
-          "Data Mapper"
-        ]
-      },
       "items": [
         {
           "metadata": {
             "label": "fn",
             "data": {
               "isDataMappedFunction": false,
-              "isAgentTool": false,
+              "isAgentTool": true,
               "isIsolatedFunction": true
             }
           },
@@ -64,7 +50,7 @@
             "label": "fn2",
             "data": {
               "isDataMappedFunction": false,
-              "isAgentTool": false,
+              "isAgentTool": true,
               "isIsolatedFunction": true
             }
           },
@@ -82,7 +68,7 @@
             "label": "fn1",
             "data": {
               "isDataMappedFunction": false,
-              "isAgentTool": false,
+              "isAgentTool": true,
               "isIsolatedFunction": true
             }
           },
@@ -94,7 +80,22 @@
             "version": "0.1.0"
           },
           "enabled": true
-        },
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": [
         {
           "metadata": {
             "label": "foo",

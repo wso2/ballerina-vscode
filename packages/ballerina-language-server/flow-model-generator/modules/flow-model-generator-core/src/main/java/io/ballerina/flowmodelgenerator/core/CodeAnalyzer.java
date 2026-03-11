@@ -1868,7 +1868,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     .value(CommonUtils.getVariableName(assignmentStatementNode.varRef()))
                     .editable()
                     .stepOut()
-                    .addProperty(Property.VARIABLE_KEY);
+                    .addProperty(Property.VARIABLE_KEY, assignmentStatementNode.varRef());
         } else if (nodeBuilder instanceof AgentBuilder) {
             // If an agent node was identified, set the variable property on it
             String variableName = CommonUtils.getVariableName(assignmentStatementNode.varRef());
@@ -2102,7 +2102,9 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.codedata().inferredReturnType(functionData.returnError() ? returnType : null);
             Module module = workspaceManager.module(filePath)
                     .orElse(project.currentPackage().getDefaultModule());
-            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType);
+            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType,
+                    callNode);
+            AgentCallBuilder.postProcessTdProperty(nodeBuilder, key);
         });
     }
 

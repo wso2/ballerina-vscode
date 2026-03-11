@@ -81,6 +81,14 @@ public class FlowModelDiagnosticsTest extends AbstractLSTest {
     }
 
     @Override
+    protected String[] skipList() {
+        //This test cannot be run in the build due to user-specific paths in the test config.
+        return new String[]{
+                "persist_query.json"
+        };
+    }
+
+    @Override
     protected String getResourceDir() {
         return "flow_model_diagnostics";
     }

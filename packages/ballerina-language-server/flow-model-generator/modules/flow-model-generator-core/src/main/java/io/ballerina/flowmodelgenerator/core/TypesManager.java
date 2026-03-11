@@ -59,8 +59,12 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
+import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
+import io.ballerina.tools.text.TextDocument;
+import io.ballerina.tools.text.TextDocumentChange;
+import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -88,6 +92,7 @@ import static org.apache.commons.lang3.StringUtils.capitalize;
 public class TypesManager {
 
     private static final Gson gson = new Gson();
+    public static final String ANY_ERROR_VARIABLE = "any|error __reserved__ = ";
     private final Module module;
     private final Document typeDocument;
     private static final List<SymbolKind> supportedSymbolKinds = List.of(SymbolKind.TYPE_DEFINITION, SymbolKind.ENUM,
@@ -189,6 +194,39 @@ public class TypesManager {
         }
 
         return gson.toJsonTree(new TypeDataWithRefs(type, refs.values().stream().toList()));
+    }
+
+    public JsonElement getTypeOfExpression(Project project, String fileName, Document document, LinePosition position,
+                                           String expression) {
+        String statement = String.format(ANY_ERROR_VARIABLE + "%s;", expression);
+        TextDocument textDocument = document.textDocument();
+        int startTextPosition = textDocument.textPositionFrom(position);
+
+        io.ballerina.tools.text.TextEdit te = io.ballerina.tools.text.TextEdit.from(TextRange.from(startTextPosition,
+                0), statement);
+        TextDocument apply = textDocument
+                .apply(TextDocumentChange.from(List.of(te).toArray(new io.ballerina.tools.text.TextEdit[0])));
+
+        Project proj = project.duplicate();
+        Document modifiedDoc = proj.currentPackage().module(document.module().moduleId())
+                        .document(document.documentId()).modify().withContent(String.join(System.lineSeparator(),
+                                apply.textLines())).apply();
+        int line = position.line();
+        int offset = position.offset() + ANY_ERROR_VARIABLE.length();
+        LinePosition exprStart = LinePosition.from(line, offset);
+        LinePosition exprEnd = LinePosition.from(line, offset + expression.length());
+        SemanticModel semanticModel =
+                proj.currentPackage().getCompilation().getSemanticModel(modifiedDoc.module().moduleId());
+        Optional<TypeSymbol> optTypeSymbol = semanticModel.typeOf(LineRange.from(fileName, exprStart, exprEnd));
+        if (optTypeSymbol.isEmpty()) {
+            return null;
+        }
+
+        TypeSymbol typeSymbol = optTypeSymbol.get();
+        ModuleInfo defaultModuleInfo = ModuleInfo.from(proj.currentPackage().getDefaultModule().descriptor());
+        String importStatements = CommonUtils.getImportStatements(typeSymbol, defaultModuleInfo).orElse("");
+        String typeName = CommonUtils.getTypeSignature(typeSymbol, defaultModuleInfo);
+        return gson.toJsonTree(new TypeImports(typeName, getImports(importStatements)));
     }
 
     public TypeDataWithRefs getTypeDataWithRefs(TypeDefinitionSymbol typeDefSymbol) {
@@ -1009,7 +1047,34 @@ public class TypesManager {
         return String.format("%nimport %s;%n", module);
     }
 
+    private static Map<String, String> getImports(String importsStatements) {
+        Map<String, String> imports = new HashMap<>();
+        if (importsStatements == null || importsStatements.isBlank()) {
+            return imports;
+        }
+
+        String[] importStmts = importsStatements.trim().split(",");
+        for (String importStmt : importStmts) {
+            Matcher matcher = IMPORT_PATTERN.matcher(importStmt.trim());
+            if (matcher.matches()) {
+                String orgName = matcher.group(1);
+                String modulePart = matcher.group(2);
+                String modulePrefix = modulePart;
+                if (modulePart.contains(".")) {
+                    String[] splits = modulePart.split("\\.");
+                    modulePrefix = splits[splits.length - 1];
+                }
+                imports.put(modulePrefix, orgName + "/" + modulePart);
+            }
+        }
+        return imports;
+    }
+
     public record TypeDataWithRefs(Object type, List<Object> refs) {
+
+    }
+
+    public record TypeImports(String name, Map<String, String> imports) {
 
     }
 }
