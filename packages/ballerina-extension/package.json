@@ -687,7 +687,7 @@
             },
             {
                 "command": "BI.project-explorer.add",
-                "title": "Add Project",
+                "title": "Add Integration or Library",
                 "icon": "$(add)",
                 "group": "navigation",
                 "category": "BI",
