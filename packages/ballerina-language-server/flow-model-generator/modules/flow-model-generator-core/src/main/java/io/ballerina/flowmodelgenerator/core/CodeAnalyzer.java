@@ -117,7 +117,6 @@ import io.ballerina.compiler.syntax.tree.TransactionStatementNode;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.WaitActionNode;
-import io.ballerina.compiler.syntax.tree.WaitFieldNode;
 import io.ballerina.compiler.syntax.tree.WaitFieldsListNode;
 import io.ballerina.compiler.syntax.tree.WhileStatementNode;
 import io.ballerina.flowmodelgenerator.core.model.Branch;
@@ -162,6 +161,7 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Location;
@@ -190,6 +190,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINA_ORG_NAME
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.getClientClassSymbol;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistClientLabel;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
@@ -225,6 +226,7 @@ public class CodeAnalyzer extends NodeVisitor {
     private final boolean forceAssign;
     private final String connectionScope;
     private final WorkspaceManager workspaceManager;
+    private final Path filePath;
 
     // State fields
     private NodeBuilder nodeBuilder;
@@ -254,7 +256,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         Map<String, LineRange> dataMappings, Map<String, LineRange> naturalFunctions,
                         TextDocument textDocument, ModuleInfo moduleInfo,
                         boolean forceAssign,
-                        WorkspaceManager workspaceManager) {
+                        WorkspaceManager workspaceManager, Path filePath) {
         this.project = project;
         this.semanticModel = semanticModel;
         this.dataMappings = dataMappings;
@@ -267,6 +269,7 @@ public class CodeAnalyzer extends NodeVisitor {
         this.flowNodeBuilderStack = new Stack<>();
         this.diagnosticHandler = new DiagnosticHandler(semanticModel);
         this.workspaceManager = workspaceManager;
+        this.filePath = filePath;
     }
 
     @Override
@@ -916,7 +919,7 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isPersistClient(classSymbol, semanticModel)) {
             persistData = new HashMap<>();
             persistData.put(CONNECTOR_TYPE, PERSIST);
-            getPersistModelFilePath(project.sourceRoot())
+            getPersistModelFilePath(project.sourceRoot(), classSymbol)
                     .ifPresent(modelFile -> persistData.put(PERSIST_MODEL_FILE, modelFile));
         } else {
             persistData = null;
@@ -1604,8 +1607,10 @@ public class CodeAnalyzer extends NodeVisitor {
             }
         }
 
-        if (isPersistClient(semanticModel, functionData, name)) {
-            updatePersistRelatedMetadata(functionData, packageName);
+        ClassSymbol clientClassSymbol = getClientClassSymbol(semanticModel, functionData, name)
+                .orElse(classSymbol);
+        if (isPersistClient(clientClassSymbol, semanticModel)) {
+            updatePersistRelatedMetadata(functionData, packageName, clientClassSymbol);
         }
 
         nodeBuilder.codedata()
@@ -1627,14 +1632,15 @@ public class CodeAnalyzer extends NodeVisitor {
      *
      * @param functionData the function data containing the module name
      * @param packageName  the package name to strip from the module name
+     * @param classSymbol the class symbol representing the persist client
      */
-    private void updatePersistRelatedMetadata(FunctionData functionData, String packageName) {
+    private void updatePersistRelatedMetadata(FunctionData functionData, String packageName, ClassSymbol classSymbol) {
         String moduleName = functionData.moduleName();
         getPersistClientLabel(packageName, moduleName)
                 .ifPresent(label -> nodeBuilder.metadata().label(label));
         nodeBuilder.metadata()
                 .addData(CONNECTOR_TYPE, PERSIST);
-        getPersistModelFilePath(project.sourceRoot())
+        getPersistModelFilePath(project.sourceRoot(), classSymbol)
                 .ifPresent(modelPath -> nodeBuilder.metadata().addData(PERSIST_MODEL_FILE, modelPath));
     }
 
@@ -1813,6 +1819,10 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.properties()
                     .dataVariable(this.typedBindingPatternNode, Property.RESULT_NAME, Property.RESULT_TYPE_LABEL,
                             Property.RESULT_DOC, false, new HashSet<>(), false);
+        } else if (nodeBuilder instanceof WaitBuilder) {
+            nodeBuilder.properties()
+                    .dataVariable(this.typedBindingPatternNode, Property.VARIABLE_NAME, Property.TYPE_DOC,
+                            Property.VARIABLE_DOC, true, new HashSet<>(), true);
         } else {
             nodeBuilder.properties().dataVariable(this.typedBindingPatternNode, implicit, new HashSet<>());
         }
@@ -2057,6 +2067,7 @@ public class CodeAnalyzer extends NodeVisitor {
 
             // Derive the value of the inferred type name
             String inferredTypeName;
+            TypeSymbol targetVarType = null;
             // Check if the value exists in the named arg map
             Node node = namedArgValueMap.get(key);
             if (node != null) {
@@ -2070,6 +2081,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 if (symbol.isEmpty() || symbol.get().kind() != SymbolKind.VARIABLE) {
                     return;
                 }
+                targetVarType = ((VariableSymbol) symbol.get()).typeDescriptor();
                 String variableType =
                         CommonUtils.getTypeSignature(((VariableSymbol) symbol.get()).typeDescriptor(), moduleInfo);
 
@@ -2078,7 +2090,10 @@ public class CodeAnalyzer extends NodeVisitor {
 
             // Generate the property of the inferred type param
             nodeBuilder.codedata().inferredReturnType(functionData.returnError() ? returnType : null);
-            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName);
+            Module module = workspaceManager.module(filePath)
+                    .orElse(project.currentPackage().getDefaultModule());
+            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType);
+            AgentCallBuilder.postProcessTdProperty(nodeBuilder, key);
         });
     }
 
@@ -2268,7 +2283,6 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(WaitActionNode waitActionNode) {
-        startNode(NodeKind.WAIT, waitActionNode);
 
         // Capture the future nodes associated with the wait node
         boolean waitAll = false;
@@ -2306,29 +2320,15 @@ public class CodeAnalyzer extends NodeVisitor {
             default -> nodes.add(waitFutureExpr);
         }
 
-        // Generate the properties for the futures
-        nodeBuilder.properties().waitAll(waitAll).nestedProperty();
-        Node waitField;
-        ExpressionNode expressionNode;
-        int i = 1;
-        for (Node n : nodes) {
-            if (n.kind() == SyntaxKind.WAIT_FIELD) {
-                waitField = ((WaitFieldNode) n).fieldName();
-                expressionNode = ((WaitFieldNode) n).waitFutureExpr();
-            } else {
-                waitField = null;
-                expressionNode = (ExpressionNode) n;
-            }
-            nodeBuilder.properties()
-                    .nestedProperty()
-                    .waitField(waitField)
-                    .expression(expressionNode)
-                    .endNestedProperty(Property.ValueType.FIXED_PROPERTY, WaitBuilder.FUTURE_KEY + i++,
-                            WaitBuilder.FUTURE_LABEL, WaitBuilder.FUTURE_DOC);
+        if (!waitAll) {
+            // custom node
+            startNode(NodeKind.EXPRESSION, waitActionNode)
+                    .properties().statement(waitActionNode);
+            return;
         }
 
-        nodeBuilder.properties().endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, WaitBuilder.FUTURES_KEY,
-                WaitBuilder.FUTURES_LABEL, WaitBuilder.FUTURES_DOC);
+        startNode(NodeKind.WAIT, waitActionNode);
+        nodeBuilder.properties().custom().handleWaitNode(nodes).stepOut().addProperty(WaitBuilder.FUTURES_KEY);
     }
 
     @Override

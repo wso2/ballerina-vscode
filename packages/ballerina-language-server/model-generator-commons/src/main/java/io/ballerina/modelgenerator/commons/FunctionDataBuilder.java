@@ -375,6 +375,15 @@ public class FunctionDataBuilder {
             }
         }
 
+        // Check the index before attempting external package resolution.
+        // This avoids unnecessary package pulls and resolution failures for already-indexed symbols.
+        if (enableIndex) {
+            Optional<FunctionData> indexedResult = getFunctionFromIndex();
+            if (indexedResult.isPresent()) {
+                return indexedResult.get();
+            }
+        }
+
         // Assume the package is from an external library, and pull the package if not available locally
         if (semanticModel == null) {
             if (moduleInfo.version() == null) {
@@ -394,14 +403,6 @@ public class FunctionDataBuilder {
                 } else {
                     notifyClient(MessageType.Info, MODULE_PULLING_SUCCESS_MESSAGE);
                 }
-            }
-        }
-
-        // Check if the function is in the index
-        if (enableIndex) {
-            Optional<FunctionData> indexedResult = getFunctionFromIndex();
-            if (indexedResult.isPresent()) {
-                return indexedResult.get();
             }
         }
 
@@ -831,6 +832,7 @@ public class FunctionDataBuilder {
         String paramName = paramSymbol.getName().orElse("");
         String paramDescription = documentationMap.get(paramName);
         ParameterData.Kind parameterKind = ParameterData.Kind.fromKind(paramSymbol.paramKind());
+        boolean deprecated = isDeprecated(paramSymbol.annotAttachments());
         String paramType;
         boolean optional = true;
         String placeholder;
@@ -873,7 +875,8 @@ public class FunctionDataBuilder {
                     typeSymbol = paramForTypeInfer.typeSymbol();
                     parameters.put(paramName, ParameterData.from(paramName, paramDescription,
                             getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
-                            ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements, typeSymbol));
+                            ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, deprecated, importStatements,
+                            typeSymbol));
                     return parameters;
                 }
             }
@@ -884,7 +887,7 @@ public class FunctionDataBuilder {
         }
         ParameterData parameterData = ParameterData.from(paramName, paramDescription,
                 getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
-                parameterKind, optional,
+                parameterKind, optional, deprecated,
                 importStatements, typeSymbol);
         parameters.put(paramName, parameterData);
         addParameterMemberTypes(typeSymbol, parameterData, union);
@@ -1018,9 +1021,10 @@ public class FunctionDataBuilder {
                     resolvedPackage, document);
             String paramType = getTypeSignature(typeSymbol);
             boolean optional = recordFieldSymbol.isOptional() || recordFieldSymbol.hasDefaultValue();
+            boolean deprecated = isDeprecated(recordFieldSymbol.annotAttachments());
             ParameterData parameterData = ParameterData.from(paramName, documentationMap.get(paramName),
                     getLabel(recordFieldSymbol.annotAttachments(), paramName),
-                    paramType, placeholder, defaultValue, ParameterData.Kind.INCLUDED_FIELD, optional,
+                    paramType, placeholder, defaultValue, ParameterData.Kind.INCLUDED_FIELD, optional, deprecated,
                     getImportStatements(typeSymbol), typeSymbol);
             parameters.put(paramName, parameterData);
             addParameterMemberTypes(typeSymbol, parameterData, union);
@@ -1030,7 +1034,7 @@ public class FunctionDataBuilder {
             String placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
             parameters.put("Additional Values", new ParameterData(0, "Additional Values",
                     paramType, ParameterData.Kind.INCLUDED_RECORD_REST, placeholder, null,
-                    "Capture key value pairs", null, true, getImportStatements(typeSymbol),
+                    "Capture key value pairs", null, true, false, getImportStatements(typeSymbol),
                     new ArrayList<>(), typeSymbol));
         });
         return parameters;
@@ -1210,6 +1214,20 @@ public class FunctionDataBuilder {
             output = paramName;
         }
         return toTitleCase(output);
+    }
+
+    private boolean isDeprecated(List<AnnotationAttachmentSymbol> annotationAttachmentSymbols) {
+        if (annotationAttachmentSymbols == null) {
+            return false;
+        }
+        for (AnnotationAttachmentSymbol annotAttachment : annotationAttachmentSymbols) {
+            AnnotationSymbol annotationSymbol = annotAttachment.typeDescriptor();
+            Optional<String> optName = annotationSymbol.getName();
+            if (optName.isPresent() && optName.get().equals("deprecated")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

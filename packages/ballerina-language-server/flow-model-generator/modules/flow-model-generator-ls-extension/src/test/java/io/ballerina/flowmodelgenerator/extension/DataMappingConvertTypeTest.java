@@ -64,6 +64,7 @@ public class DataMappingConvertTypeTest extends AbstractLSTest {
                 {Path.of("variable11.json")},
                 {Path.of("variable12.json")},
                 {Path.of("variable13.json")},
+                {Path.of("variable14.json")},
         };
     }
 

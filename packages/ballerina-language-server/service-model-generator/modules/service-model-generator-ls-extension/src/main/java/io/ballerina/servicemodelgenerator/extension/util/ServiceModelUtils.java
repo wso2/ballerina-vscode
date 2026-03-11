@@ -825,15 +825,26 @@ public class ServiceModelUtils {
     }
 
     /**
+     * Extracts function definition nodes from the service declaration node.
+     *
+     * @param serviceNode the service declaration node
+     * @return list of syntax function nodes extracted from the source
+     */
+    public static List<FunctionDefinitionNode> extractFunctionNodesFromSource(ServiceDeclarationNode serviceNode) {
+        return serviceNode.members().stream()
+                .filter(FunctionDefinitionNode.class::isInstance)
+                .map(FunctionDefinitionNode.class::cast)
+                .toList();
+    }
+
+    /**
      * Extracts function definitions from the service declaration node.
      *
      * @param serviceNode the service declaration node
      * @return list of Function models extracted from the source
      */
     public static List<Function> extractFunctionsFromSource(ServiceDeclarationNode serviceNode) {
-        return serviceNode.members().stream()
-                .filter(FunctionDefinitionNode.class::isInstance)
-                .map(FunctionDefinitionNode.class::cast)
+        return extractFunctionNodesFromSource(serviceNode).stream()
                 .map(member -> getFunctionModel(member, Map.of()))
                 .toList();
     }

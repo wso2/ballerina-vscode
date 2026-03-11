@@ -118,23 +118,27 @@
         "kind": "FIELD",
         "refs": [],
         "type": "int",
+        "typeName": "int",
         "name": "uuid",
         "optional": false,
         "readonly": true,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       },
       {
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "name",
         "optional": false,
         "readonly": true,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       }
     ],
     "includes": [],

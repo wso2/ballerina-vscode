@@ -165,18 +165,28 @@
                 "ballerina/time:Utc"
               ],
               "type": "time:Utc",
+              "typeName": "time:Utc",
               "name": "time:Utc",
               "optional": false,
               "readonly": false,
-              "isGraphqlId": false
+              "isGraphqlId": false,
+              "imports": {
+                "time": "ballerina/time:2.8.0"
+              },
+              "selected": false
             }
           ],
           "allowAdditionalFields": false
         },
+        "typeName": "time:Utc[]",
         "name": "time:Utc[]",
         "optional": false,
         "readonly": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "imports": {
+          "time": "ballerina/time:2.8.0"
+        },
+        "selected": false
       }
     ],
     "annotationAttachments": [],
@@ -313,19 +323,23 @@
           "kind": "TYPE",
           "refs": [],
           "type": "int",
+          "typeName": "int",
           "name": "int",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "selected": false
         },
         {
           "kind": "TYPE",
           "refs": [],
           "type": "decimal",
+          "typeName": "decimal",
           "name": "decimal",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "selected": false
         }
       ],
       "annotationAttachments": [],

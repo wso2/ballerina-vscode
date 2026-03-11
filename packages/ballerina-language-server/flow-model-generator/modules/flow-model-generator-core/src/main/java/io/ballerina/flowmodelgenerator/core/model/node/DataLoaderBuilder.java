@@ -28,6 +28,7 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.projects.Module;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -97,7 +98,8 @@ public class DataLoaderBuilder extends CallBuilder {
             setReturnTypeProperties(functionData, context, DATA_LOADER_NAME_LABEL,
                     DATA_LOADER_NAME_LABEL_DOC, false);
         }
-        setParameterProperties(functionData);
+        Module module = context.workspaceManager().module(context.filePath()).orElse(null);
+        setParameterProperties(functionData, module);
         properties().scope(Property.GLOBAL_SCOPE).checkError(true, CHECK_ERROR_DOC, false);
     }
 }

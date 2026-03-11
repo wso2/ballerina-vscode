@@ -302,7 +302,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 }
 
                 AvailableNodesGenerator generator = new AvailableNodesGenerator(semanticModel.get(),
-                        document.get(), project.currentPackage());
+                        document.get(), project.currentPackage(), filePath);
                 boolean disableBallerinaAiNodes = AgentsGenerator.getAiModuleOrgName(request.filePath(),
                         workspaceManager).equals(BALLERINAX_ORG_NAME);
                 response.setCategories(generator.getAvailableNodes(disableBallerinaAiNodes, request.position()));
@@ -379,7 +379,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 }
 
                 AvailableNodesGenerator generator = new AvailableNodesGenerator(semanticModel.get(),
-                        document.get(), project.currentPackage());
+                        document.get(), project.currentPackage(), filePath);
                 response.setCategories(categoryProvider.apply(generator));
             } catch (Throwable e) {
                 response.setError(e);
@@ -399,6 +399,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 NodeTemplateGenerator generator = new NodeTemplateGenerator(lsClientLogger);
                 JsonElement nodeTemplate = generator.getNodeTemplate(this.workspaceManagerProxy.get(),
                         filePath, request.position(), request.id());
+                propagateCodedataDataToTemplate(request.id(), nodeTemplate);
                 response.setFlowNode(nodeTemplate);
             } catch (Throwable e) {
                 response.setError(e);
@@ -669,7 +670,16 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
 
                 SearchCommand command = SearchCommand.from(searchKind, project, position, request.queryMap(),
                         functionsDoc.orElse(null));
-                response.setCategories(command.execute());
+                JsonArray categories = command.execute();
+                if (request.position() != null) {
+                    Optional<Document> document = workspaceManager.document(filePath);
+                    LinePosition cursorPosition = request.position().startLine();
+                    if (document.isPresent() &&
+                            AvailableNodesGenerator.isInsideTestFunction(document.get(), cursorPosition)) {
+                        AvailableNodesGenerator.addFilePathToNodes(categories, filePath.toString());
+                    }
+                }
+                response.setCategories(categories);
             } catch (Throwable e) {
                 response.setError(e);
             }
@@ -695,5 +705,32 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
         } catch (Throwable e) {
             return Optional.empty();
         }
+    }
+
+    private void propagateCodedataDataToTemplate(JsonObject requestId, JsonElement nodeTemplate) {
+        if (!requestId.has("data") || !requestId.get("data").isJsonObject()) {
+            return;
+        }
+        JsonObject requestData = requestId.getAsJsonObject("data");
+        if (!requestData.has("filePath")) {
+            return;
+        }
+        String testFilePath = requestData.get("filePath").getAsString();
+        if (!nodeTemplate.isJsonObject()) {
+            return;
+        }
+        JsonObject templateObj = nodeTemplate.getAsJsonObject();
+        if (!templateObj.has("codedata")) {
+            return;
+        }
+        JsonObject codedata = templateObj.getAsJsonObject("codedata");
+        JsonObject data;
+        if (codedata.has("data") && codedata.get("data").isJsonObject()) {
+            data = codedata.getAsJsonObject("data");
+        } else {
+            data = new JsonObject();
+            codedata.add("data", data);
+        }
+        data.addProperty("filePath", testFilePath);
     }
 }

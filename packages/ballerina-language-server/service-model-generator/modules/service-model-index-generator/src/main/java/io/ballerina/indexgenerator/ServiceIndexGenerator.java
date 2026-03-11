@@ -121,7 +121,7 @@ class ServiceIndexGenerator {
                                        PackageMetadataInfo packageMetadataInfo) {
         Package resolvedPackage;
         try {
-            Optional<Package> packageOpt = PackageUtil.getModulePackage(org,
+            Optional<Package> packageOpt = PackageUtil.resolveModulePackage(org,
 
                     packageMetadataInfo.name(), packageMetadataInfo.version());
             if (packageOpt.isEmpty()) {

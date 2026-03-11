@@ -101,28 +101,34 @@
         "kind": "NAME",
         "refs": [],
         "type": "\"RED\"",
+        "typeName": "\"RED\"",
         "name": "RED",
         "optional": false,
         "readonly": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "selected": false
       },
       {
         "kind": "NAME",
         "refs": [],
         "type": "\"YELLOW\"",
+        "typeName": "\"YELLOW\"",
         "name": "YELLOW",
         "optional": false,
         "readonly": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "selected": false
       },
       {
         "kind": "NAME",
         "refs": [],
         "type": "\"GREEN\"",
+        "typeName": "\"GREEN\"",
         "name": "GREEN",
         "optional": false,
         "readonly": false,
-        "isGraphqlId": false
+        "isGraphqlId": false,
+        "selected": false
       }
     ],
     "allowAdditionalFields": false

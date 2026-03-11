@@ -29,13 +29,17 @@ import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.BindingPatternNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FieldBindingPatternFullNode;
 import io.ballerina.compiler.syntax.tree.ListBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.MappingBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.WaitFieldNode;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.flowmodelgenerator.core.TypeParameterReplacer;
+import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
@@ -77,7 +81,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-    public static final TypeToken<List<Property>> LIST_PROPERTY_TYPE_TOKEN = new TypeToken<List<Property>>() {
+    public static final TypeToken<List<Property>> PROPERTY_LIST_TYPE_TOKEN = new TypeToken<>() {
+    };
+    public static final TypeToken<List<PropertyType>> PROPERTY_TYPE_LIST_TYPE_TOKEN = new TypeToken<>() {
     };
     public static final String SQL_PARAMETERIZED_QUERY = "sql:ParameterizedQuery";
     public static final String SQL_CALL_QUERY = "sql:ParameterizedCallQuery";
@@ -85,7 +91,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
     @SuppressWarnings("unchecked")
     public <T> T valueAsType(TypeToken<T> typeToken) {
         if (value instanceof List) {
-            return (T) gson.fromJson(gson.toJson(value), typeToken.getType());
+            return gson.fromJson(gson.toJson(value), typeToken.getType());
         }
         return (T) value;
     }
@@ -347,7 +353,13 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         RECORD_MAP_EXPRESSION,
         PROMPT,
         CLAUSE_EXPRESSION,
-        SQL_QUERY
+        SQL_QUERY,
+        /**
+         * A property type that renders a record field selector in the UI. Properties of this type carry a
+         * {@link RecordSelectorType} model so the client can display a tree of record fields for the user
+         * to choose from, generating a typed subset record on save.
+         */
+        RECORD_FIELD_SELECTOR
     }
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {
@@ -504,6 +516,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             private List<Option> options;
             private Property template;
             private List<PropertyTypeMemberInfo> typeMembers;
+            private RecordSelectorType recordSelectorType;
             private boolean selected = false;
 
             private TypeBuilder() {
@@ -560,10 +573,15 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 return this;
             }
 
+            public TypeBuilder recordSelectorType(RecordSelectorType recordSelectorType) {
+                this.recordSelectorType = recordSelectorType;
+                return this;
+            }
+
             public Builder<T> stepOut() {
                 if (fieldType != null) {
                     Builder.this.types.add(new PropertyType(fieldType, ballerinaType, scope, options, template,
-                            typeMembers, selected));
+                            typeMembers, recordSelectorType, selected));
                 }
                 reset();
                 return Builder.this;
@@ -576,6 +594,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 options = null;
                 template = null;
                 typeMembers = null;
+                recordSelectorType = null;
                 selected = false;
             }
         }
@@ -692,7 +711,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
                                     // add the merged type
                                     builder.types.add(new PropertyType(fieldType, mergedBallerinaType, null,
-                                            null, null, distinctMembers, false));
+                                            null, null, distinctMembers, null, false));
                                 }
                             });
                 }
@@ -951,6 +970,34 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
                         builder.value(valueMap);
                     });
+        }
+
+        public Builder<T> handleWaitNode(List<Node> nodes) {
+            Map<String, Property> valueMap = new LinkedHashMap<>();
+            Node waitField;
+            ExpressionNode expressionNode;
+            String fieldKey;
+            Property template = WaitBuilder.futureTemplate();
+            for (Node n : nodes) {
+                if (n.kind() == SyntaxKind.WAIT_FIELD) {
+                    waitField = ((WaitFieldNode) n).fieldName();
+                    expressionNode = ((WaitFieldNode) n).waitFutureExpr();
+                    fieldKey = waitField.toSourceCode();
+                } else {
+                    expressionNode = (ExpressionNode) n;
+                    fieldKey = n.toSourceCode();
+                }
+
+                Property.Builder<Object> templateBuilder = createPropertyBuilderFrom(template);
+                templateBuilder.types.stream()
+                        .filter(pt -> pt.fieldType() == Property.ValueType.EXPRESSION)
+                        .findFirst()
+                        .ifPresent(pt -> pt.selected(true));
+                templateBuilder.value(expressionNode.toSourceCode().trim());
+                valueMap.put(fieldKey, templateBuilder.build());
+            }
+            this.value(valueMap);
+            return this;
         }
 
         /**

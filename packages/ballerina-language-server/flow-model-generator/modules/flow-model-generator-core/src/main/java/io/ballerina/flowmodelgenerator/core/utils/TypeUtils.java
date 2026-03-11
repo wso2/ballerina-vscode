@@ -24,6 +24,7 @@ import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.IntersectionTypeSymbol;
 import io.ballerina.compiler.api.symbols.MapTypeSymbol;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.StreamTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
@@ -33,6 +34,7 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -86,16 +88,21 @@ public class TypeUtils {
      * @return the type id
      */
     public static String generateReferencedTypeId(TypeSymbol typeSymbol, ModuleInfo moduleInfo) {
-        if (typeSymbol.getName().isEmpty()) {
+        Optional<ModuleSymbol> moduleSymbol = typeSymbol.getModule();
+        if (typeSymbol.getName().isEmpty() || moduleSymbol.isEmpty()) {
             return typeSymbol.signature();  // anonymous type
         }
 
+        ModuleID moduleId = moduleSymbol.get().id();
         if (CommonUtils.isWithinPackage(typeSymbol, moduleInfo)) {
-            return typeSymbol.getName().get();
+            String moduleName = moduleId.moduleName();
+            if (moduleName.equals(moduleInfo.moduleName())) {
+                return typeSymbol.getName().get();
+            }
+            return String.format("%s:%s", moduleId.modulePrefix(), typeSymbol.getName().get());
         }
 
         // referred type is not from the given package
-        ModuleID moduleId = typeSymbol.getModule().get().id();
         return String.format("%s/%s:%s",
                 moduleId.orgName(), moduleId.packageName(), typeSymbol.getName().get());
     }

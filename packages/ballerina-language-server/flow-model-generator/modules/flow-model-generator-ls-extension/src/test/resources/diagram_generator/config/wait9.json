@@ -412,11 +412,11 @@
       {
         "id": "208497",
         "metadata": {
-          "label": "Wait",
-          "description": "Wait for a set of futures to complete"
+          "label": "Custom Expression",
+          "description": "Represents a custom Ballerina expression"
         },
         "codedata": {
-          "node": "WAIT",
+          "node": "EXPRESSION",
           "lineRange": {
             "fileName": "wait.bal",
             "startLine": {
@@ -432,148 +432,20 @@
         },
         "returning": false,
         "properties": {
-          "waitAll": {
+          "statement": {
             "metadata": {
-              "label": "Wait All",
-              "description": "Wait for all tasks to complete"
+              "label": "Statement",
+              "description": "Ballerina statement"
             },
             "types": [
               {
-                "fieldType": "FLAG",
+                "fieldType": "TEXT",
                 "selected": true
               }
             ],
-            "value": false,
+            "value": "wait futures[0] | futures[2]",
             "optional": false,
             "editable": true,
-            "advanced": false,
-            "hidden": false
-          },
-          "futures": {
-            "metadata": {
-              "label": "Futures",
-              "description": "The futures to wait for"
-            },
-            "types": [
-              {
-                "fieldType": "REPEATABLE_PROPERTY",
-                "selected": false
-              }
-            ],
-            "value": {
-              "future1": {
-                "metadata": {
-                  "label": "Future",
-                  "description": "The worker/async function to wait for"
-                },
-                "types": [
-                  {
-                    "fieldType": "FIXED_PROPERTY",
-                    "selected": false
-                  }
-                ],
-                "value": {
-                  "variable": {
-                    "metadata": {
-                      "label": "Variable Name",
-                      "description": "Name of the variable"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "selected": true
-                      }
-                    ],
-                    "value": "",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false,
-                    "codedata": {
-                      "dependentProperty": "waitAll"
-                    }
-                  },
-                  "expression": {
-                    "metadata": {
-                      "label": "Expression",
-                      "description": "Expression"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "EXPRESSION",
-                        "selected": true
-                      }
-                    ],
-                    "value": "futures[0] ",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
-                  }
-                },
-                "optional": false,
-                "editable": false,
-                "advanced": false,
-                "hidden": false
-              },
-              "future2": {
-                "metadata": {
-                  "label": "Future",
-                  "description": "The worker/async function to wait for"
-                },
-                "types": [
-                  {
-                    "fieldType": "FIXED_PROPERTY",
-                    "selected": false
-                  }
-                ],
-                "value": {
-                  "variable": {
-                    "metadata": {
-                      "label": "Variable Name",
-                      "description": "Name of the variable"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "selected": true
-                      }
-                    ],
-                    "value": "",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false,
-                    "codedata": {
-                      "dependentProperty": "waitAll"
-                    }
-                  },
-                  "expression": {
-                    "metadata": {
-                      "label": "Expression",
-                      "description": "Expression"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "EXPRESSION",
-                        "selected": true
-                      }
-                    ],
-                    "value": "futures[2]",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
-                  }
-                },
-                "optional": false,
-                "editable": false,
-                "advanced": false,
-                "hidden": false
-              }
-            },
-            "optional": false,
-            "editable": false,
             "advanced": false,
             "hidden": false
           },
@@ -652,140 +524,31 @@
         },
         "returning": false,
         "properties": {
-          "waitAll": {
-            "metadata": {
-              "label": "Wait All",
-              "description": "Wait for all tasks to complete"
-            },
-            "types": [
-              {
-                "fieldType": "FLAG",
-                "selected": true
-              }
-            ],
-            "value": true,
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false
-          },
           "futures": {
-            "metadata": {
-              "label": "Futures",
-              "description": "The futures to wait for"
-            },
-            "types": [
-              {
-                "fieldType": "REPEATABLE_PROPERTY",
-                "selected": false
-              }
-            ],
             "value": {
-              "future1": {
-                "metadata": {
-                  "label": "Future",
-                  "description": "The worker/async function to wait for"
-                },
+              "val3": {
                 "types": [
                   {
-                    "fieldType": "FIXED_PROPERTY",
-                    "selected": false
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "future<any|error>",
+                    "selected": true
                   }
                 ],
-                "value": {
-                  "variable": {
-                    "metadata": {
-                      "label": "Variable Name",
-                      "description": "Name of the variable"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "selected": true
-                      }
-                    ],
-                    "value": "val3",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false,
-                    "codedata": {
-                      "dependentProperty": "waitAll"
-                    }
-                  },
-                  "expression": {
-                    "metadata": {
-                      "label": "Expression",
-                      "description": "Expression"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "EXPRESSION",
-                        "selected": true
-                      }
-                    ],
-                    "value": "futures[0]",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
-                  }
-                },
+                "value": "futures[0]",
                 "optional": false,
                 "editable": false,
                 "advanced": false,
                 "hidden": false
               },
-              "future2": {
-                "metadata": {
-                  "label": "Future",
-                  "description": "The worker/async function to wait for"
-                },
+              "val4": {
                 "types": [
                   {
-                    "fieldType": "FIXED_PROPERTY",
-                    "selected": false
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "future<any|error>",
+                    "selected": true
                   }
                 ],
-                "value": {
-                  "variable": {
-                    "metadata": {
-                      "label": "Variable Name",
-                      "description": "Name of the variable"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "selected": true
-                      }
-                    ],
-                    "value": "val4",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false,
-                    "codedata": {
-                      "dependentProperty": "waitAll"
-                    }
-                  },
-                  "expression": {
-                    "metadata": {
-                      "label": "Expression",
-                      "description": "Expression"
-                    },
-                    "types": [
-                      {
-                        "fieldType": "EXPRESSION",
-                        "selected": true
-                      }
-                    ],
-                    "value": "futures[2]",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
-                  }
-                },
+                "value": "futures[2]",
                 "optional": false,
                 "editable": false,
                 "advanced": false,
@@ -829,7 +592,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Variable Type",
+              "label": "Type of the variable",
               "description": "Type of the variable"
             },
             "types": [
@@ -843,7 +606,7 @@
             "optional": false,
             "editable": true,
             "advanced": false,
-            "hidden": false,
+            "hidden": true,
             "codedata": {}
           }
         },

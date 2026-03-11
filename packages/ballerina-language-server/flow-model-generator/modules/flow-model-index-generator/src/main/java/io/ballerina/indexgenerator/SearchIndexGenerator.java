@@ -122,7 +122,7 @@ public class SearchIndexGenerator {
                                        SearchIndexLogger logger) throws Exception {
         Package resolvedPackage;
         try {
-            resolvedPackage = Objects.requireNonNull(PackageUtil.getModulePackage(org,
+            resolvedPackage = Objects.requireNonNull(PackageUtil.resolveModulePackage(org,
                     packageMetadataInfo.name(), packageMetadataInfo.version())).orElseThrow();
         } catch (Throwable e) {
             logger.error("Error resolving package: " + packageMetadataInfo.name() + " " + e.getMessage());

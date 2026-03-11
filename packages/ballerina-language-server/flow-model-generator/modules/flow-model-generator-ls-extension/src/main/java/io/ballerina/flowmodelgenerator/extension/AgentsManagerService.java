@@ -319,7 +319,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                 response.setToolName(request.toolName());
                 response.setFlowNode(agentsGenerator.getToolFlowNode(functionDefinitionNode, document));
                 response.setMethodCallFlowNode(agentsGenerator.getMethodCallFlowNode(functionDefinitionNode,
-                        optProject.get(), document, this.workspaceManager));
+                        optProject.get(), document, this.workspaceManager, filePath));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }

@@ -33,6 +33,7 @@ import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.projects.Module;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -99,7 +100,8 @@ public class ResourceActionCallBuilder extends CallBuilder {
         String resourcePath = functionData.resourcePath();
         properties().resourcePath(resourcePath, resourcePath.equals(ParamUtils.REST_RESOURCE_PATH));
 
-        setParameterProperties(functionData);
+        Module module = context.workspaceManager().module(context.filePath()).orElse(null);
+        setParameterProperties(functionData, module);
 
         String returnTypeName = functionData.returnType();
         if (CommonUtils.hasReturn(returnTypeName)) {

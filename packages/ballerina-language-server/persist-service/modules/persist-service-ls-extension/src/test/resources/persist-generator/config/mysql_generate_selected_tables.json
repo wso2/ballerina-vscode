@@ -44,7 +44,7 @@
         "newText": "import sample_project.employees;\n\nfinal employees:Client testdb = check new (testdbHost, testdbPort, testdbUser, testdbPassword, testdbDatabase);\n\n"
       }
     ],
-    "sample-project/persist/model.bal": [
+    "sample-project/persist/testdb/model.bal": [
       {
         "range": {
           "start": {
@@ -86,7 +86,7 @@
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"sample_project.employees\"\ntargetModule = \"sample_project.employees\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"mysql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.8.0\"\n"
+        "newText": "\n[[tool.persist]]\nid = \"sample_project.employees\"\ntargetModule = \"sample_project.employees\"\nfilePath = \"persist/testdb/model.bal\"\noptions.datastore = \"mysql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.9.0\"\n"
       }
     ],
     "sample-project/config.bal": [

@@ -42,3 +42,5 @@ function transform6(json user, json student) => {
 function transform7(json user, json student) returns () => {
 
 };
+
+function transform8(json user, json student) returns xml => xml ``;
