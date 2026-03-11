@@ -729,7 +729,9 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
         const baseUrl = buildBaseUrl(listener, basePath);
 
-        const httpResources = resources.filter(r => r.type === DIRECTORY_MAP.RESOURCE);
+        const httpResources = resources
+            .filter(r => r.type === DIRECTORY_MAP.RESOURCE)
+            .sort((a, b) => (a.position?.startLine ?? 0) - (b.position?.startLine ?? 0));
         if (httpResources.length === 0) { return; }
 
         const cells: { kind: "markdown" | "hurl"; content: string }[] = [];
