@@ -98,7 +98,9 @@ import {
     BISearchNodesRequest,
     BISearchNodesResponse,
     BIDesignModelRequest,
-    BIFlowModelRequest
+    BIFlowModelRequest,
+    GetSimpleTypeOfExpressionRequest,
+    GetSimpleTypeOfExpressionResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -181,6 +183,7 @@ export interface BIDiagramAPI {
     getDesignModel: (params: BIDesignModelRequest) => Promise<BIDesignModelResponse>;
     getTypes: (params: GetTypesRequest) => Promise<GetTypesResponse>;
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
+    getSimpleTypeOfExpression: (params: GetSimpleTypeOfExpressionRequest) => Promise<GetSimpleTypeOfExpressionResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
     updateTypes: (params: UpdateTypesRequest) => Promise<UpdateTypesResponse>;
     deleteType: (params: DeleteTypeRequest) => Promise<DeleteTypeResponse>;

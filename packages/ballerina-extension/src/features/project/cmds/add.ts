@@ -100,11 +100,11 @@ function activateAddCommand() {
 
 export { activateAddCommand };
 
-// Prompts user to select a package
+// Prompts user to select an integration.
 async function getPackage(projectInfo: ProjectInfo): Promise<string | undefined> {
     const packages = projectInfo?.children.map((child) => child.projectPath) ?? [];
 
-    const selectedPackage = await selectPackageOrPrompt(packages, "Select a package to add the module to");
+    const selectedPackage = await selectPackageOrPrompt(packages, "Select an integration to add the module to");
     if (!selectedPackage) {
         return undefined;
     }

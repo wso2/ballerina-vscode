@@ -418,7 +418,7 @@ function DeploymentOptions({
 
     // Determine title, description, button text, and whether deployment is allowed
     let title = "Deploy to Devant";
-    let description = "Deploy your workspace integrations to the cloud using Devant by WSO2.";
+    let description = "Deploy your project integrations to the cloud using Devant by WSO2.";
     let buttonText = "Deploy";
     let primaryAction: () => void | Promise<void> = handleDeploy;
     let secondaryAction = undefined;
@@ -428,7 +428,7 @@ function DeploymentOptions({
     if (hasDeployedProjects && !hasUndeployedProjects) {
         // All projects are deployed - disable deployment button
         title = "Deployed in Devant";
-        description = "All workspace integrations are deployed in Devant.";
+        description = "All project integrations are deployed in Devant.";
         buttonText = "View in Devant";
         primaryAction = goToDevant;
         isDeploymentDisabled = false; // View action is always enabled
@@ -558,21 +558,21 @@ function IntegrationControlPlane({
                 <VSCodeLink onClick={openLearnMoreURL} style={{ marginLeft: '4px' }}> Learn More </VSCodeLink>
             </p>
             <Description variant="body3" sx={{ marginBottom: "8px" }}>
-                {totalCount > 0 ? `${enabledCount}/${totalCount} packages are ICP-enabled` : "No ICP-eligible packages found"}
+                {totalCount > 0 ? `${enabledCount}/${totalCount} integrations are ICP-enabled` : "No ICP-eligible integrations found"}
             </Description>
             {icpState === "all" && (
                 <Button appearance="secondary" onClick={onDisableAll}>
-                    Disable ICP for all packages
+                    Disable ICP for all integrations
                 </Button>
             )}
             {icpState === "none" && (
                 <Button appearance="secondary" onClick={onEnableAll}>
-                    Enable ICP for all packages
+                    Enable ICP for all integrations
                 </Button>
             )}
             {icpState === "partial" && (
                 <Button appearance="secondary" onClick={onEnableRemaining}>
-                    Enable ICP for remaining packages
+                    Enable ICP for remaining integrations
                 </Button>
             )}
         </div>
@@ -582,13 +582,13 @@ function IntegrationControlPlane({
 export function WorkspaceOverview() {
     const { rpcClient } = useRpcContext();
     const [readmeContent, setReadmeContent] = React.useState<string>("");
-    const [workspaceStructure, setWorkspaceStructure] = React.useState<ProjectStructureResponse>();
+    const [projectCollection, setProjectCollection] = React.useState<ProjectStructureResponse>();
     const [icpStatusByProjectPath, setIcpStatusByProjectPath] = React.useState<Record<string, boolean>>({});
 
     const [showAlert, setShowAlert] = React.useState(false);
 
     const { data: devantMetadata } = useQuery({
-        queryKey: ["workspace-devant-metadata"],
+        queryKey: ["project-devant-metadata"],
         queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
         refetchInterval: 5000
     });
@@ -599,7 +599,7 @@ export function WorkspaceOverview() {
             .map((project) => project.projectPath);
     };
 
-    const syncWorkspaceICPStatus = async (projectPaths: string[]) => {
+    const syncProjectICPStatus = async (projectPaths: string[]) => {
         if (projectPaths.length === 0) {
             setIcpStatusByProjectPath({});
             return;
@@ -626,7 +626,7 @@ export function WorkspaceOverview() {
             .getBIDiagramRpcClient()
             .getProjectStructure()
             .then((res) => {
-                setWorkspaceStructure(res);
+                setProjectCollection(res);
 
                 rpcClient
                     .getBIDiagramRpcClient()
@@ -642,7 +642,7 @@ export function WorkspaceOverview() {
                         setReadmeContent(res.content);
                     });
 
-                syncWorkspaceICPStatus(getICPProjectPaths(res.projects));
+                syncProjectICPStatus(getICPProjectPaths(res.projects));
             });
     };
 
@@ -659,17 +659,17 @@ export function WorkspaceOverview() {
         });
     }, []);
 
-    const isEmptyWorkspace = useMemo(() => {
-        return workspaceStructure?.projects.length === 0;
-    }, [workspaceStructure]);
+    const isEmptyProject = useMemo(() => {
+        return projectCollection?.projects.length === 0;
+    }, [projectCollection]);
 
     const hasStandardIntegrations = useMemo(() => {
-        return (workspaceStructure?.projects ?? []).some((project) => !(project?.isLibrary ?? false));
-    }, [workspaceStructure?.projects]);
+        return (projectCollection?.projects ?? []).some((project) => !(project?.isLibrary ?? false));
+    }, [projectCollection?.projects]);
 
     const icpProjectPaths = useMemo(() => {
-        return workspaceStructure ? getICPProjectPaths(workspaceStructure.projects) : [];
-    }, [workspaceStructure]);
+        return projectCollection ? getICPProjectPaths(projectCollection.projects) : [];
+    }, [projectCollection]);
 
     const icpEnabledCount = useMemo(() => {
         return icpProjectPaths.filter((projectPath) => Boolean(icpStatusByProjectPath[projectPath])).length;
@@ -686,12 +686,12 @@ export function WorkspaceOverview() {
     }, [icpProjectPaths, icpEnabledCount]);
 
     const projectScopes = useMemo(() => {
-        return getWorkspaceProjectScopes(workspaceStructure);
-    }, [workspaceStructure]);
+        return getWorkspaceProjectScopes(projectCollection);
+    }, [projectCollection]);
 
     // Calculate which projects need deployment
     const undeployedProjectScopes = useMemo(() => {
-        if (!devantMetadata?.projectsMetadata || !workspaceStructure) {
+        if (!devantMetadata?.projectsMetadata || !projectCollection) {
             return projectScopes;
         }
 
@@ -702,13 +702,13 @@ export function WorkspaceOverview() {
         );
 
         return projectScopes.filter(scope => !deployedPaths.has(scope.projectPath));
-    }, [projectScopes, devantMetadata, workspaceStructure]);
+    }, [projectScopes, devantMetadata, projectCollection]);
 
     const deployableProjectPaths = useMemo(() => {
         return new Set(projectScopes.map(scope => scope.projectPath));
     }, [projectScopes]);
 
-    if (!workspaceStructure) {
+    if (!projectCollection) {
         return (
             <SpinnerContainer>
                 <ProgressRing color={ThemeColors.PRIMARY} />
@@ -732,12 +732,12 @@ export function WorkspaceOverview() {
 
     const handleEditReadme = () => {
         rpcClient.getBIDiagramRpcClient().openReadme({
-            projectPath: workspaceStructure?.workspacePath,
+            projectPath: projectCollection?.workspacePath,
             isWorkspaceReadme: true
         });
     };
 
-    const handleAddIntegration = () => {
+    const handleAddResource = () => {
         rpcClient.getCommonRpcClient().executeCommand({ commands: [BI_COMMANDS.ADD_PROJECT] })
     };
 
@@ -760,7 +760,7 @@ export function WorkspaceOverview() {
         // Only deploy undeployed projects
         await rpcClient.getBIDiagramRpcClient().deployWorkspace({
             projectScopes: undeployedProjectScopes,
-            rootDirectory: workspaceStructure?.workspacePath || ''
+            rootDirectory: projectCollection?.workspacePath || ''
         });
     };
 
@@ -792,22 +792,22 @@ export function WorkspaceOverview() {
 
     const handleEnableAllICP = async () => {
         await updateICPForProjectPaths(icpProjectPaths, true);
-        await syncWorkspaceICPStatus(icpProjectPaths);
+        await syncProjectICPStatus(icpProjectPaths);
     };
 
     const handleDisableAllICP = async () => {
         await updateICPForProjectPaths(icpProjectPaths, false);
-        await syncWorkspaceICPStatus(icpProjectPaths);
+        await syncProjectICPStatus(icpProjectPaths);
     };
 
     const handleEnableRemainingICP = async () => {
         const remainingProjectPaths = icpProjectPaths.filter((projectPath) => !icpStatusByProjectPath[projectPath]);
         await updateICPForProjectPaths(remainingProjectPaths, true);
-        await syncWorkspaceICPStatus(icpProjectPaths);
+        await syncProjectICPStatus(icpProjectPaths);
     };
 
     const goToDevant = () => {
-        // For workspace, open the Devant console at the project level
+        // Open the Devant console at the project level.
         // If there are deployed projects, open the first one
         if (devantMetadata?.projectsMetadata && devantMetadata.projectsMetadata.length > 0) {
             const firstDeployedProject = devantMetadata.projectsMetadata.find(p => p.hasComponent);
@@ -836,14 +836,14 @@ export function WorkspaceOverview() {
         <PageLayout>
             <HeaderRow>
                 <TitleContainer>
-                    <ProjectTitle>{workspaceStructure?.workspaceTitle || workspaceStructure?.workspaceName}</ProjectTitle>
-                    <ProjectSubtitle>Workspace</ProjectSubtitle>
+                    <ProjectTitle>{projectCollection?.workspaceTitle || projectCollection?.workspaceName}</ProjectTitle>
+                    <ProjectSubtitle>Project</ProjectSubtitle>
                 </TitleContainer>
                 <HeaderControls>
                     <UndoRedoGroup key={Date.now()} />
-                    <Button appearance="primary" onClick={handleAddIntegration}>
+                    <Button appearance="primary" onClick={handleAddResource}>
                         <Codicon name="add" sx={{ marginRight: 8 }} />
-                        Add Integration
+                        Add Integration or Library
                     </Button>
                 </HeaderControls>
             </HeaderRow>
@@ -870,11 +870,11 @@ export function WorkspaceOverview() {
                     )}
 
                     <Section>
-                        <ContentPanel isEmpty={isEmptyWorkspace}>
+                        <ContentPanel isEmpty={isEmptyProject}>
                             <SectionHeader>
-                                <SectionTitle>Integrations</SectionTitle>
+                                <SectionTitle>Integrations & Libraries</SectionTitle>
                                 {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
-                                {/* {!isEmptyWorkspace && (
+                                {/* {!isEmptyProject && (
                                     <SectionActions>
                                         <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "6px 12px" }}>
                                             <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
@@ -882,20 +882,20 @@ export function WorkspaceOverview() {
                                     </SectionActions>
                                 )} */}
                             </SectionHeader>
-                            {isEmptyWorkspace ? (
+                            {isEmptyProject ? (
                                 <EmptyStateContainer>
                                     <Typography variant="h3" sx={{ marginBottom: "16px" }}>
-                                        Your workspace is empty
+                                        Your project is empty
                                     </Typography>
                                     <Typography
                                         variant="body1"
                                         sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
                                     >
-                                        Start by adding integrations to your workspace
+                                        Start by adding integrations and libraries to your project
                                     </Typography>
                                     <ButtonContainer>
-                                        <Button appearance="secondary" onClick={handleAddIntegration}>
-                                            <Codicon name="add" sx={{ marginRight: 8 }} /> Add Integration
+                                        <Button appearance="secondary" onClick={handleAddResource}>
+                                            <Codicon name="add" sx={{ marginRight: 8 }} /> Add Integration or Library
                                         </Button>
                                         {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
                                         {/* <Button appearance="primary" onClick={handleGenerate}>
@@ -905,7 +905,7 @@ export function WorkspaceOverview() {
                                 </EmptyStateContainer>
                             ) : (
                                 <PackageListView
-                                    workspaceStructure={workspaceStructure}
+                                    projectCollection={projectCollection}
                                     icpStatusByProjectPath={icpStatusByProjectPath}
                                     showICPBadge={icpState !== "none"}
                                 />
@@ -919,7 +919,7 @@ export function WorkspaceOverview() {
                                 <SectionTitle>README</SectionTitle>
                                 <SectionActions>
                                     {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
-                                    {/* {readmeContent && isEmptyWorkspace && (
+                                    {/* {readmeContent && isEmptyProject && (
                                         <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
                                             <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
                                         </Button>
@@ -936,7 +936,7 @@ export function WorkspaceOverview() {
                             ) : (
                                 <EmptyReadmeContainer>
                                     <Description variant="body2">
-                                        Document your workspace and integrations
+                                        Document your project, integrations, and libraries
                                     </Description>
                                     <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
                                 </EmptyReadmeContainer>

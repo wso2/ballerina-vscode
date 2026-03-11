@@ -605,7 +605,7 @@ function DevantDashboard({ projectStructure, handleDeploy, goToDevant }: { proje
         rpcClient.getCommonRpcClient().executeCommand({ commands: [BI_COMMANDS.DEVANT_PUSH_TO_CLOUD] });
     }
 
-    // Check if project has automation or service
+    // Check if integration has automation or service.
     const hasAutomationOrService = projectStructure?.directoryMap && (
         (projectStructure.directoryMap.AUTOMATION && projectStructure.directoryMap.AUTOMATION.length > 0) ||
         (projectStructure.directoryMap.SERVICE && projectStructure.directoryMap.SERVICE.length > 0)
@@ -616,7 +616,7 @@ function DevantDashboard({ projectStructure, handleDeploy, goToDevant }: { proje
             {platformExtState?.selectedComponent ? <Title variant="h3">Deployed in Devant</Title> : <Title variant="h3">Deploy to Devant</Title>}
             {!hasAutomationOrService ? (
                 <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
-                    Before you can deploy your integration to Devant, please add an artifact (such as a Service or Automation) to your project.
+                    Before you can deploy your integration to Devant, please add an artifact (such as a Service or Automation) to your integration.
                 </Typography>
             ) : (
                 <>
@@ -693,7 +693,7 @@ export function PackageOverview(props: PackageOverviewProps) {
     const [enabled, setEnableICP] = useState(false);
     const [showAlert, setShowAlert] = React.useState(false);
     const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
-    const [isWorkspace, setIsWorkspace] = useState(false);
+    const [isInProject, setIsInProject] = useState(false);
     const [isLibrary, setIsLibrary] = useState<boolean>(false);
 
     const [librarySearchQuery, setLibrarySearchQuery] = useState("");
@@ -705,7 +705,7 @@ export function PackageOverview(props: PackageOverviewProps) {
             .getProjectStructure()
             .then((res) => {
                 const project = res.projects.find(project => project.projectPath === projectPath);
-                setIsWorkspace(res.workspaceName !== undefined);
+                setIsInProject(res.workspaceName !== undefined);
                 if (project) {
                     setProjectStructure(project);
                     setIsLibrary(project.isLibrary ?? false);
@@ -751,11 +751,11 @@ export function PackageOverview(props: PackageOverviewProps) {
         return getIntegrationTypes(projectStructure);
     }, [projectStructure]);
 
-    const projectName = useMemo(() => {
+    const integrationTitle = useMemo(() => {
         return projectStructure?.projectTitle || projectStructure?.projectName;
     }, [projectStructure]);
 
-    function isEmptyProject(): boolean {
+    function isEmptyIntegration(): boolean {
         // Filter out connections that start with underscore
         const validConnections = projectStructure.directoryMap[DIRECTORY_MAP.CONNECTION]?.filter(
             conn => !conn.name.startsWith('_')
@@ -918,11 +918,11 @@ export function PackageOverview(props: PackageOverviewProps) {
 
     return (
         <>
-            {isWorkspace && <TopNavigationBar projectPath={projectPath} />}
+            {isInProject && <TopNavigationBar projectPath={projectPath} />}
             <PageLayout>
-                {isWorkspace ? (
+                {isInProject ? (
                     <TitleBar
-                        title={projectName}
+                        title={integrationTitle}
                         subtitle={isLibrary ? "Library" : "Integration"}
                         onBack={handleBack}
                         actions={headerActions}
@@ -930,8 +930,8 @@ export function PackageOverview(props: PackageOverviewProps) {
                 ) : (
                     <HeaderRow>
                         <TitleContainer>
-                            <ProjectTitle>{projectName}</ProjectTitle>
-                            <ProjectSubtitle>Integration</ProjectSubtitle>
+                            <ProjectTitle>{integrationTitle}</ProjectTitle>
+                            <ProjectSubtitle>{isLibrary ? "Library" : "Integration"}</ProjectSubtitle>
                         </TitleContainer>
                         <HeaderControls>
                             <UndoRedoGroup key={Date.now()} />
@@ -962,7 +962,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                             )}
                             <DiagramHeaderContainer withPadding={true} isLibrary={isLibrary}>
                                 <Title variant="h2">{isLibrary ? "Artifacts" : "Design"}</Title>
-                                {!isEmptyProject() && !isLibrary && (<ActionContainer>
+                                {!isEmptyIntegration() && !isLibrary && (<ActionContainer>
                                     <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
                                         <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate
                                     </Button>
@@ -1000,7 +1000,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                             {isLibrary && <LibraryOverview projectStructure={projectStructure} searchQuery={librarySearchQuery} />}
                             {!isLibrary && (
                                 <DiagramContent>
-                                    {isEmptyProject() ? (
+                                    {isEmptyIntegration() ? (
                                         <EmptyStateContainer>
                                             <Typography variant="h3" sx={{ marginBottom: "16px" }}>
                                                 Your integration is empty
@@ -1030,7 +1030,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                             <ReadmeHeaderContainer>
                                 <Title variant="h2">README</Title>
                                 <ReadmeButtonContainer>
-                                    {readmeContent && isEmptyProject() && (
+                                    {readmeContent && isEmptyIntegration() && (
                                         <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
                                             <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
                                         </Button>
