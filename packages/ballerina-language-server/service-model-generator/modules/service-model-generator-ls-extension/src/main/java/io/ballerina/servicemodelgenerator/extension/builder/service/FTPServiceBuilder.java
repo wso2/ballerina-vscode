@@ -348,7 +348,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                         modelFunc.setCodedata(sourceFunc.getCodedata());
                         modelFunc.getCodedata().setModuleName(FTP);
 
-                        FTPFunctionModelUtil.syncFunctionFromSource(sourceFunc, modelFunc, true);
+                        FTPFunctionModelUtil.syncFunctionFromSource(sourceFunc, modelFunc);
                         FunctionDefinitionNode functionNode = functionNodes.get(sourceFuncName);
                         if (functionNode != null) {
                             FTPFunctionModelUtil.populatePostProcessActionsFromAnnotation(functionNode, modelFunc,

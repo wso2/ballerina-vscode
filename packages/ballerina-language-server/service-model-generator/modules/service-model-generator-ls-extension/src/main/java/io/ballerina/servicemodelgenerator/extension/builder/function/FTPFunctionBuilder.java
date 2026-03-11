@@ -116,7 +116,7 @@ public final class FTPFunctionBuilder extends AbstractFunctionBuilder {
             mergedFunction.getReturnType().setValue(sourceFunction.getReturnType().getValue());
         }
 
-        FTPFunctionModelUtil.syncFunctionFromSource(sourceFunction, mergedFunction, false);
+        FTPFunctionModelUtil.syncFunctionFromSource(sourceFunction, mergedFunction);
         return mergedFunction;
     }
 

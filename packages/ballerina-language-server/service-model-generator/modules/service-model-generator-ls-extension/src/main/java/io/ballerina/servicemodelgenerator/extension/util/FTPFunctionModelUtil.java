@@ -71,15 +71,14 @@ public final class FTPFunctionModelUtil {
      * Currently used by {@code FTPServiceBuilder#getModelFromSource} and
      * {@code FTPFunctionBuilder#mergeWithTemplate}.
      */
-    public static void syncFunctionFromSource(Function sourceFunc, Function modelFunc,
-                                              boolean createStreamPropertyIfMissing) {
+    public static void syncFunctionFromSource(Function sourceFunc, Function modelFunc) {
         if (sourceFunc == null || modelFunc == null) {
             return;
         }
 
         enableParameters(sourceFunc, modelFunc);
         updateDatabindingParameter(sourceFunc, modelFunc);
-        syncStreamProperty(sourceFunc, modelFunc, createStreamPropertyIfMissing);
+        syncStreamProperty(sourceFunc, modelFunc);
     }
 
     /**
@@ -199,27 +198,15 @@ public final class FTPFunctionModelUtil {
         }
     }
 
-    private static void syncStreamProperty(Function sourceFunc, Function modelFunc,
-                                           boolean createStreamPropertyIfMissing) {
-        boolean isStream = isStreamParameter(sourceFunc);
+    private static void syncStreamProperty(Function sourceFunc, Function modelFunc) {
         Value streamProperty = modelFunc.getProperties().get(STREAM);
         if (streamProperty == null) {
-            if (!createStreamPropertyIfMissing) {
-                return;
-            }
-            streamProperty = new Value.ValueBuilder()
-                    .value(String.valueOf(isStream))
-                    .enabled(isStream)
-                    .editable(true)
-                    .optional(false)
-                    .setAdvanced(false)
-                    .build();
-            modelFunc.addProperty(STREAM, streamProperty);
             return;
         }
+        boolean isStream = isStreamParameter(sourceFunc);
         streamProperty.setValue(String.valueOf(isStream));
         streamProperty.setEnabled(isStream);
-        streamProperty.setEditable(false);
+        streamProperty.setEditable(true);
     }
 
     private static boolean isStreamParameter(Function sourceFunc) {
