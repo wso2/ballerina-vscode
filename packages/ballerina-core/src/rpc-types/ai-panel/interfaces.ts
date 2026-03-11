@@ -391,11 +391,26 @@ export enum ChangeTypeEnum {
 
 export type ChangeType = "ADDITION" | "MODIFICATION" | "DELETION";
 
+export interface FunctionMetadata {
+    name: string;
+}
+
+export interface ResourceMetadata {
+    accessor: string;
+    servicePath: string;
+    resourcePath: string;
+}
+
+export interface RecordMetadata {
+    name: string;
+}
+
 export interface SemanticDiff {
     changeType: number; // API returns numeric value
     nodeKind: number;   // API returns numeric value
     uri: string;
     lineRange: LineRange;
+    metadata?: FunctionMetadata | ResourceMetadata | RecordMetadata;
 }
 
 export interface SemanticDiffResponse {

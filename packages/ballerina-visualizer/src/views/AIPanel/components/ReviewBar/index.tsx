@@ -156,7 +156,8 @@ const NODE_KIND_TYPE = 2;
 interface DiffEntry {
     symbol: string;
     changeType: number;
-    filename: string;
+    label: string;
+    kindLabel: string;
     nodeKind: number;
     viewIndex: number;
 }
@@ -176,6 +177,18 @@ function getFileName(filePath: string): string {
     return i !== -1 ? filePath.substring(i + 1) : filePath;
 }
 
+function getDiffLabel(diff: SemanticDiff): string {
+    if (diff.metadata) {
+        if (diff.nodeKind === 1) {
+            const m = diff.metadata as { accessor: string; servicePath: string; resourcePath: string };
+            return `${m.accessor} ${m.servicePath}/${m.resourcePath}`;
+        }
+        const m = diff.metadata as { name?: string };
+        if (m.name) return m.name;
+    }
+    return getFileName(diff.uri);
+}
+
 function getSymbol(changeType: number): string {
     switch (changeType) {
         case ChangeTypeEnum.ADDITION: return "+";
@@ -185,13 +198,14 @@ function getSymbol(changeType: number): string {
     }
 }
 
-function getNodeKindLabel(nodeKind: number): string {
-    switch (nodeKind) {
-        case 0: return "fn";
-        case 1: return "resource";
-        case 2: return "type";
-        default: return "fn";
+function getDiffKindLabel(diff: SemanticDiff): string {
+    if (diff.nodeKind === 0) {
+        const m = diff.metadata as { name?: string } | undefined;
+        return m?.name === "main" ? "automation" : "fn";
     }
+    if (diff.nodeKind === 1) return "resource";
+    if (diff.nodeKind === 2) return "type";
+    return "fn";
 }
 
 function getChangeTypeLabel(changeType: number): string {
@@ -236,7 +250,8 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
             diffChips.push({
                 symbol: getSymbol(diff.changeType),
                 changeType: diff.changeType,
-                filename: getFileName(diff.uri),
+                label: getDiffLabel(diff),
+                kindLabel: getDiffKindLabel(diff),
                 nodeKind: diff.nodeKind,
                 viewIndex,
             });
@@ -296,10 +311,10 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
                         ? (
                             <ChangeList>
                                 {chips.map((entry, i) => (
-                                    <ChangeCard key={i} disabled title={entry.filename}>
+                                    <ChangeCard key={i} disabled title={entry.label}>
                                         <CardLeft>
-                                            <CardKindLabel>{getNodeKindLabel(entry.nodeKind)}</CardKindLabel>
-                                            <CardFileName>{entry.filename}</CardFileName>
+                                            <CardKindLabel>{entry.kindLabel}</CardKindLabel>
+                                            <CardFileName>{entry.label}</CardFileName>
                                         </CardLeft>
                                         <TypePill changeType={entry.changeType}>{getChangeTypeLabel(entry.changeType)}</TypePill>
                                     </ChangeCard>
@@ -329,10 +344,10 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
             <ChangeList>
                 {chips && chips.length > 0
                     ? chips.map((entry, i) => (
-                        <ChangeCard key={i} onClick={() => openReviewMode(entry.viewIndex)} title={entry.filename}>
+                        <ChangeCard key={i} onClick={() => openReviewMode(entry.viewIndex)} title={entry.label}>
                             <CardLeft>
-                                <CardKindLabel>{getNodeKindLabel(entry.nodeKind)}</CardKindLabel>
-                                <CardFileName>{entry.filename}</CardFileName>
+                                <CardKindLabel>{entry.kindLabel}</CardKindLabel>
+                                <CardFileName>{entry.label}</CardFileName>
                             </CardLeft>
                             <TypePill changeType={entry.changeType}>{getChangeTypeLabel(entry.changeType)}</TypePill>
                         </ChangeCard>
