@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
 import {
@@ -536,20 +536,27 @@ export function LibraryOverview({ projectStructure, isNPSupported, projectPath, 
     const overviewSearchRef = useRef<HTMLInputElement>(null);
     const sectionSearchRef = useRef<HTMLInputElement>(null);
 
-    const fetchReadme = () => {
+    const fetchReadme = useCallback(() => {
         rpcClient.getBIDiagramRpcClient().getReadmeContent({ projectPath }).then((res) => {
             setReadmeContent(res.content);
         });
-    };
+    }, [rpcClient, projectPath]);
 
     useEffect(() => {
         rpcClient.getCommonRpcClient().experimentalEnabled().then(setExperimentalEnabled);
         fetchReadme();
-    }, [rpcClient, projectPath]);
+    }, [rpcClient, fetchReadme]);
 
-    rpcClient?.onProjectContentUpdated((state: boolean) => {
-        if (state) fetchReadme();
-    });
+    useEffect(() => {
+        if (!rpcClient) {
+            return;
+        }
+        rpcClient.onProjectContentUpdated((state: boolean) => {
+            if (state) {
+                fetchReadme();
+            }
+        });
+    }, [rpcClient, fetchReadme]);
 
     const showNaturalFunctions = isNPSupported && experimentalEnabled;
 
