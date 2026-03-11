@@ -99,7 +99,7 @@ export function IdentifierField(props: IdentifierFieldProps) {
                 sx={{ width: "100%" }}
             />
             {(!errors[field.key]?.message) && formDiagnostics && formDiagnostics.length > 0 && (
-                <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+                <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join('\n')} />
             )}
         </div>
     );
