@@ -50,6 +50,9 @@ export function getBranchInLinkId(nodeId: string, branchLabel: string, branchInd
 }
 
 const nodeContainsNonEmptyDiagnostics = (node: FlowNode) => {
+    if (!node?.properties) {
+        return false;
+    }
     return Object.keys(node.properties).some((key) => {
         const property = node.properties[key];
         if (property?.types?.length === 1 && property.types[0].fieldType === "REPEATABLE_LIST") {
