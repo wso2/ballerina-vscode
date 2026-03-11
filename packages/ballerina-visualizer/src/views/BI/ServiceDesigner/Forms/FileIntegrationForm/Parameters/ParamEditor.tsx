@@ -53,20 +53,19 @@ export function ParamEditor(props: ParamEditorProps) {
 
     const updateFormFields = () => {
         const fields: FormField[] = [];
-        const nameFieldType = getPrimaryInputType(param.name?.types)?.fieldType || "TEXT";
         const typeFieldType = getPrimaryInputType(param.type?.types)?.fieldType || "TEXT";
 
-        // Add name field
+        // Add name field - always use IDENTIFIER since param name is a plain identifier, not an expression
         fields.push({
             key: `name`,
             label: 'Name',
-            type: nameFieldType,
+            type: 'IDENTIFIER',
             optional: false,
             editable: true,
             documentation: '',
             enabled: param.name?.enabled ?? true,
             value: param.name?.value ?? '',
-            types: [{ fieldType: nameFieldType, selected: false }]
+            types: [{ fieldType: 'IDENTIFIER', selected: false }]
         });
 
         // Add type field
