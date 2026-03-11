@@ -773,7 +773,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 {error ?
                                     <ErrorBanner errorMsg={error.message.toString()} /> :
                                     formDiagnostics && formDiagnostics.length > 0 &&
-                                    <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+                                    <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join('\n')} />
                                 }
                                 {onOpenExpandedMode && toEditorMode(inputMode) && (
                                     <ExpandedEditor
