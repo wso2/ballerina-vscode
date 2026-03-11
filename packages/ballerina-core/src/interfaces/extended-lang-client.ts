@@ -898,6 +898,9 @@ export type BIDeleteByComponentInfoResponse = {
 export interface BIAvailableNodesRequest {
     position: LinePosition;
     filePath: string;
+    queryMap?: {
+        [key: string]: string;
+    }
 }
 
 export type BIAvailableNodesResponse = {
