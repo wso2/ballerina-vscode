@@ -1,8 +1,8 @@
 [package]
 org = "wso2"
-name = "non_workspace"
+name = "service_functions"
 version = "0.1.0"
-title = "non workspace"
+title = "service functions"
 
 [build-options]
 sticky = true

@@ -58,11 +58,13 @@ import io.ballerina.tools.text.LineRange;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * Computes semantic differences between two Ballerina projects.
@@ -190,7 +192,7 @@ public class SemanticDiffComputer {
             // TODO: Need to use the semantic types and compare the types
             LineRange lineRange = modifiedTypeDef.lineRange();
             SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, NodeKind.TYPE_DEFINITION,
-                    resolveUri(lineRange.fileName()), lineRange);
+                    resolveUri(lineRange.fileName()), lineRange, buildTypeMetadata(typeDefName));
             this.semanticDiffs.add(diff);
         }
 
@@ -199,7 +201,7 @@ public class SemanticDiffComputer {
             TypeDefinitionNode typeDefinitionNode = entry.getValue();
             LineRange lineRange = typeDefinitionNode.lineRange();
             SemanticDiff diff = new SemanticDiff(ChangeType.ADDITION, NodeKind.TYPE_DEFINITION,
-                    resolveUri(lineRange.fileName()), lineRange);
+                    resolveUri(lineRange.fileName()), lineRange, buildTypeMetadata(entry.getKey()));
             this.semanticDiffs.add(diff);
         }
     }
@@ -218,21 +220,24 @@ public class SemanticDiffComputer {
             if (!modifiedFunctionMap.containsKey(functionName)) {
                 FunctionDefinitionNode originalFunction = entry.getValue();
                 LineRange lineRange = originalFunction.lineRange();
+                Map<String, String> metadata = buildFunctionMetadata(functionName);
                 SemanticDiff diff = new SemanticDiff(ChangeType.DELETION, NodeKind.MODULE_FUNCTION,
-                        resolveUri(lineRange.fileName()), lineRange);
+                        resolveUri(lineRange.fileName()), lineRange, metadata);
                 this.semanticDiffs.add(diff);
                 continue;
             }
             FunctionDefinitionNode modifiedFunction = modifiedFunctionMap.remove(functionName);
-            compareFunctionBodies(entry.getValue(), modifiedFunction, NodeKind.MODULE_FUNCTION);
+            Map<String, String> metadata = buildFunctionMetadata(functionName);
+            compareFunctionBodies(entry.getValue(), modifiedFunction, NodeKind.MODULE_FUNCTION, metadata);
         }
 
         // Handle newly added functions in modified project
         for (Map.Entry<String, FunctionDefinitionNode> entry : modifiedFunctionMap.entrySet()) {
             FunctionDefinitionNode functionDefinitionNode = entry.getValue();
             LineRange lineRange = functionDefinitionNode.lineRange();
+            Map<String, String> metadata = buildFunctionMetadata(entry.getKey());
             SemanticDiff diff = new SemanticDiff(ChangeType.ADDITION, NodeKind.MODULE_FUNCTION,
-                    resolveUri(lineRange.fileName()), lineRange);
+                    resolveUri(lineRange.fileName()), lineRange, metadata);
             this.semanticDiffs.add(diff);
         }
     }
@@ -244,13 +249,14 @@ public class SemanticDiffComputer {
      * @param originalFunction original function node
      * @param modifiedFunction modified function node
      * @param kind the kind of node being compared
+     * @param metadata metadata about the function being compared
      */
     private void compareFunctionBodies(FunctionDefinitionNode originalFunction,
                                        FunctionDefinitionNode modifiedFunction,
-                                       NodeKind kind) {
+                                       NodeKind kind, Map<String, String> metadata) {
         FunctionBodyNode originalFunctionBody = originalFunction.functionBody();
         FunctionBodyNode modifiedFunctionBody = modifiedFunction.functionBody();
-        compareFunctionBodies(modifiedFunction, originalFunctionBody, modifiedFunctionBody, kind);
+        compareFunctionBodies(modifiedFunction, originalFunctionBody, modifiedFunctionBody, kind, metadata);
     }
 
     /**
@@ -261,11 +267,12 @@ public class SemanticDiffComputer {
      * @param originalFunctionBody original function body node
      * @param modifiedFunctionBody modified function body node
      * @param kind the kind of node being compared
+     * @param metadata metadata about the function being compared
      */
     private void compareFunctionBodies(NonTerminalNode modifiedFunction,
                                        FunctionBodyNode originalFunctionBody,
                                        FunctionBodyNode modifiedFunctionBody,
-                                       NodeKind kind) {
+                                       NodeKind kind, Map<String, String> metadata) {
         if (originalFunctionBody.toSourceCode().equals(modifiedFunctionBody.toSourceCode())) {
             return;
         }
@@ -274,7 +281,7 @@ public class SemanticDiffComputer {
                 modifiedFunctionBody instanceof ExpressionFunctionBodyNode) {
             LineRange lineRange = modifiedFunction.lineRange();
             SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, NodeKind.DATA_MAPPING_FUNCTION,
-                    resolveUri(lineRange.fileName()), lineRange);
+                    resolveUri(lineRange.fileName()), lineRange, metadata);
             this.semanticDiffs.add(diff);
             return;
         }
@@ -282,7 +289,7 @@ public class SemanticDiffComputer {
         if (!originalFunctionBody.getClass().equals(modifiedFunctionBody.getClass())) {
             LineRange lineRange = modifiedFunction.lineRange();
             SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
-                    resolveUri(lineRange.fileName()), lineRange);
+                    resolveUri(lineRange.fileName()), lineRange, metadata);
             this.semanticDiffs.add(diff);
             return;
         }
@@ -292,7 +299,7 @@ public class SemanticDiffComputer {
             if (originalBodyNode.statements().size() != modifiedBodyNode.statements().size()) {
                 LineRange lineRange = modifiedFunction.lineRange();
                 SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
-                        resolveUri(lineRange.fileName()), lineRange);
+                        resolveUri(lineRange.fileName()), lineRange, metadata);
                 this.semanticDiffs.add(diff);
                 return;
             }
@@ -313,7 +320,7 @@ public class SemanticDiffComputer {
                 if (allOriginalStmtNodes.size() != allModifiedStmtNodes.size()) {
                     LineRange lineRange = modifiedFunction.lineRange();
                     SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
-                            resolveUri(lineRange.fileName()), lineRange);
+                            resolveUri(lineRange.fileName()), lineRange, metadata);
                     this.semanticDiffs.add(diff);
                     return;
                 }
@@ -325,14 +332,14 @@ public class SemanticDiffComputer {
                     if (!originalNode.getClass().equals(modifiedNode.getClass())) {
                         LineRange lineRange = modifiedNode.lineRange();
                         SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
-                                resolveUri(lineRange.fileName()), lineRange);
+                                resolveUri(lineRange.fileName()), lineRange, metadata);
                         this.semanticDiffs.add(diff);
                         return;
                     }
                     if (!originalNode.toSourceCode().trim().equals(modifiedNode.toSourceCode().trim())) {
                         LineRange lineRange = modifiedNode.lineRange();
                         SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
-                                resolveUri(lineRange.fileName()), lineRange);
+                                resolveUri(lineRange.fileName()), lineRange, metadata);
                         this.semanticDiffs.add(diff);
                         return;
                     }
@@ -485,11 +492,13 @@ public class SemanticDiffComputer {
             ServiceMethodExtractor modifiedServiceMethodExtractor =
                     new ServiceMethodExtractor(modifiedServiceMemberMap);
             modifiedService.accept(modifiedServiceMethodExtractor);
+            String servicePath = getServicePath(modifiedService);
 
             modifiedServiceMemberMap.getObjectMethods().forEach((key, modifiedMethod) -> {
                 LineRange lineRange = modifiedMethod.lineRange();
+                Map<String, String> metadata = buildResourceFunctionMetadata(modifiedMethod, servicePath);
                 SemanticDiff diff = new SemanticDiff(ChangeType.ADDITION, NodeKind.OBJECT_FUNCTION,
-                        resolveUri(lineRange.fileName()), lineRange);
+                        resolveUri(lineRange.fileName()), lineRange, metadata);
                 this.semanticDiffs.add(diff);
             });
         });
@@ -523,7 +532,8 @@ public class SemanticDiffComputer {
                                              ServiceDeclarationNode modifiedService) {
         ServiceMemberMap original = extractServiceMembers(originalService);
         ServiceMemberMap modified = extractServiceMembers(modifiedService);
-        analyzeMethodChanges(original.getObjectMethods(), modified.getObjectMethods());
+        String servicePath = getServicePath(modifiedService);
+        analyzeMethodChanges(original.getObjectMethods(), modified.getObjectMethods(), servicePath);
     }
 
     /**
@@ -531,27 +541,31 @@ public class SemanticDiffComputer {
      *
      * @param originalMethods Map of original method names to their definition nodes
      * @param modifiedMethods Map of modified method names to their definition nodes
+     * @param servicePath the base path of the service containing these methods
      */
     private void analyzeMethodChanges(Map<String, FunctionDefinitionNode> originalMethods,
-                                      Map<String, FunctionDefinitionNode> modifiedMethods) {
+                                      Map<String, FunctionDefinitionNode> modifiedMethods,
+                                      String servicePath) {
         originalMethods.forEach((key, originalMethod) -> {
             if (!modifiedMethods.containsKey(key)) {
                 LineRange lineRange = originalMethod.lineRange();
+                Map<String, String> metadata = buildResourceFunctionMetadata(originalMethod, servicePath);
                 SemanticDiff diff = new SemanticDiff(ChangeType.DELETION, NodeKind.OBJECT_FUNCTION,
-                        resolveUri(lineRange.fileName()), lineRange);
+                        resolveUri(lineRange.fileName()), lineRange, metadata);
                 this.semanticDiffs.add(diff);
                 loadDesignDiagrams = true;
             }
         });
         modifiedMethods.forEach((key, modifiedMethod) -> {
+            Map<String, String> metadata = buildResourceFunctionMetadata(modifiedMethod, servicePath);
             if (originalMethods.containsKey(key)) {
                 FunctionDefinitionNode originalMethod = originalMethods.get(key);
-                compareFunctionBodies(originalMethod, modifiedMethod, NodeKind.OBJECT_FUNCTION);
+                compareFunctionBodies(originalMethod, modifiedMethod, NodeKind.OBJECT_FUNCTION, metadata);
             } else {
                 // New method added
                 LineRange lineRange = modifiedMethod.lineRange();
                 SemanticDiff diff = new SemanticDiff(ChangeType.ADDITION, NodeKind.OBJECT_FUNCTION,
-                        resolveUri(lineRange.fileName()), lineRange);
+                        resolveUri(lineRange.fileName()), lineRange, metadata);
                 this.semanticDiffs.add(diff);
                 loadDesignDiagrams = true;
             }
@@ -728,6 +742,34 @@ public class SemanticDiffComputer {
             connectionMap.computeIfAbsent(key, k -> new ArrayList<>()).add(connection);
         }
         return connectionMap;
+    }
+
+    private static Map<String, String> buildTypeMetadata(String typeName) {
+        return Map.of("name", typeName);
+    }
+
+    private static Map<String, String> buildFunctionMetadata(String functionName) {
+        return Map.of("name", functionName);
+    }
+
+    private static Map<String, String> buildResourceFunctionMetadata(FunctionDefinitionNode functionNode,
+                                                                     String servicePath) {
+        String accessor = functionNode.functionName().toSourceCode().trim();
+        String resourcePath = functionNode.relativeResourcePath().stream()
+                .map(node -> node.toSourceCode().trim())
+                .collect(Collectors.joining(""));
+        Map<String, String> metadata = new LinkedHashMap<>();
+        metadata.put("accessor", accessor);
+        metadata.put("servicePath", servicePath);
+        metadata.put("resourcePath", resourcePath);
+        return metadata;
+    }
+
+    private static String getServicePath(ServiceDeclarationNode service) {
+        return service.absoluteResourcePath().stream()
+                .map(Node::toString)
+                .map(String::trim)
+                .collect(Collectors.joining(""));
     }
 
     private String resolveUri(String fileName) {
