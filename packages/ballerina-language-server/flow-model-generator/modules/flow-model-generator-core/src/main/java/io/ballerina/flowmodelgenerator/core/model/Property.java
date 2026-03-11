@@ -838,7 +838,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                     });
         }
 
-        public void handleRestArguments(Builder<?> builder, List<Node> values) {
+        public void handleRestArguments(Builder<?> builder, List<Node> values,
+                                        DiagnosticHandler diagnosticHandler) {
             // Find and update the matching property type
             builder.types.stream()
                     .filter(propType -> propType.fieldType().equals(ValueType.REPEATABLE_LIST))
@@ -862,7 +863,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                                     .findFirst()
                                     .ifPresent(pt -> pt.selected(true));
                             templateBuilder.value(expr);
-
+                            if (diagnosticHandler != null) {
+                                diagnosticHandler.handle(templateBuilder, value.lineRange(), true);
+                            }
                             valueList.add(templateBuilder.build());
                         }
                         builder.value(valueList);

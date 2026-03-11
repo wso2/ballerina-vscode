@@ -1439,7 +1439,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .template(template)
                 .selected(true)
                 .stepOut();
-        builder.handleRestArguments(builder, values);
+        builder.handleRestArguments(builder, values, diagnosticHandler);
     }
 
     private void buildPropertyTypeForIncludedRecordRest(Property.Builder<?> builder, ParameterData paramData,

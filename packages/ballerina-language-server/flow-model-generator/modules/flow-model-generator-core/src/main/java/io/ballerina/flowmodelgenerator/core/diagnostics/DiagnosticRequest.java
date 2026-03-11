@@ -147,9 +147,11 @@ public class DiagnosticRequest implements Callable<JsonElement> {
                 List<String> textEditLines = edit.getNewText().lines().toList();
                 String textLine = textEditLines.getLast();
                 int numTextEdits = textEditLines.size();
-                int lineOffset =
-                        Boolean.TRUE.equals(flowNodeObj.codedata().isNew()) && numTextEdits > 1 ? numTextEdits - 1 : 0;
-                endLinePosition = LinePosition.from(endLine + lineOffset,
+                // For multi-line new text, the end line in the updated document is always
+                // startLine + (numNewLines - 1), regardless of the original edit range's endLine.
+                // This handles existing nodes that get replaced by content with a different line count.
+                int endLineForRange = numTextEdits > 1 ? startLine + numTextEdits - 1 : endLine;
+                endLinePosition = LinePosition.from(endLineForRange,
                         numTextEdits > 1 ? textLine.length() : startCharacter + textLine.length());
             }
         }
@@ -171,7 +173,7 @@ public class DiagnosticRequest implements Callable<JsonElement> {
         TextDocument updatedTextDocument = updatedDoc.textDocument();
         ModulePartNode modulePartNode = updatedDoc.syntaxTree().rootNode();
         NonTerminalNode node = modulePartNode.findNode(TextRange.from(start,
-                updatedTextDocument.textPositionFrom(endLinePosition) - 1 - start), true);
+                updatedTextDocument.textPositionFrom(endLinePosition) - start), true);
 
         // Generate the flow node for the ST node with the respective diagnostics annotated
         SemanticModel semanticModel = project.currentPackage().getCompilation()
