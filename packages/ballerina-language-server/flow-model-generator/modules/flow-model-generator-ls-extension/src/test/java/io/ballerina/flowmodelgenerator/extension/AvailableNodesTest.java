@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 /**
  * Test for the getting available nodes service.
@@ -44,14 +45,15 @@ public class AvailableNodesTest extends AbstractLSTest {
 
         FlowModelAvailableNodesRequest request =
                 new FlowModelAvailableNodesRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
-                        testConfig.position());
+                        testConfig.position(), testConfig.queryMap());
         JsonArray availableNodes = getResponse(request).getAsJsonArray("categories");
 
         JsonArray categories = availableNodes.getAsJsonArray();
         if (!isJsonPermutation(categories, testConfig.categories())) {
             TestConfig updateConfig =
-                    new TestConfig(testConfig.description(), testConfig.position(), testConfig.source(), categories);
-//            updateConfig(configJsonPath, updateConfig);
+                    new TestConfig(testConfig.description(), testConfig.position(), testConfig.source(), categories,
+                            testConfig.queryMap());
+            updateConfig(configJsonPath, updateConfig);
             compareJsonElements(categories, testConfig.categories());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
@@ -90,7 +92,8 @@ public class AvailableNodesTest extends AbstractLSTest {
      * @param source      The source file path
      * @param categories  The available categories for the given input
      */
-    private record TestConfig(String description, LinePosition position, String source, JsonArray categories) {
+    private record TestConfig(String description, LinePosition position, String source, JsonArray categories,
+                              Map<String, String> queryMap) {
 
     }
 }
