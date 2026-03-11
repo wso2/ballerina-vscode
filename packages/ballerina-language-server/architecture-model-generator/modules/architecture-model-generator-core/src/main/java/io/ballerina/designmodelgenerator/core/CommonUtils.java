@@ -372,10 +372,11 @@ public class CommonUtils {
                         if (expr instanceof BasicLiteralNode literalNode) {
                             value = literalNode.literalToken().text().trim();
                             // Removes quotes
-                            value = value.replaceAll("\"", "");
+                            value = value.replaceAll("^\"|\"$", "");
+                        } else {
+                            // Handles variables etc
+                            value = expr.toSourceCode().trim();
                         }
-                        // Handles variables etc
-                        value = expr.toSourceCode().trim();
                         if (!value.isEmpty()) {
                             return Optional.of(value);
                         }
