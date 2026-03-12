@@ -42,7 +42,6 @@ import { HeaderSetEditor } from "./HeaderSetEditor";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { CustomDropdownEditor } from "./CustomDropdownEditor";
 import { SliderEditor } from "./SliderEditor";
-import { ActionExpressionEditor } from "./ActionExpressionEditor";
 import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
 import { AutoCompleteEditor } from "./AutoCompleteEditor";
@@ -98,6 +97,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         fieldInputType.fieldType === "EXPRESSION" ||
         fieldInputType.fieldType === "LV_EXPRESSION" ||
         fieldInputType.fieldType === "ACTION_OR_EXPRESSION" ||
+        fieldInputType.fieldType === "ACTION_EXPRESSION" ||
         fieldInputType.fieldType === "TEXT" ||
         fieldInputType.fieldType === "EXPRESSION_SET" ||
         fieldInputType.fieldType === "TEXT_SET" ||
@@ -182,18 +182,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             />
         );
 
-    } else if (!field.items && fieldInputType.fieldType === "ACTION_EXPRESSION") {
-        return (
-            <ActionExpressionEditor
-                field={field}
-                fieldInputType={fieldInputType}
-                openSubPanel={openSubPanel}
-                subPanelView={subPanelView}
-                handleOnFieldFocus={handleOnFieldFocus}
-                autoFocus={autoFocus}
-                recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
-            />
-        );
     } else if (showWithExpressionEditor && field.editable) {
         // Expression field is a inline expression editor
         return (

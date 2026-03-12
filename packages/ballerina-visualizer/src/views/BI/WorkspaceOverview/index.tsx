@@ -26,7 +26,7 @@ import {
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { useQuery } from "@tanstack/react-query";
-import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
+import { IOpenInConsoleCmdParams, WICommandIds } from "@wso2/wso2-platform-core";
 import { Typography, Codicon, ProgressRing, Button, Icon, Divider } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { ThemeColors } from "@wso2/ui-toolkit";
@@ -36,6 +36,7 @@ import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { PackageListView } from "./PackageListView";
 import { getWorkspaceProjectScopes } from "../PackageOverview/utils";
+import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -392,6 +393,7 @@ function DeploymentOptions({
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud']));
     const { rpcClient } = useRpcContext();
+    const { platformExtState } = usePlatformExtContext();
 
     const toggleOption = (option: string) => {
         setExpandedOptions(prev => {
@@ -485,17 +487,19 @@ function DeploymentOptions({
             <div>
                 <Title variant="h3">Deployment Options</Title>
 
-                <DeploymentOption
-                    title={title}
-                    description={description}
-                    buttonText={buttonText}
-                    isExpanded={expandedOptions.has("cloud")}
-                    onToggle={() => toggleOption("cloud")}
-                    onDeploy={primaryAction}
-                    learnMoreLink={"https://wso2.com/devant/docs"}
-                    hasDeployableIntegration={!isDeploymentDisabled}
-                    secondaryAction={secondaryAction}
-                />
+                {platformExtState?.isExtInstalled && (
+                    <DeploymentOption
+                        title={title}
+                        description={description}
+                        buttonText={buttonText}
+                        isExpanded={expandedOptions.has("cloud")}
+                        onToggle={() => toggleOption("cloud")}
+                        onDeploy={primaryAction}
+                        learnMoreLink={"https://wso2.com/devant/docs"}
+                        hasDeployableIntegration={!isDeploymentDisabled}
+                        secondaryAction={secondaryAction}
+                    />
+                )}
 
                 <DeploymentOption
                     title="Deploy with Docker"
@@ -810,9 +814,8 @@ export function WorkspaceOverview() {
             if (firstDeployedProject) {
                 rpcClient.getCommonRpcClient().executeCommand({
                     commands: [
-                        PlatformExtCommandIds.OpenInConsole,
+                        WICommandIds.OpenInConsole,
                         {
-                            extName: "Devant",
                             componentFsPath: firstDeployedProject.projectPath,
                             newComponentParams: { buildPackLang: "ballerina" }
                         } as IOpenInConsoleCmdParams
@@ -823,8 +826,7 @@ export function WorkspaceOverview() {
         }
         // Fallback: open console without specific component
         rpcClient.getCommonRpcClient().executeCommand({
-            commands: [PlatformExtCommandIds.OpenInConsole, {
-                extName: "Devant",
+            commands: [WICommandIds.OpenInConsole, {
                 newComponentParams: { buildPackLang: "ballerina" }
             } as IOpenInConsoleCmdParams]
         });

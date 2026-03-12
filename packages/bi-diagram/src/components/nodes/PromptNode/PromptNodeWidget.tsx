@@ -30,7 +30,7 @@ import {
     PROMPT_NODE_HEIGHT,
     PROMPT_NODE_WIDTH,
 } from "../../../resources/constants";
-import { Button, Icon, Item, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Icon, Item, ThemeColors, getAIModuleIcon, DefaultLlmIcon } from "@wso2/ui-toolkit";
 import { NPPromptEditor } from "../../editors/NPPromptEditor";
 import { InputMode } from "@wso2/ballerina-side-panel";
 import NodeIcon from "../../NodeIcon";
@@ -40,7 +40,6 @@ import { ELineRange, ExpressionProperty, NodeMetadata } from "@wso2/ballerina-co
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { nodeHasError } from "../../../utils/node";
 import { cloneDeep } from "lodash";
-import { getLlmModelIcons } from "../../ConnectorIcon";
 
 export namespace NodeStyles {
     export type NodeStyleProp = {
@@ -517,7 +516,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                         fill={ThemeColors.ON_SURFACE}
                         style={{ pointerEvents: "none" }}
                     >
-                        {getLlmModelIcons(nodeModelType)}
+                        {getAIModuleIcon(nodeModelType) ?? <DefaultLlmIcon />}
                     </foreignObject>
                     <line
                         x1="0"

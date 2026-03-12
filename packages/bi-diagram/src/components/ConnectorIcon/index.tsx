@@ -17,15 +17,8 @@
  */
 
 import React, { CSSProperties } from "react";
-import { Icon } from "@wso2/ui-toolkit";
+import { Icon, getAIModuleIcon, AI_MODULE_TYPES } from "@wso2/ui-toolkit";
 import { ApiIcon } from "../../resources";
-import OpenAiIcon from "../../resources/icons/OpenAiIcon";
-import AzureOpenAiIcon from "../../resources/icons/AzureOpenAiIcon";
-import AnthropicIcon from "../../resources/icons/AnthropicIcon";
-import OllamaIcon from "../../resources/icons/OllamaIcon";
-import MistralAIIcon from "../../resources/icons/MistralAIIcon";
-import DeepseekIcon from "../../resources/icons/DeepseekIcon";
-import DefaultLlmIcon from "../../resources/icons/DefaultLlmIcon";
 import { CodeData } from "@wso2/ballerina-core";
 import { isWso2Module } from "../AIModelIcon";
 
@@ -53,10 +46,10 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
     }
 
     // use custom icon for ai model providers
-    const aiModules = ["ai.openai", "ai.azure", "ai.anthropic", "ai.ollama", "ai.mistral", "ai.deepseek"];
-    if (aiModules.some((module) => url?.includes(module))) {
-        const selectedModule = aiModules.find((module) => url?.includes(module));
-        return getLlmModelIcons(selectedModule);
+    if (AI_MODULE_TYPES.some((module) => url?.includes(module))) {
+        const selectedModule = AI_MODULE_TYPES.find((module) => url?.includes(module));
+        const icon = selectedModule ? getAIModuleIcon(selectedModule) : null;
+        if (icon) return icon;
     }
 
     // use custom icon for mcp
@@ -102,34 +95,5 @@ function isValidUrl(url: string): boolean {
     }
 }
 
-// get llm model icons
-// this should replace with CDN icons
-export function getLlmModelIcons(modelType: string) {
-    switch (modelType) {
-        case "OpenAiProvider":
-        case "ai.openai":
-            return <OpenAiIcon />;
-        case "AzureOpenAiProvider":
-        case "OpenAiModelProvider":
-        case "ai.azure":
-            return <AzureOpenAiIcon />;
-        case "AnthropicProvider":
-        case "ai.anthropic":
-            return <AnthropicIcon />;
-        case "OllamaProvider":
-        case "ai.ollama":
-            return <OllamaIcon />;
-        case "MistralAiProvider":
-        case "ai.mistral":
-            return <MistralAIIcon />;
-        case "DeepseekProvider":
-        case "ai.deepseek":
-            return <DeepseekIcon />;
-        case "Wso2ModelProvider":
-            return <Icon name="bi-wso2" sx={{ width: 24, height: 24, fontSize: 24 }} />;
-        default:
-            return <DefaultLlmIcon />;
-    }
-}
 
 export default ConnectorIcon;
