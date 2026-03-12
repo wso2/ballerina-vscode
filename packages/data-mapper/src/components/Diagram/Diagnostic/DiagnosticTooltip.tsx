@@ -78,14 +78,11 @@ export function DiagnosticTooltip(props: Partial<Props>) {
 
     const DiagnosticC = () => (
         <>
-            <Button
-                appearance="icon"
-                className={classes.editButton}
-                aria-label="edit"
-                onClick={onClick}
-            >
-                <Icon name="error-icon" iconSx={{ color: "var(--vscode-errorForeground)" }} />
-            </Button>
+            <Icon
+                name="error-icon"
+                sx={{ marginTop: "10px", marginBottom: "3px" }}
+                iconSx={{ color: "var(--vscode-errorForeground)" }}
+            />
             <div className={classes.diagnosticWrapper}>{diagnostic}</div>
         </>
 
