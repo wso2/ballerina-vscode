@@ -471,6 +471,7 @@ export function expandDMModel(
         query: model.query,
         source: "",
         rootViewId,
+        hasInvalidOutput: model.hasInvalidOutput,
         triggerRefresh: model.triggerRefresh,
         focusInputRootMap: model.focusInputRootMap
     };

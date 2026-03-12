@@ -119,6 +119,7 @@ export interface ExpandedDMModel {
     rootViewId: string;
     query?: Query;
     mapping_fields?: Record<string, any>;
+    hasInvalidOutput?: boolean;
     triggerRefresh?: boolean;
     focusInputRootMap?: Record<string, string>;
 }
@@ -133,6 +134,7 @@ export interface DMModel {
     query?: Query;
     focusInputs?: Record<string, IOTypeField>;
     mapping_fields?: Record<string, any>;
+    hasInvalidOutput?: boolean;
     triggerRefresh?: boolean;
     traversingRoot?: string;
     focusInputRootMap?: Record<string, string>;
