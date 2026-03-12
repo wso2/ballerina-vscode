@@ -451,6 +451,14 @@ export interface MapWithFnRequest {
     subMappingName?: string;
 }
 
+export interface ResolveOutputRequest {
+    filePath: string;
+    codedata: CodeData;
+    varName?: string;
+    targetField: string;
+    subMappingName?: string;
+}
+
 export interface ClearTypeCacheResponse {
     success: boolean;
 }
