@@ -25,7 +25,7 @@ import { AgentExecutor } from "../agent/AgentExecutor";
 import { AICommandConfig } from "../executors/base/AICommandExecutor";
 import { createMigrationEventHandler, createVisualizerMigrationEventHandler } from "../utils/events";
 import { sendVisualizerMigrationNotification } from "../utils/ai-utils";
-import { getAutoFixPrompt, getWizardEnhancementPrompt } from "./prompts";
+import { getLightweightEnhancementPrompt, getWizardEnhancementPrompt } from "./prompts";
 import { saveAgentHistory, loadAgentHistory, clearAgentHistory } from "./history";
 import { chatStateStorage } from "../../../views/ai-panel/chatStateStorage";
 import {
@@ -363,7 +363,13 @@ export async function runMigrationAgent(): Promise<void> {
         return;
     }
 
-    const prompt = getAutoFixPrompt();
+    // Read source path from toml so the agent knows where the original Mule source lives
+    const tomlData = readEnhanceToml(projectRoot);
+    const sourcePath = tomlData?.sourcePath;
+    const sourceContext = sourcePath
+        ? `## Original Mule Source Directory\nThe original Mule project source is at: \`${sourcePath}\`\nAlways consult this directory for Mule XML configs, DataWeave scripts, and property files referenced in the enhancement instructions below.\n\n---\n\n`
+        : '';
+    const prompt = sourceContext + getWizardEnhancementPrompt();
 
     _migrationAbortController = new AbortController();
 
@@ -387,7 +393,7 @@ export async function runMigrationAgent(): Promise<void> {
         },
     };
 
-    console.log(`[MigrationEnhancement] Starting migration agent – mode: ${mode}, model: ${_selectedModelId}`);
+    console.log(`[MigrationEnhancement] Starting migration agent – mode: ${mode}, model: ${_selectedModelId}, sourcePath: ${sourcePath ?? 'none'}`);
 
     try {
         await new AgentExecutor(config).run();
@@ -535,7 +541,12 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
         return;
     }
 
-    const prompt = getWizardEnhancementPrompt();
+    // Prepend the absolute Mule source path so the agent can locate original XML/DWL files
+    const sourcePath = _wizardSourcePath;
+    const sourceContext = sourcePath
+        ? `## Original Mule Source Directory\nThe original Mule project source is at: \`${sourcePath}\`\nAlways consult this directory for Mule XML configs, DataWeave scripts, and property files referenced in the enhancement instructions below.\n\n---\n\n`
+        : '';
+    const prompt = sourceContext + getWizardEnhancementPrompt();
 
     _migrationAbortController = new AbortController();
 
