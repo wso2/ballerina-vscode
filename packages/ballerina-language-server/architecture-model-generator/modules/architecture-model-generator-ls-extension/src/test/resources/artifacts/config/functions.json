@@ -20,6 +20,7 @@
         "type": "FUNCTION",
         "name": "add",
         "scope": "Global",
+        "visibility": "public",
         "children": {}
       },
       "calculateInterest": {
@@ -38,6 +39,7 @@
         "type": "FUNCTION",
         "name": "calculateInterest",
         "scope": "Global",
+        "visibility": "public",
         "children": {}
       },
       "divide": {
@@ -56,6 +58,7 @@
         "type": "FUNCTION",
         "name": "divide",
         "scope": "Global",
+        "visibility": "public",
         "children": {}
       },
       "divideAndRemainder": {
@@ -74,6 +77,7 @@
         "type": "FUNCTION",
         "name": "divideAndRemainder",
         "scope": "Global",
+        "visibility": "public",
         "children": {}
       },
       "fn\\#with\\-Identifiers": {
@@ -91,7 +95,8 @@
         },
         "type": "FUNCTION",
         "name": "fn#with-Identifiers",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "greet": {
@@ -110,6 +115,7 @@
         "type": "FUNCTION",
         "name": "greet",
         "scope": "Global",
+        "visibility": "public",
         "children": {}
       },
       "sayHello": {
@@ -128,6 +134,7 @@
         "type": "FUNCTION",
         "name": "sayHello",
         "scope": "Global",
+        "visibility": "public",
         "children": {}
       },
       "sum": {
@@ -146,6 +153,7 @@
         "type": "FUNCTION",
         "name": "sum",
         "scope": "Global",
+        "visibility": "public",
         "children": {}
       }
     },
@@ -166,6 +174,7 @@
         "type": "AUTOMATION",
         "name": "automation",
         "scope": "Global",
+        "visibility": "public",
         "children": {}
       }
     }

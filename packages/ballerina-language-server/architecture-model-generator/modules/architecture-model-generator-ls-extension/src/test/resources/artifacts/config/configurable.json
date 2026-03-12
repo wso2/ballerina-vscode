@@ -19,7 +19,8 @@
         },
         "type": "TYPE",
         "name": "User",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "children": {}
       }
     },
@@ -39,7 +40,8 @@
         },
         "type": "CONFIGURABLE",
         "name": "apiUrl",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "defaultSettings": {
@@ -57,7 +59,8 @@
         },
         "type": "CONFIGURABLE",
         "name": "defaultSettings",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "enableLogging": {
@@ -75,7 +78,8 @@
         },
         "type": "CONFIGURABLE",
         "name": "enableLogging",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "maxRetries": {
@@ -93,7 +97,8 @@
         },
         "type": "CONFIGURABLE",
         "name": "maxRetries",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "serverConfig": {
@@ -111,7 +116,8 @@
         },
         "type": "CONFIGURABLE",
         "name": "serverConfig",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "timeout": {
@@ -129,7 +135,8 @@
         },
         "type": "CONFIGURABLE",
         "name": "timeout",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "users": {
@@ -147,7 +154,8 @@
         },
         "type": "CONFIGURABLE",
         "name": "users",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "children": {}
       }
     }

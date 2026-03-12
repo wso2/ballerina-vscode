@@ -19,7 +19,8 @@
         },
         "type": "TYPE",
         "name": "Order",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "children": {}
       }
     },
@@ -39,7 +40,8 @@
         },
         "type": "LISTENER",
         "name": "orderListener",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.3.png",
         "module": "kafka",
         "children": {}
@@ -61,7 +63,8 @@
         },
         "type": "SERVICE",
         "name": "Kafka Event Integration",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.3.png",
         "module": "kafka",
         "children": {
@@ -80,7 +83,8 @@
             },
             "type": "REMOTE",
             "name": "onConsumerRecord",
-            "scope": "Local",
+            "scope": "Global",
+            "visibility": "module",
             "children": {}
           }
         }

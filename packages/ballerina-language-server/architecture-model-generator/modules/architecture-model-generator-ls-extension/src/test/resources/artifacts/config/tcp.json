@@ -19,7 +19,8 @@
         },
         "type": "TYPE",
         "name": "TcpEchoService",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "children": {
           "onClose": {
             "id": "onClose",
@@ -36,7 +37,8 @@
             },
             "type": "REMOTE",
             "name": "onClose",
-            "scope": "Object",
+            "scope": "Global",
+            "visibility": "module",
             "children": {}
           },
           "onError": {
@@ -54,7 +56,8 @@
             },
             "type": "REMOTE",
             "name": "onError",
-            "scope": "Object",
+            "scope": "Global",
+            "visibility": "module",
             "children": {}
           },
           "onBytes": {
@@ -72,7 +75,8 @@
             },
             "type": "REMOTE",
             "name": "onBytes",
-            "scope": "Object",
+            "scope": "Global",
+            "visibility": "module",
             "children": {}
           }
         }
@@ -94,7 +98,8 @@
         },
         "type": "LISTENER",
         "name": "tcpListener",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.2.png",
         "module": "tcp",
         "children": {}
@@ -116,7 +121,8 @@
         },
         "type": "SERVICE",
         "name": "TCP Service",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.2.png",
         "module": "tcp",
         "children": {
@@ -135,7 +141,8 @@
             },
             "type": "REMOTE",
             "name": "onConnect",
-            "scope": "Local",
+            "scope": "Global",
+            "visibility": "module",
             "children": {}
           }
         }

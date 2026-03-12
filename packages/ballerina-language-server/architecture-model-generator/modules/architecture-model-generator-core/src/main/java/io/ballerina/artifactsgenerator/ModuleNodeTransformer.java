@@ -118,8 +118,7 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
                     .name(functionName)
                     .type(Artifact.Type.FUNCTION);
         }
-        // Derive scope based on visibility and ownership (module-level vs object member)
-        functionBuilder.scope(determineScope(functionDefinitionNode));
+        functionBuilder.visibility(determineVisibility(functionDefinitionNode));
         return Optional.of(functionBuilder.build());
     }
 
@@ -155,7 +154,7 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
         // Generate the service path
         serviceBuilder
                 .type(Artifact.Type.SERVICE)
-                .scope(determineScope(serviceDeclarationNode));
+                .visibility(determineVisibility(serviceDeclarationNode));
 
         // Check for the child functions
         serviceDeclarationNode.members().forEach(member -> {
@@ -170,7 +169,7 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
         Artifact.Builder listenerBuilder = new Artifact.Builder(listenerDeclarationNode)
                 .name(listenerDeclarationNode.variableName().text())
                 .type(Artifact.Type.LISTENER)
-                .scope(determineScope(listenerDeclarationNode));
+                .visibility(determineVisibility(listenerDeclarationNode));
 
         // TODO: This does not work for declarations that does not have a type descriptor node such as
         //  `listener httpListener = new http:Listener(9090);`
@@ -185,10 +184,11 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
                 .name(CommonUtils.getVariableName(
                         moduleVariableDeclarationNode.typedBindingPattern().bindingPattern()));
 
+        Artifact.Visibility varVisibility = determineVisibility(moduleVariableDeclarationNode);
         if (hasQualifier(moduleVariableDeclarationNode.qualifiers(), SyntaxKind.CONFIGURABLE_KEYWORD)) {
             variableBuilder
                     .type(Artifact.Type.CONFIGURABLE)
-                    .scope(determineScope(moduleVariableDeclarationNode));
+                    .visibility(varVisibility);
         } else {
             Optional<ClassSymbol> connection = getConnection(moduleVariableDeclarationNode);
             if (connection.isPresent()) {
@@ -196,7 +196,7 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
                 variableBuilder
                         .type(Artifact.Type.CONNECTION)
                         .icon(clientClassSymbol)
-                        .scope(determineScope(moduleVariableDeclarationNode));
+                        .visibility(varVisibility);
                 if (isPersistClient(clientClassSymbol, semanticModel)) {
                     variableBuilder
                             .addMetadata(CONNECTOR_TYPE, PERSIST);
@@ -206,7 +206,7 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
             } else {
                 variableBuilder
                         .type(Artifact.Type.VARIABLE)
-                        .scope(determineScope(moduleVariableDeclarationNode));
+                        .visibility(varVisibility);
             }
         }
 
@@ -218,7 +218,7 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
         Artifact.Builder typeBuilder = new Artifact.Builder(typeDefinitionNode)
                 .name(typeDefinitionNode.typeName().text())
                 .type(Artifact.Type.TYPE)
-                .scope(determineScope(typeDefinitionNode));
+                .visibility(determineVisibility(typeDefinitionNode));
         return Optional.of(typeBuilder.build());
     }
 
@@ -227,7 +227,7 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
         Artifact.Builder typeBuilder = new Artifact.Builder(enumDeclarationNode)
                 .name(enumDeclarationNode.identifier().text())
                 .type(Artifact.Type.TYPE)
-                .scope(determineScope(enumDeclarationNode));
+                .visibility(determineVisibility(enumDeclarationNode));
         return Optional.of(typeBuilder.build());
     }
 
@@ -236,7 +236,7 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
         Artifact.Builder typeBuilder = new Artifact.Builder(classDefinitionNode)
                 .name(classDefinitionNode.className().text())
                 .type(Artifact.Type.TYPE)
-                .scope(determineScope(classDefinitionNode));
+                .visibility(determineVisibility(classDefinitionNode));
 
         classDefinitionNode.members().forEach(member -> {
             member.apply(this).ifPresent(typeBuilder::child);
@@ -293,38 +293,78 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
     }
 
     /**
-     * Determines the scope of a top-level declaration or member based on its qualifiers and parent node.
+     * Determines the visibility of a module-level declaration.
      * <p>
-     * - Module-level declarations with the {@code public} qualifier are treated as {@code GLOBAL}.<br>
-     * - Module-level declarations without {@code public} are treated as {@code LOCAL}.<br>
-     * - Members of classes or other object-like constructs are treated as {@code OBJECT}.
+     * Uses the semantic model for accuracy, falling back to syntax-level qualifier inspection
+     * when the semantic model is unavailable (e.g., for listener declarations).
      * </p>
      */
-    private Artifact.Scope determineScope(Node node) {
-        if (node == null) {
-            return Artifact.Scope.LOCAL;
-        }
-
-        Node parent = node.parent();
-
-        // Object members (e.g., methods inside classes) are treated as OBJECT-scoped.
-        if (parent != null && parent.kind() == SyntaxKind.CLASS_DEFINITION) {
-            return Artifact.Scope.OBJECT;
-        }
-
+    private Artifact.Visibility determineVisibility(Node node) {
         try {
             Optional<Symbol> symbolOpt = semanticModel.symbol(node);
             if (symbolOpt.isPresent()) {
                 Symbol symbol = symbolOpt.get();
-                if (symbol instanceof Qualifiable qualifiable
-                        && qualifiable.qualifiers().contains(Qualifier.PUBLIC)) {
-                    return Artifact.Scope.GLOBAL;
+                if (symbol instanceof Qualifiable qualifiable) {
+                    if (qualifiable.qualifiers().contains(Qualifier.PUBLIC)) {
+                        return Artifact.Visibility.PUBLIC;
+                    }
+                    if (qualifiable.qualifiers().contains(Qualifier.PRIVATE)) {
+                        return Artifact.Visibility.PRIVATE;
+                    }
                 }
             }
         } catch (Throwable e) {
-            // If semantic model lookup fails, fall back to LOCAL scope.
+            // Fall back to syntax-level visibility.
         }
+        return visibilityFromSyntax(node);
+    }
 
-        return Artifact.Scope.LOCAL;
+    /**
+     * Determines visibility using syntax-level qualifier tokens.
+     * Used as a fallback when the semantic model is incomplete or unavailable.
+     */
+    private Artifact.Visibility visibilityFromSyntax(Node node) {
+        if (node instanceof FunctionDefinitionNode funcNode) {
+            if (hasQualifier(funcNode.qualifierList(), SyntaxKind.PUBLIC_KEYWORD)) {
+                return Artifact.Visibility.PUBLIC;
+            }
+            if (hasQualifier(funcNode.qualifierList(), SyntaxKind.PRIVATE_KEYWORD)) {
+                return Artifact.Visibility.PRIVATE;
+            }
+            return Artifact.Visibility.MODULE;
+        }
+        if (node instanceof ListenerDeclarationNode listenerNode) {
+            return listenerNode.visibilityQualifier()
+                    .map(t -> t.kind() == SyntaxKind.PUBLIC_KEYWORD ? Artifact.Visibility.PUBLIC
+                            : Artifact.Visibility.MODULE)
+                    .orElse(Artifact.Visibility.MODULE);
+        }
+        if (node instanceof ModuleVariableDeclarationNode moduleVarNode) {
+            return hasQualifier(moduleVarNode.qualifiers(), SyntaxKind.PUBLIC_KEYWORD)
+                    ? Artifact.Visibility.PUBLIC : Artifact.Visibility.MODULE;
+        }
+        if (node instanceof TypeDefinitionNode typeDefNode) {
+            return typeDefNode.visibilityQualifier()
+                    .map(t -> t.kind() == SyntaxKind.PUBLIC_KEYWORD ? Artifact.Visibility.PUBLIC
+                            : Artifact.Visibility.MODULE)
+                    .orElse(Artifact.Visibility.MODULE);
+        }
+        if (node instanceof EnumDeclarationNode enumNode) {
+            return enumNode.qualifier()
+                    .map(t -> t.kind() == SyntaxKind.PUBLIC_KEYWORD ? Artifact.Visibility.PUBLIC
+                            : Artifact.Visibility.MODULE)
+                    .orElse(Artifact.Visibility.MODULE);
+        }
+        if (node instanceof ClassDefinitionNode classNode) {
+            return classNode.visibilityQualifier()
+                    .map(t -> t.kind() == SyntaxKind.PUBLIC_KEYWORD ? Artifact.Visibility.PUBLIC
+                            : Artifact.Visibility.MODULE)
+                    .orElse(Artifact.Visibility.MODULE);
+        }
+        if (node instanceof ServiceDeclarationNode serviceNode) {
+            return hasQualifier(serviceNode.qualifiers(), SyntaxKind.PUBLIC_KEYWORD)
+                    ? Artifact.Visibility.PUBLIC : Artifact.Visibility.MODULE;
+        }
+        return Artifact.Visibility.MODULE;
     }
 }

@@ -19,7 +19,8 @@
         },
         "type": "TYPE",
         "name": "Album",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "MusicService": {
@@ -38,6 +39,7 @@
         "type": "TYPE",
         "name": "MusicService",
         "scope": "Global",
+        "visibility": "public",
         "children": {
           "init": {
             "id": "init",
@@ -54,7 +56,8 @@
             },
             "type": "FUNCTION",
             "name": "init",
-            "scope": "Object",
+            "scope": "Global",
+            "visibility": "module",
             "children": {}
           },
           "getAlbumCount": {
@@ -72,7 +75,8 @@
             },
             "type": "FUNCTION",
             "name": "getAlbumCount",
-            "scope": "Object",
+            "scope": "Global",
+            "visibility": "public",
             "children": {}
           },
           "post#albums": {
@@ -91,7 +95,8 @@
             "type": "RESOURCE",
             "name": "albums",
             "accessor": "post",
-            "scope": "Object",
+            "scope": "Global",
+            "visibility": "module",
             "children": {}
           },
           "get#albums": {
@@ -110,7 +115,8 @@
             "type": "RESOURCE",
             "name": "albums",
             "accessor": "get",
-            "scope": "Object",
+            "scope": "Global",
+            "visibility": "module",
             "children": {}
           },
           "get#albums/[string title]": {
@@ -129,7 +135,8 @@
             "type": "RESOURCE",
             "name": "albums/[string title]",
             "accessor": "get",
-            "scope": "Object",
+            "scope": "Global",
+            "visibility": "module",
             "children": {}
           },
           "delete#albums/[string title]": {
@@ -148,7 +155,8 @@
             "type": "RESOURCE",
             "name": "albums/[string title]",
             "accessor": "delete",
-            "scope": "Object",
+            "scope": "Global",
+            "visibility": "module",
             "children": {}
           }
         }

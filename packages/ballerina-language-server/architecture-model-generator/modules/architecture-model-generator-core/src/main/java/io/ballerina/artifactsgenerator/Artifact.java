@@ -36,21 +36,22 @@ import java.util.Optional;
 /**
  * Represents an artifact in the project tree.
  *
- * @param id       unique identifier for the artifact
- * @param location location information of the artifact
- * @param type     type of the artifact
- * @param name     symbol name of the artifact
- * @param accessor accessor of the artifact
- * @param scope    scope of the artifact (global/local)
- * @param icon     icon representing the artifact
- * @param children map of child artifacts (id -> child)
- * @param module   module name of the artifact
- * @param metadata metadata about the artifact
+ * @param id         unique identifier for the artifact
+ * @param location   location information of the artifact
+ * @param type       type of the artifact
+ * @param name       symbol name of the artifact
+ * @param accessor   accessor of the artifact
+ * @param scope      lexical scope of the artifact (global/local/object)
+ * @param visibility visibility of the artifact (public/module/private)
+ * @param icon       icon representing the artifact
+ * @param children   map of child artifacts (id -> child)
+ * @param module     module name of the artifact
+ * @param metadata   metadata about the artifact
  * @since 1.0.0
  */
 public record Artifact(String id, LineRange location, String type, String name, String accessor,
-                       String scope, String icon, String module, Map<String, Artifact> children,
-                       Map<String, Object> metadata) {
+                       String scope, String visibility, String icon, String module,
+                       Map<String, Artifact> children, Map<String, Object> metadata) {
 
     private static final String CATEGORY_ENTRY_POINTS = "Entry Points";
     private static final String CATEGORY_RESOURCES = "Resources";
@@ -112,7 +113,7 @@ public record Artifact(String id, LineRange location, String type, String name, 
     }
 
     public static Artifact emptyArtifact(String id) {
-        return new Artifact(id, null, null, null, null, null, null, null, null, null);
+        return new Artifact(id, null, null, null, null, null, null, null, null, null, null);
     }
 
     public Artifact {
@@ -154,6 +155,25 @@ public record Artifact(String id, LineRange location, String type, String name, 
     }
 
     /**
+     * Represents the Ballerina visibility levels of an artifact.
+     */
+    public enum Visibility {
+        PUBLIC("public"),
+        MODULE("module"),
+        PRIVATE("private");
+
+        private final String value;
+
+        Visibility(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
+    /**
      * Builder class for creating Artifact instances.
      */
     public static class Builder {
@@ -164,6 +184,7 @@ public record Artifact(String id, LineRange location, String type, String name, 
         private String name;
         private String accessor;
         private Scope scope = Scope.GLOBAL;
+        private Visibility visibility = null;
         private String icon;
         private String module;
         private final Map<String, Artifact> children = new HashMap<>();
@@ -203,6 +224,11 @@ public record Artifact(String id, LineRange location, String type, String name, 
 
         public Builder scope(Scope scope) {
             this.scope = scope;
+            return this;
+        }
+
+        public Builder visibility(Visibility visibility) {
+            this.visibility = visibility;
             return this;
         }
 
@@ -285,7 +311,8 @@ public record Artifact(String id, LineRange location, String type, String name, 
                 id = id == null ? name : id;
             }
             name = IdentifierUtils.unescapeBallerina(name);
-            return new Artifact(id, location, type == null ? null : type.name(), name, accessor, scope.getValue(), icon,
+            return new Artifact(id, location, type == null ? null : type.name(), name, accessor, scope.getValue(),
+                    visibility == null ? null : visibility.getValue(), icon,
                     module, new HashMap<>(children), metadata == null ? null : new HashMap<>(metadata));
         }
     }

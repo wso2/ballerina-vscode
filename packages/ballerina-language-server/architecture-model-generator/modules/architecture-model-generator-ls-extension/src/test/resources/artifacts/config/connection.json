@@ -19,7 +19,8 @@
         },
         "type": "CONNECTION",
         "name": "graphQlConnection",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.17.0.png",
         "module": "graphql",
         "children": {}
@@ -39,7 +40,8 @@
         },
         "type": "CONNECTION",
         "name": "httpConnection",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
         "module": "http",
         "children": {}
@@ -59,7 +61,8 @@
         },
         "type": "CONNECTION",
         "name": "localClient",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "icon": "https://bcentral-packageicons.azureedge.net/images/$anon_._0.0.0.png",
         "module": ".",
         "children": {}
@@ -79,7 +82,8 @@
         },
         "type": "CONNECTION",
         "name": "tcpConnection",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_tcp_1.13.2.png",
         "module": "tcp",
         "children": {}
@@ -102,6 +106,7 @@
         "type": "TYPE",
         "name": "LocalClient",
         "scope": "Global",
+        "visibility": "public",
         "children": {
           "init": {
             "id": "init",
@@ -118,7 +123,8 @@
             },
             "type": "FUNCTION",
             "name": "init",
-            "scope": "Object",
+            "scope": "Global",
+            "visibility": "public",
             "children": {}
           },
           "getData": {
@@ -136,7 +142,8 @@
             },
             "type": "REMOTE",
             "name": "getData",
-            "scope": "Object",
+            "scope": "Global",
+            "visibility": "module",
             "children": {}
           }
         }

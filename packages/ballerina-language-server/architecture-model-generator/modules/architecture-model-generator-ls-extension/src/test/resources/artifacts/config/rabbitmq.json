@@ -19,7 +19,8 @@
         },
         "type": "LISTENER",
         "name": "rabbitmqListener",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.3.1.png",
         "module": "rabbitmq",
         "children": {}
@@ -41,7 +42,8 @@
         },
         "type": "SERVICE",
         "name": "RabbitMQ Event Integration - \"queueName\"",
-        "scope": "Local",
+        "scope": "Global",
+        "visibility": "module",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.3.1.png",
         "module": "rabbitmq",
         "children": {
@@ -60,7 +62,8 @@
             },
             "type": "REMOTE",
             "name": "onMessage",
-            "scope": "Local",
+            "scope": "Global",
+            "visibility": "module",
             "children": {}
           }
         }
