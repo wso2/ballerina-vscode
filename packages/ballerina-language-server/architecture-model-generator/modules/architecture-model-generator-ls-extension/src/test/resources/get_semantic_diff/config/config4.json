@@ -1,9 +1,30 @@
 {
-  "description": "Get diff from two non workspace projects",
-  "projectPath": "service_functions",
+  "description": "Get diff related to resource function variations",
+  "projectPath": "resource_function_cases",
   "output": {
     "loadDesignDiagrams": true,
     "semanticDiffs": [
+      {
+        "changeType": "DELETION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 17,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 19,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "put",
+          "servicePath": "/api",
+          "resourcePath": "items/[string id]"
+        }
+      },
       {
         "changeType": "DELETION",
         "nodeKind": "OBJECT_FUNCTION",
@@ -15,14 +36,14 @@
             "offset": 4
           },
           "endLine": {
-            "line": 35,
+            "line": 31,
             "offset": 5
           }
         },
         "metadata": {
-          "accessor": "delete",
-          "servicePath": "/api/v1/petsstore",
-          "resourcePath": "pets/[string petId]"
+          "accessor": "get",
+          "servicePath": "/api",
+          "resourcePath": "items/[string id]/reviews/[string reviewId]"
         }
       },
       {
@@ -32,7 +53,7 @@
         "lineRange": {
           "fileName": "main.bal",
           "startLine": {
-            "line": 21,
+            "line": 25,
             "offset": 4
           },
           "endLine": {
@@ -41,9 +62,30 @@
           }
         },
         "metadata": {
-          "accessor": "put",
-          "servicePath": "/api/v1/petsstore",
-          "resourcePath": "pets/[string petId]"
+          "accessor": "head",
+          "servicePath": "/api",
+          "resourcePath": "items"
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 32,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 34,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "patch",
+          "servicePath": "/api",
+          "resourcePath": "items/[string id]"
         }
       },
       {
@@ -53,18 +95,18 @@
         "lineRange": {
           "fileName": "main.bal",
           "startLine": {
-            "line": 48,
+            "line": 10,
             "offset": 4
           },
           "endLine": {
-            "line": 84,
+            "line": 13,
             "offset": 5
           }
         },
         "metadata": {
-          "accessor": "post",
-          "servicePath": "/api/v1/petsstore",
-          "resourcePath": "pets"
+          "accessor": "get",
+          "servicePath": "/api",
+          "resourcePath": "items/[string id]"
         }
       },
       {
@@ -74,18 +116,18 @@
         "lineRange": {
           "fileName": "main.bal",
           "startLine": {
-            "line": 90,
+            "line": 28,
             "offset": 4
           },
           "endLine": {
-            "line": 92,
+            "line": 30,
             "offset": 5
           }
         },
         "metadata": {
           "accessor": "get",
-          "servicePath": "/api/v1/petsstore",
-          "resourcePath": "echo"
+          "servicePath": "/api",
+          "resourcePath": "items/[string id]/reviews/[string reviewId]/comments"
         }
       },
       {
@@ -95,75 +137,39 @@
         "lineRange": {
           "fileName": "main.bal",
           "startLine": {
-            "line": 9,
+            "line": 23,
             "offset": 4
           },
           "endLine": {
-            "line": 46,
+            "line": 26,
             "offset": 5
           }
         },
         "metadata": {
           "accessor": "get",
-          "servicePath": "/api/v1/petsstore",
-          "resourcePath": "pets/[string petId]"
+          "servicePath": "/api",
+          "resourcePath": "items/[string id]/reviews"
         }
       },
       {
-        "changeType": "ADDITION",
-        "nodeKind": "TYPE_DEFINITION",
-        "uri": "ai:///types.bal",
+        "changeType": "MODIFICATION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
         "lineRange": {
-          "fileName": "types.bal",
+          "fileName": "main.bal",
           "startLine": {
-            "line": 11,
-            "offset": 0
-          },
-          "endLine": {
-            "line": 15,
-            "offset": 2
-          }
-        },
-        "metadata": {
-          "name": "PetResponse"
-        }
-      },
-      {
-        "changeType": "ADDITION",
-        "nodeKind": "TYPE_DEFINITION",
-        "uri": "ai:///types.bal",
-        "lineRange": {
-          "fileName": "types.bal",
-          "startLine": {
-            "line": 1,
-            "offset": 0
+            "line": 5,
+            "offset": 4
           },
           "endLine": {
             "line": 8,
-            "offset": 2
+            "offset": 5
           }
         },
         "metadata": {
-          "name": "Pet"
-        }
-      },
-      {
-        "changeType": "ADDITION",
-        "nodeKind": "TYPE_DEFINITION",
-        "uri": "ai:///types.bal",
-        "lineRange": {
-          "fileName": "types.bal",
-          "startLine": {
-            "line": 17,
-            "offset": 0
-          },
-          "endLine": {
-            "line": 21,
-            "offset": 2
-          }
-        },
-        "metadata": {
-          "name": "ErrorResponse"
+          "accessor": "get",
+          "servicePath": "/api",
+          "resourcePath": "."
         }
       }
     ]
