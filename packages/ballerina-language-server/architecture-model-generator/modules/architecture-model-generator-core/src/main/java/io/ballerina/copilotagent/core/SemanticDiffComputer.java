@@ -28,10 +28,10 @@ import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.IfElseStatementNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
-import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.LockStatementNode;
 import io.ballerina.compiler.syntax.tree.MatchClauseNode;
 import io.ballerina.compiler.syntax.tree.MatchStatementNode;
+import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.NamedWorkerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
@@ -73,6 +73,7 @@ import java.util.stream.Collectors;
  * @since 1.5.0
  */
 public class SemanticDiffComputer {
+
     private final Project originalProject;
     private final Project modifiedProject;
     private final List<SemanticDiff> semanticDiffs = new ArrayList<>();
@@ -81,12 +82,14 @@ public class SemanticDiffComputer {
 
     public SemanticDiffComputer(Project originalProject,
                                 Project modifiedProject) {
+
         this.originalProject = originalProject;
         this.modifiedProject = modifiedProject;
         this.rootProjectPath = originalProject.sourceRoot().toString();
     }
 
     public Result computeSemanticDiffs() {
+
         Map<String, Document> originalDocumentMap = collectDocumentMap(originalProject);
         Map<String, Document> modifiedDocumentMap = collectDocumentMap(modifiedProject);
 
@@ -147,12 +150,13 @@ public class SemanticDiffComputer {
      * early if a difference is already detected to optimize performance.
      *
      * @param originalListenerMap map of listener names to their declaration nodes
-     *                           from the original project
+     *                            from the original project
      * @param modifiedListenerMap map of listener names to their declaration nodes
-     *                           from the modified project
+     *                            from the modified project
      */
     private void computeListenerDiffs(Map<String, ListenerDeclarationNode> originalListenerMap,
                                       Map<String, ListenerDeclarationNode> modifiedListenerMap) {
+
         if (loadDesignDiagrams) {
             return;
         }
@@ -189,6 +193,7 @@ public class SemanticDiffComputer {
      */
     private void computeModuleVarDiffs(Map<String, ModuleVariableDeclarationNode> originalVarMap,
                                        Map<String, ModuleVariableDeclarationNode> modifiedVarMap) {
+
         if (loadDesignDiagrams) {
             return;
         }
@@ -221,6 +226,7 @@ public class SemanticDiffComputer {
      */
     private void computeTypeDefDiffs(Map<String, TypeDefinitionNode> originalTypeDefMap,
                                      Map<String, TypeDefinitionNode> modifiedTypeDefMap) {
+
         for (Map.Entry<String, TypeDefinitionNode> entry : originalTypeDefMap.entrySet()) {
             String typeDefName = entry.getKey();
             if (!modifiedTypeDefMap.containsKey(typeDefName)) {
@@ -258,6 +264,7 @@ public class SemanticDiffComputer {
      */
     private void computeFunctionDiffs(Map<String, FunctionDefinitionNode> originalFunctionMap,
                                       Map<String, FunctionDefinitionNode> modifiedFunctionMap) {
+
         for (Map.Entry<String, FunctionDefinitionNode> entry : originalFunctionMap.entrySet()) {
             String functionName = entry.getKey();
             if (!modifiedFunctionMap.containsKey(functionName)) {
@@ -291,12 +298,13 @@ public class SemanticDiffComputer {
      *
      * @param originalFunction original function node
      * @param modifiedFunction modified function node
-     * @param kind the kind of node being compared
-     * @param metadata metadata about the function being compared
+     * @param kind             the kind of node being compared
+     * @param metadata         metadata about the function being compared
      */
     private void compareFunctionBodies(FunctionDefinitionNode originalFunction,
                                        FunctionDefinitionNode modifiedFunction,
                                        NodeKind kind, Map<String, String> metadata) {
+
         FunctionBodyNode originalFunctionBody = originalFunction.functionBody();
         FunctionBodyNode modifiedFunctionBody = modifiedFunction.functionBody();
         compareFunctionBodies(modifiedFunction, originalFunctionBody, modifiedFunctionBody, kind, metadata);
@@ -306,16 +314,17 @@ public class SemanticDiffComputer {
      * Compares the bodies of two functions to identify modifications and update
      * semantic diffs accordingly.
      *
-     * @param modifiedFunction modified function node
+     * @param modifiedFunction     modified function node
      * @param originalFunctionBody original function body node
      * @param modifiedFunctionBody modified function body node
-     * @param kind the kind of node being compared
-     * @param metadata metadata about the function being compared
+     * @param kind                 the kind of node being compared
+     * @param metadata             metadata about the function being compared
      */
     private void compareFunctionBodies(NonTerminalNode modifiedFunction,
                                        FunctionBodyNode originalFunctionBody,
                                        FunctionBodyNode modifiedFunctionBody,
                                        NodeKind kind, Map<String, String> metadata) {
+
         if (originalFunctionBody.toSourceCode().equals(modifiedFunctionBody.toSourceCode())) {
             return;
         }
@@ -392,6 +401,7 @@ public class SemanticDiffComputer {
     }
 
     private void extractStatementNodes(Node statementNode, List<Node> nodes) {
+
         nodes.add(statementNode);
         if (statementNode instanceof BlockStatementNode blockStatementNode) {
             NodeList<StatementNode> statements = blockStatementNode.statements();
@@ -468,7 +478,6 @@ public class SemanticDiffComputer {
         }
     }
 
-
     /**
      * Computes service differences between original and modified projects to identify
      * changes and update semantic diffs accordingly.
@@ -491,6 +500,7 @@ public class SemanticDiffComputer {
      */
     private void computeServiceDiffs(Map<String, ServiceDeclarationNode> originalServiceMap,
                                      Map<String, ServiceDeclarationNode> modifiedServiceMap) {
+
         List<String> foundServices = new ArrayList<>();
         for (Map.Entry<String, ServiceDeclarationNode> entry : originalServiceMap.entrySet()) {
             String serviceName = entry.getKey();
@@ -600,6 +610,7 @@ public class SemanticDiffComputer {
      */
     private void analyzeServiceModifications(ServiceDeclarationNode originalService,
                                              ServiceDeclarationNode modifiedService) {
+
         ServiceMemberMap original = extractServiceMembers(originalService);
         ServiceMemberMap modified = extractServiceMembers(modifiedService);
         String servicePath = getServicePath(modifiedService);
@@ -611,11 +622,12 @@ public class SemanticDiffComputer {
      *
      * @param originalMethods Map of original method names to their definition nodes
      * @param modifiedMethods Map of modified method names to their definition nodes
-     * @param servicePath the base path of the service containing these methods
+     * @param servicePath     the base path of the service containing these methods
      */
     private void analyzeMethodChanges(Map<String, FunctionDefinitionNode> originalMethods,
                                       Map<String, FunctionDefinitionNode> modifiedMethods,
                                       String servicePath) {
+
         originalMethods.forEach((key, originalMethod) -> {
             if (!modifiedMethods.containsKey(key)) {
                 LineRange lineRange = originalMethod.lineRange();
@@ -649,6 +661,7 @@ public class SemanticDiffComputer {
      * @return a ServiceMemberMap containing the extracted service members
      */
     private ServiceMemberMap extractServiceMembers(ServiceDeclarationNode service) {
+
         ServiceMemberMap serviceMemberMap = new ServiceMemberMap();
         ServiceMethodExtractor extractor = new ServiceMethodExtractor(serviceMemberMap);
         service.accept(extractor);
@@ -662,6 +675,7 @@ public class SemanticDiffComputer {
      * @return a map of document names to Document objects
      */
     private Map<String, Document> collectDocumentMap(Project project) {
+
         Map<String, Document> documentMap = new HashMap<>();
         project.currentPackage().getDefaultModule().documentIds().stream()
                 .map(project.currentPackage().getDefaultModule()::document)
@@ -679,6 +693,7 @@ public class SemanticDiffComputer {
      * @return a map of service base paths to full service names
      */
     private Map<String, String> extractServiceBasePaths(Map<String, ServiceDeclarationNode> serviceMap) {
+
         Map<String, String> serviceBasePaths = new HashMap<>();
         for (Map.Entry<String, ServiceDeclarationNode> entry : serviceMap.entrySet()) {
             String serviceName = entry.getKey();
@@ -699,6 +714,7 @@ public class SemanticDiffComputer {
      * diagram should be regenerated.
      */
     private void compareUsingDesignDiagrams() {
+
         DesignModelGenerator original = new DesignModelGenerator(originalProject.currentPackage());
         DesignModelGenerator modified = new DesignModelGenerator(modifiedProject.currentPackage());
 
@@ -720,6 +736,7 @@ public class SemanticDiffComputer {
      * @return true if differences are found, false otherwise
      */
     private boolean compareDesignModels(DesignModel original, DesignModel modified) {
+
         if (compareConnections(original.connections(), modified.connections())) {
             return true;
         }
@@ -735,6 +752,7 @@ public class SemanticDiffComputer {
      * @return true if differences are found, false otherwise
      */
     private boolean compareConnections(List<Connection> originalConnections, List<Connection> modifiedConnections) {
+
         if (originalConnections.size() != modifiedConnections.size()) {
             return true;
         }
@@ -775,10 +793,10 @@ public class SemanticDiffComputer {
      *
      * @param originalListeners original list of listeners
      * @param modifiedListeners modified list of listeners
-     *
      * @return true if differences are found, false otherwise
      */
     private boolean compareListeners(List<Listener> originalListeners, List<Listener> modifiedListeners) {
+
         if (originalListeners.size() != modifiedListeners.size()) {
             return true;
         }
@@ -806,6 +824,7 @@ public class SemanticDiffComputer {
      * @return map of connection symbols to connection objects
      */
     private Map<String, List<Connection>> extractConnectionMap(List<Connection> connections) {
+
         Map<String, List<Connection>> connectionMap = new HashMap<>();
         for (Connection connection : connections) {
             String key = connection.getSymbol();
@@ -815,15 +834,18 @@ public class SemanticDiffComputer {
     }
 
     private static Map<String, String> buildTypeMetadata(String typeName) {
+
         return Map.of("name", typeName);
     }
 
     private static Map<String, String> buildFunctionMetadata(String functionName) {
+
         return Map.of("name", functionName);
     }
 
     private static Map<String, String> buildResourceFunctionMetadata(FunctionDefinitionNode functionNode,
                                                                      String servicePath) {
+
         String accessor = functionNode.functionName().text();
         String resourcePath = functionNode.relativeResourcePath().stream()
                 .map(node -> node.toSourceCode().trim())
@@ -836,6 +858,7 @@ public class SemanticDiffComputer {
     }
 
     private static String getServicePath(ServiceDeclarationNode service) {
+
         return service.absoluteResourcePath().stream()
                 .map(Node::toString)
                 .map(String::trim)
@@ -843,6 +866,7 @@ public class SemanticDiffComputer {
     }
 
     private String resolveUri(String fileName) {
+
         Path filePath = Path.of(rootProjectPath).resolve(fileName);
         return "ai" + filePath.toUri().toString().substring(4);
     }
