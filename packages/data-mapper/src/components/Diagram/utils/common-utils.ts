@@ -111,7 +111,7 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         if (sourceDim > 0) {
             const dimDelta = sourceDim - targetDim;
             if (dimDelta == 0) {
-                if(targetPort.attributes.portName.endsWith(".#")) {
+                if(isQueryHeaderPort(targetPort)) {
                     return MappingType.ArrayConnect;
                 }
                 return MappingType.ArrayToArray;
@@ -327,9 +327,12 @@ export function handleExpand(id: string, expanded: boolean) {
 }
 
 export function isExpandable(field: IOType): boolean {
-    return field?.kind === TypeKind.Record ||
-        field?.kind === TypeKind.Array ||
-        field?.kind === TypeKind.Enum;
+    const fieldKind = field?.kind;
+    return fieldKind === TypeKind.Record ||
+        fieldKind === TypeKind.Array ||
+        fieldKind === TypeKind.Json ||
+        fieldKind === TypeKind.Xml ||
+        fieldKind === TypeKind.Enum;
 }
 
 export function getTargetField(viewId: string, outputId: string){
@@ -345,3 +348,19 @@ export function getTargetField(viewId: string, outputId: string){
 export function isWithinSubMappingRootView(views: View[]): boolean {
     return views.length > 1 && views[views.length - 1].subMappingInfo?.focusedOnSubMappingRoot;
 }
+
+export function isQueryHeaderPort(port: InputOutputPortModel): boolean {
+    // This function intentionally placed here instead of port-utils.ts to avoid cyclic dependency issues
+    return port.attributes.portName.endsWith("Q#");
+}
+
+export function isGroupHeaderPort(port: InputOutputPortModel): boolean {
+    // This function intentionally placed here instead of port-utils.ts to avoid cyclic dependency issues
+    return port.attributes.portName.endsWith("G#");
+}
+
+export function isHeaderPort(port: InputOutputPortModel): boolean {
+    // This function intentionally placed here instead of port-utils.ts to avoid cyclic dependency issues
+    return port.attributes.portName.endsWith("#");
+}
+

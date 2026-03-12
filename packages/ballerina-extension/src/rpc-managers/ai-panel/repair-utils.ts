@@ -91,7 +91,12 @@ export async function isModuleNotFoundDiagsExist(diagnosticsResult: Diagnostics[
 
     // Process each unique diagnostic only once
     let projectModified = false;
-    for (const [_, { uri }] of uniqueDiagnosticMap.entries()) {
+    for (const [message, { uri }] of uniqueDiagnosticMap.entries()) {
+        // Skip resolving dependencies for the invalid config import pattern
+        if (message.includes("ballerinax/.config as config")) {
+            continue;
+        }
+
         const dependenciesResponse = await langClient.resolveModuleDependencies({
             documentIdentifier: {
                 uri: uri

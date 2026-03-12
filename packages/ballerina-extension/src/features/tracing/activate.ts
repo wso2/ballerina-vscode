@@ -65,7 +65,7 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
     });
 
     const enableTracingCommand = vscode.commands.registerCommand(ENABLE_TRACING_COMMAND, async () => {
-        const targetPath = await resolveTracingTargetPath("Select a package to enable tracing");
+        const targetPath = await resolveTracingTargetPath("Select an integration to enable tracing");
         if (!targetPath) {
             return;
         }
@@ -76,7 +76,7 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
     });
 
     const disableTracingCommand = vscode.commands.registerCommand(DISABLE_TRACING_COMMAND, async () => {
-        const targetPath = await resolveTracingTargetPath("Select a package to disable tracing");
+        const targetPath = await resolveTracingTargetPath("Select an integration to disable tracing");
         if (!targetPath) {
             return;
         }
@@ -92,8 +92,8 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
 
     const showTraceDetailsCommand = vscode.commands.registerCommand(
         SHOW_TRACE_DETAILS_COMMAND,
-        (trace: Trace) => {
-            showTraceDetails(trace);
+        (trace: Trace, focusSpanId?: string) => {
+            showTraceDetails(trace, focusSpanId);
         }
     );
 
@@ -111,8 +111,8 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
 
 /**
  * Resolves the target project path for tracing operations.
- * Handles package selection when required and updates the state machine accordingly.
- * @param promptMessage - The message to display when prompting for package selection
+ * Handles integration selection when required and updates the state machine accordingly.
+ * @param promptMessage - The message to display when prompting for integration selection
  * @returns The resolved target path, or undefined if the user cancelled the selection
  */
 async function resolveTracingTargetPath(promptMessage: string): Promise<string | undefined> {
@@ -192,9 +192,9 @@ async function showTraceWindow(): Promise<void> {
 /**
  * Show trace details in a webview
  */
-function showTraceDetails(trace: Trace): void {
+function showTraceDetails(trace: Trace, focusSpanId?: string): void {
     try {
-        TraceDetailsWebview.show(trace);
+        TraceDetailsWebview.show(trace, false, focusSpanId);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         vscode.window.showErrorMessage(`Failed to show trace details: ${message}`);

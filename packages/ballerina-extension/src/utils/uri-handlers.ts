@@ -20,8 +20,7 @@ import { window, Uri, ProviderResult, commands } from "vscode";
 import { BallerinaExtension } from "../core";
 import { handleOpenFile, handleOpenRepo } from ".";
 import { CMP_OPEN_VSCODE_URL, TM_EVENT_OPEN_FILE_URL_START, TM_EVENT_OPEN_REPO_URL_START, sendTelemetryEvent } from "../features/telemetry";
-import { exchangeAuthCode } from "../views/ai-panel/auth";
-import { IOpenCompSrcCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
+import { IOpenCompSrcCmdParams, WICommandIds } from "@wso2/wso2-platform-core";
 
 export function activateUriHandlers(ballerinaExtInstance: BallerinaExtension) {
     window.registerUriHandler({
@@ -50,12 +49,9 @@ export function activateUriHandlers(ballerinaExtInstance: BallerinaExtension) {
                     }
                     break;
                 case '/signin':
-                    const query = new URLSearchParams(uri.query);
-                    const code = query.get('code');
-                    if (code) {
-                        exchangeAuthCode(code);
-                    }
-                    console.log("Auth code not found. Ignoring");
+                    // Legacy OAuth callback route - no longer used
+                    // Authentication is now handled via Devant platform extension
+                    console.log("Legacy /signin route called - authentication now uses Devant platform extension");
                     break;
                 case '/open':
                     const org = urlParams.get("org");
@@ -65,7 +61,7 @@ export function activateUriHandlers(ballerinaExtInstance: BallerinaExtension) {
                     const integrationType = urlParams.get("integrationType");
                     const integrationDisplayType = urlParams.get("integrationDisplayType");
                     if (org && project && component && technology && integrationType) {
-                        commands.executeCommand(PlatformExtCommandIds.OpenCompSrcDir, {
+                        commands.executeCommand(WICommandIds.OpenCompSrcDir, {
                             org, project, component, technology, integrationType, integrationDisplayType, extName: "Devant"
                         } as IOpenCompSrcCmdParams);
                     } else {

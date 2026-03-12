@@ -21,7 +21,7 @@ import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import { AIMachineEventType } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Icon, Typography } from "@wso2/ui-toolkit";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 const PanelWrapper = styled.div`
     display: flex;
@@ -130,6 +130,16 @@ const LegalNotice: React.FC = () => {
 
 const LoginPanel: React.FC = () => {
     const { rpcClient } = useRpcContext();
+    const [isPlatformAvailable, setIsPlatformAvailable] = useState<boolean>(true);
+
+    useEffect(() => {
+        // Check if platform extension is available on mount
+        rpcClient.getAiPanelRpcClient().isPlatformExtensionAvailable().then((available) => {
+            setIsPlatformAvailable(available);
+        }).catch(() => {
+            setIsPlatformAvailable(false);
+        });
+    }, [rpcClient]);
 
     const handleCopilotLogin = () => {
         rpcClient.sendAIStateEvent(AIMachineEventType.LOGIN);
@@ -141,6 +151,10 @@ const LoginPanel: React.FC = () => {
 
     const handleAwsBedrockClick = () => {
         rpcClient.sendAIStateEvent(AIMachineEventType.AUTH_WITH_AWS_BEDROCK);
+    };
+
+    const handleVertexAiClick = () => {
+        rpcClient.sendAIStateEvent(AIMachineEventType.AUTH_WITH_VERTEX_AI);
     };
 
     return (
@@ -168,10 +182,13 @@ const LoginPanel: React.FC = () => {
             <BottomSpacer />
             <FooterContent>
                 <LegalNotice />
-                <StyledButton onClick={handleCopilotLogin}>Login to BI Copilot</StyledButton>
-                <Divider>or</Divider>
+                {isPlatformAvailable && (
+                    <StyledButton onClick={handleCopilotLogin}>Login using Devant</StyledButton>
+                )}
+                {isPlatformAvailable && <Divider>or</Divider>}
                 <TextButton onClick={handleAnthropicKeyClick}>Enter your Anthropic API key</TextButton>
                 <TextButton onClick={handleAwsBedrockClick}>Enter your AWS Bedrock credentials</TextButton>
+                <TextButton onClick={handleVertexAiClick}>Enter your Google Vertex AI credentials</TextButton>
             </FooterContent>
         </PanelWrapper>
     );

@@ -27,7 +27,7 @@ import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Por
 import { TreeBody, TreeContainer, TreeHeader } from '../commons/Tree/Tree';
 import { ObjectOutputFieldWidget } from "./ObjectOutputFieldWidget";
 import { useIONodesStyles } from '../../../styles';
-import { useDMCollapsedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
+import { useDMCollapsedFieldsStore, useDMExpressionBarStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { OutputSearchHighlight } from '../commons/Search';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -71,9 +71,11 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 	);
 
 	const fields = outputType.fields.filter(t => t !== null);
-	const hasFields = fields.length > 0;
+
+	const exprBarFocusedPort = useDMExpressionBarStore(state => state.focusedPort);
 
 	const portIn = getPort(`${id}.IN`);
+	const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
@@ -81,8 +83,6 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 		expanded = false;
 	}
 	const isDisabled = portIn?.attributes.descendantHasValue;
-
-	const indentation = (portIn && (!hasFields || !expanded)) ? 0 : 24;
 
 	const handleExpand = () => {
 		const collapsedFields = collapsedFieldsStore.fields;
@@ -106,7 +106,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 	};
 
 	const label = (
-		<TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline" }}>
+		<TruncatedLabelGroup style={{ alignItems: "baseline" }}>
 			{valueLabel && (
 				<TruncatedLabel className={classes.valueLabelHeader}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
@@ -129,7 +129,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 		<>
 			<TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick}>
 				<TreeHeader
-					isSelected={portState !== PortState.Unselected}
+					isSelected={portState !== PortState.Unselected || isExprBarFocused}
 					id={"recordfield-" + id}
 					onMouseEnter={onMouseEnter}
 					onMouseLeave={onMouseLeave}
@@ -146,10 +146,9 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 					</span>
 					<span className={classes.label}>
 						<Button
-							id={"expand-or-collapse-" + id} 
+							id={"expand-or-collapse-" + id}
 							appearance="icon"
 							tooltip="Expand/Collapse"
-							sx={{ marginLeft: indentation }}
 							onClick={handleExpand}
 							data-testid={`${id}-expand-icon-mapping-target-node`}
 						>

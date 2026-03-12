@@ -233,20 +233,22 @@ export function sendIntermidateStateNotification(intermediaryState: Documentatio
     sendAIPanelNotification(msg);
 }
 
-export function sendToolCallNotification(toolName: string, toolInput?: any): void {
+export function sendToolCallNotification(toolName: string, toolInput?: any, toolCallId?: string): void {
     const msg: ToolCall = {
         type: "tool_call",
         toolName: toolName,
         toolInput: toolInput,
+        toolCallId: toolCallId,
     };
     sendAIPanelNotification(msg);
 }
 
-export function sendToolResultNotification(toolName: string, toolOutput?: any): void {
+export function sendToolResultNotification(toolName: string, toolOutput?: any, toolCallId?: string): void {
     const msg: ToolResult = {
         type: "tool_result",
         toolName: toolName,
         toolOutput: toolOutput,
+        toolCallId: toolCallId,
     };
     sendAIPanelNotification(msg);
 }
@@ -292,6 +294,10 @@ export function sendConnectorGenerationNotification(event: ChatNotify & { type: 
     sendAIPanelNotification(event);
 }
 
+export function sendConfigurationCollectionNotification(event: ChatNotify & { type: "configuration_collection_event" }): void {
+    sendAIPanelNotification(event);
+}
+
 function sendAIPanelNotification(msg: ChatNotify): void {
     RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
 }
@@ -307,7 +313,7 @@ export function getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
         // Standard Error objects have a .message property
         if (error.name === "UsageLimitError") {
-            return "Usage limit exceeded. Please try again later.";
+            return "Usage limit exceeded.";
         }
         if (error.name === "AI_RetryError") {
             return "An error occured connecting with the AI service. Please try again later.";
@@ -327,7 +333,7 @@ export function getErrorMessage(error: unknown): string {
     ) {
         // Check if it has a statusCode property indicating 429
         if ("statusCode" in error && (error as any).statusCode === 429) {
-            return "Usage limit exceeded. Please try again later.";
+            return "Usage limit exceeded.";
         }
         return (error as { message: string }).message;
     }

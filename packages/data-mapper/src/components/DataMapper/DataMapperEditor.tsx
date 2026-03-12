@@ -144,6 +144,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         enrichChildFields,
         genUniqueName,
         getConvertedExpression,
+        createConvertedVariable,
         undoRedoGroup
     } = props;
     const {
@@ -240,6 +241,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 model, 
                 views, 
                 hasInputsOutputsChanged,
+                reusable,
                 addView, 
                 applyModifications, 
                 addArrayElement,
@@ -252,7 +254,8 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 goToFunction,
                 enrichChildFields,
                 genUniqueName,
-                getConvertedExpression
+                getConvertedExpression,
+                createConvertedVariable
             );
 
             const ioNodeInitVisitor = new IONodeInitVisitor(context);
