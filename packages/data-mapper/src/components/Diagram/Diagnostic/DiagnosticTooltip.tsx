@@ -26,25 +26,28 @@ interface Props {
     children: React.ReactNode;
     diagnostic: string;
     value?: string
+    actionText?: string;
     onClick?: () => void;
 }
 
 export const DiagnosticTooltipID = "data-mapper-diagnostic-tooltip";
 
 export function DiagnosticTooltip(props: Partial<Props>) {
-    const { diagnostic, value, children, onClick } = props;
+    const { diagnostic, value, actionText, children, onClick } = props;
     const classes = useStyles();
 
     const Code = () => (
         <>
             <Divider />
             <div className={classes.source}>
-                <code
-                    data-lang="typescript"
-                    className={classes.code}
-                >
-                    {value.trim()}
-                </code>
+                {value && (
+                    <code
+                        data-lang="typescript"
+                        className={classes.code}
+                    >
+                        {value.trim()}
+                    </code>
+                )}
                 <Button
                     appearance="icon"
                     className={classes.editButton}
@@ -52,7 +55,7 @@ export function DiagnosticTooltip(props: Partial<Props>) {
                     onClick={onClick}
                 >
                     <Codicon name="tools" sx={{ marginRight: "8px" }} />
-                    <span className={classes.editButtonText}>Fix by editing source</span>
+                    <span className={classes.editButtonText}>{actionText || "Fix by editing source"}</span>
                 </Button>
             </div>
         </>
@@ -77,7 +80,7 @@ export function DiagnosticTooltip(props: Partial<Props>) {
     const tooltipTitleComponent = (
         <pre className={classes.pre}>
             {diagnostic && <DiagnosticC />}
-            {value && <Code />}
+            <Code />
         </pre>
     );
 

@@ -19,7 +19,7 @@
 import React, { useState } from 'react';
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
-import { Button, Codicon, TruncatedLabel, TruncatedLabelGroup } from '@wso2/ui-toolkit';
+import { Button, Codicon, Icon, TruncatedLabel, TruncatedLabelGroup } from '@wso2/ui-toolkit';
 import { IOType, Mapping, TypeKind } from '@wso2/ballerina-core';
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
@@ -30,6 +30,7 @@ import { useIONodesStyles } from '../../../styles';
 import { useDMCollapsedFieldsStore, useDMExpressionBarStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { OutputSearchHighlight } from '../commons/Search';
 import { useShallow } from 'zustand/react/shallow';
+import { DiagnosticTooltip } from '../../Diagnostic/DiagnosticTooltip';
 
 export interface ObjectOutputWidgetProps {
 	id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -156,6 +157,25 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 						</Button>
 						{label}
 					</span>
+					{context.model.hasInvalidOutput && (
+						<DiagnosticTooltip
+							placement="right"
+							diagnostic="Output has invalid fields"
+							actionText="Fix by removing invalid fields"
+							onClick={context.resolveOutput}
+						>
+							<Button
+								appearance="icon"
+								data-testid={`array-widget-field-${portIn?.getName()}`}
+							>
+								<Icon
+									name="error-icon"
+									sx={{ height: "14px", width: "14px" }}
+									iconSx={{ fontSize: "14px", color: "var(--vscode-errorForeground)" }}
+								/>
+							</Button>
+						</DiagnosticTooltip>
+					)}
 				</TreeHeader>
 				{(expanded && fields) && (
 					<TreeBody>
