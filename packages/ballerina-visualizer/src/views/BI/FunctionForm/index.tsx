@@ -108,6 +108,13 @@ export function FunctionForm(props: FunctionFormProps) {
             fields = automationFields;
         }
 
+        const annotations = functionNode?.properties?.annotations?.value;
+        if (typeof annotations === "string" && annotations.includes("@ai:AgentTool")) {
+            formType.current = "Agent Tool";
+            setTitleSubtitle('Build a tool that can be used by AI agents');
+            setFormSubtitle('Define the inputs and outputs of the tool');
+        }
+
         // update description fields as "TEXTAREA"
         fields.forEach((field) => {
             const primaryInputType = getPrimaryInputType(field.types)
