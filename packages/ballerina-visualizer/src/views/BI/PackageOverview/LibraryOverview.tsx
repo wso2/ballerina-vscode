@@ -148,9 +148,13 @@ const ConstructItemIcon = styled.div`
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    > div:first-child {
+    gap: 4px;
+    > * {
         width: 14px;
         height: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 14px;
     }
 `;
@@ -392,6 +396,7 @@ export function LibraryOverview(props: LibraryOverviewProps) {
     ) => {
         const displayItems = isSearching ? filteredItems : allItems;
         const hasItems = displayItems.length > 0;
+        const publicTooltip = "Exposed to other integrations"
 
         return (
             <Section key={section.key} id={`section-${section.key}`} vertical={vertical}>
@@ -423,9 +428,13 @@ export function LibraryOverview(props: LibraryOverviewProps) {
                                 accentColor={section.accentColor}
                                 fullWidth={vertical}
                                 onClick={() => handleItemClick(section.key, item)}
+                                title={item.isPublic ? publicTooltip : undefined}
                             >
                                 <ConstructItemIcon>
                                     <Icon name={section.icon} />
+                                    {item.isPublic && (
+                                        <Codicon name="globe" iconSx={{ fontSize: 14 }} />
+                                    )}
                                 </ConstructItemIcon>
                                 <ConstructItemName flex={vertical}>
                                     {highlightName(item.name, query)}

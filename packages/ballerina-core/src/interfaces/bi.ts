@@ -411,6 +411,7 @@ export interface ProjectStructureArtifactResponse {
     position?: NodePosition;
     resources?: ProjectStructureArtifactResponse[];
     isNew?: boolean;
+    isPublic?: boolean;
 }
 
 export interface UpdatedArtifactsResponse {
