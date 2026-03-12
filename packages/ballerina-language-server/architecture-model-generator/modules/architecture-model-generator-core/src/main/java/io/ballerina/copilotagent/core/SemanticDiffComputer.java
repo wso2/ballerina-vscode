@@ -28,6 +28,7 @@ import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.IfElseStatementNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
+import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.LockStatementNode;
 import io.ballerina.compiler.syntax.tree.MatchClauseNode;
 import io.ballerina.compiler.syntax.tree.MatchStatementNode;
@@ -123,6 +124,7 @@ public class SemanticDiffComputer {
         computeServiceDiffs(originalNodeRefMap.getServiceNodeMap(), modifiedNodeRefMap.getServiceNodeMap());
         computeFunctionDiffs(originalNodeRefMap.getFunctionNodeMap(), modifiedNodeRefMap.getFunctionNodeMap());
         computeTypeDefDiffs(originalNodeRefMap.getTypeDefNodeMap(), modifiedNodeRefMap.getTypeDefNodeMap());
+        computeModuleVarDiffs(originalNodeRefMap.getModuleVarNodeMap(), modifiedNodeRefMap.getModuleVarNodeMap());
 
         if (!loadDesignDiagrams) {
             compareUsingDesignDiagrams();
@@ -161,10 +163,51 @@ public class SemanticDiffComputer {
                 loadDesignDiagrams = true;
                 return;
             }
-            modifiedListenerMap.remove(listenerName);
+            ListenerDeclarationNode originalListener = entry.getValue();
+            ListenerDeclarationNode modifiedListener = modifiedListenerMap.remove(listenerName);
+            if (!originalListener.toSourceCode().equals(modifiedListener.toSourceCode())) {
+                loadDesignDiagrams = true;
+                return;
+            }
         }
 
         if (!modifiedListenerMap.isEmpty()) {
+            loadDesignDiagrams = true;
+        }
+    }
+
+    /**
+     * Computes module-level variable differences between original and modified projects to
+     * determine if design diagrams need to be reloaded.
+     *
+     * <p>Module-level variables include client/connection declarations. Changes to these
+     * variables (additions, removals, or modifications) affect the design diagram and
+     * should trigger a reload.
+     *
+     * @param originalVarMap original map of variable names to their declaration nodes
+     * @param modifiedVarMap modified map of variable names to their declaration nodes
+     */
+    private void computeModuleVarDiffs(Map<String, ModuleVariableDeclarationNode> originalVarMap,
+                                       Map<String, ModuleVariableDeclarationNode> modifiedVarMap) {
+        if (loadDesignDiagrams) {
+            return;
+        }
+
+        for (Map.Entry<String, ModuleVariableDeclarationNode> entry : originalVarMap.entrySet()) {
+            String varName = entry.getKey();
+            if (!modifiedVarMap.containsKey(varName)) {
+                loadDesignDiagrams = true;
+                return;
+            }
+            ModuleVariableDeclarationNode originalVar = entry.getValue();
+            ModuleVariableDeclarationNode modifiedVar = modifiedVarMap.remove(varName);
+            if (!originalVar.toSourceCode().equals(modifiedVar.toSourceCode())) {
+                loadDesignDiagrams = true;
+                return;
+            }
+        }
+
+        if (!modifiedVarMap.isEmpty()) {
             loadDesignDiagrams = true;
         }
     }
@@ -468,6 +511,8 @@ public class SemanticDiffComputer {
         Map<String, String> modifiedServiceBasePaths = extractServiceBasePaths(modifiedServiceMap);
 
         // Check for matches and handle differences
+        // Services matching by base path but not by full key means the listener
+        // expression changed (e.g., inline listener port change), which is a design diagram concern
         for (Map.Entry<String, String> entry : originalServiceBasePaths.entrySet()) {
             String basePath = entry.getKey();
             if (modifiedServiceBasePaths.containsKey(basePath)) {
@@ -477,10 +522,35 @@ public class SemanticDiffComputer {
                 foundServices.add(modifiedServiceName);
                 ServiceDeclarationNode originalService = originalServiceMap.get(originalServiceName);
                 ServiceDeclarationNode modifiedService = modifiedServiceMap.get(modifiedServiceName);
+                String originalExpressions = originalService.expressions().stream()
+                        .map(Node::toSourceCode).collect(Collectors.joining(","));
+                String modifiedExpressions = modifiedService.expressions().stream()
+                        .map(Node::toSourceCode).collect(Collectors.joining(","));
+                if (!originalExpressions.equals(modifiedExpressions)) {
+                    loadDesignDiagrams = true;
+                }
                 analyzeServiceModifications(originalService, modifiedService);
             }
         }
         foundServices.forEach(modifiedServiceMap::remove);
+        foundServices.forEach(originalServiceMap::remove);
+
+        // Handle removed services
+        if (!originalServiceMap.isEmpty()) {
+            loadDesignDiagrams = true;
+            originalServiceMap.forEach((serviceName, originalService) -> {
+                ServiceMemberMap originalServiceMemberMap = extractServiceMembers(originalService);
+                String servicePath = getServicePath(originalService);
+
+                originalServiceMemberMap.getObjectMethods().forEach((key, originalMethod) -> {
+                    LineRange lineRange = originalMethod.lineRange();
+                    Map<String, String> metadata = buildResourceFunctionMetadata(originalMethod, servicePath);
+                    SemanticDiff diff = new SemanticDiff(ChangeType.DELETION, NodeKind.OBJECT_FUNCTION,
+                            resolveUri(lineRange.fileName()), lineRange, metadata);
+                    this.semanticDiffs.add(diff);
+                });
+            });
+        }
 
         if (modifiedServiceMap.isEmpty()) {
             return;
@@ -754,7 +824,7 @@ public class SemanticDiffComputer {
 
     private static Map<String, String> buildResourceFunctionMetadata(FunctionDefinitionNode functionNode,
                                                                      String servicePath) {
-        String accessor = functionNode.functionName().toSourceCode().trim();
+        String accessor = functionNode.functionName().text();
         String resourcePath = functionNode.relativeResourcePath().stream()
                 .map(node -> node.toSourceCode().trim())
                 .collect(Collectors.joining(""));
