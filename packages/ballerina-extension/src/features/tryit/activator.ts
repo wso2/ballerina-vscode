@@ -77,7 +77,8 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
                     if (!processesRunning) { return; }
 
                     if (content) {
-                        await vscode.commands.executeCommand('wso2-http-book.importHurlString', content, options);
+                        const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
+                        await vscode.commands.executeCommand('wso2-http-book.importHurlString', content, { ...options, savePath });
                     }
                 } catch (error) {
                     handleError(error, "Starting Ballerina service");
