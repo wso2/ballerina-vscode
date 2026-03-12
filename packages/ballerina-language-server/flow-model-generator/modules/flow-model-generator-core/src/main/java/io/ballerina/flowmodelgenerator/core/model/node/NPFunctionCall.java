@@ -114,7 +114,7 @@ public class NPFunctionCall extends FunctionCall {
             properties()
                     .type(returnTypeName, functionData.inferredReturnType(), functionData.importStatements(), false)
                     .data(returnTypeName, context.getAllVisibleSymbolNames(), Property.RESULT_NAME,
-                            Property.RESULT_DOC);
+                            Property.RESULT_DOC, false);
         }
 
         if (functionData.returnError()) {

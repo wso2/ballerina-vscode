@@ -111,7 +111,7 @@
             "selected": true
           }
         ],
-        "value": "string1",
+        "value": "stringResult",
         "optional": false,
         "editable": true,
         "advanced": false,

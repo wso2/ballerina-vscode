@@ -83,7 +83,7 @@
             "selected": true
           }
         ],
-        "value": "json1",
+        "value": "jsonResult",
         "optional": false,
         "editable": true,
         "advanced": false,
