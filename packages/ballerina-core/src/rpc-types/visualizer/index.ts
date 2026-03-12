@@ -40,5 +40,5 @@ export interface VisualizerAPI {
     handleApprovalPopupClose: (params: HandleApprovalPopupCloseRequest) => void;
     reopenApprovalView: (params: ReopenApprovalViewRequest) => void;
     saveEvalThread: (params: SaveEvalThreadRequest) => Promise<SaveEvalThreadResponse>;
-    openReviewModeAtIndex: (index: number) => void;
+    navigateReviewMode: (index: number) => void;
 }

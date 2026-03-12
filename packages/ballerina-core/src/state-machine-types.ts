@@ -222,6 +222,12 @@ export interface ReviewModeData {
     currentIndex: number;
     onAccept?: string;
     onReject?: string;
+    semanticDiffs?: object[];
+    loadDesignDiagrams?: boolean;
+    affectedPackages?: string[];
+    modifiedFiles?: string[];
+    tempProjectPath?: string;
+    isWorkspace?: boolean;
 }
 
 // --- Evalset Trace Types ---

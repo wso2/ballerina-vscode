@@ -59,6 +59,7 @@ import {
     ProjectMigrationResult,
     onMigratedProject,
     refreshReviewMode,
+    navigateReviewIndex,
     onHideReviewActions,
     approvalOverlayState,
     ApprovalOverlayState
@@ -284,6 +285,10 @@ export class BallerinaRpcClient {
 
     onRefreshReviewMode(callback: () => void) {
         this.messenger.onNotification(refreshReviewMode, callback);
+    }
+
+    onNavigateReviewIndex(callback: (index: number) => void) {
+        this.messenger.onNotification(navigateReviewIndex, callback);
     }
 
     onHideReviewActions(callback: () => void) {
