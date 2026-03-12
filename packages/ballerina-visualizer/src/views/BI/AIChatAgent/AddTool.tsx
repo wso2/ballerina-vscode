@@ -122,19 +122,6 @@ export function AddTool(props: AddToolProps): JSX.Element {
             </Description>
 
             <Column>
-                <OptionCard onClick={handleCreateCustomTool}>
-                    <OptionHeader>
-                        <OptionIcon>
-                            <Icon name="bi-flowchart" />
-                        </OptionIcon>
-                        <OptionTitle>Create Custom Tool</OptionTitle>
-                    </OptionHeader>
-                    <OptionDescription>
-                        Build a new tool from scratch using the visual flow editor.
-                        Define the tool's logic, inputs, and outputs to give your agent customized capabilities tailored to your exact needs.
-                    </OptionDescription>
-                </OptionCard>
-
                 <OptionCard onClick={handleUseConnection}>
                     <OptionHeader>
                         <OptionIcon>
@@ -171,6 +158,19 @@ export function AddTool(props: AddToolProps): JSX.Element {
                     <OptionDescription>
                         Connect to a Model Context Protocol (MCP) server to access pre-built tools and resources.
                         MCP servers provide standardized access to external systems and data sources.
+                    </OptionDescription>
+                </OptionCard>
+
+                <OptionCard onClick={handleCreateCustomTool}>
+                    <OptionHeader>
+                        <OptionIcon>
+                            <Icon name="bi-flowchart" />
+                        </OptionIcon>
+                        <OptionTitle>Create Custom Tool</OptionTitle>
+                    </OptionHeader>
+                    <OptionDescription>
+                        Build a new tool from scratch using the visual flow editor.
+                        Define the tool's logic, inputs, and outputs to give your agent customized capabilities tailored to your exact needs.
                     </OptionDescription>
                 </OptionCard>
             </Column>
