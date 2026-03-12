@@ -182,6 +182,26 @@
             "node": "SEND_DATA"
           },
           "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Call Activity",
+            "description": "Call a workflow activity function"
+          },
+          "codedata": {
+            "node": "ACTIVITY_CALL"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Wait for Data",
+            "description": "Wait for workflow data to be received"
+          },
+          "codedata": {
+            "node": "WAIT_DATA"
+          },
+          "enabled": true
         }
       ]
     },

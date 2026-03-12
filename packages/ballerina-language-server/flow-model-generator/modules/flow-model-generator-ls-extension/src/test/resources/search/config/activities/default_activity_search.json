@@ -1,6 +1,6 @@
 {
   "description": "Search for workflow activity functions",
-  "kind": "ACTIVITY",
+  "kind": "ACTIVITY_CALL",
   "source": "workflow_proj/main.bal",
   "position": {
     "startLine": {

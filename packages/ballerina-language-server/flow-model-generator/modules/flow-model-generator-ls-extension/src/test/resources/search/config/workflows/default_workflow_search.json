@@ -1,6 +1,6 @@
 {
   "description": "Search for workflow process functions",
-  "kind": "WORKFLOW",
+  "kind": "WORKFLOW_RUN",
   "source": "workflow_proj/main.bal",
   "position": {
     "startLine": {
