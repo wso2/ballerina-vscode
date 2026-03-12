@@ -136,10 +136,10 @@ export class CreateLinkState extends State<DiagramEngine> {
 								this.link.setTargetPort(focusedPort);
 								const connectingMappingType = getMappingType(element, focusedPort);
 								if (isPendingMappingRequired(connectingMappingType)) {
-									(this.link as any).pendingMappingType = connectingMappingType;
+									(this.link as DataMapperLinkModel).pendingMappingType = connectingMappingType;
 									this.temporaryLink = this.link;
 								}
-								this.engine.getModel().addAll(this.link)
+								this.engine.getModel().addAll(this.link);
 								
 								this.eject();
 							}
@@ -175,7 +175,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 
 									const connectingMappingType = getMappingType(this.sourcePort, element);
 									if (isPendingMappingRequired(connectingMappingType)) {
-										(this.link as any).pendingMappingType = connectingMappingType;
+										(this.link as DataMapperLinkModel).pendingMappingType = connectingMappingType;
 										this.temporaryLink = this.link;
 									}
 
