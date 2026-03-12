@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Divider, Typography } from '@wso2/ui-toolkit';
 import { EditorContainer } from '../../../styles';
 import { getPrimaryInputType, LineRange, ParameterModel } from '@wso2/ballerina-core';
@@ -30,10 +30,25 @@ export interface ParamEditorProps {
     onChange: (param: ParameterModel) => void;
     onSave?: (param: ParameterModel) => void;
     onCancel?: (param?: ParameterModel) => void;
+    typeLabel?: string;
 }
 
+/** Strips array or stream wrapper to recover the bare record type name. */
+const extractBaseRecordType = (typeValue: string): string => {
+    if (!typeValue) return '';
+    if (typeValue.endsWith('[]') && typeValue !== 'string[]' && typeValue !== 'byte[]') {
+        return typeValue.slice(0, -2);
+    }
+    if (typeValue.startsWith('stream<')) {
+        if (typeValue.endsWith(', error?>')) return typeValue.slice(7, -9);
+        if (typeValue.endsWith(', error>')) return typeValue.slice(7, -8);
+        if (typeValue.endsWith('>')) return typeValue.slice(7, -1);
+    }
+    return typeValue;
+};
+
 export function ParamEditor(props: ParamEditorProps) {
-    const { param, onChange, onSave, onCancel } = props;
+    const { param, onChange, onSave, onCancel, typeLabel = 'Content Schema' } = props;
 
     const { rpcClient } = useRpcContext();
     const [currentFields, setCurrentFields] = useState<FormField[]>([]);
@@ -53,9 +68,9 @@ export function ParamEditor(props: ParamEditorProps) {
 
     const updateFormFields = () => {
         const fields: FormField[] = [];
-        const typeFieldType = getPrimaryInputType(param.type?.types)?.fieldType || "TEXT";
+        const typeFieldType = getPrimaryInputType(param.type?.types)?.fieldType || 'TYPE';
+        const baseType = extractBaseRecordType(param.type?.value || param.type?.placeholder || '');
 
-        // Add name field - always use IDENTIFIER since param name is a plain identifier, not an expression
         fields.push({
             key: `name`,
             label: 'Name',
@@ -68,17 +83,16 @@ export function ParamEditor(props: ParamEditorProps) {
             types: [{ fieldType: 'IDENTIFIER', selected: false }]
         });
 
-        // Add type field
         fields.push({
             key: `type`,
-            label: 'Type',
+            label: typeLabel,
             type: typeFieldType,
             optional: false,
             editable: true,
             documentation: param?.type?.metadata?.description || '',
             enabled: param.type?.enabled ?? true,
-            value: param.type?.value || "json",
-            defaultValue: "json",
+            value: baseType,
+            defaultValue: baseType,
             types: [{ fieldType: typeFieldType, selected: false }]
         });
 
@@ -90,23 +104,30 @@ export function ParamEditor(props: ParamEditorProps) {
     }, [param.name, param.type]);
 
     const onParameterSubmit = (dataValues: Record<string, string>, formImports: FormImports) => {
+        const baseType = dataValues['type'] ?? extractBaseRecordType(param.type?.value || '');
+
+        // Detect wrapper from the current stored type value and reapply it
+        const currentType = param.type?.value || '';
+        const isCurrentlyStream = currentType.startsWith('stream<');
+        const isCurrentlyArray = currentType.endsWith('[]') && !['string[]', 'byte[]'].includes(currentType);
+        const resolvedValue = isCurrentlyStream ? `stream<${baseType}, error?>`
+            : isCurrentlyArray ? `${baseType}[]`
+                : baseType;
+
+        const resolvedName = dataValues['name'] ?? param.name?.value ?? '';
+
         const updatedParam = {
             ...param,
             type: {
                 ...param.type,
-                value: dataValues['type'] ?? param.type?.value ?? "json",
+                value: resolvedValue,
                 imports: getImportsForProperty('type', formImports)
             },
-            name: { ...param.name, value: dataValues['name'] ?? param.name?.value ?? "" }
+            name: { ...param.name, value: resolvedName }
         };
 
-        // Update the parent component's state first
         onChange(updatedParam);
-
-        // Then call onSave if provided
-        if (onSave) {
-            onSave(updatedParam);
-        }
+        if (onSave) onSave(updatedParam);
     };
 
     useEffect(() => {
@@ -141,6 +162,7 @@ export function ParamEditor(props: ParamEditorProps) {
                         nestedForm={true}
                         helperPaneSide='left'
                         preserveFieldOrder={true}
+                        recordsOnly={true}
                     />
                 }
             </>

@@ -120,6 +120,7 @@ interface FormProps {
     hideSaveButton?: boolean;
     customDiagnosticFilter?: (diagnostics: Diagnostic[]) => Diagnostic[];
     onValidityChange?: (isValid: boolean) => void;
+    recordsOnly?: boolean;
 }
 
 export function FormGeneratorNew(props: FormProps) {
@@ -154,7 +155,8 @@ export function FormGeneratorNew(props: FormProps) {
         onChange,
         hideSaveButton,
         customDiagnosticFilter,
-        onValidityChange
+        onValidityChange,
+        recordsOnly
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -775,6 +777,7 @@ export function FormGeneratorNew(props: FormProps) {
             onCloseCompletions: handleCloseCompletions,
             exprRef: exprRef,
             typeHelperContext: typeHelperContext,
+            recordsOnly: recordsOnly,
         });
     }
 
