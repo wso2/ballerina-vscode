@@ -336,7 +336,7 @@ const ChatInterface: React.FC = () => {
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Check if we have any traces (to enable/disable Session Logs button)
+    // Check if we have any traces (to enable/disable Session Traces button)
     const hasTraces = messages.some(msg => !msg.isUser && msg.traceId);
 
     // Load chat history and check tracing status on mount
@@ -511,7 +511,7 @@ const ChatInterface: React.FC = () => {
                         {isTracingEnabled && hasTraces && (
                             <ClearChatButton onClick={handleShowSessionLogs} disabled={isLoading} title="View traces for the entire conversation">
                                 <span className="codicon codicon-list-tree" />
-                                Session Logs
+                                Session Traces
                             </ClearChatButton>
                         )}
                     </div>
@@ -582,7 +582,7 @@ const ChatInterface: React.FC = () => {
                             {!msg.isUser && isTracingEnabled && msg.traceId && (
                                 <MessageActionsContainer>
                                     <ShowLogsButton onClick={() => handleShowLogs(idx)} title="View trace logs for this message">
-                                        View Logs
+                                        View Trace
                                     </ShowLogsButton>
                                 </MessageActionsContainer>
                             )}

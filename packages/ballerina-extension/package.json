@@ -778,6 +778,12 @@
                 "title": "Delete Thread",
                 "category": "Ballerina",
                 "icon": "$(trash)"
+            },
+            {
+                "command": "ballerina.openEvaluationHistory",
+                "title": "Evaluation History",
+                "category": "Ballerina",
+                "icon": "$(history)"
             }
         ],
         "views": {
@@ -866,6 +872,11 @@
                     "command": "BI.test.delete.function",
                     "group": "inline",
                     "when": "testId not in testGroups"
+                },
+                {
+                    "command": "ballerina.openEvaluationHistory",
+                    "group": "inline",
+                    "when": "testId in testGroups && testId =~ /evaluations/"
                 }
             ],
             "view/title": [
