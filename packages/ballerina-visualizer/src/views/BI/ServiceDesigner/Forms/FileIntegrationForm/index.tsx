@@ -265,8 +265,30 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
     const isStreamEditable = streamProperty?.editable === true;
     const shouldShowStream = isStreamEditable || streamProperty?.enabled === true;
 
+    // isArray property — present only on handlers where content is always array-typed (e.g. CSV)
+    const isArrayProp = functionModel?.properties?.isArray;
+    const isHandlerArray = isArrayProp?.enabled === true;
+
     // The first parameter is always the content parameter (DATA_BINDING or REQUIRED raw bytes)
     const contentIsDataBinding = functionModel?.parameters?.[0]?.kind === 'DATA_BINDING';
+
+    const handleStreamChange = (checked: boolean) => {
+        if (!isStreamEditable) return;
+        const updatedParameters = functionModel.parameters.map(param => {
+            if (param.kind === 'DATA_BINDING' && param.enabled && param.type?.value) {
+                return { ...param, type: { ...param.type, value: selectType(param.type.value, checked) } };
+            }
+            if (!contentIsDataBinding && param.kind === 'REQUIRED' && param.name.value === 'content' && param.enabled && param.type?.value) {
+                return { ...param, type: { ...param.type, value: selectType(param.type.value, checked) } };
+            }
+            return param;
+        });
+        setFunctionModel({
+            ...functionModel,
+            properties: { ...functionModel.properties, stream: { ...functionModel.properties.stream, enabled: checked } },
+            parameters: updatedParameters
+        });
+    };
 
     /**
      * Wraps or unwraps a type value based on stream toggle state.
@@ -330,7 +352,7 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
         const payloadParam = functionModel.parameters?.find(p => p.kind === 'DATA_BINDING');
         if (payloadParam) {
             const typeValue = typeof type === 'string' ? type : type.name;
-            const shouldPluralize = !!(dataBindingParam as any)?.pluralize;
+            const shouldPluralize = isHandlerArray;
             const paramName = typeNameToParamName(typeValue, shouldPluralize);
 
             const updatedParameters = functionModel.parameters.map(param => {
@@ -696,6 +718,36 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
                                         disabled={!isNew}
                                     />
 
+                                    {/* Array indicator — shown when the handler always produces array-typed content (e.g. CSV) */}
+                                    {isHandlerArray && (
+                                        <div style={{ marginTop: 12 }}>
+                                            <CheckBoxGroup direction="vertical">
+                                                <CheckBox
+                                                    label={isArrayProp?.metadata?.label ?? 'Rows'}
+                                                    checked={true}
+                                                    disabled={true}
+                                                    onChange={() => {}}
+                                                    sx={{ description: isArrayProp?.metadata?.description ?? 'Each record represents a row in the CSV file' }}
+                                                />
+                                            </CheckBoxGroup>
+                                        </div>
+                                    )}
+
+                                    {/* Stream toggle — shown when stream is editable or currently enabled */}
+                                    {shouldShowStream && (
+                                        <div style={{ marginTop: 12 }}>
+                                            <CheckBoxGroup direction="vertical">
+                                                <CheckBox
+                                                    label={streamProperty?.metadata?.label}
+                                                    checked={functionModel.properties.stream.enabled}
+                                                    disabled={!isStreamEditable}
+                                                    onChange={handleStreamChange}
+                                                    sx={{ description: streamProperty?.metadata?.description || '' }}
+                                                />
+                                            </CheckBoxGroup>
+                                        </div>
+                                    )}
+
                                     {/* Content Schema — shown when the function has a DATA_BINDING param and canDataBind.editable */}
                                     {dataBindingParam && isContentSchemaEditable && (
                                         (withoutStreamType(dataBindingParam.type?.value) === withoutStreamType(dataBindingParam.type?.placeholder)) ? (
@@ -710,7 +762,7 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
                                         ) : (
                                             <div style={{ marginTop: '16px' }}>
                                                 <Typography variant="body2" sx={{ marginBottom: 8 }}>
-                                                    {contentSchemaLabel}
+                                                    Content Schema
                                                 </Typography>
                                                 <Parameters
                                                     parameters={[contentParameter]}
@@ -722,43 +774,10 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
                                                         }
                                                     }}
                                                     showPayload={true}
-                                                    streamEnabled={isStreamEditable ? functionModel.properties.stream.enabled : undefined}
+                                                    typeLabel={contentSchemaLabel}
                                                 />
                                             </div>
                                         )
-                                    )}
-
-                                    {/* Stream toggle — shown when stream is editable or currently enabled */}
-                                    {shouldShowStream && (
-                                        <CheckBoxGroup direction="vertical">
-                                            <CheckBox
-                                                label={streamProperty?.metadata?.label}
-                                                checked={functionModel.properties.stream.enabled}
-                                                disabled={!isStreamEditable}
-                                                onChange={(checked) => {
-                                                    if (!isStreamEditable) return;
-                                                    const updatedParameters = functionModel.parameters.map(param => {
-                                                        if (param.kind === 'DATA_BINDING' && param.enabled && param.type?.value) {
-                                                            return { ...param, type: { ...param.type, value: selectType(param.type.value, checked) } };
-                                                        }
-                                                        // RAW REQUIRED content param
-                                                        if (!contentIsDataBinding && param.kind === 'REQUIRED' && param.name.value === 'content' && param.enabled && param.type?.value) {
-                                                            return { ...param, type: { ...param.type, value: selectType(param.type.value, checked) } };
-                                                        }
-                                                        return param;
-                                                    });
-                                                    setFunctionModel({
-                                                        ...functionModel,
-                                                        properties: {
-                                                            ...functionModel.properties,
-                                                            stream: { ...functionModel.properties.stream, enabled: checked },
-                                                        },
-                                                        parameters: updatedParameters
-                                                    });
-                                                }}
-                                                sx={{ marginTop: 8, description: streamProperty?.metadata?.description || '' }}
-                                            />
-                                        </CheckBoxGroup>
                                     )}
                                 </FileConfigContent>
                             </FileConfigSection>
@@ -842,9 +861,6 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
                 defaultTab="create-from-scratch"
                 modalWidth={650}
                 modalHeight={600}
-                note={(dataBindingParam as any)?.pluralize
-                    ? "Define schema for one row -- file content will be array of row schema."
-                    : undefined}
             />
         </>
     );
