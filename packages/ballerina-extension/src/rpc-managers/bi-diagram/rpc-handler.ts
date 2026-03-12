@@ -56,7 +56,9 @@ import {
     deleteType,
     DeleteTypeRequest,
     DeploymentRequest,
+    WorkspaceDeploymentRequest,
     deployProject,
+    deployWorkspace,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
     ExpressionDiagnosticsRequest,
@@ -69,6 +71,7 @@ import {
     FunctionNodeRequest,
     generateOpenApiClient,
     getAiSuggestions,
+    getAvailableAgents,
     getAvailableChunkers,
     getAvailableDataLoaders,
     getAvailableEmbeddingProviders,
@@ -83,6 +86,7 @@ import {
     getDataMapperCompletions,
     getDesignModel,
     getDevantMetadata,
+    getWorkspaceDevantMetadata,
     getEnclosedFunction,
     getEndOfFile,
     getExpressionCompletions,
@@ -106,6 +110,8 @@ import {
     getRecordSource,
     getServiceClassModel,
     getSignatureHelp,
+    getSimpleTypeOfExpression,
+    GetSimpleTypeOfExpressionRequest,
     getSourceCode,
     getType,
     getTypeFromJson,
@@ -165,6 +171,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(deleteFlowNode, (args: BISourceCodeRequest) => rpcManger.deleteFlowNode(args));
     messenger.onRequest(deleteByComponentInfo, (args: BIDeleteByComponentInfoRequest) => rpcManger.deleteByComponentInfo(args));
     messenger.onRequest(getAvailableNodes, (args: BIAvailableNodesRequest) => rpcManger.getAvailableNodes(args));
+    messenger.onRequest(getAvailableAgents, (args: BIAvailableNodesRequest) => rpcManger.getAvailableAgents(args));
     messenger.onRequest(getAvailableModelProviders, (args: BIAvailableNodesRequest) => rpcManger.getAvailableModelProviders(args));
     messenger.onRequest(getAvailableVectorStores, (args: BIAvailableNodesRequest) => rpcManger.getAvailableVectorStores(args));
     messenger.onRequest(getAvailableEmbeddingProviders, (args: BIAvailableNodesRequest) => rpcManger.getAvailableEmbeddingProviders(args));
@@ -196,6 +203,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onNotification(openReadme, (args: OpenReadmeRequest) => rpcManger.openReadme(args));
     messenger.onRequest(renameIdentifier, (args: RenameIdentifierRequest) => rpcManger.renameIdentifier(args));
     messenger.onRequest(deployProject, (args: DeploymentRequest) => rpcManger.deployProject(args));
+    messenger.onRequest(deployWorkspace, (args: WorkspaceDeploymentRequest) => rpcManger.deployWorkspace(args));
     messenger.onNotification(openAIChat, (args: AIChatRequest) => rpcManger.openAIChat(args));
     messenger.onRequest(getSignatureHelp, (args: SignatureHelpRequest) => rpcManger.getSignatureHelp(args));
     messenger.onNotification(buildProject, (args: BuildMode) => rpcManger.buildProject(args));
@@ -212,6 +220,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getDesignModel, (args: BIDesignModelRequest) => rpcManger.getDesignModel(args));
     messenger.onRequest(getTypes, (args: GetTypesRequest) => rpcManger.getTypes(args));
     messenger.onRequest(getType, (args: GetTypeRequest) => rpcManger.getType(args));
+    messenger.onRequest(getSimpleTypeOfExpression, (args: GetSimpleTypeOfExpressionRequest) => rpcManger.getSimpleTypeOfExpression(args));
     messenger.onRequest(updateType, (args: UpdateTypeRequest) => rpcManger.updateType(args));
     messenger.onRequest(updateTypes, (args: UpdateTypesRequest) => rpcManger.updateTypes(args));
     messenger.onRequest(deleteType, (args: DeleteTypeRequest) => rpcManger.deleteType(args));
@@ -235,6 +244,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getRecordNames, () => rpcManger.getRecordNames());
     messenger.onRequest(getFunctionNames, () => rpcManger.getFunctionNames());
     messenger.onRequest(getDevantMetadata, () => rpcManger.getDevantMetadata());
+    messenger.onRequest(getWorkspaceDevantMetadata, () => rpcManger.getWorkspaceDevantMetadata());
     messenger.onRequest(generateOpenApiClient, (args: OpenAPIClientGenerationRequest) => rpcManger.generateOpenApiClient(args));
     messenger.onRequest(getOpenApiGeneratedModules, (args: OpenAPIGeneratedModulesRequest) => rpcManger.getOpenApiGeneratedModules(args));
     messenger.onRequest(deleteOpenApiGeneratedModules, (args: OpenAPIClientDeleteRequest) => rpcManger.deleteOpenApiGeneratedModules(args));

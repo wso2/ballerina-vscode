@@ -146,7 +146,7 @@ export function Parameters(props: ParametersProps) {
         updatedPayloadModel.type.value = typeof type === 'string' ? type : (type as Type).name;
         updatedPayloadModel.enabled = true;
         if (imports) {
-            updatedPayloadModel.imports = imports;
+            updatedPayloadModel.type.imports = imports;
         }
 
         // Check if we're editing an existing payload or adding a new one

@@ -19,13 +19,14 @@
 import { ExpandableList } from "../Components/ExpandableList"
 import { TypeIndicator } from "../Components/TypeIndicator"
 import { ExpressionProperty, LineRange } from "@wso2/ballerina-core"
-import { Codicon, CompletionItem, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
-import { useEffect, useMemo, useState } from "react"
+import { Codicon, CompletionItem, HelperPaneCustom, SearchBox, Tooltip, Typography } from "@wso2/ui-toolkit"
+import { ArrayIndexBadge, ArrayIndexControls, ArrayIndexLabel, ArrayIndexRow, ArrayIndexStepButton } from "../styles/ArrayIndexStepper"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, useFieldContext, InputMode } from "@wso2/ballerina-side-panel"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils"
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
-import { shouldShowNavigationArrow } from "../utils/types"
+import { isArrayOfObjectsType, shouldShowNavigationArrow } from "../utils/types"
 import { HelperPaneListItem } from "../Components/HelperPaneListItem"
 import { useHelperPaneNavigation, BreadCrumbStep } from "../hooks/useHelperPaneNavigation"
 import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation"
@@ -44,7 +45,7 @@ type InputsPageProps = {
 type InputItemProps = {
     item: CompletionItem;
     onItemSelect: (value: string) => void;
-    onMoreIconClick: (value: string) => void;
+    onMoreIconClick: (item: CompletionItem) => void;
 }
 
 const InputItem = ({ item, onItemSelect, onMoreIconClick }: InputItemProps) => {
@@ -74,7 +75,7 @@ const InputItem = ({ item, onItemSelect, onMoreIconClick }: InputItemProps) => {
         <HelperPaneListItem
             onClick={() => onItemSelect(item.label)}
             endAction={endAction}
-            onClickEndAction={() => onMoreIconClick(item.label)}
+            onClickEndAction={() => onMoreIconClick(item)}
         >
             {mainContent}
         </HelperPaneListItem>
@@ -86,7 +87,27 @@ export const Inputs = (props: InputsPageProps) => {
     const [searchValue, setSearchValue] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showContent, setShowContent] = useState<boolean>(false);
-    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot, getCurrentNavigationPath } = useHelperPaneNavigation("Inputs");
+    const { breadCrumbSteps, navigateToNext, navigateToNextArray, updateLastStepArrayIndex, navigateToBreadcrumb, isAtRoot, getCurrentNavigationPath } = useHelperPaneNavigation("Inputs");
+
+    const currentStep = breadCrumbSteps[breadCrumbSteps.length - 1];
+    const isInArrayContext = !isAtRoot() && currentStep?.isArrayAccess === true;
+    const currentArrayIndex = currentStep?.arrayIndex ?? 0;
+
+    // Local index state for immediate UI feedback; synced to navigation after debounce
+    const [localArrayIndex, setLocalArrayIndex] = useState(0);
+    const localIndexRef = useRef(0);
+    const indexDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Sync local index when navigating to a new array step
+    useEffect(() => {
+        localIndexRef.current = currentArrayIndex;
+        setLocalArrayIndex(currentArrayIndex);
+    }, [currentStep?.replaceText]);
+
+    // Cleanup debounce timer on unmount
+    useEffect(() => {
+        return () => { if (indexDebounceRef.current) clearTimeout(indexDebounceRef.current); };
+    }, []);
 
     const { field, triggerCharacters } = useFieldContext();
 
@@ -156,8 +177,24 @@ export const Inputs = (props: InputsPageProps) => {
         onChange(fullPath, false);
     }
 
-    const handleInputsMoreIconClick = (value: string) => {
-        navigateToNext(value, navigationPath);
+    const handleInputsMoreIconClick = (item: CompletionItem) => {
+        const typeDetail = item?.labelDetails?.detail || item?.description;
+        if (isArrayOfObjectsType(typeDetail)) {
+            navigateToNextArray(item.label, navigationPath, 0);
+        } else {
+            navigateToNext(item.label, navigationPath);
+        }
+    }
+
+    const handleArrayIndexStep = (delta: number) => {
+        const newIndex = Math.max(0, localIndexRef.current + delta);
+        localIndexRef.current = newIndex;
+        setLocalArrayIndex(newIndex);
+
+        if (indexDebounceRef.current) clearTimeout(indexDebounceRef.current);
+        indexDebounceRef.current = setTimeout(() => {
+            updateLastStepArrayIndex(newIndex);
+        }, 400);
     }
 
     const handleBreadCrumbItemClicked = (step: BreadCrumbStep) => {
@@ -193,6 +230,20 @@ export const Inputs = (props: InputsPageProps) => {
                 breadCrumbSteps={breadCrumbSteps}
                 onNavigateToBreadcrumb={handleBreadCrumbItemClicked}
             />
+            {isInArrayContext && (
+                <ArrayIndexRow>
+                    <ArrayIndexLabel>Index</ArrayIndexLabel>
+                    <ArrayIndexControls>
+                        <ArrayIndexStepButton onClick={() => handleArrayIndexStep(-1)} disabled={localArrayIndex === 0}>
+                            -
+                        </ArrayIndexStepButton>
+                        <ArrayIndexBadge>{localArrayIndex}</ArrayIndexBadge>
+                        <ArrayIndexStepButton onClick={() => handleArrayIndexStep(1)}>
+                            +
+                        </ArrayIndexStepButton>
+                    </ArrayIndexControls>
+                </ArrayIndexRow>
+            )}
             {dropdownItems.length >= 6 && (
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "3px 8px", gap: '5px' }}>
                     <SearchBox sx={{ width: "100%" }} placeholder='Search' value={searchValue} onChange={handleSearch} />

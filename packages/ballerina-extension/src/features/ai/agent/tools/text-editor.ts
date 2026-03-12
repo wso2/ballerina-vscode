@@ -50,14 +50,16 @@ function emitFileToolCall(
 function emitFileToolResult(
     eventHandler: CopilotEventHandler,
     toolName: string,
-    result: TextEditorResult
+    result: TextEditorResult,
+    file_path?: string
 ): void {
     eventHandler({
         type: "tool_result",
         toolName,
         toolOutput: {
             success: result.success,
-            action: result.action
+            action: result.action,
+            fileName: file_path
         }
     });
 }
@@ -86,6 +88,8 @@ const VALID_FILE_EXTENSIONS = [
     '.bal', '.toml', '.md', '.sql'
 ];
 
+const RESTRICTED_READ_FILES = ['Config.toml'];
+
 const MAX_LINE_LENGTH = 2000;
 const PREVIEW_LENGTH = 200;
 
@@ -105,6 +109,7 @@ const ErrorMessages = {
   INVALID_LINE_RANGE: 'Invalid line range',
   EDIT_FAILED: 'Edit operation failed',
   NO_EDITS: 'No edits provided',
+  FILE_READ_NOT_PERMITTED: 'File read not permitted',
 };
 
 // ============================================================================
@@ -275,7 +280,7 @@ export function createWriteExecute(
         message: pathValidation.error!,
         error: `Error: ${ErrorMessages.INVALID_FILE_PATH}`
       };
-      emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result);
+      emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result, file_path);
       return result;
     }
 
@@ -287,7 +292,7 @@ export function createWriteExecute(
         message: 'Content cannot be empty when writing a file.',
         error: `Error: ${ErrorMessages.EMPTY_CONTENT}`
       };
-      emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result);
+      emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result, file_path);
       return result;
     }
 
@@ -306,7 +311,7 @@ export function createWriteExecute(
           message: `File '${file_path}' already exists with content. Use file_edit or file_multi_edit to modify it instead.`,
           error: `Error: ${ErrorMessages.FILE_ALREADY_EXISTS}`
         };
-        emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result);
+        emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result, file_path);
         return result;
       }
     }
@@ -342,7 +347,7 @@ export function createWriteExecute(
     };
 
     // Emit tool_result event
-    emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result);
+    emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result, file_path);
 
     return result;
   };
@@ -379,7 +384,7 @@ export function createEditExecute(
         message: pathValidation.error!,
         error: `Error: ${ErrorMessages.INVALID_FILE_PATH}`
       };
-      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result);
+      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result, file_path);
       return result;
     }
 
@@ -395,7 +400,7 @@ export function createEditExecute(
         message: 'old_string and new_string are identical. No changes to make.',
         error: `Error: ${ErrorMessages.IDENTICAL_STRINGS}`
       };
-      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result);
+      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result, file_path);
       return result;
     }
 
@@ -409,7 +414,7 @@ export function createEditExecute(
         message: `File '${file_path}' not found. Use file_write to create new files.`,
         error: `Error: ${ErrorMessages.FILE_NOT_FOUND}`
       };
-      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result);
+      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result, file_path);
       return result;
     }
 
@@ -446,7 +451,7 @@ export function createEditExecute(
         message: `String to replace was not found in '${file_path}'. Please verify the exact text to replace, including whitespace and indentation. \n File Preview: \n${preview + (content.length > PREVIEW_LENGTH ? '...' : '')}`,
         error: `Error: ${ErrorMessages.NO_MATCH_FOUND}`,
       };
-      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result);
+      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result, file_path);
       return result;
     }
 
@@ -458,7 +463,7 @@ export function createEditExecute(
         message: `Found ${occurrenceCount} occurrences of the text in '${file_path}'. Either make old_string more specific to match exactly one occurrence, or set replace_all to true to replace all occurrences.`,
         error: `Error: ${ErrorMessages.MULTIPLE_MATCHES}`,
       };
-      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result);
+      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result, file_path);
       return result;
     }
 
@@ -492,7 +497,7 @@ export function createEditExecute(
     };
 
     // Emit tool_result event
-    emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result);
+    emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result, file_path);
 
     return result;
   };
@@ -531,7 +536,7 @@ export function createMultiEditExecute(
         message: pathValidation.error!,
         error: `Error: ${ErrorMessages.INVALID_FILE_PATH}`
       };
-      emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result);
+      emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result, file_path);
       return result;
     }
 
@@ -543,7 +548,7 @@ export function createMultiEditExecute(
         message: 'No edits provided. At least one edit is required.',
         error: `Error: ${ErrorMessages.NO_EDITS}`
       };
-      emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result);
+      emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result, file_path);
       return result;
     }
 
@@ -557,7 +562,7 @@ export function createMultiEditExecute(
         message: `File '${file_path}' not found. Use file_write to create new files.`,
         error: `Error: ${ErrorMessages.FILE_NOT_FOUND}`
       };
-      emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result);
+      emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result, file_path);
       return result;
     }
 
@@ -639,7 +644,7 @@ export function createMultiEditExecute(
         message: `Multi-edit validation failed:\n${validationErrors.join('\n')}`,
         error: `Error: ${ErrorMessages.EDIT_FAILED}`,
       };
-      emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result);
+      emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result, file_path);
       return result;
     }
 
@@ -661,7 +666,7 @@ export function createMultiEditExecute(
     };
 
     // Emit tool_result event
-    emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result);
+    emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result, file_path);
 
     return result;
   };
@@ -693,6 +698,17 @@ export function createReadExecute(
       };
     }
 
+    // Block reads of restricted files (e.g. Config.toml) in any path
+    const fileName = (file_path.replace(/\\/g, '/').split('/').pop() ?? '').toLowerCase();
+    if (RESTRICTED_READ_FILES.some(f => f.toLowerCase() === fileName)) {
+      console.error(`[FileReadTool] Blocked read of restricted file: ${file_path}`);
+      return {
+        success: false,
+        message: `Reading '${file_path}' is not permitted.`,
+        error: `Error: ${ErrorMessages.FILE_READ_NOT_PERMITTED}`
+      };
+    }
+
     const fullPath = path.join(tempProjectPath, file_path);
 
     // Check if file exists
@@ -705,16 +721,18 @@ export function createReadExecute(
       };
     }
 
+    // Emit tool_call event now that we know the file exists
+    emitFileToolCall(eventHandler, FILE_READ_TOOL_NAME, file_path);
+
     // Read file content
     const content = fs.readFileSync(fullPath, 'utf-8');
 
     // Handle empty file
     if (content.trim().length === 0) {
       console.log(`[FileReadTool] File is empty: ${file_path}`);
-      return {
-        success: true,
-        message: `File '${file_path}' is empty.`,
-      };
+      const result = { success: true, message: `File '${file_path}' is empty.` };
+      emitFileToolResult(eventHandler, FILE_READ_TOOL_NAME, result, file_path);
+      return result;
     }
 
     // Split content into lines
@@ -726,11 +744,13 @@ export function createReadExecute(
       const validation = validateLineRange(offset, limit, totalLines);
       if (!validation.valid) {
         console.error(`[FileReadTool] Invalid line range for file: ${file_path}, offset: ${offset}, limit: ${limit}`);
-        return {
+        const result = {
           success: false,
           message: validation.error!,
           error: `Error: ${ErrorMessages.INVALID_LINE_RANGE}`
         };
+        emitFileToolResult(eventHandler, FILE_READ_TOOL_NAME, result, file_path);
+        return result;
       }
 
       const startIndex = offset - 1; // Convert to 0-based index
@@ -739,20 +759,24 @@ export function createReadExecute(
       const rangedContent = truncateLongLines(rangedLines.join('\n'));
 
       console.log(`[FileReadTool] Read lines ${offset} to ${endIndex} from file: ${file_path}`);
-      return {
+      const result = {
         success: true,
         message: `Read lines ${offset} to ${endIndex} from '${file_path}' (${endIndex - startIndex} lines). \nContent:${rangedContent}`,
       };
+      emitFileToolResult(eventHandler, FILE_READ_TOOL_NAME, result, file_path);
+      return result;
     }
 
     // Return full content
     const truncatedContent = truncateLongLines(content);
 
     console.log(`[FileReadTool] Read entire file: ${file_path}, total lines: ${totalLines}`);
-    return {
+    const result = {
       success: true,
       message: `Read entire file '${file_path}' (${totalLines} lines).\nContent:${truncatedContent}`,
     };
+    emitFileToolResult(eventHandler, FILE_READ_TOOL_NAME, result, file_path);
+    return result;
   };
 }
 
@@ -889,7 +913,8 @@ export function createBatchEditTool(execute: MultiEditExecute) {
 export function createReadTool(execute: ReadExecute) {
   return tool({
     description: `Reads a file from the local filesystem.
-    ALWAYS prefer reading files mentioned in the ser’s message in the chat history first. Only use this tool if you need to read a file that is not present in the chat history.
+    ALWAYS prefer reading files mentioned in the user’s message in the chat history first. Only use this tool if you need to read a file that is not present in the chat history.
+    NOTE: The following files are restricted and cannot be read: ${RESTRICTED_READ_FILES.join(", ")}.
     Usage:
     - The file_path parameter must be an filename only, do not include any directories unless the user specifically requests it.
     - You can optionally specify a line offset and limit (especially handy for long files).

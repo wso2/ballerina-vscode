@@ -17,74 +17,41 @@
  */
 
 import { useEffect, useState } from "react";
-import { TextField, CheckBox, LinkButton, ThemeColors, Codicon } from "@wso2/ui-toolkit";
-import styled from "@emotion/styled";
-import { sanitizePackageName, validatePackageName } from "./utils";
+import { TextField } from "@wso2/ui-toolkit";
+import {
+    FieldGroup,
+    ProjectSection,
+    SectionDivider,
+    OptionalSectionsLabel,
+} from "./styles";
+import { ProjectTypeSelector, PackageInfoSection } from "./components";
+import { AddProjectFormData } from "./types";
+import { sanitizePackageName, validatePackageName, validateOrgName } from "./utils";
 
-const FieldGroup = styled.div`
-    margin-bottom: 20px;
-`;
-
-const CheckboxContainer = styled.div`
-    margin: 16px 0;
-`;
-
-const OptionalConfigRow = styled.div`
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 8px;
-`;
-
-const OptionalConfigButtonContainer = styled.div`
-    display: flex;
-    flex-direction: row;
-    flex-grow: 1;
-    justify-content: flex-end;
-`;
-
-const OptionalConfigContent = styled.div`
-    margin-top: 16px;
-`;
-
-const Description = styled.div`
-    color: var(--vscode-list-deemphasizedForeground);
-    margin-top: 4px;
-    text-align: left;
-`;
-
-const WorkspaceSection = styled.div`
-    margin-bottom: 24px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--vscode-panel-border);
-`;
-
-export interface AddProjectFormData {
-    integrationName: string;
-    packageName: string;
-    workspaceName?: string;
-    orgName: string;
-    version: string;
-}
+// Re-export for backwards compatibility
+export type { AddProjectFormData } from "./types";
 
 export interface AddProjectFormFieldsProps {
     formData: AddProjectFormData;
     onFormDataChange: (data: Partial<AddProjectFormData>) => void;
-    isInWorkspace: boolean; // true if already in a workspace, false if in a package
+    isInProject: boolean;
     packageNameValidationError?: string;
+    projectNameValidationError?: string;
 }
 
 export function AddProjectFormFields({ 
     formData, 
     onFormDataChange,
-    isInWorkspace,
-    packageNameValidationError
+    isInProject,
+    packageNameValidationError,
+    projectNameValidationError
 }: AddProjectFormFieldsProps) {
     const [packageNameTouched, setPackageNameTouched] = useState(false);
-    const [showOptionalConfigurations, setShowOptionalConfigurations] = useState(false);
+    const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
+    const [orgNameError, setOrgNameError] = useState<string | null>(null);
+    const resourceTypeLabel = formData.isLibrary ? "Library" : "Integration";
+    const resourceTypeLabelLower = resourceTypeLabel.toLowerCase();
 
     const handleIntegrationName = (value: string) => {
         onFormDataChange({ integrationName: value });
@@ -104,42 +71,41 @@ export function AddProjectFormFields({
         }
     };
 
-    const handleShowOptionalConfigurations = () => {
-        setShowOptionalConfigurations(true);
-    };
-
-    const handleHideOptionalConfigurations = () => {
-        setShowOptionalConfigurations(false);
-    };
-
     // Effect to trigger validation when requested by parent
     useEffect(() => {
         const error = validatePackageName(formData.packageName, formData.integrationName);
         setPackageNameError(error);
     }, [formData.packageName]);
 
+    // Real-time validation for organization name
+    useEffect(() => {
+        const error = validateOrgName(formData.orgName);
+        setOrgNameError(error);
+    }, [formData.orgName]);
+
     return (
         <>
-            {!isInWorkspace && (
-                <WorkspaceSection>
+            {!isInProject && (
+                <ProjectSection>
                     <TextField
                         onTextChange={(value) => onFormDataChange({ workspaceName: value })}
                         value={formData.workspaceName}
-                        label="Workspace Name"
-                        placeholder="Enter workspace name"
+                        label="Project Name"
+                        placeholder="Enter project name"
                         autoFocus={true}
                         required={true}
+                        errorMsg={projectNameValidationError || ""}
                     />
-                </WorkspaceSection>
+                </ProjectSection>
             )}
 
             <FieldGroup>
                 <TextField
                     onTextChange={handleIntegrationName}
                     value={formData.integrationName}
-                    label="Integration Name"
-                    placeholder="Enter an integration name"
-                    autoFocus={isInWorkspace}
+                    label={`${resourceTypeLabel} Name`}
+                    placeholder={`Enter a ${resourceTypeLabelLower} name`}
+                    autoFocus={isInProject}
                     required={true}
                 />
             </FieldGroup>
@@ -149,56 +115,26 @@ export function AddProjectFormFields({
                     onTextChange={handlePackageName}
                     value={formData.packageName}
                     label="Package Name"
-                    description="This will be used as the Ballerina package name for the integration."
+                    description={`This will be used as the Ballerina package name for the ${resourceTypeLabelLower}.`}
                     errorMsg={packageNameValidationError || packageNameError || ""}
                 />
             </FieldGroup>
 
-            <OptionalConfigRow>
-                Optional Configurations
-                <OptionalConfigButtonContainer>
-                    {!showOptionalConfigurations && (
-                        <LinkButton
-                            onClick={handleShowOptionalConfigurations}
-                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
-                        >
-                            <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                            Expand
-                        </LinkButton>
-                    )}
-                    {showOptionalConfigurations && (
-                        <LinkButton
-                            onClick={handleHideOptionalConfigurations}
-                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
-                        >
-                            <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                            Collapse
-                        </LinkButton>
-                    )}
-                </OptionalConfigButtonContainer>
-            </OptionalConfigRow>
+            <ProjectTypeSelector
+                value={formData.isLibrary}
+                onChange={(isLibrary) => onFormDataChange({ isLibrary })}
+            />
 
-            {showOptionalConfigurations && (
-                <OptionalConfigContent>
-                    <FieldGroup>
-                        <TextField
-                            onTextChange={(value) => onFormDataChange({ orgName: value })}
-                            value={formData.orgName}
-                            label="Organization Name"
-                            description="The organization that owns this Ballerina package."
-                        />
-                    </FieldGroup>
-                    <FieldGroup>
-                        <TextField
-                            onTextChange={(value) => onFormDataChange({ version: value })}
-                            value={formData.version}
-                            label="Package Version"
-                            placeholder="0.1.0"
-                            description="Version of the Ballerina package."
-                        />
-                    </FieldGroup>
-                </OptionalConfigContent>
-            )}
+            <SectionDivider />
+            <OptionalSectionsLabel>Optional Configurations</OptionalSectionsLabel>
+
+            <PackageInfoSection
+                isExpanded={isPackageInfoExpanded}
+                onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
+                data={{ orgName: formData.orgName, version: formData.version }}
+                onChange={(data) => onFormDataChange(data)}
+                orgNameError={orgNameError}
+            />
         </>
     );
 }

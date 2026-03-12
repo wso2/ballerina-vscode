@@ -18,7 +18,7 @@
 
 import React, { useMemo } from 'react';
 import styled from '@emotion/styled';
-import { Codicon, Icon, Typography } from '@wso2/ui-toolkit';
+import { Codicon, Icon, Tooltip, Typography } from '@wso2/ui-toolkit';
 import { EVENT_TYPE, MACHINE_VIEW, ProjectStructureResponse, SCOPE } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { getIntegrationTypes } from '../PackageOverview/utils';
@@ -136,6 +136,13 @@ const ChipContainer = styled.div`
     min-height: 28px;
 `;
 
+const MetaRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+`;
+
 const Chip = styled.div<{ color: string }>`
     display: inline-flex;
     align-items: center;
@@ -151,8 +158,43 @@ const Chip = styled.div<{ color: string }>`
     white-space: nowrap;
 `;
 
+const ICPBadge = styled.div`
+    --icp-badge-green: #00b894;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 20px;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.03em;
+    color: var(--icp-badge-green);
+    background: color-mix(in srgb, var(--icp-badge-green) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--icp-badge-green) 55%, transparent);
+    white-space: nowrap;
+`;
+
+const ICPBadgeIcon = styled.span`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    line-height: 1;
+`;
+
+const ICPBadgeText = styled.span`
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    line-height: 1;
+`;
+
 export interface PackageListViewProps {
-    workspaceStructure: ProjectStructureResponse;
+    projectCollection: ProjectStructureResponse;
+    icpStatusByProjectPath?: Record<string, boolean>;
+    showICPBadge?: boolean;
 }
 
 const getTypeColor = (type: SCOPE): string => {
@@ -162,6 +204,7 @@ const getTypeColor = (type: SCOPE): string => {
         [SCOPE.EVENT_INTEGRATION]: 'var(--vscode-charts-orange)',
         [SCOPE.FILE_INTEGRATION]: 'var(--vscode-charts-purple)',
         [SCOPE.AI_AGENT]: 'var(--vscode-charts-red)',
+        [SCOPE.LIBRARY]: 'var(--vscode-charts-yellow)',
         [SCOPE.ANY]: 'var(--vscode-charts-gray)'
     };
     return colors[type];
@@ -174,6 +217,7 @@ const getTypeIcon = (type: SCOPE): { name: string; source: 'icon' | 'codicon' } 
         [SCOPE.EVENT_INTEGRATION]: { name: 'Event', source: 'icon' },
         [SCOPE.FILE_INTEGRATION]: { name: 'file', source: 'icon' },
         [SCOPE.AI_AGENT]: { name: 'bi-ai-agent', source: 'icon' },
+        [SCOPE.LIBRARY]: { name: 'package', source: 'codicon' },
         [SCOPE.ANY]: { name: 'project', source: 'codicon' }
     };
     return icons[type];
@@ -186,6 +230,7 @@ const getTypeLabel = (type: SCOPE): string => {
         [SCOPE.EVENT_INTEGRATION]: 'Event Integration',
         [SCOPE.FILE_INTEGRATION]: 'File Integration',
         [SCOPE.AI_AGENT]: 'AI Agent',
+        [SCOPE.LIBRARY]: 'Library',
         [SCOPE.ANY]: ''
     };
     return labels[type];
@@ -215,20 +260,23 @@ const renderPackageIcon = (types: SCOPE[]) => {
 
 export function PackageListView(props: PackageListViewProps) {
     const { rpcClient } = useRpcContext();
-    const workspaceStructure = props.workspaceStructure;
+    const projectCollection = props.projectCollection;
+    const icpStatusByProjectPath = props.icpStatusByProjectPath ?? {};
+    const showICPBadge = props.showICPBadge ?? false;
 
-    const packages = useMemo(() => {
-        return workspaceStructure.projects.map((project) => {
+    const integrationItems = useMemo(() => {
+        return projectCollection.projects.map((project) => {
             return {
                 id: project.projectName,
                 name: project.projectTitle,
                 projectPath: project.projectPath,
+                isLibrary: project.isLibrary ?? false,
                 types: getIntegrationTypes(project)
             }
         });
-    }, [workspaceStructure]);
+    }, [projectCollection]);
 
-    const handlePackageClick = async (packageId: string, event: React.MouseEvent) => {
+    const handleItemClick = async (itemId: string, event: React.MouseEvent) => {
         // Don't trigger if clicking on delete button
         if ((event.target as HTMLElement).closest('.delete-button')) {
             return;
@@ -236,16 +284,16 @@ export function PackageListView(props: PackageListViewProps) {
         await rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
-                projectPath: packages.find((pkg) => pkg.id === packageId)?.projectPath,
+                projectPath: integrationItems.find((item) => item.id === itemId)?.projectPath,
                 view: MACHINE_VIEW.PackageOverview,
-                package: packageId
+                package: itemId
             },
         });
     };
 
-    const handleDeleteClick = async (projectPath: string, event: React.MouseEvent) => {
+    const handleDeleteClick = async (projectPath: string, isLibrary: boolean, event: React.MouseEvent) => {
         event.stopPropagation();
-        console.log('Deleting package:', projectPath);
+        console.log(`Deleting ${isLibrary ? "library" : "integration"}: ${projectPath}`);
         await rpcClient.getBIDiagramRpcClient().deleteProject({
             projectPath: projectPath
         });
@@ -254,33 +302,45 @@ export function PackageListView(props: PackageListViewProps) {
     return (
         <Container>
             <CardGrid>
-                {packages.map((pkg) => (
-                    <PackageCard key={pkg.id} onClick={(e) => handlePackageClick(pkg.id, e)}>
+                {integrationItems.map((item) => (
+                    <PackageCard key={item.id} onClick={(e) => handleItemClick(item.id, e)}>
                         <PackageHeader>
-                            <PackageTitleRow title={pkg.name}>
+                            <PackageTitleRow title={item.name}>
                                 <PackageIcon>
-                                    {renderPackageIcon(pkg.types)}
+                                    {renderPackageIcon(item.types)}
                                 </PackageIcon>
-                                <PackageName>{pkg.name}</PackageName>
+                                <PackageName>{item.name}</PackageName>
                             </PackageTitleRow>
                             <PackageActions>
                                 <DeleteButton 
                                     className="delete-button"
-                                    onClick={(e) => handleDeleteClick(pkg.projectPath, e)}
-                                    title="Delete package"
+                                    onClick={(e) => handleDeleteClick(item.projectPath, item.isLibrary, e)}
+                                    title={item.isLibrary ? "Delete library" : "Delete integration"}
                                 >
                                     <Codicon name="trash" iconSx={{ fontSize: 18 }} />
                                 </DeleteButton>
                                 <Codicon name="chevron-right" iconSx={{ fontSize: 18, opacity: 0.5 }} />
                             </PackageActions>
                         </PackageHeader>
-                        <ChipContainer>
-                            {pkg.types.length > 0 && pkg.types.map((type) => (
-                                <Chip key={type} color={getTypeColor(type)}>
-                                    {type !== SCOPE.ANY ? getTypeLabel(type) : ''}
-                                </Chip>
-                            ))}
-                        </ChipContainer>
+                        <MetaRow>
+                            <ChipContainer>
+                                {item.types.length > 0 && item.types.map((type) => (
+                                    <Chip key={type} color={getTypeColor(type)}>
+                                        {type !== SCOPE.ANY ? getTypeLabel(type) : ''}
+                                    </Chip>
+                                ))}
+                            </ChipContainer>
+                            {showICPBadge && !item.isLibrary && icpStatusByProjectPath[item.projectPath] && (
+                                <Tooltip content="Integration Control Plane is enabled for this integration">
+                                    <ICPBadge>
+                                        <ICPBadgeIcon>
+                                            <Codicon name="pass-filled" iconSx={{ fontSize: 14, display: "block", lineHeight: 1 }} />
+                                        </ICPBadgeIcon>
+                                        <ICPBadgeText>ICP</ICPBadgeText>
+                                    </ICPBadge>
+                                </Tooltip>
+                            )}
+                        </MetaRow>
                     </PackageCard>
                 ))}
             </CardGrid>

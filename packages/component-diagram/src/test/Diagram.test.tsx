@@ -78,6 +78,67 @@ function convertToCDModel(sampleData: any): CDModel {
     };
 }
 
+// --- Emotion Style Snapshot Helpers ---
+
+/**
+ * Extract Emotion CSS rules from <style data-emotion> tags in the document,
+ * filtered to only include rules for classes actually used in the given container.
+ */
+function getEmotionStyles(container: HTMLElement): string {
+    const domContent = container.innerHTML;
+    const usedHashes = new Set<string>();
+    const hashRegex = /css-([a-z0-9]+)/g;
+    let match: RegExpExecArray | null;
+    while ((match = hashRegex.exec(domContent)) !== null) {
+        usedHashes.add(match[1]);
+    }
+
+    // Emotion uses insertRule (speedy mode) so CSS is in styleSheets.cssRules, not textContent
+    const relevantRules: string[] = [];
+    const styleTags = document.querySelectorAll("style[data-emotion]");
+    styleTags.forEach((tag) => {
+        if (tag instanceof HTMLStyleElement && tag.sheet) {
+            try {
+                Array.from(tag.sheet.cssRules).forEach((rule) => {
+                    const ruleText = rule.cssText;
+                    const ruleHashMatch = /\.css-([a-z0-9]+)/.exec(ruleText);
+                    if (ruleHashMatch && usedHashes.has(ruleHashMatch[1])) {
+                        relevantRules.push(ruleText);
+                    }
+                });
+            } catch (e) {
+                // CORS may block access to cssRules
+            }
+        }
+    });
+    return relevantRules.sort().join("\n");
+}
+
+function buildHashMap(content: string): Map<string, string> {
+    const hashRegex = /css-([a-z0-9]+)/g;
+    const seen = new Set<string>();
+    const ordered: string[] = [];
+    let match: RegExpExecArray | null;
+    while ((match = hashRegex.exec(content)) !== null) {
+        if (!seen.has(match[1])) {
+            seen.add(match[1]);
+            ordered.push(match[1]);
+        }
+    }
+    const map = new Map<string, string>();
+    ordered.forEach((hash, i) => { map.set(`css-${hash}`, `css-${i}`); });
+    return map;
+}
+
+function applyHashMap(content: string, hashMap: Map<string, string>): string {
+    if (hashMap.size === 0) return content;
+    const pattern = new RegExp(
+        [...hashMap.keys()].sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'),
+        'g'
+    );
+    return content.replace(pattern, (m) => hashMap.get(m) ?? m);
+}
+
 async function renderAndCheckSnapshot(model: CDModel, testName: string) {
     const mockProps = {
         onListenerSelect: jest.fn(),
@@ -94,14 +155,16 @@ async function renderAndCheckSnapshot(model: CDModel, testName: string) {
         <Diagram project={model} {...mockProps} />
     );
 
-    // Wait for diagram to render (like mi-diagram does)
+    // Wait for diagram to render
     await waitFor(() => {
         const diagramElements = dom.container.querySelectorAll('[class*="diagram"], svg, canvas');
         expect(diagramElements.length).toBeGreaterThan(0);
     }, { timeout: 10000 });
 
+    // Extract Emotion CSS styles relevant to this render
+    const emotionStyles = getEmotionStyles(dom.container);
+
     const prettyDom = prettyDOM(dom.container, 1000000, {
-        highlight: false,
         filterNode(node) {
             return true;
         },
@@ -109,19 +172,26 @@ async function renderAndCheckSnapshot(model: CDModel, testName: string) {
 
     expect(prettyDom).toBeTruthy();
 
+    // Remove ANSI color codes from prettyDOM output
+    let cleanDom = (prettyDom as string).replace(/\x1b\[\d+m/g, "");
+
+    // Build deterministic hash mapping from DOM (order of first appearance)
+    const hashMap = buildHashMap(cleanDom);
+
     // Sanitization: remove dynamic IDs and non-deterministic attributes
-    // Consolidated sanitization logic for better performance and maintainability
-    function sanitizeDom(domString: string): string {
-        // Remove dynamic attributes and normalize <vscode-button> tags in one pass
-        return domString
-            .replace(
-                /\s+(marker-end|id|data-linkid|data-nodeid|appearance|aria-label|current-value)="[^"]*"/g,
-                ''
-            )
-            .replace(/<vscode-button\s+>/g, '<vscode-button>');
-    }
-    const sanitizedDom = sanitizeDom(prettyDom as string);
-    expect(sanitizedDom).toMatchSnapshot(testName);
+    let sanitizedDom = cleanDom
+        .replaceAll(/\s+(marker-end|id|data-linkid|data-nodeid|appearance|aria-label|current-value)="[^"]*"/g, '')
+        .replaceAll(/<vscode-button\s+>/g, '<vscode-button>');
+
+    // Apply deterministic hash normalization to both DOM and styles
+    sanitizedDom = applyHashMap(sanitizedDom, hashMap);
+    const normalizedStyles = applyHashMap(emotionStyles, hashMap);
+
+    // Combine styles + DOM for comprehensive snapshot that captures both structure and styling
+    const snapshot = normalizedStyles.trim()
+        ? `/* Emotion Styles */\n${normalizedStyles}\n\n/* DOM */\n${sanitizedDom}`
+        : sanitizedDom;
+    expect(snapshot).toMatchSnapshot(testName);
 }
 
 describe('Component Diagram - Snapshot Tests', () => {

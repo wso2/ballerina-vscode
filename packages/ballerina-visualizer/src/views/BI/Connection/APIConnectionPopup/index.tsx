@@ -19,7 +19,7 @@
 import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
 import { Button, Codicon, Dropdown, Stepper, TextField, ThemeColors, Typography, Icon } from "@wso2/ui-toolkit";
-import { AvailableNode, Category, DataMapperDisplayMode, DIRECTORY_MAP, FlowNode, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
+import { AvailableNode, Category, EditorConfig, DIRECTORY_MAP, FlowNode, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ExpressionFormField } from "@wso2/ballerina-side-panel";
 import ConnectionConfigView from "../ConnectionConfigView";
@@ -44,7 +44,7 @@ const ContentContainer = styled.div<{ hasFooterButton?: boolean }>`
 const FooterContainer = styled.div`
     position: sticky;
     bottom: 0;
-    padding: 20px 32px;
+    padding-top: 20px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -54,6 +54,7 @@ const FooterContainer = styled.div`
 const StepContent = styled.div<{ fillHeight?: boolean }>`
     display: flex;
     flex-direction: column;
+    flex: 1;
     gap: 20px;
     ${(props: { fillHeight?: boolean }) => props.fillHeight && `
         flex: 1;
@@ -89,7 +90,7 @@ const FormField = styled.div`
     flex-direction: column;
 `;
 
-const UploadCard = styled.div<{ hasFile?: boolean }>`
+const UploadCard = styled.div<{ hasFile?: boolean; disabled?: boolean }>`
     display: flex;
     align-items: center;
     gap: 12px;
@@ -97,15 +98,17 @@ const UploadCard = styled.div<{ hasFile?: boolean }>`
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 14px;
     background: ${ThemeColors.SURFACE_DIM};
-    cursor: pointer;
+    cursor: ${(props:{ hasFile?: boolean; disabled?: boolean }) => props.disabled ? "not-allowed" : "pointer"};
     transition: all 0.2s ease;
 
-    &:hover {
-        border-color: ${ThemeColors.PRIMARY};
-        background: ${ThemeColors.SURFACE_CONTAINER};
-    }
+    ${(props:{ hasFile?: boolean; disabled?: boolean }) => !props.disabled && `
+        &:hover {
+            border-color: ${ThemeColors.PRIMARY};
+            background: ${ThemeColors.SURFACE_CONTAINER};
+        }
+    `}
 
-    ${(props: { hasFile?: boolean }) =>
+    ${(props:{ hasFile?: boolean; disabled?: boolean }) =>
         props.hasFile
             ? `
         border-color: ${ThemeColors.PRIMARY};
@@ -182,23 +185,6 @@ const ErrorTitle = styled(Typography)`
     margin: 0;
 `;
 
-const SeparatorLine = styled.div`
-    width: 100%;
-    height: 1px;
-    background-color: ${ThemeColors.OUTLINE_VARIANT};
-    opacity: 0.5;
-`;
-
-const BrowseMoreButton = styled(Button)`
-    margin-top: 0;
-    width: 100% !important;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--vscode-button-secondaryBackground, #3c3c3c) !important;
-    color: var(--vscode-button-secondaryForeground, #ffffff) !important;
-`;
-
 interface APIConnectionPopupProps {
     projectPath: string;
     fileName: string;
@@ -208,29 +194,184 @@ interface APIConnectionPopupProps {
 }
 
 export function APIConnectionPopup(props: APIConnectionPopupProps) {
-    const { projectPath, fileName, target, onBack, onClose } = props;
+    const { fileName, target, onBack, onClose, projectPath } = props;
     const { rpcClient } = useRpcContext();
 
     const [currentStep, setCurrentStep] = useState(0);
-    const [specType, setSpecType] = useState<string>("OpenAPI");
-    const [selectedFilePath, setSelectedFilePath] = useState<string>("");
-    const [connectorName, setConnectorName] = useState<string>("");
 
-    const [isSavingConnector, setIsSavingConnector] = useState<boolean>(false);
     const [isSavingConnection, setIsSavingConnection] = useState<boolean>(false);
-    const [selectedFlowNode, setSelectedFlowNode] = useState<FlowNode | undefined>(undefined);
     const [updatedExpressionField, setUpdatedExpressionField] = useState<ExpressionFormField>(undefined);
-    const [connectionError, setConnectionError] = useState<string | null>(null);
+    const [selectedFlowNode, setSelectedFlowNode] = useState<FlowNode | undefined>(undefined);
 
-    const steps = useMemo(() => ["Import API Specification", "Create Connection"], []);
+    const steps = useMemo(() => ["Import API Specification", "Create Connection"], []);    
 
-    const apiSpecOptions = useMemo(
-        () => [
-            { id: "openapi", value: "OpenAPI", content: "OpenAPI" },
-            { id: "wsdl", value: "WSDL", content: "WSDL" },
-        ],
-        []
+    const handleOnFormSubmit = async (node: FlowNode, _editorConfig?: EditorConfig, options?: FormSubmitOptions) => {
+        console.log(">>> on form submit", node);
+        if (selectedFlowNode) {
+            setIsSavingConnection(true);
+            const visualizerLocation = await rpcClient.getVisualizerLocation();
+            let connectionsFilePath = visualizerLocation.documentUri || visualizerLocation.projectPath;
+
+            if (node.codedata.isGenerated && !connectionsFilePath.endsWith(".bal")) {
+                connectionsFilePath += "/main.bal";
+            }
+
+            if (connectionsFilePath === "") {
+                console.error(">>> Error updating source code. No source file found");
+                setIsSavingConnection(false);
+                return;
+            }
+
+            // node property scope is local. then use local file path and line position
+            if ((node.properties?.scope?.value as string)?.toLowerCase() === "local") {
+                node.codedata.lineRange = {
+                    fileName: visualizerLocation.documentUri,
+                    startLine: target,
+                    endLine: target,
+                };
+            }
+
+            // Check if the node is a connector
+            const isConnector = node.codedata.node === "NEW_CONNECTION";
+
+            rpcClient
+                .getBIDiagramRpcClient()
+                .getSourceCode({
+                    filePath: connectionsFilePath,
+                    flowNode: node,
+                    isConnector: isConnector,
+                })
+                .then((response) => {
+                    console.log(">>> Updated source code", response);
+                    if (response.artifacts.length > 0) {
+                        setIsSavingConnection(false);
+                        const newConnection = response.artifacts.find((artifact) => artifact.isNew);
+                        onClose?.({ recentIdentifier: newConnection?.name, artifactType: DIRECTORY_MAP.CONNECTION });
+                    } else {
+                        console.error(">>> Error updating source code", response);
+                        setIsSavingConnection(false);
+                    }
+                })
+                .catch((error) => {
+                    console.error(">>> Error saving connection", error);
+                }).finally(() => {
+                    setIsSavingConnection(false);
+                });
+        }
+    };
+
+    const renderStepper = () => {
+        return (
+            <>
+                <StepperContainer>
+                    <Stepper steps={steps} currentStep={currentStep} alignment="center" />
+                </StepperContainer>
+            </>
+        );
+    };
+
+    const renderConnectionStep = () => {
+        if (selectedFlowNode) {
+            return (
+                <StepContent fillHeight={true}>
+                    <div>
+                        <SectionTitle variant="h3">Connection Details</SectionTitle>
+                        <SectionSubtitle variant="body2">
+                            Configure connection settings
+                        </SectionSubtitle>
+                    </div>
+                    <ConnectionConfigView
+                        fileName={fileName}
+                        submitText={isSavingConnection ? "Creating..." : "Save Connection"}
+                        isSaving={isSavingConnection}
+                        selectedNode={selectedFlowNode}
+                        onSubmit={handleOnFormSubmit}
+                        updatedExpressionField={updatedExpressionField}
+                        resetUpdatedExpressionField={() => setUpdatedExpressionField(undefined)}
+                        isPullingConnector={isSavingConnection}
+                        footerActionButton={true}
+                    />
+                </StepContent>
+            );
+        }
+        return (
+            <StepContent>
+                <FormSection>
+                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
+                        Loading connector configuration...
+                    </Typography>
+                </FormSection>
+            </StepContent>
+        );
+    };
+
+    const renderStepContent = () => {
+        if (currentStep === 0) {
+            return (
+                <APIConnectionForm 
+                    fileName={fileName}
+                    target={target}
+                    projectPath={projectPath}
+                    onSave={(_, flowNode)=>{
+                        setSelectedFlowNode(flowNode);
+                        setCurrentStep(1);
+                    }}
+                />
+            );
+        }
+        return renderConnectionStep();
+    };
+
+    return (
+        <>
+            <PopupOverlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }} />
+            <PopupContainer>
+                <PopupHeader>
+                    <BackButton appearance="icon" onClick={onBack}>
+                        <Codicon name="chevron-left" />
+                    </BackButton>
+                    <HeaderTitleContainer>
+                        <PopupTitle variant="h2">Connect via API Specification</PopupTitle>
+                        <PopupSubtitle variant="body2">Import an API specification file to create a connection</PopupSubtitle>
+                    </HeaderTitleContainer>
+                    <CloseButton appearance="icon" onClick={() => onClose?.()}>
+                        <Codicon name="close" />
+                    </CloseButton>
+                </PopupHeader>
+                {renderStepper()}
+                <ContentContainer hasFooterButton={currentStep === 1}>{renderStepContent()}</ContentContainer>
+            </PopupContainer>
+        </>
     );
+}
+
+interface APIConnectionFormProps {
+    onSave: (availableNode: AvailableNode, selectedFlowNode: FlowNode, type: string, name: string, filePath: string) => void;
+    projectPath: string;
+    fileName: string;
+    target?: LinePosition;
+    apiSpecOptions?: {id: string; value: string; content: string;}[];
+    disabled?: boolean;
+    initialName?: string;
+    initialFilePath?: string;
+    actionButtonText?: string;
+    availableNode?: AvailableNode;
+}
+
+const defaultOptions = [
+    { id: "openapi", value: "OpenAPI", content: "OpenAPI" },
+    { id: "wsdl", value: "WSDL", content: "WSDL" },
+]
+
+export function APIConnectionForm(props: APIConnectionFormProps) {
+    const { onSave, fileName, target, projectPath, apiSpecOptions = defaultOptions, disabled, initialName = "", initialFilePath = "", actionButtonText = "Save Connector", availableNode } = props;
+    const { rpcClient } = useRpcContext();
+
+    const [specType, setSpecType] = useState<string>("OpenAPI");
+    const [selectedFilePath, setSelectedFilePath] = useState<string>(initialFilePath);
+    const [connectorName, setConnectorName] = useState<string>(initialName);
+    const [connectionError, setConnectionError] = useState<string | null>(null);
+    const [isSavingConnector, setIsSavingConnector] = useState<boolean>(false);
 
     const supportedFileFormats = useMemo(() => {
         const isOpenApi = specType.toLowerCase() === "openapi";
@@ -246,12 +387,6 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
             setSelectedFilePath(projectDirectory.path);
             setConnectionError(null);
         }
-    };
-
-    const getFileName = (filePath: string) => {
-        if (!filePath) return "";
-        const parts = filePath.split(/[/\\]/);
-        return parts[parts.length - 1];
     };
 
     const handleOnGenerateSubmit = async (specFilePath: string, module: string, specType: string) => {
@@ -351,14 +486,13 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
                         filePath: fileName,
                         id: createdConnector.codedata,
                     });
-                    setSelectedFlowNode(nodeTemplateResponse.flowNode);
+                    onSave(createdConnector, nodeTemplateResponse.flowNode, specType, connectorName, selectedFilePath);
                 } else {
                     console.warn(">>> Created connector not found in search results");
                 }
             } catch (error) {
                 console.error(">>> Error finding created connector", error);
             }
-            setCurrentStep(1);
         } else {
             console.error(">>> Error generating connector:", generateResponse?.errorMessage);
             const errorMessage = generateResponse?.errorMessage || "";
@@ -369,14 +503,6 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
             }
         }
         setIsSavingConnector(false);
-    };
-
-    const handleBrowseMoreConnectors = () => {
-        if (onBack) {
-            onBack();
-        } else if (onClose) {
-            onClose();
-        }
     };
 
     const renderErrorDisplay = () => {
@@ -391,224 +517,90 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
                 <Typography variant="body2">
                     {connectionError}
                 </Typography>
-                <SeparatorLine />
-                <Typography variant="body2">
-                    Or try using a pre-built connector:
-                </Typography>
-                <BrowseMoreButton appearance="secondary" onClick={handleBrowseMoreConnectors} buttonSx={{ width: "100%" }}>
-                    <Typography variant="body2">
-                        Browse Pre-built Connectors
-                    </Typography>
-                </BrowseMoreButton>
             </ErrorContainer>
         );
     };
 
-    const handleOnFormSubmit = async (node: FlowNode, _dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => {
-        console.log(">>> on form submit", node);
-        if (selectedFlowNode) {
-            setIsSavingConnection(true);
-            const visualizerLocation = await rpcClient.getVisualizerLocation();
-            let connectionsFilePath = visualizerLocation.documentUri || visualizerLocation.projectPath;
-
-            if (node.codedata.isGenerated && !connectionsFilePath.endsWith(".bal")) {
-                connectionsFilePath += "/main.bal";
-            }
-
-            if (connectionsFilePath === "") {
-                console.error(">>> Error updating source code. No source file found");
-                setIsSavingConnection(false);
-                return;
-            }
-
-            // node property scope is local. then use local file path and line position
-            if ((node.properties?.scope?.value as string)?.toLowerCase() === "local") {
-                node.codedata.lineRange = {
-                    fileName: visualizerLocation.documentUri,
-                    startLine: target,
-                    endLine: target,
-                };
-            }
-
-            // Check if the node is a connector
-            const isConnector = node.codedata.node === "NEW_CONNECTION";
-
-            rpcClient
-                .getBIDiagramRpcClient()
-                .getSourceCode({
-                    filePath: connectionsFilePath,
-                    flowNode: node,
-                    isConnector: isConnector,
-                })
-                .then((response) => {
-                    console.log(">>> Updated source code", response);
-                    if (response.artifacts.length > 0) {
-                        setIsSavingConnection(false);
-                        const newConnection = response.artifacts.find((artifact) => artifact.isNew);
-                        onClose?.({ recentIdentifier: newConnection.name, artifactType: DIRECTORY_MAP.CONNECTION });
-                    } else {
-                        console.error(">>> Error updating source code", response);
-                        setIsSavingConnection(false);
-                    }
-                })
-                .catch((error) => {
-                    console.error(">>> Error saving connection", error);
-                }).finally(() => {
-                    setIsSavingConnection(false);
-                });
-        }
-    };
-
-    const renderStepper = () => {
-        return (
-            <>
-                <StepperContainer>
-                    <Stepper steps={steps} currentStep={currentStep} alignment="center" />
-                </StepperContainer>
-            </>
-        );
-    };
-
-    const renderImportStep = () => (
-        <StepContent>
-            <StepHeader>
-                <Typography variant="h3" sx={{ color: ThemeColors.ON_SURFACE, marginBottom: "5px" }}>
-                    Connector Configuration
-                </Typography>
-                <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                    Import API specification for the connector
-                </Typography>
-            </StepHeader>
-            {renderErrorDisplay()}
-            <FormSection>
-                <FormField>
-                    <Dropdown
-                        id="api-spec-type"
-                        label="Specification Type"
-                        items={apiSpecOptions}
-                        value={specType}
-                        onValueChange={(value) => {
-                            setSpecType(value);
-                            setConnectionError(null);
-                        }}
-                    />
-                </FormField>
-                <FormField>
-                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE, marginBottom: "0px", fontSize: "13px", fontWeight: 500 }}>
-                        Connector Name
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT, marginBottom: "8px", fontSize: "12px" }}>
-                        Name of the connector module to be generated
-                    </Typography>
-                    <TextField
-                        id="connector-name"
-                        value={connectorName}
-                        onTextChange={(value) => {
-                            setConnectorName(value);
-                            setConnectionError(null);
-                        }}
-                        placeholder="Enter connector name"
-                    />
-                </FormField>
-                <FormField>
-                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE, marginBottom: "8px", fontSize: "13px", fontWeight: 500 }}>
-                        Import Specification File
-                    </Typography>
-                    <UploadCard
-                        hasFile={!!selectedFilePath}
-                        onClick={handleFileSelect}
-                        data-testid="api-spec-upload"
-                    >
-                        <UploadIcon>
-                            <Codicon name="files" />
-                        </UploadIcon>
-                        <UploadText>
-                            <UploadTitle variant="body2">
-                                {selectedFilePath ? selectedFilePath : "Choose file to import"}
-                            </UploadTitle>
-                            <UploadSubtitle variant="body2">Supports {supportedFileFormats} files</UploadSubtitle>
-                        </UploadText>
-                    </UploadCard>
-                </FormField>
-            </FormSection>
-        </StepContent>
-    );
-
-    const renderConnectionStep = () => {
-        if (selectedFlowNode) {
-            return (
-                <StepContent fillHeight={true}>
-                    <div>
-                        <SectionTitle variant="h3">Connection Details</SectionTitle>
-                        <SectionSubtitle variant="body2">
-                            Configure connection settings
-                        </SectionSubtitle>
-                    </div>
-                    <ConnectionConfigView
-                        fileName={fileName}
-                        submitText={isSavingConnection ? "Creating..." : "Save Connection"}
-                        isSaving={isSavingConnection}
-                        selectedNode={selectedFlowNode}
-                        onSubmit={handleOnFormSubmit}
-                        updatedExpressionField={updatedExpressionField}
-                        resetUpdatedExpressionField={() => setUpdatedExpressionField(undefined)}
-                        isPullingConnector={isSavingConnection}
-                        footerActionButton={true}
-                    />
-                </StepContent>
-            );
-        }
-        return (
-            <StepContent>
-                <FormSection>
-                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                        Loading connector configuration...
-                    </Typography>
-                </FormSection>
-            </StepContent>
-        );
-    };
-
-    const renderStepContent = () => {
-        if (currentStep === 0) {
-            return renderImportStep();
-        }
-        return renderConnectionStep();
-    };
-
     return (
         <>
-            <PopupOverlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }} />
-            <PopupContainer>
-                <PopupHeader>
-                    <BackButton appearance="icon" onClick={onBack}>
-                        <Codicon name="chevron-left" />
-                    </BackButton>
-                    <HeaderTitleContainer>
-                        <PopupTitle variant="h2">Connect via API Specification</PopupTitle>
-                        <PopupSubtitle variant="body2">Import an API specification file to create a connection</PopupSubtitle>
-                    </HeaderTitleContainer>
-                    <CloseButton appearance="icon" onClick={() => onClose?.()}>
-                        <Codicon name="close" />
-                    </CloseButton>
-                </PopupHeader>
-                {renderStepper()}
-                <ContentContainer hasFooterButton={currentStep === 1}>{renderStepContent()}</ContentContainer>
-                {currentStep === 0 && (
-                    <FooterContainer>
-                        <ActionButton
-                            appearance="primary"
-                            disabled={!selectedFilePath || !connectorName || isSavingConnector || !!connectionError}
-                            onClick={handleSaveConnector}
-                            buttonSx={{ width: "100%", height: "35px" }}
+            <StepContent>
+                <StepHeader>
+                    <Typography variant="h3" sx={{ color: ThemeColors.ON_SURFACE, marginBottom: "5px" }}>
+                        Connector Configuration
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
+                        Import API specification for the connector
+                    </Typography>
+                </StepHeader>
+                {renderErrorDisplay()}
+                <FormSection>
+                    <FormField>
+                        <Dropdown
+                            id="api-spec-type"
+                            label="Specification Type"
+                            items={apiSpecOptions}
+                            value={specType}
+                            disabled={disabled}
+                            onValueChange={(value) => {
+                                setSpecType(value);
+                                setConnectionError(null);
+                            }}
+                        />
+                    </FormField>
+                    <FormField>
+                        <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE, marginBottom: "0px", fontSize: "13px", fontWeight: 500 }}>
+                            Connector Name
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT, marginBottom: "8px", fontSize: "12px" }}>
+                            Name of the connector module to be generated
+                        </Typography>
+                        <TextField
+                            id="connector-name"
+                            value={connectorName}
+                            onTextChange={(value) => {
+                                setConnectorName(value);
+                                setConnectionError(null);
+                            }}
+                            placeholder="Enter connector name"
+                            disabled={disabled}
+                        />
+                    </FormField>
+                    <FormField>
+                        <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE, marginBottom: "8px", fontSize: "13px", fontWeight: 500 }}>
+                            Import Specification File
+                        </Typography>
+                        <UploadCard
+                            hasFile={!!selectedFilePath}
+                            onClick={disabled ? undefined : handleFileSelect}
+                            data-testid="api-spec-upload"
+                            disabled={disabled}
                         >
-                            {isSavingConnector ? "Saving..." : "Save Connector"}
-                        </ActionButton>
-                    </FooterContainer>
-                )}
-            </PopupContainer>
+                            <UploadIcon>
+                                <Codicon name="files" />
+                            </UploadIcon>
+                            <UploadText>
+                                <UploadTitle variant="body2">
+                                    {selectedFilePath ? selectedFilePath : "Choose file to import"}
+                                </UploadTitle>
+                                <UploadSubtitle variant="body2">Supports {supportedFileFormats} files</UploadSubtitle>
+                            </UploadText>
+                        </UploadCard>
+                    </FormField>
+                </FormSection>
+            </StepContent>
+            <FooterContainer>
+                <ActionButton
+                    appearance="primary"
+                    disabled={!selectedFilePath || !connectorName || isSavingConnector || !!connectionError}
+                    onClick={handleSaveConnector}
+                    buttonSx={{ width: "100%", height: "35px" }}
+                >
+                    {isSavingConnector ? "Saving..." : actionButtonText}
+                </ActionButton>
+            </FooterContainer>
         </>
     );
+
 }
 
 export default APIConnectionPopup;
