@@ -286,7 +286,7 @@ export interface EvalsetTrace {
 
 export interface EvalThread {
     id: string;
-    name: string;
+    description: string;
     traces: EvalsetTrace[];
     created_on: string;
 }
