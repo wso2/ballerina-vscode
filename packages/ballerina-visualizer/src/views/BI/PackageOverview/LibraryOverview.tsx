@@ -119,13 +119,18 @@ const SearchIcon = styled.div`
     align-items: center;
 `;
 
-const SearchClearButton = styled.div`
+const SearchClearButton = styled.button`
     position: absolute;
     right: 6px;
     display: flex;
     align-items: center;
     cursor: pointer;
     color: var(--vscode-input-placeholderForeground);
+    font: inherit;
+    appearance: none;
+    padding: 0;
+    border: none;
+    background: none;
     &:hover { color: var(--vscode-input-foreground); }
 `;
 
@@ -144,7 +149,7 @@ const SectionCardGrid = styled.div`
     gap: 12px;
 `;
 
-const SectionCard = styled.div`
+const SectionCard = styled.button`
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -153,6 +158,10 @@ const SectionCard = styled.div`
     border-radius: 4px;
     background: ${ThemeColors.SURFACE_DIM};
     cursor: pointer;
+    font: inherit;
+    text-align: left;
+    appearance: none;
+    width: 100%;
     &:hover {
         background: ${ThemeColors.PRIMARY_CONTAINER};
         border-color: ${ThemeColors.HIGHLIGHT};
@@ -252,12 +261,16 @@ const CardGrid = styled.div`
 
 // ── Artifact card (ReactNode title for search highlight) ──────────────────────
 
-const ArtifactCardRoot = styled.div`
+const ArtifactCardRoot = styled.button`
+    width: 100%;
     padding: 12px;
     border-radius: 4px;
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     background-color: ${ThemeColors.SURFACE_DIM};
     cursor: pointer;
+    font: inherit;
+    text-align: left;
+    appearance: none;
     &:hover {
         background-color: ${ThemeColors.PRIMARY_CONTAINER};
         border-color: ${ThemeColors.HIGHLIGHT};
@@ -306,12 +319,16 @@ const HighlightMatch = styled.span`
 
 // ── Empty-section "Add" card ──────────────────────────────────────────────────
 
-const AddArtifactCard = styled.div`
+const AddArtifactCard = styled.button`
+    width: 100%;
     padding: 12px;
     border-radius: 4px;
     border: 1px dashed ${ThemeColors.OUTLINE_VARIANT};
     background-color: transparent;
     cursor: pointer;
+    font: inherit;
+    text-align: left;
+    appearance: none;
     opacity: 0.6;
     &:hover {
         opacity: 1;
@@ -328,7 +345,7 @@ const CardWrapper = styled.div`
     &:hover .delete-overlay { display: flex; }
 `;
 
-const DeleteOverlay = styled.div`
+const DeleteOverlay = styled.button`
     display: none;
     position: absolute;
     top: 50%;
@@ -345,6 +362,9 @@ const DeleteOverlay = styled.div`
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     opacity: 0.9;
     z-index: 1;
+    font: inherit;
+    appearance: none;
+    padding: 0;
     &:hover {
         color: ${ThemeColors.ERROR};
         background: color-mix(in srgb, ${ThemeColors.ERROR} 10%, var(--vscode-sideBar-background));
@@ -504,7 +524,11 @@ function ArtifactCard({ icon, title, query, onClick }: ArtifactCardProps) {
     }, [title, query]);
 
     return (
-        <ArtifactCardRoot onClick={onClick}>
+        <ArtifactCardRoot
+            type="button"
+            onClick={onClick}
+            aria-label={`Open ${title}`}
+        >
             <ArtifactCardInner>
                 <ArtifactCardIconContainer>{icon}</ArtifactCardIconContainer>
                 <ArtifactCardContent>
@@ -717,7 +741,9 @@ export function LibraryOverview({ projectStructure, isNPSupported, projectPath, 
             />
             {item.position && item.path && (
                 <DeleteOverlay
+                    type="button"
                     className="delete-overlay"
+                    aria-label="Delete artifact"
                     onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
                         handleDelete(item);
@@ -755,7 +781,11 @@ export function LibraryOverview({ projectStructure, isNPSupported, projectPath, 
                                 autoFocus
                             />
                             {isSectionSearching && (
-                                <SearchClearButton onClick={() => { setSectionSearch(""); sectionSearchRef.current?.focus(); }}>
+                                <SearchClearButton
+                                    type="button"
+                                    aria-label="Clear search"
+                                    onClick={() => { setSectionSearch(""); sectionSearchRef.current?.focus(); }}
+                                >
                                     <Codicon name="close" iconSx={{ fontSize: 12 }} />
                                 </SearchClearButton>
                             )}
@@ -775,7 +805,10 @@ export function LibraryOverview({ projectStructure, isNPSupported, projectPath, 
                             renderArtifactCard(item, activeSection.key, activeSection.icon, sectionQuery)
                         )}
                         {sectionAllItems.length === 0 && (
-                            <AddArtifactCard onClick={() => handleAdd(activeSection.key)}>
+                            <AddArtifactCard
+                                type="button"
+                                onClick={() => handleAdd(activeSection.key)}
+                            >
                                 <ArtifactCardInner>
                                     <ArtifactCardIconContainer>
                                         <Codicon name="add" iconSx={{ fontSize: 24, width: 24, height: 24 }} />
@@ -819,7 +852,11 @@ export function LibraryOverview({ projectStructure, isNPSupported, projectPath, 
                                 onChange={(e) => setOverviewSearch(e.target.value)}
                             />
                             {isOverviewSearching && (
-                                <SearchClearButton onClick={() => { setOverviewSearch(""); overviewSearchRef.current?.focus(); }}>
+                                <SearchClearButton
+                                    type="button"
+                                    aria-label="Clear search"
+                                    onClick={() => { setOverviewSearch(""); overviewSearchRef.current?.focus(); }}
+                                >
                                     <Codicon name="close" iconSx={{ fontSize: 12 }} />
                                 </SearchClearButton>
                             )}
@@ -883,6 +920,7 @@ export function LibraryOverview({ projectStructure, isNPSupported, projectPath, 
                                 <SectionCard
                                     key={section.key}
                                     id={`section-${section.key}`}
+                                    type="button"
                                     onClick={() => handleSectionOpen(section)}
                                 >
                                     <SectionCardTopRow>
