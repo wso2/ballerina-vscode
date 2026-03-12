@@ -31,3 +31,4 @@ export const storeSubProjectReports: NotificationType<StoreSubProjectReportsRequ
 export const saveMigrationReport: NotificationType<SaveMigrationReportRequest> = { method: `${_preFix}/saveMigrationReport` };
 export const migrateProject: NotificationType<MigrateRequest> = { method: `${_preFix}/migrateProject` };
 export const getActiveMigrationSession: RequestType<void, ActiveMigrationSession> = { method: `${_preFix}/getActiveMigrationSession` };
+export const seedMigrationHistory: RequestType<void, boolean> = { method: `${_preFix}/seedMigrationHistory` };

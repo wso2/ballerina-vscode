@@ -46,6 +46,7 @@ import {
     setWizardProjectRoot,
     runWizardMigrationEnhancement,
     openMigratedProject,
+    seedMigrationHistoryIntoChatState,
 } from "../../features/ai/migration/orchestrator";
 
 type MigrationEnhancementMode = 'auto-fix' | 'none';
@@ -54,6 +55,7 @@ interface ActiveMigrationSession {
     isActive: boolean;
     mode: MigrationEnhancementMode;
     isEnhanced: boolean;
+    isPartiallyEnhanced?: boolean;
 }
 
 export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
@@ -281,5 +283,9 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
 
     async setMigrationModel(modelId: string): Promise<void> {
         setMigrationModelId(modelId);
+    }
+
+    async seedMigrationHistory(): Promise<boolean> {
+        return seedMigrationHistoryIntoChatState();
     }
 }

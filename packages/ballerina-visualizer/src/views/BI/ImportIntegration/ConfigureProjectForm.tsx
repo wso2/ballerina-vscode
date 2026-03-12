@@ -266,7 +266,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                     <ButtonWrapper>
                         <ActionButtons
                             primaryButton={{
-                                text: isValidating ? "Validating..." : "Create and Open Project",
+                                text: isValidating ? "Validating..." : (aiEnhancementEnabled ? "Create and Start AI Enhancement" : "Create and Open Project"),
                                 onClick: handleCreateMultiProject,
                                 disabled: isValidating
                             }}
@@ -296,7 +296,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                     <ButtonWrapper>
                         <ActionButtons
                             primaryButton={{
-                                text: isValidating ? "Validating..." : "Create and Open Project",
+                                text: isValidating ? "Validating..." : (aiEnhancementEnabled ? "Create and Start AI Enhancement" : "Create and Open Project"),
                                 onClick: handleCreateSingleProject,
                                 disabled: isValidating
                             }}

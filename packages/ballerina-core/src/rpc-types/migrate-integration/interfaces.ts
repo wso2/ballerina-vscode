@@ -76,6 +76,10 @@ export interface ActiveMigrationSession {
     isActive: boolean;
     /** The mode that is currently running (or was last run). */
     mode: MigrationEnhancementMode;
+    /** `true` once the AI enhancement pipeline has completed. */
+    isEnhanced: boolean;
+    /** `true` when the AI enhancement was started but paused before completion. */
+    isPartiallyEnhanced?: boolean;
 }
 
 export interface MigrateRequest {

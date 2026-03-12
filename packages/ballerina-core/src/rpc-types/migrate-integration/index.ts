@@ -29,4 +29,6 @@ export interface MigrateIntegrationAPI {
     saveMigrationReport: (params: SaveMigrationReportRequest) => void;
     migrateProject: (params: MigrateRequest) => void;
     getActiveMigrationSession: () => Promise<ActiveMigrationSession>;
+    /** Seeds any persisted migration conversation history into the chat state. */
+    seedMigrationHistory: () => Promise<boolean>;
 }

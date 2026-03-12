@@ -618,7 +618,7 @@ export function WizardAIEnhancementView() {
                         onClick={handleSkipAndOpen}
                     >
                         <span className="codicon codicon-debug-step-over" />
-                        Skip &amp; Open Project
+                        Pause &amp; Open
                     </ActionButton>
                 )}
             </ButtonRow>
