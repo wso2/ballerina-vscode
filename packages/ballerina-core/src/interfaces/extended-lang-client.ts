@@ -1856,7 +1856,7 @@ export interface AIGentToolsRequest {
 }
 
 export interface AIGentToolsResponse {
-    artifacts: ProjectStructureArtifactResponse[];
+    artifacts?: ProjectStructureArtifactResponse[];
     textEdits: {
         [key: string]: TextEdit[];
     };

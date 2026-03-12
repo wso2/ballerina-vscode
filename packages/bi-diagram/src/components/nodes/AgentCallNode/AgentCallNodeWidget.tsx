@@ -1206,7 +1206,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                     font-family: "GilmerRegular";
                                 `}
                                 >
-                                    Click to edit {tool.name}
+                                    Click to view {tool.name}
                                 </div>
                             </foreignObject>
                         </g>
