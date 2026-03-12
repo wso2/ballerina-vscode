@@ -167,6 +167,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 							<Button
 								appearance="icon"
 								data-testid={`array-widget-field-${portIn?.getName()}`}
+								data-field-action
 							>
 								<Icon
 									name="error-icon"
