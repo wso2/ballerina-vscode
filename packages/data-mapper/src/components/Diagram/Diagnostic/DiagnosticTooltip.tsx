@@ -15,9 +15,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React from "react";
+import React, { useState } from "react";
 
-import { Button, Codicon, Divider, Icon, Tooltip } from "@wso2/ui-toolkit";
+import { Button, Codicon, Divider, Icon, ProgressRing, Tooltip } from "@wso2/ui-toolkit";
 
 import { useStyles } from "./style";
 
@@ -27,7 +27,7 @@ interface Props {
     diagnostic: string;
     value?: string
     actionText?: string;
-    onClick?: () => void;
+    onClick?: () => void | Promise<void>;
 }
 
 export const DiagnosticTooltipID = "data-mapper-diagnostic-tooltip";
@@ -35,6 +35,13 @@ export const DiagnosticTooltipID = "data-mapper-diagnostic-tooltip";
 export function DiagnosticTooltip(props: Partial<Props>) {
     const { diagnostic, value, actionText, children, onClick } = props;
     const classes = useStyles();
+    const [inProgress, setInProgress] = useState(false);
+
+    const handleOnClick = async () => {
+        setInProgress(true);
+        await onClick();
+        setInProgress(false);
+    };
 
     const Code = () => (
         <>
@@ -48,15 +55,22 @@ export function DiagnosticTooltip(props: Partial<Props>) {
                         {value.trim()}
                     </code>
                 )}
-                <Button
-                    appearance="icon"
-                    className={classes.editButton}
-                    aria-label="edit"
-                    onClick={onClick}
-                >
-                    <Codicon name="tools" sx={{ marginRight: "8px" }} />
-                    <span className={classes.editButtonText}>{actionText || "Fix by editing source"}</span>
-                </Button>
+                {onClick && (
+                    <Button
+                        appearance="icon"
+                        className={classes.editButton}
+                        aria-label="edit"
+                        onClick={handleOnClick}
+                        disabled={inProgress}
+                    >
+                        {inProgress ? (
+                            <ProgressRing sx={{ width: 14, height: 14, marginRight: "8px" }} />
+                        ) : (
+                            <Codicon name="tools" sx={{ marginRight: "8px" }} />
+                        )}
+                        <span className={classes.editButtonText}>{actionText || "Fix by editing source"}</span>
+                    </Button>
+                )}
             </div>
         </>
 
