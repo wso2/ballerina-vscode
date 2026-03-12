@@ -61,7 +61,8 @@ import {
     refreshReviewMode,
     onHideReviewActions,
     approvalOverlayState,
-    ApprovalOverlayState
+    ApprovalOverlayState,
+    onIdentifierUpdated
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -222,6 +223,10 @@ export class BallerinaRpcClient {
 
     onProjectContentUpdated(callback: (state: boolean) => void) {
         this.messenger.onNotification(projectContentUpdated, callback);
+    }
+
+    onIdentifierUpdated(callback: (response: ProjectStructureArtifactResponse[]) => void) {
+        this.messenger.onNotification(onIdentifierUpdated, callback);
     }
 
     // <----- This is used to register given artifact updated callback notification ----->
