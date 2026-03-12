@@ -21,7 +21,14 @@ package io.ballerina.testmanagerservice.extension;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionStatementNode;
+import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
+import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
@@ -29,8 +36,12 @@ import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
+import io.ballerina.compiler.syntax.tree.ReturnStatementNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
+import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.testmanagerservice.extension.model.Annotation;
 import io.ballerina.testmanagerservice.extension.model.Codedata;
 import io.ballerina.testmanagerservice.extension.model.FunctionParameter;
@@ -71,7 +82,8 @@ public class Utils {
     }
 
     public static TestFunction getTestFunctionModel(FunctionDefinitionNode functionDefinitionNode,
-                                                    SemanticModel semanticModel) {
+                                                    SemanticModel semanticModel,
+                                                    ModulePartNode modulePartNode) {
         TestFunction.FunctionBuilder functionBuilder = new TestFunction.FunctionBuilder();
 
         functionBuilder.metadata(new Metadata("Test Function", "Test Function"))
@@ -83,8 +95,8 @@ public class Utils {
         // annotations
         functionDefinitionNode.metadata().ifPresent(metadata -> {
             List<Annotation> annotations = new ArrayList<>();
-            for (AnnotationNode annotationNode: metadata.annotations()) {
-                annotations.add(getAnnotationModel(annotationNode, semanticModel));
+            for (AnnotationNode annotationNode : metadata.annotations()) {
+                annotations.add(getAnnotationModel(annotationNode, semanticModel, modulePartNode));
             }
             functionBuilder.annotations(annotations);
 
@@ -95,7 +107,8 @@ public class Utils {
         return functionBuilder.build();
     }
 
-    public static Annotation getAnnotationModel(AnnotationNode annotationNode, SemanticModel semanticModel) {
+    public static Annotation getAnnotationModel(AnnotationNode annotationNode, SemanticModel semanticModel,
+                                                ModulePartNode modulePartNode) {
         AnnotationSymbol annotationSymbol = (AnnotationSymbol) semanticModel.symbol(annotationNode).get();
         String annotName = annotationSymbol.getName().orElse("");
         if (annotName.isEmpty()) {
@@ -104,19 +117,21 @@ public class Utils {
         Optional<MappingConstructorExpressionNode> annotValue = annotationNode.annotValue();
         MappingConstructorExpressionNode mappingConstructor = annotValue.orElse(null);
         if (annotName.equals("Config")) {
-            return buildConfigAnnotation(mappingConstructor);
+            return buildConfigAnnotation(mappingConstructor, modulePartNode);
         }
         return null;
     }
 
-    private static Annotation buildConfigAnnotation(MappingConstructorExpressionNode mappingConstructor) {
+    private static Annotation buildConfigAnnotation(MappingConstructorExpressionNode mappingConstructor,
+                                                    ModulePartNode modulePartNode) {
         Annotation.ConfigAnnotationBuilder builder = new Annotation.ConfigAnnotationBuilder();
         builder.metadata(new Metadata("Config", "Test Function Configurations"));
         if (mappingConstructor == null) {
             return builder.build();
         }
         SeparatedNodeList<MappingFieldNode> fields = mappingConstructor.fields();
-        for (MappingFieldNode field: fields) {
+        String dataProviderName = null;
+        for (MappingFieldNode field : fields) {
             if (field instanceof SpecificFieldNode specificFieldNode) {
                 String fieldName = specificFieldNode.fieldName().toSourceCode().trim();
                 Optional<ExpressionNode> expressionNode = specificFieldNode.valueExpr();
@@ -136,17 +151,180 @@ public class Utils {
                         if (expressionNode.isPresent() &&
                                 expressionNode.get() instanceof ListConstructorExpressionNode expr) {
                             List<String> groupList = new ArrayList<>();
-                            for (Node groupExpr: expr.expressions()) {
+                            for (Node groupExpr : expr.expressions()) {
                                 groupList.add(groupExpr.toSourceCode().trim());
                             }
                             builder.groups(groupList);
                         }
                     }
-                    default -> { }
+                    case "dataProvider" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            dataProviderName = value;
+                            builder.dataProvider(value);
+                        }
+                    }
+                    case "dataProviderMode" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            builder.dataProviderMode(value);
+                        }
+                    }
+                    case "evalSetFile" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            builder.evalSetFile(value);
+                        }
+                    }
+                    case "dependsOn" -> {
+                        if (expressionNode.isPresent() &&
+                                expressionNode.get() instanceof ListConstructorExpressionNode expr) {
+                            List<String> functionList = new ArrayList<>();
+                            for (Node functionExpr : expr.expressions()) {
+                                functionList.add(functionExpr.toSourceCode().trim());
+                            }
+                            builder.dependsOn(functionList);
+                        }
+                    }
+                    case "after" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            builder.after(value);
+                        }
+                    }
+                    case "before" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            builder.before(value);
+                        }
+                    }
+                    case "runs" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            builder.runs(value);
+                        }
+                    }
+                    case "minPassRate" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            builder.minPassRate(value);
+                        }
+                    }
+                    default -> {
+                    }
                 }
             }
         }
+
+        // Extract evalSetFile from data provider function if present
+        if (dataProviderName != null) {
+            String evalSetPath = extractEvalSetFileFromDataProvider(modulePartNode, dataProviderName);
+            if (!evalSetPath.isEmpty()) {
+                builder.evalSetFile(evalSetPath);
+            }
+        }
+
         return builder.build();
+    }
+
+    private static String extractEvalSetFileFromDataProvider(ModulePartNode modulePartNode,
+                                                             String dataProviderFunctionName) {
+        // Find the data provider function
+        Optional<FunctionDefinitionNode> dataProviderFunc =
+                findFunctionByName(modulePartNode, dataProviderFunctionName);
+
+        if (dataProviderFunc.isEmpty()) {
+            return "";
+        }
+
+        // Extract the ai:loadConversationThreads() call from function body
+        FunctionBodyNode functionBody = dataProviderFunc.get().functionBody();
+        if (functionBody instanceof FunctionBodyBlockNode blockBody) {
+            // Handle block-based function body
+            return extractFromStatements(blockBody.statements());
+        } else if (functionBody instanceof ExpressionFunctionBodyNode exprBody) {
+            // Handle expression-based function body (return expr;)
+            return extractFromExpression(exprBody.expression());
+        }
+
+        return "";
+    }
+
+    /**
+     * Find the loadConversationThreads argument in statements.
+     *
+     * @param statements the list of statements
+     * @return the ExpressionNode of the file path argument, or empty if not found
+     */
+    public static Optional<ExpressionNode> findLoadConversationThreadsArgumentInStatements(
+            NodeList<StatementNode> statements) {
+        for (StatementNode statement : statements) {
+            if (statement instanceof ReturnStatementNode returnStmt) {
+                Optional<ExpressionNode> expr = returnStmt.expression();
+                if (expr.isPresent()) {
+                    Optional<ExpressionNode> result = findLoadConversationThreadsArgument(expr.get());
+                    if (result.isPresent()) {
+                        return result;
+                    }
+                }
+            } else if (statement instanceof ExpressionStatementNode exprStmt) {
+                Optional<ExpressionNode> result = findLoadConversationThreadsArgument(exprStmt.expression());
+                if (result.isPresent()) {
+                    return result;
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static String extractFromStatements(NodeList<StatementNode> statements) {
+        Optional<ExpressionNode> argExpr = findLoadConversationThreadsArgumentInStatements(statements);
+        if (argExpr.isPresent()) {
+            String argValue = argExpr.get().toSourceCode().trim();
+            return argValue.replaceAll("^\"|\"$", "");
+        }
+        return "";
+    }
+
+    /**
+     * Find the argument expression for the file path in ai:loadConversationThreads() call.
+     *
+     * @param expression the expression node to search
+     * @return the ExpressionNode of the file path argument, or empty if not found
+     */
+    public static Optional<ExpressionNode> findLoadConversationThreadsArgument(ExpressionNode expression) {
+        // Handle check expression: check ai:loadConversationThreads(...)
+        if (expression instanceof CheckExpressionNode checkExpr) {
+            return findLoadConversationThreadsArgument(checkExpr.expression());
+        }
+
+        // Handle function call: ai:loadConversationThreads("path")
+        if (expression instanceof FunctionCallExpressionNode funcCall) {
+            String functionName = funcCall.functionName().toSourceCode().trim();
+
+            // Check if it's the ai:loadConversationThreads function
+            if (functionName.equals(Constants.LOAD_CONVERSATION_THREADS) ||
+                    functionName.equals(Constants.MODULE_AI + Constants.COLON + Constants.LOAD_CONVERSATION_THREADS)) {
+                // Extract first argument (the file path)
+                for (FunctionArgumentNode arg : funcCall.arguments()) {
+                    if (arg instanceof PositionalArgumentNode positionalArg) {
+                        return Optional.of(positionalArg.expression());
+                    }
+                }
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private static String extractFromExpression(ExpressionNode expression) {
+        Optional<ExpressionNode> argExpr = findLoadConversationThreadsArgument(expression);
+        if (argExpr.isPresent()) {
+            String argValue = argExpr.get().toSourceCode().trim();
+            // Remove surrounding quotes
+            return argValue.replaceAll("^\"|\"$", "");
+        }
+        return "";
     }
 
     public static String getTestFunctionTemplate(TestFunction function) {
@@ -163,21 +341,6 @@ public class Utils {
 
         builder.append(Constants.SPACE)
                 .append(Constants.OPEN_CURLY_BRACE)
-                .append(Constants.LINE_SEPARATOR)
-                .append(Constants.TAB_SEPARATOR)
-                .append(Constants.KEYWORD_DO)
-                .append(Constants.SPACE)
-                .append(Constants.OPEN_CURLY_BRACE)
-                .append(Constants.LINE_SEPARATOR)
-                .append(Constants.TAB_SEPARATOR)
-                .append(Constants.CLOSE_CURLY_BRACE)
-                .append(Constants.SPACE)
-                .append(Constants.ON_FAIL_ERROR_STMT)
-                .append(Constants.SPACE)
-                .append(Constants.OPEN_CURLY_BRACE)
-                .append(Constants.LINE_SEPARATOR)
-                .append(Constants.TAB_SEPARATOR)
-                .append(Constants.CLOSE_CURLY_BRACE)
                 .append(Constants.LINE_SEPARATOR)
                 .append(Constants.CLOSE_CURLY_BRACE);
         return builder.toString();
@@ -214,7 +377,7 @@ public class Utils {
 
     public static String buildReturnType(Property returnType) {
         if (returnType == null || returnType.value() == null || returnType.value().toString().trim().isEmpty()) {
-            return "";
+            return Constants.SPACE + Constants.KEYWORD_RETURNS + Constants.SPACE + "error?";
         }
         return Constants.SPACE + Constants.KEYWORD_RETURNS + Constants.SPACE + returnType.value().toString().trim();
     }
@@ -263,13 +426,64 @@ public class Utils {
                 case "groups" -> {
                     if (value instanceof List<?> valueList && !valueList.isEmpty()
                             && valueList.getFirst() instanceof String) {
-                        List<String> groupList = valueList.stream().map(Object::toString).toList();
+                        List<String> groupList = valueList.stream()
+                                .filter(group -> {
+                                    String groupStr = group.toString().trim();
+                                    if (groupStr.isEmpty() || groupStr.equals("\"\"")) {
+                                        return false;
+                                    }
+                                    String unquoted = groupStr.replaceAll("^\"|\"$", "");
+                                    return !unquoted.isEmpty();
+                                })
+                                .map(group -> {
+                                    String groupStr = group.toString();
+                                    if (!groupStr.startsWith(Constants.DOUBLE_QUOTE)) {
+                                        return Constants.DOUBLE_QUOTE + groupStr + Constants.DOUBLE_QUOTE;
+                                    }
+                                    return groupStr;
+                                })
+                                .toList();
                         String groupStr = Constants.OPEN_BRACKET + String.join(Constants.COMMA + Constants.SPACE,
                                 groupList) + Constants.CLOSE_BRACKET;
                         fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, groupStr));
                     }
                 }
-                default -> { }
+                case "dataProvider" -> {
+                    if (value instanceof String valueStr && !valueStr.isEmpty()) {
+                        fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, valueStr));
+                    }
+                }
+                case "dependsOn" -> {
+                    if (value instanceof List<?> valueList && !valueList.isEmpty()
+                            && valueList.getFirst() instanceof String) {
+                        List<String> functionList = valueList.stream().map(Object::toString).toList();
+                        String functionStr = Constants.OPEN_BRACKET + String.join(Constants.COMMA + Constants.SPACE,
+                                functionList) + Constants.CLOSE_BRACKET;
+                        fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, functionStr));
+                    }
+                }
+                case "after" -> {
+                    if (value instanceof String valueStr && !valueStr.isEmpty()) {
+                        fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, valueStr));
+                    }
+                }
+                case "before" -> {
+                    if (value instanceof String valueStr && !valueStr.isEmpty()) {
+                        fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, valueStr));
+                    }
+                }
+                case "runs" -> {
+                    if (value instanceof String valueStr && !valueStr.isEmpty() && !valueStr.equals("1")) {
+                        fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, valueStr));
+                    }
+                }
+                case "minPassRate" -> {
+                    if (value instanceof String valueStr && !valueStr.isEmpty() && !valueStr.equals("1")) {
+                        fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, valueStr));
+                    }
+                }
+                default -> {
+                }
             }
         }
         if (fieldStrings.isEmpty()) {
@@ -294,6 +508,131 @@ public class Utils {
                     Constants.ORG_BALLERINA.equals(importDeclarationNode.orgName().get().orgName().text()) &&
                     Constants.MODULE_TEST.equals(moduleName);
         });
+    }
+
+    /**
+     * Check whether the ai import exists in the module.
+     *
+     * @param node module part node
+     * @return true if the import exists, false otherwise
+     */
+    public static boolean isAiModuleImportExists(ModulePartNode node) {
+        return node.imports().stream().anyMatch(importDeclarationNode -> {
+            String moduleName = importDeclarationNode.moduleName().stream()
+                    .map(IdentifierToken::text)
+                    .collect(Collectors.joining("."));
+            return importDeclarationNode.orgName().isPresent() &&
+                    Constants.ORG_BALLERINA.equals(importDeclarationNode.orgName().get().orgName().text()) &&
+                    Constants.MODULE_AI.equals(moduleName);
+        });
+    }
+
+    /**
+     * Get a field value from the Config annotation of a test function.
+     *
+     * @param function  the test function
+     * @param fieldName the field name to extract
+     * @return the field value without quotes, or null if not found
+     */
+    public static String getConfigFieldValue(TestFunction function, String fieldName) {
+        if (function.annotations() == null) {
+            return null;
+        }
+        for (Annotation annotation : function.annotations()) {
+            if ("Config".equals(annotation.name())) {
+                for (Property field : annotation.fields()) {
+                    if (fieldName.equals(field.originalName())) {
+                        return field.value() != null ? field.value().toString().replaceAll("\"", "") : null;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Find a function by name in the module.
+     *
+     * @param modulePartNode the module part node
+     * @param functionName   the function name (with or without quotes)
+     * @return the function definition node, or empty if not found
+     */
+    public static Optional<FunctionDefinitionNode> findFunctionByName(ModulePartNode modulePartNode,
+                                                                      String functionName) {
+        if (functionName == null || functionName.isEmpty()) {
+            return Optional.empty();
+        }
+        // Remove quotes if present in function name
+        final String cleanName = functionName.replaceAll("\"", "");
+
+        return modulePartNode.members().stream()
+                .filter(mem -> mem instanceof FunctionDefinitionNode)
+                .map(mem -> (FunctionDefinitionNode) mem)
+                .filter(mem -> mem.functionName().text().trim().equals(cleanName))
+                .findFirst();
+    }
+
+    /**
+     * Get the line range covering all annotations.
+     *
+     * @param annotations the list of annotation nodes
+     * @return the line range covering all annotations, or null if empty
+     */
+    public static LineRange getAnnotationsRange(NodeList<AnnotationNode> annotations) {
+        if (annotations.isEmpty()) {
+            return null;
+        }
+
+        LinePosition startPos = annotations.get(0).lineRange().startLine();
+        LinePosition endPos = annotations.get(annotations.size() - 1).lineRange().endLine();
+
+        return LineRange.from(null, startPos, endPos);
+    }
+
+    /**
+     * Extract text from a document at the given line range.
+     *
+     * @param textDocument the text document
+     * @param range        the line range
+     * @return the extracted text with quotes removed and trimmed
+     */
+    public static String extractTextFromRange(io.ballerina.tools.text.TextDocument textDocument, LineRange range) {
+        int start = textDocument.textPositionFrom(range.startLine());
+        int end = textDocument.textPositionFrom(range.endLine());
+        String text = textDocument.toString().substring(start, end);
+        return text.replaceAll("^\"|\"$", "").trim();
+    }
+
+    /**
+     * Generate an evalSet data provider function template.
+     *
+     * @param functionName    the name of the data provider function
+     * @param evalSetFilePath the path to the evalSet file
+     * @return the generated function template
+     */
+    public static String getEvalSetDataProviderFunctionTemplate(String functionName, String evalSetFilePath) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(Constants.LINE_SEPARATOR)
+                .append(Constants.LINE_SEPARATOR)
+                .append(Constants.KEYWORD_ISOLATED)
+                .append(Constants.SPACE)
+                .append(Constants.KEYWORD_FUNCTION)
+                .append(Constants.SPACE)
+                .append(functionName)
+                .append(Constants.OPEN_PARAM)
+                .append(Constants.CLOSED_PARAM)
+                .append(Constants.SPACE)
+                .append(Constants.KEYWORD_RETURNS)
+                .append(Constants.SPACE)
+                .append("map<[" + Constants.AI_CONVERSATION_THREAD_TYPE + "]>|error")
+                .append(Constants.SPACE)
+                .append(Constants.OPEN_CURLY_BRACE)
+                .append(Constants.LINE_SEPARATOR)
+                .append(Constants.TAB_SEPARATOR)
+                .append("return ai:loadConversationThreads(\"" + evalSetFilePath + "\");")
+                .append(Constants.LINE_SEPARATOR)
+                .append(Constants.CLOSE_CURLY_BRACE);
+        return builder.toString();
     }
 
     /**

@@ -13,7 +13,8 @@
         "title": "Common",
         "projectPath": "workspace_proj/common",
         "org": "wso2",
-        "version": "0.1.0"
+        "version": "0.1.0",
+        "isLibrary": true
       },
       {
         "projectKind": "BUILD_PROJECT",
@@ -21,7 +22,8 @@
         "title": "API Gateway",
         "projectPath": "workspace_proj/api-gateway",
         "org": "wso2",
-        "version": "0.1.0"
+        "version": "0.1.0",
+        "isLibrary": false
       },
       {
         "projectKind": "BUILD_PROJECT",
@@ -29,7 +31,8 @@
         "title": "User Service",
         "projectPath": "workspace_proj/user-service",
         "org": "wso2",
-        "version": "0.1.0"
+        "version": "0.1.0",
+        "isLibrary": false
       }
     ]
   }

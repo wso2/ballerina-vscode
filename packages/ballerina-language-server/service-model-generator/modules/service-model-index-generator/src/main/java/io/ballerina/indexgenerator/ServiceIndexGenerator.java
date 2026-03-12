@@ -121,7 +121,7 @@ class ServiceIndexGenerator {
                                        PackageMetadataInfo packageMetadataInfo) {
         Package resolvedPackage;
         try {
-            Optional<Package> packageOpt = PackageUtil.getModulePackage(org,
+            Optional<Package> packageOpt = PackageUtil.resolveModulePackage(org,
 
                     packageMetadataInfo.name(), packageMetadataInfo.version());
             if (packageOpt.isEmpty()) {
@@ -737,7 +737,14 @@ class ServiceIndexGenerator {
             String fieldType,
             String ballerinaType,
             List<Object> options,
-            List<ServiceInitializerPropertyMemberType> typeMembers
+            List<ServiceInitializerPropertyMemberType> typeMembers,
+            Template template
     ) {
     }
+
+    record Template(
+            List<PropertyType> types
+    ) {
+    }
+
 }

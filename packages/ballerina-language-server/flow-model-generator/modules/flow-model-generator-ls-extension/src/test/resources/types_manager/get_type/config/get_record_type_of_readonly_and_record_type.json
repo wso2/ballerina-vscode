@@ -47,7 +47,7 @@
       "isPublic": {
         "metadata": {
           "label": "public",
-          "description": "Is this public"
+          "description": "Make visible across the workspace"
         },
         "types": [
           {
@@ -55,7 +55,7 @@
             "selected": true
           }
         ],
-        "value": "false",
+        "value": false,
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -135,23 +135,27 @@
         "kind": "FIELD",
         "refs": [],
         "type": "int",
+        "typeName": "int",
         "name": "uuid",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       },
       {
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "name",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       }
     ],
     "includes": [],

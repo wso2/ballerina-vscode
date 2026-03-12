@@ -45,6 +45,7 @@ import io.ballerina.flowmodelgenerator.extension.request.JsonToTypeRequest;
 import io.ballerina.flowmodelgenerator.extension.request.MultipleTypeUpdateRequest;
 import io.ballerina.flowmodelgenerator.extension.request.RecordConfigRequest;
 import io.ballerina.flowmodelgenerator.extension.request.RecordValueGenerateRequest;
+import io.ballerina.flowmodelgenerator.extension.request.TypeOfExpressionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.TypeUpdateRequest;
 import io.ballerina.flowmodelgenerator.extension.request.UpdatedRecordConfigRequest;
 import io.ballerina.flowmodelgenerator.extension.request.VerifyTypeDeleteRequest;
@@ -53,6 +54,7 @@ import io.ballerina.flowmodelgenerator.extension.response.MultipleTypeUpdateResp
 import io.ballerina.flowmodelgenerator.extension.response.RecordConfigResponse;
 import io.ballerina.flowmodelgenerator.extension.response.RecordValueGenerateResponse;
 import io.ballerina.flowmodelgenerator.extension.response.TypeListResponse;
+import io.ballerina.flowmodelgenerator.extension.response.TypeOfExpressionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.TypeResponse;
 import io.ballerina.flowmodelgenerator.extension.response.TypeUpdateResponse;
 import io.ballerina.flowmodelgenerator.extension.response.VerifyTypeDeleteResponse;
@@ -164,6 +166,35 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 }
                 response.setType(result.getAsJsonObject().get("type").getAsJsonObject());
                 response.setRefs(result.getAsJsonObject().get("refs").getAsJsonArray());
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<TypeOfExpressionResponse> getTypeOfExpression(TypeOfExpressionRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            TypeOfExpressionResponse response = new TypeOfExpressionResponse();
+            try {
+                Path filePath = PathUtil.convertUriStringToPath(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get(request.filePath());
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
+                if (document.isEmpty() || semanticModel.isEmpty()) {
+                    return response;
+                }
+                Path fileName = filePath.getFileName();
+                TypesManager typesManager = new TypesManager(document.get());
+                JsonElement result = typesManager.getTypeOfExpression(project,
+                        fileName == null ? filePath.toString() : fileName.toString(), document.get(),
+                        request.position(), request.expression());
+                if (result == null) {
+                    return response;
+                }
+                response.setType(result);
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }

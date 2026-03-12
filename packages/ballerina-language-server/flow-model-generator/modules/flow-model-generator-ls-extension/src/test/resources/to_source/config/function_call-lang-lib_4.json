@@ -60,8 +60,6 @@
           "label": "vals",
           "description": "values to add to the end of the array"
         },
-        "valueType": "EXPRESSION_SET",
-        "valueTypeConstraint": "(any|error)",
         "placeholder": "()",
         "optional": true,
         "editable": true,
@@ -71,17 +69,21 @@
           "kind": "REST_PARAMETER",
           "originalName": "vals"
         },
-        "typeMembers": [
-          {
-            "type": "Type",
-            "packageInfo": "ballerina:lang.array:0.0.0",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          }
-        ],
         "value": [
-          "newOrder",
-          "newOrder2"
+          {
+            "value": "newOrder",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          {
+            "value": "newOrder2",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
         ]
       }
     },

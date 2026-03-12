@@ -33,16 +33,19 @@ public class PropertyType {
     private final List<Option> options;
     private final Property template;
     private final List<PropertyTypeMemberInfo> typeMembers;
+    private final RecordSelectorType recordSelectorType;
     private boolean selected;
 
     public PropertyType(Property.ValueType fieldType, String ballerinaType, String scope, List<Option> options,
-                        Property template, List<PropertyTypeMemberInfo> typeMembers, boolean selected) {
+            Property template, List<PropertyTypeMemberInfo> typeMembers, RecordSelectorType recordSelectorType,
+            boolean selected) {
         this.fieldType = fieldType;
         this.ballerinaType = ballerinaType;
         this.scope = scope;
         this.options = options;
         this.template = template;
         this.typeMembers = typeMembers;
+        this.recordSelectorType = recordSelectorType;
         this.selected = selected;
     }
 
@@ -68,6 +71,10 @@ public class PropertyType {
 
     public List<PropertyTypeMemberInfo> typeMembers() {
         return typeMembers;
+    }
+
+    public RecordSelectorType recordSelectorType() {
+        return recordSelectorType;
     }
 
     public boolean selected() {

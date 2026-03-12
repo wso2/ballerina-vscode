@@ -32,6 +32,8 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.flowmodelgenerator.core.Constants;
+import io.ballerina.flowmodelgenerator.core.TypesManager;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
@@ -69,6 +71,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static io.ballerina.flowmodelgenerator.core.model.Property.PROPERTY_TYPE_LIST_TYPE_TOKEN;
+import static io.ballerina.flowmodelgenerator.core.model.Property.convertToProperty;
+import static org.apache.commons.lang3.StringUtils.capitalize;
+
 public class SourceBuilder {
 
     private TokenBuilder tokenBuilder;
@@ -100,6 +106,9 @@ public class SourceBuilder {
         Codedata codedata = flowNode.codedata();
         if (codedata == null) {
             this.filePath = filePath;
+        } else if (Boolean.TRUE.equals(codedata.isNew()) && codedata.data() != null
+                && codedata.data().containsKey(Constants.FILE_PATH_KEY)) {
+            this.filePath = resolveFromData(codedata, filePath);
         } else {
             NodeKind nodeKind = codedata.node();
             if (filePath.endsWith(AGENTS_BAL) && (nodeKind == NodeKind.FUNCTION_DEFINITION
@@ -115,6 +124,33 @@ public class SourceBuilder {
 
     public SourceBuilder(FlowNode flowNode, WorkspaceManager workspaceManager, Path filePath) {
         this(flowNode, workspaceManager, filePath, null);
+    }
+
+    private Path resolveFromData(Codedata codedata, Path requestFilePath) {
+        Path relativePath = Path.of(codedata.data().get(Constants.FILE_PATH_KEY).toString());
+        Path targetPath = workspaceManager.projectRoot(requestFilePath).resolve(relativePath);
+        try {
+            workspaceManager.loadProject(targetPath);
+            if (codedata.lineRange() != null && !hasDefaultFile(codedata.node())) {
+                defaultRange = CommonUtils.toRange(codedata.lineRange());
+            } else {
+                Document document = FileSystemUtils.getDocument(workspaceManager, targetPath);
+                defaultRange = CommonUtils.toRange(document.syntaxTree().rootNode().lineRange().endLine());
+            }
+        } catch (WorkspaceDocumentException | EventSyncException e) {
+            throw new RuntimeException(e);
+        }
+        return targetPath;
+    }
+
+    private boolean hasDefaultFile(NodeKind node) {
+        return switch (node) {
+            case NEW_CONNECTION, MODEL_PROVIDER, EMBEDDING_PROVIDER, VECTOR_STORE, KNOWLEDGE_BASE,
+                 DATA_LOADER, CHUNKER, CLASS_INIT, DATA_MAPPER_DEFINITION,
+                 FUNCTION_DEFINITION, NP_FUNCTION, NP_FUNCTION_DEFINITION, AUTOMATION,
+                 AGENT, MEMORY, MEMORY_STORE, MCP_TOOL_KIT -> true;
+            default -> false;
+        };
     }
 
     private Path resolvePath(Path inputPath, NodeKind node, LineRange lineRange, Boolean isNew) {
@@ -179,21 +215,60 @@ public class SourceBuilder {
         Property type = optionalType.get();
         String typeName = type.value().toString();
         if (flowNode.codedata().inferredReturnType() != null) {
-            Optional<Property> inferredParam = flowNode.properties().values().stream()
-                    .filter(property -> property.codedata() != null && property.codedata().kind() != null &&
-                            property.codedata().kind().equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER.name()))
-                    .findFirst();
-            if (inferredParam.isPresent()) {
-                String returnType = flowNode.codedata().inferredReturnType();
-                String inferredType = inferredParam.get().value().toString();
-                String inferredTypeDef = inferredParam.get()
-                        .codedata().originalName();
-                typeName = returnType.replace(inferredTypeDef, inferredType);
-            }
+            typeName = getTypeNameForInferredParam(variable.get(), typeName);
         }
 
         tokenBuilder.expressionWithType(typeName, variable.get()).keyword(SyntaxKind.EQUAL_TOKEN);
         return this;
+    }
+
+    private String getTypeNameForInferredParam(Property variable, String typeName) {
+        Optional<Property> inferredParam = flowNode.properties().values().stream()
+                .filter(property -> property.codedata() != null && property.codedata().kind() != null &&
+                        property.codedata().kind().equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER.name()))
+                .findFirst();
+        if (inferredParam.isEmpty()) {
+            return typeName;
+        }
+        String inferredType = inferredParam.get().value().toString();
+        String inferredTypeDef = inferredParam.get()
+                .codedata().originalName();
+
+        Property inferredProperty = inferredParam.get();
+        if (inferredProperty.types() != null && !inferredProperty.types().isEmpty() &&
+                inferredProperty.types().getFirst().recordSelectorType() != null) {
+            // Always compute and apply the generated type name so the variable declaration uses
+            // "<Prefix>Type" even when no text-edits are produced (e.g. the type already exists).
+            String typeNamePrefix = capitalize(variable.toSourceCode());
+            inferredType = String.format("%sType", typeNamePrefix);
+
+            List<PropertyType> propertyTypes = inferredProperty.valueAsType(PROPERTY_TYPE_LIST_TYPE_TOKEN);
+            if (propertyTypes != null && !propertyTypes.isEmpty()) {
+                RecordSelectorType recordSelectorType = propertyTypes.getFirst().recordSelectorType();
+                Path typesFilePath = filePath.resolveSibling("types.bal");
+                Document document = FileSystemUtils.getDocument(workspaceManager, typesFilePath);
+                if (document != null) {
+                    TypesManager typesManager = new TypesManager(document);
+                    List<TextEdit> typeEdits = typesManager.getTextEditsForRecordSelectorTypes(recordSelectorType,
+                            typeNamePrefix, isUpdateRequest());
+                    if (!typeEdits.isEmpty()) {
+                        if (textEditsMap.containsKey(typesFilePath)) {
+                            textEditsMap.get(typesFilePath).addAll(typeEdits);
+                        } else {
+                            textEditsMap.put(typesFilePath, new ArrayList<>(typeEdits));
+                        }
+                    }
+                }
+            }
+        }
+
+        String returnType = flowNode.codedata().inferredReturnType();
+        return returnType.replace(inferredTypeDef, inferredType);
+    }
+
+    private boolean isUpdateRequest() {
+        return flowNode.codedata() != null &&
+                (flowNode.codedata().isNew() == null || !flowNode.codedata().isNew());
     }
 
     public SourceBuilder newVariableWithType(String resolvedType) {
@@ -494,7 +569,7 @@ public class SourceBuilder {
                     if (isPropValueEmpty(prop)) {
                         continue;
                     }
-                    if (hasRestParamValues(prop)) {
+                    if (hasRestArgs(prop)) {
                         tokenBuilder.keyword(SyntaxKind.COMMA_TOKEN);
                         addRestParamValues(prop);
                     }
@@ -503,7 +578,7 @@ public class SourceBuilder {
                     if (isPropValueEmpty(prop)) {
                         continue;
                     }
-                    if (hasRestParamValues(prop)) {
+                    if (hasIncludedRecordRestArgs(prop)) {
                         tokenBuilder.keyword(SyntaxKind.COMMA_TOKEN);
                         addIncludedRecordRestParamValues(prop);
                     }
@@ -559,7 +634,7 @@ public class SourceBuilder {
                 }
                 addRestParamValues(prop);
             } else if (kind.equals(ParameterData.Kind.INCLUDED_RECORD_REST.name())) {
-                if (isPropValueEmpty(prop) || ((List<?>) prop.value()).isEmpty()) {
+                if (isPropValueEmpty(prop) || ((Map<?, ?>) prop.value()).isEmpty()) {
                     continue;
                 }
                 if (firstParamAdded) {
@@ -581,8 +656,15 @@ public class SourceBuilder {
         return property.value() == null || (property.optional() && property.value().toString().isEmpty());
     }
 
-    private boolean hasRestParamValues(Property prop) {
+    private boolean hasRestArgs(Property prop) {
         if (prop.value() instanceof List<?> values) {
+            return !values.isEmpty();
+        }
+        return false;
+    }
+
+    private boolean hasIncludedRecordRestArgs(Property prop) {
+        if (prop.value() instanceof Map<?, ?> values) {
             return !values.isEmpty();
         }
         return false;
@@ -591,23 +673,30 @@ public class SourceBuilder {
     private void addRestParamValues(Property prop) {
         if (prop.value() instanceof List<?> values) {
             if (!values.isEmpty()) {
-                List<String> strValues = ((List<?>) prop.value()).stream().map(Object::toString).toList();
+                List<String> strValues = values.stream()
+                        .filter(Map.class::isInstance)
+                        .map(Map.class::cast)
+                        .map(val -> new Property.Builder<>(null)
+                                .value(val.get("value")).build().toSourceCode())
+                        .toList();
                 tokenBuilder.expression(String.join(", ", strValues));
             }
         }
     }
 
     private void addIncludedRecordRestParamValues(Property prop) {
-        if (prop.value() instanceof List<?>) {
-            List<Map> values = (List<Map>) prop.value();
+        if (prop.value() instanceof Map<?, ?> values) {
             if (!values.isEmpty()) {
-                List<String> result = new ArrayList<>();
-                values.forEach(keyValuePair -> {
-                    String key = (String) keyValuePair.keySet().iterator().next();
-                    String value = keyValuePair.values().iterator().next().toString();
-                    result.add(key + " = " + value);
+                List<String> keyValuePairs = new ArrayList<>();
+                values.forEach((keyObj, valueObj) -> {
+                    String key = (String) keyObj;
+                    String propertyValue = convertToProperty(valueObj).toSourceCode();
+                    if (!propertyValue.isEmpty()) {
+                        keyValuePairs.add(key + " = " + propertyValue);
+                    }
                 });
-                tokenBuilder.expression(String.join(", ", result));
+
+                tokenBuilder.expression(String.join(", ", keyValuePairs));
             }
         }
     }

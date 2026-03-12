@@ -20,6 +20,8 @@ package io.ballerina.flowmodelgenerator.core;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
@@ -29,9 +31,11 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
@@ -40,7 +44,7 @@ import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
-import io.ballerina.flowmodelgenerator.core.model.node.AgentBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.AgentRunBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ChunkerBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataLoaderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
@@ -58,6 +62,7 @@ import io.ballerina.projects.Package;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.TextRange;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -74,9 +79,10 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
 
 /**
@@ -91,17 +97,21 @@ public class AvailableNodesGenerator {
     private final Document document;
     private final Package pkg;
     private final Gson gson;
+    private final Path filePath;
     private static final String HTTP_MODULE = "http";
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
     private static final String BALLERINAX = "ballerinax";
+    private static final String TEST_MODULE_PREFIX = "test";
+    private static final String TEST_CONFIG_ANNOTATION = "Config";
 
-    public AvailableNodesGenerator(SemanticModel semanticModel, Document document, Package pkg) {
+    public AvailableNodesGenerator(SemanticModel semanticModel, Document document, Package pkg, Path filePath) {
         this.rootBuilder = new Category.Builder(null).name(Category.Name.ROOT);
         this.gson = new Gson();
         this.semanticModel = semanticModel;
         this.document = document;
         this.pkg = pkg;
+        this.filePath = filePath;
     }
 
     public JsonArray getAvailableNodes(boolean disableBallerinaAiNodes, LinePosition position) {
@@ -117,14 +127,29 @@ public class AvailableNodesGenerator {
         connections.sort(Comparator.comparing(connection -> connection.metadata().label()));
         this.rootBuilder.stepIn(Category.Name.CONNECTIONS).items(new ArrayList<>(connections)).stepOut();
 
+        boolean insideTestFunction = isInsideTestFunction(position);
         List<Item> items = new ArrayList<>();
         items.addAll(getAvailableFlowNodes(position, disableBallerinaAiNodes));
         items.addAll(LocalIndexCentral.getInstance().getFunctions());
-        return gson.toJsonTree(items).getAsJsonArray();
+        if (insideTestFunction) {
+            items.addAll(LocalIndexCentral.getInstance().getTestFunctions());
+        }
+        JsonArray jsonArray = gson.toJsonTree(items).getAsJsonArray();
+
+        if (insideTestFunction) {
+            Path relativePath = pkg.project().sourceRoot().relativize(this.filePath);
+            addFilePathToNodes(jsonArray, relativePath.toString());
+        }
+
+        return jsonArray;
     }
 
     public JsonArray getAvailableNodes(LinePosition position) {
         return getAvailableNodes(true, position);
+    }
+
+    public JsonArray getAvailableAgents(LinePosition position) {
+        return this.getAvailableItemsByCategory(position, Category.Name.AGENT, this::getAgent);
     }
 
     public JsonArray getAvailableModelProviders(LinePosition position) {
@@ -193,6 +218,65 @@ public class AvailableNodesGenerator {
         }
         setDefaultNodes(disableBallerinaAiNodes);
         return this.rootBuilder.build().items();
+    }
+
+    private boolean isInsideTestFunction(LinePosition cursorPosition) {
+        return isInsideTestFunction(this.document, cursorPosition);
+    }
+
+    public static boolean isInsideTestFunction(Document document, LinePosition cursorPosition) {
+        int txtPos;
+        try {
+            txtPos = document.textDocument().textPositionFrom(cursorPosition);
+        } catch (Exception e) {
+            return false;
+        }
+        TextRange range = TextRange.from(txtPos, 0);
+        NonTerminalNode node = ((ModulePartNode) document.syntaxTree().rootNode()).findNode(range);
+        while (node != null) {
+            if (node.kind() == SyntaxKind.FUNCTION_DEFINITION) {
+                FunctionDefinitionNode functionDef = (FunctionDefinitionNode) node;
+                boolean isTest = functionDef.metadata().map(metadataNode ->
+                        metadataNode.annotations().stream().anyMatch(annotationNode -> {
+                            Node annotRef = annotationNode.annotReference();
+                            if (annotRef.kind() == SyntaxKind.QUALIFIED_NAME_REFERENCE) {
+                                QualifiedNameReferenceNode qualifiedRef = (QualifiedNameReferenceNode) annotRef;
+                                return TEST_MODULE_PREFIX.equals(qualifiedRef.modulePrefix().text()) &&
+                                        TEST_CONFIG_ANNOTATION.equals(qualifiedRef.identifier().text());
+                            }
+                            return false;
+                        })
+                ).orElse(false);
+                if (isTest) {
+                    return true;
+                }
+            }
+            node = node.parent();
+        }
+        return false;
+    }
+
+    public static void addFilePathToNodes(JsonArray items, String filePathStr) {
+        for (JsonElement item : items) {
+            if (!item.isJsonObject()) {
+                continue;
+            }
+            JsonObject obj = item.getAsJsonObject();
+            if (obj.has("codedata")) {
+                JsonObject codedata = obj.getAsJsonObject("codedata");
+                JsonObject data;
+                if (codedata.has("data") && codedata.get("data").isJsonObject()) {
+                    data = codedata.getAsJsonObject("data");
+                } else {
+                    data = new JsonObject();
+                    codedata.add("data", data);
+                }
+                data.addProperty(Constants.FILE_PATH_KEY, filePathStr);
+            }
+            if (obj.has("items") && obj.get("items").isJsonArray()) {
+                addFilePathToNodes(obj.getAsJsonArray("items"), filePathStr);
+            }
+        }
     }
 
     private void setAvailableDefaultNodes(NonTerminalNode node, boolean disableBallerinaAiNodes) {
@@ -321,16 +405,13 @@ public class AvailableNodesGenerator {
                 .items(List.of(knowledgeBase, dataLoaders, recursiveDocumentChunker, chunkers, augmentUserQuery,
                         vectorStore, embeddingProvider)).build();
 
-        AvailableNode agentCall = new AvailableNode(
-                new Metadata.Builder<>(null).label(AgentBuilder.LABEL)
-                        .description(AgentBuilder.DESCRIPTION).build(),
-                new Codedata.Builder<>(null).node(NodeKind.AGENT_CALL).
-                        org(disableBallerinaAiNodes ? BALLERINAX : BALLERINA).module(Ai.AI_PACKAGE)
-                        .packageName(Ai.AI_PACKAGE).symbol(Ai.AGENT_RUN_METHOD_NAME)
-                        .object(Ai.AGENT_TYPE_NAME).build(), true);
+        AvailableNode agent = new AvailableNode(
+                new Metadata.Builder<>(null).label(AgentRunBuilder.LABEL)
+                        .description(AgentRunBuilder.CATEGORY_DESCRIPTION).build(),
+                new Codedata.Builder<>(null).node(NodeKind.AGENTS).build(), true);
 
         Category agentCategory = new Category.Builder(null).name(Category.Name.AGENT)
-                .items(List.of(agentCall)).build();
+                .items(List.of(agent)).build();
 
         return List.of(directLlmCategory, ragCategory, agentCategory);
     }
@@ -423,6 +504,8 @@ public class AvailableNodesGenerator {
                     FunctionData.Kind kind = methodFunction.kind();
                     if (kind == FunctionData.Kind.REMOTE) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.REMOTE_ACTION_CALL);
+                    } else if (isAgentClass(classSymbol) && label.equals(Ai.AGENT_RUN_METHOD_NAME)) {
+                        nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.AGENT_RUN);
                     } else if (kind == FunctionData.Kind.FUNCTION && isAiKnowledgeBase(classSymbol)) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.KNOWLEDGE_BASE_CALL);
                     } else if (kind == FunctionData.Kind.FUNCTION) {
@@ -456,7 +539,10 @@ public class AvailableNodesGenerator {
                     .label(parentSymbolName);
             if (isPersistClient(classSymbol, semanticModel)) {
                 metadataBuilder.addData(CONNECTOR_TYPE, PERSIST);
-                getPersistModelFilePath(pkg.project().sourceRoot())
+                getPersistModelFilePath(
+                        resolvedPackage.map(p -> p.project().sourceRoot())
+                                .orElse(pkg.project().sourceRoot()),
+                        classSymbol)
                         .ifPresent(modelFile -> metadataBuilder.addData(PERSIST_MODEL_FILE, modelFile));
             }
 
@@ -465,6 +551,16 @@ public class AvailableNodesGenerator {
         } catch (RuntimeException ignored) {
             return Optional.empty();
         }
+    }
+
+    private Optional<Category> getAgent(Symbol symbol) {
+        return getCategory(symbol, classSymbol -> {
+            try {
+                return isAgentClass(classSymbol);
+            } catch (Exception e) {
+                return false;
+            }
+        });
     }
 
     private Optional<Category> getModelProvider(Symbol symbol) {

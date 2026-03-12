@@ -268,7 +268,7 @@ public abstract class AbstractLSTest {
             compareJsonObjects(actualJson.getAsJsonObject(), expectedJson.getAsJsonObject(), path);
         } else if (actualJson.isJsonArray() && expectedJson.isJsonArray()) {
             compareJsonArrays(actualJson.getAsJsonArray(), expectedJson.getAsJsonArray(), path);
-        } else if (!actualJson.equals(expectedJson)) {
+        } else if (!normalize(actualJson, path).equals(normalize(expectedJson, path))) {
             log.info("- Value mismatch at '" + path + "'\n  actual: " + actualJson + "\n  expected: " + expectedJson);
         }
     }
@@ -279,11 +279,18 @@ public abstract class AbstractLSTest {
             return compareJsonObjects(actualJson.getAsJsonObject(), expectedJson.getAsJsonObject(), path, needReturn);
         } else if (actualJson.isJsonArray() && expectedJson.isJsonArray()) {
             return compareJsonArrays(actualJson.getAsJsonArray(), expectedJson.getAsJsonArray(), path, needReturn);
-        } else if (!actualJson.equals(expectedJson)) {
+        } else if (!normalize(actualJson, path).equals(normalize(expectedJson, path))) {
             log.info("- Value mismatch at '" + path + "'\n  actual: " + actualJson + "\n  expected: " + expectedJson);
             return false;
         }
         return true;
+    }
+
+    private JsonElement normalize(JsonElement element, String path) {
+        if (path.endsWith("filePath") && element.isJsonPrimitive()) {
+            return new JsonPrimitive(element.getAsString().replace('\\', '/'));
+        }
+        return element;
     }
 
     private void compareJsonObjects(JsonObject actualJson, JsonObject expectedJson, String path) {

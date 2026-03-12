@@ -36,6 +36,8 @@ import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
+import static io.ballerina.flowmodelgenerator.core.converters.utils.DataMappingModelConverterUtils.escapeIdentifier;
+
 /**
  * Code snippet generator.
  *
@@ -109,9 +111,12 @@ public class SourceCodeGenerator {
             }
         }
 
-        String template = "%senum %s {%s%n}%n";
+        // Check for public property to add `public` qualifier to the enum
+        String publicQualifier = isPublicFlagOn(typeData.properties()) ? "public " : "";
 
-        return template.formatted(docs, typeData.name(), enumValues.toString());
+        String template = "%s%senum %s {%s%n}%n";
+
+        return template.formatted(docs, publicQualifier, typeData.name(), enumValues.toString());
     }
 
     private String generateTypeDefCodeSnippet(TypeData typeData) {
@@ -136,9 +141,15 @@ public class SourceCodeGenerator {
             }
         }
 
-        String template = "%s%stype %s %s;";
+        // Check for public property to add `public` qualifier to the type definition
+        String publicQualifier = "";
+        if (isPublicFlagOn(typeData.properties())) {
+            publicQualifier = "public ";
+        }
 
-        return template.formatted(docs, annots, typeData.name(), typeDescriptor);
+        String template = "%s%s%stype %s %s;";
+
+        return template.formatted(docs, annots, publicQualifier, typeData.name(), typeDescriptor);
     }
 
     private String generateAnnotatedTypeDescriptor(Object typeData,
@@ -478,15 +489,28 @@ public class SourceCodeGenerator {
 
         String template = "%s %s%s"; // <type descriptor> <identifier> [= <default value>]
 
-        String fieldName = CommonUtil.escapeReservedKeyword(member.name());
-        if (member.optional()) {
+        String rawName = member.name();
+        String fieldName;
+
+        if (rawName == null) {
+            fieldName = null;
+        } else if (rawName.startsWith("'") || rawName.startsWith("\\")) {
+            fieldName = rawName;
+        } else {
+            fieldName = escapeIdentifier(rawName);
+        }
+
+        if (member.optional() && fieldName != null) {
             fieldName = fieldName + "?";
         }
 
-        return template.formatted(typeDescriptor,
+        return template.formatted(
+                typeDescriptor,
                 fieldName,
-                (withDefaultValue && member.defaultValue() != null && !member.defaultValue().isEmpty()) ?
-                        " = " + member.defaultValue() : "");
+                (withDefaultValue && member.defaultValue() != null && !member.defaultValue().isEmpty())
+                        ? " = " + member.defaultValue()
+                        : ""
+        );
     }
 
     private String generateResourceFunction(Function function) {
@@ -544,6 +568,12 @@ public class SourceCodeGenerator {
     private boolean isReadonlyFlagOn(Map<String, Property> properties) {
         Property readonlyProperty = properties.get(Property.IS_READ_ONLY_KEY);
         return readonlyProperty != null && readonlyProperty.value().equals("true");
+    }
+
+    private boolean isPublicFlagOn(Map<String, Property> properties) {
+        Property publicProperty = properties.get(Property.IS_PUBLIC_KEY);
+        return publicProperty != null &&
+                (publicProperty.value().equals("true") || publicProperty.value().equals(true));
     }
 
     /**

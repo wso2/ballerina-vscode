@@ -60,11 +60,18 @@ public class ListenerDeclAnalyzer {
     private final Map<String, Value> properties;
     private final SemanticModel semanticModel;
     private final ModuleInfo moduleInfo;
+    private final boolean removeDeprecated;
 
     public ListenerDeclAnalyzer(Map<String, Value> properties, SemanticModel semanticModel, ModuleInfo moduleInfo) {
+        this(properties, semanticModel, moduleInfo, true);
+    }
+
+    public ListenerDeclAnalyzer(Map<String, Value> properties, SemanticModel semanticModel, ModuleInfo moduleInfo,
+                                boolean removeDeprecated) {
         this.properties = properties;
         this.semanticModel = semanticModel;
         this.moduleInfo = moduleInfo;
+        this.removeDeprecated = removeDeprecated;
     }
 
     public Map<String, Value> getProperties() {
@@ -115,6 +122,9 @@ public class ListenerDeclAnalyzer {
                         || paramKind.equals(ParameterData.Kind.INCLUDED_RECORD)) {
                     continue;
                 }
+                if (removeDeprecated && paramResult.deprecated()) {
+                    continue;
+                }
 
                 String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
                 Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
@@ -145,7 +155,7 @@ public class ListenerDeclAnalyzer {
                 int paramCount = paramsList.size(); // param count without rest params
                 int argCount = positionalArgs.size();
 
-                List<String> restArgs = new ArrayList<>();
+                List<Node> restArgs = new ArrayList<>();
                 for (int i = 0; i < paramsList.size(); i++) {
                     ParameterSymbol parameterSymbol = paramsList.get(i);
                     String escapedParamName = parameterSymbol.getName().get();
@@ -158,6 +168,10 @@ public class ListenerDeclAnalyzer {
                             : namedArgValueMap.get(paramResult.name());
 
                     funcParamMap.remove(parameterSymbol.getName().get());
+                    if (removeDeprecated && paramResult.deprecated()) {
+                        namedArgValueMap.remove(paramResult.name());
+                        continue;
+                    }
                     String value = paramValue != null ? paramValue.toSourceCode() : null;
                     String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
                     Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
@@ -178,12 +192,17 @@ public class ListenerDeclAnalyzer {
                 }
 
                 for (int i = paramCount; i < argCount; i++) {
-                    restArgs.add(Objects.requireNonNull(positionalArgs.poll()).toSourceCode());
+                    restArgs.add(Objects.requireNonNull(positionalArgs.poll()));
                 }
 
                 String escapedParamName = CommonUtil.escapeReservedKeyword(restParamSymbol.getName().get());
                 ParameterData restParamResult = funcParamMap.get(escapedParamName);
                 funcParamMap.remove(restParamSymbol.getName().get());
+                if (removeDeprecated && restParamResult.deprecated()) {
+                    // Skip deprecated rest parameter
+                    addRemainingParamsToPropertyMap(funcParamMap);
+                    return;
+                }
                 String unescapedParamName = removeLeadingSingleQuote(restParamResult.name());
 
                 Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
@@ -195,14 +214,13 @@ public class ListenerDeclAnalyzer {
                 Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                         .setMetadata(new MetaData(label, restParamResult.description()))
                         .setCodedata(codedata)
-                        .value("[%s]".formatted(String.join(", ", restArgs)))
                         .setPlaceholder(restParamResult.placeholder())
                         .editable(true)
                         .enabled(true)
                         .optional(restParamResult.optional())
                         .setAdvanced(restParamResult.optional());
 
-                buildPropertyType(valueBuilder, restParamResult, semanticModel, moduleInfo);
+                buildPropertyTypeForRestParam(valueBuilder, restParamResult, restArgs);
                 properties.put(unescapedParamName, valueBuilder.build());
             }
             // iterate over functionParamMap
@@ -229,6 +247,10 @@ public class ListenerDeclAnalyzer {
                     paramValue = namedArgValueMap.get(paramResult.name());
                     namedArgValueMap.remove(paramResult.name());
                 }
+                if (removeDeprecated && paramResult.deprecated()) {
+                    funcParamMap.remove(escapedParamName);
+                    continue;
+                }
                 if (paramResult.kind() == ParameterData.Kind.INCLUDED_RECORD) {
                     if (argumentNodes.size() > i && argumentNodes.get(i).kind() == SyntaxKind.NAMED_ARG) {
                         FunctionArgumentNode argNode = argumentNodes.get(i);
@@ -237,6 +259,9 @@ public class ListenerDeclAnalyzer {
                         String argName = namedArgumentNode.argumentName().name().text();
                         if (argName.equals(paramResult.name())) {  // foo("a", b = {})
                             paramResult = funcParamMap.get(escapedParamName);
+                            if (removeDeprecated && paramResult.deprecated()) {
+                                continue;
+                            }
                             String value = paramValue != null ? paramValue.toSourceCode() : null;
                             String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
                             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
@@ -258,6 +283,9 @@ public class ListenerDeclAnalyzer {
                             if (funcParamMap.containsKey(argName)) { // included record attribute
                                 paramResult = funcParamMap.get(argName);
                                 funcParamMap.remove(argName);
+                                if (removeDeprecated && paramResult.deprecated()) {
+                                    continue;
+                                }
                                 if (paramValue == null) {
                                     paramValue = namedArgValueMap.get(argName);
                                     namedArgValueMap.remove(argName);
@@ -286,6 +314,9 @@ public class ListenerDeclAnalyzer {
                         if (paramValue != null) {
                             String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
                             funcParamMap.remove(escapedParamName);
+                            if (removeDeprecated && paramResult.deprecated()) {
+                                continue;
+                            }
                             String value = paramValue.toSourceCode();
                             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                             codedata.setOriginalName(paramResult.name());
@@ -337,6 +368,9 @@ public class ListenerDeclAnalyzer {
                     continue;
                 }
                 ParameterData paramResult = funcParamMap.remove(escapedParamName);
+                if (removeDeprecated && paramResult.deprecated()) {
+                    continue;
+                }
                 String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
                 Node paramValue = entry.getValue();
                 String value = paramValue != null ? paramValue.toSourceCode() : "";
@@ -367,6 +401,9 @@ public class ListenerDeclAnalyzer {
                     || paramResult.kind().equals(ParameterData.Kind.INCLUDED_RECORD)) {
                 continue;
             }
+            if (removeDeprecated && paramResult.deprecated()) {
+                continue;
+            }
 
             String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
@@ -388,22 +425,30 @@ public class ListenerDeclAnalyzer {
     }
 
     public static void buildPropertyType(Value.ValueBuilder valueBuilder,
-                                                       ParameterData paramData,
-                                                       SemanticModel semanticModel,
-                                                       ModuleInfo moduleInfo) {
+                                         ParameterData paramData,
+                                         SemanticModel semanticModel,
+                                         ModuleInfo moduleInfo) {
         buildPropertyType(valueBuilder, paramData, null, semanticModel, moduleInfo);
+    }
+
+    private void buildPropertyTypeForRestParam(Value.ValueBuilder builder, ParameterData paramData, List<Node> values) {
+        Value template = PropertyType.buildRepeatableTemplates(paramData.typeSymbol(), semanticModel, moduleInfo);
+        PropertyType propertyType = new PropertyType.Builder()
+                .fieldType(Value.FieldType.REPEATABLE_LIST)
+                .ballerinaType(paramData.type())
+                .template(template)
+                .selected(true)
+                .build();
+        List<PropertyType> propertyTypes = List.of(propertyType);
+        builder.types(propertyTypes);
+        PropertyType.handleRestArguments(builder, values, propertyTypes);
     }
 
     private static void buildPropertyType(Value.ValueBuilder valueBuilder,
                                           ParameterData paramData, Node value,
                                           SemanticModel semanticModel,
                                           ModuleInfo moduleInfo) {
-        ParameterData.Kind kind = paramData.kind();
-        if (kind == ParameterData.Kind.REST_PARAMETER) {
-            valueBuilder.types(List.of(PropertyType.types(Value.FieldType.EXPRESSION_SET)));
-        } else if (kind == ParameterData.Kind.INCLUDED_RECORD_REST) {
-            valueBuilder.types(List.of(PropertyType.types(Value.FieldType.MAPPING_EXPRESSION_SET)));
-        } else if (isSubTypeOfRawTemplate(paramData.typeSymbol(), semanticModel)) {
+        if (isSubTypeOfRawTemplate(paramData.typeSymbol(), semanticModel)) {
             valueBuilder.types(List.of(PropertyType.types(Value.FieldType.RAW_TEMPLATE)));
         } else {
             PropertyType.typeWithExpression(valueBuilder, paramData.typeSymbol(), moduleInfo, value, semanticModel);
@@ -422,4 +467,3 @@ public class ListenerDeclAnalyzer {
         return typeSymbol.subtypeOf(rawTemplateTypeDesc);
     }
 }
-

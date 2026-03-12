@@ -1,218 +1,802 @@
 {
-    "source": "local_connector/main.bal",
-    "position": {
-        "line": 17,
-        "offset": 4
+  "source": "local_connector/main.bal",
+  "position": {
+    "line": 17,
+    "offset": 4
+  },
+  "description": "Resource function with inferred type and one required argument - get purchases",
+  "codedata": {
+    "node": "RESOURCE_ACTION_CALL",
+    "org": "nipunaf",
+    "module": "new_connection1.db",
+    "packageName": "new_connection1",
+    "object": "Client",
+    "symbol": "get",
+    "version": "0.1.0",
+    "parentSymbol": "dbClient",
+    "resourcePath": "/purchases"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "get",
+      "description": "Get rows from purchases table.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/nipunaf_new_connection1_0.1.0.png"
     },
-    "description": "Resource function with inferred type and one required argument - get purchases",
     "codedata": {
-        "node": "RESOURCE_ACTION_CALL",
-        "org": "nipunaf",
-        "module": "new_connection1.db",
-        "packageName": "new_connection1",
-        "object": "Client",
-        "symbol": "get",
-        "version": "0.1.0",
-        "parentSymbol": "dbClient",
-        "resourcePath": "/purchases"
+      "node": "RESOURCE_ACTION_CALL",
+      "org": "nipunaf",
+      "module": "new_connection1.db",
+      "packageName": "new_connection1",
+      "object": "Client",
+      "symbol": "get",
+      "isNew": true,
+      "inferredReturnType": "targetType[]"
     },
-    "output": {
-      "id" : "31",
-      "metadata" : {
-        "label" : "get",
-        "description" : "Get rows from purchases table.\n",
-        "icon" : "https://bcentral-packageicons.azureedge.net/images/nipunaf_new_connection1_0.1.0.png"
-      },
-      "codedata" : {
-        "node" : "RESOURCE_ACTION_CALL",
-        "org" : "nipunaf",
-        "module" : "new_connection1.db",
-        "packageName" : "new_connection1",
-        "object" : "Client",
-        "symbol" : "get",
-        "isNew" : true,
-        "inferredReturnType" : "targetType[]"
-      },
-      "returning" : false,
-      "properties" : {
-        "connection" : {
-          "metadata" : {
-            "label" : "Connection",
-            "description" : "Connection to use"
-          },
-          "types" : [ {
-            "fieldType" : "EXPRESSION",
-            "ballerinaType" : "db:Client",
-            "selected" : false
-          } ],
-          "value" : "dbClient",
-          "optional" : false,
-          "editable" : false,
-          "advanced" : false,
-          "hidden" : true
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
         },
-        "resourcePath" : {
-          "metadata" : {
-            "label" : "Resource Path",
-            "description" : "Resource Path"
-          },
-          "types" : [ {
-            "fieldType" : "ACTION_PATH",
-            "selected" : false
-          } ],
-          "value" : "/purchases",
-          "optional" : false,
-          "editable" : false,
-          "advanced" : false,
-          "hidden" : true,
-          "codedata" : {
-            "originalName" : "/purchases"
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "db:Client",
+            "selected": false
           }
+        ],
+        "value": "dbClient",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "resourcePath": {
+        "metadata": {
+          "label": "Resource Path",
+          "description": "Resource Path"
         },
-        "minQuantity" : {
-          "metadata" : {
-            "label" : "Min Quantity",
-            "description" : "Minimum quantity filter (required)"
-          },
-          "types" : [ {
-            "fieldType" : "NUMBER",
-            "ballerinaType" : "int",
-            "selected" : false
-          }, {
-            "fieldType" : "EXPRESSION",
-            "ballerinaType" : "int",
-            "selected" : false
-          } ],
-          "placeholder" : "0",
-          "optional" : false,
-          "editable" : true,
-          "advanced" : false,
-          "hidden" : false,
-          "codedata" : {
-            "kind" : "REQUIRED",
-            "originalName" : "minQuantity"
+        "types": [
+          {
+            "fieldType": "ACTION_PATH",
+            "selected": false
           }
-        },
-        "maxPrice" : {
-          "metadata" : {
-            "label" : "Max Price",
-            "description" : "Maximum price filter (defaultable)"
-          },
-          "types" : [ {
-            "fieldType" : "NUMBER",
-            "ballerinaType" : "decimal",
-            "selected" : false
-          }, {
-            "fieldType" : "EXPRESSION",
-            "ballerinaType" : "decimal",
-            "selected" : false
-          } ],
-          "placeholder" : "0.0d",
-          "optional" : true,
-          "editable" : true,
-          "advanced" : true,
-          "hidden" : false,
-          "codedata" : {
-            "kind" : "DEFAULTABLE",
-            "originalName" : "maxPrice"
-          },
-          "defaultValue" : "0.0d"
-        },
-        "targetType" : {
-          "metadata" : {
-            "label" : "Target Type",
-            "description" : "Defines which fields to retrieve from the results"
-          },
-          "types" : [ {
-            "fieldType" : "TYPE",
-            "ballerinaType" : "record {|db:AlbumOptionalized album?; int purchaseId?; string customerName?; int quantity?; decimal totalPrice?; int albumId?;|}",
-            "selected" : false
-          } ],
-          "value" : "db:PurchaseWithRelations",
-          "placeholder" : "db:PurchaseWithRelations",
-          "optional" : false,
-          "editable" : true,
-          "advanced" : false,
-          "hidden" : false,
-          "codedata" : {
-            "kind" : "PARAM_FOR_TYPE_INFER",
-            "originalName" : "targetType"
-          },
-          "defaultValue" : "db:PurchaseWithRelations"
-        },
-        "customerFilter" : {
-          "metadata" : {
-            "label" : "Customer Filter",
-            "description" : "Customer name filter (defaultable)"
-          },
-          "types" : [ {
-            "fieldType" : "TEXT",
-            "ballerinaType" : "string",
-            "selected" : false
-          }, {
-            "fieldType" : "EXPRESSION",
-            "ballerinaType" : "string",
-            "selected" : false
-          } ],
-          "placeholder" : "\"\"",
-          "optional" : true,
-          "editable" : true,
-          "advanced" : true,
-          "hidden" : false,
-          "codedata" : {
-            "kind" : "DEFAULTABLE",
-            "originalName" : "customerFilter"
-          },
-          "defaultValue" : "\"\""
-        },
-        "type" : {
-          "metadata" : {
-            "label" : "Result Type",
-            "description" : "Type of the variable"
-          },
-          "types" : [ {
-            "fieldType" : "TYPE",
-            "selected" : true
-          } ],
-          "value" : "targetType[]",
-          "placeholder" : "var",
-          "optional" : false,
-          "editable" : false,
-          "advanced" : false,
-          "hidden" : true,
-          "codedata" : { }
-        },
-        "variable" : {
-          "metadata" : {
-            "label" : "Result",
-            "description" : "Name of the result variable"
-          },
-          "types" : [ {
-            "fieldType" : "IDENTIFIER",
-            "selected" : true
-          } ],
-          "value" : "var2",
-          "optional" : false,
-          "editable" : true,
-          "advanced" : false,
-          "hidden" : false
-        },
-        "checkError" : {
-          "metadata" : {
-            "label" : "Check Error",
-            "description" : "Trigger error flow"
-          },
-          "types" : [ {
-            "fieldType" : "FLAG",
-            "selected" : true
-          } ],
-          "value" : true,
-          "optional" : false,
-          "editable" : true,
-          "advanced" : true,
-          "hidden" : true
+        ],
+        "value": "/purchases",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "originalName": "/purchases"
         }
       },
-      "flags" : 0
-    }
+      "minQuantity": {
+        "metadata": {
+          "label": "Min Quantity",
+          "description": "Minimum quantity filter (required)"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int",
+            "selected": false
+          }
+        ],
+        "placeholder": "0",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "minQuantity"
+        }
+      },
+      "maxPrice": {
+        "metadata": {
+          "label": "Max Price",
+          "description": "Maximum price filter (defaultable)"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal",
+            "selected": false
+          }
+        ],
+        "placeholder": "0.0d",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "maxPrice"
+        },
+        "defaultValue": "0.0d"
+      },
+      "targetType": {
+        "metadata": {
+          "label": "Target Type",
+          "description": "Defines which fields to retrieve from the results"
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_FIELD_SELECTOR",
+            "ballerinaType": "record {|db:AlbumOptionalized album?; int purchaseId?; string customerName?; int quantity?; decimal totalPrice?; int albumId?;|}",
+            "recordSelectorType": {
+              "rootType": {
+                "editable": true,
+                "metadata": {
+                  "label": "db:PurchaseWithRelations",
+                  "description": ""
+                },
+                "codedata": {
+                  "node": "RECORD",
+                  "lineRange": {
+                    "fileName": "types.bal",
+                    "startLine": {
+                      "line": 16,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 16,
+                      "offset": 33
+                    }
+                  },
+                  "id": 0,
+                  "isNew": false,
+                  "data": {}
+                },
+                "properties": {
+                  "name": {
+                    "metadata": {
+                      "label": "Type name",
+                      "description": "Unique name to identify the type"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
+                      }
+                    ],
+                    "value": "db:PurchaseWithRelations",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "isPublic": {
+                    "metadata": {
+                      "label": "public",
+                      "description": "Make visible across the workspace"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "FLAG",
+                        "selected": true
+                      }
+                    ],
+                    "value": true,
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "description": {
+                    "metadata": {
+                      "label": "Type description",
+                      "description": "Detailed description about the type"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      }
+                    ],
+                    "value": "",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "isArray": {
+                    "metadata": {
+                      "label": "Is array type",
+                      "description": "Is this type an array or list value"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "FLAG",
+                        "selected": true
+                      }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                  },
+                  "arraySize": {
+                    "metadata": {
+                      "label": "Size of the array",
+                      "description": "Array dimensions"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      }
+                    ],
+                    "value": "",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                  }
+                },
+                "members": [
+                  {
+                    "kind": "FIELD",
+                    "refs": [
+                      "db:AlbumOptionalized"
+                    ],
+                    "type": "db:AlbumOptionalized",
+                    "typeName": "db:AlbumOptionalized",
+                    "name": "album",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "imports": {
+                      "db": "nipunaf/new_connection1.db:0.1.0"
+                    },
+                    "selected": false
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "int",
+                    "typeName": "int",
+                    "name": "purchaseId",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "selected": false
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "typeName": "string",
+                    "name": "customerName",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "selected": false
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "int",
+                    "typeName": "int",
+                    "name": "quantity",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "selected": false
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "decimal",
+                    "typeName": "decimal",
+                    "name": "totalPrice",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "selected": false
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "int",
+                    "typeName": "int",
+                    "name": "albumId",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "selected": false
+                  }
+                ],
+                "includes": [
+                  "db:PurchaseOptionalized"
+                ],
+                "annotationAttachments": [],
+                "allowAdditionalFields": false
+              },
+              "referencedTypes": [
+                {
+                  "name": "db:PurchaseOptionalized",
+                  "editable": true,
+                  "metadata": {
+                    "label": "db:PurchaseOptionalized",
+                    "description": ""
+                  },
+                  "codedata": {
+                    "node": "RECORD",
+                    "lineRange": {
+                      "fileName": "types.bal",
+                      "startLine": {
+                        "line": 8,
+                        "offset": 12
+                      },
+                      "endLine": {
+                        "line": 8,
+                        "offset": 32
+                      }
+                    }
+                  },
+                  "properties": {
+                    "name": {
+                      "metadata": {
+                        "label": "Type name",
+                        "description": "Unique name to identify the type"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "selected": true
+                        }
+                      ],
+                      "value": "db:PurchaseOptionalized",
+                      "optional": false,
+                      "editable": false,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "isPublic": {
+                      "metadata": {
+                        "label": "public",
+                        "description": "Make visible across the workspace"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "FLAG",
+                          "selected": true
+                        }
+                      ],
+                      "value": true,
+                      "optional": true,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "description": {
+                      "metadata": {
+                        "label": "Type description",
+                        "description": "Detailed description about the type"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": false,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "isArray": {
+                      "metadata": {
+                        "label": "Is array type",
+                        "description": "Is this type an array or list value"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "FLAG",
+                          "selected": true
+                        }
+                      ],
+                      "value": "false",
+                      "optional": true,
+                      "editable": true,
+                      "advanced": true,
+                      "hidden": false
+                    },
+                    "arraySize": {
+                      "metadata": {
+                        "label": "Size of the array",
+                        "description": "Array dimensions"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": true,
+                      "editable": true,
+                      "advanced": true,
+                      "hidden": false
+                    }
+                  },
+                  "members": [
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "int",
+                      "typeName": "int",
+                      "name": "purchaseId",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "string",
+                      "typeName": "string",
+                      "name": "customerName",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "int",
+                      "typeName": "int",
+                      "name": "quantity",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "decimal",
+                      "typeName": "decimal",
+                      "name": "totalPrice",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "int",
+                      "typeName": "int",
+                      "name": "albumId",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    }
+                  ],
+                  "includes": [],
+                  "annotationAttachments": [],
+                  "allowAdditionalFields": false
+                },
+                {
+                  "name": "db:AlbumOptionalized",
+                  "editable": true,
+                  "metadata": {
+                    "label": "db:AlbumOptionalized",
+                    "description": ""
+                  },
+                  "codedata": {
+                    "node": "RECORD",
+                    "lineRange": {
+                      "fileName": "types.bal",
+                      "startLine": {
+                        "line": 52,
+                        "offset": 12
+                      },
+                      "endLine": {
+                        "line": 52,
+                        "offset": 29
+                      }
+                    }
+                  },
+                  "properties": {
+                    "name": {
+                      "metadata": {
+                        "label": "Type name",
+                        "description": "Unique name to identify the type"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "selected": true
+                        }
+                      ],
+                      "value": "db:AlbumOptionalized",
+                      "optional": false,
+                      "editable": false,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "isPublic": {
+                      "metadata": {
+                        "label": "public",
+                        "description": "Make visible across the workspace"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "FLAG",
+                          "selected": true
+                        }
+                      ],
+                      "value": true,
+                      "optional": true,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "description": {
+                      "metadata": {
+                        "label": "Type description",
+                        "description": "Detailed description about the type"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": false,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "isArray": {
+                      "metadata": {
+                        "label": "Is array type",
+                        "description": "Is this type an array or list value"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "FLAG",
+                          "selected": true
+                        }
+                      ],
+                      "value": "false",
+                      "optional": true,
+                      "editable": true,
+                      "advanced": true,
+                      "hidden": false
+                    },
+                    "arraySize": {
+                      "metadata": {
+                        "label": "Size of the array",
+                        "description": "Array dimensions"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": true,
+                      "editable": true,
+                      "advanced": true,
+                      "hidden": false
+                    }
+                  },
+                  "members": [
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "int",
+                      "typeName": "int",
+                      "name": "albumId",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "string",
+                      "typeName": "string",
+                      "name": "title",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "string",
+                      "typeName": "string",
+                      "name": "artist",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "decimal",
+                      "typeName": "decimal",
+                      "name": "price",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "int",
+                      "typeName": "int",
+                      "name": "stock",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    }
+                  ],
+                  "includes": [],
+                  "annotationAttachments": [],
+                  "allowAdditionalFields": false
+                }
+              ]
+            },
+            "selected": true
+          }
+        ],
+        "value": "db:PurchaseWithRelations",
+        "placeholder": "db:PurchaseWithRelations",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "targetType"
+        },
+        "defaultValue": "db:PurchaseWithRelations"
+      },
+      "customerFilter": {
+        "metadata": {
+          "label": "Customer Filter",
+          "description": "Customer name filter (defaultable)"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "customerFilter"
+        },
+        "defaultValue": "\"\""
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "targetType[]",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "var2",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
 }

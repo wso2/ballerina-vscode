@@ -34,13 +34,35 @@
           "label": "values",
           "description": "The value(s) to be printed"
         },
-        "valueType": "EXPRESSION_SET",
-        "valueTypeConstraint": "io:Printable",
         "value": [
-          "\"arg2\"",
-          "\"arg1\"",
-          "0",
-          "1"
+          {
+            "value": "\"arg2\"",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          {
+            "value": "\"arg1\"",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          {
+            "value": "0",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          {
+            "value": "1",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
         ],
         "placeholder": "()",
         "optional": true,

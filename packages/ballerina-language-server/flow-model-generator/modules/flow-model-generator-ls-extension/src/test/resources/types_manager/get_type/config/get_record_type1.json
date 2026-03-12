@@ -47,7 +47,7 @@
       "isPublic": {
         "metadata": {
           "label": "public",
-          "description": "Is this public"
+          "description": "Make visible across the workspace"
         },
         "types": [
           {
@@ -55,7 +55,7 @@
             "selected": true
           }
         ],
-        "value": "false",
+        "value": false,
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -118,25 +118,29 @@
         "kind": "FIELD",
         "refs": [],
         "type": "int",
+        "typeName": "int",
         "name": "id",
         "defaultValue": "12",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "id of the person",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       },
       {
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "name",
         "defaultValue": "\"John\"",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "name of the person",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       },
       {
         "kind": "FIELD",
@@ -189,21 +193,31 @@
                 "Address"
               ],
               "type": "Address",
+              "typeName": "Address",
               "name": "Address",
               "optional": false,
               "readonly": false,
-              "isGraphqlId": false
+              "isGraphqlId": false,
+              "imports": {
+                "test_pack1": "testorg/test_pack1:0.1.0"
+              },
+              "selected": false
             }
           ],
           "allowAdditionalFields": false
         },
+        "typeName": "Address[]",
         "name": "addresses",
         "defaultValue": "[\n        {\n            houseNo: \"10\",\n            line1: \"5th Ave\",\n            line2: \"4th St\",\n            city: \"New York City\",\n            country: \"USA\"\n        }\n    ]",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "addresses of the person",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "imports": {
+          "test_pack1": "testorg/test_pack1:0.1.0"
+        },
+        "selected": false
       },
       {
         "kind": "FIELD",
@@ -211,13 +225,18 @@
           "ballerina/time:Utc"
         ],
         "type": "time:Utc",
+        "typeName": "time:Utc",
         "name": "dob",
         "defaultValue": "getDefaultDob()",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "date of birth",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "imports": {
+          "time": "ballerina/time:2.8.0"
+        },
+        "selected": false
       }
     ],
     "includes": [],
@@ -267,7 +286,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Is this public"
+            "description": "Make visible across the workspace"
           },
           "types": [
             {
@@ -275,7 +294,7 @@
               "selected": true
             }
           ],
-          "value": "false",
+          "value": false,
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -338,56 +357,66 @@
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "houseNo",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "line1",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "line2",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "city",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "country",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         }
       ],
       "includes": [],
@@ -436,7 +465,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Is this public"
+            "description": "Make visible across the workspace"
           },
           "types": [
             {
@@ -444,7 +473,7 @@
               "selected": true
             }
           ],
-          "value": "true",
+          "value": true,
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -524,19 +553,23 @@
           "kind": "TYPE",
           "refs": [],
           "type": "int",
+          "typeName": "int",
           "name": "int",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "selected": false
         },
         {
           "kind": "TYPE",
           "refs": [],
           "type": "decimal",
+          "typeName": "decimal",
           "name": "decimal",
           "optional": false,
           "readonly": false,
-          "isGraphqlId": false
+          "isGraphqlId": false,
+          "selected": false
         }
       ],
       "annotationAttachments": [],

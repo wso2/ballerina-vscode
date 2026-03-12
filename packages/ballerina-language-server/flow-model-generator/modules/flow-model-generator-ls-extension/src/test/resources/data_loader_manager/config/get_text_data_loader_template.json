@@ -74,9 +74,27 @@
           },
           "types": [
             {
-              "fieldType": "EXPRESSION_SET",
+              "fieldType": "REPEATABLE_LIST",
               "ballerinaType": "string",
-              "selected": false
+              "template": {
+                "types": [
+                  {
+                    "fieldType": "TEXT",
+                    "ballerinaType": "string",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "string",
+                    "selected": false
+                  }
+                ],
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              "selected": true
             }
           ],
           "placeholder": "\"\"",

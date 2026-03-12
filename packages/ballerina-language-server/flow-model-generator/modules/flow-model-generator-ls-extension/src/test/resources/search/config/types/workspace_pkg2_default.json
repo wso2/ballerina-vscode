@@ -1,0 +1,96 @@
+{
+  "description": "Search for workspace types from package2 - default (empty query)",
+  "kind": "TYPE",
+  "source": "workspace1/package2/main.bal",
+  "queryMap": {
+    "q": ""
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Current Workspace",
+        "description": "Components available in the current workspace",
+        "keywords": [
+          "Workspace",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "package2 (current)",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Address",
+                "description": "Represents a physical address"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "testorg",
+                "module": "package2",
+                "packageName": "package2",
+                "symbol": "Address",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "package1",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Employee",
+                "description": "Represents an employee record"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "testorg",
+                "module": "package1",
+                "packageName": "package1",
+                "symbol": "Employee",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Imported Types",
+        "description": "Types imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Type",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
+          "Library"
+        ]
+      },
+      "items": []
+    }
+  ]
+}

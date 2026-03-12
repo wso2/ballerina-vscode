@@ -6,5 +6,5 @@
   "prefix": "",
   "allowAdditionalFields": false,
   "asInline": false,
-  "expectedTypes": "\ntype City record {|\n\tstring name;\n\tstring country;\n|};\n\ntype Parent record {|\n\tstring name;\n\tint age;\n\tParent parent?;\n|};\n\ntype PersonListItem record {|\n\tstring name;\n\tint age;\n\tCity city;\n\tParent parent;\n|};\n\ntype PersonList PersonListItem[];\n"
+  "expectedTypes": "\npublic type City record {|\n\tstring name;\n\tstring country;\n|};\n\npublic type Parent record {|\n\tstring name;\n\tint age;\n\tParent parent?;\n|};\n\npublic type PersonListItem record {|\n\tstring name;\n\tint age;\n\tCity city;\n\tParent parent;\n|};\n\npublic type PersonList PersonListItem[];\n"
 }

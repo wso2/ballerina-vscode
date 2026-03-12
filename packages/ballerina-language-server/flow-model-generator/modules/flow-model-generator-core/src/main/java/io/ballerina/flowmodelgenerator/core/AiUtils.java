@@ -27,7 +27,9 @@ import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.model.Option;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.PropertyType;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
@@ -243,6 +245,83 @@ public class AiUtils {
     }
 
     /**
+     * Creates a copy of a property with updated metadata label while preserving all other fields.
+     *
+     * @param original the property to copy from
+     * @param newLabel the new label to set in metadata
+     * @return the new property with updated metadata label
+     */
+    public static Property createPropertyWithUpdatedLabel(Property original, String newLabel) {
+        if (original == null) {
+            throw new IllegalArgumentException("Original property cannot be null");
+        }
+        if (original.metadata() == null) {
+            throw new IllegalArgumentException("Original property metadata cannot be null");
+        }
+
+        Metadata updatedMetadata = new Metadata(
+                newLabel,
+                original.metadata().description(),
+                original.metadata().keywords(),
+                original.metadata().icon(),
+                original.metadata().functionKind(),
+                original.metadata().data()
+        );
+
+        return new Property(
+                updatedMetadata,
+                original.types(),
+                original.value(),
+                original.oldValue(),
+                original.placeholder(),
+                original.optional(),
+                original.editable(),
+                original.advanced(),
+                original.hidden(),
+                original.modified(),
+                original.diagnostics(),
+                original.codedata(),
+                original.advancedValue(),
+                original.imports(),
+                original.defaultValue(),
+                original.comment()
+        );
+    }
+
+    /**
+     * Creates a copy of a property with its types replaced by a single SINGLE_SELECT type with the given options.
+     * All other fields are preserved from the original property.
+     *
+     * @param original the property to copy from
+     * @param options  the list of option values to show in the select box
+     * @return the new property with SINGLE_SELECT type
+     */
+    public static Property convertToSingleSelect(Property original, List<String> options) {
+        List<PropertyType> selectTypes = List.of(
+                new PropertyType(Property.ValueType.SINGLE_SELECT, null, null, Option.of(options),
+                        null, null, null, true)
+        );
+        return new Property(
+                original.metadata(),
+                selectTypes,
+                original.value(),
+                original.oldValue(),
+                original.placeholder(),
+                original.optional(),
+                original.editable(),
+                original.advanced(),
+                original.hidden(),
+                original.modified(),
+                original.diagnostics(),
+                original.codedata(),
+                original.advancedValue(),
+                original.imports(),
+                original.defaultValue(),
+                original.comment()
+        );
+    }
+
+    /**
      * Adds a property to a NodeBuilder by copying all attributes from an existing property with an optional custom
      * value.
      *
@@ -265,26 +344,25 @@ public class AiUtils {
         Object valueToUse = customValue != null ? customValue : property.value();
         boolean hidden = isHidden || property.hidden();
 
-        nodeBuilder.properties().custom()
-                .metadata()
-                    .label(property.metadata().label())
-                    .description(property.metadata().description())
-                    .stepOut()
-                .types(property.types())
-                .placeholder(property.placeholder())
-                .value(valueToUse)
-                .defaultValue(property.defaultValue())
-                .imports(property.imports() != null ? property.imports().toString() : null)
-                .optional(property.optional())
-                .editable(property.editable())
-                .advanced(property.advanced())
-                .hidden(hidden)
-                .modified(property.modified())
-                .codedata()
-                    .kind(property.codedata() != null ? property.codedata().kind() : "")
-                    .stepOut()
-                .stepOut()
-                .addProperty(key);
+        Property copied = new Property(
+                property.metadata(),
+                property.types(),
+                valueToUse,
+                property.oldValue(),
+                property.placeholder(),
+                property.optional(),
+                property.editable(),
+                property.advanced(),
+                hidden,
+                property.modified(),
+                property.diagnostics(),
+                property.codedata(),
+                property.advancedValue(),
+                property.imports(),
+                property.defaultValue(),
+                property.comment()
+        );
+        nodeBuilder.properties().build().put(key, copied);
     }
 
     /**

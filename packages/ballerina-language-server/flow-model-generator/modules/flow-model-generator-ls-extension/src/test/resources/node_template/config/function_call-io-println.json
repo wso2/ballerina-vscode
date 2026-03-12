@@ -38,9 +38,22 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION_SET",
+            "fieldType": "REPEATABLE_LIST",
             "ballerinaType": "io:Printable",
-            "selected": false
+            "template": {
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "io:Printable",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": true
           }
         ],
         "placeholder": "()",

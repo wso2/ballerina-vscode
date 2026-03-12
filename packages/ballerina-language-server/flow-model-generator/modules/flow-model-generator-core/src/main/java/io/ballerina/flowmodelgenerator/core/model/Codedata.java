@@ -23,6 +23,7 @@ import io.ballerina.tools.text.LineRange;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents the properties that uniquely identifies a node in the diagram.
@@ -194,6 +195,34 @@ public record Codedata(NodeKind node, String org, String module, String packageN
 
         public Builder<T> data(Map<String, Object> data) {
             this.data = data;
+            return this;
+        }
+
+        /**
+         * Populates all fields of this builder from the given {@code source} {@link Codedata}, effectively
+         * cloning it into the builder so that individual fields can be overridden before calling
+         * {@link #stepOut()}.
+         *
+         * @param source the {@link Codedata} to copy field values from; must not be {@code null}
+         * @return this builder for fluent chaining
+         */
+        public Builder<T> from(Codedata source) {
+            this.node = source.node();
+            this.org = source.org();
+            this.module = source.module();
+            this.packageName = source.packageName();
+            this.object = source.object();
+            this.symbol = source.symbol();
+            this.version = source.version();
+            this.lineRange = source.lineRange();
+            this.sourceCode = source.sourceCode();
+            this.parentSymbol = source.parentSymbol();
+            this.resourcePath = source.resourcePath();
+            this.id = Objects.requireNonNullElse(source.id(), 0);
+            this.isNew = source.isNew() != null && source.isNew();
+            this.isGenerated = source.isGenerated();
+            this.inferredReturnType = source.inferredReturnType();
+            this.data = source.data() == null ? new LinkedHashMap<>() : new LinkedHashMap<>(source.data());
             return this;
         }
 

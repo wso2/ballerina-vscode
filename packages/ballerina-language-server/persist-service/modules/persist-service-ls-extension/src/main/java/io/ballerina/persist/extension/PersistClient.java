@@ -187,41 +187,35 @@ public class PersistClient {
      *
      * @param selectedTables The tables to generate entities for
      * @param module         The target module name for the generated files
+     * @param name          The name of the database connector variable
      * @return JsonElement containing the PersistClientResponse with text edits map
      * @throws PersistClientException if an error occurs during generation
      */
-    public JsonElement generateClient(String[] selectedTables, String module) throws PersistClientException {
+    public JsonElement generateClient(String[] selectedTables, String module, String name)
+            throws PersistClientException {
         validateConnectionDetails();
 
+        if (name == null || name.isEmpty()) {
+            throw new PersistClientException("Connector variable name cannot be null or empty");
+        }
+
         if (module == null || module.isEmpty()) {
-            module = generateModuleNameFromDatabase(this.database, this.datastore);
+            module = name;
         }
 
         if (selectedTables == null || selectedTables.length == 0) {
             throw new PersistClientException("Selected tables cannot be null or empty");
         }
 
-        // If the directory exists with at least one bal file, then throw error for now
-        // Once persist supports multiple model files, this can be removed
-        Path persistPath = this.projectPath.resolve(PERSIST_DIR);
-        if (Files.exists(persistPath)) {
-            try (var files = Files.list(persistPath)) {
-                if (files.anyMatch(path -> path.toString().endsWith(".bal"))) {
-                    throw new PersistClientException("Currently only one database connection is supported per " +
-                            "project. A database connection is already present in the project at: " + persistPath);
-                }
-            } catch (IOException e) {
-                throw new PersistClientException("Error checking existing database connections: " + e.getMessage(), e);
-            }
-        }
-
-        Path persistModelPath = persistPath.resolve(MODEL_FILE_NAME);
+        Path persistModelPath = this.projectPath.resolve(PERSIST_DIR)
+                .resolve(name)
+                .resolve(MODEL_FILE_NAME);
 
         try {
             Project project = this.workspaceManager.loadProject(projectPath);
             String packageName = project.currentPackage().packageName().value();
             Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-            boolean isModuleExists = addTextEditForBallerinaToml(packageName, module, textEditsMap);
+            boolean isModuleExists = addTextEditForBallerinaToml(packageName, module, name, textEditsMap);
             Module entityModule = getInitialEntityModule(selectedTables);
             SyntaxTree dataModels = new DbModelGenSyntaxTree().getDataModels(entityModule);
             addTextEditForPersistModelFile(dataModels, textEditsMap, persistModelPath);
@@ -437,19 +431,14 @@ public class PersistClient {
         return entityModule;
     }
 
-    private static String generateModuleNameFromDatabase(String database, String datastore) {
-        String sanitizedDatabaseName = database.replaceAll("[^a-zA-Z0-9]", "");
-        return datastore + "." + sanitizedDatabaseName;
-    }
-
-    private boolean addTextEditForBallerinaToml(String packageName, String module, Map<Path,
-            List<TextEdit>> textEditsMap) throws IOException {
+    private boolean addTextEditForBallerinaToml(String packageName, String module, String name,
+                                                Map<Path, List<TextEdit>> textEditsMap) throws IOException {
         Path tomlPath = this.projectPath.resolve(BALLERINA_TOML);
         DocumentNode rootNode = parseTomlFile(tomlPath);
         String moduleFullName = packageName + "." + module;
 
         TomlAnalysisResult analysisResult = analyzeTomlStructure(rootNode, moduleFullName);
-        String tomlEntry = buildTomlEntries(moduleFullName, analysisResult);
+        String tomlEntry = buildTomlEntries(moduleFullName, name, analysisResult);
         addTomlTextEdit(tomlPath, rootNode, analysisResult.toolPersistLineRange(), tomlEntry, textEditsMap);
 
         return analysisResult.moduleExists();
@@ -511,10 +500,10 @@ public class PersistClient {
         return false;
     }
 
-    private String buildTomlEntries(String module, TomlAnalysisResult analysisResult) {
+    private String buildTomlEntries(String module, String name, TomlAnalysisResult analysisResult) {
         StringBuilder tomlEntry = new StringBuilder();
 
-        tomlEntry.append(getBuildOptionEntry(module));
+        tomlEntry.append(getBuildOptionEntry(module, name));
 
         if (!analysisResult.hasPersistDependency()) {
             tomlEntry.append(getPersistMinimumVersionRequirementEntry());
@@ -543,12 +532,12 @@ public class PersistClient {
     ) {
     }
 
-    private String getBuildOptionEntry(String module) {
+    private String getBuildOptionEntry(String module, String name) {
         String moduleWithQuotes = "\"" + module + "\"";
         return LS + "[[tool.persist]]" + LS +
                 "id" + " = " + moduleWithQuotes + LS +
                 "targetModule" + " = " + moduleWithQuotes + LS +
-                "filePath" + " = \"" + PERSIST_DIR + "/" + MODEL_FILE_NAME + "\"" + LS +
+                "filePath" + " = \"" + PERSIST_DIR + "/"  + name + "/" + MODEL_FILE_NAME + "\"" + LS +
                 "options.datastore" + " = \"" + datastore + "\"" + LS +
                 "options.eagerLoading" + " = true" + LS +
                 "options.withInitParams" + " = true" + LS;
@@ -559,7 +548,7 @@ public class PersistClient {
                 "org = \"ballerina\"" + LS +
                 "name = \"tool.persist\"" + LS +
                 // This version is hardcoded as minimum compatible version
-                "version = \"1.8.0\"" + LS;
+                "version = \"1.9.0\"" + LS;
     }
 
     /**

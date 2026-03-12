@@ -84,7 +84,7 @@ class SearchListGenerator {
         ));
         List<PackageMetadataInfo> packagesList = packages.packages().stream()
                 .map(packageData -> new PackageMetadataInfo(packageData.name(), packageData.version(),
-                        packageData.keywords(), packageData.pullCount()))
+                        packageData.summary(), packageData.keywords(), packageData.pullCount()))
                 .collect(Collectors.toList());
         int totalCount = packages.count();
         int totalCalls = (int) Math.ceil((double) totalCount / LIMIT);
@@ -98,10 +98,11 @@ class SearchListGenerator {
             ));
             packagesList.addAll(packages.packages().stream()
                     .map(packageData -> new PackageMetadataInfo(packageData.name(), packageData.version(),
-                            packageData.keywords(), packageData.pullCount())).toList());
+                            packageData.summary(), packageData.keywords(), packageData.pullCount())).toList());
         }
         return packagesList;
     }
 
-    record PackageMetadataInfo(String name, String version, List<String> keywords, int pullCount) { }
+    record PackageMetadataInfo(String name, String version, String description, List<String> keywords,
+                               int pullCount) { }
 }

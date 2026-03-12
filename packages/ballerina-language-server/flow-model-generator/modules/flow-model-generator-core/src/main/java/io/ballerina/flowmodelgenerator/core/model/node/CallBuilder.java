@@ -27,6 +27,7 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.flowmodelgenerator.core.AiUtils;
 import io.ballerina.flowmodelgenerator.core.TypeParameterReplacer;
+import io.ballerina.flowmodelgenerator.core.TypesManager;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
@@ -34,6 +35,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.PropertyType;
+import io.ballerina.flowmodelgenerator.core.model.RecordSelectorType;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
@@ -44,6 +46,7 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.tools.text.LinePosition;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
@@ -55,6 +58,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static io.ballerina.flowmodelgenerator.core.TypesManager.mergeWithTargetVarRecordSelectorType;
 
 /**
  * Abstract base class for function-like builders (functions, methods, resource actions).
@@ -94,6 +99,9 @@ public abstract class CallBuilder extends NodeBuilder {
         }
         FunctionData functionData = functionDataBuilder.build();
 
+        // Store the module for PARAM_FOR_TYPE_INFER processing
+        Module module = context.workspaceManager().module(context.filePath()).orElse(null);
+
         metadata()
                 .label(functionData.name())
                 .icon(CommonUtils.generateIcon(functionData.org(), functionData.packageName(),
@@ -126,7 +134,7 @@ public abstract class CallBuilder extends NodeBuilder {
                     .stepOut()
                     .addProperty(Property.CONNECTION_KEY);
         }
-        setParameterProperties(functionData);
+        setParameterProperties(functionData, module);
 
         if (CommonUtils.hasReturn(functionData.returnType())) {
             setReturnTypeProperties(functionData, context, Property.RESULT_NAME, Property.RESULT_DOC, false);
@@ -137,43 +145,128 @@ public abstract class CallBuilder extends NodeBuilder {
         }
     }
 
-    public static void buildInferredTypeProperty(NodeBuilder nodeBuilder, ParameterData paramData, String value) {
+    /**
+     * Builds a form property for a {@code PARAM_FOR_TYPE_INFER} parameter. When the parameter type is
+     * a Ballerina record, the property is rendered as a {@code RECORD_FIELD_SELECTOR} in the UI, allowing
+     * the user to pick individual fields. If a {@code targetVarType} is provided and is itself a record
+     * (or array of records), the selector is pre-populated by merging the parameter's type model with the
+     * target variable's type model so that already-selected fields are preserved. Non-record types fall back
+     * to a plain {@code TYPE} property.
+     *
+     * @param nodeBuilder    the node builder to attach the property to
+     * @param paramData      the parameter descriptor for the inferred type parameter
+     * @param value          the current value string (may be {@code null})
+     * @param module         the Ballerina {@link Module} used to create the {@link TypesManager} for type resolution
+     * @param targetVarType  the type of the target variable being assigned to, used to pre-select fields
+     *                       (may be {@code null} if no target variable is available)
+     */
+    public static void buildInferredTypeProperty(NodeBuilder nodeBuilder, ParameterData paramData, String value,
+                                                 Module module, TypeSymbol targetVarType) {
         String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramData.name());
         String label = paramData.label();
-        // NOTE: This is added to improve user experience for persist client calls until the ideal user
-        // experience is designed and implemented.
-        // Issue: https://github.com/wso2/product-ballerina-integrator/issues/2042
         // If the inferredType is a record type, add it as the value of the property if the value is not provided
         if (value == null && paramData.typeSymbol() != null
                 && CommonUtil.getRawType(paramData.typeSymbol()).typeKind().equals(TypeDescKind.RECORD)) {
             // The value is same as the default value for inferred type parameter
             value = paramData.defaultValue();
         }
-        nodeBuilder.properties().custom()
+
+        Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = nodeBuilder.properties().custom()
                 .metadata()
-                    .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                    .description(paramData.description())
-                    .stepOut()
+                .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                .description(paramData.description())
+                .stepOut()
                 .codedata()
-                    .kind(paramData.kind().name())
-                    .originalName(paramData.name())
-                    .stepOut()
+                .kind(paramData.kind().name())
+                .originalName(paramData.name())
+                .stepOut()
                 .value(value)
                 .placeholder(paramData.placeholder())
                 .defaultValue(paramData.defaultValue())
-                .type(Property.ValueType.TYPE, paramData.type())
                 .imports(paramData.importStatements())
-                .editable()
-                .stepOut()
-                .addProperty(unescapedParamName);
+                .editable();
+
+        // Check if this is a record type - if so, emit RECORD_FIELD_SELECTOR with type models
+        if (paramData.typeSymbol() != null && module != null
+                && CommonUtil.getRawType(paramData.typeSymbol()).typeKind().equals(TypeDescKind.RECORD)) {
+            addRecordFieldSelector(paramData, module, targetVarType, customPropBuilder);
+        } else {
+            // For non-record types, use the existing TYPE behavior
+            customPropBuilder.type(Property.ValueType.TYPE, paramData.type());
+        }
+
+        customPropBuilder.stepOut().addProperty(unescapedParamName);
     }
 
-    protected void setParameterProperties(FunctionData function) {
+    private static void addRecordFieldSelector(ParameterData paramData, Module module, TypeSymbol targetVarType,
+                                               Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder) {
+        TypeSymbol rawType = CommonUtil.getRawType(paramData.typeSymbol());
+        if (!rawType.typeKind().equals(TypeDescKind.RECORD) || module.documentIds().isEmpty()) {
+            // If we can't resolve the raw type, fallback to TYPE without field selector or
+            // If we can't access any documents in the module, we won't be able to resolve the type models, so
+            // fallback to TYPE without field selector
+            customPropBuilder.type(Property.ValueType.TYPE, paramData.type());
+            return;
+        }
+
+        // For record types, we want to show the record selector in the UI, so we set the field type to
+        // RECORD_FIELD_SELECTOR and provide the necessary type models for it.
+        TypesManager typesManager = new TypesManager(module.document(module.documentIds().iterator().next()));
+        RecordSelectorType recordSelectorType = typesManager.getRecordSelectorType(paramData.typeSymbol(),
+                module);
+
+        if (recordSelectorType != null && targetVarType != null) {
+            TypeSymbol recordTargetVarType = targetVarType;
+            if (CommonUtil.getRawType(targetVarType).typeKind().equals(TypeDescKind.ARRAY)) {
+                recordTargetVarType = ((ArrayTypeSymbol) CommonUtil.getRawType(recordTargetVarType))
+                        .memberTypeDescriptor();
+            }
+            if (CommonUtil.getRawType(recordTargetVarType).typeKind().equals(TypeDescKind.RECORD)) {
+                RecordSelectorType targetVarRecordSelectorType = typesManager.getRecordSelectorType(
+                        recordTargetVarType, module);
+                if (targetVarRecordSelectorType != null) {
+                    recordSelectorType = mergeWithTargetVarRecordSelectorType(targetVarRecordSelectorType,
+                            recordSelectorType);
+                }
+            }
+        }
+
+        if (recordSelectorType != null && !recordSelectorType.rootType().members().isEmpty()) {
+            customPropBuilder.type()
+                    .fieldType(Property.ValueType.RECORD_FIELD_SELECTOR)
+                    .ballerinaType(paramData.type())
+                    .recordSelectorType(recordSelectorType)
+                    .selected(true)
+                    .stepOut();
+        } else {
+            // Fallback to TYPE if type models couldn't be resolved
+            customPropBuilder.type(Property.ValueType.TYPE, paramData.type());
+        }
+    }
+
+    /**
+     * Builds an inferred-type property for a {@code PARAM_FOR_TYPE_INFER} parameter without a target variable
+     * type constraint. Delegates to the full overload with {@code targetVarType = null}.
+     *
+     * <p>NOTE: This overload is kept for persist-client call sites where no target variable type is
+     * available. See issue: https://github.com/wso2/product-ballerina-integrator/issues/2042
+     *
+     * @param nodeBuilder the node builder to attach the property to
+     * @param paramData   the parameter descriptor for the inferred type parameter
+     * @param value       the current value string (may be {@code null})
+     * @param module      the Ballerina {@link Module} used for type resolution
+     */
+    public static void buildInferredTypeProperty(NodeBuilder nodeBuilder, ParameterData paramData, String value,
+                                                 Module module) {
+        buildInferredTypeProperty(nodeBuilder, paramData, value, module, null);
+    }
+
+    protected void setParameterProperties(FunctionData function, io.ballerina.projects.Module module) {
         boolean hasOnlyRestParams = function.parameters().size() == 1;
 
         for (ParameterData paramResult : function.parameters().values()) {
             if (paramResult.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER) {
-                buildInferredTypeProperty(this, paramResult, null);
+                buildInferredTypeProperty(this, paramResult, null, module);
                 continue;
             }
 
@@ -205,13 +298,27 @@ public abstract class CallBuilder extends NodeBuilder {
                         customPropBuilder.defaultable(false);
                     }
                     unescapedParamName = "additionalValues";
-                    customPropBuilder.type(Property.ValueType.MAPPING_EXPRESSION_SET, paramResult.type());
+                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    customPropBuilder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_MAP)
+                            .ballerinaType(paramResult.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 }
                 case REST_PARAMETER -> {
                     if (hasOnlyRestParams) {
                         customPropBuilder.defaultable(false);
                     }
-                    customPropBuilder.type(Property.ValueType.EXPRESSION_SET, paramResult.type());
+                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    customPropBuilder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_LIST)
+                            .ballerinaType(paramResult.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 }
                 default -> {
                     // Add PROMPT field type for ai:Prompt parameters

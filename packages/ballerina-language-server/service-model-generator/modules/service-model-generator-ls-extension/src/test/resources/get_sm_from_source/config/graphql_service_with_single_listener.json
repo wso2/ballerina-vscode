@@ -888,6 +888,7 @@
             "label": "Accessor",
             "description": "The accessor of the function"
           },
+          "value": "",
           "types": [
             {
               "fieldType": "IDENTIFIER",

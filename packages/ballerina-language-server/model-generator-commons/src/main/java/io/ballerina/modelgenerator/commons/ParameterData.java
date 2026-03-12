@@ -38,6 +38,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.removeLeadingSingl
  * @param description      the description of the parameter
  * @param label            the label of the parameter
  * @param optional         whether the parameter is optional
+ * @param deprecated       whether the parameter is deprecated
  * @param importStatements import statements of the dependent types
  * @param typeMembers      the member types of the parameter
  * @param typeSymbol       the type symbol of the parameter
@@ -53,26 +54,29 @@ public record ParameterData(
         String description,
         String label,
         boolean optional,
+        boolean deprecated,
         String importStatements,
         List<ParameterMemberTypeData> typeMembers,
         io.ballerina.compiler.api.symbols.TypeSymbol typeSymbol) {
 
     public static ParameterData from(String name, String type, Kind kind, String placeholder,
                                      String description, boolean optional) {
-        return new ParameterData(0, name, type, kind, placeholder, null, description, null, optional,
+        return new ParameterData(0, name, type, kind, placeholder, null, description, null, optional, false,
                 null, new ArrayList<>(), null);
     }
 
     public static ParameterData from(String name, String type, Kind kind, String placeholder,
                                      String description, boolean optional, TypeSymbol typeSymbol) {
-        return new ParameterData(0, name, type, kind, placeholder, null, description, null, optional,
+        return new ParameterData(0, name, type, kind, placeholder, null, description, null, optional, false,
                 null, new ArrayList<>(), typeSymbol);
     }
 
     public static ParameterData from(String name, String description, String label, String type, String placeholder,
-                                     String defaultValue, Kind kind, boolean optional, String importStatements,
+                                     String defaultValue, Kind kind, boolean optional, boolean deprecated,
+                                     String importStatements,
                                      TypeSymbol typeSymbol) {
         return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, label, optional,
+                deprecated,
                 importStatements, new ArrayList<>(), typeSymbol);
     }
 
@@ -90,7 +94,13 @@ public record ParameterData(
         PARAM_FOR_TYPE_INFER,
         INCLUDED_RECORD_REST,
         PATH_PARAM,
-        PATH_REST_PARAM;
+        PATH_REST_PARAM,
+        /**
+         * A parameter whose type represents a record used for inferred typing in data-mapping contexts.
+         * Unlike {@link #PARAM_FOR_TYPE_INFER}, this kind is used when the record type itself (rather than
+         * a type parameter inside it) should drive the field selector UI.
+         */
+        RECORD_TYPE_INFER;
 
         public static Kind fromKind(ParameterKind parameterKind) {
             String value = parameterKind.name();

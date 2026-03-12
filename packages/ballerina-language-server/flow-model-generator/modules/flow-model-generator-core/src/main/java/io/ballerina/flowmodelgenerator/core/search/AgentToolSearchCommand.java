@@ -141,7 +141,7 @@ public class AgentToolSearchCommand extends SearchCommand {
 
             // Skip if function is within current position (editing context)
             Optional<Location> location = symbol.getLocation();
-            if (location.isPresent()) {
+            if (position != null && location.isPresent()) {
                 LineRange fnLineRange = location.get().lineRange();
                 if (fnLineRange.fileName().equals(position.fileName()) &&
                         PositionUtil.isWithinLineRange(fnLineRange, position)) {
@@ -157,6 +157,26 @@ public class AgentToolSearchCommand extends SearchCommand {
             }
 
             boolean isIsolatedFunction = functionSymbol.qualifiers().contains(Qualifier.ISOLATED);
+
+            // Extract input parameters
+            List<Map<String, String>> inputParameters = new ArrayList<>();
+            FunctionTypeSymbol functionTypeSymbol = functionSymbol.typeDescriptor();
+            Optional<List<ParameterSymbol>> optParams = functionTypeSymbol.params();
+            if (optParams.isPresent()) {
+                for (ParameterSymbol parameterSymbol : optParams.get()) {
+                    String paramName = parameterSymbol.getName().orElse("");
+                    String paramType = parameterSymbol.typeDescriptor().signature();
+                    inputParameters.add(Map.of("name", paramName, "type", paramType));
+                }
+            }
+
+            // Extract output type
+            String outputType = "";
+            Optional<TypeSymbol> optReturnTypeSymbol = functionTypeSymbol.returnTypeDescriptor();
+            if (optReturnTypeSymbol.isPresent()) {
+                outputType = optReturnTypeSymbol.get().signature();
+            }
+
             Metadata metadata = new Metadata.Builder<>(null)
                     .label(symbol.getName().get())
                     .description(functionSymbol.documentation()
@@ -164,6 +184,8 @@ public class AgentToolSearchCommand extends SearchCommand {
                             .orElse("Agent tool function"))
                     .addData("isAgentTool", true)
                     .addData("isIsolatedFunction", isIsolatedFunction)
+                    .addData("inputParameters", inputParameters)
+                    .addData("outputType", outputType)
                     .build();
 
             Codedata.Builder<Object> codedataBuilder = new Codedata.Builder<>(null)

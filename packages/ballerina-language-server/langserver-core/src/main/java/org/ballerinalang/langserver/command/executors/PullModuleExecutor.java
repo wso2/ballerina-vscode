@@ -184,6 +184,11 @@ public class PullModuleExecutor implements LSCommandExecutor {
                             .map(compilation -> compilation.diagnosticResult().diagnostics().stream()
                                     .filter(diagnostic -> DiagnosticErrorCode.MODULE_NOT_FOUND.diagnosticId()
                                             .equals(diagnostic.diagnosticInfo().code()))
+                                    // HACK: Ignore diagnostics for ballerinax/.config modules as they are
+                                    // internal config modules that should not be pulled from central
+                                    // https://github.com/ballerina-platform/ballerina-lang/issues/44519
+                                    .filter(diagnostic -> !diagnostic.message()
+                                            .contains("ballerinax/.config"))
                                     .map(PullModuleCodeAction::getMissingModuleNameFromDiagnostic)
                                     .filter(Optional::isPresent)
                                     .map(Optional::get)

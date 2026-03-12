@@ -47,7 +47,7 @@
       "isPublic": {
         "metadata": {
           "label": "public",
-          "description": "Is this public"
+          "description": "Make visible across the workspace"
         },
         "types": [
           {
@@ -55,7 +55,7 @@
             "selected": true
           }
         ],
-        "value": "false",
+        "value": false,
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -118,56 +118,66 @@
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "houseNo",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       },
       {
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "line1",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       },
       {
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "line2",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       },
       {
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "city",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       },
       {
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "country",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
         "docs": "",
-        "annotationAttachments": []
+        "annotationAttachments": [],
+        "selected": false
       }
     ],
     "includes": [],

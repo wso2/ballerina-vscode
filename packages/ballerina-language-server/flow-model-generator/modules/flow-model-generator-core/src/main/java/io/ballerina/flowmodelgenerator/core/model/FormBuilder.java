@@ -166,25 +166,6 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
-    public FormBuilder<T> waitField(Node node) {
-        propertyBuilder
-                .metadata()
-                    .label(Property.VARIABLE_NAME)
-                    .description(Property.VARIABLE_DOC)
-                    .stepOut()
-                .codedata()
-                    .dependentProperty(WaitBuilder.WAIT_ALL_KEY)
-                    .stepOut()
-                .value(node == null ? "" : node.toSourceCode().strip())
-                .type()
-                    .fieldType(Property.ValueType.IDENTIFIER)
-                    .selected(true)
-                    .stepOut()
-                .editable();
-        addProperty(Property.VARIABLE_KEY, node);
-        return this;
-    }
-
     public FormBuilder<T> type(Node node, boolean editable) {
         return type(node, Property.TYPE_LABEL, editable);
     }
@@ -751,6 +732,25 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
+    public FormBuilder<T> testConfigValue(ExpressionNode expr) {
+        propertyBuilder
+                .metadata()
+                .label(Property.TEST_CONFIG_VALUE_LABEL)
+                .description(Property.TEST_CONFIG_VALUE_DOC)
+                .stepOut()
+                .value((expr != null && expr.kind() != SyntaxKind.REQUIRED_EXPRESSION) ? expr.toSourceCode() : "")
+                .type()
+                    .fieldType(Property.ValueType.EXPRESSION)
+                    .selected(true)
+                    .stepOut()
+                .optional(true)
+                .modified(false)
+                .hidden()
+                .editable();
+        addProperty(Property.TEST_CONFIG_VALUE_KEY, expr);
+        return this;
+    }
+
     public FormBuilder<T> documentation(Node docNode) {
         return documentation(docNode, true);
     }
@@ -1092,7 +1092,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .editable(editable)
                 .optional(optional)
                 .advanced(advanced)
-                .value(String.valueOf(value))
+                .value(value)
                 .type()
                     .fieldType(Property.ValueType.FLAG)
                     .selected(true)
@@ -1197,19 +1197,35 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
-    public FormBuilder<T> waitAll(boolean value) {
+    public FormBuilder<T> futures(Property template) {
         propertyBuilder
                 .metadata()
-                    .label(WaitBuilder.WAIT_ALL_LABEL)
-                    .description(WaitBuilder.WAIT_ALL_DOC)
+                    .label(WaitBuilder.FUTURE_LABEL)
+                    .description(WaitBuilder.DESCRIPTION)
                     .stepOut()
-                .value(value)
                 .type()
-                    .fieldType(Property.ValueType.FLAG)
+                    .fieldType(Property.ValueType.REPEATABLE_MAP)
+                    .template(template)
                     .selected(true)
                     .stepOut()
                 .editable();
-        addProperty(WaitBuilder.WAIT_ALL_KEY);
+        addProperty(WaitBuilder.FUTURES_KEY);
+        return this;
+    }
+
+    public FormBuilder<T> futureTemplate() {
+        propertyBuilder.
+                metadata()
+                    .label(WaitBuilder.FUTURE_LABEL)
+                    .description(WaitBuilder.FUTURE_DOC)
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.EXPRESSION)
+                    .ballerinaType(WaitBuilder.FUTURE_TYPE_BALLERINA_TYPE)
+                    .selected(true)
+                    .stepOut()
+                .editable();
+        addProperty(WaitBuilder.FUTURES_KEY);
         return this;
     }
 
@@ -1217,6 +1233,38 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                                     List<Option> options) {
         propertyBuilder.typeWithOptions(valueType, options);
         return parameter(type, name, token);
+    }
+
+    public FormBuilder<T> dataMapperParameter(String type, String name, Property.ValueType valueType,
+                                              String fieldType) {
+        nestedProperty();
+        propertyBuilder
+                .metadata()
+                    .label(Property.IMPLICIT_TYPE_LABEL)
+                    .description(Property.PARAMETER_TYPE_DOC)
+                    .stepOut()
+                .type(valueType, fieldType)
+                .value(type)
+                .hidden()
+                .editable();
+        addProperty(Property.TYPE_KEY);
+
+        // Build the parameter name property
+        propertyBuilder
+                .metadata()
+                    .label(Property.VARIABLE_KEY)
+                    .description(Property.VARIABLE_DOC)
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.LV_EXPRESSION)
+                    .selected(true)
+                    .stepOut()
+                .editable()
+                .value(name);
+        addProperty(Property.VARIABLE_KEY);
+
+        return endNestedProperty(Property.ValueType.FIXED_PROPERTY, name, Property.PARAMETER_LABEL,
+                Property.PARAMETER_DOC);
     }
 
     public FormBuilder<T> parameter(String type, String name, Token token, Property.ValueType valueType,
@@ -1360,6 +1408,20 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         }
         Property property = propertyBuilder.build();
         this.nodeProperties.put(key, property);
+        return this;
+    }
+
+    /**
+     * Bulk-adds all entries from the given map into the node properties, skipping the operation silently
+     * if the map is {@code null}. Existing properties with the same key will be overwritten.
+     *
+     * @param properties the map of property key to {@link Property} to merge in; may be {@code null}
+     * @return this builder for fluent chaining
+     */
+    public final FormBuilder<T> addProperties(Map<String, Property> properties) {
+        if (properties != null) {
+            this.nodeProperties.putAll(properties);
+        }
         return this;
     }
 

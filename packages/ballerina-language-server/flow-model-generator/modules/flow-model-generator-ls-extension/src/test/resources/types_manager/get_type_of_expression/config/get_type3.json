@@ -1,0 +1,13 @@
+{
+  "filePath": "source1.bal",
+  "position": {
+    "line": 18,
+    "offset": 34
+  },
+  "expression": "order1",
+  "description": "Get a record type data",
+  "type": {
+    "name": "OrdersItem|Orders",
+    "imports": {}
+  }
+}

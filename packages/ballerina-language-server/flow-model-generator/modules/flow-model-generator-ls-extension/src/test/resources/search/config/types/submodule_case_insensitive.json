@@ -9,6 +9,20 @@
   "categories": [
     {
       "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
         "label": "Imported Types",
         "description": "Types imported from other integrations",
         "keywords": [
@@ -67,31 +81,6 @@
         ]
       },
       "items": [
-        {
-          "metadata": {
-            "label": "sql",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionPool",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_sql_1.17.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "sql",
-                "packageName": "sql",
-                "symbol": "ConnectionPool",
-                "version": "1.17.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
         {
           "metadata": {
             "label": "soundcloud",
@@ -160,232 +149,24 @@
         },
         {
           "metadata": {
-            "label": "stripe",
+            "label": "sql",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "financial_connectionsPermissionsItemsString",
+                "label": "ConnectionPool",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_sql_1.17.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "financial_connectionsPermissionsItemsString",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Terminal\\.connection_token",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "Terminal\\.connection_token",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Financial_connections\\.account",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "Financial_connections\\.account",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Financial_connections\\.transaction",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "Financial_connections\\.transaction",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Financial_connections\\.session",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "Financial_connections\\.session",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "terminal_connection_tokens_body",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "terminal_connection_tokens_body",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "terminal_connection_tokens_bodyExpandItemsString",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "terminal_connection_tokens_bodyExpandItemsString",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Bank_connections_resource_accountholder",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "Bank_connections_resource_accountholder",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Bank_connections_resource_balance",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "Bank_connections_resource_balance",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Financial_connections\\.account_ownership",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "Financial_connections\\.account_ownership",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Financial_connections\\.account_owner",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "Financial_connections\\.account_owner",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "financial_connections_sessions_body",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "financial_connections_sessions_body",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "financial_connections_sessions_bodyExpandItemsString",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "financial_connections_sessions_bodyExpandItemsString",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "financial_connections_sessions_bodyPermissionsItemsString",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "stripe",
-                "packageName": "stripe",
-                "symbol": "financial_connections_sessions_bodyPermissionsItemsString",
-                "version": "2.0.0"
+                "org": "ballerina",
+                "module": "sql",
+                "packageName": "sql",
+                "symbol": "ConnectionPool",
+                "version": "1.17.1"
               },
               "enabled": true
             }
@@ -418,24 +199,248 @@
         },
         {
           "metadata": {
-            "label": "websocket",
+            "label": "stripe",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "ConnectionError",
-                "description": "Raised during connection failures.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_websocket_2.14.2.png"
+                "label": "financial_connectionsPermissionsItemsString",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
-                "org": "ballerina",
-                "module": "websocket",
-                "packageName": "websocket",
-                "symbol": "ConnectionError",
-                "version": "2.14.2"
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "financial_connectionsPermissionsItemsString",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Terminal\\.connection_token",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Terminal\\.connection_token",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Financial_connections\\.account",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Financial_connections\\.account",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Financial_connections\\.transaction",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Financial_connections\\.transaction",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Financial_connections\\.session",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Financial_connections\\.session",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "terminal_connection_tokens_body",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "terminal_connection_tokens_body",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "terminal_connection_tokens_bodyExpandItemsString",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "terminal_connection_tokens_bodyExpandItemsString",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Bank_connections_resource_accountholder",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Bank_connections_resource_accountholder",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Bank_connections_resource_balance",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Bank_connections_resource_balance",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Financial_connections\\.account_ownership",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Financial_connections\\.account_ownership",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Financial_connections\\.account_owner",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Financial_connections\\.account_owner",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "financial_connections_sessions_body",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "financial_connections_sessions_body",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "financial_connections_sessions_bodyExpandItemsString",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "financial_connections_sessions_bodyExpandItemsString",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "financial_connections_sessions_bodyPermissionsItemsString",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "financial_connections_sessions_bodyPermissionsItemsString",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Bank_connections_resource_ownership_refresh",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "Bank_connections_resource_ownership_refresh",
+                "version": "2.0.1"
               },
               "enabled": true
             }
@@ -461,6 +466,31 @@
                 "packageName": "power.bi",
                 "symbol": "ConnectionDetails",
                 "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "websocket",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConnectionError",
+                "description": "Raised during connection failures.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_websocket_2.15.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerina",
+                "module": "websocket",
+                "packageName": "websocket",
+                "symbol": "ConnectionError",
+                "version": "2.15.1"
               },
               "enabled": true
             }
@@ -502,7 +532,7 @@
               "metadata": {
                 "label": "ConnectionParameters",
                 "description": "Represents the MongoDB connection parameters.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.3.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
@@ -510,7 +540,7 @@
                 "module": "mongodb",
                 "packageName": "mongodb",
                 "symbol": "ConnectionParameters",
-                "version": "5.2.2"
+                "version": "5.2.3"
               },
               "enabled": true
             }
@@ -543,7 +573,7 @@
         },
         {
           "metadata": {
-            "label": "microsoft.onenote",
+            "label": "microsoft.teams",
             "description": "",
             "keywords": []
           },
@@ -552,13 +582,13 @@
               "metadata": {
                 "label": "ConnectionConfig",
                 "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.onenote_2.4.0.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.teams_2.4.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "microsoft.onenote",
-                "packageName": "microsoft.onenote",
+                "module": "microsoft.teams",
+                "packageName": "microsoft.teams",
                 "symbol": "ConnectionConfig",
                 "version": "2.4.0"
               },
@@ -568,7 +598,7 @@
         },
         {
           "metadata": {
-            "label": "googleapis.sheets",
+            "label": "googleapis.people",
             "description": "",
             "keywords": []
           },
@@ -577,15 +607,15 @@
               "metadata": {
                 "label": "ConnectionConfig",
                 "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.sheets_3.5.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.people_2.4.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "googleapis.sheets",
-                "packageName": "googleapis.sheets",
+                "module": "googleapis.people",
+                "packageName": "googleapis.people",
                 "symbol": "ConnectionConfig",
-                "version": "3.5.1"
+                "version": "2.4.0"
               },
               "enabled": true
             }
@@ -593,7 +623,7 @@
         },
         {
           "metadata": {
-            "label": "client.config",
+            "label": "microsoft.excel",
             "description": "",
             "keywords": []
           },
@@ -602,15 +632,15 @@
               "metadata": {
                 "label": "ConnectionConfig",
                 "description": "Client configuration details.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_client.config_1.0.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.excel_2.4.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "client.config",
-                "packageName": "client.config",
+                "module": "microsoft.excel",
+                "packageName": "microsoft.excel",
                 "symbol": "ConnectionConfig",
-                "version": "1.0.1"
+                "version": "2.4.0"
               },
               "enabled": true
             }
@@ -618,7 +648,7 @@
         },
         {
           "metadata": {
-            "label": "salesforce.bulk",
+            "label": "azure.ad",
             "description": "",
             "keywords": []
           },
@@ -626,41 +656,16 @@
             {
               "metadata": {
                 "label": "ConnectionConfig",
-                "description": "Salesforce client configuration.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png"
+                "description": "Client configuration details.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.ad_2.5.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "salesforce.bulk",
-                "packageName": "salesforce",
+                "module": "azure.ad",
+                "packageName": "azure.ad",
                 "symbol": "ConnectionConfig",
-                "version": "8.2.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "salesforce.soap",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConnectionConfig",
-                "description": "Salesforce client configuration.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "salesforce.soap",
-                "packageName": "salesforce",
-                "symbol": "ConnectionConfig",
-                "version": "8.2.0"
+                "version": "2.5.0"
               },
               "enabled": true
             }

@@ -121,6 +121,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE_WITH_TAB;
@@ -205,6 +206,10 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 SemanticModel semanticModel = PackageUtil.getCompilation(currentPackage).getSemanticModel(moduleId);
                 Set<String> listeners = ListenerUtil.getCompatibleListeners(request.moduleName(),
                         semanticModel, project);
+                if (FTP.equals(request.moduleName()) && request.removeDeprecated() != null) {
+                    listeners = ListenerUtil.filterFtpListenersByDeprecatedMode(listeners, request.removeDeprecated(),
+                            semanticModel, project);
+                }
                 return new ListenerDiscoveryResponse(listeners);
             } catch (Throwable e) {
                 return new ListenerDiscoveryResponse(e);
@@ -236,8 +241,16 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 Document document = documentOpt.get();
                 ModuleInfo moduleInfo = ModuleInfo.from(document.module().descriptor());
 
-                return ListenerUtil.getListenerModelByName(request.codedata(), semanticModel.get(), moduleInfo)
-                        .map(ListenerModelResponse::new)
+                boolean removeDeprecated = request.removeDeprecated() == null || request.removeDeprecated();
+                return ListenerUtil.getListenerModelByName(request.codedata(), semanticModel.get(), moduleInfo,
+                                removeDeprecated)
+                        .map(listenerModel -> {
+                            if (FTP.equals(request.codedata().getModuleName()) && request.removeDeprecated() != null) {
+                                ListenerUtil.adjustFtpListenerModelForDeprecatedMode(
+                                        listenerModel, request.removeDeprecated(), semanticModel.get(), document);
+                            }
+                            return new ListenerModelResponse(listenerModel);
+                        })
                         .orElseGet(ListenerModelResponse::new);
             } catch (Throwable e) {
                 return new ListenerModelResponse(e);
@@ -376,6 +389,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
      * @return {@link CommonSourceResponse} of the common source response
      */
     @JsonRequest
+    @Deprecated
     public CompletableFuture<CommonSourceResponse> addService(ServiceSourceRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {

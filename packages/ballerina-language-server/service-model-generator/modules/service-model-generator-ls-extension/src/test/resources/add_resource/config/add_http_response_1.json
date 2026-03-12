@@ -342,6 +342,7 @@
           "headers": {
             "valueType": "HEADER_SET",
             "value": "",
+            "values": ["\"\""],
             "imports": {},
             "enabled": true,
             "editable": true,

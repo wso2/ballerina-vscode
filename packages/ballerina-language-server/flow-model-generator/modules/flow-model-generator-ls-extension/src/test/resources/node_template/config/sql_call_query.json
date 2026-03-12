@@ -90,6 +90,24 @@
         },
         "types": [
           {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "typedesc<record {|anydata...;|}>[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "typedesc<record {|anydata...;|}>",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "typedesc<record {|anydata...;|}>[]",
             "selected": false

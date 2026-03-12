@@ -32,6 +32,7 @@ import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.projects.Module;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -103,16 +104,17 @@ public class VectorStoreBuilder extends CallBuilder {
             setReturnTypeProperties(functionData, context, VECTOR_STORE_NAME_LABEL, VECTOR_STORE_NAME_LABEL_DOC,
                     false);
         }
-        setParameterProperties(functionData);
+        Module module = context.workspaceManager().module(context.filePath()).orElse(null);
+        setParameterProperties(functionData, module);
         properties().scope(Property.GLOBAL_SCOPE).checkError(true, CHECK_ERROR_DOC, false);
     }
 
-    protected void setParameterProperties(FunctionData function) {
+    protected void setParameterProperties(FunctionData function, Module module) {
         boolean hasOnlyRestParams = function.parameters().size() == 1;
 
         for (ParameterData paramResult : function.parameters().values()) {
             if (paramResult.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER) {
-                buildInferredTypeProperty(this, paramResult, null);
+                buildInferredTypeProperty(this, paramResult, null, module);
                 continue;
             }
 
@@ -143,13 +145,27 @@ public class VectorStoreBuilder extends CallBuilder {
                         customPropBuilder.defaultable(false);
                     }
                     unescapedParamName = "additionalValues";
-                    customPropBuilder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
+                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    customPropBuilder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_MAP)
+                            .ballerinaType(paramResult.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 }
                 case REST_PARAMETER -> {
                     if (hasOnlyRestParams) {
                         customPropBuilder.defaultable(false);
                     }
-                    customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
+                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    customPropBuilder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_LIST)
+                            .ballerinaType(paramResult.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 }
                 default -> {
                     customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);

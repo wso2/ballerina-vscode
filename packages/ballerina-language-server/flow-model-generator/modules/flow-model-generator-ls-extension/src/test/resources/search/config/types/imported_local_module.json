@@ -9,6 +9,20 @@
   "categories": [
     {
       "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
         "label": "Imported Types",
         "description": "Types imported from other integrations",
         "keywords": [
@@ -581,6 +595,20 @@
                 "module": "mod1.Weather",
                 "packageName": "mod1",
                 "symbol": "EncodingStyle",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Client",
+                "description": "# Introduction\nWeatherAPI.com provides access to weather and geo data via a JSON/XML restful API. It allows developers to create desktop, web and mobile applications using this data very easy. We provide following data through our API:    \n- Real-time weather\n- 14 day weather forecast\n- Historical Weather\n- Marine Weather and Tide Data\n- Future Weather (Upto 365 days ahead)\n- Daily and hourly intervals\n- 15 min interval (Enterprise only)\n- Astronomy\n- Time zone\n- Location data\n- Sports\n- Search or Autocomplete API\n- Weather Alerts\n- Air Quality Data\n- Bulk Request\n\n# Getting Started  \n\nYou need to [signup](https://www.weatherapi.com/signup.aspx) and then you can find your API key under [your account](https://www.weatherapi.com/login.aspx), and start using API right away!\n\nTry our weather API by using interactive [API Explorer](https://www.weatherapi.com/api-explorer.aspx).\n\nWe also have SDK for popular framework/languages available on [Github](https://github.com/weatherapicom/) for quick integrations.\n\nIf you find any features missing or have any suggestions, please [contact us](https://www.weatherapi.com/contact.aspx).  \n\n# Authentication  \n\nAPI access to the data is protected by an API key. If at anytime, you find the API key has become vulnerable, please regenerate the key using Regenerate button next to the API key.  \n\nAuthentication to the WeatherAPI.com API is provided by passing your API key as request parameter through an API .    \n\n##  key parameter \nkey=YOUR API KEY "
+              },
+              "codedata": {
+                "org": "lakshanweerasinghe",
+                "module": "mod1.Weather",
+                "packageName": "mod1",
+                "symbol": "Client",
                 "version": "0.1.0"
               },
               "enabled": true

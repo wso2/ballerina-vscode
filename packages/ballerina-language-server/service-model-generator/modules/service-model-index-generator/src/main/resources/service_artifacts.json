@@ -641,8 +641,20 @@
               "ballerinaType": "string"
             },
             {
-              "fieldType": "EXPRESSION_SET",
-              "ballerinaType": "string[]"
+              "fieldType": "REPEATABLE_LIST",
+              "ballerinaType": "string[]",
+              "template": {
+                "types": [
+                  {
+                    "fieldType": "TEXT",
+                    "ballerinaType": "string"
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "string"
+                  }
+                ]
+              }
             },
             {
               "fieldType": "EXPRESSION",
@@ -1253,8 +1265,20 @@
               "ballerinaType": "string"
             },
             {
-                "fieldType": "EXPRESSION_SET",
-                "ballerinaType": "string[]"
+              "fieldType": "REPEATABLE_LIST",
+              "ballerinaType": "string[]",
+              "template": {
+                "types": [
+                  {
+                    "fieldType": "TEXT",
+                    "ballerinaType": "string"
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "string"
+                  }
+                ]
+              }
             },
             {
               "fieldType": "EXPRESSION",
@@ -1274,8 +1298,20 @@
               "ballerinaType": "string"
             },
             {
-              "fieldType": "EXPRESSION_SET",
-              "ballerinaType": "string[]"
+              "fieldType": "REPEATABLE_LIST",
+              "ballerinaType": "string[]",
+              "template": {
+                "types": [
+                  {
+                    "fieldType": "TEXT",
+                    "ballerinaType": "string"
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "string"
+                  }
+                ]
+              }
             },
             {
               "fieldType": "EXPRESSION",
@@ -1328,13 +1364,13 @@
             {
               "fieldType": "RECORD_MAP_EXPRESSION",
               "ballerinaType": "salesforce:CredentialsConfig",
-                "typeMembers": [
-                    {
-                    "type": "CredentialsConfig",
-                    "packageInfo": "ballerinax:salesforce:8.2.0",
-                    "kind": "RECORD_TYPE"
-                    }
-                ]
+              "typeMembers": [
+                {
+                  "type": "CredentialsConfig",
+                  "packageInfo": "ballerinax:salesforce:8.2.0",
+                  "kind": "RECORD_TYPE"
+                }
+              ]
             },
             {
               "fieldType": "EXPRESSION",
@@ -1381,16 +1417,46 @@
               "fieldType": "SINGLE_SELECT",
               "ballerinaType": "github:GenericServiceType",
               "options": [
-                {"label": "IssuesService", "value": "IssuesService"},
-                {"label": "IssueCommentService", "value": "IssueCommentService"},
-                {"label": "PullRequestService", "value": "PullRequestService"},
-                {"label": "PullRequestReviewService", "value": "PullRequestReviewService"},
-                {"label": "PullRequestReviewCommentService", "value": "PullRequestReviewCommentService"},
-                {"label": "ReleaseService", "value": "ReleaseService"},
-                {"label": "LabelService", "value": "LabelService"},
-                {"label": "MilestoneService", "value": "MilestoneService"},
-                {"label": "PushService", "value": "PushService"},
-                {"label": "ProjectCardService", "value": "ProjectCardService"}
+                {
+                  "label": "IssuesService",
+                  "value": "IssuesService"
+                },
+                {
+                  "label": "IssueCommentService",
+                  "value": "IssueCommentService"
+                },
+                {
+                  "label": "PullRequestService",
+                  "value": "PullRequestService"
+                },
+                {
+                  "label": "PullRequestReviewService",
+                  "value": "PullRequestReviewService"
+                },
+                {
+                  "label": "PullRequestReviewCommentService",
+                  "value": "PullRequestReviewCommentService"
+                },
+                {
+                  "label": "ReleaseService",
+                  "value": "ReleaseService"
+                },
+                {
+                  "label": "LabelService",
+                  "value": "LabelService"
+                },
+                {
+                  "label": "MilestoneService",
+                  "value": "MilestoneService"
+                },
+                {
+                  "label": "PushService",
+                  "value": "PushService"
+                },
+                {
+                  "label": "ProjectCardService",
+                  "value": "ProjectCardService"
+                }
               ]
             }
           ],
@@ -1466,10 +1532,16 @@
             {
               "fieldType": "SINGLE_SELECT",
               "ballerinaType": "twilio:GenericServiceType",
-                "options": [
-                  {"label": "CallStatusService", "value": "CallStatusService"},
-                  {"label": "SmsStatusService", "value": "SmsStatusService"}
-                ]
+              "options": [
+                {
+                  "label": "CallStatusService",
+                  "value": "CallStatusService"
+                },
+                {
+                  "label": "SmsStatusService",
+                  "value": "SmsStatusService"
+                }
+              ]
             }
           ],
           "sourceKind": "SERVICE_TYPE_DESCRIPTOR"

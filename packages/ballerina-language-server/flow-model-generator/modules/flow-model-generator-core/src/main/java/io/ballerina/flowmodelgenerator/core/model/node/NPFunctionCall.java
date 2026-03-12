@@ -12,6 +12,7 @@ import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.projects.Module;
 
 public class NPFunctionCall extends FunctionCall {
 
@@ -28,8 +29,11 @@ public class NPFunctionCall extends FunctionCall {
         return super.getFunctionResultKind();
     }
 
+    // module is intentionally unused: PARAM_FOR_TYPE_INFER and INCLUDED_RECORD parameters are skipped
+    // for NP functions, so the record-field-selector logic that requires a Module is never reached here.
+    // The parameter is kept to match the parent-class API.
     @Override
-    protected void setParameterProperties(FunctionData function) {
+    protected void setParameterProperties(FunctionData function, Module module) {
         boolean hasOnlyRestParams = function.parameters().size() == 1;
         for (ParameterData paramResult : function.parameters().values()) {
             if (paramResult.kind().equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER)
@@ -64,13 +68,27 @@ public class NPFunctionCall extends FunctionCall {
                         customPropBuilder.defaultable(false);
                     }
                     unescapedParamName = "additionalValues";
-                    customPropBuilder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
+                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    customPropBuilder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_MAP)
+                            .ballerinaType(paramResult.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 }
                 case REST_PARAMETER -> {
                     if (hasOnlyRestParams) {
                         customPropBuilder.defaultable(false);
                     }
-                    customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
+                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    customPropBuilder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_LIST)
+                            .ballerinaType(paramResult.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 }
                 default -> customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
             }
@@ -107,7 +125,8 @@ public class NPFunctionCall extends FunctionCall {
                 .object(codedata.object())
                 .version(codedata.version())
                 .symbol(codedata.symbol());
-        setParameterProperties(functionData);
+        Module module = context.workspaceManager().module(context.filePath()).orElse(null);
+        setParameterProperties(functionData, module);
 
         String returnTypeName = functionData.returnType();
         if (CommonUtils.hasReturn(functionData.returnType())) {

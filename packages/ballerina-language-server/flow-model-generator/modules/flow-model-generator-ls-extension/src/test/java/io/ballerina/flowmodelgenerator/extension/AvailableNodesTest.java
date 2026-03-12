@@ -48,7 +48,7 @@ public class AvailableNodesTest extends AbstractLSTest {
         JsonArray availableNodes = getResponse(request).getAsJsonArray("categories");
 
         JsonArray categories = availableNodes.getAsJsonArray();
-        if (!categories.equals(testConfig.categories())) {
+        if (!isJsonPermutation(categories, testConfig.categories())) {
             TestConfig updateConfig =
                     new TestConfig(testConfig.description(), testConfig.position(), testConfig.source(), categories);
 //            updateConfig(configJsonPath, updateConfig);

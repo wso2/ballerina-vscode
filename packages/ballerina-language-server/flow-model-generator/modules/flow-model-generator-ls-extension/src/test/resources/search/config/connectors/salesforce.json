@@ -94,7 +94,7 @@
       "metadata": {
         "label": "Marketingcloud",
         "description": "Salesforce Marketing Cloud APIs provide programmatic access to features such as Address, Assets (Content Builder), Audit, Contacts, Data Events, Event Notification, Interactions (Journey Builder), Push, SMS, Transactional Messaging, and Messaging. Refer to the official Salesforce documentation for detailed API usage and guidelines.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce.marketingcloud_1.0.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce.marketingcloud_1.0.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -106,7 +106,7 @@
         "packageName": "salesforce.marketingcloud",
         "object": "Client",
         "symbol": "init",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "isGenerated": false
       },
       "enabled": true

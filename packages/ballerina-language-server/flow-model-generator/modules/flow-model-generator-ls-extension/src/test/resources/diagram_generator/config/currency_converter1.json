@@ -931,6 +931,52 @@
                             },
                             "types": [
                               {
+                                "fieldType": "REPEATABLE_MAP",
+                                "ballerinaType": "map<string|string[]>",
+                                "template": {
+                                  "types": [
+                                    {
+                                      "fieldType": "TEXT",
+                                      "ballerinaType": "string",
+                                      "selected": false
+                                    },
+                                    {
+                                      "fieldType": "REPEATABLE_LIST",
+                                      "ballerinaType": "string[]",
+                                      "template": {
+                                        "types": [
+                                          {
+                                            "fieldType": "TEXT",
+                                            "ballerinaType": "string",
+                                            "selected": false
+                                          },
+                                          {
+                                            "fieldType": "EXPRESSION",
+                                            "ballerinaType": "string",
+                                            "selected": false
+                                          }
+                                        ],
+                                        "optional": false,
+                                        "editable": false,
+                                        "advanced": false,
+                                        "hidden": false
+                                      },
+                                      "selected": false
+                                    },
+                                    {
+                                      "fieldType": "EXPRESSION",
+                                      "ballerinaType": "string|string[]",
+                                      "selected": false
+                                    }
+                                  ],
+                                  "optional": false,
+                                  "editable": false,
+                                  "advanced": false,
+                                  "hidden": false
+                                },
+                                "selected": false
+                              },
+                              {
                                 "fieldType": "EXPRESSION",
                                 "ballerinaType": "map<string|string[]>?",
                                 "selected": false
@@ -1913,7 +1959,7 @@
                 "metadata": {
                   "label": "printError",
                   "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.16.1.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.17.0.png"
                 },
                 "codedata": {
                   "node": "FUNCTION_CALL",
@@ -1921,7 +1967,7 @@
                   "module": "log",
                   "packageName": "log",
                   "symbol": "printError",
-                  "version": "2.16.1",
+                  "version": "2.17.0",
                   "lineRange": {
                     "fileName": "main.bal",
                     "startLine": {
@@ -1996,6 +2042,24 @@
                     },
                     "types": [
                       {
+                        "fieldType": "REPEATABLE_LIST",
+                        "ballerinaType": "error:StackFrame[]",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "error:StackFrame",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": false
+                      },
+                      {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "error:StackFrame[]?",
                         "selected": false
@@ -2019,11 +2083,25 @@
                     },
                     "types": [
                       {
-                        "fieldType": "MAPPING_EXPRESSION_SET",
-                        "selected": false
+                        "fieldType": "REPEATABLE_MAP",
+                        "ballerinaType": "log:Value",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "log:Value",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": true
                       }
                     ],
-                    "value": [],
+                    "value": {},
                     "placeholder": "{}",
                     "optional": true,
                     "editable": true,
@@ -3037,10 +3115,10 @@
                     "packageInfo": "ballerinax:redis:3.1.0",
                     "packageName": "redis",
                     "kind": "RECORD_TYPE",
-                    "selected": false
+                    "selected": true
                   }
                 ],
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",

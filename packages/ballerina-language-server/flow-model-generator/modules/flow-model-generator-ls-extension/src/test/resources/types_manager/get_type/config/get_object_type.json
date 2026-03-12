@@ -47,7 +47,7 @@
       "isPublic": {
         "metadata": {
           "label": "public",
-          "description": "Is this public"
+          "description": "Make visible across the workspace"
         },
         "types": [
           {
@@ -55,7 +55,7 @@
             "selected": true
           }
         ],
-        "value": "true",
+        "value": true,
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -128,21 +128,25 @@
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "make",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "selected": false
       },
       {
         "kind": "FIELD",
         "refs": [],
         "type": "string",
+        "typeName": "string",
         "name": "model",
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": ""
+        "docs": "",
+        "selected": false
       }
     ],
     "includes": [],
@@ -180,7 +184,7 @@
           "isPublic": {
             "metadata": {
               "label": "public",
-              "description": "Is this public"
+              "description": "Make visible across the workspace"
             },
             "types": [
               {
@@ -188,7 +192,7 @@
                 "selected": true
               }
             ],
-            "value": "false",
+            "value": false,
             "optional": true,
             "editable": true,
             "advanced": false,
@@ -223,10 +227,12 @@
             "kind": "FIELD",
             "refs": [],
             "type": "int",
+            "typeName": "int",
             "name": "year",
             "optional": false,
             "readonly": false,
-            "isGraphqlId": false
+            "isGraphqlId": false,
+            "selected": false
           }
         ],
         "kind": "FUNCTION",
@@ -256,7 +262,7 @@
           "isPublic": {
             "metadata": {
               "label": "public",
-              "description": "Is this public"
+              "description": "Make visible across the workspace"
             },
             "types": [
               {
@@ -264,7 +270,7 @@
                 "selected": true
               }
             ],
-            "value": "true",
+            "value": true,
             "optional": true,
             "editable": true,
             "advanced": false,

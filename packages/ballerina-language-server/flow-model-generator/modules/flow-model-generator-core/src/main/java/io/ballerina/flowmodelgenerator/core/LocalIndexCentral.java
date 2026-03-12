@@ -58,6 +58,7 @@ public class LocalIndexCentral {
     private static final String CONNECTORS_JSON = "connectors.json";
     private static final String CONNECTIONS_JSON = "connections.json";
     private static final String FUNCTIONS_JSON = "functions.json";
+    private static final String TEST_FUNCTIONS_JSON = "test_functions.json";
     private static final String AGENTS_JSON = "agents.json";
     private static final String CLASS_INITS_JSON = "class_inits.json";
     private static final String MEMORY_MANAGERS_JSON = "memory_managers.json";
@@ -95,6 +96,11 @@ public class LocalIndexCentral {
     public List<Item> getFunctions() {
         Category functions = readJsonResource(FUNCTIONS_JSON, Category.class);
         return functions.items();
+    }
+
+    public List<Item> getTestFunctions() {
+        Category testFunctions = readJsonResource(TEST_FUNCTIONS_JSON, Category.class);
+        return testFunctions.items();
     }
 
     public List<Item> getAgents() {

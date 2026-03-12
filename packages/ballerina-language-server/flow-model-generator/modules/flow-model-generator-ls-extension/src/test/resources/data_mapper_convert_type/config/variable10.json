@@ -1,0 +1,40 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 33,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 35,
+        "offset": 2
+      }
+    },
+    "isNew": true,
+    "sourceCode": ""
+  },
+  "typeName": "UserInfo",
+  "variableName": "user",
+  "isInput": true,
+  "output": {
+    "variable1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 33,
+            "character": 67
+          },
+          "end": {
+            "line": 35,
+            "character": 1
+          }
+        },
+        "newText": "let UserInfo userConverted = check user.ensureType() in {\n\n}"
+      }
+    ]
+  }
+}

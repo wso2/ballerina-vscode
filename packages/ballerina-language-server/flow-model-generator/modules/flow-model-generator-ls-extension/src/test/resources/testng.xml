@@ -65,6 +65,9 @@ under the License.
             <class name="io.ballerina.flowmodelgenerator.extension.DataMappingTargetFieldPositionTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.DataMappingCompletionTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.DataMappingClausePositionTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.DataMappingClauseDiagnosticsTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.DataMappingClauseValidationTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.DataMappingConvertTypeTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.OpenApiClientGeneratorTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.OpenApiClientDeleteTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.JsonConverterTest"/>
@@ -91,6 +94,7 @@ under the License.
             <class name="io.ballerina.flowmodelgenerator.extension.typesmanager.RecordValueGenTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.typesmanager.UpdateRecordConfigTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.typesmanager.CreateMultipleTypesTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.typesmanager.GetTypeOfExpressionTest"/>
 
             <!--agents manager-->
             <class name="io.ballerina.flowmodelgenerator.extension.agentsmanager.NodeTemplateTest"/>
@@ -109,6 +113,11 @@ under the License.
 
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryListTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryFilterTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.GetFilteredLibrariesFromSemanticModel"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.GetLibrariesListFromSearchIndex"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.InstructionLoaderTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.CopilotInstructionAugmentationTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryExclusionTest"/>
         </classes>
 
         <packages>

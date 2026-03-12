@@ -1,0 +1,40 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 22,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 23,
+        "offset": 63
+      }
+    },
+    "isNew": true,
+    "sourceCode": ""
+  },
+  "typeName": "Student",
+  "variableName": "student",
+  "isInput": true,
+  "output": {
+    "variable1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 23,
+            "character": 7
+          },
+          "end": {
+            "line": 23,
+            "character": 7
+          }
+        },
+        "newText": " Student studentConverted = check student.ensureType(),"
+      }
+    ]
+  }
+}

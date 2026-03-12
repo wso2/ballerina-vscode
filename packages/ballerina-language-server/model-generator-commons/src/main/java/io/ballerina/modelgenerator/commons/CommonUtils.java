@@ -828,6 +828,23 @@ public class CommonUtils {
     }
 
     /**
+     * Checks if the given symbol is within the given package module.
+     *
+     * @param symbol     the symbol to check
+     * @param moduleInfo the module descriptor of the current module
+     * @return true if the symbol is within the given package module, false otherwise
+     */
+    public static boolean isWithinPackageModule(Symbol symbol, ModuleInfo moduleInfo) {
+        if (symbol.getModule().isEmpty()) {
+            return false;
+        }
+        ModuleID moduleID = symbol.getModule().get().id();
+        return moduleID.orgName().equals(moduleInfo.org()) &&
+                moduleID.packageName().equals(moduleInfo.packageName()) &&
+                moduleID.moduleName().equals(moduleInfo.moduleName());
+    }
+
+    /**
      * Converts a multi-line string into a formatted Ballerina documentation. Each line starts with a "#".
      *
      * @param text The input string.
@@ -985,6 +1002,23 @@ public class CommonUtils {
     }
 
     /**
+     * Checks whether the given same-package module import exists in the given module part node.
+     * This handles imports of the form {@code import mypackage.submodule;} which have no org name.
+     *
+     * @param node   module part node
+     * @param module full module name (e.g. {@code mypackage.submodule})
+     * @return true if the import exists, false otherwise
+     */
+    public static boolean importExists(ModulePartNode node, String module) {
+        return node.imports().stream().anyMatch(importDeclarationNode -> {
+            String moduleName = importDeclarationNode.moduleName().stream()
+                    .map(IdentifierToken::text)
+                    .collect(Collectors.joining("."));
+            return importDeclarationNode.orgName().isEmpty() && module.equals(moduleName);
+        });
+    }
+
+    /**
      * Checks whether the given import exists in the given blangPackage.
      *
      * @param blangPackage blangPackage
@@ -1092,6 +1126,33 @@ public class CommonUtils {
     }
 
     /**
+     * Looks up a {@link ClassSymbol} by name within the module described by the given {@link FunctionData}.
+     * This is used to retrieve the client class (e.g. a persist client) associated with a function call
+     * so that additional metadata (like persist model file paths) can be derived from it.
+     *
+     * @param semanticModel the semantic model of the current compilation
+     * @param functionData  function metadata containing the org, module name, and version to look up
+     * @param name          the unqualified class name to look up within the module
+     * @return an {@link Optional} containing the {@link ClassSymbol} if found, or empty otherwise
+     */
+    public static Optional<ClassSymbol> getClientClassSymbol(SemanticModel semanticModel, FunctionData functionData,
+                                                             String name) {
+        Optional<Map<String, Symbol>> moduleTypesOpt = semanticModel.types()
+                .typesInModule(functionData.org(), functionData.moduleName(), functionData.version());
+        if (moduleTypesOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Map<String, Symbol> moduleTypes = moduleTypesOpt.get();
+        Symbol symbol = moduleTypes.get(name);
+        if (!(symbol instanceof ClassSymbol classSymbol)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(classSymbol);
+    }
+
+    /**
      * Checks if the given class symbol is a subtype of AbstractPersistClient from the ballerina/persist module.
      *
      * @param classSymbol   the class symbol to check
@@ -1154,26 +1215,31 @@ public class CommonUtils {
      * Retrieves the file path of the persist model file in the given project directory.
      *
      * @param projectPath the path to the project directory as a string
+     * @param classSymbol the class symbol representing the persist model
      * @return an Optional containing the file path if it exists, or empty if not found
      */
-    public static Optional<String> getPersistModelFilePath(String projectPath) {
+    public static Optional<String> getPersistModelFilePath(String projectPath, ClassSymbol classSymbol) {
         if (projectPath == null || projectPath.isEmpty()) {
             return Optional.empty();
         }
-        return getPersistModelFilePath(Path.of(projectPath));
+        return getPersistModelFilePath(Path.of(projectPath), classSymbol);
     }
 
     /**
      * Retrieves the file path of the persist model file in the given project directory.
      *
      * @param projectPath the path to the project directory
+     * @param classSymbol the class symbol representing the persist model
      * @return an Optional containing the file path if it exists, or empty if not found
      */
-    public static Optional<String> getPersistModelFilePath(Path projectPath) {
-        // Since persist supports only one model per project, hardcoding the model file name
-        // Once we have multimodel support, we need to extract the model file name from class symbol
-        // Issue: https://github.com/ballerina-platform/ballerina-library/issues/8503
+    public static Optional<String> getPersistModelFilePath(Path projectPath, ClassSymbol classSymbol) {
+        Optional<ModuleSymbol> module = classSymbol.getModule();
+        if (module.isEmpty()) {
+            return Optional.empty();
+        }
+        String modelName = module.get().id().modulePrefix();
         Path persistModelPath = projectPath.resolve(PERSIST)
+                .resolve(modelName)
                 .resolve(DEFAULT_PERSIST_MODEL_FILE)
                 .toAbsolutePath();
         if (!Files.exists(persistModelPath)) {

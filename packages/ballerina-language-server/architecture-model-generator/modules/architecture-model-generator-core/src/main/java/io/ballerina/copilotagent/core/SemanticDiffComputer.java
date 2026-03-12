@@ -216,6 +216,11 @@ public class SemanticDiffComputer {
         for (Map.Entry<String, FunctionDefinitionNode> entry : originalFunctionMap.entrySet()) {
             String functionName = entry.getKey();
             if (!modifiedFunctionMap.containsKey(functionName)) {
+                FunctionDefinitionNode originalFunction = entry.getValue();
+                LineRange lineRange = originalFunction.lineRange();
+                SemanticDiff diff = new SemanticDiff(ChangeType.DELETION, NodeKind.MODULE_FUNCTION,
+                        resolveUri(lineRange.fileName()), lineRange);
+                this.semanticDiffs.add(diff);
                 continue;
             }
             FunctionDefinitionNode modifiedFunction = modifiedFunctionMap.remove(functionName);
@@ -529,6 +534,15 @@ public class SemanticDiffComputer {
      */
     private void analyzeMethodChanges(Map<String, FunctionDefinitionNode> originalMethods,
                                       Map<String, FunctionDefinitionNode> modifiedMethods) {
+        originalMethods.forEach((key, originalMethod) -> {
+            if (!modifiedMethods.containsKey(key)) {
+                LineRange lineRange = originalMethod.lineRange();
+                SemanticDiff diff = new SemanticDiff(ChangeType.DELETION, NodeKind.OBJECT_FUNCTION,
+                        resolveUri(lineRange.fileName()), lineRange);
+                this.semanticDiffs.add(diff);
+                loadDesignDiagrams = true;
+            }
+        });
         modifiedMethods.forEach((key, modifiedMethod) -> {
             if (originalMethods.containsKey(key)) {
                 FunctionDefinitionNode originalMethod = originalMethods.get(key);

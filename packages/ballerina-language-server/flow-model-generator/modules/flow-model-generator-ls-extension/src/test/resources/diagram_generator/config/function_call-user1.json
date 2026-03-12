@@ -533,15 +533,81 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET",
-                "selected": false
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "io:Printable",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "io:Printable",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": true
               }
             ],
             "value": [
-              "\"3 squared: \"",
-              "squared",
-              "\", 3 cubed: \"",
-              "cubed"
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "\"3 squared: \"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "squared",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "\", 3 cubed: \"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "cubed",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
             ],
             "placeholder": "()",
             "optional": false,
@@ -617,16 +683,125 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET",
-                "selected": false
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "int",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "NUMBER",
+                      "ballerinaType": "int",
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "int",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": true
               }
             ],
             "value": [
-              "1",
-              "2",
-              "3",
-              "4",
-              "5"
+              {
+                "types": [
+                  {
+                    "fieldType": "NUMBER",
+                    "ballerinaType": "int",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "int",
+                    "selected": true
+                  }
+                ],
+                "value": "1",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              {
+                "types": [
+                  {
+                    "fieldType": "NUMBER",
+                    "ballerinaType": "int",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "int",
+                    "selected": true
+                  }
+                ],
+                "value": "2",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              {
+                "types": [
+                  {
+                    "fieldType": "NUMBER",
+                    "ballerinaType": "int",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "int",
+                    "selected": true
+                  }
+                ],
+                "value": "3",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              {
+                "types": [
+                  {
+                    "fieldType": "NUMBER",
+                    "ballerinaType": "int",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "int",
+                    "selected": true
+                  }
+                ],
+                "value": "4",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              {
+                "types": [
+                  {
+                    "fieldType": "NUMBER",
+                    "ballerinaType": "int",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "int",
+                    "selected": true
+                  }
+                ],
+                "value": "5",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
             ],
             "placeholder": "0",
             "optional": false,
@@ -909,13 +1084,53 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET",
-                "selected": false
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "io:Printable",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "io:Printable",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": true
               }
             ],
             "value": [
-              "\"6 * 3 = \"",
-              "result"
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "\"6 * 3 = \"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "result",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
             ],
             "placeholder": "()",
             "optional": false,
@@ -966,12 +1181,39 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET",
-                "selected": false
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "io:Printable",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "io:Printable",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": true
               }
             ],
             "value": [
-              "greeting + total.toString()"
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "greeting + total.toString()",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
             ],
             "placeholder": "()",
             "optional": false,

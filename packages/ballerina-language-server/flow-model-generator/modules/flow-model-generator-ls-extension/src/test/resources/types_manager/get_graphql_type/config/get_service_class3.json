@@ -150,7 +150,7 @@
           "isPublic": {
             "metadata": {
               "label": "public",
-              "description": "Is this public"
+              "description": "Make visible across the workspace"
             },
             "types": [
               {
@@ -158,7 +158,7 @@
                 "selected": true
               }
             ],
-            "value": "false",
+            "value": false,
             "optional": true,
             "editable": true,
             "advanced": false,
@@ -218,7 +218,7 @@
           "isPublic": {
             "metadata": {
               "label": "public",
-              "description": "Is this public"
+              "description": "Make visible across the workspace"
             },
             "types": [
               {
@@ -226,7 +226,7 @@
                 "selected": true
               }
             ],
-            "value": "false",
+            "value": false,
             "optional": true,
             "editable": true,
             "advanced": false,
@@ -262,10 +262,15 @@
               "UserName"
             ],
             "type": "UserName",
+            "typeName": "UserName",
             "name": "userName",
             "optional": false,
             "readonly": false,
-            "isGraphqlId": false
+            "isGraphqlId": false,
+            "imports": {
+              "test_pack2": "testorg/test_pack2:0.1.0"
+            },
+            "selected": false
           }
         ],
         "kind": "REMOTE",
@@ -297,7 +302,7 @@
           "isPublic": {
             "metadata": {
               "label": "public",
-              "description": "Is this public"
+              "description": "Make visible across the workspace"
             },
             "types": [
               {
@@ -305,7 +310,7 @@
                 "selected": true
               }
             ],
-            "value": "false",
+            "value": false,
             "optional": true,
             "editable": true,
             "advanced": false,
@@ -376,7 +381,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Is this public"
+            "description": "Make visible across the workspace"
           },
           "types": [
             {
@@ -384,7 +389,7 @@
               "selected": true
             }
           ],
-          "value": "true",
+          "value": true,
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -447,34 +452,40 @@
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "number",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "street",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "city",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         }
       ],
       "includes": [],
@@ -576,7 +587,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Is this public"
+            "description": "Make visible across the workspace"
           },
           "types": [
             {
@@ -584,7 +595,7 @@
               "selected": true
             }
           ],
-          "value": "false",
+          "value": false,
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -674,21 +685,25 @@
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "name",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "int",
+          "typeName": "int",
           "name": "age",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
-          "docs": ""
+          "docs": "",
+          "selected": false
         }
       ],
       "includes": [],
@@ -726,7 +741,7 @@
             "isPublic": {
               "metadata": {
                 "label": "public",
-                "description": "Is this public"
+                "description": "Make visible across the workspace"
               },
               "types": [
                 {
@@ -734,7 +749,7 @@
                   "selected": true
                 }
               ],
-              "value": "false",
+              "value": false,
               "optional": true,
               "editable": true,
               "advanced": false,
@@ -792,7 +807,7 @@
             "isPublic": {
               "metadata": {
                 "label": "public",
-                "description": "Is this public"
+                "description": "Make visible across the workspace"
               },
               "types": [
                 {
@@ -800,7 +815,7 @@
                   "selected": true
                 }
               ],
-              "value": "false",
+              "value": false,
               "optional": true,
               "editable": true,
               "advanced": false,
@@ -858,7 +873,7 @@
             "isPublic": {
               "metadata": {
                 "label": "public",
-                "description": "Is this public"
+                "description": "Make visible across the workspace"
               },
               "types": [
                 {
@@ -866,7 +881,7 @@
                   "selected": true
                 }
               ],
-              "value": "false",
+              "value": false,
               "optional": true,
               "editable": true,
               "advanced": false,
@@ -936,7 +951,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Is this public"
+            "description": "Make visible across the workspace"
           },
           "types": [
             {
@@ -944,7 +959,7 @@
               "selected": true
             }
           ],
-          "value": "true",
+          "value": true,
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -1007,23 +1022,27 @@
           "kind": "FIELD",
           "refs": [],
           "type": "string",
+          "typeName": "string",
           "name": "name",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
           "refs": [],
           "type": "int",
+          "typeName": "int",
           "name": "age",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "selected": false
         },
         {
           "kind": "FIELD",
@@ -1031,12 +1050,17 @@
             "Address"
           ],
           "type": "Address",
+          "typeName": "Address",
           "name": "address",
           "optional": false,
           "readonly": false,
           "isGraphqlId": false,
           "docs": "",
-          "annotationAttachments": []
+          "annotationAttachments": [],
+          "imports": {
+            "test_pack2": "testorg/test_pack2:0.1.0"
+          },
+          "selected": false
         }
       ],
       "includes": [],
