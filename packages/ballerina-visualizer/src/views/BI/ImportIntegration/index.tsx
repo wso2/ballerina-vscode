@@ -57,8 +57,8 @@ export function ImportIntegration() {
     const [aiEnhancementEnabled, setAiEnhancementEnabled] = useState(false);
 
     const steps = aiEnhancementEnabled
-        ? ["Select Source Project", "Migration Status", "Configure Project", "AI Enhancement"]
-        : ["Select Source Project", "Migration Status", "Create and Open Project"];
+        ? ["Select Source Project", "Static Migration Progress", "Configure Project", "AI Enhancement"]
+        : ["Select Source Project", "Static Migration Progress", "Create and Open Project"];
 
     const isMultiProject = migratedProjects.length! > 0;
 

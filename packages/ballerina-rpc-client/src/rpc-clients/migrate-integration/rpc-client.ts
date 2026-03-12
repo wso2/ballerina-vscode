@@ -47,12 +47,14 @@ const _startMigrationEnhancement = { method: "migrate-integration/startMigration
 const _wizardEnhancementReady = { method: "migrate-integration/wizardEnhancementReady" } as const;
 const _openMigratedProject = { method: "migrate-integration/openMigratedProject" } as const;
 const _abortMigrationAgent = { method: "migrate-integration/abortMigrationAgent" } as const;
+const _seedMigrationHistory = { method: "migrate-integration/seedMigrationHistory" } as const;
 
 /** Local mirror until @wso2/ballerina-core is rebuilt. */
 export interface ActiveMigrationSession {
     isActive: boolean;
     mode: 'auto-fix' | 'none';
     isEnhanced: boolean;
+    isPartiallyEnhanced?: boolean;
 }
 
 export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
@@ -128,5 +130,13 @@ export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
      */
     abortMigrationAgent(): Promise<void> {
         return this._messenger.sendRequest(_abortMigrationAgent as any, HOST_EXTENSION);
+    }
+
+    /**
+     * Seeds saved migration conversation history into the AI chat state.
+     * Returns true if history was found and seeded, false otherwise.
+     */
+    seedMigrationHistory(): Promise<boolean> {
+        return this._messenger.sendRequest(_seedMigrationHistory as any, HOST_EXTENSION);
     }
 }

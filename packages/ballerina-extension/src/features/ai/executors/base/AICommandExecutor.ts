@@ -60,6 +60,17 @@ export interface AICommandConfig<TParams = any> {
         /** Cleanup strategy: 'immediate' (DataMapper) or 'review' (Agent) */
         cleanupStrategy: 'immediate' | 'review';
     };
+
+    /**
+     * Optional callback invoked when the full `ModelMessage[]` array becomes
+     * available — either on successful completion or on abort (partial messages).
+     * Used by the wizard migration flow to persist conversation history to disk
+     * so it can be resumed later via AI Chat.
+     *
+     * @param messages  The conversation messages from the Vercel AI SDK.
+     * @param status    How the run ended: `'completed'`, `'aborted'`, or `'error'`.
+     */
+    onMessagesAvailable?: (messages: any[], status: 'completed' | 'aborted' | 'error') => void;
 }
 
 /**

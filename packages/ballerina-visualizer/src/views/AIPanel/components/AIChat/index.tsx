@@ -82,6 +82,8 @@ import FeedbackBar from "./../FeedbackBar";
 import { useFeedback } from "./utils/useFeedback";
 import { SegmentType, splitContent } from "./segment";
 import ReviewActions from "../ReviewActions";
+import { MigrationContextCard } from "../MigrationContextCard";
+import { ActiveMigrationSession } from "@wso2/ballerina-rpc-client";
 
 
 const NO_DRIFT_FOUND = "No drift identified between the code and the documentation.";
@@ -156,6 +158,8 @@ const AIChat: React.FC = () => {
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
+
+    const [migrationSession, setMigrationSession] = useState<ActiveMigrationSession | null>(null);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -322,6 +326,26 @@ const AIChat: React.FC = () => {
         };
 
         loadHistory();
+    }, [rpcClient]);
+
+    /**
+     * Effect: Check for an active migration session that needs AI enhancement.
+     * Shows a context card so the user can resume or start enhancement.
+     */
+    useEffect(function checkMigrationSession() {
+        const fetchSession = async () => {
+            try {
+                const session = await rpcClient.getMigrateIntegrationRpcClient().getActiveMigrationSession();
+                if (session && session.isActive && !session.isEnhanced && session.mode !== 'none') {
+                    setMigrationSession(session);
+                } else {
+                    setMigrationSession(null);
+                }
+            } catch {
+                // Migration RPC may not be available – ignore
+            }
+        };
+        fetchSession();
     }, [rpcClient]);
 
     rpcClient?.onCheckpointCaptured(async (payload: { messageId: string; checkpointId: string }) => {
@@ -903,6 +927,24 @@ const AIChat: React.FC = () => {
     }
 
     /**
+     * Handles the user clicking "Resume/Start AI Enhancement" from the migration
+     * context card. Seeds any saved conversation history, then submits the
+     * auto-fix prompt via the default prompt mechanism.
+     */
+    async function handleContinueMigrationEnhancement() {
+        try {
+            // Seed saved conversation history into AI chat state
+            await rpcClient.getMigrateIntegrationRpcClient().seedMigrationHistory();
+            // Trigger the auto-fix pipeline which pushes a default prompt
+            await rpcClient.getMigrateIntegrationRpcClient().startMigrationEnhancement('auto-fix');
+            // Hide the card since enhancement is now running
+            setMigrationSession(null);
+        } catch (error) {
+            console.error('[AIChat] Failed to continue migration enhancement:', error);
+        }
+    }
+
+    /**
      * Handles the user clicking "Auto-fix" from the "none" banner.
      * Calls the backend to update the toml and start the pipeline, which will
      * push a new default prompt – the `onPromptUpdated` listener picks it up and
@@ -1436,6 +1478,12 @@ const AIChat: React.FC = () => {
                         </HeaderButtons>
                     </Header>
                     <main style={{ flex: 1, overflowY: "auto" }}>
+                        {migrationSession && (
+                            <MigrationContextCard
+                                session={migrationSession}
+                                onContinueEnhancement={handleContinueMigrationEnhancement}
+                            />
+                        )}
                         {Array.isArray(otherMessages) && otherMessages.length === 0 && (
                             <WelcomeMessage isOnboarding={getOnboardingOpens() <= 3.0} />
                         )}

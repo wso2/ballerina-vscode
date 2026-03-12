@@ -305,6 +305,14 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                         }
                     );
 
+                    // Notify caller with partial messages (wizard migration history persistence)
+                    if (this.config.onMessagesAvailable) {
+                        this.config.onMessagesAvailable(
+                            [{ role: "user", content: streamContext.userMessageContent }, ...messagesToSave],
+                            'aborted'
+                        );
+                    }
+
                     // Note: Abort event is sent by base class handleExecutionError()
                 }
 
@@ -482,6 +490,14 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         // e.g. wizard migration, which has no review mode)
         if (this.config.chatStorage) {
             await this.updateChatState(context, assistantMessages, tempProjectPath);
+        }
+
+        // Notify caller with full messages (wizard migration history persistence)
+        if (this.config.onMessagesAvailable) {
+            this.config.onMessagesAvailable(
+                [{ role: "user", content: context.userMessageContent }, ...assistantMessages],
+                'completed'
+            );
         }
 
         // Emit UI events

@@ -20,13 +20,14 @@ import { AIMachineEventType, Command, MigrationEnhancementMode } from "@wso2/bal
 import { commands, Uri, window, workspace } from "vscode";
 import { extension } from "../../../BalExtensionContext";
 import { StateMachine } from "../../../stateMachine";
-import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
-import { openMigrationPanel } from "../../../views/migration-panel/activate";
+import { AIStateMachine, openAIPanelWithPrompt } from "../../../views/ai-panel/aiMachine";
 import { AgentExecutor } from "../agent/AgentExecutor";
 import { AICommandConfig } from "../executors/base/AICommandExecutor";
 import { createMigrationEventHandler, createVisualizerMigrationEventHandler } from "../utils/events";
 import { sendVisualizerMigrationNotification } from "../utils/ai-utils";
 import { getAutoFixPrompt, getWizardEnhancementPrompt } from "./prompts";
+import { saveAgentHistory, loadAgentHistory, clearAgentHistory } from "./history";
+import { chatStateStorage } from "../../../views/ai-panel/chatStateStorage";
 import {
     AI_ENHANCE_TOML_FILENAME,
     ActiveMigrationSessionLocal,
@@ -61,10 +62,12 @@ export function readEnhanceToml(projectRoot: string): EnhanceTomlData | null {
         const content = fs.readFileSync(filePath, "utf8");
         const modeMatch = content.match(/mode\s*=\s*"([^"]+)"/);
         const enhancedMatch = content.match(/isEnhanced\s*=\s*(true|false)/);
+        const partialMatch = content.match(/isPartiallyEnhanced\s*=\s*(true|false)/);
         const sourcePathMatch = content.match(/sourcePath\s*=\s*"([^"]+)"/);
         return {
             mode: (modeMatch?.[1] ?? "none") as MigrationEnhancementMode,
             isEnhanced: enhancedMatch?.[1] === "true",
+            isPartiallyEnhanced: partialMatch?.[1] === "true",
             sourcePath: sourcePathMatch?.[1],
         };
     } catch {
@@ -80,9 +83,13 @@ export function writeEnhanceToml(
     mode: MigrationEnhancementMode,
     isEnhanced: boolean,
     sourcePath?: string,
+    isPartiallyEnhanced?: boolean,
 ): void {
     const filePath = path.join(projectRoot, AI_ENHANCE_TOML_FILENAME);
     let content = `[enhancement]\nmode = "${mode}"\nisEnhanced = ${isEnhanced}\n`;
+    if (isPartiallyEnhanced !== undefined) {
+        content += `isPartiallyEnhanced = ${isPartiallyEnhanced}\n`;
+    }
     if (sourcePath) {
         content += `sourcePath = "${sourcePath}"\n`;
     }
@@ -122,6 +129,7 @@ export function getActiveMigrationSessionState(): ActiveMigrationSessionLocal {
             isActive: false,
             mode: data.mode,
             isEnhanced: data.isEnhanced,
+            isPartiallyEnhanced: data.isPartiallyEnhanced,
         };
     }
 
@@ -143,9 +151,50 @@ export function markEnhancementComplete(): void {
         if (data) {
             writeEnhanceToml(projectRoot, data.mode, true, data.sourcePath);
         }
+        // Clean up the history file – no longer needed after full completion
+        clearAgentHistory(projectRoot);
     }
     _activeSession = { isActive: false, mode: _activeSession.mode, isEnhanced: true };
     console.log("[MigrationEnhancement] Enhancement marked as complete.");
+}
+
+/**
+ * Seeds the AI Chat's `chatStateStorage` with the migration conversation
+ * history loaded from disk.  This allows the AI Chat agent to pick up
+ * previous messages as context when the user resumes enhancement.
+ *
+ * @returns `true` if history was loaded and seeded successfully.
+ */
+export function seedMigrationHistoryIntoChatState(): boolean {
+    const projectRoot = _resolveCurrentProjectRoot();
+    if (!projectRoot) {
+        return false;
+    }
+    const history = loadAgentHistory(projectRoot);
+    if (!history || history.messages.length === 0) {
+        return false;
+    }
+
+    const workspaceId = projectRoot;
+    const threadId = "default";
+
+    // Add a synthetic generation that carries the migration history messages
+    const gen = chatStateStorage.addGeneration(
+        workspaceId,
+        threadId,
+        "[Migration AI Enhancement – prior conversation]",
+        { generationType: "agent" },
+        `migration-history-${Date.now()}`
+    );
+
+    chatStateStorage.updateGeneration(workspaceId, threadId, gen.id, {
+        modelMessages: history.messages,
+    });
+
+    console.log(
+        `[MigrationEnhancement] Seeded ${history.messages.length} messages into chatStateStorage (thread: ${threadId})`
+    );
+    return true;
 }
 
 /**
@@ -161,7 +210,10 @@ export async function startMigrationEnhancement(mode: Exclude<MigrationEnhanceme
         writeEnhanceToml(projectRoot, mode, false, existing?.sourcePath);
     }
 
-    await runAutoFixPipeline();
+    // Mark the session as active and open AI Chat so the user can interact
+    _activeSession = { isActive: true, mode: "auto-fix", isEnhanced: false };
+    openAIPanelWithPrompt();
+    console.log("[MigrationEnhancement] Enhancement started – AI Chat opened.");
 }
 
 // ===========================================================================
@@ -201,7 +253,7 @@ export function scheduleMigrationEnhancement(
  * Checks whether a migration enhancement was scheduled in a previous window.
  * Reads the `.ai-migrate-enhance.toml` from the stored project root and decides
  * what action to take:
- * - `mode = "auto-fix"` + `isEnhanced = false` → run pipeline
+ * - `mode = "auto-fix"` + `isEnhanced = false` → show notification to resume via AI Chat
  * - `mode = "none"` → no pipeline, but session is set so the banner shows
  * - `isEnhanced = true` → nothing to do
  *
@@ -238,12 +290,28 @@ export async function checkAndRunPendingEnhancement(): Promise<void> {
         return;
     }
 
-    console.log(`[MigrationEnhancement] Resuming '${data.mode}' pipeline for: ${stored.projectRoot}`);
+    console.log(`[MigrationEnhancement] Found pending '${data.mode}' enhancement for: ${stored.projectRoot}`);
 
     switch (data.mode) {
-        case "auto-fix":
-            await runAutoFixPipeline();
+        case "auto-fix": {
+            // Set session state so other parts of the extension know about the migration
+            _activeSession = { isActive: false, mode: "auto-fix", isEnhanced: false };
+
+            // Determine notification message based on partial state
+            const message = data.isPartiallyEnhanced
+                ? "Migration AI enhancement was paused. You can resume it from AI Chat."
+                : "Migration project created. You can start AI enhancement from AI Chat.";
+
+            const action = await window.showInformationMessage(
+                message,
+                "Open AI Chat"
+            );
+
+            if (action === "Open AI Chat") {
+                openAIPanelWithPrompt();
+            }
             break;
+        }
         case "none":
             // User skipped – expose the session so the banner shows with a "Start" button.
             _activeSession = { isActive: false, mode: "none", isEnhanced: false };
@@ -255,21 +323,6 @@ export async function checkAndRunPendingEnhancement(): Promise<void> {
 // ===========================================================================
 // Pipeline implementations
 // ===========================================================================
-
-async function runAutoFixPipeline(): Promise<void> {
-    try {
-        _activeSession = { isActive: true, mode: "auto-fix", isEnhanced: false };
-        // Open the standalone migration panel — the pipeline prompt will be
-        // sent via the migration event handler once the panel is ready.
-        openMigrationPanel();
-        console.log("[MigrationEnhancement] Auto-fix pipeline started – migration panel opened.");
-    } catch (error) {
-        console.error("[MigrationEnhancement] Failed to start auto-fix pipeline:", error);
-        window.showErrorMessage(
-            `Migration AI enhancement failed to start: ${error instanceof Error ? error.message : String(error)}`
-        );
-    }
-}
 
 // ===========================================================================
 // Agent execution – called when the migration panel signals readiness
@@ -500,6 +553,10 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
             isPlanMode: false,
         },
         chatStorage: undefined,
+        onMessagesAvailable: (messages, status) => {
+            saveAgentHistory(projectRoot, messages, status);
+            console.log(`[MigrationEnhancement] Saved wizard agent history (${status}, ${messages.length} messages)`);
+        },
         lifecycle: {
             // Work directly on the wizard-created project (not a temp copy)
             // so changes persist when the user opens it in VS Code.
@@ -541,10 +598,17 @@ export function openMigratedProject(): void {
         return;
     }
 
-    // Schedule the enhancement state for the new window
+    // Read the current toml to determine the state
     const data = readEnhanceToml(projectRoot);
     const mode = data?.mode ?? 'none';
     const sourcePath = data?.sourcePath ?? _wizardSourcePath;
+
+    // If the AI agent was running (paused by user), mark as partially enhanced
+    const wasRunning = _migrationAbortController !== undefined;
+    if (wasRunning && data && !data.isEnhanced) {
+        writeEnhanceToml(projectRoot, mode, false, sourcePath, true);
+    }
+
     scheduleMigrationEnhancement(mode, projectRoot, sourcePath);
 
     // Clear the wizard state
