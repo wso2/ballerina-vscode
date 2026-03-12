@@ -44,7 +44,7 @@ import {
     updateCurrentArtifactLocation,
     UpdatedArtifactsResponse,
     reviewAccepted,
-    openReviewModeAtIndex,
+    navigateReviewMode,
     GoBackRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
@@ -70,5 +70,5 @@ export function registerVisualizerRpcHandlers(messenger: Messenger) {
     messenger.onNotification(handleApprovalPopupClose, (args: HandleApprovalPopupCloseRequest) => rpcManger.handleApprovalPopupClose(args));
     messenger.onNotification(reopenApprovalView, (args: ReopenApprovalViewRequest) => rpcManger.reopenApprovalView(args));
     messenger.onRequest(saveEvalThread, (args: SaveEvalThreadRequest) => rpcManger.saveEvalThread(args));
-    messenger.onNotification(openReviewModeAtIndex, (index: number) => rpcManger.openReviewModeAtIndex(index));
+    messenger.onNotification(navigateReviewMode, (index: number) => rpcManger.navigateReviewMode(index));
 }

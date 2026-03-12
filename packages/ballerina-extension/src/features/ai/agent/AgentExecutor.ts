@@ -17,7 +17,7 @@
  */
 
 import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
-import { Command, GenerateAgentCodeRequest, ProjectSource, MACHINE_VIEW, refreshReviewMode, ExecutionContext, SemanticDiff } from '@wso2/ballerina-core';
+import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, SemanticDiff, ReviewModeData } from '@wso2/ballerina-core';
 import { StateMachine } from '../../../stateMachine';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
@@ -537,17 +537,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             affectedPackagePaths: affectedPackagePaths,
         });
 
-        // Open ReviewMode
-        approvalViewManager.openView(MACHINE_VIEW.ReviewMode);
-
-        // Notify ReviewMode component to refresh its data
-        setTimeout(() => {
-            RPCLayer._messenger.sendNotification(refreshReviewMode, {
-                type: 'webview',
-                webviewType: VisualizerWebview.viewType
-            });
-            console.log("[AgentExecutor] Sent refresh notification to review mode");
-        }, 100);
+        // ReviewMode will be opened with data from emitReviewActions
     }
 
     /**
@@ -573,6 +563,18 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             } catch {
                 // fall back to plain modifiedFiles chips on frontend
             }
+
+            const reviewData: ReviewModeData = {
+                views: [],
+                currentIndex: 0,
+                semanticDiffs,
+                loadDesignDiagrams,
+                affectedPackages,
+                modifiedFiles: context.modifiedFiles,
+                tempProjectPath: context.ctx.tempProjectPath!,
+                isWorkspace: affectedPackages.length > 1,
+            };
+            approvalViewManager.openReviewMode(reviewData);
 
             context.eventHandler({
                 type: "chat_component",

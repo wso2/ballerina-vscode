@@ -300,8 +300,8 @@ export class VisualizerRpcManager implements VisualizerAPI {
     }
 
     reviewAccepted(): void {
+        approvalViewManager.clearReviewData();
         const currentHistory = history.get();
-        console.log('[reviewAccepted] history:', JSON.stringify(currentHistory.map(e => e.location.view)));
         const currentEntry = currentHistory[currentHistory.length - 1];
 
         // If currently in review mode, drop it and restore the last non-review entry.
@@ -332,8 +332,8 @@ export class VisualizerRpcManager implements VisualizerAPI {
         approvalViewManager.reopenApprovalViewPopup(params.requestId);
     }
 
-    openReviewModeAtIndex(index: number): void {
-        approvalViewManager.openReviewModeAtIndex(index);
+    navigateReviewMode(index: number): void {
+        approvalViewManager.navigateReviewMode(index);
     }
 
     async saveEvalThread(params: SaveEvalThreadRequest): Promise<SaveEvalThreadResponse> {

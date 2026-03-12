@@ -261,9 +261,9 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
         return { chips: diffChips };
     }, [semanticDiffs, loadDesignDiagrams]);
 
-    const openReviewMode = (index = 0) => {
+    const navigateReviewMode = (index = 0) => {
         if (!rpcClient) return;
-        rpcClient.getVisualizerRpcClient().openReviewModeAtIndex(index);
+        rpcClient.getVisualizerRpcClient().navigateReviewMode(index);
     };
 
     const handleAccept = async () => {
@@ -344,7 +344,7 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
             <ChangeList>
                 {chips && chips.length > 0
                     ? chips.map((entry, i) => (
-                        <ChangeCard key={i} onClick={() => openReviewMode(entry.viewIndex)} title={entry.label}>
+                        <ChangeCard key={i} onClick={() => navigateReviewMode(entry.viewIndex)} title={entry.label}>
                             <CardLeft>
                                 <CardKindLabel>{entry.kindLabel}</CardKindLabel>
                                 <CardFileName>{entry.label}</CardFileName>
@@ -353,7 +353,7 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
                         </ChangeCard>
                     ))
                     : modifiedFiles.map((file, i) => (
-                        <ChangeCard key={i} onClick={() => openReviewMode(0)} title={file}>
+                        <ChangeCard key={i} onClick={() => navigateReviewMode(0)} title={file}>
                             <CardLeft>
                                 <span className="codicon codicon-file" style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }} />
                                 <CardFileName>{getFileName(file)}</CardFileName>
@@ -370,7 +370,7 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
                     <Button appearance="primary" onClick={handleAccept} disabled={isProcessing}>
                         Keep
                     </Button>
-                    <Button onClick={() => openReviewMode(0)} disabled={isProcessing}>
+                    <Button onClick={() => navigateReviewMode(0)} disabled={isProcessing}>
                         Review
                     </Button>
                 </ButtonRow>

@@ -50,7 +50,7 @@ import {
     undoRedoState,
     updateCurrentArtifactLocation,
     reviewAccepted,
-    openReviewModeAtIndex,
+    navigateReviewMode,
     GoBackRequest
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
@@ -123,8 +123,8 @@ export class VisualizerRpcClient implements VisualizerAPI {
         return this._messenger.sendNotification(reviewAccepted, HOST_EXTENSION);
     }
 
-    openReviewModeAtIndex(index: number): void {
-        return this._messenger.sendNotification(openReviewModeAtIndex, HOST_EXTENSION, index);
+    navigateReviewMode(index: number): void {
+        return this._messenger.sendNotification(navigateReviewMode, HOST_EXTENSION, index);
     }
 
     handleApprovalPopupClose(params: HandleApprovalPopupCloseRequest): void {
