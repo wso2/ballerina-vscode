@@ -661,7 +661,10 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
 
             const response = await rpcClient.getVisualizerRpcClient().saveEvalThread({ filePath, updatedEvalSet });
 
-            if (!response.success) {
+            if (response.success) {
+                setWorkingEvalThread(updatedThread);
+                setDescriptionValue(trimmed);
+            } else {
                 rpcClient.getCommonRpcClient().showErrorMessage({ message: response.error || 'Failed to save description.' });
                 setDescriptionValue(workingEvalThread.description);
             }
