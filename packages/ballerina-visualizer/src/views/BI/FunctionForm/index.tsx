@@ -26,7 +26,8 @@ import FormGeneratorNew from "../Forms/FormGeneratorNew";
 import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { FormHeader } from "../../../components/FormHeader";
-import { convertConfig, getImportsForProperty } from "../../../utils/bi";
+import { convertConfig, convertNodePropertyToFormField, getImportsForProperty } from "../../../utils/bi";
+import { OAUTH_CLIENT_CONFIG_PROPERTIES } from "../AIChatAgent/AIAgentSidePanel";
 import { BodyText, LoadingContainer, TopBar } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
 
@@ -42,6 +43,58 @@ const Container = styled.div`
     flex-direction: "column";
     gap: 10;
 `;
+
+const SectionHeader = styled.div`
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 20px;
+    margin-top: -4px;
+    border-top: 1px solid var(--vscode-editorWidget-border);
+`;
+
+const SectionDescription = styled.span`
+    color: var(--vscode-list-deemphasizedForeground);
+`;
+
+/**
+ * Parse agentIdConfig values from a Ballerina @ai:AgentTool annotation string.
+ * Expected format within the annotation:
+ *   agentIdConfig: { baseAuthUrl: string `val`, scopes: [string `a`, string `b`], isPkceEnabled: true }
+ */
+function parseAgentIdConfig(annotationValue: string): Record<string, string> {
+    const result: Record<string, string> = {};
+    const configMatch = annotationValue.match(/agentIdConfig\s*:\s*\{([^}]*)\}/s);
+    if (!configMatch) {
+        return result;
+    }
+    const configBlock = configMatch[1];
+
+    for (const { key } of OAUTH_CLIENT_CONFIG_PROPERTIES) {
+        if (key === "scopes") {
+            // scopes: [string `v1`, string `v2`]
+            const scopesMatch = configBlock.match(/scopes\s*:\s*\[([^\]]*)\]/);
+            if (scopesMatch) {
+                const values = [...scopesMatch[1].matchAll(/`([^`]*)`/g)].map((m) => m[1]);
+                result.scopes = JSON.stringify(values);
+            }
+        } else if (key === "isPkceEnabled") {
+            // isPkceEnabled: true/false
+            const boolMatch = configBlock.match(/isPkceEnabled\s*:\s*(true|false)/);
+            if (boolMatch) {
+                result.isPkceEnabled = boolMatch[1];
+            }
+        } else {
+            // string fields: key: string `value`
+            const strMatch = configBlock.match(new RegExp(`${key}\\s*:\\s*string\\s*\`([^\`]*)\``));
+            if (strMatch) {
+                result[key] = strMatch[1];
+            }
+        }
+    }
+    return result;
+}
 
 interface FunctionFormProps {
     filePath: string;
@@ -153,6 +206,21 @@ export function FunctionForm(props: FunctionFormProps) {
                 }
             }
         });
+
+        // Add OAuth client configuration fields for agent tools
+        if (isAgentTool || isExistingAgentTool) {
+            const existingConfig = isExistingAgentTool
+                ? parseAgentIdConfig(annotations as string)
+                : {};
+            const oauthFields = OAUTH_CLIENT_CONFIG_PROPERTIES.map(({ key, property }) => {
+                const field = convertNodePropertyToFormField(key, property);
+                if (existingConfig[key] !== undefined) {
+                    field.value = existingConfig[key];
+                }
+                return field;
+            });
+            fields.push(...oauthFields);
+        }
 
         setFunctionFields(fields);
     }, [functionNode]);
@@ -327,6 +395,20 @@ export function FunctionForm(props: FunctionFormProps) {
                 }
             }
         }
+
+        // Inject OAuth client config into codedata.data.agentIdConfig
+        const oauthConfig: Record<string, string> = {};
+        for (const { key } of OAUTH_CLIENT_CONFIG_PROPERTIES) {
+            if (key in data && data[key] !== undefined && data[key] !== "") {
+                oauthConfig[key] = String(data[key]);
+            }
+        }
+        if (Object.keys(oauthConfig).length > 0) {
+            functionNodeCopy.codedata.data = {
+                ...functionNodeCopy.codedata.data,
+                agentIdConfig: JSON.stringify(oauthConfig),
+            };
+        }
         console.log("Updated function node: ", functionNodeCopy);
         const sourceCode = await rpcClient
             .getBIDiagramRpcClient()
@@ -475,6 +557,22 @@ export function FunctionForm(props: FunctionFormProps) {
                                 submitText={saving ? (functionName ? "Saving..." : "Creating...") : (functionName ? "Save" : "Create")}
                                 selectedNode={functionNode?.codedata?.node}
                                 preserveFieldOrder={true}
+                                injectedComponents={
+                                    functionFields.some((f) => f.key === "baseAuthUrl")
+                                        ? [
+                                            {
+                                                component: (
+                                                    <SectionHeader>
+                                                        <p style={{ margin: "0px", fontWeight: "bold" }}>OAuth Client Configuration</p>
+                                                        <SectionDescription>Represents the OAuth 2.0 client configuration required to interact with an external Authorization Server and validate issued access tokens.</SectionDescription>
+                                                    </SectionHeader>
+                                                ),
+                                                index: functionFields.filter((f) => f.advanced && !f.hidden).length - OAUTH_CLIENT_CONFIG_PROPERTIES.length,
+                                                advanced: true,
+                                            },
+                                        ]
+                                        : undefined
+                                }
                             />
                         }
                     </FormContainer>

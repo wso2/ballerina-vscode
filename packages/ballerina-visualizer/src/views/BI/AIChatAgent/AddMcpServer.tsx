@@ -13,7 +13,7 @@ import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import FormGenerator from "../Forms/FormGenerator";
-import { McpToolsSelection } from "./Mcp/McpToolsSelection";
+import { McpToolsSelection, ToolScopes } from "./Mcp/McpToolsSelection";
 import { DiscoverToolsModal } from "./Mcp/DiscoverToolsModal";
 import { RequiresAuthCheckbox } from "./Mcp/RequiresAuthCheckbox";
 import { attemptValueResolution, createMockTools, extractOriginalValues, generateToolKitName } from "./Mcp/utils";
@@ -52,6 +52,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const [selectedMcpTools, setSelectedMcpTools] = useState<Set<string>>(new Set());
     const [loadingMcpTools, setLoadingMcpTools] = useState<boolean>(false);
     const [mcpToolsError, setMcpToolsError] = useState<string>("");
+    const [toolScopes, setToolScopes] = useState<ToolScopes>({});
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -275,10 +276,15 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             const node = mcpToolKitNodeRef.current;
             if (!node) return;
 
-            const { serverUrl: savedUrl, auth: savedAuth, permittedTools, requiresAuth: savedRequiresAuth } = extractOriginalValues(node);
+            const { serverUrl: savedUrl, auth: savedAuth, permittedTools, requiresAuth: savedRequiresAuth, toolScopes: savedToolScopes } = extractOriginalValues(node);
 
             // Update form state so FormGenerator displays values
             setRequiresAuth(savedRequiresAuth);
+
+            // Restore saved tool scopes
+            if (Object.keys(savedToolScopes).length > 0) {
+                setToolScopes(savedToolScopes);
+            }
 
             // If no tools saved, exit early
             if (permittedTools.length === 0) {
@@ -359,6 +365,13 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         }
     }, [selectedMcpTools.size, availableMcpTools]);
 
+    const handleToolScopesChange = useCallback((toolName: string, scopes: string[]) => {
+        setToolScopes(prev => ({
+            ...prev,
+            [toolName]: scopes
+        }));
+    }, []);
+
     const handleDiscoveredTools = useCallback((tools: Tool[], selectedNames: Set<string>) => {
         setAvailableMcpTools(tools);
         setSelectedMcpTools(selectedNames);
@@ -385,6 +398,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 agentFlowNode: agentNodeRef.current,
                 selectedTools: Array.from(selectedMcpTools),
                 updatedNode: node,
+                toolScopes: Object.keys(toolScopes).length > 0 ? toolScopes : undefined,
             });
             onSave?.();
         } catch (error) {
@@ -434,11 +448,13 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                         resolutionError={resolutionError}
                         toolSource={toolSource}
                         onRetryFetch={handleRetryFetch}
+                        toolScopes={toolScopes}
+                        onToolScopesChange={handleToolScopesChange}
                     />
                 ),
                 index: 2
             }];
-    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled, requiresAuth, toolsInclude, editMode, toolSource, resolutionError, handleRetryFetch]);
+    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled, requiresAuth, toolsInclude, editMode, toolSource, resolutionError, handleRetryFetch, toolScopes, handleToolScopesChange]);
 
     const fieldOverrides = useMemo(() => ({
         auth: {
