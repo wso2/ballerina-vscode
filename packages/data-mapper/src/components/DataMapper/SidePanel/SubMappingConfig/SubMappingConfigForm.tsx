@@ -123,7 +123,7 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         editable: true,
         documentation: "Enter the name of the sub mapping.",
         value: formValues.name,
-        types: [{ fieldType: "IDENTIFIER", scope: "Global", selected: false }],
+        types: [{ fieldType: "IDENTIFIER", scope: "Local", selected: false }],
         enabled: true,
     };
 
