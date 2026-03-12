@@ -145,7 +145,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     }
 
     public FormBuilder<T> data(String typeSignature, Set<String> names, String label, String doc,
-                               Boolean isConnection) {
+                               boolean isConnection) {
         String varName = typeSignature.contains(RemoteActionCallBuilder.TARGET_TYPE_KEY)
                 ? NameUtil.generateTypeName("var", names)
                 : isConnection
