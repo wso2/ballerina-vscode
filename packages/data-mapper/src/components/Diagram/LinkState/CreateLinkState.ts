@@ -53,8 +53,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 					const isValueConfig = (actionEvent.event.target as Element)
 						.closest('div[id^="value-config"]');
 
-					const { focusedPort, focusedFilter, allowInputs } = useDMExpressionBarStore.getState();
-					const isExprBarFocused = focusedPort || focusedFilter;
+					const { focusedPort, allowInputs } = useDMExpressionBarStore.getState();
 
 					if (element === null) {
 						this.clearState();
@@ -114,20 +113,17 @@ export class CreateLinkState extends State<DiagramEngine> {
 						this.temporaryLink = undefined;
 					}
 
-					if (isExprBarFocused && element instanceof InputOutputPortModel && element.attributes.portType === "OUT") {
+					if (focusedPort && element instanceof InputOutputPortModel && element.attributes.portType === "OUT") {
 						if (allowInputs) {
 							element.fireEvent({}, "addToExpression");
 							this.clearState();
 							this.eject();
 						} else {
 							if (element.canLinkToPort(focusedPort)) {
-								this.sourcePort = element;
 								element.fireEvent({}, "mappingStartedFrom");
-								element.linkedPorts.forEach((linkedPort) => {
-									linkedPort.fireEvent({}, "disableNewLinking")
-								})
-								const link = this.sourcePort.createLinkModel();
-								link.setSourcePort(this.sourcePort);
+								
+								const link = element.createLinkModel();
+								link.setSourcePort(element);
 								link.addLabel(new ExpressionLabelModel({
 									link: link as DataMapperLinkModel,
 									value: undefined,
@@ -136,19 +132,15 @@ export class CreateLinkState extends State<DiagramEngine> {
 								this.link = link;
 
 								focusedPort.fireEvent({}, "mappingFinishedTo");
+
 								this.link.setTargetPort(focusedPort);
-								const connectingMappingType = getMappingType(this.sourcePort, focusedPort);
+								const connectingMappingType = getMappingType(element, focusedPort);
 								if (isPendingMappingRequired(connectingMappingType)) {
 									(this.link as any).pendingMappingType = connectingMappingType;
 									this.temporaryLink = this.link;
 								}
 								this.engine.getModel().addAll(this.link)
-								if (this.sourcePort instanceof InputOutputPortModel) {
-									this.sourcePort.linkedPorts.forEach((linkedPort) => {
-										linkedPort.fireEvent({}, "enableNewLinking")
-									})
-								}
-								this.sourcePort = undefined;
+								
 								this.eject();
 							}
 						}
