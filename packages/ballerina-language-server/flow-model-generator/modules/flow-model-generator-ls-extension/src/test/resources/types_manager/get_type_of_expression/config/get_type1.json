@@ -1,0 +1,13 @@
+{
+  "filePath": "source1.bal",
+  "position": {
+    "line": 17,
+    "offset": 14
+  },
+  "expression": "ordersItem.meta",
+  "description": "Get a record type data",
+  "type": {
+    "name": "Meta",
+    "imports": {}
+  }
+}
