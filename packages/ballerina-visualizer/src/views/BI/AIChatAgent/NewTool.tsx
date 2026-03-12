@@ -200,7 +200,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
             if (toolResponse.artifacts?.length > 0) {
                 const updatedAgentArtifact = toolResponse.artifacts.find(artifact => artifact?.name === agentNode?.properties?.variable?.value);
                 // Update line range so subsequent tool additions target the correct source location
-                if (updatedAgentArtifact) {
+                if (updatedAgentArtifact?.position) {
                     updatedAgentNode.codedata.lineRange.startLine.line = updatedAgentArtifact.position.startLine;
                     updatedAgentNode.codedata.lineRange.startLine.offset = updatedAgentArtifact.position.startColumn;
                     updatedAgentNode.codedata.lineRange.endLine.line = updatedAgentArtifact.position.endLine;
