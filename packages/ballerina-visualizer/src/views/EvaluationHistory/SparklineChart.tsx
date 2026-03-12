@@ -165,8 +165,6 @@ export function SparklineChart({ runs, onDotClick }: SparklineChartProps) {
 
     if (!runs.length) return <Container ref={containerRef} />;
 
-    const target = runs[0].targetPassRate;
-
     const scaleX = (i: number) =>
         runs.length === 1
             ? width / 2
@@ -175,9 +173,11 @@ export function SparklineChart({ runs, onDotClick }: SparklineChartProps) {
     const scaleY = (v: number) =>
         PAD_Y + (1 - v) * (CHART_HEIGHT - PAD_Y * 2);
 
-    const ty = scaleY(target);
-    const targetPct = Math.round(target * 100);
-    const targetLabelY = ty - 4;
+    const targetPoints = runs
+        .map((run, i) => `${scaleX(i).toFixed(1)},${scaleY(run.targetPassRate).toFixed(1)}`)
+        .join(" ");
+    const firstTargetY = scaleY(runs[0].targetPassRate);
+    const firstTargetPct = Math.round(runs[0].targetPassRate * 100);
 
     const points = runs
         .map((_, i) => `${scaleX(i).toFixed(1)},${scaleY(runs[i].passRate).toFixed(1)}`)
@@ -186,7 +186,7 @@ export function SparklineChart({ runs, onDotClick }: SparklineChartProps) {
     const areaPoints =
         points +
         ` ${scaleX(runs.length - 1).toFixed(1)},${(CHART_HEIGHT - PAD_Y).toFixed(1)}` +
-        ` ${PAD_X},${(CHART_HEIGHT - PAD_Y).toFixed(1)}`;
+        ` ${scaleX(0).toFixed(1)},${(CHART_HEIGHT - PAD_Y).toFixed(1)}`;
 
     const gradId = `sparkGrad-${Math.random().toString(36).slice(2)}`;
 
@@ -209,22 +209,22 @@ export function SparklineChart({ runs, onDotClick }: SparklineChartProps) {
                     </linearGradient>
                 </defs>
                 <polygon points={areaPoints} fill={`url(#${gradId})`} />
-                <line
-                    x1={PAD_X}
-                    y1={ty}
-                    x2={width - PAD_X}
-                    y2={ty}
+                <polyline
+                    points={targetPoints}
+                    fill="none"
                     stroke="var(--vscode-terminal-ansiCyan, #0598bc)"
                     strokeWidth={1.5}
                     strokeDasharray="5,4"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
                 />
                 <text
                     x={PAD_X}
-                    y={targetLabelY}
+                    y={firstTargetY - 4}
                     fontSize={9}
                     fill="var(--vscode-terminal-ansiCyan, #0598bc)"
                 >
-                    {targetPct}% target
+                    {firstTargetPct}% target
                 </text>
                 <polyline
                     points={points}

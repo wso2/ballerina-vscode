@@ -266,7 +266,7 @@ interface RunHistoryTableProps {
 
 export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
     const { rpcClient } = useRpcContext();
-    const [expandedOutcomes, setExpandedOutcomes] = useState<Set<number>>(new Set());
+    const [expandedOutcomes, setExpandedOutcomes] = useState<Set<string>>(new Set());
     const [diffModal, setDiffModal] = useState<{ sha: string; full: string; isDirty: boolean } | null>(null);
     const reversedRuns = [...runs].reverse();
 
@@ -276,13 +276,13 @@ export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
         rpcClient.getTestManagerRpcClient().openEvaluationReport({ reportPath });
     };
 
-    const toggleOutcomes = (index: number) => {
+    const toggleOutcomes = (runDate: string) => {
         setExpandedOutcomes((prev) => {
             const next = new Set(prev);
-            if (next.has(index)) {
-                next.delete(index);
+            if (next.has(runDate)) {
+                next.delete(runDate);
             } else {
-                next.add(index);
+                next.add(runDate);
             }
             return next;
         });
@@ -320,7 +320,7 @@ export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
                             </tr>
                         </thead>
                         <tbody>
-                            {reversedRuns.map((run, i) => {
+                            {reversedRuns.map((run) => {
                                 const pct = (run.passRate * 100).toFixed(0);
                                 const targetPct = (run.targetPassRate * 100).toFixed(0);
                                 const isPassed = run.status === "PASSED";
@@ -330,7 +330,7 @@ export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
                                 );
 
                                 return (
-                                    <tr key={i}>
+                                    <tr key={run.date}>
                                         <RunDate>{formatDate(run.date)}</RunDate>
                                         <td>
                                             <RateBadge isPassed={isPassed}>
@@ -371,17 +371,17 @@ export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
                                         )}
                                         <OutcomesCell>
                                             <details
-                                                open={expandedOutcomes.has(i)}
+                                                open={expandedOutcomes.has(run.date)}
                                                 onClick={(e) => {
                                                     e.preventDefault();
-                                                    toggleOutcomes(i);
+                                                    toggleOutcomes(run.date);
                                                 }}
                                             >
                                                 <OutcomesSummary>
                                                     {totalOutcomes} outcomes
                                                 </OutcomesSummary>
                                             </details>
-                                            {expandedOutcomes.has(i) &&
+                                            {expandedOutcomes.has(run.date) &&
                                                 run.evaluationRuns.map((er, erIndex) => {
                                                     const passedCount =
                                                         er.outcomes.filter(
@@ -389,7 +389,7 @@ export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
                                                         ).length;
                                                     return (
                                                         <EvalRunOutcomes
-                                                            key={`${i}-${erIndex}`}
+                                                            key={`${run.date}-${erIndex}`}
                                                         >
                                                             <EvalRunLabel>
                                                                 Run {er.id}
