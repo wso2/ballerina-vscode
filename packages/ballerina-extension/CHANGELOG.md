@@ -4,6 +4,12 @@ All notable changes to the **Ballerina** extension will be documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [5.8.2](https://github.com/wso2/vscode-extensions/compare/ballerina-5.8.1...ballerina-5.8.2) - 2026-03-11
+
+### Fixed
+
+- **Model Updates** - Updated Haiku models to the 4.5 version for improved performance and capabilities.
+
 ## [5.8.1](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.7.0...ballerina-5.8.1) - 2026-02-25
 
 ### Fixed
