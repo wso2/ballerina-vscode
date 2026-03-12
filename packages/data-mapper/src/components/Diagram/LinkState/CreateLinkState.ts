@@ -114,10 +114,44 @@ export class CreateLinkState extends State<DiagramEngine> {
 						this.temporaryLink = undefined;
 					}
 
-					if (isExprBarFocused && allowInputs && element instanceof InputOutputPortModel && element.attributes.portType === "OUT") {
-						element.fireEvent({}, "addToExpression");
-						this.clearState();
-						this.eject();
+					if (isExprBarFocused && element instanceof InputOutputPortModel && element.attributes.portType === "OUT") {
+						if (allowInputs) {
+							element.fireEvent({}, "addToExpression");
+							this.clearState();
+							this.eject();
+						} else {
+							if (element.canLinkToPort(focusedPort)) {
+								this.sourcePort = element;
+								element.fireEvent({}, "mappingStartedFrom");
+								element.linkedPorts.forEach((linkedPort) => {
+									linkedPort.fireEvent({}, "disableNewLinking")
+								})
+								const link = this.sourcePort.createLinkModel();
+								link.setSourcePort(this.sourcePort);
+								link.addLabel(new ExpressionLabelModel({
+									link: link as DataMapperLinkModel,
+									value: undefined,
+									context: (element.getNode() as DataMapperNodeModel).context
+								}));
+								this.link = link;
+
+								focusedPort.fireEvent({}, "mappingFinishedTo");
+								this.link.setTargetPort(focusedPort);
+								const connectingMappingType = getMappingType(this.sourcePort, focusedPort);
+								if (isPendingMappingRequired(connectingMappingType)) {
+									(this.link as any).pendingMappingType = connectingMappingType;
+									this.temporaryLink = this.link;
+								}
+								this.engine.getModel().addAll(this.link)
+								if (this.sourcePort instanceof InputOutputPortModel) {
+									this.sourcePort.linkedPorts.forEach((linkedPort) => {
+										linkedPort.fireEvent({}, "enableNewLinking")
+									})
+								}
+								this.sourcePort = undefined;
+								this.eject();
+							}
+						}
 					} else if (element instanceof InputOutputPortModel && !this.sourcePort && !isHeaderPort(element)) {
 						if (element.attributes.portType === "OUT") {
 							this.sourcePort = element;
