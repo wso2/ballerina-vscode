@@ -115,12 +115,23 @@
         },
         "canDataBind": {
           "metadata": {
-            "label": "Content Schema",
-            "description": "Define a custom content schema for this handler"
+            "label": "Row Schema",
+            "description": "Define the type for a single CSV row"
           },
           "value": "true",
           "enabled": false,
           "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "isArray": {
+          "metadata": {
+            "label": "Rows",
+            "description": "Content Schema contains a row of CSV Row type"
+          },
+          "value": "true",
+          "enabled": true,
+          "editable": false,
           "optional": false,
           "advanced": false
         },
