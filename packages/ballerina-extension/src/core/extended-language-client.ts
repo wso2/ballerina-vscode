@@ -285,6 +285,7 @@ import {
     WSDLApiClientGenerationResponse,
     CopilotSearchLibrariesBySearchRequest,
     CopilotSearchLibrariesBySearchResponse,
+    ResolveOutputRequest,
     CreateConvertedVariableRequest,
     IntrospectCredentialsRequest,
     IntrospectCredentialsResponse,
@@ -386,6 +387,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_DELETE_SUB_MAPPING = 'dataMapper/deleteSubMapping',
     DATA_MAPPER_MAP_WITH_CUSTOM_FN = 'dataMapper/customFunction',
     DATA_MAPPER_MAP_WITH_TRANSFORM_FN = 'dataMapper/transformationFunction',
+    DATA_MAPPER_RESOLVE_OUTPUT = 'dataMapper/resolveOutput',
     DATA_MAPPER_CODEDATA = 'dataMapper/nodePosition',
     DATA_MAPPER_SUB_MAPPING_CODEDATA = 'dataMapper/subMapping',
     DATA_MAPPER_PROPERTY = 'dataMapper/targetFieldPosition',
@@ -876,6 +878,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_MAP_WITH_TRANSFORM_FN, params);
     }
 
+    async resolveOutput(params: ResolveOutputRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_RESOLVE_OUTPUT, params);
+    }
+    
     async getDataMapperCodedata(params: GetDataMapperCodedataRequest): Promise<GetDataMapperCodedataResponse> {
         return this.sendRequest<GetDataMapperCodedataResponse>(EXTENDED_APIS.DATA_MAPPER_CODEDATA, params);
     }
