@@ -59,7 +59,7 @@ import static io.ballerina.flowmodelgenerator.core.model.Category.Name.STANDARD_
  *
  * @since 1.7.0
  */
-public class AllTypesSearchCommand extends SearchCommand {
+public class AllKindsSearchCommand extends SearchCommand {
 
     private final Document functionsDoc;
     private final List<String> moduleNames;
@@ -71,7 +71,7 @@ public class AllTypesSearchCommand extends SearchCommand {
             Kind.CONNECTOR
     );
 
-    public AllTypesSearchCommand(Project project, LineRange position, Map<String, String> queryMap,
+    public AllKindsSearchCommand(Project project, LineRange position, Map<String, String> queryMap,
                                  Document functionsDoc) {
         super(project, position, queryMap);
         this.functionsDoc = functionsDoc;
