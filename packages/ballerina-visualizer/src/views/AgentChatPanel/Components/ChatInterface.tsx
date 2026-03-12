@@ -122,6 +122,8 @@ export const MessageContainer = styled.div<{ isUser: boolean }>`
     align-items: flex-end;
     justify-content: ${({ isUser }: { isUser: boolean }) => (isUser ? "flex-end" : "flex-start")};
     gap: 6px;
+    margin-bottom: 8px;
+    ${({ isUser }: { isUser: boolean }) => isUser ? "padding-left: 34px;" : ""}
 `;
 
 export const ProfilePic = styled.div`
@@ -163,7 +165,7 @@ const MessageActionsContainer = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: -4px 0 0 36px;
+    margin: -4px 0 8px 36px;
     flex-wrap: wrap;
 `;
 
@@ -185,6 +187,7 @@ const ShowLogsButton = styled.button`
     text-decoration: none;
     display: inline-flex;
     align-items: center;
+    margin-top: -8px;
     gap: 4px;
 
     &:hover {
