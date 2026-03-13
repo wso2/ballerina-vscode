@@ -632,7 +632,7 @@ export function NodeList(props: NodeListProps) {
         // Configuration for special categories
         const categoryConfig = {
             "Connections": { hasBackground: false }, // Existing connections (already configured)
-            "Connectors": { hasBackground: true, useConnectionRouting: true }, // Available connectors to be added
+            "Connectors": { hasBackground: true }, // Available connectors to be added
             "Statement": { hasBackground: true, showSeparatorBefore: true }, // Show separator before Statement
             "AI": { hasBackground: true, targetPosition: 3 }, // 4th position (0-indexed)
             "Control": { hasBackground: true },

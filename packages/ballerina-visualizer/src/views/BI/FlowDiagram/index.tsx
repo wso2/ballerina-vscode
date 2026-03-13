@@ -933,7 +933,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setShowProgressIndicator(true);
         try {
             const response = await rpcClient.getBIDiagramRpcClient().search(request);
-            console.log(`>>> Searched List of ${searchKind.toLowerCase()}`, response);
 
             if (response.categories) {
 
@@ -945,14 +944,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
                     // Combine initial getAvailableNodes results with search API results
                     const allCategories = [...initialCategoriesRef.current, ...searchCategories];
-                    console.log(">>> Combined categories before filtering:", allCategories.length);
 
                     // Filter both initial and search results with the same query
                     const filteredCategories = filterCategoriesLocally(allCategories, searchText);
-                    console.log(">>> Filtered combined categories:", filteredCategories.length);
 
                     // Start fresh with filtered combined results
                     const currentCategories: PanelCategory[] = [];
+
+                    const getItemKey = (item: any) =>
+                        "id" in item ? `node:${item.id}` : `category:${item.title}`;
 
                     filteredCategories.forEach(category => {
                         const existingCategoryIndex = currentCategories.findIndex(
@@ -962,8 +962,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         if (existingCategoryIndex >= 0) {
                             // Merge items if category exists, avoiding duplicate items
                             const existingCategory = currentCategories[existingCategoryIndex];
-                            const existingItemLabels = new Set(existingCategory.items.map((item: any) => item.label));
-                            const newItems = category.items.filter((item: any) => !existingItemLabels.has(item.label));
+                            const existingItemKeys = new Set(existingCategory.items.map(getItemKey));
+                            const newItems = category.items.filter((item: any) => !existingItemKeys.has(getItemKey(item)));
                             currentCategories[existingCategoryIndex] = {
                                 ...existingCategory,
                                 items: [...existingCategory.items, ...newItems]
@@ -1066,7 +1066,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleSearchTextChange = (text: string) => {
-        console.log(">>> handleSearchTextChange called with:", text);
         setSearchText(text);
 
         // Immediately reset searching state when text is cleared
@@ -1118,10 +1117,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     // Debounced search following AddConnectionPopupContent pattern
     const debouncedSearch = useMemo(
         () => debounce((searchText: string) => {
-            console.log(">>> debouncedSearch executing with:", searchText);
             if (searchText.trim()) {
                 setShowProgressIndicator(true);
-                console.log(">>> About to call handleSearch with:", searchText, "FUNCTION_TYPE.REGULAR", "ALL");
                 handleSearch(searchText, FUNCTION_TYPE.REGULAR, "ALL");
             } else {
                 // Reset to cached categories when search is empty
@@ -1132,21 +1129,24 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         [handleSearch]
     );
 
+    const debouncedSearchRef = useRef(debouncedSearch);
+    useEffect(() => {
+        debouncedSearchRef.current?.cancel();
+        debouncedSearchRef.current = debouncedSearch;
+    }, [debouncedSearch]);
+
     // Effect to handle search text changes
     useEffect(() => {
-        console.log(">>> useEffect searchText changed:", searchText);
         if (searchText.trim()) {
-            console.log(">>> Calling debouncedSearch with:", searchText);
             debouncedSearch(searchText);
         } else {
             // Reset immediately when search is cleared
-            console.log(">>> useEffect: Search text cleared, resetting state immediately");
             debouncedSearch.cancel(); // Cancel any pending search
             setCategories(initialCategoriesRef.current);
             setSidePanelView(SidePanelView.NODE_LIST);
             setShowProgressIndicator(false);
         }
-        return () => debouncedSearch.cancel();
+        return () => debouncedSearchRef.current?.cancel();
     }, [searchText, debouncedSearch]);
 
     const updateArtifactLocation = async (artifacts: UpdatedArtifactsResponse) => {
@@ -1849,8 +1849,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         });
     };
 
-    const handleOnSelectConnectorConfiguration = useCallback((nodeId: string, metadata: { node: any; category?: string }) => {
+    const handleOnSelectConnectorConfiguration = useCallback((_nodeId: string, metadata: { node: any; category?: string }) => {
         const connector = metadata.node as AvailableNode;
+
+        if (!model?.fileName || !targetRef.current?.startLine) {
+            console.error("Cannot open connector configuration: missing model or target");
+            return;
+        }
 
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,

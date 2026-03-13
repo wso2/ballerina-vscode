@@ -96,7 +96,7 @@ const PopupPanel = (props: PopupPanelProps) => {
                     });
                     break;
                 case MACHINE_VIEW.ConnectionConfiguration:
-                    const connectorMetadata = machineState.metadata;
+                    const connectorMetadata = machineState.metadata ?? {};
 
                     // Reconstruct the connector object from metadata
                     const selectedConnector: AvailableNode = {
