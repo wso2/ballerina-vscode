@@ -21,6 +21,7 @@ package io.ballerina.flowmodelgenerator.core.model;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import io.ballerina.compiler.syntax.tree.SyntaxInfo;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.AiUtils;
@@ -525,7 +526,7 @@ public class McpToolKitBuilder extends NodeBuilder {
                 }
             }
             return result;
-        } catch (Exception e) {
+        } catch (JsonSyntaxException e) {
             return Collections.emptyMap();
         }
     }

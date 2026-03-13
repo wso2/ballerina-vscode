@@ -78,10 +78,10 @@ import io.ballerina.compiler.syntax.tree.LocalTypeDefinitionStatementNode;
 import io.ballerina.compiler.syntax.tree.LockStatementNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
-import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.MatchClauseNode;
 import io.ballerina.compiler.syntax.tree.MatchGuardNode;
 import io.ballerina.compiler.syntax.tree.MatchStatementNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.MethodCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
@@ -2923,9 +2923,9 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     /**
-     * Extracts tool scopes from {@code @ai:AgentTool} annotations on the MCP toolkit class methods.
-     * Builds a reverse mapping from method names to original tool names using the {@code permittedTools} map,
-     * then extracts scopes from each method's annotation.
+     * Extracts tool scopes from {@code @ai:AgentTool} annotations on the MCP toolkit class methods. Builds a reverse
+     * mapping from method names to original tool names using the {@code permittedTools} map, then extracts scopes from
+     * each method's annotation.
      *
      * @param classSymbol The class symbol representing the MCP toolkit class
      * @return A JSON string mapping tool names to their scopes, or null if no scopes are found
@@ -2995,8 +2995,7 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     /**
-     * Builds a mapping from method names to original tool names by parsing the permittedTools
-     * map in the init method.
+     * Builds a mapping from method names to original tool names by parsing the permittedTools map in the init method.
      */
     private Map<String, String> buildMethodToToolNameMapping(ClassDefinitionNode classNode) {
         Map<String, String> mapping = new HashMap<>();

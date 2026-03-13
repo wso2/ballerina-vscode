@@ -702,8 +702,6 @@ public class AgentsGenerator {
                     scopeItems.add(part.trim());
                 }
                 fields.add("        " + key + ": [" + String.join(", ", scopeItems) + "]");
-            } else if (key.equals("isPkceEnabled")) {
-                fields.add("        " + key + ": " + value);
             } else {
                 fields.add("        " + key + ": " + value);
             }
