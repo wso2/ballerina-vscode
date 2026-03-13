@@ -98,6 +98,7 @@ export enum SidePanelView {
 }
 
 export interface BIFlowDiagramProps {
+    agentNode: FlowNode;
     projectPath: string;
     onSubmit: (data: ExtendedAgentToolRequest) => void;
     mode?: NewToolSelectionMode;
@@ -137,7 +138,7 @@ const INITIAL_FIELDS: FormField[] = [
 ];
 
 export function AIAgentSidePanel(props: BIFlowDiagramProps) {
-    const { projectPath, onSubmit, mode = NewToolSelectionMode.ALL, onViewChange, onAgentToolCreated, onCancel } = props;
+    const { agentNode, projectPath, onSubmit, mode = NewToolSelectionMode.ALL, onViewChange, onAgentToolCreated, onCancel } = props;
     const { rpcClient } = useRpcContext();
 
     const [sidePanelView, setSidePanelView] = useState<SidePanelView>(SidePanelView.NODE_LIST);
@@ -154,7 +155,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const targetRef = useRef<LineRange>({ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } });
     const initialCategoriesRef = useRef<PanelCategory[]>([]);
     const selectedNodeRef = useRef<AvailableNode>(undefined);
-    const agentFilePath = useRef<string>(Utils.joinPath(URI.file(projectPath), "agents.bal").fsPath);
+    const agentFilePath = useRef<string>(Utils.joinPath(URI.file(projectPath), agentNode?.codedata?.lineRange?.fileName || "agents.bal").fsPath);
     const functionFilePath = useRef<string>(Utils.joinPath(URI.file(projectPath), "functions.bal").fsPath);
     const parameterFieldsRef = useRef<ToolParameterItem[]>([]);
 
