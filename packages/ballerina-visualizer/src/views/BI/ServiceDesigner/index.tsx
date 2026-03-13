@@ -739,6 +739,9 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
         const cells: { kind: "markdown" | "hurl"; content: string }[] = [];
 
+        const serviceName = basePath?.replace(/^\//, "") || serviceModel.name || "Service";
+        cells.push({ kind: "markdown", content: `### Try Service: '${serviceName}' (${baseUrl})` });
+
         try {
             for (const resource of httpResources) {
                 if (!resource.position || !resource.path) { continue; }

@@ -90,6 +90,11 @@ export function buildPayloadContext(
     };
 }
 
+
+/**
+ * Generate a markdown documentation cell for a resource FunctionModel.
+ * Shows method + path as header, then sections for path/query/header/body parameters.
+ */
 /**
  * Extract path parameters from a Ballerina resource path.
  * `[string petId]` → { type: "string", name: "petId" }
@@ -104,23 +109,13 @@ function extractPathParams(resourcePath: string): { type: string; name: string }
     return params;
 }
 
-/**
- * Generate a markdown documentation cell for a resource FunctionModel.
- * Shows method + path as header, then sections for path/query/header/body parameters.
- */
 export function buildMarkdownDoc(functionModel: FunctionModel): string {
     const method = (functionModel.accessor?.value ?? "GET").toUpperCase();
     const resourcePath = functionModel.name?.value ?? "";
     const hurlPath = toHurlPath(resourcePath);
 
     const lines: string[] = [];
-    lines.push(`## ${method} ${hurlPath}`);
-
-    const doc = functionModel.documentation?.value?.trim();
-    if (doc) {
-        lines.push("");
-        lines.push(doc);
-    }
+    lines.push(`#### ${method} ${hurlPath}`);
 
     const pathParams = extractPathParams(resourcePath);
     if (pathParams.length > 0) {
@@ -133,8 +128,6 @@ export function buildMarkdownDoc(functionModel: FunctionModel): string {
 
     const enabledParams = (functionModel.parameters ?? []).filter(p => p.enabled !== false);
     const queryParams = enabledParams.filter(p => p.httpParamType === "QUERY");
-    const headerParams = enabledParams.filter(p => p.httpParamType === "HEADER");
-    const payloadParams = enabledParams.filter(p => p.httpParamType === "PAYLOAD");
 
     if (queryParams.length > 0) {
         lines.push("");
@@ -143,21 +136,6 @@ export function buildMarkdownDoc(functionModel: FunctionModel): string {
             const required = p.kind === "REQUIRED" ? " (Required)" : "";
             lines.push(`- \`${p.name?.value}\` [${p.type?.value ?? "string"}]${required}`);
         }
-    }
-
-    if (headerParams.length > 0) {
-        lines.push("");
-        lines.push("**Headers:**");
-        for (const p of headerParams) {
-            const required = p.kind === "REQUIRED" ? " (Required)" : "";
-            lines.push(`- \`${p.headerName?.value ?? p.name?.value}\` [${p.type?.value ?? "string"}]${required}`);
-        }
-    }
-
-    if (payloadParams.length > 0) {
-        lines.push("");
-        lines.push("**Body:**");
-        lines.push(`- \`${payloadParams[0].type?.value ?? "object"}\``);
     }
 
     return lines.join("\n");
