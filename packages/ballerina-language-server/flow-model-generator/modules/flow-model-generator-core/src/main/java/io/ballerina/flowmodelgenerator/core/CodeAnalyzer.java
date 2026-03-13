@@ -1449,7 +1449,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .template(template)
                 .selected(true)
                 .stepOut();
-        builder.handleRestArguments(builder, values);
+        builder.handleRestArguments(builder, values, diagnosticHandler);
     }
 
     private void buildPropertyTypeForIncludedRecordRest(Property.Builder<?> builder, ParameterData paramData,
@@ -1461,7 +1461,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .template(template)
                 .selected(true)
                 .stepOut();
-        builder.handleIncludedRecordRestArgs(builder, values);
+        builder.handleIncludedRecordRestArgs(builder, values, diagnosticHandler);
     }
 
     private void buildPropertyType(Property.Builder<?> builder, ParameterData paramData, Node value) {
@@ -1503,7 +1503,8 @@ public class CodeAnalyzer extends NodeVisitor {
                     builder.type(Property.ValueType.RAW_TEMPLATE);
                 }
             } else {
-                builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder);
+                builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder,
+                        diagnosticHandler);
             }
         }
     }
@@ -1910,7 +1911,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     .value(CommonUtils.getVariableName(assignmentStatementNode.varRef()))
                     .editable()
                     .stepOut()
-                    .addProperty(Property.VARIABLE_KEY);
+                    .addProperty(Property.VARIABLE_KEY, assignmentStatementNode.varRef());
         } else if (nodeBuilder instanceof AgentBuilder
                 || nodeBuilder instanceof ModelProviderBuilder
                 || nodeBuilder instanceof EmbeddingProviderBuilder
@@ -2188,7 +2189,8 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.codedata().inferredReturnType(functionData.returnError() ? returnType : null);
             Module module = workspaceManager.module(filePath)
                     .orElse(project.currentPackage().getDefaultModule());
-            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType);
+            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType,
+                    callNode);
             AgentCallBuilder.postProcessTdProperty(nodeBuilder, key);
         });
     }
