@@ -93,54 +93,27 @@
     "flags": 0
   },
   "output": {
-    "id": "33280",
+    "id": "31",
     "metadata": {
       "label": "Declare Variable",
       "description": "Create a new variable"
     },
     "codedata": {
       "node": "VARIABLE",
+      "isNew": true,
       "lineRange": {
-        "fileName": "function2.bal",
         "startLine": {
           "line": 1,
           "offset": 16
         },
         "endLine": {
           "line": 1,
-          "offset": 48
+          "offset": 16
         }
-      },
-      "sourceCode": "string[] var1 = getCSVFiles(\"\");"
+      }
     },
     "returning": false,
     "properties": {
-      "expression": {
-        "metadata": {
-          "label": "Expression",
-          "description": "Initialize with value"
-        },
-        "types": [
-          {
-            "fieldType": "ACTION_OR_EXPRESSION",
-            "selected": true
-          }
-        ],
-        "value": "getCSVFiles(\"\")",
-        "optional": true,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "diagnostics": {
-          "hasDiagnostics": true,
-          "diagnostics": [
-            {
-              "severity": "ERROR",
-              "message": "incompatible types: expected 'string[]', found '(string[]|error)'"
-            }
-          ]
-        }
-      },
       "variable": {
         "metadata": {
           "label": "Name",
@@ -149,27 +122,15 @@
         "types": [
           {
             "fieldType": "IDENTIFIER",
-            "selected": true
+            "selected": false
           }
         ],
         "value": "var1",
         "optional": false,
-        "editable": false,
+        "editable": true,
         "advanced": false,
         "hidden": false,
-        "codedata": {
-          "lineRange": {
-            "fileName": "function2.bal",
-            "startLine": {
-              "line": 1,
-              "offset": 25
-            },
-            "endLine": {
-              "line": 1,
-              "offset": 29
-            }
-          }
-        }
+        "modified": false
       },
       "type": {
         "metadata": {
@@ -179,7 +140,7 @@
         "types": [
           {
             "fieldType": "TYPE",
-            "selected": true
+            "selected": false
           }
         ],
         "value": "string[]",
@@ -188,12 +149,41 @@
         "editable": true,
         "advanced": false,
         "hidden": false,
-        "codedata": {}
+        "codedata": {},
+        "modified": false
+      },
+      "expression": {
+        "metadata": {
+          "label": "Expression",
+          "description": "Initialize with value"
+        },
+        "types": [
+          {
+            "fieldType": "ACTION_OR_EXPRESSION",
+            "selected": false
+          }
+        ],
+        "value": "getCSVFiles(\"\")",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "imports": {},
+        "modified": false,
+        "diagnostics": {
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "incompatible types: expected 'string[]', found '(string[]|error)'"
+            }
+          ]
+        }
       }
     },
+    "flags": 0,
     "diagnostics": {
       "hasDiagnostics": true
-    },
-    "flags": 0
+    }
   }
 }
