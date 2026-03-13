@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core;
 
+import com.google.gson.Gson;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
@@ -195,6 +196,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -2950,7 +2952,7 @@ public class CodeAnalyzer extends NodeVisitor {
         Map<String, String> methodToToolName = buildMethodToToolNameMapping(classNode);
 
         // Extract scopes from @ai:AgentTool annotations on each method
-        Map<String, List<String>> toolScopes = new HashMap<>();
+        Map<String, List<String>> toolScopes = new TreeMap<>();
         Set<String> predefinedMethods = Set.of("init", "getTools");
 
         for (Node member : classNode.members()) {
@@ -2976,22 +2978,7 @@ public class CodeAnalyzer extends NodeVisitor {
             return null;
         }
 
-        // Convert to JSON string: {"toolName": ["scope1", "scope2"], ...}
-        StringBuilder json = new StringBuilder("{");
-        boolean first = true;
-        for (Map.Entry<String, List<String>> entry : toolScopes.entrySet()) {
-            if (!first) {
-                json.append(", ");
-            }
-            json.append("\"").append(entry.getKey()).append("\": [");
-            json.append(entry.getValue().stream()
-                    .map(s -> "\"" + s + "\"")
-                    .collect(Collectors.joining(", ")));
-            json.append("]");
-            first = false;
-        }
-        json.append("}");
-        return json.toString();
+        return new Gson().toJson(toolScopes);
     }
 
     /**

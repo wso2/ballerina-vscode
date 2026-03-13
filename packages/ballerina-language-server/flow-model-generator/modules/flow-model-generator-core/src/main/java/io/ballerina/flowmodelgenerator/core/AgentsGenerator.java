@@ -674,6 +674,7 @@ public class AgentsGenerator {
         return hasDescription;
     }
 
+    // TODO: The agent tool annotation form is currently in the extension side, need to move to LS
     private void genAgentToolAnnotation(FlowNode flowNode, SourceBuilder sourceBuilder) {
         Map<String, Object> data = flowNode.codedata().data();
         if (data == null || !data.containsKey("agentIdConfig")) {

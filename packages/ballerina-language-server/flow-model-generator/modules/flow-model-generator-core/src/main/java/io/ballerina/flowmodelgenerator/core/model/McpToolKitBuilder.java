@@ -517,16 +517,22 @@ public class McpToolKitBuilder extends NodeBuilder {
             JsonObject jsonObject = gson.fromJson(value, JsonObject.class);
             Map<String, List<String>> result = new HashMap<>();
             for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+                JsonElement entryValue = entry.getValue();
+                if (!entryValue.isJsonArray()) {
+                    continue;
+                }
                 List<String> scopes = new ArrayList<>();
-                for (JsonElement element : entry.getValue().getAsJsonArray()) {
-                    scopes.add(element.getAsString());
+                for (JsonElement element : entryValue.getAsJsonArray()) {
+                    if (element.isJsonPrimitive()) {
+                        scopes.add(element.getAsString());
+                    }
                 }
                 if (!scopes.isEmpty()) {
                     result.put(entry.getKey(), scopes);
                 }
             }
             return result;
-        } catch (JsonSyntaxException e) {
+        } catch (JsonSyntaxException | IllegalStateException e) {
             return Collections.emptyMap();
         }
     }
