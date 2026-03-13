@@ -169,6 +169,7 @@ async function getComponents(
 
 async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: string, moduleName?: string) {
     const targetFile = Utils.joinPath(URI.file(projectPath), artifact.location.fileName).fsPath;
+    const isPublic = artifact.scope?.toLowerCase() === "global";
     const entryValue: ProjectStructureArtifactResponse = {
         id: artifact.id,
         name: artifact.name,
@@ -178,6 +179,7 @@ async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: 
         icon: artifact.module ? `bi-${artifact.module}` : icon,
         context: artifact.name === "automation" ? "main" : artifact.name,
         resources: [],
+        isPublic,
         position: {
             endColumn: artifact.location.endLine.offset,
             endLine: artifact.location.endLine.line,

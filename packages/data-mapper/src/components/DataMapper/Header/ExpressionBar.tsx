@@ -160,6 +160,7 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
 
             disabled = false;
         } else if (textFieldRef.current) {
+            setTextFieldValue('');
             setPlaceholder('Click on an output field to add/edit expressions.');
             textFieldRef.current.blur();
         }
@@ -223,7 +224,6 @@ export default function ExpressionBarWrapper({ views }: ExpressionBarProps) {
     };
 
     const handleCancel = () => {
-        setTextFieldValue('');
         onCancel();
         resetExprBarFocus();
     };

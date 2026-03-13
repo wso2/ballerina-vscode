@@ -177,6 +177,7 @@ export function FormGeneratorNew(props: FormProps) {
 
     const [fieldsValues, setFields] = useState<FormField[]>(fields);
     const fieldsRef = useRef<FormField[]>(fields);
+    const fieldsValuesRef = useRef<FormField[]>(fields);
     const [formImports, setFormImports] = useState<FormImports>({});
     const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
@@ -339,6 +340,28 @@ export function FormGeneratorNew(props: FormProps) {
         closePopup: closeModal
     }
 
+    const isFunctionParameterForm = () => {
+        return (
+            (selectedNode === "FUNCTION_DEFINITION" || selectedNode === "NP_FUNCTION_DEFINITION" || selectedNode === "DATA_MAPPER_DEFINITION") &&
+            typeEditorState.field?.key === "parameters" &&
+            getPrimaryInputType(typeEditorState?.field?.types)?.fieldType === "REPEATABLE_PROPERTY"
+        );
+    }
+
+    const isParamTypePublicByDefault = () => {
+        const isPublicField = fieldsValuesRef.current.find(field => field.key === "isPublic");
+        const isPublicFieldValue =  typeof isPublicField?.value === "string" ? isPublicField.value.toLowerCase() === "true" : Boolean(isPublicField?.value);
+        return (
+            isFunctionParameterForm() && isPublicFieldValue
+        );
+    }
+
+    const handleFieldChange = (fieldKey: string, value: any, allValues: FormValues) => {
+        const updated = fieldsValues.map(f => f.key === fieldKey ? { ...f, value: String(value) } : f);
+        fieldsValuesRef.current = updated;
+        onChange?.(fieldKey, value, allValues);
+    };
+
     const defaultType = (typeName?: string): Type => {
         if (!isGraphqlEditor || typeEditorState.field?.type === 'PARAM_MANAGER') {
             return {
@@ -351,7 +374,19 @@ export function FormGeneratorNew(props: FormProps) {
                 codedata: {
                     node: "RECORD",
                 },
-                properties: {},
+                properties: {
+                    isPublic: {
+                        metadata: {
+                            label: "public",
+                            description: "Make visible across the workspace"
+                        },
+                        valueType: "FLAG",
+                        value: isParamTypePublicByDefault() ? "true" : "false",
+                        optional: false,
+                        editable: true,
+                        advanced: false
+                    }
+                },
                 members: [],
                 includes: [] as string[],
                 allowAdditionalFields: false
@@ -394,6 +429,7 @@ export function FormGeneratorNew(props: FormProps) {
         if (fields) {
             setFields(fields);
             fieldsRef.current = fields;
+            fieldsValuesRef.current = fields;
             setFormImports(getImportsForFormFields(fields));
         }
     }, [fields]);
@@ -1018,7 +1054,7 @@ export function FormGeneratorNew(props: FormProps) {
                     preserveOrder={preserveFieldOrder}
                     injectedComponents={injectedComponents}
                     changeOptionalFieldTitle={changeOptionalFieldTitle}
-                    onChange={onChange}
+                    onChange={handleFieldChange}
                     hideSaveButton={hideSaveButton}
                     onValidityChange={onValidityChange}
                 />
