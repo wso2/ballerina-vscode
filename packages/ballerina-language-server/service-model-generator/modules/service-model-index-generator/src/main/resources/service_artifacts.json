@@ -1461,6 +1461,50 @@
             }
           ],
           "sourceKind": "SERVICE_TYPE_DESCRIPTOR"
+        },
+        "listenOn": {
+          "label": "Listen On",
+          "description": "The port to listen on",
+          "defaultValue": "",
+          "placeholder": "0",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "listenerConfig": {
+          "label": "Listener Config",
+          "description": "The listener configuration",
+          "defaultValue": "{}",
+          "placeholder": "{}",
+          "valueType": "EXPRESSION",
+          "typeConstraint": "github:ListenerConfig",
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "github:ListenerConfig",
+              "typeMembers": [
+                {
+                  "type": "ListenerConfig",
+                  "packageInfo": "ballerinax:trigger.github:0.10.0",
+                  "packageName": "trigger.github",
+                  "kind": "RECORD_TYPE"
+                }
+              ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "github:ListenerConfig"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD"
         }
       },
       "readOnlyMetadata": [
@@ -1545,6 +1589,22 @@
             }
           ],
           "sourceKind": "SERVICE_TYPE_DESCRIPTOR"
+        },
+        "listenOn": {
+          "label": "Listen On",
+          "description": "The port to listen on",
+          "placeholder": "0",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
         }
       }
     },
