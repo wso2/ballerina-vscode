@@ -43,6 +43,88 @@ const Container = styled.div`
     gap: 10;
 `;
 
+const SectionHeader = styled.div`
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 20px;
+    margin-top: -4px;
+    border-top: 1px solid var(--vscode-editorWidget-border);
+`;
+
+const SectionDescription = styled.span`
+    color: var(--vscode-list-deemphasizedForeground);
+`;
+
+/**
+ * Parse agentIdConfig values from a Ballerina @ai:AgentTool annotation string.
+ * Expected format within the annotation:
+ *   agentIdConfig: { baseAuthUrl: string `val`, scopes: [string `a`, string `b`], isPkceEnabled: true }
+ */
+function parseAgentIdConfig(annotationValue: string): Record<string, string> {
+    const result: Record<string, string> = {};
+    const configMatch = annotationValue.match(/agentIdConfig\s*:\s*\{([^}]*)\}/s);
+    if (!configMatch) {
+        return result;
+    }
+    const configBlock = configMatch[1];
+
+    for (const { key } of OAUTH_CLIENT_CONFIG_PROPERTIES) {
+        if (key === "scopes") {
+            // scopes: [string `v1`, string `v2`]
+            const scopesMatch = configBlock.match(/scopes\s*:\s*\[([^\]]*)\]/);
+            if (scopesMatch) {
+                const values = [...scopesMatch[1].matchAll(/`([^`]*)`/g)].map((m) => m[1]);
+                result.scopes = JSON.stringify(values);
+            }
+        } else if (key === "isPkceEnabled") {
+            // isPkceEnabled: true/false
+            const boolMatch = configBlock.match(/isPkceEnabled\s*:\s*(true|false)/);
+            if (boolMatch) {
+                result.isPkceEnabled = boolMatch[1];
+            }
+        } else {
+            // string fields: key: string `value`
+            const strMatch = configBlock.match(new RegExp(`${key}\\s*:\\s*string\\s*\`([^\`]*)\``));
+            if (strMatch) {
+                result[key] = strMatch[1];
+            }
+        }
+    }
+    return result;
+}
+
+/**
+ * Build the agentIdConfig annotation fragment from OAuth config values.
+ * Returns empty string if no config values are present.
+ */
+function buildAgentIdConfigAnnotation(config: Record<string, string>): string {
+    const entries = Object.entries(config);
+    if (entries.length === 0) {
+        return "";
+    }
+    const wrapStringValue = (val: string) =>
+        val.startsWith("string `") ? val : `string \`${val}\``;
+
+    const parts = entries.map(([key, value]) => {
+        if (key === "isPkceEnabled") {
+            return `${key}: ${value}`;
+        }
+        if (key === "scopes") {
+            try {
+                const arr = JSON.parse(value) as string[];
+                const items = arr.map((s) => wrapStringValue(s)).join(", ");
+                return `scopes: [${items}]`;
+            } catch {
+                return `scopes: [${wrapStringValue(value)}]`;
+            }
+        }
+        return `${key}: ${wrapStringValue(value)}`;
+    });
+    return `agentIdConfig: {\n        ${parts.join(",\n        ")}\n    }`;
+}
+
 interface FunctionFormProps {
     filePath: string;
     projectPath: string;
@@ -327,6 +409,51 @@ export function FunctionForm(props: FunctionFormProps) {
                 }
             }
         }
+
+        // Inject OAuth client config into codedata.data.agentIdConfig
+        const oauthConfig: Record<string, string> = {};
+        for (const { key } of OAUTH_CLIENT_CONFIG_PROPERTIES) {
+            if (key in data && data[key] !== undefined && data[key] !== "") {
+                oauthConfig[key] = String(data[key]);
+            }
+        }
+        if (Object.keys(oauthConfig).length > 0) {
+            functionNodeCopy.codedata.data = {
+                ...functionNodeCopy.codedata.data,
+                agentIdConfig: JSON.stringify(oauthConfig),
+            };
+        }
+
+        // Update annotations.value with the agentIdConfig block
+        if (functionNodeCopy.properties?.annotations) {
+            let annotationStr = functionNodeCopy.properties.annotations.value as string;
+            if (annotationStr.includes("@ai:AgentTool")) {
+                const configBlock = buildAgentIdConfigAnnotation(oauthConfig);
+                if (annotationStr.match(/agentIdConfig\s*:\s*\{[^}]*\}/s)) {
+                    // Replace existing agentIdConfig block
+                    functionNodeCopy.properties.annotations.value = configBlock
+                        ? annotationStr.replace(/agentIdConfig\s*:\s*\{[^}]*\}/s, configBlock)
+                        : annotationStr.replace(/,?\s*agentIdConfig\s*:\s*\{[^}]*\}/s, "");
+                } else if (configBlock) {
+                    // Insert agentIdConfig into existing @ai:AgentTool { ... }
+                    if (annotationStr.match(/@ai:AgentTool\s*\{/)) {
+                        functionNodeCopy.properties.annotations.value = annotationStr.replace(
+                            /@ai:AgentTool\s*\{/,
+                            `@ai:AgentTool {\n    ${configBlock},`
+                        );
+                    } else {
+                        functionNodeCopy.properties.annotations.value = annotationStr.replace(
+                            /@ai:AgentTool/,
+                            `@ai:AgentTool {\n    ${configBlock}\n}`
+                        );
+                    }
+                }
+                // Trim trailing whitespace to avoid gaps between annotation and function
+                functionNodeCopy.properties.annotations.value =
+                    (functionNodeCopy.properties.annotations.value as string).replace(/\s+$/, "\n");
+            }
+        }
+
         console.log("Updated function node: ", functionNodeCopy);
         const sourceCode = await rpcClient
             .getBIDiagramRpcClient()
