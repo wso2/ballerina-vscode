@@ -96,7 +96,7 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
         }
 
         // Watch all evalset files in workspace
-        const pattern = '**/tests/evalsets/**/*.evalset.json';
+        const pattern = '**/tests/resources/evalsets/**/*.evalset.json';
         this.fileWatcher = vscode.workspace.createFileSystemWatcher(pattern);
 
         // Refresh on file changes
@@ -204,7 +204,7 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
      * Check if a project directory contains any evalset files
      */
     private async projectHasEvalsets(projectPath: string): Promise<boolean> {
-        const pattern = new vscode.RelativePattern(projectPath, 'tests/evalsets/**/*.evalset.json');
+        const pattern = new vscode.RelativePattern(projectPath, 'tests/resources/evalsets/**/*.evalset.json');
         const files = await vscode.workspace.findFiles(pattern, undefined, 1);
         return files.length > 0;
     }
@@ -213,7 +213,7 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
      * Get evalset files scoped to a specific project
      */
     private async getEvalsetFilesForProject(projectPath: string): Promise<EvalsetFileNode[]> {
-        const pattern = new vscode.RelativePattern(projectPath, 'tests/evalsets/**/*.evalset.json');
+        const pattern = new vscode.RelativePattern(projectPath, 'tests/resources/evalsets/**/*.evalset.json');
         const evalsetFiles = await vscode.workspace.findFiles(pattern);
         return this.parseEvalsetFiles(evalsetFiles);
     }
@@ -222,7 +222,7 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
      * Get all evalset files in the workspace (used for single-project workspaces)
      */
     private async getEvalsetFiles(): Promise<EvalsetFileNode[]> {
-        const evalsetFiles = await vscode.workspace.findFiles('**/tests/evalsets/**/*.evalset.json');
+        const evalsetFiles = await vscode.workspace.findFiles('**/tests/resources/evalsets/**/*.evalset.json');
         return this.parseEvalsetFiles(evalsetFiles);
     }
 

@@ -111,8 +111,8 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
         return new Promise(async (resolve) => {
             try {
                 const pattern = params.projectPath
-                    ? new vscode.RelativePattern(vscode.Uri.file(params.projectPath), '**/tests/evalsets/**/*.evalset.json')
-                    : '**/tests/evalsets/**/*.evalset.json';
+                    ? new vscode.RelativePattern(vscode.Uri.file(params.projectPath), '**/tests/resources/evalsets/**/*.evalset.json')
+                    : '**/tests/resources/evalsets/**/*.evalset.json';
                 const evalsetFiles = await vscode.workspace.findFiles(pattern);
                 const evalsets: EvalsetItem[] = [];
 
