@@ -87,7 +87,7 @@ import { ReviewMode } from "./views/ReviewMode";
 import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
 import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
 import { EvalsetViewer } from "./views/EvalsetViewer/EvalsetViewer";
-import { ConfigurationCollector } from "./views/BI/ConfigurationCollector";
+import { ConfigurationCollector } from "./views/AIPanel/components/ConfigurationCollector";
 
 const globalStyles = css`
     *,
