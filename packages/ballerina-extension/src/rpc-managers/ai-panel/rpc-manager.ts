@@ -42,7 +42,7 @@ import {
     TestGenerationMentions,
     UIChatMessage,
     UpdateChatMessageRequest,
-    UsageResponse
+    UsageResponse,
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";
@@ -69,9 +69,9 @@ import {
 } from "./constants";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
 import { BACKEND_URL } from "../../features/ai/utils";
+import { sendChatComponentNotification, sendSaveChatNotification } from "../../features/ai/utils/ai-utils";
 import { addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
 
-import { onHideReviewActions } from '@wso2/ballerina-core';
 import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent } from '../../features/ai/agent/index';
 import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
 import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
@@ -80,7 +80,6 @@ import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/
 import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/InlineMappingExecutor';
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
 import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
-import { RPCLayer } from '../../RPCLayer';
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 
@@ -474,11 +473,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
             console.log("[Review Actions] Cleared affected packages from accepted generations");
 
-            // Notify AI panel webview to hide review actions
-            RPCLayer._messenger.sendNotification(onHideReviewActions, {
-                type: 'webview',
-                webviewType: 'ballerina.ai-panel'
-            });
+            // Notify webview to update review component status and persist
+            sendChatComponentNotification("review", { status: "accepted" });
+            const latestGeneration = underReviewGenerations[underReviewGenerations.length - 1];
+            sendSaveChatNotification(Command.Agent, latestGeneration.id);
         } catch (error) {
             console.error("[Review Actions] Error accepting changes:", error);
             throw error;
@@ -530,11 +528,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
             console.log("[Review Actions] Cleared affected packages from declined generations");
 
-            // Notify AI panel webview to hide review actions
-            RPCLayer._messenger.sendNotification(onHideReviewActions, {
-                type: 'webview',
-                webviewType: 'ballerina.ai-panel'
-            });
+            // Notify webview to update review component status and persist
+            sendChatComponentNotification("review", { status: "discarded" });
+            const latestGeneration = underReviewGenerations[underReviewGenerations.length - 1];
+            sendSaveChatNotification(Command.Agent, latestGeneration.id);
         } catch (error) {
             console.error("[Review Actions] Error declining changes:", error);
             throw error;

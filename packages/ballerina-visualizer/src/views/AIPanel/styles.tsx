@@ -61,7 +61,7 @@ export const Main = styled.main({
 });
 
 export const ChatMessage = styled.div({
-    padding: "20px",
+    padding: "8px 20px",
 });
 
 export const Badge = styled.div`

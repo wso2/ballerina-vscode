@@ -16,12 +16,12 @@
  * under the License.
  */
 
-import { MACHINE_VIEW, EVENT_TYPE, VisualizerLocation, PopupVisualizerLocation, AgentMetadata } from '@wso2/ballerina-core';
+import { MACHINE_VIEW, EVENT_TYPE, VisualizerLocation, PopupVisualizerLocation, AgentMetadata, navigateReviewIndex, reviewModeOpened, reviewModeClosed, ReviewModeData } from '@wso2/ballerina-core';
 import { AiPanelWebview } from '../../../views/ai-panel/webview';
 import { VisualizerWebview } from '../../../views/visualizer/webview';
 import { openView as openMainView, StateMachine } from '../../../stateMachine';
 import { openPopupView, StateMachinePopup } from '../../../stateMachinePopup';
-import { notifyApprovalOverlayState } from '../../../RPCLayer';
+import { notifyApprovalOverlayState, RPCLayer } from '../../../RPCLayer';
 
 export type ApprovalType = 'configuration' | 'task' | 'plan' | 'connector_spec';
 
@@ -231,6 +231,10 @@ export class ApprovalViewManager {
     }
 
     onVisualizerClosed(): void {
+        if (StateMachine.context().view === MACHINE_VIEW.ReviewMode) {
+            this.notifyReviewModeClosed();
+        }
+
         if (!this.hasActiveApprovals()) {
             return;
         }
@@ -324,12 +328,56 @@ export class ApprovalViewManager {
      */
     openView(machineView: MACHINE_VIEW): void {
         if (!AiPanelWebview.currentPanel) {
-            console.log(`[ApprovalViewManager] Skipping ${machineView} open (AI panel closed)`);
             return;
         }
-
-        console.log(`[ApprovalViewManager] Opening ${machineView} in main view`);
         openMainView(EVENT_TYPE.OPEN_VIEW, { view: machineView });
+    }
+
+    private cachedReviewData: ReviewModeData | null = null;
+
+    /**
+     * Open ReviewMode with review data passed via OPEN_VIEW reviewData field.
+     * Data is cached for chip re-clicks while review is active.
+     */
+    openReviewMode(data: ReviewModeData): void {
+        if (!AiPanelWebview.currentPanel) { return; }
+        this.cachedReviewData = data;
+        openMainView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ReviewMode, reviewData: data });
+        RPCLayer._messenger.sendNotification(reviewModeOpened, { type: 'webview', webviewType: AiPanelWebview.viewType });
+    }
+
+    /**
+     * Navigate ReviewMode to a specific index.
+     * If ReviewMode is already open, sends navigateReviewIndex notification directly.
+     * If not open and data is cached, re-opens ReviewMode with cached data then navigates.
+     */
+    navigateReviewMode(index: number): void {
+        if (!AiPanelWebview.currentPanel) { return; }
+        const isReviewModeOpen = StateMachine.context().view === MACHINE_VIEW.ReviewMode && !!VisualizerWebview.currentPanel;
+        if (isReviewModeOpen) {
+            RPCLayer._messenger.sendNotification(navigateReviewIndex, {
+                type: 'webview',
+                webviewType: VisualizerWebview.viewType
+            }, index);
+        } else if (this.cachedReviewData) {
+            openMainView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ReviewMode, reviewData: { ...this.cachedReviewData, currentIndex: index } });
+            RPCLayer._messenger.sendNotification(reviewModeOpened, { type: 'webview', webviewType: AiPanelWebview.viewType });
+        }
+    }
+
+    /**
+     * Notify the AI panel webview that ReviewMode has been closed.
+     */
+    notifyReviewModeClosed(): void {
+        if (!AiPanelWebview.currentPanel) { return; }
+        RPCLayer._messenger.sendNotification(reviewModeClosed, { type: 'webview', webviewType: AiPanelWebview.viewType });
+    }
+
+    /**
+     * Clear cached review data after accept or discard.
+     */
+    clearReviewData(): void {
+        this.cachedReviewData = null;
     }
 }
 

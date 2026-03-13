@@ -17,7 +17,8 @@
  */
 
 import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
-import { Command, GenerateAgentCodeRequest, ProjectSource, MACHINE_VIEW, refreshReviewMode, ExecutionContext } from '@wso2/ballerina-core';
+import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, SemanticDiff, ReviewModeData, PROJECT_KIND } from '@wso2/ballerina-core';
+import { StateMachine } from '../../../stateMachine';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
@@ -536,26 +537,62 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             affectedPackagePaths: affectedPackagePaths,
         });
 
-        // Open ReviewMode
-        approvalViewManager.openView(MACHINE_VIEW.ReviewMode);
-
-        // Notify ReviewMode component to refresh its data
-        setTimeout(() => {
-            RPCLayer._messenger.sendNotification(refreshReviewMode, {
-                type: 'webview',
-                webviewType: VisualizerWebview.viewType
-            });
-            console.log("[AgentExecutor] Sent refresh notification to review mode");
-        }, 100);
+        // ReviewMode will be opened with data from emitReviewActions
     }
 
     /**
      * Emits review actions and chat save events to UI.
      */
     private async emitReviewActions(context: StreamContext): Promise<void> {
-        // Emit review_actions only if there are modified files
-        if (context.modifiedFiles.length > 0) {
-            context.eventHandler({ type: "review_actions" });
+        // Use accumulated modifiedFiles from chatStateStorage (merged across review continuations)
+        const workspaceId = context.ctx.projectPath;
+        const threadId = 'default';
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        const accumulatedModifiedFiles = pendingReview
+            ? Array.from(new Set([...pendingReview.reviewState.modifiedFiles, ...context.modifiedFiles]))
+            : context.modifiedFiles;
+
+        // Emit review component only if there are modified files
+        if (accumulatedModifiedFiles.length > 0) {
+            const semanticDiffs: SemanticDiff[] = [];
+            let loadDesignDiagrams = false;
+            let affectedPackages: string[] = [];
+            const langClient = StateMachine.context().langClient;
+            const tempDir = context.ctx.tempProjectPath!;
+            affectedPackages = determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, tempDir);
+            for (const pkg of affectedPackages) {
+                try {
+                    const res = await langClient.getSemanticDiff({ projectPath: pkg });
+                    if (res) {
+                        semanticDiffs.push(...res.semanticDiffs);
+                        loadDesignDiagrams = loadDesignDiagrams || res.loadDesignDiagrams;
+                    }
+                } catch (err) {
+                    console.error(`[AgentExecutor] getSemanticDiff failed for package ${pkg}, falling back to plain modifiedFiles`, err);
+                    semanticDiffs.length = 0;
+                    loadDesignDiagrams = false;
+                    break;
+                }
+            }
+
+            const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
+            const reviewData: ReviewModeData = {
+                views: [],
+                currentIndex: 0,
+                semanticDiffs,
+                loadDesignDiagrams,
+                affectedPackages,
+                modifiedFiles: accumulatedModifiedFiles,
+                tempProjectPath: context.ctx.tempProjectPath!,
+                isWorkspace,
+            };
+            approvalViewManager.openReviewMode(reviewData);
+
+            context.eventHandler({
+                type: "chat_component",
+                componentType: "review",
+                data: { modifiedFiles: accumulatedModifiedFiles, semanticDiffs, loadDesignDiagrams, affectedPackages, status: "pending" }
+            });
         }
 
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
