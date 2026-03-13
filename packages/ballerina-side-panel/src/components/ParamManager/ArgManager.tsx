@@ -38,6 +38,7 @@ export interface ArgManagerProps {
     readonly?: boolean;
     selectedNode?: NodeKind;
     setSubComponentEnabled?: (isAdding: boolean) => void;
+    updateImports?: (key: string, imports: Imports) => void;
 }
 
 const AddButtonWrapper = styled.div`
@@ -95,10 +96,11 @@ export interface ArgManagerEditorProps {
     openRecordEditor?: (open: boolean) => void;
     selectedNode?: NodeKind;
     setSubComponentEnabled?: (isAdding: boolean) => void;
+    updateImports?: (key: string, imports: Imports) => void;
 }
 
 export function ArgManagerEditor(props: ArgManagerEditorProps) {
-    const { field, openRecordEditor, selectedNode, setSubComponentEnabled } = props;
+    const { field, openRecordEditor, selectedNode, setSubComponentEnabled, updateImports } = props;
     const { form } = useFormContext();
     const { control } = form;
 
@@ -130,6 +132,7 @@ export function ArgManagerEditor(props: ArgManagerEditorProps) {
                             }}
                             selectedNode={selectedNode}
                             setSubComponentEnabled={setSubComponentEnabled}
+                            updateImports={updateImports}
                         />
                         {error && <ErrorBanner errorMsg={error.message.toString()} />}
                     </>
@@ -141,7 +144,7 @@ export function ArgManagerEditor(props: ArgManagerEditorProps) {
 }
 
 export function ArgManager(props: ArgManagerProps) {
-    const { field, readonly, onChange, openRecordEditor, setSubComponentEnabled } = props;
+    const { field, readonly, onChange, openRecordEditor, setSubComponentEnabled, updateImports } = props;
     const propertyKey = field.key;
     const paramConfigs = field.paramManagerProps;
 
@@ -161,28 +164,12 @@ export function ArgManager(props: ArgManagerProps) {
         arg: string
     ) => {
         try {
-            const variableField = paramConfigs.formFields.find(f => f.key === "variable");
-            const property = getPropertyFromFormField(variableField);
-
-            const completionsResponse = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
+            const simpleTypeResponse = await rpcClient.getBIDiagramRpcClient().getSimpleTypeOfExpression({
                 filePath: fileName,
-                context: {
-                    expression: arg,
-                    startLine: targetLineRange.startLine,
-                    lineOffset: 0,
-                    offset: arg.length,
-                    codedata: undefined,
-                    property: property
-                },
-                completionContext: {
-                    triggerKind: TriggerKind.INVOKED,
-                    triggerCharacter: undefined
-                }
+                position: targetLineRange.startLine,
+                expression: arg
             });
-
-            const name = arg.split('.').pop();
-            const completionItem = completionsResponse.find(completion => completion.insertText === name);
-            return completionItem?.detail;
+            return simpleTypeResponse.type;
         } catch (error) {
             console.error(">>> Error getting type from FQN in ArgManager", error);
             return undefined;
@@ -244,14 +231,18 @@ export function ArgManager(props: ArgManagerProps) {
         onChange({ ...paramConfigs, paramValues: updatedParameters });
     };
 
-    const onSaveParam = (paramConfig: Parameter) => {
-        getTypeFromArg(paramConfig.formValues['variable']).then((type) => {
-            paramConfig.formValues['type'] = type;
-            onChangeParam(paramConfig);
-            setEditingSegmentId(-1);
-            setIsNew(false);
-            setSubComponentEnabled?.(false);
-        });
+    const onSaveParam = async (paramConfig: Parameter) => {
+        const type = await getTypeFromArg(paramConfig.formValues['variable']);
+        if (type) {
+            paramConfig.formValues['type'] = type.name;
+            if (type.imports) {
+                updateImports?.(propertyKey, type.imports);
+            }
+        }
+        onChangeParam(paramConfig);
+        setEditingSegmentId(-1);
+        setIsNew(false);
+        setSubComponentEnabled?.(false);
     };
 
     const onParamEditCancel = (param: Parameter) => {

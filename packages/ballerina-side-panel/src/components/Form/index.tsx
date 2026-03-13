@@ -50,6 +50,7 @@ import {
     getPrimaryInputType,
     MACHINE_VIEW,
     EditorDisplayMode,
+    Imports,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -404,6 +405,7 @@ export interface FormProps {
     changeOptionalFieldTitle?: string; // Option to change the title of optional fields
     openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
+    updateImports?: (key: string, imports: Imports) => void;
 }
 
 export const Form = forwardRef((props: FormProps) => {
@@ -445,7 +447,8 @@ export const Form = forwardRef((props: FormProps) => {
         onValidityChange,
         changeOptionalFieldTitle = undefined,
         openFormTypeEditor,
-        derivedFields = []
+        derivedFields = [],
+        updateImports,
     } = props;
 
     const {
@@ -1055,6 +1058,7 @@ export const Form = forwardRef((props: FormProps) => {
                                     }
                                     openSubPanel={handleOpenSubPanel}
                                     subPanelView={subPanelView}
+                                    handleFormValidation={handleFormValidation}
                                     handleOnFieldFocus={handleOnFieldFocus}
                                     autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField) && !hideSaveButton}
                                     recordTypeFields={recordTypeFields}
@@ -1068,6 +1072,7 @@ export const Form = forwardRef((props: FormProps) => {
                                         openFormTypeEditor &&
                                         ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
                                     }
+                                    updateImports={updateImports}
                                 />
                                 {updatedField.key === "scope" && scopeFieldAddon}
                             </S.Row>
@@ -1137,6 +1142,7 @@ export const Form = forwardRef((props: FormProps) => {
                                             ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
                                         }
                                         subPanelView={subPanelView}
+                                        handleFormValidation={handleFormValidation}
                                         handleOnFieldFocus={handleOnFieldFocus}
                                         recordTypeFields={recordTypeFields}
                                         onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
@@ -1166,6 +1172,7 @@ export const Form = forwardRef((props: FormProps) => {
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                     handleOnTypeChange={handleOnTypeChange}
                                     onBlur={handleOnBlur}
+                                    handleFormValidation={handleFormValidation}
                                 />
                             </S.Row>
                         );
@@ -1181,6 +1188,8 @@ export const Form = forwardRef((props: FormProps) => {
                             recordTypeFields={recordTypeFields}
                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             onBlur={handleOnBlur}
+                            handleFormValidation={handleFormValidation}
+
                         />
                     )}
                     {typeField && !isInferredReturnType && (
@@ -1196,7 +1205,7 @@ export const Form = forwardRef((props: FormProps) => {
                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             handleNewTypeSelected={handleNewTypeSelected}
                             onBlur={handleOnBlur}
-
+                            handleFormValidation={handleFormValidation}
                         />
                     )}
                     {targetTypeField && !targetTypeField.advanced && (
@@ -1209,6 +1218,7 @@ export const Form = forwardRef((props: FormProps) => {
                                 handleNewTypeSelected={handleNewTypeSelected}
                                 handleOnTypeChange={handleOnTypeChange}
                                 onBlur={handleOnBlur}
+                                handleFormValidation={handleFormValidation}
                             />
                             {typeField && (
                                 <TypeHelperText

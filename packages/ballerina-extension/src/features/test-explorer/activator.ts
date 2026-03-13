@@ -30,6 +30,7 @@ import { EvalsetTreeDataProvider } from "./evalset-tree-view";
 import { openView } from "../../stateMachine";
 import { EvalSet, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
 import * as fs from 'fs';
+import { EvaluationHistoryWebview } from '../../views/evaluation-history/webview';
 
 export let testController: TestController;
 
@@ -75,6 +76,16 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
             window.showErrorMessage(`Failed to save evalset: ${error}`);
             return { success: false, error: String(error) };
         }
+    });
+
+    // Register command to open evaluation history summary webview
+    const openEvalHistoryCommand = commands.registerCommand('ballerina.openEvaluationHistory', async () => {
+        const workspaceRoot = getWorkspaceRoot();
+        if (!workspaceRoot) {
+            window.showErrorMessage('No workspace found');
+            return;
+        }
+        await EvaluationHistoryWebview.createOrShow(workspaceRoot);
     });
 
     // Register commands for creating evalsets and threads
@@ -123,7 +134,7 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
     discoverTestFunctionsInProject(ballerinaExtInstance, testController);
 
     // Register the test controller and file watcher with the extension context
-    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand, saveEvalThreadCommand, createEvalsetCommand, createThreadCommand, deleteEvalsetCommand, deleteThreadCommand);
+    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand, saveEvalThreadCommand, createEvalsetCommand, createThreadCommand, deleteEvalsetCommand, deleteThreadCommand, openEvalHistoryCommand);
 
     activateEditBiTest(ballerinaExtInstance);
 }

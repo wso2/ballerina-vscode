@@ -377,8 +377,8 @@ export const removeMcpServerFromAgentNode = (
 
             let isLastItem = !hasCommaAfter;
 
-            let before = toolsValue.substring(0, newStartIndex);
-            let after = toolsValue.substring(endIndex);
+            let before: string = toolsValue.substring(0, newStartIndex);
+            let after: string = toolsValue.substring(endIndex);
 
             if (hasCommaBefore && hasCommaAfter) {
                 after = after.trim();
@@ -416,64 +416,29 @@ export const removeMcpServerFromAgentNode = (
 // remove agent node, model node when removing ag
 export const removeAgentNode = async (agentCallNode: FlowNode, rpcClient: BallerinaRpcClient): Promise<boolean> => {
     if (!agentCallNode || agentCallNode.codedata?.node !== "AGENT_CALL") return false;
-    // get agent node
-    const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
-    console.log(">>> agent node", agentNode);
-    if (!agentNode) {
-        console.error("Agent node not found", agentCallNode);
-        return false;
-    }
-
-    // get file path
-    const agentFileName = agentNode.codedata.lineRange.fileName;
-    const agentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [agentFileName] })).filePath;
-
-    // delete the agent node
-    await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
-        filePath: agentFilePath,
-        flowNode: agentNode,
-    });
-
-    // get model name
-    const modelName = agentNode?.properties.model.value;
-    console.log(">>> model name", modelName);
-
-    if (typeof modelName !== "string") {
-        console.error("Model name is not a string");
-        return false;
-    }
-
-    // get model node
-    const startLine = agentNode.codedata?.lineRange?.startLine;
-    const linePosition: LinePosition | undefined = startLine
-        ? {
-            line: startLine.line,
-            offset: startLine.offset
+    try {
+        // get agent node
+        const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
+        if (!agentNode) {
+            console.error("Agent node not found", agentCallNode);
+            return false;
         }
-        : undefined;
 
-    const queryMap: SearchNodesQueryParams = {
-        kind: "MODEL_PROVIDER",
-        exactMatch: modelName
-    };
-    const modelNodes = await findFlowNode(rpcClient, agentFilePath, linePosition, queryMap);
-    const modelNode = modelNodes && modelNodes.length > 0 ? modelNodes[0] : null;
-    console.log(">>> model node", modelNode);
-    if (!modelNode) {
-        console.error("Model node not found", agentCallNode);
+        // get file path
+        const agentFileName = agentNode.codedata.lineRange.fileName;
+        const agentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [agentFileName] })).filePath;
+
+        // delete the agent node
+        await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
+            filePath: agentFilePath,
+            flowNode: agentNode,
+        });
+
+        return true;
+    } catch (error) {
+        console.error("Failed to remove agent node", error);
         return false;
     }
-
-    // get file path
-    const modelFileName = modelNode.codedata?.lineRange?.fileName;
-    const modelFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [modelFileName] })).filePath;
-
-    // delete the model node
-    await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
-        filePath: modelFilePath,
-        flowNode: modelNode,
-    });
-    return true;
 };
 
 export const updateFlowNodePropertyValuesWithKeys = (flowNode: FlowNode) => {
