@@ -15,10 +15,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { TestManagerServiceAPI, GetTestFunctionRequest, AddOrUpdateTestFunctionRequest,
+import {
+    TestManagerServiceAPI, GetTestFunctionRequest, AddOrUpdateTestFunctionRequest,
     TestSourceEditResponse, GetTestFunctionResponse,
     getTestFunction, addTestFunction, updateTestFunction,
-    SourceUpdateResponse, GetEvalsetsRequest, GetEvalsetsResponse, getEvalsets} from "@wso2/ballerina-core";
+    SourceUpdateResponse, GetEvalsetsRequest, GetEvalsetsResponse, getEvalsets,
+    GetEvaluationHistoryRequest, GetEvaluationHistoryResponse, getEvaluationHistory,
+    OpenEvaluationReportRequest, openEvaluationReport,
+    GetEvaluationReportRequest, GetEvaluationReportResponse, getEvaluationReport,
+    GitDiffRequest, GitDiffResponse, getGitDiff,
+    RestoreGitSnapshotRequest, RestoreGitSnapshotResponse, restoreGitSnapshot
+} from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
 
@@ -44,5 +51,26 @@ export class TestManagerServiceRpcClient implements TestManagerServiceAPI {
     getEvalsets(params: GetEvalsetsRequest): Promise<GetEvalsetsResponse> {
         return this._messenger.sendRequest(getEvalsets, HOST_EXTENSION, params);
     }
+
+    getEvaluationHistory(params: GetEvaluationHistoryRequest): Promise<GetEvaluationHistoryResponse> {
+        return this._messenger.sendRequest(getEvaluationHistory, HOST_EXTENSION, params);
+    }
+
+    openEvaluationReport(params: OpenEvaluationReportRequest): Promise<void> {
+        return this._messenger.sendRequest(openEvaluationReport, HOST_EXTENSION, params);
+    }
+
+    getEvaluationReport(params: GetEvaluationReportRequest): Promise<GetEvaluationReportResponse> {
+        return this._messenger.sendRequest(getEvaluationReport, HOST_EXTENSION, params);
+    }
+
+    getGitDiff(params: GitDiffRequest): Promise<GitDiffResponse> {
+        return this._messenger.sendRequest(getGitDiff, HOST_EXTENSION, params);
+    }
+
+    restoreGitSnapshot(params: RestoreGitSnapshotRequest): Promise<RestoreGitSnapshotResponse> {
+        return this._messenger.sendRequest(restoreGitSnapshot, HOST_EXTENSION, params);
+    }
+
 }
 

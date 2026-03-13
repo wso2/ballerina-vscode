@@ -778,6 +778,12 @@
                 "title": "Delete Thread",
                 "category": "Ballerina",
                 "icon": "$(trash)"
+            },
+            {
+                "command": "ballerina.openEvaluationHistory",
+                "title": "Evaluation History",
+                "category": "Ballerina",
+                "icon": "$(history)"
             }
         ],
         "views": {
@@ -866,6 +872,11 @@
                     "command": "BI.test.delete.function",
                     "group": "inline",
                     "when": "testId not in testGroups"
+                },
+                {
+                    "command": "ballerina.openEvaluationHistory",
+                    "group": "inline",
+                    "when": "testId in testGroups && testId =~ /evaluations/"
                 }
             ],
             "view/title": [
@@ -1263,6 +1274,34 @@
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f1bf"
+                }
+            },
+            "distro-file-submodule": {
+                "description": "file-submodule",
+                "default": {
+                    "fontPath": "./resources/codicons/codicon.ttf",
+                    "fontCharacter": "\\eaec"
+                }
+            },
+            "distro-new-file": {
+                "description": "new-file",
+                "default": {
+                    "fontPath": "./resources/codicons/codicon.ttf",
+                    "fontCharacter": "\\ea7f"
+                }
+            },
+            "distro-new-folder": {
+                "description": "new-folder",
+                "default": {
+                    "fontPath": "./resources/codicons/codicon.ttf",
+                    "fontCharacter": "\\ea80"
+                }
+            },
+            "distro-refresh": {
+                "description": "refresh",
+                "default": {
+                    "fontPath": "./resources/codicons/codicon.ttf",
+                    "fontCharacter": "\\eb37"
                 }
             }
         },

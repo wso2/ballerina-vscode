@@ -33,26 +33,39 @@ import {
 import { RPCLayer } from "../../RPCLayer";
 import { extension } from "../../BalExtensionContext";
 
-export class EvaluationReportWebview {
-    public static currentPanel: EvaluationReportWebview | undefined;
-    public static readonly viewType = "ballerina.evaluation-report";
+export class EvaluationHistoryWebview {
+    public static currentPanel: EvaluationHistoryWebview | undefined;
+    public static readonly viewType = "ballerina.evaluation-history";
     private readonly _panel: WebviewPanel;
+    private _workspaceRoot: string;
     private _disposables: Disposable[] = [];
 
-    private constructor(panel: WebviewPanel) {
+    private constructor(panel: WebviewPanel, workspaceRoot: string) {
         this._panel = panel;
+        this._workspaceRoot = workspaceRoot;
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
         RPCLayer.create(this._panel);
     }
 
-    public static async createOrShow(reportPath: string): Promise<void> {
-        if (EvaluationReportWebview.currentPanel) {
-            EvaluationReportWebview.currentPanel.dispose();
+    public static async createOrShow(workspaceRoot: string): Promise<void> {
+        if (EvaluationHistoryWebview.currentPanel) {
+            if (EvaluationHistoryWebview.currentPanel._workspaceRoot !== workspaceRoot) {
+                EvaluationHistoryWebview.currentPanel._workspaceRoot = workspaceRoot;
+                EvaluationHistoryWebview.currentPanel._panel.webview.html =
+                    EvaluationHistoryWebview.currentPanel.getWebviewContent(
+                        EvaluationHistoryWebview.currentPanel._panel.webview,
+                        workspaceRoot
+                    );
+            }
+            EvaluationHistoryWebview.currentPanel._panel.reveal(
+                ViewColumn.Active
+            );
+            return;
         }
 
         const panel = window.createWebviewPanel(
-            EvaluationReportWebview.viewType,
-            "Evaluation Report",
+            EvaluationHistoryWebview.viewType,
+            "Evaluation History",
             ViewColumn.Active,
             {
                 enableScripts: true,
@@ -68,27 +81,28 @@ export class EvaluationReportWebview {
             }
         );
 
-        EvaluationReportWebview.currentPanel = new EvaluationReportWebview(
-            panel
+        EvaluationHistoryWebview.currentPanel = new EvaluationHistoryWebview(
+            panel,
+            workspaceRoot
         );
-        EvaluationReportWebview.currentPanel._panel.webview.html =
-            EvaluationReportWebview.currentPanel.getWebviewContent(
+        EvaluationHistoryWebview.currentPanel._panel.webview.html =
+            EvaluationHistoryWebview.currentPanel.getWebviewContent(
                 panel.webview,
-                reportPath
+                workspaceRoot
             );
     }
 
     private getWebviewContent(
         webView: Webview,
-        reportPath: string
+        workspaceRoot: string
     ): string {
-        const escapedPath = reportPath
+        const escapedPath = workspaceRoot
             .replace(/&/g, "&amp;")
             .replace(/"/g, "&quot;");
 
-        const body = `<div class="container" id="webview-container" data-report-path="${escapedPath}">
+        const body = `<div class="container" id="webview-container" data-project-path="${escapedPath}">
                 <div class="loader-wrapper">
-                    <div class="loader"></div>
+                    <div class="loader" /></div>
                 </div>
             </div>`;
         const bodyCss = ``;
@@ -132,7 +146,7 @@ export class EvaluationReportWebview {
         `;
         const scripts = `
             function loadedScript() {
-                visualizerWebview.renderWebview("evaluation-report", document.getElementById("webview-container"));
+                visualizerWebview.renderWebview("evaluation-history", document.getElementById("webview-container"));
             }
         `;
 
@@ -148,7 +162,7 @@ export class EvaluationReportWebview {
     }
 
     public dispose(): void {
-        EvaluationReportWebview.currentPanel = undefined;
+        EvaluationHistoryWebview.currentPanel = undefined;
         this._panel.dispose();
         while (this._disposables.length) {
             const d = this._disposables.pop();

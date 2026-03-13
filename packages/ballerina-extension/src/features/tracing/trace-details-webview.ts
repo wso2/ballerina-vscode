@@ -306,7 +306,7 @@ export class TraceDetailsWebview {
 
             if (fileUri) {
                 const jsonContent = JSON.stringify(traceData, null, 2);
-                await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+                await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
                 vscode.window.showInformationMessage(`Trace exported to ${fileUri.fsPath}`);
             }
         } catch (error) {
@@ -365,7 +365,7 @@ export class TraceDetailsWebview {
                     sessionId,
                     traces: sessionTraces
                 }, null, 2);
-                await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+                await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
                 vscode.window.showInformationMessage(`Session exported to ${fileUri.fsPath}`);
             }
         } catch (error) {
@@ -395,8 +395,8 @@ export class TraceDetailsWebview {
         const evalsetTraces = convertTracesToEvalset(sessionTraces);
 
         return {
-            id: crypto.randomUUID(),
-            name: threadName || `Thread - ${sessionId.substring(0, 8)}`,
+            id: threadName || `thread-${sessionId.substring(0, 8)}`,
+            description: '',
             traces: evalsetTraces,
             created_on: new Date().toISOString()
         };
@@ -412,8 +412,8 @@ export class TraceDetailsWebview {
         const evalsetTrace = convertTraceToEvalset(traceData);
 
         return {
-            id: crypto.randomUUID(),
-            name: threadName || `Thread - ${traceData.traceId.substring(0, 8)}`,
+            id: threadName || `thread-${traceData.traceId.substring(0, 8)}`,
+            description: '',
             traces: [evalsetTrace],
             created_on: new Date().toISOString()
         };
@@ -469,7 +469,7 @@ export class TraceDetailsWebview {
             const jsonContent = JSON.stringify(evalset, null, 2);
             const fileUri = vscode.Uri.file(filePath);
 
-            await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+            await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
 
             // 5. Success message with View option
             const action = await vscode.window.showInformationMessage(
@@ -522,7 +522,7 @@ export class TraceDetailsWebview {
             const jsonContent = JSON.stringify(evalset, null, 2);
             const fileUri = vscode.Uri.file(filePath);
 
-            await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+            await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
 
             // 5. Success message with View option
             const action = await vscode.window.showInformationMessage(
@@ -577,8 +577,8 @@ export class TraceDetailsWebview {
             if (nameChoice.value === 'custom') {
                 threadName = await vscode.window.showInputBox({
                     prompt: 'Enter thread name',
-                    value: `Thread - ${traceData.traceId.substring(0, 8)}`,
-                    placeHolder: `Thread - ${traceData.traceId.substring(0, 8)}`
+                    value: `thread-${traceData.traceId.substring(0, 8)}`,
+                    placeHolder: `thread-${traceData.traceId.substring(0, 8)}`
                 });
 
                 if (!threadName) { return; } // User cancelled
@@ -606,7 +606,7 @@ export class TraceDetailsWebview {
 
             // 6. Write back
             const jsonContent = JSON.stringify(evalset, null, 2);
-            await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+            await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
 
             // 7. Success message with View option
             const action = await vscode.window.showInformationMessage(
@@ -662,8 +662,8 @@ export class TraceDetailsWebview {
             if (nameChoice.value === 'custom') {
                 threadName = await vscode.window.showInputBox({
                     prompt: 'Enter thread name',
-                    value: `Thread - ${sessionId.substring(0, 8)}`,
-                    placeHolder: `Thread - ${sessionId.substring(0, 8)}`
+                    value: `thread-${sessionId.substring(0, 8)}`,
+                    placeHolder: `thread-${sessionId.substring(0, 8)}`
                 });
 
                 if (!threadName) { return; } // User cancelled
@@ -691,7 +691,7 @@ export class TraceDetailsWebview {
 
             // 6. Write back
             const jsonContent = JSON.stringify(evalset, null, 2);
-            await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+            await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
 
             // 7. Success message with View option
             const action = await vscode.window.showInformationMessage(

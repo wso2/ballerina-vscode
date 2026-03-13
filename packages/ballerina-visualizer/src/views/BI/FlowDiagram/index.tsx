@@ -17,10 +17,11 @@
  */
 
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { TraceAnimationEvent } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import styled from "@emotion/styled";
 import { removeMcpServerFromAgentNode, findAgentNodeFromAgentCallNode, findFlowNode } from "../AIChatAgent/utils";
-import { MemoizedDiagram } from "@wso2/bi-diagram";
+import { MemoizedDiagram, setTraceAnimationActive, setTraceAnimationInactive } from "@wso2/bi-diagram";
 import {
     BIAvailableNodesRequest,
     Flow,
@@ -140,7 +141,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [importingConn, setImportingConn] = useState<ConnectionListItem>();
     const [projectOrg, setProjectOrg] = useState<string>("");
     const [isUserAuthenticated, setIsUserAuthenticated] = useState<boolean>(false);
-
     // Navigation stack for back navigation
     const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([]);
 
@@ -199,6 +199,17 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     useEffect(() => {
         debouncedGetFlowModelForBreakpoints();
     }, [breakpointState]);
+
+    useEffect(() => {
+        rpcClient.onTraceAnimationChanged((event: TraceAnimationEvent) => {
+            console.log('[TraceAnimation] Webview received event:', event.type, event.active, event.toolNames);
+            if (event.active) {
+                setTraceAnimationActive(event.toolNames, event.type, event.activeToolName, event.systemInstructions);
+            } else {
+                setTraceAnimationInactive(event.type, event.activeToolName);
+            }
+        });
+    }, [rpcClient]);
 
     useEffect(() => {
         rpcClient.onProjectContentUpdated(() => {
