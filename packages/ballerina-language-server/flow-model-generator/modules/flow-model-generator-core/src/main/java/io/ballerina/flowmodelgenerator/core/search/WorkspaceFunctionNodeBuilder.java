@@ -62,7 +62,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModule;
 class WorkspaceFunctionNodeBuilder {
 
     public static final String TOOL_ANNOTATION = AgentToolSearchCommand.TOOL_ANNOTATION;
-    static final String CURRENT_INTEGRATION_INDICATOR = " (current)";
+    static final String CURRENT_INTEGRATION_INDICATOR = " (Current Integration)";
 
     private WorkspaceFunctionNodeBuilder() {
     }
