@@ -47,12 +47,6 @@ export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient, nodeKind?: N
     return aiModuleOrgResponse.orgName;
 }
 
-export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
-    // Create the agent file path
-    const agentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['agents.bal'] })).filePath;
-    return agentFilePath;
-};
-
 export const getNPFilePath = async (rpcClient: BallerinaRpcClient) => {
     const visualizerContext = await rpcClient.getVisualizerLocation();
     // Create the NP file path
