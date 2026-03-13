@@ -17,7 +17,7 @@
  */
 
 import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
-import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, SemanticDiff, ReviewModeData } from '@wso2/ballerina-core';
+import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, SemanticDiff, ReviewModeData, PROJECT_KIND } from '@wso2/ballerina-core';
 import { StateMachine } from '../../../stateMachine';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
@@ -544,42 +544,54 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
      * Emits review actions and chat save events to UI.
      */
     private async emitReviewActions(context: StreamContext): Promise<void> {
+        // Use accumulated modifiedFiles from chatStateStorage (merged across review continuations)
+        const workspaceId = context.ctx.projectPath;
+        const threadId = 'default';
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        const accumulatedModifiedFiles = pendingReview
+            ? Array.from(new Set([...pendingReview.reviewState.modifiedFiles, ...context.modifiedFiles]))
+            : context.modifiedFiles;
+
         // Emit review component only if there are modified files
-        if (context.modifiedFiles.length > 0) {
+        if (accumulatedModifiedFiles.length > 0) {
             const semanticDiffs: SemanticDiff[] = [];
             let loadDesignDiagrams = false;
             let affectedPackages: string[] = [];
-            try {
-                const langClient = StateMachine.context().langClient;
-                const tempDir = context.ctx.tempProjectPath!;
-                affectedPackages = determineAffectedPackages(context.modifiedFiles, context.projects, context.ctx, tempDir);
-                for (const pkg of affectedPackages) {
+            const langClient = StateMachine.context().langClient;
+            const tempDir = context.ctx.tempProjectPath!;
+            affectedPackages = determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, tempDir);
+            for (const pkg of affectedPackages) {
+                try {
                     const res = await langClient.getSemanticDiff({ projectPath: pkg });
                     if (res) {
                         semanticDiffs.push(...res.semanticDiffs);
                         loadDesignDiagrams = loadDesignDiagrams || res.loadDesignDiagrams;
                     }
+                } catch (err) {
+                    console.error(`[AgentExecutor] getSemanticDiff failed for package ${pkg}, falling back to plain modifiedFiles`, err);
+                    semanticDiffs.length = 0;
+                    loadDesignDiagrams = false;
+                    break;
                 }
-            } catch {
-                // fall back to plain modifiedFiles chips on frontend
             }
 
+            const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
             const reviewData: ReviewModeData = {
                 views: [],
                 currentIndex: 0,
                 semanticDiffs,
                 loadDesignDiagrams,
                 affectedPackages,
-                modifiedFiles: context.modifiedFiles,
+                modifiedFiles: accumulatedModifiedFiles,
                 tempProjectPath: context.ctx.tempProjectPath!,
-                isWorkspace: affectedPackages.length > 1,
+                isWorkspace,
             };
             approvalViewManager.openReviewMode(reviewData);
 
             context.eventHandler({
                 type: "chat_component",
                 componentType: "review",
-                data: { modifiedFiles: context.modifiedFiles, semanticDiffs, loadDesignDiagrams, affectedPackages, status: "pending" }
+                data: { modifiedFiles: accumulatedModifiedFiles, semanticDiffs, loadDesignDiagrams, affectedPackages, status: "pending" }
             });
         }
 
