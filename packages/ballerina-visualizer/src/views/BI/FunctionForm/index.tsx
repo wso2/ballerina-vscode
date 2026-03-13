@@ -26,7 +26,8 @@ import FormGeneratorNew from "../Forms/FormGeneratorNew";
 import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { FormHeader } from "../../../components/FormHeader";
-import { convertConfig, getImportsForProperty } from "../../../utils/bi";
+import { convertConfig, convertNodePropertyToFormField, getImportsForProperty } from "../../../utils/bi";
+import { OAUTH_CLIENT_CONFIG_PROPERTIES } from "../AIChatAgent/AIAgentSidePanel";
 import { BodyText, LoadingContainer, TopBar } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
 
@@ -235,6 +236,21 @@ export function FunctionForm(props: FunctionFormProps) {
                 }
             }
         });
+
+        // Add OAuth client configuration fields for agent tools
+        if (isAgentTool || isExistingAgentTool) {
+            const existingConfig = isExistingAgentTool
+                ? parseAgentIdConfig(annotations as string)
+                : {};
+            const oauthFields = OAUTH_CLIENT_CONFIG_PROPERTIES.map(({ key, property }) => {
+                const field = convertNodePropertyToFormField(key, property);
+                if (existingConfig[key] !== undefined) {
+                    field.value = existingConfig[key];
+                }
+                return field;
+            });
+            fields.push(...oauthFields);
+        }
 
         setFunctionFields(fields);
     }, [functionNode]);
@@ -602,6 +618,22 @@ export function FunctionForm(props: FunctionFormProps) {
                                 submitText={saving ? (functionName ? "Saving..." : "Creating...") : (functionName ? "Save" : "Create")}
                                 selectedNode={functionNode?.codedata?.node}
                                 preserveFieldOrder={true}
+                                injectedComponents={
+                                    functionFields.some((f) => f.key === "baseAuthUrl")
+                                        ? [
+                                            {
+                                                component: (
+                                                    <SectionHeader>
+                                                        <p style={{ margin: "0px", fontWeight: "bold" }}>OAuth Client Configuration</p>
+                                                        <SectionDescription>Represents the OAuth 2.0 client configuration required to interact with an external Authorization Server and validate issued access tokens.</SectionDescription>
+                                                    </SectionHeader>
+                                                ),
+                                                index: functionFields.filter((f) => f.advanced && !f.hidden).length - OAUTH_CLIENT_CONFIG_PROPERTIES.length,
+                                                advanced: true,
+                                            },
+                                        ]
+                                        : undefined
+                                }
                             />
                         }
                     </FormContainer>
