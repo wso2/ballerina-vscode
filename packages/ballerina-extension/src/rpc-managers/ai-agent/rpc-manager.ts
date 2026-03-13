@@ -42,9 +42,11 @@ import {
     MemoryManagersResponse,
     NodePosition
 } from "@wso2/ballerina-core";
+import { existsSync } from "fs";
 import vscode from "vscode";
 import { URI, Utils } from "vscode-uri";
 import { StateMachine } from "../../stateMachine";
+import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { CONFIGURE_DEFAULT_MODEL_COMMAND } from "../../features/ai/constants";
 
@@ -412,6 +414,9 @@ export class AiAgentRpcManager implements AIAgentAPI {
         const projectPath = StateMachine.context().projectPath;
         const agentsFilePath = Utils.joinPath(URI.file(projectPath), params.agentFlowNode.codedata.lineRange.fileName).fsPath;
         const connectionsFilePath = Utils.joinPath(URI.file(projectPath), "connections.bal").fsPath;
+        if (!existsSync(connectionsFilePath)) {
+            await writeBallerinaFileDidOpen(connectionsFilePath, "\n");
+        }
         const mcpToolKitVarName = params.updatedNode.properties["variable"].value;
 
         // 1. Use the updatedNode from params for the MCP ToolKit edits
