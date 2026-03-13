@@ -111,7 +111,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
         debounce(async (searchText: string, isType: boolean) => {
             if (!rpcClient) return;
 
-            if (isType && (!fetchedInitialTypes.current || refetchTypes)) {
+            if (isType && !fetchedInitialTypes.current) {
                 try {
                     let types;
                     if (isGraphql) {
