@@ -999,7 +999,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             key={index}
                             transform={`translate(0, ${(index + 1) * (NODE_HEIGHT + AGENT_NODE_TOOL_GAP) + AGENT_NODE_TOOL_SECTION_GAP
                                 })`}
-                            onClick={() => tool.type == "MCP Server" ? onToolClick(tool) : onImplementTool(tool)}
+                            onClick={() => onImplementTool(tool)}
                             onContextMenu={(e) => {
                                 if (!readOnly) {
                                     e.preventDefault();

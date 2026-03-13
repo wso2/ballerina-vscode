@@ -104,7 +104,6 @@ export function extractOriginalValues(node: FlowNode): {
     requiresAuth: boolean;
     result: string;
     toolKitName: string;
-    toolScopes: Record<string, string[]>;
 } {
     const serverUrl = (node.properties?.serverUrl?.value as string) || "";
     const auth = (node.properties?.auth?.value as string) || "";
@@ -114,27 +113,13 @@ export function extractOriginalValues(node: FlowNode): {
     const result = (node.properties?.variable?.value as string) || "";
     const toolKitName = (node.properties?.toolKitName?.value as string) || "";
 
-    let toolScopes: Record<string, string[]> = {};
-    const toolScopesValue = (node.properties?.toolScopes?.value as string) || "";
-    if (toolScopesValue) {
-        try {
-            const parsed = JSON.parse(toolScopesValue);
-            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-                toolScopes = parsed;
-            }
-        } catch {
-            // Invalid JSON, leave as empty
-        }
-    }
-
     return {
         serverUrl,
         auth,
         permittedTools,
         requiresAuth,
         result,
-        toolKitName,
-        toolScopes
+        toolKitName
     };
 }
 
