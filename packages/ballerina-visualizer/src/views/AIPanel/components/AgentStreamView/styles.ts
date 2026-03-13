@@ -58,7 +58,8 @@ export const EntryBlock = styled.div`
 `;
 
 // Left rail: fixed-width column that holds the dot and the vertical line.
-export const EntryRail = styled.div<{ isLast: boolean }>`
+// showLine: true when expanded (line fills items area) or when there is a next entry (stub connecting to next dot)
+export const EntryRail = styled.div<{ showLine: boolean }>`
     position: relative;
     display: flex;
     flex-direction: column;
@@ -68,10 +69,10 @@ export const EntryRail = styled.div<{ isLast: boolean }>`
 
     /* Vertical connector line — runs from the dot center to the bottom of the rail */
     &::before {
-        content: '';
+        content: ${(props: { showLine: boolean }) => props.showLine ? "''" : "none"};
         position: absolute;
         top: 12px;
-        bottom: ${(props: { isLast: boolean }) => props.isLast ? '6px' : '0'};
+        bottom: 0;
         left: 50%;
         transform: translateX(-50%);
         width: 1.5px;
