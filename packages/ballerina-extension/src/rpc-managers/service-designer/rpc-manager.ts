@@ -99,7 +99,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
     }
 
     async getListeners(params: ListenersRequest): Promise<ListenersResponse> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             const context = StateMachine.context();
             try {
                 const projectPath = path.join(StateMachine.context().projectPath);
@@ -110,12 +110,13 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 resolve(res);
             } catch (error) {
                 console.log(error);
+                reject(error);
             }
         });
     }
 
     async getListenerModel(params: ListenerModelRequest): Promise<ListenerModelResponse> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             const context = StateMachine.context();
             try {
                 if (params.filePath) {
@@ -125,12 +126,13 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 resolve(res);
             } catch (error) {
                 console.log(error);
+                reject(error);
             }
         });
     }
 
     async addListenerSourceCode(params: ListenerSourceCodeRequest): Promise<UpdatedArtifactsResponse> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             const context = StateMachine.context();
             try {
                 const projectPath = path.join(StateMachine.context().projectPath);
@@ -162,12 +164,13 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 }, 1000);
             } catch (error) {
                 console.log(error);
+                reject(error);
             }
         });
     }
 
     async updateListenerSourceCode(params: ListenerSourceCodeRequest): Promise<UpdatedArtifactsResponse> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             const context = StateMachine.context();
             try {
                 const projectPath = path.join(StateMachine.context().projectPath);
@@ -182,12 +185,13 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 resolve(result);
             } catch (error) {
                 console.log(error);
+                reject(error);
             }
         });
     }
 
     async getServiceModel(params: ServiceModelRequest): Promise<ServiceModelResponse> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             const context = StateMachine.context();
             try {
                 const projectPath = path.join(StateMachine.context().projectPath);
@@ -198,12 +202,13 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 resolve(res);
             } catch (error) {
                 console.log(error);
+                reject(error);
             }
         });
     }
 
     async addServiceSourceCode(params: ServiceSourceCodeRequest): Promise<UpdatedArtifactsResponse> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             const context = StateMachine.context();
             try {
                 const projectPath = path.join(StateMachine.context().projectPath);
@@ -237,12 +242,13 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 resolve(result);
             } catch (error) {
                 console.log(error);
+                reject(error);
             }
         });
     }
 
     async updateServiceSourceCode(params: ServiceSourceCodeRequest): Promise<UpdatedArtifactsResponse> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             const context = StateMachine.context();
             try {
                 const projectPath = path.join(StateMachine.context().projectPath);
@@ -270,6 +276,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 resolve(result);
             } catch (error) {
                 console.log(error);
+                reject(error);
             }
         });
     }
@@ -299,7 +306,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
     }
 
     async addResourceSourceCode(params: FunctionSourceCodeRequest): Promise<UpdatedArtifactsResponse> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             const context = StateMachine.context();
             try {
                 const projectPath = path.join(StateMachine.context().projectPath);
@@ -316,6 +323,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 resolve(result);
             } catch (error) {
                 console.log(error);
+                reject(error);
             }
         });
     }
@@ -423,7 +431,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
     }
 
     async getServiceInitModel(params: ServiceModelRequest): Promise<ServiceModelInitResponse> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             const context = StateMachine.context();
             try {
                 const projectDir = path.join(StateMachine.context().projectPath);
@@ -434,12 +442,13 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 resolve(res);
             } catch (error) {
                 console.log(error);
+                reject(error);
             }
         });
     }
 
     async createServiceAndListener(params: ServiceInitSourceRequest): Promise<UpdatedArtifactsResponse> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             const context = StateMachine.context();
             try {
                 const projectDir = path.join(StateMachine.context().projectPath);
@@ -477,6 +486,7 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
                 resolve(result);
             } catch (error) {
                 console.log(error);
+                reject(error);
             }
         });
     }
