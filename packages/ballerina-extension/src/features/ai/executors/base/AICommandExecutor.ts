@@ -71,6 +71,29 @@ export interface AICommandConfig<TParams = any> {
      * @param status    How the run ended: `'completed'`, `'aborted'`, or `'error'`.
      */
     onMessagesAvailable?: (messages: any[], status: 'completed' | 'aborted' | 'error') => void;
+
+    /**
+     * Optional per-execution tool configuration.
+     * Allows the caller to inject context-specific tool options without changing
+     * the base executor interface for every new feature.
+     */
+    toolOptions?: {
+        /** Absolute path to the original migration source project (Mule, Tibco, etc.). */
+        migrationSourcePath?: string;
+    };
+
+    /**
+     * Optional overrides for the agent loop limits.
+     * Defaults (for normal agent usage): maxSteps = 50, maxOutputTokens = 8192.
+     * Migration enhancement should use higher values because the agent needs to
+     * read source files, edit many large files, run diagnostics repeatedly, etc.
+     */
+    agentLimits?: {
+        /** Maximum number of LLM ↔ tool roundtrips before the agent stops. */
+        maxSteps?: number;
+        /** Maximum output tokens per LLM response. */
+        maxOutputTokens?: number;
+    };
 }
 
 /**

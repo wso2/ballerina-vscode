@@ -42,6 +42,12 @@ import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from './tools/
 import { LIBRARY_SEARCH_TOOL, getLibrarySearchTool } from './tools/library-search';
 import { createConfigCollectorTool, CONFIG_COLLECTOR_TOOL } from './tools/config-collector';
 import { createTestRunnerTool, TEST_RUNNER_TOOL_NAME } from './tools/test-runner';
+import {
+    createMigrationSourceListTool,
+    createMigrationSourceReadTool,
+    MIGRATION_SOURCE_LIST_TOOL,
+    MIGRATION_SOURCE_READ_TOOL,
+} from './tools/migration-source-reader';
 
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
@@ -52,10 +58,12 @@ export interface ToolRegistryOptions {
     workspaceId: string;
     generationId: string;
     threadId?: string;
+    /** Absolute path to the original migration source project (Mule, Tibco, etc.). */
+    migrationSourcePath?: string;
 }
 
 export function createToolRegistry(opts: ToolRegistryOptions) {
-    const { eventHandler, tempProjectPath, modifiedFiles, projects, generationType, workspaceId, generationId, threadId } = opts;
+    const { eventHandler, tempProjectPath, modifiedFiles, projects, generationType, workspaceId, generationId, threadId, migrationSourcePath } = opts;
     return {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(
             eventHandler,
@@ -103,5 +111,10 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         ),
         [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath, eventHandler),
         [TEST_RUNNER_TOOL_NAME]: createTestRunnerTool(tempProjectPath, eventHandler),
+        // Migration source tools — registered only when a source project path is available
+        ...(migrationSourcePath ? {
+            [MIGRATION_SOURCE_LIST_TOOL]: createMigrationSourceListTool(eventHandler, migrationSourcePath),
+            [MIGRATION_SOURCE_READ_TOOL]: createMigrationSourceReadTool(eventHandler, migrationSourcePath),
+        } : {}),
     };
 }

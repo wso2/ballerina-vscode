@@ -25,7 +25,7 @@ import { AgentExecutor } from "../agent/AgentExecutor";
 import { AICommandConfig } from "../executors/base/AICommandExecutor";
 import { createMigrationEventHandler, createVisualizerMigrationEventHandler } from "../utils/events";
 import { sendVisualizerMigrationNotification } from "../utils/ai-utils";
-import { getLightweightEnhancementPrompt, getWizardEnhancementPrompt } from "./prompts";
+import { getEnhancementStages } from "./prompts";
 import { saveAgentHistory, loadAgentHistory, clearAgentHistory } from "./history";
 import { chatStateStorage } from "../../../views/ai-panel/chatStateStorage";
 import {
@@ -363,43 +363,73 @@ export async function runMigrationAgent(): Promise<void> {
         return;
     }
 
-    // Read source path from toml so the agent knows where the original Mule source lives
+    // Read source path from toml — the agent will access source files on demand
+    // via migration_source_list / migration_source_read tools.
     const tomlData = readEnhanceToml(projectRoot);
     const sourcePath = tomlData?.sourcePath;
-    const sourceContext = sourcePath
-        ? `## Original Mule Source Directory\nThe original Mule project source is at: \`${sourcePath}\`\nAlways consult this directory for Mule XML configs, DataWeave scripts, and property files referenced in the enhancement instructions below.\n\n---\n\n`
-        : '';
-    const prompt = sourceContext + getWizardEnhancementPrompt();
+
+    const stages = getEnhancementStages();
+    const eventHandler = createMigrationEventHandler(Command.Agent);
 
     _migrationAbortController = new AbortController();
 
-    const config: AICommandConfig = {
-        executionContext: {
-            projectPath: projectRoot,
-            workspacePath: projectRoot,
-        },
-        eventHandler: createMigrationEventHandler(Command.Agent),
-        generationId: `migration-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        abortController: _migrationAbortController,
-        params: {
-            usecase: prompt,
-            fileAttachmentContents: [],
-            isPlanMode: false,
-        },
-        // No chat storage – migration runs are single-shot
-        chatStorage: undefined,
-        lifecycle: {
-            cleanupStrategy: "immediate",
-        },
-    };
-
-    console.log(`[MigrationEnhancement] Starting migration agent – mode: ${mode}, model: ${_selectedModelId}, sourcePath: ${sourcePath ?? 'none'}`);
+    console.log(`[MigrationEnhancement] Starting migration agent (${stages.length} stages) – mode: ${mode}, model: ${_selectedModelId}, sourcePath: ${sourcePath ?? 'none'}`);
 
     try {
-        await new AgentExecutor(config).run();
-        // Agent finished successfully – mark enhancement as complete
-        markEnhancementComplete();
-        console.log("[MigrationEnhancement] Migration agent completed successfully.");
+        for (let i = 0; i < stages.length; i++) {
+            const stage = stages[i];
+
+            if (_migrationAbortController.signal.aborted) {
+                console.log(`[MigrationEnhancement] Aborted before ${stage.name}`);
+                break;
+            }
+
+            eventHandler({
+                type: "content_block",
+                content: `\n\n---\n\n**Starting ${stage.name}** (${i + 1} of ${stages.length})\n\n`,
+            });
+
+            const stageGenId = `migration-stage${i + 1}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+            const config: AICommandConfig = {
+                executionContext: {
+                    projectPath: projectRoot,
+                    workspacePath: projectRoot,
+                },
+                eventHandler,
+                generationId: stageGenId,
+                abortController: _migrationAbortController,
+                params: {
+                    usecase: stage.prompt,
+                    fileAttachmentContents: [],
+                    isPlanMode: false,
+                },
+                chatStorage: undefined,
+                lifecycle: {
+                    cleanupStrategy: "immediate",
+                },
+                toolOptions: {
+                    migrationSourcePath: sourcePath,
+                },
+                agentLimits: stage.agentLimits,
+            };
+
+            console.log(`[MigrationEnhancement] Running ${stage.name} (maxSteps: ${stage.agentLimits.maxSteps})`);
+
+            await new AgentExecutor(config).run();
+
+            console.log(`[MigrationEnhancement] ${stage.name} completed.`);
+
+            eventHandler({
+                type: "content_block",
+                content: `\n\n**${stage.name} — Complete** ✅\n\n`,
+            });
+        }
+
+        if (!_migrationAbortController.signal.aborted) {
+            markEnhancementComplete();
+            console.log("[MigrationEnhancement] Migration agent completed all stages successfully.");
+        }
     } catch (error) {
         if (_migrationAbortController.signal.aborted) {
             console.log("[MigrationEnhancement] Migration agent was aborted by user.");
@@ -541,52 +571,88 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
         return;
     }
 
-    // Prepend the absolute Mule source path so the agent can locate original XML/DWL files
+    // The agent will access source files on demand via migration_source_list /
+    // migration_source_read tools, so no up-front loading is needed.
     const sourcePath = _wizardSourcePath;
-    const sourceContext = sourcePath
-        ? `## Original Mule Source Directory\nThe original Mule project source is at: \`${sourcePath}\`\nAlways consult this directory for Mule XML configs, DataWeave scripts, and property files referenced in the enhancement instructions below.\n\n---\n\n`
-        : '';
-    const prompt = sourceContext + getWizardEnhancementPrompt();
+
+    // --- Multi-stage execution ---
+    // Each stage runs in a fresh AgentExecutor with its own context window.
+    // Between stages the project files persist on disk (existingTempPath)
+    // and getProjectSource() re-reads them, so the next stage sees all
+    // changes made by the previous one.
+    const stages = getEnhancementStages();
 
     _migrationAbortController = new AbortController();
 
-    const config: AICommandConfig = {
-        executionContext: {
-            projectPath: projectRoot,
-            workspacePath: projectRoot,
-        },
-        eventHandler,
-        generationId: `wizard-migration-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        abortController: _migrationAbortController,
-        params: {
-            usecase: prompt,
-            fileAttachmentContents: [],
-            isPlanMode: false,
-        },
-        chatStorage: undefined,
-        onMessagesAvailable: (messages, status) => {
-            saveAgentHistory(projectRoot, messages, status);
-            console.log(`[MigrationEnhancement] Saved wizard agent history (${status}, ${messages.length} messages)`);
-        },
-        lifecycle: {
-            // Work directly on the wizard-created project (not a temp copy)
-            // so changes persist when the user opens it in VS Code.
-            existingTempPath: projectRoot,
-            // Don't delete the project directory after the agent finishes.
-            cleanupStrategy: "review",
-        },
-    };
-
-    console.log(`[MigrationEnhancement] Starting wizard migration agent – projectRoot: ${projectRoot}`);
+    console.log(`[MigrationEnhancement] Starting wizard migration agent (${stages.length} stages) – projectRoot: ${projectRoot}, sourcePath: ${sourcePath ?? 'none'}`);
 
     try {
-        await new AgentExecutor(config).run();
-        // Agent finished successfully – mark enhancement as complete in the toml
-        const data = readEnhanceToml(projectRoot);
-        if (data) {
-            writeEnhanceToml(projectRoot, data.mode, true, data.sourcePath);
+        for (let i = 0; i < stages.length; i++) {
+            const stage = stages[i];
+
+            // Check for abort between stages
+            if (_migrationAbortController.signal.aborted) {
+                console.log(`[MigrationEnhancement] Aborted before ${stage.name}`);
+                break;
+            }
+
+            // Notify the UI of stage progress
+            eventHandler({
+                type: "content_block",
+                content: `\n\n---\n\n**Starting ${stage.name}** (${i + 1} of ${stages.length})\n\n`,
+            });
+
+            const stageGenId = `wizard-migration-stage${i + 1}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+            const config: AICommandConfig = {
+                executionContext: {
+                    projectPath: projectRoot,
+                    workspacePath: projectRoot,
+                },
+                eventHandler,
+                generationId: stageGenId,
+                abortController: _migrationAbortController,
+                params: {
+                    usecase: stage.prompt,
+                    fileAttachmentContents: [],
+                    isPlanMode: false,
+                },
+                chatStorage: undefined,
+                onMessagesAvailable: (messages, status) => {
+                    saveAgentHistory(projectRoot, messages, status);
+                    console.log(`[MigrationEnhancement] Saved ${stage.name} history (${status}, ${messages.length} messages)`);
+                },
+                lifecycle: {
+                    existingTempPath: projectRoot,
+                    cleanupStrategy: "review",
+                },
+                toolOptions: {
+                    migrationSourcePath: sourcePath,
+                },
+                agentLimits: stage.agentLimits,
+            };
+
+            console.log(`[MigrationEnhancement] Running ${stage.name} (maxSteps: ${stage.agentLimits.maxSteps})`);
+
+            await new AgentExecutor(config).run();
+
+            console.log(`[MigrationEnhancement] ${stage.name} completed.`);
+
+            // Notify the UI of stage completion
+            eventHandler({
+                type: "content_block",
+                content: `\n\n**${stage.name} — Complete** ✅\n\n`,
+            });
         }
-        console.log("[MigrationEnhancement] Wizard migration agent completed successfully.");
+
+        // All stages finished — mark enhancement as complete in the toml
+        if (!_migrationAbortController.signal.aborted) {
+            const data = readEnhanceToml(projectRoot);
+            if (data) {
+                writeEnhanceToml(projectRoot, data.mode, true, data.sourcePath);
+            }
+            console.log("[MigrationEnhancement] Wizard migration agent completed all stages successfully.");
+        }
     } catch (error) {
         if (_migrationAbortController.signal.aborted) {
             console.log("[MigrationEnhancement] Wizard migration agent was aborted by user.");
