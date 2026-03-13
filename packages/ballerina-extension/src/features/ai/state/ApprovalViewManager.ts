@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { MACHINE_VIEW, EVENT_TYPE, VisualizerLocation, PopupVisualizerLocation, AgentMetadata, navigateReviewIndex, ReviewModeData } from '@wso2/ballerina-core';
+import { MACHINE_VIEW, EVENT_TYPE, VisualizerLocation, PopupVisualizerLocation, AgentMetadata, navigateReviewIndex, reviewModeOpened, reviewModeClosed, ReviewModeData } from '@wso2/ballerina-core';
 import { AiPanelWebview } from '../../../views/ai-panel/webview';
 import { VisualizerWebview } from '../../../views/visualizer/webview';
 import { openView as openMainView, StateMachine } from '../../../stateMachine';
@@ -231,6 +231,10 @@ export class ApprovalViewManager {
     }
 
     onVisualizerClosed(): void {
+        if (StateMachine.context().view === MACHINE_VIEW.ReviewMode) {
+            this.notifyReviewModeClosed();
+        }
+
         if (!this.hasActiveApprovals()) {
             return;
         }
@@ -339,6 +343,7 @@ export class ApprovalViewManager {
         if (!AiPanelWebview.currentPanel) { return; }
         this.cachedReviewData = data;
         openMainView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ReviewMode, reviewData: data });
+        RPCLayer._messenger.sendNotification(reviewModeOpened, { type: 'webview', webviewType: AiPanelWebview.viewType });
     }
 
     /**
@@ -348,7 +353,7 @@ export class ApprovalViewManager {
      */
     navigateReviewMode(index: number): void {
         if (!AiPanelWebview.currentPanel) { return; }
-        const isReviewModeOpen = StateMachine.context().view === MACHINE_VIEW.ReviewMode;
+        const isReviewModeOpen = StateMachine.context().view === MACHINE_VIEW.ReviewMode && !!VisualizerWebview.currentPanel;
         if (isReviewModeOpen) {
             RPCLayer._messenger.sendNotification(navigateReviewIndex, {
                 type: 'webview',
@@ -357,6 +362,14 @@ export class ApprovalViewManager {
         } else if (this.cachedReviewData) {
             openMainView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ReviewMode, reviewData: { ...this.cachedReviewData, currentIndex: index } });
         }
+    }
+
+    /**
+     * Notify the AI panel webview that ReviewMode has been closed.
+     */
+    notifyReviewModeClosed(): void {
+        if (!AiPanelWebview.currentPanel) { return; }
+        RPCLayer._messenger.sendNotification(reviewModeClosed, { type: 'webview', webviewType: AiPanelWebview.viewType });
     }
 
     /**

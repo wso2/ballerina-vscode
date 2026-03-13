@@ -60,6 +60,8 @@ import {
     onMigratedProject,
     refreshReviewMode,
     navigateReviewIndex,
+    reviewModeOpened,
+    reviewModeClosed,
     onHideReviewActions,
     approvalOverlayState,
     ApprovalOverlayState
@@ -289,6 +291,14 @@ export class BallerinaRpcClient {
 
     onNavigateReviewIndex(callback: (index: number) => void) {
         this.messenger.onNotification(navigateReviewIndex, callback);
+    }
+
+    onReviewModeOpened(callback: () => void) {
+        this.messenger.onNotification(reviewModeOpened, callback);
+    }
+
+    onReviewModeClosed(callback: () => void) {
+        this.messenger.onNotification(reviewModeClosed, callback);
     }
 
     onHideReviewActions(callback: () => void) {

@@ -67,8 +67,12 @@ export class VisualizerRpcManager implements VisualizerAPI {
     }
 
     goBack(params: GoBackRequest): void {
+        const wasReviewMode = StateMachine.context().view === MACHINE_VIEW.ReviewMode;
         history.pop();
         updateView(false, params?.identifier);
+        if (wasReviewMode) {
+            approvalViewManager.notifyReviewModeClosed();
+        }
     }
 
     async getHistory(): Promise<HistoryEntry[]> {
@@ -301,6 +305,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
 
     reviewAccepted(): void {
         approvalViewManager.clearReviewData();
+        approvalViewManager.notifyReviewModeClosed();
         const currentHistory = history.get();
         const currentEntry = currentHistory[currentHistory.length - 1];
 
