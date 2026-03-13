@@ -25,10 +25,10 @@ import {
 import React, { useEffect, type FC } from "react";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 import { useMutation } from "@tanstack/react-query";
-import { DevantConnectionFlow, DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { ConnectionConfigurationForm, ConnectionConfigurationFormProps } from "../ConnectionConfigurationPopup";
 import { DIRECTORY_MAP } from "@wso2/ballerina-core";
-import { generateInitialConnectionName, isValidDevantConnName } from "./utils";
+import { DevantConnectionFlow, generateInitialConnectionName, isValidDevantConnName } from "./utils";
 import { getInitialVisibility, getPossibleVisibilities } from "./DevantConnectorCreateForm";
 
 interface Props extends Omit<ConnectionConfigurationFormProps, "devantConfigs"> {
@@ -276,7 +276,7 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
             loading={isCreating}
             customValidator={(fieldKey, value) => {
                 if (fieldKey === "variable") {
-                    return isValidDevantConnName(value, existingDevantConnNames, biConnectionNames);
+                    return isValidDevantConnName(value, existingDevantConnNames, biConnectionNames, !!importedConnection);
                 }
                 return undefined;
             }}

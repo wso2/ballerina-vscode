@@ -136,15 +136,21 @@ export function getUsername(): string {
 /**
  * Validates the project path before creating a new project
  * @param projectPath - The directory path where the project will be created
- * @param projectName - The name of the project (used if createDirectory is true)
+ * @param projectName - The name of the project (used if createDirectory is true). For workspace projects, this contains the workspace name.
  * @param createDirectory - Whether a new directory will be created
+ * @param createAsWorkspace - Whether this is a workspace project creation
  * @returns Validation result with error message and field information if invalid
  */
-export function validateProjectPath(projectPath: string, projectName: string, createDirectory: boolean): { isValid: boolean; errorMessage?: string; errorField?: ValidateProjectFormErrorField } {
+export function validateProjectPath(projectPath: string, projectName: string, createDirectory: boolean, createAsWorkspace?: boolean): { isValid: boolean; errorMessage?: string; errorField?: ValidateProjectFormErrorField } {
     try {
         // Check if projectPath is provided and not empty
         if (!projectPath || projectPath.trim() === '') {
             return { isValid: false, errorMessage: 'Project path is required', errorField: ValidateProjectFormErrorField.PATH };
+        }
+
+        // For workspace projects, validate workspace name specifically
+        if (createAsWorkspace && createDirectory && (!projectName || projectName.trim() === '')) {
+            return { isValid: false, errorMessage: 'Workspace name is required', errorField: ValidateProjectFormErrorField.NAME };
         }
 
         // Check if the base directory exists

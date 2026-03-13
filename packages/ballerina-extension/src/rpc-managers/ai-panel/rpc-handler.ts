@@ -60,7 +60,6 @@ import {
     getSemanticDiff,
     getServiceNames,
     isCopilotSignedIn,
-    isPlanModeFeatureEnabled,
     isPlatformExtensionAvailable,
     isUserAuthenticated,
     isWorkspaceProject,
@@ -118,7 +117,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(addFilesToProject, (args: AddFilesToProjectRequest) => rpcManger.addFilesToProject(args));
     messenger.onRequest(isUserAuthenticated, () => rpcManger.isUserAuthenticated());
     messenger.onRequest(openAIPanel, (args: AIPanelPrompt) => rpcManger.openAIPanel(args));
-    messenger.onRequest(isPlanModeFeatureEnabled, () => rpcManger.isPlanModeFeatureEnabled());
     messenger.onRequest(getSemanticDiff, (args: SemanticDiffRequest) => rpcManger.getSemanticDiff(args));
     messenger.onRequest(getAffectedPackages, () => rpcManger.getAffectedPackages());
     messenger.onRequest(isWorkspaceProject, () => rpcManger.isWorkspaceProject());

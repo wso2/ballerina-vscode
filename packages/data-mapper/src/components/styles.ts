@@ -334,6 +334,7 @@ export const useIONodesStyles = () => ({
     }),
     payloadWidget: css({
         width: `${IO_NODE_DEFAULT_WIDTH}px`,
+        height: `${IO_NODE_FIELD_HEIGHT * 5}px`,
         border: "2.5px dashed var(--vscode-dropdown-border)",
         borderRadius: "6px",
         background: "var(--vscode-sideBar-background)",
@@ -347,22 +348,20 @@ export const useIONodesStyles = () => ({
             borderColor: "var(--vscode-focusBorder)"
         }
     }),
-    payloadWidgetMessage: css({
-        color: "var(--vscode-descriptionForeground)",
+    payloadNote: css({
         fontSize: "13px",
-        fontFamily: "GilmerRegular",
-        textAlign: "left",
-        width: "100%",
-        margin: "0 0 16px 0",
-        borderLeft: "3px solid var(--vscode-descriptionForeground)",
-        paddingLeft: "10px",
-        lineHeight: "1.5"
+        color: "var(--vscode-descriptionForeground)",
+        padding: "8px 10px",
+        backgroundColor: "var(--vscode-textBlockQuote-background)",
+        borderLeft: "3px solid var(--vscode-textBlockQuote-border)",
+        borderRadius: "0 4px 4px 0"
     }),
     payloadWidgetAction: css({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: "6px",
+        gap: "20px",
+        marginTop: "28px",
         color: "var(--vscode-descriptionForeground)"
     }),
     payloadWidgetActionLabel: css({

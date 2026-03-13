@@ -53,7 +53,7 @@ export async function prepareAndGenerateConfig(
             const packages = StateMachine.context().projectInfo?.children;
             const packageList = packages?.map((child) => child.projectPath) ?? [];
 
-            const selectedPackage = await selectPackageOrPrompt(packageList, "Select a package to run");
+            const selectedPackage = await selectPackageOrPrompt(packageList, "Select an integration to run");
             if (!selectedPackage) {
                 return;
             }
@@ -75,7 +75,7 @@ export async function prepareAndGenerateConfig(
                 );
             }
         } catch (error) {
-            console.error("Error selecting package:", error);
+            console.error("Error selecting integration:", error);
             return;
         }
     } else {

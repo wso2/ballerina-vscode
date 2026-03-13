@@ -23,9 +23,26 @@ import {
     ProjectScopeMapping
 } from "@wso2/ballerina-core";
 
-const INTEGRATION_API_MODULES = ["http", "graphql", "tcp"];
-const EVENT_INTEGRATION_MODULES = ["kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb"];
-const FILE_INTEGRATION_MODULES = ["ftp", "file"];
+const INTEGRATION_API_MODULES = [
+    "http",
+    "graphql",
+    "tcp"
+];
+const EVENT_INTEGRATION_MODULES = [
+    "kafka",
+    "rabbitmq",
+    "salesforce",
+    "trigger.github",
+    "mqtt",
+    "asb",
+    "mssql",
+    "mysql",
+    "postgresql"
+];
+const FILE_INTEGRATION_MODULES = [
+    "ftp",
+    "file"
+];
 const AI_AGENT_MODULE = "ai";
 
 export function findScopeByModule(moduleName: string): SCOPE {
@@ -79,15 +96,15 @@ export function getIntegrationTypes(projectStructure: ProjectStructure | undefin
 }
 
 /**
- * Builds a list of deployable integration scopes per project for a workspace.
+ * Builds a list of deployable integration scopes per integration for a project.
  *
- * @param workspaceStructure - Workspace structure containing the projects list.
- * @returns A list of project-to-scope mappings used for workspace-level deployment.
+ * @param projectCollection - Project collection containing the integrations list.
+ * @returns A list of integration-to-scope mappings used for project-level deployment.
  */
 export function getWorkspaceProjectScopes(
-    workspaceStructure: ProjectStructureResponse | undefined
+    projectCollection: ProjectStructureResponse | undefined
 ): ProjectScopeMapping[] {
-    if (!workspaceStructure || !workspaceStructure.projects) {
+    if (!projectCollection || !projectCollection.projects) {
         return [];
     }
 
@@ -103,7 +120,7 @@ export function getWorkspaceProjectScopes(
         return undefined;
     };
 
-    return workspaceStructure.projects
+    return projectCollection.projects
         .map(mapProjectToScope)
         .filter((scopeMapping): scopeMapping is ProjectScopeMapping => scopeMapping !== undefined);
 }

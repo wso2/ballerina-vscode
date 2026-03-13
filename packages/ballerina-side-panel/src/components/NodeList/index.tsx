@@ -358,6 +358,7 @@ interface NodeListProps {
     onLinkDevantProject?: () => void;
     onRefreshDevantConnections?: () => void;
     searchText?: string;
+    panelBodySx?: React.CSSProperties;
 }
 
 export function NodeList(props: NodeListProps) {
@@ -378,6 +379,7 @@ export function NodeList(props: NodeListProps) {
         onImportDevantConn,
         onLinkDevantProject,
         onRefreshDevantConnections,
+        panelBodySx
     } = props;
 
     const [searchText, setSearchText] = useState<string>("");
@@ -658,12 +660,12 @@ export function NodeList(props: NodeListProps) {
         const content = (
             <>
                 {reorderedGroups.map((group, index) => {
-                    // If subcategory is inside "Current Workspace", show "Current Integration" actions instead of 
-                    // the subcategory title when the subcategory referes to the current integration
-                    const categoryActions = parentCategoryTitle === "Current Workspace" ?  
-                       ( group.title?.includes("(current)") ? getCategoryActions("Current Integration") : getCategoryActions(group.title)) 
+                    // If subcategory is inside "Current Project" (or legacy "Current Workspace"),
+                    // show "Current Integration" actions when the subcategory refers to the current integration.
+                    const categoryActions = (parentCategoryTitle === "Current Project" || parentCategoryTitle === "Current Workspace") ?
+                       ( group.title?.includes("(current)") ? getCategoryActions("Current Integration", title) : getCategoryActions(group.title, title)) 
                     : 
-                    getCategoryActions(group.title);
+                    getCategoryActions(group.title, title);
                     const config = categoryConfig[group.title] || { hasBackground: true };
                     const shouldShowSeparator = config.showSeparatorBefore;
 
@@ -928,7 +930,7 @@ export function NodeList(props: NodeListProps) {
                 </S.PanelBody>
             )}
             {!showGeneratePanel && !isSearching && (
-                <S.PanelBody>
+                <S.PanelBody style={{ ...props.panelBodySx }}>
                     {getCategoryContainer(filteredCategories)}
                     {/* Show More Functions button - moved outside Logging category */}
                     {callFunctionNode && !searchText && (
@@ -952,7 +954,7 @@ export function NodeList(props: NodeListProps) {
                 </S.PanelBody>
             )}
             {showAiPanel && showGeneratePanel && (
-                <S.PanelBody>
+                <S.PanelBody style={{ ...props.panelBodySx }}>
                     <S.AiContainer>
                         <S.Title>Describe what you want you want to do</S.Title>
                         <TextArea
