@@ -425,6 +425,34 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 }
             }
 
+            // Set per-tool scopes on the node for the LS to generate @ai:AgentTool annotations
+            if (params.toolScopes && params.selectedTools.length > 0) {
+                // Filter to only include scopes for selected tools that have non-empty scope arrays
+                const filteredScopes: Record<string, string[]> = {};
+                for (const tool of params.selectedTools) {
+                    const scopes = params.toolScopes[tool];
+                    if (scopes && scopes.length > 0) {
+                        filteredScopes[tool] = scopes;
+                    }
+                }
+
+                if (Object.keys(filteredScopes).length > 0) {
+                    (params.updatedNode.properties as any)["toolScopes"] = {
+                        metadata: { label: "Tool Scopes" },
+                        valueType: "EXPRESSION",
+                        value: JSON.stringify(filteredScopes),
+                        optional: true,
+                        editable: true,
+                        advanced: true,
+                        hidden: true,
+                        codedata: {
+                            kind: "INCLUDED_FIELD",
+                            originalName: "toolScopes"
+                        }
+                    };
+                }
+            }
+
             // Use only the template node for generating text edits
             const mcpToolKitEdits = await StateMachine.langClient().getSourceCode({
                 filePath: connectionsFilePath,

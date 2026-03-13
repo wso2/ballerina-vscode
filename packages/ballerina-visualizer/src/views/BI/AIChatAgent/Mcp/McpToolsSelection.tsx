@@ -27,6 +27,8 @@ export interface McpTool {
     description?: string;
 }
 
+export type ToolScopes = Record<string, string[]>;
+
 // Utility function to clean up error messages
 const formatErrorMessage = (error: string): string => {
     if (!error) return error;
@@ -72,6 +74,8 @@ interface McpToolsSelectionProps {
     toolSource?: 'auto-fetched' | 'manual-discovery' | 'saved-mock' | null;
     resolutionError?: string;
     onRetryFetch?: () => void;
+    toolScopes?: ToolScopes;
+    onToolScopesChange?: (toolName: string, scopes: string[]) => void;
 }
 
 interface ToolsListProps {
@@ -81,6 +85,8 @@ interface ToolsListProps {
     onToolSelectionChange: (toolName: string, isSelected: boolean) => void;
     searchQuery?: string;
     maxHeight?: string;
+    toolScopes?: ToolScopes;
+    onToolScopesChange?: (toolName: string, scopes: string[]) => void;
 }
 
 const ToolsContainer = styled.div`
@@ -116,9 +122,10 @@ const ToolCheckboxContainer = styled.div<{ maxHeight?: string }>`
 const ToolCheckboxItem = styled.div<{ disabled?: boolean }>`
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     padding: 4px 0;
+    padding-right: 12px;
     cursor: ${(props: { disabled?: boolean }) => props.disabled ? 'default' : 'pointer'};
 `;
 export const ErrorMessage = styled.div<{ padding?: string; maxHeight?: string }>`
@@ -432,8 +439,12 @@ const ToolsList: React.FC<ToolsListProps> = ({
     loading,
     onToolSelectionChange,
     searchQuery = '',
-    maxHeight = '200px'
+    maxHeight = '200px',
+    toolScopes,
+    onToolScopesChange
 }) => {
+    const [expandedScopeTool, setExpandedScopeTool] = useState<string | null>(null);
+
     const filteredTools = useMemo(() => {
         if (!searchQuery.trim()) {
             return tools;
@@ -514,7 +525,9 @@ const ToolsSelectionModal: React.FC<{
     onToolSelectionChange: (toolName: string, isSelected: boolean) => void;
     onSelectAll: () => void;
     showValidationError?: boolean;
-}> = ({ isOpen, onClose, tools, selectedTools, loading, onToolSelectionChange, onSelectAll, showValidationError = false }) => {
+    toolScopes?: ToolScopes;
+    onToolScopesChange?: (toolName: string, scopes: string[]) => void;
+}> = ({ isOpen, onClose, tools, selectedTools, loading, onToolSelectionChange, onSelectAll, showValidationError = false, toolScopes, onToolScopesChange }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     if (!isOpen) return null;
@@ -567,6 +580,8 @@ const ToolsSelectionModal: React.FC<{
                         loading={loading}
                         onToolSelectionChange={onToolSelectionChange}
                         searchQuery={searchQuery}
+                        toolScopes={toolScopes}
+                        onToolScopesChange={onToolScopesChange}
                         maxHeight="50vh"
                     />
                 </ModalContent>
@@ -595,7 +610,9 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
     onDiscoverClick,
     resolutionError = "",
     toolSource = null,
-    onRetryFetch
+    onRetryFetch,
+    toolScopes,
+    onToolScopesChange
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const formattedError = useMemo(() => formatErrorMessage(error), [error]);
@@ -719,6 +736,8 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
                                 selectedTools={selectedTools}
                                 loading={loading}
                                 onToolSelectionChange={onToolSelectionChange}
+                                toolScopes={toolScopes}
+                                onToolScopesChange={onToolScopesChange}
                             />
                         </>
                     )}
@@ -744,6 +763,8 @@ export const McpToolsSelection: React.FC<McpToolsSelectionProps> = ({
                 onToolSelectionChange={onToolSelectionChange}
                 onSelectAll={onSelectAll}
                 showValidationError={showValidationError}
+                toolScopes={toolScopes}
+                onToolScopesChange={onToolScopesChange}
             />
         </>
     );
