@@ -1,0 +1,168 @@
+{
+  "description": "Test getting github service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerinax",
+  "pkgName": "trigger.github",
+  "moduleName": "trigger.github",
+  "response": {
+    "serviceInitModel": {
+      "id": "13",
+      "displayName": "GitHub Event Integration",
+      "description": "Create a service to handle events from GitHub",
+      "orgName": "ballerinax",
+      "packageName": "trigger.github",
+      "moduleName": "trigger.github",
+      "version": "0.10.0",
+      "type": "trigger.github",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_trigger.github_0.10.0.png",
+      "properties": {
+        "basePath": {
+          "metadata": {
+            "label": "Event Channel",
+            "description": "The event channel name"
+          },
+          "codedata": {
+            "argType": "SERVICE_TYPE_DESCRIPTOR"
+          },
+          "placeholder": "IssuesService",
+          "value": "IssuesService",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "github:GenericServiceType",
+              "options": [
+                {
+                  "label": "IssuesService",
+                  "value": "IssuesService"
+                },
+                {
+                  "label": "IssueCommentService",
+                  "value": "IssueCommentService"
+                },
+                {
+                  "label": "PullRequestService",
+                  "value": "PullRequestService"
+                },
+                {
+                  "label": "PullRequestReviewService",
+                  "value": "PullRequestReviewService"
+                },
+                {
+                  "label": "PullRequestReviewCommentService",
+                  "value": "PullRequestReviewCommentService"
+                },
+                {
+                  "label": "ReleaseService",
+                  "value": "ReleaseService"
+                },
+                {
+                  "label": "LabelService",
+                  "value": "LabelService"
+                },
+                {
+                  "label": "MilestoneService",
+                  "value": "MilestoneService"
+                },
+                {
+                  "label": "PushService",
+                  "value": "PushService"
+                },
+                {
+                  "label": "ProjectCardService",
+                  "value": "ProjectCardService"
+                }
+              ],
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenOn": {
+          "metadata": {
+            "label": "Listen On",
+            "description": "The port to listen on"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+          },
+          "placeholder": "0",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenerConfig": {
+          "metadata": {
+            "label": "Listener Config",
+            "description": "The listener configuration"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_INCLUDED_FIELD"
+          },
+          "placeholder": "{}",
+          "value": "{}",
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "github:ListenerConfig",
+              "typeMembers": [
+                {
+                  "type": "ListenerConfig",
+                  "packageInfo": "ballerinax:trigger.github:0.10.0",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "github:ListenerConfig",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenerVarName": {
+          "metadata": {
+            "label": "Listener Name",
+            "description": "Provide a name for the listener being created"
+          },
+          "codedata": {
+            "type": "LISTENER_VAR_NAME"
+          },
+          "value": "githubListener",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
+        }
+      }
+    }
+  }
+}
