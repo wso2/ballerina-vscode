@@ -29,6 +29,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - **Copilot & Agent Flow** — Fixed multi-turn chat state persistence, chat agent creation with listener support, config-collector placeholder handling, and login notification issues for default model provider configuration.
 - **Security** — Applied vulnerability and dependency security fixes across BI extension components.
 
+## [5.8.2](https://github.com/wso2/vscode-extensions/compare/ballerina-5.8.1...ballerina-5.8.2) - 2026-03-11
+
+### Fixed
+
+- **Model Updates** - Updated Haiku models to the 4.5 version for improved performance and capabilities.
+
 ## [5.8.1](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.7.0...ballerina-5.8.1) - 2026-02-25
 
 ### Fixed

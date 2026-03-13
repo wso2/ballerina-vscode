@@ -157,6 +157,12 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
         }
     };
 
+    const searchNodesKindMap: Record<string, string> = {
+        vectorStore: "VECTOR_STORE",
+        embeddingModel: "EMBEDDING_PROVIDER",
+        chunker: "CHUNKER",
+    };
+
     const initializeForm = async () => {
         const formProperties = getFormProperties(node);
         const fields = convertNodePropertiesToFormFields(formProperties);
@@ -165,13 +171,14 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
             const originalName = field?.codedata?.originalName;
             if (actionFields.includes(originalName)) {
                 field.type = "ACTION_EXPRESSION";
-                field.types = [{ fieldType: "ACTION_EXPRESSION", selected: false }];
+                field.types = [{ fieldType: "ACTION_EXPRESSION", selected: true }, { fieldType: "EXPRESSION", selected: false }];
                 field.advanced = false;
                 field.actionCallback = () => {
                     props.navigateToPanel?.(SidePanelView.CONNECTION_SELECT, getConnectionKind(originalName));
                 };
                 field.actionLabel = <><Codicon name="add" />{`Create New ${field?.label}`}</>;
                 field.imports = node?.properties?.type?.imports;
+                field.codedata = { ...field.codedata, searchNodesKind: searchNodesKindMap[originalName] };
             }
             if (originalName === "chunker") {
                 // hack: set default value for chunker field

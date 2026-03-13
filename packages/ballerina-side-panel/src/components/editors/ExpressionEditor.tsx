@@ -28,6 +28,7 @@ import {
     RequiredFormInput,
     ThemeColors
 } from '@wso2/ui-toolkit';
+import { LinkButton } from "@wso2/ui-toolkit/lib/components/LinkButton/LinkButton";
 import { buildRequiredRule, getPropertyFromFormField, isExpandableMode, sanitizeType, toEditorMode } from './utils';
 import { FormField, FormExpressionEditorProps, HelperpaneOnChangeOptions } from '../Form/types';
 import { useFormContext } from '../../context';
@@ -585,8 +586,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     <S.HeaderContainer>
                                         <S.LabelContainer>
                                             <S.Label>{field.label}</S.Label>
-                                            {(field.defaultValue && field.defaultValue?.trim() !== "()") && <S.DefaultValue style={{marginLeft: '8px'}}>{ `(Default: ${field.defaultValue}) `}</S.DefaultValue>}
-                                        {(required ?? !field.optional) && <RequiredFormInput />}
+                                            {(field.defaultValue && field.defaultValue?.trim() !== "()") && <S.DefaultValue style={{ marginLeft: '8px' }}>{`(Default: ${field.defaultValue}) `}</S.DefaultValue>}
+                                            {(required ?? !field.optional) && <RequiredFormInput />}
                                             {getPrimaryInputType(field.types)?.ballerinaType && (
                                                 <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
                                                     {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
@@ -773,8 +774,16 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 {error ?
                                     <ErrorBanner errorMsg={error.message.toString()} /> :
                                     formDiagnostics && formDiagnostics.length > 0 &&
-                                    <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+                                    <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join('\n')} />
                                 }
+                                {field.actionCallback && (
+                                    <LinkButton
+                                        onClick={field.actionCallback}
+                                        sx={{ padding: "4px 6px", margin: 0, marginTop: "6px", fontSize: "13px" }}
+                                    >
+                                        {field.actionLabel}
+                                    </LinkButton>
+                                )}
                                 {onOpenExpandedMode && toEditorMode(inputMode) && (
                                     <ExpandedEditor
                                         isOpen={isExpandedModalOpen}

@@ -23,9 +23,9 @@ import axios from 'axios';
 import { AuthCredentials, BIIntelSecrets, LoginMethod } from '@wso2/ballerina-core';
 import { IWso2PlatformExtensionAPI } from '@wso2/wso2-platform-core';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
+import { WI_EXTENSION_ID } from '../config';
 
 export const TOKEN_NOT_AVAILABLE_ERROR_MESSAGE = "Access token is not available.";
-export const PLATFORM_EXTENSION_ID = 'wso2.wso2-platform';
 export const TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL = "Token refresh is only supported for BI Intelligence authentication";
 export const AUTH_CREDENTIALS_SECRET_KEY = 'CopilotAuthCredentials';
 export const NO_AUTH_CREDENTIALS_FOUND = "No authentication credentials found.";
@@ -35,14 +35,14 @@ export const NO_AUTH_CREDENTIALS_FOUND = "No authentication credentials found.";
  * Returns undefined if the extension is not installed.
  */
 export const getPlatformExtensionAPI = async (): Promise<IWso2PlatformExtensionAPI | undefined> => {
-    const platformExt = vscode.extensions.getExtension(PLATFORM_EXTENSION_ID);
+    const platformExt = vscode.extensions.getExtension(WI_EXTENSION_ID);
     if (!platformExt) {
         return undefined;
     }
     if (!platformExt.isActive) {
         await platformExt.activate();
     }
-    return platformExt.exports as IWso2PlatformExtensionAPI;
+    return platformExt.exports?.cloudAPIs as IWso2PlatformExtensionAPI;
 };
 
 //TODO: What if user doesnt have github copilot.
@@ -144,7 +144,7 @@ async function copilotTokenExists() {
  * Check if the WSO2 Platform extension is installed
  */
 export const isPlatformExtensionAvailable = (): boolean => {
-    return !!vscode.extensions.getExtension(PLATFORM_EXTENSION_ID);
+    return !!vscode.extensions.getExtension(WI_EXTENSION_ID);
 };
 
 /**

@@ -453,6 +453,9 @@ export const DevantDatabaseCredentials: FC<Props> = (props) => {
 
             let credsToUse: Record<string, string>;
             if (params.mode === "devantDb") {
+                if(selectedMarketplaceItem?.resourceDetails?.status !== DatabaseRequestStatusEnum.Active) {
+                    throw new Error("Selected Devant database is not active. Please select an active database to proceed.");
+                }
                 const creds = await getCredentialsFromSelectedDb(selectedMarketplaceItem);
                 if (!creds) throw new Error("No Devant database selected");
                 credsToUse = dbCredentialsToFieldValues(connectorCredentials, creds);
