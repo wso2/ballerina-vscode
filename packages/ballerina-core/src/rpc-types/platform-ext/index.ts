@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, CreateLocalConnectionsConfigReq, CreateThirdPartyConnectionReq, CreateComponentConnectionReq, GetComponentsReq, ComponentKind, GetDatabaseServerReq, DatabaseAdminCredential, DatabaseServer, MarketplaceDatabaseListResp, DatabaseCredential, GetProjectEnvsReq, Environment, CreateDatabaseConnectionReq, GetDatabaseItemReq } from "@wso2/wso2-platform-core"
+import { GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, CreateLocalConnectionsConfigReq, CreateThirdPartyConnectionReq, CreateComponentConnectionReq, GetComponentsReq, ComponentKind, GetDatabaseServerReq, DatabaseAdminCredential, DatabaseServer, MarketplaceDatabaseListResp, DatabaseCredential, GetProjectEnvsReq, Environment, CreateDatabaseConnectionReq, GetDatabaseItemReq, ResolveConnectionSecretsReq, ResolveConnectionSecretsResp } from "@wso2/wso2-platform-core"
 import { DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, GenerateCustomConnectorFromOASResp, AddDevantTempConfigReq, AddDevantTempConfigResp, ReplaceDevantTempConfigValuesReq, RegisterDevantMarketplaceServiceReq, InitializeDevantOASConnectionReq, InitializeDevantOASConnectionResp } from "./interfaces";
 export * from "./rpc-type"
 export * from "./utils"
@@ -52,6 +52,7 @@ export interface PlatformExtAPI {
     getDevantConsoleUrl: () => Promise<string>;
     refreshConnectionList: () => Promise<void>;
     getProjectEnvs: (params: GetProjectEnvsReq) => Promise<Environment[]>;
+    resolveConnectionSecrets: (params: ResolveConnectionSecretsReq) => Promise<ResolveConnectionSecretsResp>;
     deployIntegrationInDevant: () => void;
     createConnectionConfig: (params: CreateLocalConnectionsConfigReq) => Promise<string>;
 }

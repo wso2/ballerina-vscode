@@ -648,6 +648,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 fetchService(serviceArtifact.position);
                 await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
                 setIsSaving(false);
+                setShowForm(false);
                 return;
             }
         }
