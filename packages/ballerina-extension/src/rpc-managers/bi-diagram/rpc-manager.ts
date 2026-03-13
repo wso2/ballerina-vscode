@@ -186,7 +186,8 @@ import {
     createBIAutomation,
     createBIFunction,
     createBIProjectPure,
-    createBIWorkspace,
+    createBIWorkspaceWithProject,
+    createEmptyBIWorkspace,
     deleteProjectFromWorkspace,
     openInVSCode
 , validateProjectPath } from "../../utils/bi";
@@ -683,8 +684,13 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async createProject(params: ProjectRequest): Promise<void> {
         if (params.createAsWorkspace) {
-            const workspaceRoot = await createBIWorkspace(params);
-            openInVSCode(workspaceRoot);
+            if (params.projectName) {
+                const workspaceRoot = await createBIWorkspaceWithProject(params);
+                openInVSCode(workspaceRoot);
+            } else {
+                const workspaceRoot = await createEmptyBIWorkspace(params);
+                openInVSCode(workspaceRoot);
+            }
         } else {
             const projectRoot = await createBIProjectPure(params);
             openInVSCode(projectRoot);
