@@ -19,7 +19,8 @@ import { RequiresAuthCheckbox } from "./Mcp/RequiresAuthCheckbox";
 import { attemptValueResolution, createMockTools, extractOriginalValues, generateToolKitName } from "./Mcp/utils";
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
-import { extractAccessToken, findAgentNodeFromAgentCallNode, getAgentFilePath, getEndOfFileLineRange, resolveVariableValue, resolveAuthConfig } from "./utils";
+import { extractAccessToken, findAgentNodeFromAgentCallNode, getEndOfFileLineRange, resolveVariableValue, resolveAuthConfig } from "./utils";
+import { URI, Utils } from "vscode-uri";
 
 interface Tool {
     name: string;
@@ -105,10 +106,6 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const initPanel = useCallback(async () => {
         setIsLoading(true);
 
-        agentFilePathRef.current = await getAgentFilePath(rpcClient);
-        const endLineRange = await getEndOfFileLineRange("agents.bal", rpcClient);
-        agentFileEndLineRangeRef.current = endLineRange;
-
         // Get project path URI
         const visualizerLocation = await rpcClient.getVisualizerLocation();
         projectPathUriRef.current = visualizerLocation.projectPath;
@@ -116,6 +113,10 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         const moduleNodes = await fetchModuleNodes();
 
         await fetchAgentNode();
+        agentFilePathRef.current = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [agentNodeRef.current?.codedata?.lineRange?.fileName] })).filePath;
+        const endLineRange = await getEndOfFileLineRange(agentNodeRef.current?.codedata?.lineRange?.fileName, rpcClient);
+        agentFileEndLineRangeRef.current = endLineRange;
+
         const template = await fetchMcpToolKitTemplate();
 
         mcpToolKitNodeTemplateRef.current = template;
