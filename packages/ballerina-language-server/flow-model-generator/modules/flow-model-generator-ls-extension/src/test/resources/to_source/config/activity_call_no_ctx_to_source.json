@@ -104,7 +104,7 @@
             "character": 24
           }
         },
-        "newText": "workflow:Context ctx, "
+        "newText": "workflow:Context ctx"
       }
     ]
   }

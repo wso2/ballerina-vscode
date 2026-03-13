@@ -41,6 +41,7 @@ public class ActivityBuilder extends FunctionDefinitionBuilder {
     public static final String ACTIVITY_LABEL = "Activity Name";
     public static final String ACTIVITY_DESCRIPTION = "Name of the activity function";
     public static final String ACTIVITY_ANNOTATION = "@workflow:Activity";
+    public static final String ACTIVITY_NAME = "activity";
 
     public Property getParamSchema() {
         return ActivityBuilder.ParameterSchemaHolder.PARAMETER_SCHEMA;
@@ -57,17 +58,17 @@ public class ActivityBuilder extends FunctionDefinitionBuilder {
 
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
-        properties().functionNameTemplate("", context.getAllVisibleSymbolNames(),
+        properties().functionNameTemplate(ACTIVITY_NAME, context.getAllVisibleSymbolNames(),
                 ACTIVITY_LABEL,
                 ACTIVITY_DESCRIPTION);
-        setMandatoryProperties(this, null, "", "");
+        setOptionalProperties(this, null, "", "");
         properties()
                 .endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, Property.PARAMETERS_KEY, PARAMETERS_LABEL,
                         PARAMETERS_DOC, getParamSchema(), true, false);
     }
 
-    public static void setMandatoryProperties(NodeBuilder nodeBuilder, String returnType, String description,
-                                              String returnDescription) {
+    public static void setOptionalProperties(NodeBuilder nodeBuilder, String returnType, String description,
+                                             String returnDescription) {
         nodeBuilder.properties()
                 .annotations(ACTIVITY_ANNOTATION)
                 .functionDescription(description)

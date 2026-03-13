@@ -1,17 +1,21 @@
 {
-  "source": "empty.bal",
-  "description": "Workflow process function template",
+  "source": "data_mapper/main.bal",
+  "position": {
+    "line": 14,
+    "offset": 0
+  },
+  "description": "Activity creation node template",
   "codedata": {
-    "node": "ACTIVITY"
+    "node": "ACTIVITY_CREATION"
   },
   "output": {
     "id": "31",
     "metadata": {
       "label": "Workflow Activity",
-      "description": "Define a workflow activity function"
+      "description": "Define and call a workflow activity"
     },
     "codedata": {
-      "node": "ACTIVITY",
+      "node": "ACTIVITY_CREATION",
       "org": "ballerina",
       "module": "workflow",
       "isNew": true
@@ -82,8 +86,8 @@
             "selected": true
           }
         ],
-        "value": "",
-        "optional": true,
+        "value": "anydata",
+        "optional": false,
         "editable": true,
         "advanced": false,
         "hidden": false
@@ -107,8 +111,8 @@
       },
       "parameters": {
         "metadata": {
-          "label": "Parameters",
-          "description": "Function parameters"
+          "label": "Inputs",
+          "description": "Input variables of the function"
         },
         "types": [
           {
@@ -141,16 +145,16 @@
                   "optional": false,
                   "editable": true,
                   "advanced": false,
-                  "hidden": false
+                  "hidden": true
                 },
                 "variable": {
                   "metadata": {
-                    "label": "Name",
-                    "description": "Name of the parameter"
+                    "label": "variable",
+                    "description": "Name of the variable"
                   },
                   "types": [
                     {
-                      "fieldType": "IDENTIFIER",
+                      "fieldType": "LV_EXPRESSION",
                       "selected": true
                     }
                   ],
@@ -170,8 +174,25 @@
           }
         ],
         "value": {},
-        "optional": true,
+        "optional": false,
         "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "activityResult",
+        "optional": false,
+        "editable": true,
         "advanced": false,
         "hidden": false
       }

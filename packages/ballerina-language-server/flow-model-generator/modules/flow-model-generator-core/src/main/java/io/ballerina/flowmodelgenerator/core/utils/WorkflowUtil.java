@@ -38,8 +38,8 @@ import io.ballerina.tools.text.TextRange;
 import java.util.List;
 import java.util.Optional;
 
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ACTIVITY_ANNOTATION;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ANNOTATION;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ACTIVITY;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
@@ -78,7 +78,7 @@ public class WorkflowUtil {
 
                 if (annotationName.isPresent() && moduleSymbol.isPresent()) {
                     String name = annotationName.get();
-                    if (WORKFLOW_ANNOTATION.equals(name) && isWorkflowModule(moduleSymbol)) {
+                    if (WORKFLOW.equals(name) && isWorkflowModule(moduleSymbol)) {
                         return true;
                     }
                 }
@@ -118,7 +118,7 @@ public class WorkflowUtil {
 
                 if (annotationName.isPresent() && moduleSymbol.isPresent()) {
                     String name = annotationName.get();
-                    if (ACTIVITY_ANNOTATION.equals(name) && isWorkflowModule(moduleSymbol)) {
+                    if (ACTIVITY.equals(name) && isWorkflowModule(moduleSymbol)) {
                         return true;
                     }
                 }

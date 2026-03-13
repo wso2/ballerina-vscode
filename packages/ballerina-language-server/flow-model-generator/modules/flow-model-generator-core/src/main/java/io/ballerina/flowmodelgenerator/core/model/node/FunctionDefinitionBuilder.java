@@ -21,12 +21,12 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 import com.google.gson.Gson;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
-import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -199,8 +199,8 @@ public class FunctionDefinitionBuilder extends NodeBuilder {
 
         // Generate text edits based on the line range. If a line range exists, update the signature of the existing
         // function. Otherwise, create a new function definition in "functions.bal".
-        LineRange lineRange = sourceBuilder.flowNode.codedata().lineRange();
-        if (lineRange == null) {
+        Codedata codedata = sourceBuilder.flowNode.codedata();
+        if (codedata.lineRange() == null || Boolean.TRUE.equals(codedata.isNew())) {
             sourceBuilder
                     .token()
                         .openBrace()

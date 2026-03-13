@@ -115,8 +115,8 @@ public class Constants {
         public static final String CALL_ACTIVITY_DESCRIPTION = "Call a workflow activity function";
         public static final String WAIT_DATA_LABEL = "Wait for Data";
         public static final String WAIT_DATA_DESCRIPTION = "Wait for workflow data to be received";
-        public static final String WORKFLOW_ANNOTATION = "Workflow";
-        public static final String ACTIVITY_ANNOTATION = "Activity";
+        public static final String WORKFLOW = "Workflow";
+        public static final String ACTIVITY = "Activity";
         public static final String DEFAULT_CTX_PARAM_NAME = "ctx";
         public static final String DEFAULT_EVENTS_PARAM_NAME = "events";
         public static final String DEFAULT_INPUT_PARAM_NAME = "input";

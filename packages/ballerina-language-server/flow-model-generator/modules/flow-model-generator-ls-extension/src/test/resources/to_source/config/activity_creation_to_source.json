@@ -1,0 +1,224 @@
+{
+  "source": "activity_creation/functions.bal",
+  "description": "Create a workflow activity and call it",
+  "diagram": {
+    "id": "1",
+    "metadata": {
+      "label": "Workflow Activity",
+      "description": "Define and call a workflow activity"
+    },
+    "codedata": {
+      "node": "ACTIVITY_CREATION",
+      "org": "ballerina",
+      "module": "workflow",
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 11,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 11,
+          "offset": 0
+        }
+      },
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Activity Name",
+          "description": "Name of the activity function"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "value": "processOrder",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "annotations": {
+        "metadata": {
+          "label": "Annotations",
+          "description": "Annotations of the function"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "@workflow:Activity",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "functionNameDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the function"
+        },
+        "valueType": "DOC_TEXT",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Output",
+          "description": "Output type of the activity"
+        },
+        "valueType": "TYPE",
+        "value": "string",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "typeDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the return value"
+        },
+        "valueType": "DOC_TEXT",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable Name",
+          "description": "Name of the variable"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "orderResult",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "parameters": {
+        "metadata": {
+          "label": "Inputs",
+          "description": "Input parameters of the activity"
+        },
+        "valueType": "REPEATABLE_PROPERTY",
+        "value": {
+          "orderId": {
+            "metadata": {
+              "label": "Parameter",
+              "description": "Function parameter"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "type": {
+                "metadata": {
+                  "label": "Type",
+                  "description": "Type of the parameter"
+                },
+                "valueType": "TYPE",
+                "valueTypeConstraint": "anydata",
+                "value": "string",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": true
+              },
+              "variable": {
+                "metadata": {
+                  "label": "variable",
+                  "description": "Name of the variable"
+                },
+                "valueType": "LV_EXPRESSION",
+                "value": "orderId",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "amount": {
+            "metadata": {
+              "label": "Parameter",
+              "description": "Function parameter"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "type": {
+                "metadata": {
+                  "label": "Type",
+                  "description": "Type of the parameter"
+                },
+                "valueType": "TYPE",
+                "valueTypeConstraint": "anydata",
+                "value": "int",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": true
+              },
+              "variable": {
+                "metadata": {
+                  "label": "variable",
+                  "description": "Name of the variable"
+                },
+                "valueType": "LV_EXPRESSION",
+                "value": "amount",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "activity_creation/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 11,
+            "character": 0
+          },
+          "end": {
+            "line": 11,
+            "character": 0
+          }
+        },
+        "newText": "\nstring orderResult = check ctx->callActivity(processOrder, {orderId: orderId, amount: amount});"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 13,
+            "character": 1
+          },
+          "end": {
+            "line": 13,
+            "character": 1
+          }
+        },
+        "newText": "@workflow:Activity\nfunction processOrder(string orderId, int amount) returns string {\n}"
+      }
+    ]
+  }
+}

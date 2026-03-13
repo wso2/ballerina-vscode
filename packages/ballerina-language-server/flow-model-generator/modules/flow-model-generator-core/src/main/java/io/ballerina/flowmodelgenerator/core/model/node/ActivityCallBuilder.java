@@ -24,6 +24,7 @@ import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
@@ -63,12 +64,10 @@ import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflow
  * @since 2.0.0
  */
 public class ActivityCallBuilder extends CallBuilder {
-
     public static final String LABEL = "Activity Call";
     public static final String DESCRIPTION = "Call a workflow activity function";
-
-    private static final String CALL_ACTIVITY_METHOD = "callActivity";
-    private static final String DEFAULT_RETURN_TYPE = "anydata";
+    public static final String CALL_ACTIVITY_METHOD = "callActivity";
+    public static final String DEFAULT_RETURN_TYPE = "anydata";
 
     @Override
     protected NodeKind getFunctionNodeKind() {
@@ -184,7 +183,7 @@ public class ActivityCallBuilder extends CallBuilder {
         return sourceBuilder.textEdit().build();
     }
 
-    private Optional<String> getContextParamName(FunctionDefinitionNode functionNode,
+    public static Optional<String> getContextParamName(FunctionDefinitionNode functionNode,
                                                               SemanticModel semanticModel) {
         SeparatedNodeList<ParameterNode> parameters = functionNode.functionSignature().parameters();
         if (parameters.isEmpty()) {
@@ -228,17 +227,21 @@ public class ActivityCallBuilder extends CallBuilder {
         return Optional.empty();
     }
 
-    private void addContextParameterToFunction(SourceBuilder sourceBuilder, FunctionDefinitionNode functionNode) {
-        LineRange closeParenLineRange = functionNode.functionSignature().openParenToken().lineRange();
+    public static void addContextParameterToFunction(SourceBuilder sourceBuilder,
+                                                      FunctionDefinitionNode functionNode) {
+        FunctionSignatureNode functionSignature = functionNode.functionSignature();
+        LineRange closeParenLineRange = functionSignature.openParenToken().lineRange();
         Range insertRange = CommonUtils.toRange(closeParenLineRange.endLine());
         sourceBuilder.token()
                 .name(WORKFLOW_MODULE)
                 .name(SyntaxKind.COLON_TOKEN.stringValue())
                 .name(CONTEXT_CLASS_NAME)
                 .whiteSpace()
-                .name(DEFAULT_CTX_PARAM_NAME)
-                .keyword(SyntaxKind.COMMA_TOKEN)
-                .skipFormatting().stepOut().textEdit(null, sourceBuilder.filePath, insertRange);
+                .name(DEFAULT_CTX_PARAM_NAME);
+        if (functionSignature.parameters().isEmpty()) {
+            sourceBuilder.token().keyword(SyntaxKind.COLON_TOKEN);
+        }
+        sourceBuilder.token().skipFormatting().stepOut().textEdit(null, sourceBuilder.filePath, insertRange);
     }
 
     /**
