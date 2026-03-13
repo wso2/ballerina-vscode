@@ -361,6 +361,7 @@ export class ApprovalViewManager {
             }, index);
         } else if (this.cachedReviewData) {
             openMainView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ReviewMode, reviewData: { ...this.cachedReviewData, currentIndex: index } });
+            RPCLayer._messenger.sendNotification(reviewModeOpened, { type: 'webview', webviewType: AiPanelWebview.viewType });
         }
     }
 
