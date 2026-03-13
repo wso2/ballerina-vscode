@@ -570,8 +570,13 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
         <Container>
             <TitleBarRow>
                 <Title>Changes ready to review</Title>
-                {isActive && !isReviewModeOpen && (
-                    <ReviewIconButton onClick={() => navigateReviewMode(0)} disabled={isProcessing} title="Open review mode">
+                {isActive && (
+                    <ReviewIconButton
+                        onClick={() => navigateReviewMode(0)}
+                        disabled={isProcessing || isReviewModeOpen}
+                        title="Open review mode"
+                        style={{ visibility: isReviewModeOpen ? "hidden" : "visible" }}
+                    >
                         <span className="codicon codicon-open-preview" style={{ fontSize: "12px" }} />
                         <span>Review</span>
                     </ReviewIconButton>
