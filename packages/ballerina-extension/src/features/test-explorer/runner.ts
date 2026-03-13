@@ -123,7 +123,8 @@ function buildTestCommand(test: TestItem, executor: string, projectName: string 
         if (projectPath) { ensureEvalReportsGitignored(projectPath); }
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
         const projectPart = projectName ? ` ${projectName}` : '';
-        return `${executor} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=tests/evaluation-reports${testsPart}${projectPart}`;
+        const reportDir = projectName ? `${projectName}/tests/evaluation-reports` : 'tests/evaluation-reports';
+        return `${executor} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=${reportDir}${testsPart}${projectPart}`;
     } else {
         // Standard tests use code coverage and optional test filtering
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
@@ -234,9 +235,9 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
 
                     endGroup(test, true, run);
                     try {
-                        const reportPath = await findLatestEvaluationReport(workingDirectory);
+                        const reportPath = await findLatestEvaluationReport(projectPath);
                         if (reportPath) {
-                            await postProcessEvaluationReport(reportPath, workingDirectory);
+                            await postProcessEvaluationReport(reportPath, projectPath);
                             await openEvaluationReport(reportPath);
                         }
                     } catch (error) {
@@ -257,9 +258,9 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                     testItems.forEach(item => run.failed(item, new TestMessage('Evaluation failed'), timeElapsed));
                     endGroup(test, false, run);
                     try {
-                        const reportPath = await findLatestEvaluationReport(workingDirectory);
+                        const reportPath = await findLatestEvaluationReport(projectPath);
                         if (reportPath) {
-                            await postProcessEvaluationReport(reportPath, workingDirectory);
+                            await postProcessEvaluationReport(reportPath, projectPath);
                             await openEvaluationReport(reportPath);
                         }
                     } catch (error) {
@@ -296,9 +297,9 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                     testItems.forEach(item => run.passed(item, timeElapsed));
                     endGroup(test, true, run);
                     try {
-                        const reportPath = await findLatestEvaluationReport(workingDirectory);
+                        const reportPath = await findLatestEvaluationReport(projectPath);
                         if (reportPath) {
-                            await postProcessEvaluationReport(reportPath, workingDirectory);
+                            await postProcessEvaluationReport(reportPath, projectPath);
                             await openEvaluationReport(reportPath);
                         }
                     } catch (error) {
@@ -319,9 +320,9 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                     testItems.forEach(item => run.failed(item, new TestMessage('Evaluation failed'), timeElapsed));
                     endGroup(test, false, run);
                     try {
-                        const reportPath = await findLatestEvaluationReport(workingDirectory);
+                        const reportPath = await findLatestEvaluationReport(projectPath);
                         if (reportPath) {
-                            await postProcessEvaluationReport(reportPath, workingDirectory);
+                            await postProcessEvaluationReport(reportPath, projectPath);
                             await openEvaluationReport(reportPath);
                         }
                     } catch (error) {
@@ -359,9 +360,9 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                     run.passed(test, timeElapsed);
                     endGroup(test, true, run);
                     try {
-                        const reportPath = await findLatestEvaluationReport(workingDirectory);
+                        const reportPath = await findLatestEvaluationReport(projectPath);
                         if (reportPath) {
-                            await postProcessEvaluationReport(reportPath, workingDirectory);
+                            await postProcessEvaluationReport(reportPath, projectPath);
                             await openEvaluationReport(reportPath);
                         }
                     } catch (error) {
@@ -382,9 +383,9 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                     run.failed(test, new TestMessage('Evaluation failed'), timeElapsed);
                     endGroup(test, false, run);
                     try {
-                        const reportPath = await findLatestEvaluationReport(workingDirectory);
+                        const reportPath = await findLatestEvaluationReport(projectPath);
                         if (reportPath) {
-                            await postProcessEvaluationReport(reportPath, workingDirectory);
+                            await postProcessEvaluationReport(reportPath, projectPath);
                             await openEvaluationReport(reportPath);
                         }
                     } catch (error) {
