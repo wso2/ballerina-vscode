@@ -42,6 +42,7 @@ public class FunctionData {
     private final boolean returnError;
     private final boolean inferredReturnType;
     private final String importStatements;
+    private boolean agentToolCompatible;
     private Map<String, ParameterData> parameters;
     private String packageId;
     private ReturnTypeData returnTypeData;
@@ -74,6 +75,10 @@ public class FunctionData {
 
     public void setReturnTypeData(ReturnTypeData returnTypeData) {
         this.returnTypeData = returnTypeData;
+    }
+
+    public void setAgentToolCompatible(boolean agentToolCompatible) {
+        this.agentToolCompatible = agentToolCompatible;
     }
 
     // Getters
@@ -141,6 +146,10 @@ public class FunctionData {
         return returnTypeData;
     }
 
+    public boolean agentToolCompatible() {
+        return agentToolCompatible;
+    }
+    
     public enum Kind {
         FUNCTION,
         CONNECTOR,
