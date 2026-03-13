@@ -76,6 +76,7 @@ export interface DataMapperEditorProps {
     deleteSubMapping: (index: number, viewId: string) => Promise<void>;
     mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
+    resolveOutput: () => Promise<void>;
     goToFunction: (functionRange: LineRange) => Promise<void>;
     enrichChildFields: (parentField: IOType) => Promise<void>;
     onRefresh: () => Promise<void>;

@@ -15,9 +15,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React from "react";
+import React, { useState } from "react";
 
-import { Button, Codicon, Divider, Icon, Tooltip } from "@wso2/ui-toolkit";
+import { Button, Codicon, Divider, Icon, ProgressRing, Tooltip } from "@wso2/ui-toolkit";
 
 import { useStyles } from "./style";
 
@@ -26,34 +26,51 @@ interface Props {
     children: React.ReactNode;
     diagnostic: string;
     value?: string
-    onClick?: () => void;
+    actionText?: string;
+    onClick?: () => void | Promise<void>;
 }
 
 export const DiagnosticTooltipID = "data-mapper-diagnostic-tooltip";
 
 export function DiagnosticTooltip(props: Partial<Props>) {
-    const { diagnostic, value, children, onClick } = props;
+    const { diagnostic, value, actionText, children, onClick } = props;
     const classes = useStyles();
+    const [inProgress, setInProgress] = useState(false);
+
+    const handleOnClick = async () => {
+        setInProgress(true);
+        await onClick();
+        setInProgress(false);
+    };
 
     const Code = () => (
         <>
             <Divider />
             <div className={classes.source}>
-                <code
-                    data-lang="typescript"
-                    className={classes.code}
-                >
-                    {value.trim()}
-                </code>
-                <Button
-                    appearance="icon"
-                    className={classes.editButton}
-                    aria-label="edit"
-                    onClick={onClick}
-                >
-                    <Codicon name="tools" sx={{ marginRight: "8px" }} />
-                    <span className={classes.editButtonText}>Fix by editing source</span>
-                </Button>
+                {value && (
+                    <code
+                        data-lang="typescript"
+                        className={classes.code}
+                    >
+                        {value.trim()}
+                    </code>
+                )}
+                {onClick && (
+                    <Button
+                        appearance="icon"
+                        className={classes.editButton}
+                        aria-label="edit"
+                        onClick={handleOnClick}
+                        disabled={inProgress}
+                    >
+                        {inProgress ? (
+                            <ProgressRing sx={{ width: 14, height: 14, marginRight: "8px" }} />
+                        ) : (
+                            <Codicon name="tools" sx={{ marginRight: "8px" }} />
+                        )}
+                        <span className={classes.editButtonText}>{actionText || "Fix by editing source"}</span>
+                    </Button>
+                )}
             </div>
         </>
 
@@ -61,14 +78,11 @@ export function DiagnosticTooltip(props: Partial<Props>) {
 
     const DiagnosticC = () => (
         <>
-            <Button
-                appearance="icon"
-                className={classes.editButton}
-                aria-label="edit"
-                onClick={onClick}
-            >
-                <Icon name="error-icon" iconSx={{ color: "var(--vscode-errorForeground)" }} />
-            </Button>
+            <Icon
+                name="error-icon"
+                sx={{ marginTop: "10px", marginBottom: "3px" }}
+                iconSx={{ color: "var(--vscode-errorForeground)" }}
+            />
             <div className={classes.diagnosticWrapper}>{diagnostic}</div>
         </>
 
@@ -77,7 +91,7 @@ export function DiagnosticTooltip(props: Partial<Props>) {
     const tooltipTitleComponent = (
         <pre className={classes.pre}>
             {diagnostic && <DiagnosticC />}
-            {value && <Code />}
+            <Code />
         </pre>
     );
 
