@@ -276,7 +276,7 @@ export function ReviewMode(): JSX.Element {
                 });
             }
 
-            let hasTypeView = false;
+            const seenTypeViews = new Set<string>();
             for (const diff of semanticDiffs) {
                 let belongsToPackage = tempDirPath;
                 let packageName: string | undefined;
@@ -293,8 +293,8 @@ export function ReviewMode(): JSX.Element {
                 }
                 const diagramType = getDiagramType(diff.nodeKind);
                 if (diagramType === DiagramType.TYPE) {
-                    if (hasTypeView) continue;
-                    hasTypeView = true;
+                    if (seenTypeViews.has(belongsToPackage)) continue;
+                    seenTypeViews.add(belongsToPackage);
                 }
                 allViews.push(convertToReviewView(diff, belongsToPackage, packageName));
             }
