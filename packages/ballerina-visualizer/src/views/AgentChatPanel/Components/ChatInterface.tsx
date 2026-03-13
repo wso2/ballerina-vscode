@@ -25,6 +25,7 @@ import LoadingIndicator from "./LoadingIndicator";
 import { ExecutionTimeline } from "./ExecutionTimeline";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Icon, Button, ThemeColors } from "@wso2/ui-toolkit";
+import { SessionInfoResponse } from "@wso2/ballerina-core";
 import ReactMarkdown from "react-markdown";
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
@@ -230,6 +231,76 @@ const ClearChatButton = styled.button`
     }
 `;
 
+// ---------- INFO POPOVER ----------
+const InfoButtonWrapper = styled.div`
+    position: relative;
+`;
+
+const InfoPopover = styled.div`
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    width: 320px;
+    max-width: 320px;
+    background-color: var(--vscode-editorWidget-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    padding: 12px;
+`;
+
+const InfoRow = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 0;
+
+    &:not(:last-child) {
+        border-bottom: 1px solid var(--vscode-panel-border);
+    }
+`;
+
+const InfoLabel = styled.span`
+    color: var(--vscode-descriptionForeground);
+    font-size: 12px;
+    font-weight: 600;
+`;
+
+const InfoValueRow = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+`;
+
+const InfoValue = styled.span`
+    color: var(--vscode-foreground);
+    font-family: var(--vscode-editor-font-family);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1;
+`;
+
+const CopyButton = styled.button`
+    background: none;
+    border: none;
+    color: var(--vscode-descriptionForeground);
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    border-radius: 3px;
+
+    &:hover {
+        color: var(--vscode-foreground);
+        background-color: var(--vscode-list-hoverBackground);
+    }
+`;
+
 // ---------- WARNING POPUP ----------
 const ModalBackdrop = styled.div({
     position: 'fixed',
@@ -333,8 +404,12 @@ const ChatInterface: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isTracingEnabled, setIsTracingEnabled] = useState(false);
     const [showClearWarning, setShowClearWarning] = useState(false);
+    const [showInfoPopover, setShowInfoPopover] = useState(false);
+    const [sessionInfo, setSessionInfo] = useState<SessionInfoResponse | null>(null);
+    const [copiedField, setCopiedField] = useState<string | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const infoPopoverRef = useRef<HTMLDivElement>(null);
 
     // Check if we have any traces (to enable/disable Session Traces button)
     const hasTraces = messages.some(msg => !msg.isUser && msg.traceId);
@@ -381,6 +456,44 @@ const ChatInterface: React.FC = () => {
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
+
+    // Close info popover on outside click
+    useEffect(() => {
+        if (!showInfoPopover) return;
+        const handleClickOutside = (e: MouseEvent) => {
+            if (infoPopoverRef.current && !infoPopoverRef.current.contains(e.target as Node)) {
+                setShowInfoPopover(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showInfoPopover]);
+
+    const handleToggleInfo = async () => {
+        if (showInfoPopover) {
+            setShowInfoPopover(false);
+            return;
+        }
+        try {
+            const info = await rpcClient.getAgentChatRpcClient().getSessionInfo();
+            setSessionInfo(info);
+            setShowInfoPopover(true);
+        } catch (error) {
+            console.error('Failed to get session info:', error);
+            setSessionInfo(null);
+            setShowInfoPopover(false);
+        }
+    };
+
+    const handleCopy = async (field: string, value: string) => {
+        try {
+            await navigator.clipboard.writeText(value);
+            setCopiedField(field);
+            setTimeout(() => setCopiedField(null), 1500);
+        } catch (error) {
+            console.error('Failed to copy to clipboard:', error);
+        }
+    };
 
     const handleSendMessage = async (text: string) => {
         if (!text.trim()) return;
@@ -472,6 +585,9 @@ const ChatInterface: React.FC = () => {
             await rpcClient.getAgentChatRpcClient().clearChatHistory();
             // Clear the messages in the UI
             setMessages([]);
+            // Invalidate cached session info and popover
+            setSessionInfo(null);
+            setShowInfoPopover(false);
             // Close the warning popup
             setShowClearWarning(false);
         } catch (error) {
@@ -505,22 +621,54 @@ const ChatInterface: React.FC = () => {
 
     return (
         <ChatWrapper>
-            {messages.length > 0 && (
-                <ChatHeader>
-                    <div>
+            <ChatHeader>
+                <InfoButtonWrapper ref={infoPopoverRef}>
+                    <ClearChatButton onClick={handleToggleInfo} title="Session info">
+                        <Icon name="bi-info" sx={{ fontSize: 16, width: 16, height: 16 }} iconSx={{ fontSize: "16px" }} />
+                    </ClearChatButton>
+                    {showInfoPopover && sessionInfo && (
+                        <InfoPopover>
+                            <InfoRow>
+                                <InfoLabel>Session ID</InfoLabel>
+                                <InfoValueRow>
+                                    <InfoValue title={sessionInfo.sessionId}>{sessionInfo.sessionId}</InfoValue>
+                                    <CopyButton onClick={() => handleCopy('sessionId', sessionInfo.sessionId)} title="Copy session ID">
+                                        <span className={`codicon codicon-${copiedField === 'sessionId' ? 'check' : 'copy'}`} style={{ fontSize: 14 }} />
+                                    </CopyButton>
+                                </InfoValueRow>
+                            </InfoRow>
+                            <InfoRow>
+                                <InfoLabel>Chat Endpoint</InfoLabel>
+                                <InfoValueRow>
+                                    <InfoValue title={sessionInfo.chatEndpoint}>{sessionInfo.chatEndpoint}</InfoValue>
+                                    <CopyButton onClick={() => handleCopy('chatEndpoint', sessionInfo.chatEndpoint)} title="Copy chat endpoint">
+                                        <span className={`codicon codicon-${copiedField === 'chatEndpoint' ? 'check' : 'copy'}`} style={{ fontSize: 14 }} />
+                                    </CopyButton>
+                                </InfoValueRow>
+                            </InfoRow>
+                            <InfoRow>
+                                <InfoLabel>Tracing</InfoLabel>
+                                <InfoValue>{isTracingEnabled ? "Enabled" : "Disabled"}</InfoValue>
+                            </InfoRow>
+                        </InfoPopover>
+                    )}
+                </InfoButtonWrapper>
+                <div style={{ flex: 1 }} />
+                {messages.length > 0 && (
+                    <>
                         {isTracingEnabled && hasTraces && (
                             <ClearChatButton onClick={handleShowSessionLogs} disabled={isLoading} title="View traces for the entire conversation">
                                 <span className="codicon codicon-list-tree" />
                                 Session Traces
                             </ClearChatButton>
                         )}
-                    </div>
-                    <ClearChatButton onClick={handleClearChat} disabled={isLoading}>
-                        <Icon name="bi-delete" sx={{ fontSize: 16, width: 16, height: 16 }} iconSx={{ fontSize: "16px" }} />
-                        Clear Chat
-                    </ClearChatButton>
-                </ChatHeader>
-            )}
+                        <ClearChatButton onClick={handleClearChat} disabled={isLoading}>
+                            <Icon name="bi-delete" sx={{ fontSize: 16, width: 16, height: 16 }} iconSx={{ fontSize: "16px" }} />
+                            Clear Chat
+                        </ClearChatButton>
+                    </>
+                )}
+            </ChatHeader>
             <ChatContainer>
                 {messages.length === 0 && (
                     <Watermark>

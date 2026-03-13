@@ -78,7 +78,7 @@ import { cloneDeep, debounce } from "lodash";
 import { ConnectionKind } from "../../../components/ConnectionSelector";
 import {
     findFlowNodeByModuleVarName,
-    getAgentFilePath,
+
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
 import { DiagramSkeleton } from "../../../components/Skeletons";
@@ -2660,7 +2660,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOnGoToTool = async (tool: ToolData, _node: FlowNode) => {
         setShowProgressIndicator(true);
-        const agentFilePath = await getAgentFilePath(rpcClient);
         // get project components to find the function
         const projectComponents = await rpcClient.getBIDiagramRpcClient().getProjectComponents();
         if (!projectComponents || !projectComponents.components) {
@@ -2675,7 +2674,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
         setShowProgressIndicator(false);
         handleOpenView({
-            documentUri: agentFilePath,
+            documentUri: functionInfo.filePath,
             position: {
                 startLine: functionInfo.startLine,
                 startColumn: functionInfo.startColumn,

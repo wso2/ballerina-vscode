@@ -27,7 +27,8 @@ import {
     ChatHistoryResponse,
     AgentStatusResponse,
     ClearChatResponse,
-    SessionInput
+    SessionInput,
+    SessionInfoResponse
 } from "@wso2/ballerina-core";
 import * as vscode from 'vscode';
 import { extension } from '../../BalExtensionContext';
@@ -495,5 +496,12 @@ export class AgentChatRpcManager implements AgentChatAPI {
                 isRunning
             });
         });
+    }
+
+    async getSessionInfo(): Promise<SessionInfoResponse> {
+        return {
+            sessionId: extension.agentChatContext?.chatSessionId || '',
+            chatEndpoint: extension.agentChatContext?.chatEp || '',
+        };
     }
 }

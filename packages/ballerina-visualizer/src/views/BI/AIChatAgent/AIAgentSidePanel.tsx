@@ -47,6 +47,7 @@ import {
     convertBICategoriesToSidePanelCategories,
     convertConfig,
     convertFunctionCategoriesToSidePanelCategories,
+    convertNodePropertyToFormField,
     filterToolInputSymbolDiagnostics,
 } from "../../../utils/bi";
 import FormGeneratorNew from "../Forms/FormGeneratorNew";
@@ -92,12 +93,112 @@ const ImplementationDescription = styled.span`
     color: var(--vscode-list-deemphasizedForeground)
 `;
 
+export const OAUTH_CLIENT_CONFIG_PROPERTIES: { key: string; property: Property }[] = [
+    {
+        key: "baseAuthUrl",
+        property: {
+            metadata: {
+                label: "Authorization Server Base URL",
+                description: "The base URL of the Authorization Server used to resolve OAuth 2.0 endpoints such as authorization, token, and introspection.",
+            },
+            types: [
+                { fieldType: "TEXT", ballerinaType: "string", selected: true },
+                { fieldType: "EXPRESSION", ballerinaType: "string", selected: false },
+            ],
+            optional: true,
+            editable: true,
+            advanced: true,
+            hidden: false,
+            codedata: { kind: "INCLUDED_FIELD", originalName: "baseAuthUrl" },
+            value: "",
+        },
+    },
+    {
+        key: "clientId",
+        property: {
+            metadata: {
+                label: "Client ID",
+                description: "The OAuth 2.0 client identifier issued to this client application.",
+            },
+            types: [
+                { fieldType: "TEXT", ballerinaType: "string", selected: true },
+                { fieldType: "EXPRESSION", ballerinaType: "string", selected: false },
+            ],
+            optional: true,
+            editable: true,
+            advanced: true,
+            hidden: false,
+            codedata: { kind: "INCLUDED_FIELD", originalName: "clientId" },
+            value: "",
+        },
+    },
+    {
+        key: "redirectUri",
+        property: {
+            metadata: {
+                label: "Redirect URI",
+                description: "The redirect URI registered for the OAuth client and used in the Authorization Code flow.",
+            },
+            types: [
+                { fieldType: "TEXT", ballerinaType: "string", selected: true },
+                { fieldType: "EXPRESSION", ballerinaType: "string", selected: false },
+            ],
+            optional: true,
+            editable: true,
+            advanced: true,
+            hidden: false,
+            codedata: { kind: "INCLUDED_FIELD", originalName: "redirectUri" },
+            value: "",
+        },
+    },
+    {
+        key: "scopes",
+        property: {
+            metadata: {
+                label: "Required Scopes",
+                description: "Scopes required to invoke this tool.",
+            },
+            types: [
+                { fieldType: "TEXT_SET", ballerinaType: "string|string[]", selected: true },
+                { fieldType: "EXPRESSION", ballerinaType: "string|string[]", selected: false },
+            ],
+            optional: true,
+            editable: true,
+            advanced: true,
+            hidden: false,
+            codedata: { kind: "INCLUDED_FIELD", originalName: "scopes" },
+            value: "",
+        },
+    },
+    {
+        key: "isPkceEnabled",
+        property: {
+            metadata: {
+                label: "Enable PKCE",
+                description: "Indicates whether PKCE (Proof Key for Code Exchange) is enabled for the Authorization Code flow.",
+            },
+            types: [
+                { fieldType: "FLAG", ballerinaType: "boolean", selected: true },
+                { fieldType: "EXPRESSION", ballerinaType: "boolean", selected: false },
+            ],
+            optional: true,
+            editable: true,
+            advanced: true,
+            hidden: false,
+            codedata: { kind: "INCLUDED_FIELD", originalName: "isPkceEnabled" },
+            defaultValue: "false",
+            value: "",
+        },
+    },
+];
+
 export enum SidePanelView {
     NODE_LIST = "NODE_LIST",
     TOOL_FORM = "TOOL_FORM",
 }
 
 export interface BIFlowDiagramProps {
+    agentNode: FlowNode;
     projectPath: string;
     onSubmit: (data: ExtendedAgentToolRequest) => void;
     mode?: NewToolSelectionMode;
@@ -137,7 +238,7 @@ const INITIAL_FIELDS: FormField[] = [
 ];
 
 export function AIAgentSidePanel(props: BIFlowDiagramProps) {
-    const { projectPath, onSubmit, mode = NewToolSelectionMode.ALL, onViewChange, onAgentToolCreated, onCancel } = props;
+    const { agentNode, projectPath, onSubmit, mode = NewToolSelectionMode.ALL, onViewChange, onAgentToolCreated, onCancel } = props;
     const { rpcClient } = useRpcContext();
 
     const [sidePanelView, setSidePanelView] = useState<SidePanelView>(SidePanelView.NODE_LIST);
@@ -154,7 +255,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const targetRef = useRef<LineRange>({ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } });
     const initialCategoriesRef = useRef<PanelCategory[]>([]);
     const selectedNodeRef = useRef<AvailableNode>(undefined);
-    const agentFilePath = useRef<string>(Utils.joinPath(URI.file(projectPath), "agents.bal").fsPath);
+    const agentFilePath = useRef<string>(Utils.joinPath(URI.file(projectPath), agentNode?.codedata?.lineRange?.fileName || "agents.bal").fsPath);
     const functionFilePath = useRef<string>(Utils.joinPath(URI.file(projectPath), "functions.bal").fsPath);
     const parameterFieldsRef = useRef<ToolParameterItem[]>([]);
 
@@ -387,12 +488,16 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             }
 
             const templateDescription = functionNodeTemplate.flowNode?.metadata?.description || "";
+            const oauthFields = OAUTH_CLIENT_CONFIG_PROPERTIES.map(({ key, property }) =>
+                convertNodePropertyToFormField(key, property)
+            );
             setFields((prevFields) => [
                 ...prevFields.map((field) =>
                     field.key === "description" ? { ...field, value: templateDescription } : field
                 ),
                 ...toolInputFields,
                 ...functionParameterFields,
+                ...oauthFields,
             ]);
         } catch (error) {
             console.error(">>> Error fetching function node or template", error);
@@ -419,6 +524,9 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
             const toolInputFields = createToolInputFields(prepareToolInputFields(nodeParameterFields));
             const templateDescription = nodeTemplate.flowNode?.metadata?.description || "";
+            const oauthFields = OAUTH_CLIENT_CONFIG_PROPERTIES.map(({ key, property }) =>
+                convertNodePropertyToFormField(key, property)
+            );
 
             setFields((prevFields) => [
                 ...prevFields.map((field) =>
@@ -426,6 +534,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 ),
                 ...toolInputFields,
                 ...nodeParameterFields,
+                ...oauthFields,
             ]);
         } catch (error) {
             console.error(">>> Error fetching node template", error);
@@ -584,6 +693,24 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             clonedFlowNode.properties.variable.value = flowNode.current?.properties?.variable?.value || cleanName + "Result";
         }
 
+        // Inject OAuth client config into codedata.data.agentIdConfig
+        const targetNode = clonedFunctionNode || clonedFlowNode;
+        if (targetNode) {
+            const config: Record<string, string> = {};
+            for (const { key } of OAUTH_CLIENT_CONFIG_PROPERTIES) {
+                const formValue = data[key];
+                if (formValue !== undefined && formValue !== "") {
+                    config[key] = String(formValue);
+                }
+            }
+            if (Object.keys(config).length > 0) {
+                targetNode.codedata.data = {
+                    ...targetNode.codedata.data,
+                    agentIdConfig: JSON.stringify(config),
+                };
+            }
+        }
+
         console.log(">>> toolParameters", { toolParameters });
         console.log(">>> clonedFunctionNode", { clonedFunctionNode });
         console.log(">>> clonedFlowNode", { clonedFlowNode });
@@ -654,6 +781,16 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                                 </ImplementationInfoContainer>
                             ),
                             index: 3,
+                        },
+                        {
+                            component: (
+                                <ImplementationInfoContainer>
+                                    <p style={{ margin: "0px", fontWeight: "bold" }}>OAuth Client Configuration</p>
+                                    <ImplementationDescription>Represents the OAuth 2.0 client configuration required to interact with an external Authorization Server and validate issued access tokens.</ImplementationDescription>
+                                </ImplementationInfoContainer>
+                            ),
+                            index: fields.filter((f) => f.advanced && !f.hidden).length - OAUTH_CLIENT_CONFIG_PROPERTIES.length,
+                            advanced: true,
                         },
                     ]}
                 />
