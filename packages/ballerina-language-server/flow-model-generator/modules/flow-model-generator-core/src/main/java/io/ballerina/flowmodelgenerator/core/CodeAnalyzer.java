@@ -133,13 +133,21 @@ import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.BinaryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.CallBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.ChunkerBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.ClassInitBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DataLoaderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FailBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionCall;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.IfBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.JsonPayloadBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.KnowledgeBaseBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.MemoryBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.MemoryStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MethodCall;
+import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NewConnectionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.PanicBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RemoteActionCallBuilder;
@@ -148,6 +156,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.ReturnBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RollbackBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.XmlPayloadBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
@@ -182,6 +191,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Stack;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -1632,7 +1642,7 @@ public class CodeAnalyzer extends NodeVisitor {
      *
      * @param functionData the function data containing the module name
      * @param packageName  the package name to strip from the module name
-     * @param classSymbol the class symbol representing the persist client
+     * @param classSymbol  the class symbol representing the persist client
      */
     private void updatePersistRelatedMetadata(FunctionData functionData, String packageName, ClassSymbol classSymbol) {
         String moduleName = functionData.moduleName();
@@ -1682,6 +1692,48 @@ public class CodeAnalyzer extends NodeVisitor {
             return NodeKind.MEMORY_STORE;
         }
         return null;
+    }
+
+    private static final Set<NodeKind> AI_COMPONENT_KINDS = Set.of(
+            NodeKind.MODEL_PROVIDER, NodeKind.EMBEDDING_PROVIDER,
+            NodeKind.KNOWLEDGE_BASE, NodeKind.VECTOR_STORE,
+            NodeKind.DATA_LOADER, NodeKind.CHUNKER,
+            NodeKind.MEMORY, NodeKind.MEMORY_STORE
+    );
+
+    private static boolean isAiComponentKind(NodeKind kind) {
+        return AI_COMPONENT_KINDS.contains(kind);
+    }
+
+    private record ReturnTypeNodeInfo(NodeKind nodeKind, ClassSymbol classSymbol) { }
+
+    private Optional<ReturnTypeNodeInfo> getReturnTypeNodeInfo(FunctionSymbol functionSymbol) {
+        Optional<TypeSymbol> returnType = functionSymbol.typeDescriptor().returnTypeDescriptor();
+        if (returnType.isEmpty()) {
+            return Optional.empty();
+        }
+        TypeSymbol typeSymbol = returnType.get();
+        if (typeSymbol.typeKind() == TypeDescKind.UNION) {
+            typeSymbol = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors().stream()
+                    .filter(tSymbol -> !tSymbol.subtypeOf(semanticModel.types().ERROR))
+                    .findFirst().orElse(null);
+            if (typeSymbol == null) {
+                return Optional.empty();
+            }
+        }
+        if (typeSymbol.typeKind() != TypeDescKind.TYPE_REFERENCE) {
+            return Optional.empty();
+        }
+        Symbol defSymbol = ((TypeReferenceTypeSymbol) typeSymbol).definition();
+        if (defSymbol.kind() != SymbolKind.CLASS) {
+            return Optional.empty();
+        }
+        ClassSymbol classSymbol = (ClassSymbol) defSymbol;
+        NodeKind kind = resolveNodeKind(classSymbol);
+        if (kind == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new ReturnTypeNodeInfo(kind, classSymbol));
     }
 
     private FunctionData.Kind getFunctionResultKind(ClassSymbol classSymbol) {
@@ -1859,8 +1911,17 @@ public class CodeAnalyzer extends NodeVisitor {
                     .editable()
                     .stepOut()
                     .addProperty(Property.VARIABLE_KEY);
-        } else if (nodeBuilder instanceof AgentBuilder) {
-            // If an agent node was identified, set the variable property on it
+        } else if (nodeBuilder instanceof AgentBuilder
+                || nodeBuilder instanceof ModelProviderBuilder
+                || nodeBuilder instanceof EmbeddingProviderBuilder
+                || nodeBuilder instanceof KnowledgeBaseBuilder
+                || nodeBuilder instanceof VectorStoreBuilder
+                || nodeBuilder instanceof DataLoaderBuilder
+                || nodeBuilder instanceof ChunkerBuilder
+                || nodeBuilder instanceof MemoryBuilder
+                || nodeBuilder instanceof MemoryStoreBuilder
+                || nodeBuilder instanceof ClassInitBuilder) {
+            // If an AI type node (agent, model provider, etc.) was identified, set the variable property on it
             String variableName = CommonUtils.getVariableName(assignmentStatementNode.varRef());
             nodeBuilder.properties().custom()
                     .metadata()
@@ -2008,6 +2069,41 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (naturalFunctions.containsKey(functionName)) {
             startNode(NodeKind.NP_FUNCTION_CALL, functionCallExpressionNode.parent());
         } else {
+            // Check if the function returns an AI type (e.g., MODEL_PROVIDER via factory function)
+            Optional<ReturnTypeNodeInfo> returnTypeInfo = getReturnTypeNodeInfo(functionSymbol);
+            if (returnTypeInfo.isPresent() && isAiComponentKind(returnTypeInfo.get().nodeKind())) {
+                ReturnTypeNodeInfo info = returnTypeInfo.get();
+                startNode(info.nodeKind(), functionCallExpressionNode.parent());
+
+                FunctionDataBuilder functionDataBuilder =
+                        new FunctionDataBuilder()
+                                .name(functionName)
+                                .functionSymbol(functionSymbol)
+                                .functionResultKind(getFunctionResultKind(info.classSymbol()))
+                                .semanticModel(semanticModel)
+                                .userModuleInfo(moduleInfo);
+                FunctionData functionData = functionDataBuilder.build();
+
+                processFunctionSymbol(functionCallExpressionNode, functionCallExpressionNode.arguments(),
+                        functionSymbol, functionData);
+
+                nodeBuilder
+                        .metadata()
+                            .label(functionData.packageName())
+                            .description(functionData.description())
+                            .icon(CommonUtils.generateIcon(functionData.org(), functionData.packageName(),
+                                functionData.version()))
+                            .stepOut()
+                        .codedata()
+                            .org(functionData.org())
+                            .module(functionData.moduleName())
+                            .symbol(functionName)
+                            .stepOut()
+                        .properties()
+                            .scope(connectionScope)
+                            .checkError(true, NewConnectionBuilder.CHECK_ERROR_DOC, false);
+                return;
+            }
             startNode(NodeKind.FUNCTION_CALL, functionCallExpressionNode.parent());
         }
 
@@ -2881,7 +2977,6 @@ public class CodeAnalyzer extends NodeVisitor {
                 .map(node -> node.toString().trim())
                 .collect(Collectors.joining());
     }
-
 
     private boolean isAgent(ServiceDeclarationNode serviceDeclarationNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceDeclarationNode.expressions();
