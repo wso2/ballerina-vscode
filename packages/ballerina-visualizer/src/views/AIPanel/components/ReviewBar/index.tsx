@@ -450,7 +450,7 @@ const CollapsibleGroupList: React.FC<{
 
                 const displayLabel = isService
                     ? group.groupLabel.slice("service ".length)
-                    : "function";
+                    : "functions";
 
                 return (
                     <React.Fragment key={gi}>
@@ -466,6 +466,7 @@ const CollapsibleGroupList: React.FC<{
                                 {isFunctions && (
                                     <span className="codicon codicon-symbol-method" style={{ fontSize: "11px", color: "var(--vscode-descriptionForeground)" }} />
                                 )}
+                                {isService && <span style={{ color: "var(--vscode-descriptionForeground)", fontWeight: 400 }}>service</span>}
                                 <span>{displayLabel}</span>
                                 <CountBadge>{group.entries.length}</CountBadge>
                             </CollapsibleHeader>
