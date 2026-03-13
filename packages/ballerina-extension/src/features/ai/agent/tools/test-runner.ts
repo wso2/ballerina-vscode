@@ -14,12 +14,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import * as path from 'path';
 import { tool } from 'ai';
 import { z } from 'zod';
 import { CopilotEventHandler } from '../../utils/events';
 import { extension } from '../../../../BalExtensionContext';
-import { createProcessTerminal, killProcessGroup } from './running-service-manager';
+import { spawnProcess, killProcessGroup } from './running-service-manager';
 import { BALLERINA_COMMANDS } from '../../../project/cmds/cmd-runner';
 import { DIAGNOSTICS_TOOL_NAME } from './diagnostics';
 
@@ -27,6 +26,7 @@ export const TEST_RUNNER_TOOL_NAME = "runTests";
 
 export interface TestRunResult {
     output: string;
+    exitCode: number;
 }
 
 const TestRunnerInputSchema = z.object({});
@@ -59,15 +59,17 @@ export function createTestRunnerTool(
                 type: "tool_call",
                 toolName: TEST_RUNNER_TOOL_NAME,
                 toolCallId,
+                toolInput: { command: "bal test" },
             });
 
             const result = await runBallerinaTests(tempProjectPath);
+            const status = result.exitCode === 0 ? "completed" : "error";
 
             eventHandler({
                 type: "tool_result",
                 toolName: TEST_RUNNER_TOOL_NAME,
                 toolCallId,
-                toolOutput: { summary: parseTestSummary(result.output) }
+                toolOutput: { status, summary: parseTestSummary(result.output), command: "bal test", exitCode: result.exitCode, output: result.output },
             });
 
             return result;
@@ -89,20 +91,19 @@ function parseTestSummary(output: string): string {
 
 async function runBallerinaTests(cwd: string): Promise<TestRunResult> {
     const balCmd = extension.ballerinaExtInstance.getBallerinaCmd();
-    const packageName = path.basename(cwd);
 
     const logs: string[] = [];
-    const { terminal, process: proc } = createProcessTerminal(
-        `Bal Test: ${packageName}`,
+    const { process: proc } = spawnProcess(
         balCmd,
         [BALLERINA_COMMANDS.TEST],
         cwd,
         logs
     );
-    terminal.show(true);
 
     let exited = false;
-    proc.on('close', () => {
+    let exitCode = -1;
+    proc.on('close', (code) => {
+        exitCode = code ?? -1;
         exited = true;
     });
     proc.on('error', (err) => {
@@ -122,11 +123,11 @@ async function runBallerinaTests(cwd: string): Promise<TestRunResult> {
 
     if (!exited) {
         killProcessGroup(proc, 'SIGTERM');
-        terminal.dispose();
         return {
             output: output + `\n\nTest execution timed out after ${DEFAULT_TEST_TIMEOUT}ms.`,
+            exitCode: -1,
         };
     }
 
-    return { output };
+    return { output, exitCode };
 }
