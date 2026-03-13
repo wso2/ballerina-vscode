@@ -344,9 +344,7 @@ public class AgentsGenerator {
             boolean hasDescription = genDescription(description, sourceBuilder);
             List<String> paramList = populateToolParams(toolParams, hasDescription, sourceBuilder);
 
-            sourceBuilder.token()
-                    .name("@ai:AgentTool")
-                    .name(System.lineSeparator());
+            genAgentToolAnnotation(flowNode, sourceBuilder);
             sourceBuilder.token()
                     .name("@display {")
                     .name("label: \"\",")
@@ -450,9 +448,7 @@ public class AgentsGenerator {
                 sourceBuilder.token().returnDoc(returnProperty.metadata().description());
             }
 
-            sourceBuilder.token()
-                    .name("@ai:AgentTool").
-                    name(System.lineSeparator());
+            genAgentToolAnnotation(flowNode, sourceBuilder);
             sourceBuilder.token()
                     .name("@display {")
                     .name("label: \"\",")
@@ -531,9 +527,7 @@ public class AgentsGenerator {
             }
 
             List<String> paramList = populateToolParams(toolParams, hasDescription, sourceBuilder);
-            sourceBuilder.token()
-                    .name("@ai:AgentTool")
-                    .name(System.lineSeparator());
+            genAgentToolAnnotation(flowNode, sourceBuilder);
             sourceBuilder.token()
                     .name("@display {")
                     .name("label: \"\",")
@@ -678,6 +672,50 @@ public class AgentsGenerator {
             sourceBuilder.token().descriptionDoc(description);
         }
         return hasDescription;
+    }
+
+    private void genAgentToolAnnotation(FlowNode flowNode, SourceBuilder sourceBuilder) {
+        Map<String, Object> data = flowNode.codedata().data();
+        if (data == null || !data.containsKey("agentIdConfig")) {
+            sourceBuilder.token()
+                    .name("@ai:AgentTool")
+                    .name(System.lineSeparator());
+            return;
+        }
+
+        String agentIdConfigStr = data.get("agentIdConfig").toString();
+        JsonObject agentIdConfig = gson.fromJson(agentIdConfigStr, JsonObject.class);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("@ai:AgentTool {").append(System.lineSeparator());
+        sb.append("    agentIdConfig: {").append(System.lineSeparator());
+
+        List<String> fields = new ArrayList<>();
+        for (Map.Entry<String, JsonElement> entry : agentIdConfig.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue().getAsString();
+
+            if (key.equals("scopes")) {
+                String[] scopeParts = value.split(",");
+                List<String> scopeItems = new ArrayList<>();
+                for (String part : scopeParts) {
+                    scopeItems.add(part.trim());
+                }
+                fields.add("        " + key + ": [" + String.join(", ", scopeItems) + "]");
+            } else if (key.equals("isPkceEnabled")) {
+                fields.add("        " + key + ": " + value);
+            } else {
+                fields.add("        " + key + ": " + value);
+            }
+        }
+
+        sb.append(String.join("," + System.lineSeparator(), fields)).append(System.lineSeparator());
+        sb.append("    }").append(System.lineSeparator());
+        sb.append("}");
+
+        sourceBuilder.token()
+                .name(sb.toString())
+                .name(System.lineSeparator());
     }
 
     public JsonArray getActions(JsonElement node, Path filePath, Project project, WorkspaceManager workspaceManager) {

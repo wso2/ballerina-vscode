@@ -19,6 +19,8 @@
 package io.ballerina.flowmodelgenerator.core.model;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.ballerina.compiler.syntax.tree.SyntaxInfo;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.AiUtils;
@@ -40,6 +42,9 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -73,6 +78,9 @@ public class McpToolKitBuilder extends NodeBuilder {
     private static final String TOOL_KIT_NAME_DESCRIPTION = "Name of the MCP toolkit";
     private static final String TOOL_KIT_DEFAULT_CLASS_NAME = "McpToolKit";
     private static final String PERMITTED_TOOLS_PROPERTY = "permittedTools";
+    private static final String TOOL_SCOPES_PROPERTY = "toolScopes";
+    private static final String TOOL_SCOPES_PROPERTY_LABEL = "Tool Scopes";
+    private static final String TOOL_SCOPES_DESCRIPTION = "OAuth scopes for each tool";
     private static final String AI_MCP_TOOL_KIT_CLASS = "McpToolKit";
     private static final String AI_MCP_BASE_TOOL_KIT_TYPE_WITH_PREFIX = "ai:McpBaseToolKit";
     private static final String INIT_METHOD_NAME = "init";
@@ -114,7 +122,7 @@ public class McpToolKitBuilder extends NodeBuilder {
 
         setParameterProperties(functionData);
 
-        // Hide permittedTools property
+        // Hide permittedTools property (toolScopes is optional and only added when sent by the frontend)
         functionData.parameters().remove(PERMITTED_TOOLS_PROPERTY);
         setPermittedToolsProperty(this, null);
 
@@ -146,6 +154,22 @@ public class McpToolKitBuilder extends NodeBuilder {
                     .codedata().kind(Kind.INCLUDED_FIELD.name()).originalName(PERMITTED_TOOLS_PROPERTY).stepOut()
                     .placeholder("()").hidden().editable().stepOut()
                     .addProperty(PERMITTED_TOOLS_PROPERTY);
+        }
+    }
+
+    public static void setToolScopesProperty(NodeBuilder nodeBuilder, String toolScopes) {
+        if (toolScopes != null) {
+            nodeBuilder.properties().custom()
+                    .metadata().label(TOOL_SCOPES_PROPERTY_LABEL).description(TOOL_SCOPES_DESCRIPTION).stepOut()
+                    .codedata().kind(Kind.INCLUDED_FIELD.name()).originalName(TOOL_SCOPES_PROPERTY).stepOut()
+                    .placeholder("()").hidden().value(toolScopes).editable().stepOut()
+                    .addProperty(TOOL_SCOPES_PROPERTY);
+        } else {
+            nodeBuilder.properties().custom()
+                    .metadata().label(TOOL_SCOPES_PROPERTY_LABEL).description(TOOL_SCOPES_DESCRIPTION).stepOut()
+                    .codedata().kind(Kind.INCLUDED_FIELD.name()).originalName(TOOL_SCOPES_PROPERTY).stepOut()
+                    .placeholder("()").hidden().editable().stepOut()
+                    .addProperty(TOOL_SCOPES_PROPERTY);
         }
     }
 
@@ -251,7 +275,8 @@ public class McpToolKitBuilder extends NodeBuilder {
                     : "()";
             String toolKitName = String.valueOf(toolKitNameProperty.value());
 
-            String sourceCode = generateMcpToolKitClassSource(toolKitName, permittedTools);
+            Map<String, List<String>> toolScopesMap = parseToolScopes(sourceBuilder.flowNode);
+            String sourceCode = generateMcpToolKitClassSource(toolKitName, permittedTools, toolScopesMap);
 
             // Check if class definition data exists in codedata
             Map<String, Object> data = sourceBuilder.flowNode.codedata().data();
@@ -279,6 +304,7 @@ public class McpToolKitBuilder extends NodeBuilder {
             // 2. Initialize an instance of that class
             sourceBuilder.flowNode.properties().remove(TOOL_KIT_NAME_PROPERTY);
             sourceBuilder.flowNode.properties().remove(PERMITTED_TOOLS_PROPERTY);
+            sourceBuilder.flowNode.properties().remove(TOOL_SCOPES_PROPERTY);
             sourceBuilder.flowNode.properties().remove(TYPE_KEY);
             sourceBuilder.flowNode.properties().put(TYPE_KEY, toolKitNameProperty);
             sourceBuilder.token().keyword(SyntaxKind.FINAL_KEYWORD).stepOut().newVariable()
@@ -309,22 +335,29 @@ public class McpToolKitBuilder extends NodeBuilder {
         }
     }
 
-    private String generateMcpToolKitClassSource(String className, String permittedTools) {
+    private String generateMcpToolKitClassSource(String className, String permittedTools,
+                                                  Map<String, List<String>> toolScopesMap) {
         String initBody;
         String toolFunctions;
+        boolean hasAnyScopes = !toolScopesMap.isEmpty();
 
         if (permittedTools.equals("()") || permittedTools.isBlank()) {
             // Generate init body using self.callTool as function reference
+            String getToolConfigsArgs = "self.mcpClient, info, self.callTool";
+            if (hasAnyScopes) {
+                getToolConfigsArgs += ", config?.auth";
+            }
             initBody = "        do {" + NEW_LINE +
                     "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);" + NEW_LINE +
-                    "            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info," +
-                    " self.callTool).cloneReadOnly();" + NEW_LINE +
+                    "            self.tools = check ai:getPermittedMcpToolConfigs(" + getToolConfigsArgs +
+                    ").cloneReadOnly();" + NEW_LINE +
                     "        } on fail error e {" + NEW_LINE +
                     "            return error ai:Error(\"Failed to initialize MCP toolkit\", e);" + NEW_LINE +
                     "        }";
 
             // Generate callTool method
-            toolFunctions = getToolMethodSignature("callTool");
+            List<String> callToolScopes = toolScopesMap.getOrDefault("callTool", List.of());
+            toolFunctions = getToolMethodSignature("callTool", callToolScopes);
         } else {
             // Generate init body with permitted tools mapping
             Map<String, String> toolMapping = generatePermittedToolsMapping(permittedTools);
@@ -332,19 +365,32 @@ public class McpToolKitBuilder extends NodeBuilder {
                     .map(e -> "                " + e.getKey() + " : self." + e.getValue())
                     .collect(Collectors.joining("," + System.lineSeparator()));
 
+            String getToolConfigsArgs = "self.mcpClient, info, permittedTools";
+            if (hasAnyScopes) {
+                getToolConfigsArgs += ", config?.auth";
+            }
             initBody = "        final map<ai:FunctionTool> permittedTools = {" + NEW_LINE +
                     permittedToolsMappingConstructorExp + NEW_LINE +
                     "        };" + NEW_LINE + NEW_LINE +
                     "        do {" + NEW_LINE +
                     "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);" + NEW_LINE +
-                    "            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info," +
-                    " permittedTools).cloneReadOnly();" + NEW_LINE +
+                    "            self.tools = check ai:getPermittedMcpToolConfigs(" + getToolConfigsArgs +
+                    ").cloneReadOnly();" + NEW_LINE +
                     "        } on fail error e {" + NEW_LINE +
                     "            return error ai:Error(\"Failed to initialize MCP toolkit\", e);" + NEW_LINE +
                     "        }";
 
             // Generate individual tool methods
-            toolFunctions = toolMapping.values().stream().map(this::getToolMethodSignature)
+            toolFunctions = toolMapping.entrySet().stream()
+                    .map(e -> {
+                        String originalToolName = e.getKey();
+                        String methodName = e.getValue();
+                        // Strip surrounding quotes from tool name for scope lookup
+                        // (permittedTools keys retain quotes like "toolName", but toolScopes keys don't)
+                        String unquotedToolName = originalToolName.replaceAll("^\"|\"$", "");
+                        List<String> scopes = toolScopesMap.getOrDefault(unquotedToolName, List.of());
+                        return getToolMethodSignature(methodName, scopes);
+                    })
                     .collect(Collectors.joining(System.lineSeparator()));
         }
 
@@ -363,12 +409,38 @@ public class McpToolKitBuilder extends NodeBuilder {
                 "}" + NEW_LINE;
     }
 
-    private String getToolMethodSignature(String toolName) {
-        return "    @ai:AgentTool" + NEW_LINE +
-                "    public isolated function " + toolName + "(mcp:CallToolParams params)" +
-                " returns mcp:CallToolResult|error {" + NEW_LINE +
-                "        return self.mcpClient->callTool(params);" + NEW_LINE +
-                "    }" + NEW_LINE;
+    private String getToolMethodSignature(String toolName, List<String> scopes) {
+        boolean hasScopes = scopes != null && !scopes.isEmpty();
+
+        StringBuilder sb = new StringBuilder();
+        if (hasScopes) {
+            String scopesList = scopes.stream()
+                    .map(s -> "\"" + s + "\"")
+                    .collect(Collectors.joining(", "));
+            sb.append("    @ai:AgentTool {").append(NEW_LINE)
+                    .append("        agentIdConfig: {").append(NEW_LINE)
+                    .append("            scopes: [").append(scopesList).append("]").append(NEW_LINE)
+                    .append("        }").append(NEW_LINE)
+                    .append("    }").append(NEW_LINE);
+        } else {
+            sb.append("    @ai:AgentTool").append(NEW_LINE);
+        }
+
+        if (hasScopes) {
+            sb.append("    public isolated function ").append(toolName)
+                    .append("(ai:Context ctx, mcp:CallToolParams params)")
+                    .append(" returns mcp:CallToolResult|error {").append(NEW_LINE)
+                    .append("        return self.mcpClient->callTool(params, headers = {\"Authorization\": ")
+                    .append("string `Bearer ${check ctx.getAccessToken(params.name)}`});").append(NEW_LINE)
+                    .append("    }").append(NEW_LINE);
+        } else {
+            sb.append("    public isolated function ").append(toolName).append("(mcp:CallToolParams params)")
+                    .append(" returns mcp:CallToolResult|error {").append(NEW_LINE)
+                    .append("        return self.mcpClient->callTool(params);").append(NEW_LINE)
+                    .append("    }").append(NEW_LINE);
+        }
+
+        return sb.toString();
     }
 
     private Map<String, String> generatePermittedToolsMapping(String permittedTools) {
@@ -432,6 +504,30 @@ public class McpToolKitBuilder extends NodeBuilder {
             methodName = "'" + methodName;
         }
         return methodName;
+    }
+
+    private static Map<String, List<String>> parseToolScopes(FlowNode flowNode) {
+        Property toolScopesProperty = flowNode.properties().get(TOOL_SCOPES_PROPERTY);
+        if (toolScopesProperty == null || !(toolScopesProperty.value() instanceof String value)
+                || value.isBlank() || value.equals("()")) {
+            return Collections.emptyMap();
+        }
+        try {
+            JsonObject jsonObject = gson.fromJson(value, JsonObject.class);
+            Map<String, List<String>> result = new HashMap<>();
+            for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+                List<String> scopes = new ArrayList<>();
+                for (JsonElement element : entry.getValue().getAsJsonArray()) {
+                    scopes.add(element.getAsString());
+                }
+                if (!scopes.isEmpty()) {
+                    result.put(entry.getKey(), scopes);
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            return Collections.emptyMap();
+        }
     }
 
     private String getAiModuleVersion(TemplateContext context) {
