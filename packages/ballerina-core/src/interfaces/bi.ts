@@ -482,7 +482,6 @@ export type NodePropertyKey =
     | "testConfigValue"
     | "toolKitName"
     | "tools"
-    | "toolScopes"
     | "type"
     | "typeDescription"
     | "variable"

@@ -114,7 +114,6 @@ interface FormProps {
     injectedComponents?: {
         component: ReactNode;
         index: number;
-        advanced?: boolean;
     }[];
     changeOptionalFieldTitle?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;

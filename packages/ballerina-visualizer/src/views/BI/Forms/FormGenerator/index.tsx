@@ -148,7 +148,6 @@ interface FormProps {
     injectedComponents?: {
         component: React.ReactNode;
         index: number;
-        advanced?: boolean;
     }[];
     navigateToPanel?: (panel: SidePanelView, connectionKind?: ConnectionKind) => void;
     fieldPriority?: Record<string, number>; // Map of field keys to priority numbers (lower = rendered first)
