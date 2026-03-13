@@ -1451,7 +1451,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .template(template)
                 .selected(true)
                 .stepOut();
-        builder.handleIncludedRecordRestArgs(builder, values);
+        builder.handleIncludedRecordRestArgs(builder, values, diagnosticHandler);
     }
 
     private void buildPropertyType(Property.Builder<?> builder, ParameterData paramData, Node value) {
@@ -1493,7 +1493,8 @@ public class CodeAnalyzer extends NodeVisitor {
                     builder.type(Property.ValueType.RAW_TEMPLATE);
                 }
             } else {
-                builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder);
+                builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder,
+                        diagnosticHandler);
             }
         }
     }
@@ -1632,7 +1633,7 @@ public class CodeAnalyzer extends NodeVisitor {
      *
      * @param functionData the function data containing the module name
      * @param packageName  the package name to strip from the module name
-     * @param classSymbol the class symbol representing the persist client
+     * @param classSymbol  the class symbol representing the persist client
      */
     private void updatePersistRelatedMetadata(FunctionData functionData, String packageName, ClassSymbol classSymbol) {
         String moduleName = functionData.moduleName();
@@ -1725,27 +1726,29 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(TemplateExpressionNode templateExpressionNode) {
-        if (forceAssign) {
-            return;
-        }
-        if (templateExpressionNode.kind() == SyntaxKind.XML_TEMPLATE_EXPRESSION) {
-            startNode(NodeKind.XML_PAYLOAD, templateExpressionNode)
-                    .metadata()
-                    .description(XmlPayloadBuilder.DESCRIPTION)
-                    .stepOut()
-                    .properties().expression(templateExpressionNode);
-        }
+        // Treating these as variable nodes despite the force assign flag
+//        if (forceAssign) {
+//            return;
+//        }
+//        if (templateExpressionNode.kind() == SyntaxKind.XML_TEMPLATE_EXPRESSION) {
+//            startNode(NodeKind.XML_PAYLOAD, templateExpressionNode)
+//                    .metadata()
+//                    .description(XmlPayloadBuilder.DESCRIPTION)
+//                    .stepOut()
+//                    .properties().expression(templateExpressionNode);
+//        }
     }
 
     @Override
     public void visit(ByteArrayLiteralNode byteArrayLiteralNode) {
-        if (forceAssign) {
-            return;
-        }
-        startNode(NodeKind.BINARY_DATA, byteArrayLiteralNode)
-                .metadata()
-                .stepOut()
-                .properties().expression(byteArrayLiteralNode);
+        // Treating these as variable nodes despite the force assign flag
+//        if (forceAssign) {
+//            return;
+//        }
+//        startNode(NodeKind.BINARY_DATA, byteArrayLiteralNode)
+//                .metadata()
+//                .stepOut()
+//                .properties().expression(byteArrayLiteralNode);
     }
 
     @Override
@@ -1987,6 +1990,10 @@ public class CodeAnalyzer extends NodeVisitor {
         Optional<Symbol> symbol = semanticModel.symbol(functionCallExpressionNode);
         if (symbol.isEmpty() || symbol.get().kind() != SymbolKind.FUNCTION) {
             handleExpressionNode(functionCallExpressionNode);
+            return;
+        }
+
+        if (forceAssign && this.typedBindingPatternNode != null) {
             return;
         }
 
@@ -2502,11 +2509,12 @@ public class CodeAnalyzer extends NodeVisitor {
         if (parentSymbol.isPresent() && CommonUtils.getRawType(
                 ((VariableSymbol) parentSymbol.get()).typeDescriptor()).typeKind() == TypeDescKind.JSON &&
                 !forceAssign) {
-            startNode(NodeKind.JSON_PAYLOAD, constructorExprNode)
-                    .metadata()
-                    .description(JsonPayloadBuilder.DESCRIPTION)
-                    .stepOut()
-                    .properties().expression(constructorExprNode);
+            // Treating these as variable nodes despite the force assign flag
+//            startNode(NodeKind.JSON_PAYLOAD, constructorExprNode)
+//                    .metadata()
+//                    .description(JsonPayloadBuilder.DESCRIPTION)
+//                    .stepOut()
+//                    .properties().expression(constructorExprNode);
         }
     }
     // Utility methods
@@ -2882,7 +2890,6 @@ public class CodeAnalyzer extends NodeVisitor {
                 .map(node -> node.toString().trim())
                 .collect(Collectors.joining());
     }
-
 
     private boolean isAgent(ServiceDeclarationNode serviceDeclarationNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceDeclarationNode.expressions();
