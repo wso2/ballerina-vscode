@@ -106,6 +106,8 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
             <ConnectorIcon
                 url={node.metadata.icon}
                 style={{ width: "16px", height: "16px", fontSize: "16px" }}
+                codedata={node.codedata}
+                connectorType={(node.metadata.data as NodeMetadata)?.connectorType}
                 fallbackIcon={
                     <NodeIcon
                         type={functionType === FUNCTION_TYPE.EXPRESSION_BODIED ? "DATA_MAPPER_CALL" : node.codedata.node}

@@ -157,7 +157,6 @@ export interface VisualizerLocation {
     artifactInfo?: ArtifactInfo;
     reviewData?: ReviewModeData;
     evalsetData?: EvalsetData;
-    customProps?: any;
 }
 
 export interface ArtifactInfo {

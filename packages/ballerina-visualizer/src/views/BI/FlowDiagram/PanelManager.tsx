@@ -630,6 +630,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onSelect={onSelectNode}
                         onSelectConnector={onSelectConnectorPopup}
                         onSearchTextChange={onSearchTextChange}
+                        searchText={searchText}
                         onClose={onClose}
                         title={"All Components"}
                         searchPlaceholder={"Search all components"}
