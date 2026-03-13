@@ -5,9 +5,9 @@
   "orgName": "ballerina",
   "packageName": "ftp",
   "moduleName": "ftp",
-  "version": "2.17.0",
+  "version": "2.18.0",
   "type": "ftp",
-  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.17.0.png",
+  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.18.0.png",
   "properties": {
     "listener": {
       "metadata": {
@@ -51,7 +51,7 @@
           "typeMembers": [
             {
               "type": "ServiceConfiguration",
-              "packageInfo": "ballerina:ftp:2.17.0",
+              "packageInfo": "ballerina:ftp:2.18.0",
               "packageName": "ftp",
               "kind": "RECORD_TYPE",
               "selected": true
@@ -69,7 +69,7 @@
         "moduleName": "ftp"
       },
       "imports": {
-        "ftp": "ballerina/ftp:2.17.0"
+        "ftp": "ballerina/ftp:2.18.0"
       }
     }
   },
