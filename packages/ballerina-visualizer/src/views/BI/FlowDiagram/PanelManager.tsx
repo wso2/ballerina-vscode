@@ -81,7 +81,8 @@ export enum SidePanelView {
     CONNECTION_CREATE = "CONNECTION_CREATE",
     AGENT_MEMORY_MANAGER = "AGENT_MEMORY_MANAGER",
     AGENT_CONFIG = "AGENT_CONFIG",
-    AGENT_LIST = "AGENT_LIST"
+    AGENT_LIST = "AGENT_LIST",
+    ALL = "ALL"
 }
 
 interface PanelManagerProps {
@@ -129,12 +130,15 @@ interface PanelManagerProps {
     onResetUpdatedExpressionField: () => void;
     onSearchFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchNpFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchAll?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchModelProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchVectorStore?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchEmbeddingProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchVectorKnowledgeBase?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchDataLoader?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchChunker?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchTextChange?: (searchText: string) => void;
+    searchText?: string;
     onAddAgent?: () => void;
     onEditAgent?: () => void;
     onNavigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
@@ -148,6 +152,7 @@ interface PanelManagerProps {
     onAddTool?: (node: FlowNode) => void;
     onAddMcpServer?: (node: FlowNode) => void;
     onSelectNewConnection?: (nodeId: string, metadata?: any) => void;
+    onSelectConnectorPopup?: (nodeId: string, metadata?: any) => void;
     onUpdateNodeWithConnection?: (selectedNode: FlowNode) => void;
 
     // Devant handlers
@@ -202,12 +207,16 @@ export function PanelManager(props: PanelManagerProps) {
         onResetUpdatedExpressionField,
         onSearchFunction,
         onSearchNpFunction,
+        onSearchTextChange,
+        searchText,
+        onSearchAll,
         onSearchVectorStore,
         onSearchEmbeddingProvider,
         onSearchVectorKnowledgeBase,
         onSearchDataLoader,
         onSearchChunker,
         onSelectNewConnection,
+        onSelectConnectorPopup,
         onUpdateNodeWithConnection,
         onNavigateToPanel,
         onImportDevantConn,
@@ -268,6 +277,8 @@ export function PanelManager(props: PanelManagerProps) {
             case SidePanelView.NODE_LIST:
                 return (
                     <NodeList
+                        onSearchTextChange={onSearchTextChange}
+                        searchText={searchText}
                         categories={categories}
                         onSelect={onSelectNode}
                         onAddConnection={onAddConnection}
@@ -368,11 +379,12 @@ export function PanelManager(props: PanelManagerProps) {
                     <NodeList
                         categories={categories}
                         onSelect={onSelectNode}
-                        onSearchTextChange={(searchText) => onSearchFunction(searchText, FUNCTION_TYPE.REGULAR)}
+                        onSearchTextChange={(searchText) => onSearchFunction?.(searchText, FUNCTION_TYPE.REGULAR)}
                         onAddFunction={onAddFunction}
                         onClose={onClose}
                         title={"Functions"}
                         searchPlaceholder={"Search library functions"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -382,10 +394,11 @@ export function PanelManager(props: PanelManagerProps) {
                     <NodeList
                         categories={categories}
                         onSelect={onSelectNode}
-                        onSearchTextChange={(searchText) => onSearchNpFunction(searchText, FUNCTION_TYPE.REGULAR)}
+                        onSearchTextChange={(searchText) => onSearchAll?.(searchText, FUNCTION_TYPE.REGULAR)}
                         onAddFunction={onAddNPFunction}
                         onClose={onClose}
                         title={"Natural Functions"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -401,6 +414,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onAddFunction={onAddDataMapper}
                         onClose={onClose}
                         title={"Data Mappers"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -415,6 +429,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onClose={onClose}
                         title={"Agents"}
                         searchPlaceholder={"Search agents"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -429,6 +444,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onClose={onClose}
                         title={"Model Providers"}
                         searchPlaceholder={"Search model providers"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -456,6 +472,7 @@ export function PanelManager(props: PanelManagerProps) {
                         title={"Vector Stores"}
                         searchPlaceholder={"Search vector stores"}
                         onSearchTextChange={(searchText) => onSearchVectorStore?.(searchText, FUNCTION_TYPE.REGULAR)}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -485,6 +502,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) =>
                             onSearchEmbeddingProvider?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -514,6 +532,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) =>
                             onSearchVectorKnowledgeBase?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -543,6 +562,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) =>
                             onSearchDataLoader?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -572,6 +592,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) =>
                             onSearchChunker?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -632,6 +653,21 @@ export function PanelManager(props: PanelManagerProps) {
                         //TODO: this should be merged with onSubmit prop
                         handleOnFormSubmit={onSubmitForm}
                         navigateToPanel={onNavigateToPanel}
+                    />
+                );
+
+            case SidePanelView.ALL:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onSelectConnector={onSelectConnectorPopup}
+                        onSearchTextChange={onSearchTextChange}
+                        searchText={searchText}
+                        onClose={onClose}
+                        title={"All Components"}
+                        searchPlaceholder={"Search all components"}
+                        onBack={canGoBack ? onBack : undefined}
                     />
                 );
 

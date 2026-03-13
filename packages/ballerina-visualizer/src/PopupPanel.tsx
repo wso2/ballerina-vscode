@@ -18,14 +18,13 @@
 
 import styled from "@emotion/styled";
 import React, { useEffect, useState } from "react";
-import { MACHINE_VIEW, ParentPopupData, PopupMachineStateValue, PopupVisualizerLocation } from "@wso2/ballerina-core";
+import { AvailableNode, MACHINE_VIEW, NodeKind, ParentPopupData, PopupMachineStateValue, PopupVisualizerLocation } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import AddConnectionWizard from "./views/BI/Connection/AddConnectionWizard";
 import { ThemeColors, Overlay } from "@wso2/ui-toolkit";
-import EditConnectionWizard from "./views/BI/Connection/EditConnectionWizard";
 import { FunctionForm } from "./views/BI";
 import { DataMapper } from "./views/DataMapper";
 import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
+import { ConnectionConfigurationPopup } from "./views/BI/Connection/ConnectionConfigurationPopup";
 import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
 import { ConfigurationCollector } from "./views/BI/ConfigurationCollector";
 
@@ -92,6 +91,43 @@ const PopupPanel = (props: PopupPanelProps) => {
                                 onClose={onClose}
                                 onNavigateToOverview={handleNavigateToOverview}
                                 isPopup={true}
+                            />
+                        );
+                    });
+                    break;
+                case MACHINE_VIEW.ConnectionConfiguration:
+                    const connectorMetadata = machineState.metadata ?? {};
+
+                    // Reconstruct the connector object from metadata
+                    const selectedConnector: AvailableNode = {
+                        metadata: {
+                            label: connectorMetadata.selectedConnectorLabel || "",
+                            description: connectorMetadata.selectedConnectorDescription || "",
+                            icon: connectorMetadata.selectedConnectorIcon || ""
+                        },
+                        codedata: {
+                            id: connectorMetadata.selectedConnectorId,
+                            node: connectorMetadata.selectedConnectorNode as NodeKind,
+                            org: connectorMetadata.selectedConnectorOrg,
+                            module: connectorMetadata.selectedConnectorModule,
+                            packageName: connectorMetadata.selectedConnectorPackageName,
+                            object: connectorMetadata.selectedConnectorObject,
+                            symbol: connectorMetadata.selectedConnectorSymbol,
+                            version: connectorMetadata.selectedConnectorVersion,
+                            isGenerated: connectorMetadata.selectedConnectorIsGenerated
+                        },
+                        enabled: true
+                    };
+
+                    rpcClient.getVisualizerLocation().then((location) => {
+                        setViewComponent(
+                            <ConnectionConfigurationPopup
+                                selectedConnector={selectedConnector}
+                                fileName={location.documentUri || location.projectPath}
+                                target={connectorMetadata.target || undefined}
+                                onClose={onClose}
+                                onBack={onClose}
+                                filteredCategories={[]}
                             />
                         );
                     });
