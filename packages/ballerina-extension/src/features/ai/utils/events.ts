@@ -31,7 +31,6 @@ import {
     sendSaveChatNotification,
     sendConnectorGenerationNotification,
     sendConfigurationCollectionNotification,
-    sendReviewActionsNotification,
     sendChatComponentNotification,
 } from "./ai-utils";
 
@@ -98,9 +97,6 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 break;
             case "diagnostics":
                 sendDiagnosticMessageNotification(event.diagnostics);
-                break;
-            case "review_actions":
-                sendReviewActionsNotification();
                 break;
             case "connector_generation_notification":
                 sendConnectorGenerationNotification(event);

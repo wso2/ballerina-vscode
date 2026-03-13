@@ -179,13 +179,6 @@ export function sendDiagnosticMessageNotification(diags: DiagnosticEntry[]): voi
     sendAIPanelNotification(msg);
 }
 
-export function sendReviewActionsNotification(): void {
-    const msg: ChatNotify = {
-        type: "review_actions",
-    };
-    sendAIPanelNotification(msg);
-}
-
 export function sendChatComponentNotification(componentType: string, data: Record<string, any>): void {
     const msg: ChatNotify = { type: "chat_component", componentType, data };
     sendAIPanelNotification(msg);

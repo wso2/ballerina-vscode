@@ -58,11 +58,9 @@ import {
     dependencyPullProgress,
     ProjectMigrationResult,
     onMigratedProject,
-    refreshReviewMode,
     navigateReviewIndex,
     reviewModeOpened,
     reviewModeClosed,
-    onHideReviewActions,
     approvalOverlayState,
     ApprovalOverlayState
 } from "@wso2/ballerina-core";
@@ -285,10 +283,6 @@ export class BallerinaRpcClient {
         this.messenger.onNotification(currentThemeChanged, callback);
     }
 
-    onRefreshReviewMode(callback: () => void) {
-        this.messenger.onNotification(refreshReviewMode, callback);
-    }
-
     onNavigateReviewIndex(callback: (index: number) => void) {
         this.messenger.onNotification(navigateReviewIndex, callback);
     }
@@ -299,10 +293,6 @@ export class BallerinaRpcClient {
 
     onReviewModeClosed(callback: () => void) {
         this.messenger.onNotification(reviewModeClosed, callback);
-    }
-
-    onHideReviewActions(callback: () => void) {
-        this.messenger.onNotification(onHideReviewActions, callback);
     }
 
     onApprovalOverlayState(callback: (data: ApprovalOverlayState) => void) {
