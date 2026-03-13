@@ -74,7 +74,7 @@ import { addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "
 
 import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent } from '../../features/ai/agent/index';
 import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
-import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
+import { LLM_API_BASE_PATH } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
 import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
 import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/InlineMappingExecutor';
