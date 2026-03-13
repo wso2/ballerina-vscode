@@ -42,7 +42,7 @@ export const getPlatformExtensionAPI = async (): Promise<IWso2PlatformExtensionA
     if (!platformExt.isActive) {
         await platformExt.activate();
     }
-    return platformExt.exports?.cloudAPIs as IWso2PlatformExtensionAPI;
+    return (platformExt.exports?.cloudAPIs ?? platformExt.exports) as IWso2PlatformExtensionAPI;
 };
 
 //TODO: What if user doesnt have github copilot.
