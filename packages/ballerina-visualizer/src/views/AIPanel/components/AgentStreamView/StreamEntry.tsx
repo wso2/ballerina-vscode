@@ -21,6 +21,7 @@ import MarkdownRenderer from "../MarkdownRenderer";
 import TodoSection from "../TodoSection";
 import ConfigCard from "./ConfigCard";
 import ConnectorCard from "./ConnectorCard";
+import CommandOutputCard from "./CommandOutputCard";
 import TryItCard from "./TryItCard";
 import {
     DoneCircle,
@@ -45,6 +46,8 @@ import {
     ToolIcon,
 } from "./styles";
 import { StreamEntry, StreamItem } from "./types";
+
+const COMMAND_OUTPUT_TOOLS = new Set(["runBallerinaPackage", "runTests", "getServiceLogs", "stopBallerinaService"]);
 
 // ── Tool display helpers ───────────────────────────────────────────────────────
 
@@ -139,6 +142,9 @@ function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamAc
             if (item.toolName === "curlRequest") {
                 return <TryItCard key={idx} input={item.toolInput} />;
             }
+            if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
+                return <CommandOutputCard key={idx} toolName={item.toolName} toolInput={item.toolInput} />;
+            }
             const { prefix, fileName } = getToolCallDisplay(item.toolName, item.toolInput);
             return (
                 <ItemRow key={idx}>
@@ -154,6 +160,9 @@ function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamAc
         case "tool_result": {
             if (item.toolName === "curlRequest") {
                 return <TryItCard key={idx} input={item.toolOutput} output={item.toolOutput} />;
+            }
+            if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
+                return <CommandOutputCard key={idx} toolName={item.toolName} toolOutput={item.toolOutput} isResult={true} />;
             }
             const { prefix, fileName } = getToolResultDisplay(item.toolName, item.toolOutput);
             return (
