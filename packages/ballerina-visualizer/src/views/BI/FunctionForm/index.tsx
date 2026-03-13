@@ -63,8 +63,13 @@ const SectionDescription = styled.span`
  * Expected format within the annotation:
  *   agentIdConfig: { baseAuthUrl: string `val`, scopes: [string `a`, string `b`], isPkceEnabled: true }
  */
-function parseAgentIdConfig(annotationValue: string): Record<string, string> {
-    const result: Record<string, string> = {};
+interface ParsedConfigValue {
+    value: string;
+    isExpression: boolean;
+}
+
+function parseAgentIdConfig(annotationValue: string): Record<string, ParsedConfigValue> {
+    const result: Record<string, ParsedConfigValue> = {};
     const configMatch = annotationValue.match(/agentIdConfig\s*:\s*\{([^}]*)\}/s);
     if (!configMatch) {
         return result;
@@ -73,23 +78,45 @@ function parseAgentIdConfig(annotationValue: string): Record<string, string> {
 
     for (const { key } of OAUTH_CLIENT_CONFIG_PROPERTIES) {
         if (key === "scopes") {
-            // scopes: [string `v1`, string `v2`]
             const scopesMatch = configBlock.match(/scopes\s*:\s*\[([^\]]*)\]/);
             if (scopesMatch) {
-                const values = [...scopesMatch[1].matchAll(/`([^`]*)`/g)].map((m) => m[1]);
-                result.scopes = JSON.stringify(values);
+                const items = scopesMatch[1].split(",").map((s) => s.trim()).filter(Boolean);
+                // Check if all items are string templates or quoted strings
+                const unwrapped = items.map((item) => {
+                    const strTemplate = item.match(/^string\s*`([^`]*)`$/);
+                    if (strTemplate) return { val: strTemplate[1], isLiteral: true };
+                    const quoted = item.match(/^"([^"]*)"$/);
+                    if (quoted) return { val: quoted[1], isLiteral: true };
+                    return { val: item, isLiteral: false };
+                });
+                const allLiteral = unwrapped.every((u) => u.isLiteral);
+                result.scopes = {
+                    value: JSON.stringify(unwrapped.map((u) => u.val)),
+                    isExpression: !allLiteral,
+                };
             }
         } else if (key === "isPkceEnabled") {
-            // isPkceEnabled: true/false
             const boolMatch = configBlock.match(/isPkceEnabled\s*:\s*(true|false)/);
             if (boolMatch) {
-                result.isPkceEnabled = boolMatch[1];
+                result.isPkceEnabled = { value: boolMatch[1], isExpression: false };
             }
         } else {
-            // string fields: key: string `value`
-            const strMatch = configBlock.match(new RegExp(`${key}\\s*:\\s*string\\s*\`([^\`]*)\``));
-            if (strMatch) {
-                result[key] = strMatch[1];
+            const valueMatch = configBlock.match(new RegExp(`${key}\\s*:\\s*(.+?)\\s*(?:,|$)`, "m"));
+            if (valueMatch) {
+                const raw = valueMatch[1].trim();
+                // Check if value is a string template or double-quoted string
+                const strTemplate = raw.match(/^string\s*`([^`]*)`$/);
+                if (strTemplate) {
+                    result[key] = { value: strTemplate[1], isExpression: false };
+                    continue;
+                }
+                const quoted = raw.match(/^"([^"]*)"$/);
+                if (quoted) {
+                    result[key] = { value: quoted[1], isExpression: false };
+                    continue;
+                }
+                // Bare expression
+                result[key] = { value: raw, isExpression: true };
             }
         }
     }
@@ -105,9 +132,6 @@ function buildAgentIdConfigAnnotation(config: Record<string, string>): string {
     if (entries.length === 0) {
         return "";
     }
-    const wrapStringValue = (val: string) =>
-        val.startsWith("string `") ? val : `string \`${val}\``;
-
     const parts = entries.map(([key, value]) => {
         if (key === "isPkceEnabled") {
             return `${key}: ${value}`;
@@ -115,13 +139,12 @@ function buildAgentIdConfigAnnotation(config: Record<string, string>): string {
         if (key === "scopes") {
             try {
                 const arr = JSON.parse(value) as string[];
-                const items = arr.map((s) => wrapStringValue(s)).join(", ");
-                return `scopes: [${items}]`;
+                return `scopes: [${arr.join(", ")}]`;
             } catch {
-                return `scopes: [${wrapStringValue(value)}]`;
+                return `scopes: [${value}]`;
             }
         }
-        return `${key}: ${wrapStringValue(value)}`;
+        return `${key}: ${value}`;
     });
     return `agentIdConfig: {\n        ${parts.join(",\n        ")}\n    }`;
 }
@@ -244,8 +267,21 @@ export function FunctionForm(props: FunctionFormProps) {
                 : {};
             const oauthFields = OAUTH_CLIENT_CONFIG_PROPERTIES.map(({ key, property }) => {
                 const field = convertNodePropertyToFormField(key, property);
-                if (existingConfig[key] !== undefined) {
-                    field.value = existingConfig[key];
+                const parsed = existingConfig[key];
+                if (parsed !== undefined) {
+                    field.value = parsed.value;
+                    // Toggle selected type based on whether value is an expression
+                    if (field.types) {
+                        field.types = field.types.map((t) => ({
+                            ...t,
+                            selected: parsed.isExpression
+                                ? t.fieldType === "EXPRESSION"
+                                : t.fieldType !== "EXPRESSION",
+                        }));
+                    }
+                    if (parsed.isExpression) {
+                        field.type = "EXPRESSION";
+                    }
                 }
                 return field;
             });
