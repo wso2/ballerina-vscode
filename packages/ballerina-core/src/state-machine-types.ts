@@ -209,11 +209,12 @@ export interface DataMapperMetadata {
 }
 
 export interface ReviewViewItem {
-    type: 'component' | 'flow';
+    type: 'component' | 'flow' | 'type';
     filePath: string;
     position: NodePosition;
     projectPath: string;
     label?: string;
+    changeType?: number;
 }
 
 export interface ReviewModeData {
@@ -221,6 +222,12 @@ export interface ReviewModeData {
     currentIndex: number;
     onAccept?: string;
     onReject?: string;
+    semanticDiffs?: object[];
+    loadDesignDiagrams?: boolean;
+    affectedPackages?: string[];
+    modifiedFiles?: string[];
+    tempProjectPath?: string;
+    isWorkspace?: boolean;
 }
 
 // --- Evalset Trace Types ---
@@ -343,7 +350,7 @@ export type ChatNotify =
     | GeneratedSourcesEvent
     | ConnectorGenerationNotification
     | ConfigurationCollectionEvent
-    | CodeReviewActions
+    | ChatComponentEvent
     | PlanUpdated;
 
 export interface ChatStart {
@@ -482,8 +489,10 @@ export interface ConfigurationCollectionEvent {
     };
 }
 
-export interface CodeReviewActions {
-    type: "review_actions";
+export interface ChatComponentEvent {
+    type: "chat_component";
+    componentType: string;
+    data: Record<string, any>;
 }
 
 export interface PlanUpdated {
@@ -494,7 +503,6 @@ export interface PlanUpdated {
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
-export const onHideReviewActions: NotificationType<void> = { method: 'onHideReviewActions' };
 export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
 export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
 export const onMigratedProject: NotificationType<ProjectMigrationResult> = { method: 'onMigratedProject' };

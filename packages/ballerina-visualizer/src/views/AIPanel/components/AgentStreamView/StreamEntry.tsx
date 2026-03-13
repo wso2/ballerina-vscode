@@ -37,6 +37,8 @@ import {
     ItemsArea,
     ItemsInner,
     NodeLabel,
+    ProgressDone,
+    ProgressSpinner,
     SonarCenter,
     SonarRing,
     SonarWrapper,
@@ -122,7 +124,7 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any): { 
 
 // ── Item renderer — order-preserving, used by both floating and named entries ─
 
-function renderItem(item: StreamItem, idx: number, rpcClient?: any): React.ReactNode {
+function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamActive: boolean, rpcClient?: any): React.ReactNode {
     switch (item.kind) {
         case "text": {
             const trimmed = item.text.trim();
@@ -180,6 +182,26 @@ function renderItem(item: StreamItem, idx: number, rpcClient?: any): React.React
             return <ConfigCard key={idx} data={item.data} rpcClient={rpcClient} />;
         case "connector":
             return <ConnectorCard key={idx} data={item.data} rpcClient={rpcClient} />;
+        case "component":
+            if (item.componentType === "progress") {
+                if (item.data.status === "end") return null;
+                const isCompleted = items.slice(idx + 1).some(
+                    i => i.kind === "component" && i.componentType === "progress" &&
+                         i.data.status === "end" && i.data.text === item.data.text
+                );
+                // If stream stopped before this progress item got its "end", treat as done
+                const isSpinning = !isCompleted && streamActive;
+                return (
+                    <ItemRow key={idx}>
+                        {isSpinning
+                            ? <ProgressSpinner><span className="codicon codicon-sync" /></ProgressSpinner>
+                            : <ProgressDone><span className="codicon codicon-pass-filled" /></ProgressDone>
+                        }
+                        <ItemLabel loading={isSpinning}>{item.data.text}</ItemLabel>
+                    </ItemRow>
+                );
+            }
+            return null;
         default:
             return null;
     }
@@ -222,7 +244,7 @@ const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
         if (!hasItems) return null;
         return (
             <EntryBlock style={{ flexDirection: "column" }}>
-                {entry.items.map((item, idx) => renderItem(item, idx, rpcClient))}
+                {entry.items.map((item, idx) => renderItem(item, idx, entry.items, isLast && isLoading, rpcClient))}
             </EntryBlock>
         );
     }
@@ -253,7 +275,7 @@ const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
                 {hasItems && (
                     <ItemsArea expanded={expanded}>
                         <ItemsInner ref={innerRef}>
-                            {entry.items.map((item, idx) => renderItem(item, idx, rpcClient))}
+                            {entry.items.map((item, idx) => renderItem(item, idx, entry.items, isLast && isLoading, rpcClient))}
                         </ItemsInner>
                     </ItemsArea>
                 )}
