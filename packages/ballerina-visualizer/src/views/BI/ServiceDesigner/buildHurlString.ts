@@ -16,12 +16,142 @@
  * under the License.
  */
 
-import { FunctionModel, HttpPayloadContext, Protocol } from "@wso2/ballerina-core";
+import { FunctionModel } from "@wso2/ballerina-core";
 
 /** A notebook cell passed to `wso2-http-book.importHurlString` when rich cells are needed. */
 export interface NotebookCell {
     kind: "markdown" | "hurl";
     content: string;
+}
+
+// ---------------------------------------------------------------------------
+// OAI schema helpers
+// ---------------------------------------------------------------------------
+
+function resolveSchemaRef(ref: string, spec: any): any | undefined {
+    if (!ref?.startsWith('#/')) { return undefined; }
+    const parts = ref.substring(2).split('/');
+    let current: any = spec;
+    for (const part of parts) {
+        if (current && typeof current === 'object' && part in current) {
+            current = current[part];
+        } else {
+            return undefined;
+        }
+    }
+    return current;
+}
+
+function generateSchemaDoc(schema: any, depth: number, spec: any): string {
+    const indent = '  '.repeat(depth);
+    if (schema?.$ref) {
+        const resolved = resolveSchemaRef(schema.$ref, spec);
+        return resolved ? generateSchemaDoc(resolved, depth, spec) : '';
+    }
+    if (schema?.type === 'object' && schema.properties) {
+        let doc = `${indent}${schema.type}\n`;
+        for (const [propName, prop] of Object.entries<any>(schema.properties)) {
+            const propSchema = prop.$ref ? resolveSchemaRef(prop.$ref, spec) || prop : prop;
+            const format = propSchema.format ? `(${propSchema.format})` : '';
+            const description = propSchema.description ? ` - ${propSchema.description}` : '';
+            doc += `${indent}- ${propName}: ${propSchema.type}${format}${description}\n`;
+            if (propSchema.type === 'object' && propSchema.properties) {
+                doc += generateSchemaDoc(propSchema, depth + 1, spec);
+            } else if (propSchema.type === 'array' && propSchema.items) {
+                const itemsSchema = propSchema.items.$ref
+                    ? resolveSchemaRef(propSchema.items.$ref, spec) || propSchema.items
+                    : propSchema.items;
+                doc += `${indent}  items: ${generateSchemaDoc(itemsSchema, depth + 1, spec).trimStart()}`;
+            }
+            if (propSchema.enum) {
+                doc += `${indent}  enum: [${propSchema.enum.join(', ')}]\n`;
+            }
+        }
+        return doc;
+    }
+    if (schema?.type === 'array') {
+        let doc = 'array\n';
+        if (schema.items) {
+            const itemsSchema = schema.items.$ref
+                ? resolveSchemaRef(schema.items.$ref, spec) || schema.items
+                : schema.items;
+            doc += `${indent}items: ${generateSchemaDoc(itemsSchema, depth + 1, spec).trimStart()}`;
+        }
+        return doc;
+    }
+    return `${schema?.type ?? 'any'}${schema?.format ? ` (${schema.format})` : ''}`;
+}
+
+function generateSampleValue(schema: any, spec: any): any {
+    if (schema?.$ref) {
+        const resolved = resolveSchemaRef(schema.$ref, spec);
+        return resolved ? generateSampleValue(resolved, spec) : {};
+    }
+    if (!schema?.type) { return {}; }
+    switch (schema.type) {
+        case 'object': {
+            if (!schema.properties) { return {}; }
+            const obj: Record<string, any> = {};
+            for (const [propName, prop] of Object.entries<any>(schema.properties)) {
+                const propSchema = prop.$ref ? resolveSchemaRef(prop.$ref, spec) || prop : prop;
+                obj[propName] = generateSampleValue(propSchema, spec);
+            }
+            return obj;
+        }
+        case 'array': {
+            if (!schema.items) { return []; }
+            const itemsSchema = schema.items.$ref
+                ? resolveSchemaRef(schema.items.$ref, spec) || schema.items
+                : schema.items;
+            return [generateSampleValue(itemsSchema, spec)];
+        }
+        case 'string':
+            if (schema.enum?.length) { return schema.enum[0]; }
+            if (schema.format) {
+                switch (schema.format) {
+                    case 'date': return '2024-02-06';
+                    case 'date-time': return '2024-02-06T12:00:00Z';
+                    case 'email': return 'user@example.com';
+                    case 'uuid': return '123e4567-e89b-12d3-a456-426614174000';
+                    default: return '{?}';
+                }
+            }
+            return schema.default ?? '{?}';
+        case 'integer':
+        case 'number':
+            return schema.default ?? 0;
+        case 'boolean':
+            return schema.default ?? false;
+        case 'null':
+            return null;
+        default:
+            return undefined;
+    }
+}
+
+function resolvePayloadSchema(oasSpec: any, hurlPath: string, method: string): any | undefined {
+    const pathEntry = oasSpec?.paths?.[hurlPath];
+    if (!pathEntry) { return undefined; }
+    const op = pathEntry[method.toLowerCase()];
+    const schema = op?.requestBody?.content?.['application/json']?.schema;
+    if (!schema) { return undefined; }
+    return schema.$ref ? resolveSchemaRef(schema.$ref, oasSpec) : schema;
+}
+
+function buildPayloadBody(schema: any, oasSpec: any, typeName: string): string[] {
+    const lines: string[] = [];
+    const schemaDoc = generateSchemaDoc(schema, 1, oasSpec);
+    lines.push('# Modify the JSON payload as needed');
+    if (schemaDoc.trim()) {
+        lines.push('#');
+        lines.push('# Expected schema:');
+        for (const line of schemaDoc.split('\n')) {
+            lines.push(line ? `# ${line}` : '#');
+        }
+    }
+    lines.push('');
+    lines.push(JSON.stringify(generateSampleValue(schema, oasSpec), null, 2));
+    return lines;
 }
 
 /**
@@ -61,33 +191,6 @@ function toHurlPath(resourcePath: string): string {
         "{{$1}}"
     );
     return converted.startsWith("/") ? converted : `/${converted}`;
-}
-
-/**
- * Build the HttpPayloadContext for the AI payload generator from a FunctionModel.
- * Returns undefined if the resource has no PAYLOAD parameters (no body to generate).
- */
-export function buildPayloadContext(
-    functionModel: FunctionModel,
-    serviceName: string,
-    basePath: string
-): HttpPayloadContext | undefined {
-    const payloadParams = (functionModel.parameters ?? []).filter(
-        p => p.enabled !== false && p.httpParamType === "PAYLOAD"
-    );
-    if (payloadParams.length === 0) { return undefined; }
-
-    return {
-        protocol: Protocol.HTTP,
-        serviceName,
-        serviceBasePath: basePath,
-        resourceBasePath: functionModel.name?.value,
-        resourceMethod: functionModel.accessor?.value,
-        resourceDocumentation: functionModel.documentation?.value,
-        paramDetails: (functionModel.parameters ?? [])
-            .filter(p => p.enabled !== false)
-            .map(p => ({ name: p.name?.value ?? "", type: p.type?.value ?? "" }))
-    };
 }
 
 
@@ -161,7 +264,7 @@ export function buildMarkdownDoc(functionModel: FunctionModel): string {
  *   [QueryStringParams]
  *   filter: {{filter}}
  */
-export function buildHurlString(functionModel: FunctionModel, baseUrl: string, examplePayload?: object): string {
+export function buildHurlString(functionModel: FunctionModel, baseUrl: string, oasSpec?: any): string {
     const method = (functionModel.accessor?.value ?? "GET").toUpperCase();
     const resourcePath = functionModel.name?.value ?? "";
 
@@ -200,15 +303,17 @@ export function buildHurlString(functionModel: FunctionModel, baseUrl: string, e
     // 3. Body (before any request-sections per hurl grammar)
     if (payloadParams.length > 0) {
         const typeName = payloadParams[0].type?.value ?? "";
-        const contentType = typeName.toLowerCase().includes("xml")
-            ? "application/xml"
-            : "application/json";
-        lines.push(`Content-Type: ${contentType}`);
-        if (examplePayload && Object.keys(examplePayload).length > 0) {
-            lines.push(JSON.stringify(examplePayload, null, 2));
-        } else {
-            lines.push(`# Body: ${typeName}`);
-            lines.push("{}");
+        const isXml = typeName.toLowerCase().includes("xml");
+        lines.push(`Content-Type: ${isXml ? "application/xml" : "application/json"}`);
+
+        if (!isXml) {
+            const schema = oasSpec ? resolvePayloadSchema(oasSpec, hurlPath, method) : undefined;
+            if (schema) {
+                lines.push(...buildPayloadBody(schema, oasSpec, typeName));
+            } else {
+                lines.push(`# Body: ${typeName}`);
+                lines.push("{}");
+            }
         }
     }
 
