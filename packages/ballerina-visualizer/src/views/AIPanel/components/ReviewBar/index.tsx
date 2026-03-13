@@ -16,10 +16,9 @@
  * under the License.
  */
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { SemanticDiff, ChangeTypeEnum } from "@wso2/ballerina-core";
-import { Button } from "@wso2/ui-toolkit";
+import { SemanticDiff, ChangeTypeEnum, MACHINE_VIEW, VisualizerLocation } from "@wso2/ballerina-core";
 
 const Container = styled.div`
     display: flex;
@@ -32,16 +31,100 @@ const Container = styled.div`
     margin: 8px 0 4px;
 `;
 
+const TitleBarRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+`;
+
 const Title = styled.div`
     font-size: 13px;
     font-weight: 600;
     color: var(--vscode-foreground);
 `;
 
+const ReviewIconButton = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    padding: 2px 6px;
+    margin: 0;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-foreground);
+    border-radius: 3px;
+    &:hover:not(:disabled) {
+        background-color: var(--vscode-toolbar-hoverBackground);
+    }
+    &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+`;
+
 const ChangeList = styled.div`
     display: flex;
     flex-direction: column;
     gap: 4px;
+`;
+
+const CollapsibleHeader = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: transparent;
+    border: none;
+    padding: 4px 2px 2px;
+    margin-top: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-foreground);
+    text-align: left;
+    width: 100%;
+    &:hover {
+        opacity: 0.8;
+    }
+    &:first-of-type {
+        margin-top: 0;
+    }
+`;
+
+const CountBadge = styled.span`
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--vscode-descriptionForeground);
+    margin-left: 2px;
+`;
+
+const TypesRow = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: space-between;
+    background: transparent;
+    border: none;
+    padding: 4px 2px 2px;
+    margin-top: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-foreground);
+    text-align: left;
+    width: 100%;
+    &:hover:not(:disabled) {
+        opacity: 0.8;
+    }
+    &:disabled {
+        cursor: default;
+        pointer-events: none;
+        opacity: 0.45;
+    }
 `;
 
 const ChangeCard = styled.button`
@@ -114,10 +197,42 @@ const TypePill = styled.span<{ changeType: number }>`
     }};
 `;
 
-const ButtonRow = styled.div`
+const ActionRow = styled.div`
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+`;
+
+interface ActionButtonProps {
+    $variant: "accept" | "discard";
+}
+
+const ActionButton = styled.button<ActionButtonProps>`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    border: none;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--vscode-font-family);
+    cursor: pointer;
+    background-color: ${({ $variant }: ActionButtonProps) =>
+        $variant === "accept"
+            ? "var(--vscode-button-background)"
+            : "var(--vscode-button-secondaryBackground)"};
+    color: ${({ $variant }: ActionButtonProps) =>
+        $variant === "accept"
+            ? "var(--vscode-button-foreground)"
+            : "var(--vscode-button-secondaryForeground)"};
+    &:hover:not(:disabled) {
+        opacity: 0.85;
+    }
+    &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
 `;
 
 const CompactContainer = styled.div`
@@ -152,6 +267,8 @@ const TitleRow = styled.button`
 
 // nodeKind === 2 is TYPE in semantic diffs
 const NODE_KIND_TYPE = 2;
+const NODE_KIND_RESOURCE = 1;
+const NODE_KIND_FUNCTION = 0;
 
 interface DiffEntry {
     symbol: string;
@@ -160,6 +277,11 @@ interface DiffEntry {
     kindLabel: string;
     nodeKind: number;
     viewIndex: number;
+}
+
+interface DiffGroup {
+    groupLabel: string;
+    entries: DiffEntry[];
 }
 
 interface ReviewBarProps {
@@ -179,9 +301,9 @@ function getFileName(filePath: string): string {
 
 function getDiffLabel(diff: SemanticDiff): string {
     if (diff.metadata) {
-        if (diff.nodeKind === 1) {
+        if (diff.nodeKind === NODE_KIND_RESOURCE) {
             const m = diff.metadata as { accessor: string; servicePath: string; resourcePath: string };
-            return `${m.accessor} ${m.servicePath}/${m.resourcePath}`;
+            return `${m.accessor} ${m.resourcePath}`;
         }
         const m = diff.metadata as { name?: string };
         if (m.name) return m.name;
@@ -199,13 +321,13 @@ function getSymbol(changeType: number): string {
 }
 
 function getDiffKindLabel(diff: SemanticDiff): string {
-    if (diff.nodeKind === 0) {
+    if (diff.nodeKind === NODE_KIND_FUNCTION) {
         const m = diff.metadata as { name?: string } | undefined;
-        return m?.name === "main" ? "automation" : "fn";
+        return m?.name === "main" ? "automation" : "function";
     }
-    if (diff.nodeKind === 1) return "resource";
-    if (diff.nodeKind === 2) return "type";
-    return "fn";
+    if (diff.nodeKind === NODE_KIND_RESOURCE) return "resource";
+    if (diff.nodeKind === NODE_KIND_TYPE) return "type";
+    return "function";
 }
 
 function getChangeTypeLabel(changeType: number): string {
@@ -216,6 +338,137 @@ function getChangeTypeLabel(changeType: number): string {
         default: return "~ Modified";
     }
 }
+
+function buildGroups(semanticDiffs: SemanticDiff[], loadDesignDiagrams?: boolean): DiffGroup[] {
+    const designCount = loadDesignDiagrams ? 1 : 0;
+    let viewIndex = designCount;
+
+    const serviceGroups: Record<string, DiffEntry[]> = {};
+    const functionEntries: DiffEntry[] = [];
+    const typeEntries: DiffEntry[] = [];
+    let hasTypeView = false;
+
+    for (const diff of semanticDiffs) {
+        const isType = diff.nodeKind === NODE_KIND_TYPE;
+        if (isType && hasTypeView) continue;
+        if (isType) hasTypeView = true;
+
+        const entry: DiffEntry = {
+            symbol: getSymbol(diff.changeType),
+            changeType: diff.changeType,
+            label: isType ? "Types" : getDiffLabel(diff),
+            kindLabel: getDiffKindLabel(diff),
+            nodeKind: diff.nodeKind,
+            viewIndex,
+        };
+        viewIndex++;
+
+        if (diff.nodeKind === NODE_KIND_RESOURCE) {
+            const m = diff.metadata as { servicePath?: string } | undefined;
+            const svcPath = m?.servicePath || "/";
+            if (!serviceGroups[svcPath]) serviceGroups[svcPath] = [];
+            serviceGroups[svcPath].push(entry);
+        } else if (diff.nodeKind === NODE_KIND_FUNCTION) {
+            functionEntries.push(entry);
+        } else {
+            typeEntries.push(entry);
+        }
+    }
+
+    const groups: DiffGroup[] = [];
+
+    for (const [svcPath, entries] of Object.entries(serviceGroups)) {
+        groups.push({ groupLabel: `service ${svcPath}`, entries });
+    }
+    if (functionEntries.length > 0) {
+        groups.push({ groupLabel: "functions", entries: functionEntries });
+    }
+    if (typeEntries.length > 0) {
+        groups.push({ groupLabel: "types", entries: typeEntries });
+    }
+
+    return groups;
+}
+
+function renderCard(entry: DiffEntry, i: number, onClickEntry?: (viewIndex: number) => void) {
+    return (
+        <ChangeCard
+            key={i}
+            onClick={onClickEntry ? () => onClickEntry(entry.viewIndex) : undefined}
+            disabled={!onClickEntry}
+            title={entry.label}
+        >
+            <CardLeft>
+                <CardKindLabel>{entry.kindLabel}</CardKindLabel>
+                <CardFileName>{entry.label}</CardFileName>
+            </CardLeft>
+            <TypePill changeType={entry.changeType}>{getChangeTypeLabel(entry.changeType)}</TypePill>
+        </ChangeCard>
+    );
+}
+
+const CollapsibleGroupList: React.FC<{
+    groups: DiffGroup[];
+    onClickEntry?: (viewIndex: number) => void;
+}> = ({ groups, onClickEntry }) => {
+    const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
+
+    const toggle = (gi: number) =>
+        setCollapsed(prev => ({ ...prev, [gi]: !prev[gi] }));
+
+    return (
+        <ChangeList>
+            {groups.map((group, gi) => {
+                const isService = group.groupLabel.startsWith("service ");
+                const isFunctions = group.groupLabel === "functions";
+                const isTypes = group.groupLabel === "types";
+                const isCollapsible = isService || isFunctions;
+                const isCollapsed = !!collapsed[gi];
+
+                const displayLabel = isService
+                    ? group.groupLabel.slice("service ".length)
+                    : "function";
+
+                return (
+                    <React.Fragment key={gi}>
+                        {isCollapsible && (
+                            <CollapsibleHeader onClick={() => toggle(gi)}>
+                                <span
+                                    className={`codicon ${isCollapsed ? "codicon-chevron-right" : "codicon-chevron-down"}`}
+                                    style={{ fontSize: "10px" }}
+                                />
+                                {isService && (
+                                    <span className="codicon codicon-plug" style={{ fontSize: "11px", color: "var(--vscode-descriptionForeground)" }} />
+                                )}
+                                {isFunctions && (
+                                    <span className="codicon codicon-symbol-method" style={{ fontSize: "11px", color: "var(--vscode-descriptionForeground)" }} />
+                                )}
+                                <span>{displayLabel}</span>
+                                <CountBadge>{group.entries.length}</CountBadge>
+                            </CollapsibleHeader>
+                        )}
+                        {!isCollapsed && (
+                            isTypes ? (
+                                <TypesRow
+                                    onClick={onClickEntry ? () => onClickEntry(group.entries[0].viewIndex) : undefined}
+                                    disabled={!onClickEntry}
+                                >
+                                    <CardLeft>
+                                        <span className="codicon codicon-symbol-class" style={{ fontSize: "11px", color: "var(--vscode-descriptionForeground)" }} />
+                                        <span>Types</span>
+                                    </CardLeft>
+                                    <TypePill changeType={group.entries[0].changeType}>
+                                        {getChangeTypeLabel(group.entries[0].changeType)}
+                                    </TypePill>
+                                </TypesRow>
+                            ) : group.entries.map((entry, i) => renderCard(entry, i, onClickEntry))
+                        )}
+                    </React.Fragment>
+                );
+            })}
+        </ChangeList>
+    );
+};
 
 export const ReviewBar: React.FC<ReviewBarProps> = ({
     modifiedFiles,
@@ -228,37 +481,24 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
 }) => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isReviewModeOpen, setIsReviewModeOpen] = useState(false);
 
-    // Build chips from semanticDiffs, mirroring ReviewMode's allViews construction:
-    // 1. Design diagram views first (one per package when loadDesignDiagrams=true)
-    // 2. Semantic diff views with type dedup
-    const { chips } = useMemo(() => {
-        if (!semanticDiffs || semanticDiffs.length === 0) {
-            return { chips: null as DiffEntry[] | null };
-        }
+    useEffect(() => {
+        if (!rpcClient || !isActive) return;
+        rpcClient.getVisualizerLocation().then((loc: VisualizerLocation) => {
+            setIsReviewModeOpen(loc.view === MACHINE_VIEW.ReviewMode);
+        });
+        rpcClient.onReviewModeOpened(() => {
+            setIsReviewModeOpen(true);
+        });
+        rpcClient.onReviewModeClosed(() => {
+            setIsReviewModeOpen(false);
+        });
+    }, [rpcClient, isActive]);
 
-        const diffChips: DiffEntry[] = [];
-        const designCount = loadDesignDiagrams ? 1 : 0;
-        let hasTypeView = false;
-        let viewIndex = designCount;
-
-        for (const diff of semanticDiffs) {
-            const isType = diff.nodeKind === NODE_KIND_TYPE;
-            if (isType && hasTypeView) continue;
-            if (isType) hasTypeView = true;
-
-            diffChips.push({
-                symbol: getSymbol(diff.changeType),
-                changeType: diff.changeType,
-                label: getDiffLabel(diff),
-                kindLabel: getDiffKindLabel(diff),
-                nodeKind: diff.nodeKind,
-                viewIndex,
-            });
-            viewIndex++;
-        }
-
-        return { chips: diffChips };
+    const groups = useMemo(() => {
+        if (!semanticDiffs || semanticDiffs.length === 0) return null;
+        return buildGroups(semanticDiffs, loadDesignDiagrams);
     }, [semanticDiffs, loadDesignDiagrams]);
 
     const navigateReviewMode = (index = 0) => {
@@ -307,20 +547,8 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
                     {status === "accepted" ? "Changes accepted" : "Changes discarded"}
                 </TitleRow>
                 {isExpanded && (
-                    chips && chips.length > 0
-                        ? (
-                            <ChangeList>
-                                {chips.map((entry, i) => (
-                                    <ChangeCard key={i} disabled title={entry.label}>
-                                        <CardLeft>
-                                            <CardKindLabel>{entry.kindLabel}</CardKindLabel>
-                                            <CardFileName>{entry.label}</CardFileName>
-                                        </CardLeft>
-                                        <TypePill changeType={entry.changeType}>{getChangeTypeLabel(entry.changeType)}</TypePill>
-                                    </ChangeCard>
-                                ))}
-                            </ChangeList>
-                        )
+                    groups && groups.length > 0
+                        ? <CollapsibleGroupList groups={groups} />
                         : modifiedFiles.length > 0 && (
                             <ChangeList>
                                 {modifiedFiles.map((file, i) => (
@@ -340,40 +568,41 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
 
     return (
         <Container>
-            <Title>Changes ready to review</Title>
-            <ChangeList>
-                {chips && chips.length > 0
-                    ? chips.map((entry, i) => (
-                        <ChangeCard key={i} onClick={() => navigateReviewMode(entry.viewIndex)} title={entry.label}>
-                            <CardLeft>
-                                <CardKindLabel>{entry.kindLabel}</CardKindLabel>
-                                <CardFileName>{entry.label}</CardFileName>
-                            </CardLeft>
-                            <TypePill changeType={entry.changeType}>{getChangeTypeLabel(entry.changeType)}</TypePill>
-                        </ChangeCard>
-                    ))
-                    : modifiedFiles.map((file, i) => (
-                        <ChangeCard key={i} onClick={() => navigateReviewMode(0)} title={file}>
-                            <CardLeft>
-                                <span className="codicon codicon-file" style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }} />
-                                <CardFileName>{getFileName(file)}</CardFileName>
-                            </CardLeft>
-                        </ChangeCard>
-                    ))
-                }
-            </ChangeList>
+            <TitleBarRow>
+                <Title>Changes ready to review</Title>
+                {isActive && !isReviewModeOpen && (
+                    <ReviewIconButton onClick={() => navigateReviewMode(0)} disabled={isProcessing} title="Open review mode">
+                        <span className="codicon codicon-open-preview" style={{ fontSize: "12px" }} />
+                        <span>Review</span>
+                    </ReviewIconButton>
+                )}
+            </TitleBarRow>
+            {groups && groups.length > 0
+                ? <CollapsibleGroupList groups={groups} onClickEntry={(viewIndex: number) => navigateReviewMode(viewIndex)} />
+                : (
+                    <ChangeList>
+                        {modifiedFiles.map((file, i) => (
+                            <ChangeCard key={i} onClick={() => navigateReviewMode(0)} title={file}>
+                                <CardLeft>
+                                    <span className="codicon codicon-file" style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }} />
+                                    <CardFileName>{getFileName(file)}</CardFileName>
+                                </CardLeft>
+                            </ChangeCard>
+                        ))}
+                    </ChangeList>
+                )
+            }
             {isActive && (
-                <ButtonRow>
-                    <Button appearance="secondary" onClick={handleDiscard} disabled={isProcessing}>
+                <ActionRow>
+                    <ActionButton $variant="discard" onClick={handleDiscard} disabled={isProcessing} title="Discard changes">
+                        <span className="codicon codicon-discard" style={{ fontSize: "11px" }} />
                         Discard
-                    </Button>
-                    <Button appearance="primary" onClick={handleAccept} disabled={isProcessing}>
+                    </ActionButton>
+                    <ActionButton $variant="accept" onClick={handleAccept} disabled={isProcessing} title="Accept changes">
+                        <span className="codicon codicon-check" style={{ fontSize: "11px" }} />
                         Keep
-                    </Button>
-                    <Button onClick={() => navigateReviewMode(0)} disabled={isProcessing}>
-                        Review
-                    </Button>
-                </ButtonRow>
+                    </ActionButton>
+                </ActionRow>
             )}
         </Container>
     );
