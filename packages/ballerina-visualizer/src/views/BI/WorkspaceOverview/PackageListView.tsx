@@ -203,8 +203,8 @@ const getTypeColor = (type: SCOPE): string => {
         [SCOPE.INTEGRATION_AS_API]: 'var(--vscode-charts-green)',
         [SCOPE.EVENT_INTEGRATION]: 'var(--vscode-charts-orange)',
         [SCOPE.FILE_INTEGRATION]: 'var(--vscode-charts-purple)',
-        [SCOPE.AI_AGENT]: 'var(--vscode-charts-cyan)',
-        [SCOPE.LIBRARY]: 'var(--vscode-charts-yellow)',
+        [SCOPE.AI_AGENT]: 'var(--vscode-terminal-ansiBlue)',
+        [SCOPE.LIBRARY]: 'var(--vscode-charts-foreground)',
         [SCOPE.ANY]: 'var(--vscode-charts-gray)'
     };
     return colors[type];
