@@ -959,7 +959,8 @@ export type SearchKind =
     | "MEMORY"
     | "MEMORY_STORE"
     | "AGENT_TOOL"
-    | "CLASS_INIT";
+    | "CLASS_INIT"
+    | "ALL";
 
 export type BISearchRequest = {
     position?: LineRange;
