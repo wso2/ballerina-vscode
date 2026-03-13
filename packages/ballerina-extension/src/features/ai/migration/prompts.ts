@@ -14,386 +14,457 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// ---------------------------------------------------------------------------
+// Enhancement stage definitions
+// ---------------------------------------------------------------------------
+
+/** Describes a single stage of the multi-stage migration enhancement. */
+export interface EnhancementStage {
+    /** Human-readable name shown in progress messages. */
+    name: string;
+    /** The prompt text the agent receives for this stage. */
+    prompt: string;
+    /** Per-stage agent limits (overrides the default). */
+    agentLimits: { maxSteps: number; maxOutputTokens: number };
+}
+
 /**
- * Returns the comprehensive enhancement prompt for the wizard-level AI enhancement step.
- * This prompt covers all four enhancement stages, fidelity checks, multi-package workspaces,
- * missing source strategies, inter-package references, test refinement, and documentation.
- *
- * Use this for the main wizard enhancement flow.
+ * Returns the ordered list of enhancement stages.
+ * The orchestrator runs each stage sequentially, giving each stage a **fresh
+ * context window** so the agent never runs out of context mid-work.
+ */
+export function getEnhancementStages(): EnhancementStage[] {
+    const shared = getSharedEnhancementContext();
+    return [
+        {
+            name: "Stage 1 — Fidelity Check & TODO Resolution",
+            prompt: shared + "\n\n" + getStage1Prompt(),
+            agentLimits: { maxSteps: 200, maxOutputTokens: 16384 },
+        },
+        {
+            name: "Stage 2 — Zero Compilation Diagnostics",
+            prompt: shared + "\n\n" + getStage2Prompt(),
+            agentLimits: { maxSteps: 100, maxOutputTokens: 16384 },
+        },
+        {
+            name: "Stage 3 — Test Refinement",
+            prompt: shared + "\n\n" + getStage3Prompt(),
+            agentLimits: { maxSteps: 100, maxOutputTokens: 16384 },
+        },
+        {
+            name: "Stage 4 — Final Validation & Documentation",
+            prompt: shared + "\n\n" + getStage4Prompt(),
+            agentLimits: { maxSteps: 50, maxOutputTokens: 16384 },
+        },
+    ];
+}
+
+/**
+ * Returns the monolithic enhancement prompt (all stages in one).
+ * Kept as a convenience / fallback for `runMigrationAgent()` which still uses
+ * a single-shot execution model.
  */
 export function getWizardEnhancementPrompt(): string {
-    return `You are enhancing a Ballerina project that was automatically migrated from MuleSoft (Mule 3 or Mule 4) by a
-static code migration tool. The tool produced a structurally valid Ballerina package (or workspace with multiple
-packages) but left \`// TODO\` and \`// FIXME\` comments where it could not fully translate a construct, and may
-have introduced compilation errors. Your goal is to make every package fully functional and diagnostic-free.
+    const shared = getSharedEnhancementContext();
+    return shared + "\n\n"
+        + getStage1Prompt() + "\n\n"
+        + getStage2Prompt() + "\n\n"
+        + getStage3Prompt() + "\n\n"
+        + getStage4Prompt();
+}
 
-> **Tests are not executed during this enhancement phase.** Stage 3 produces well-structured, correctly-typed,
-> and logically complete test files — but test execution and pass/fail validation is handled in a separate
-> subsequent prompt. Do not attempt to run tests or report test results here.
+// ---------------------------------------------------------------------------
+// Shared context — included at the top of every stage prompt
+// ---------------------------------------------------------------------------
 
-**Apply your combined knowledge of both MuleSoft and Ballerina throughout this task.** Understanding MuleSoft
-concepts (flows, sub-flows, connectors, DataWeave, MEL, error handling strategies, MUnit) is just as important
-as knowing Ballerina idioms. Use that dual expertise to bridge any gaps the static tool left behind.
+function getSharedEnhancementContext(): string {
+    return `You are enhancing a Ballerina project that was automatically migrated from an external integration
+platform (e.g. MuleSoft Mule 3/4, TIBCO BusinessWorks, or similar) by a static code migration tool. The tool
+produced a structurally valid Ballerina package (or workspace with multiple packages) but left \`// TODO\` and
+\`// FIXME\` comments where it could not fully translate a construct, and may have introduced compilation errors.
+
+**Apply your combined knowledge of the source integration platform and Ballerina throughout this task.**
+
+---
+
+## Critical Rules — Read Before Anything Else
+
+These rules are **non-negotiable**. Violating any of them means the enhancement has failed.
+
+1. **IMPLEMENT, do not document.** Write working Ballerina code. Never produce summaries, roadmaps,
+   remaining-work lists, or explanations of what _should_ be done instead of doing it.
+   **Do NOT create** \`NEXT_STEPS.md\`, \`README_MIGRATION.md\`, \`ENHANCEMENT_SUMMARY.md\` (unless Stage 4),
+   or any guide/roadmap/documentation file.
+2. **Never stop early.** "This project is complex", "time constraints", "token limits", "escaping issues"
+   are NOT valid reasons to stop. You have ample budget. Keep making \`file_edit\` calls.
+3. **Edit files in place — always.** Use \`file_edit\` / \`file_multi_edit\` on existing files.
+   **NEVER** create \`*_new.bal\`, \`*_backup.bal\`, \`*_v2.bal\`, or any copy of an existing file.
+   If a file is large, break your edits into multiple \`file_edit\` calls targeting different regions.
+4. **No stubs or placeholders.** Every TODO must become real, runnable Ballerina logic — not an empty
+   function, not a \`return {}\`, not a \`return ""\`, not a \`// placeholder\`. If a DataWeave transform
+   is 200 lines, translate all 200 lines.
+5. **No empty files.** Never create a file that contains only comments or is empty.
+6. **Code over commentary.** Your text output between tool calls should be 1–2 sentences of progress.
+   If you are writing more than 3 sentences without a tool call, stop and make an edit instead.
+7. **\`file_write\` is ONLY for new files.** Files like \`functions.bal\`, \`data_mappings.bal\`, \`main.bal\`,
+   \`configs.bal\`, \`types.bal\` etc. that appear in the initial project source ALREADY EXIST. You must use
+   \`file_edit\` / \`file_multi_edit\` to modify them. Use \`file_write\` only when creating a file that has
+   no content yet (e.g. an entirely new \`.bal\` file the migration tool did not produce).
+8. **Never write a "Summary" or "Remaining Work" section.** Do not output a final summary of completed
+   and remaining work. Just keep editing files until every TODO is resolved.
+
+---
+
+## Mandatory Workflow: Process One File at a Time
+
+**This is the most important workflow rule.** Do NOT read all original source files upfront. Instead:
+
+1. Pick one \`.bal\` file that has TODOs/FIXMEs (start with \`main.bal\`, then \`functions.bal\`, then others).
+2. For each TODO in that file, read **only** the specific original source file related to that TODO
+   (using \`migration_source_read\`). Do not read unrelated source files.
+3. Implement the fix using \`file_edit\` / \`file_multi_edit\`.
+4. Move to the next TODO in the same file, or the next file.
+5. Output a one-line progress note: "Resolved 3/7 TODOs in functions.bal".
+
+**Why:** Reading all source files at once fills your context window before you make any edits, leaving
+no room for the actual implementation work. Read just-in-time, edit immediately.
 
 ---
 
 ## Ballerina Coding Guidelines
 
-When writing Ballerina code, follow these idiomatic conventions — meaning code that is natural and conventional
-for the language, not a literal transliteration of Mule patterns:
-- Use \`check\` expressions for error propagation rather than explicit \`if err is error\` checks.
-- Use \`match\` and \`if\`/\`else\` over flag variables.
-- Prefer typed Ballerina \`record\` types over \`map<json>\` where the shape is known.
-- Use \`isolated\` functions where possible for concurrency safety.
+- Use \`check\` for error propagation. Use \`match\` / \`if\`/\`else\` over flag variables.
+- Prefer typed \`record\` types over \`map<json>\`. Use \`isolated\` functions where possible.
 - Prefer expression-bodied functions (\`=> expr\`) for pure data transformations.
-- Use \`configurable\` for all externalised configuration — never hardcode values that came from Mule property
-  files.
-- Maximum line length: 120 characters.
+- Use \`configurable\` for externalised configuration. Max line length: 120 characters.
 
 ---
 
-## Multi-Project Workspace: Enhance One Package at a Time
+## File Editing Strategy
 
-If this is a Ballerina workspace containing multiple packages (each corresponding to one original Mule
-project), **process one package at a time** through all four stages before moving to the next. After
-completing each package, report progress clearly, for example:
-
-> ✅ Package 2 of 10 complete: \`order-service\`.
-
-While enhancing a package you may **read** other packages in the workspace for context (e.g. to resolve
-cross-package function signatures or type definitions), but **only modify** another package if a compilation
-stub must be created to unblock the current one. Document any such stubs clearly so they are picked up when
-that package is processed in its own turn.
-
-After all packages are complete, produce a **workspace-level summary** at the workspace root as described in
-the Enhancement Documentation section below.
+| Tool | When to use |
+|---|---|
+| \`file_read\` | Re-read a file after editing it, or read a file not in the initial message. |
+| \`file_edit\` | Replace one text region in an **existing** file (find-and-replace). |
+| \`file_multi_edit\` | Multiple find-and-replace edits in the **same existing** file. |
+| \`file_write\` | Create a file that does **not yet exist** (zero content). |
 
 ---
 
 ## Project Structure Awareness
 
-### Default BI file structure (no \`--keep-structure\` flag)
-By default, the migration tool reclassifies all constructs from the parsed Mule XML files into a standard
-Ballerina Integration (BI) file layout within a single package:
-
+### Default BI file structure
 | File | Contents |
 |---|---|
-| \`main.bal\` | HTTP/scheduler listeners, services, class definitions, uncategorised module-level variables |
-| \`functions.bal\` | Regular (block-body) functions generated from Mule flows and sub-flows |
-| \`data_mappings.bal\` | Expression-bodied functions generated from DataWeave transforms |
-| \`automations.bal\` | The \`main\` function, if present (e.g. from scheduled or batch flows) |
-| \`types.bal\` | All Ballerina \`type\` definitions |
-| \`configs.bal\` | \`configurable\` variables extracted from Mule property/YAML files |
-| \`connections.bal\` | Connector client/connection initialisation variables |
-| \`internal_types.bal\` | Shared internal type definitions generated from the Mule flow context (do not delete; extend if needed) |
-| \`todo.bal\` | Constructs the tool could not map — review and migrate manually |
-
-### \`--keep-structure\` mode
-When \`--keep-structure\` is used, each Mule XML config file is converted into a separate \`.bal\` file named after
-the XML file, preserving the original project layout rather than following the BI standard layout above.
-
-### Single vs. multi-project
-- A single Mule project → one Ballerina package with its own \`Ballerina.toml\` and \`Config.toml\`.
-- Multiple Mule projects migrated together → a Ballerina workspace: a root \`Ballerina.toml\` with a \`[workspace]\`
-  section listing each package subdirectory.
+| \`main.bal\` | HTTP/scheduler listeners, services, class definitions |
+| \`functions.bal\` | Block-body functions from source flows/sub-flows |
+| \`data_mappings.bal\` | Expression-bodied functions from DataWeave/XSLT transforms |
+| \`automations.bal\` | The \`main\` function (scheduled/batch flows) |
+| \`types.bal\` | All \`type\` definitions |
+| \`configs.bal\` | \`configurable\` variables |
+| \`connections.bal\` | Connector client/connection initialisations |
+| \`internal_types.bal\` | Shared internal types |
+| \`todo.bal\` | Constructs the tool could not map |
 
 ### Config.toml
-\`Config.toml\` contains configurable values extracted from Mule \`.properties\` and \`.yaml\` files. Variable names
-are sanitised to valid Ballerina identifiers: dots and hyphens are replaced with underscores. Every \`configurable\`
-variable declared in a source file must have a corresponding entry in \`Config.toml\`.
+Every \`configurable\` variable must have a corresponding entry in \`Config.toml\`.
 
 ---
 
 ## Original Source Context
 
-The original Mule project directory is available alongside the migrated Ballerina project.
-**Always consult the original source files before implementing any TODO/FIXME or fixing any gap.**
+You have two tools for reading the original source project:
+- **\`migration_source_list\`**: List files/directories.
+- **\`migration_source_read\`**: Read a specific file.
 
-Key original artifacts:
-- **Mule XML configurations** — \`src/main/mule/*.xml\` (Mule 4) or \`src/main/app/*.xml\` (Mule 3): flows,
-  sub-flows, error handlers, connectors, and routers. In \`--keep-structure\` mode each XML maps to one \`.bal\`
-  file; in default BI mode constructs are spread across the BI files above.
-- **DataWeave transforms** — inline \`<ee:transform>\` / \`<dw:transform-message>\` blocks in XML, or \`.dwl\` files
-  under \`src/main/resources/\`: these map to expression-bodied functions in \`data_mappings.bal\` (or \`functions.bal\`
-  if they have a block body).
-- **Property/YAML files** — \`src/main/resources/*.properties\` and \`*.yaml\`: source of \`Config.toml\` entries.
-- **MUnit test files** — \`src/test/munit/*.xml\`: source of the Ballerina test files in \`tests/\`.
-- **\`pom.xml\`** — connector dependencies that indicate which \`ballerinax/\` modules should be imported.
+**Read source files on-demand** — only when you need them for a specific TODO you are about to resolve.
+Do NOT read all source files as a first step.
 
-### Fidelity check: migrated project vs. original source
-The static migration tool may have silently dropped or partially converted constructs — this is especially
-common with DataWeave transforms that failed to parse. **Before starting Stage 1, perform a fidelity check:**
-
-1. For each Mule XML file, identify every significant construct: flows, sub-flows, \`<ee:transform>\` /
-   \`<dw:transform-message>\` blocks, choice routers, error handlers, connectors, and flow references.
-2. Locate the corresponding code in the migrated Ballerina package (using the BI file table above as a guide).
-3. If a construct is **absent or clearly incomplete** in the Ballerina output (e.g. a DataWeave block that
-   produced no function, or a flow whose body is empty), treat it exactly like a \`// TODO\` — implement it from
-   the original source before proceeding.
-4. Pay particular attention to \`data_mappings.bal\`: if a DataWeave transform exists in the original source but
-   has no corresponding function in the Ballerina project, translate it manually following the DataWeave →
-   Ballerina mapping rules in Stage 1.
-
-### Handling missing or partial original source
-The original Mule source may be incomplete — shared utility projects, common libraries, or individual XML files
-may be absent. When the original source cannot be found, follow this strategy to still produce diagnostic-free
-code:
-
-1. **Identify the gap**: Note which Mule component is missing (e.g. a logging utility class, a shared library
-   flow, a custom transformer).
-2. **Implement what can be inferred**: Use the surrounding Ballerina code, the comment text, and your MuleSoft
-   knowledge to produce the closest reasonable Ballerina equivalent. The implementation must be
-   **syntactically and type-correct** so it does not introduce new compilation errors. For example:
-   - A missing Mule logging utility → implement using \`ballerina/log\` with the log levels and message
-     patterns visible in the surrounding context.
-   - A missing custom transformer with a known input/output type → implement a pass-through or best-effort
-     transformation that type-checks correctly, with a scoped comment explaining what is approximated.
-   - A missing shared flow whose return type is unknown → declare a local helper function returning \`anydata\`
-     (or the narrowest type that satisfies all call sites), so the caller compiles without errors.
-3. **Leave a scoped comment**: Replace the original \`// TODO\` / \`// FIXME\` with a precise note, for example:
-   \`\`\`ballerina
-   // TODO: Original Mule utility 'com.example:logging-util' was not found in the source.
-   //       Best-effort conversion using ballerina/log. Verify when the utility source becomes available.
-   log:printInfo("Processing started", orderId = ctx.variables["orderId"]);
-   \`\`\`
-4. **The code must compile**: The best-effort implementation must introduce zero new diagnostics. If a type
-   cannot be inferred at all, use \`anydata\` or an anonymous record \`record {| anydata...; |}\` as a last resort
-   rather than leaving an unresolved symbol.
-5. **Never leave an empty stub**: An empty function body or a bare \`// TODO\` with no implementation is not
-   acceptable. Always provide runnable code alongside the explanatory comment.
+### Handling missing original source
+If the source cannot be found:
+1. Implement what can be inferred from surrounding code and platform knowledge.
+2. Must be syntactically and type-correct.
+3. Leave a scoped comment noting the approximation.
+4. **Never leave an empty stub.**
 
 ---
 
-## Stage 1 — Fidelity Check + Resolve TODO/FIXME Comments in Source Files
+## Inter-Package References
 
-First, complete the **fidelity check** described in the "Original Source Context" section above to catch any
-constructs that were silently dropped by the static tool.
-
-Then scan every \`.bal\` file **excluding the \`tests/\` directory** for \`// TODO\` and \`// FIXME\` comments.
-
-For each comment:
-1. Read the surrounding Ballerina code to understand the structural context (which flow, which connector
-   operation, which transform, which BI file it lives in).
-2. Locate the corresponding construct in the original Mule XML or DataWeave source to understand the exact
-   intended behaviour. If the original source is missing, follow the "Handling missing or partial original
-   source" guidelines above.
-3. Implement with correct, idiomatic Ballerina code:
-   - **HTTP/REST connectors**: use \`ballerina/http\` client/listener with correct resource paths, methods,
-     headers, and query parameters as defined in the original Mule HTTP requester/listener config.
-   - **Database operations**: use the appropriate \`ballerinax/\` database connector (\`mysql\`, \`postgresql\`,
-     \`mssql\`, etc.) matching the original Mule DB connector config.
-   - **Message transformations**: translate DataWeave logic to Ballerina, preferring expression-bodied
-     functions in \`data_mappings.bal\`. Use \`map\`, \`filter\`, record destructuring, and \`lang.value\` functions.
-   - **Error handling**: map \`on-error-propagate\` → \`on fail\` / \`check\`; map \`on-error-continue\` → \`do\` with
-     explicit error handling that does not re-throw.
-   - **Scatter-gather / parallel-for-each**: use Ballerina \`fork\`/\`worker\` constructs or \`future\` types.
-   - **Choice routers**: use \`if\`/\`else\` or \`match\` statements.
-   - **Flow references**: ensure the Ballerina function call matches the target function's signature and
-     return type. For cross-package references see the inter-package section below.
-   - **Logging**: use \`ballerina/log\` (\`log:printInfo\`, \`log:printError\`, \`log:printDebug\`). Map Mule log
-     levels to their Ballerina equivalents.
-4. After implementing, ensure all required imports are added at the top of the file.
+1. Verify \`import\` statements and \`public\` visibility.
+2. Create minimal compilable stubs for missing cross-package functions.
+3. Ensure workspace \`Ballerina.toml\` lists all packages.
 
 ---
 
-## Stage 2 — Achieve Zero Compilation Diagnostics
+## Multi-Project Workspace
 
-Run the diagnostics tool to identify all compilation errors across the package.
-Address errors systematically:
-- **Missing imports**: Add the correct \`import\` statement. Prefer \`ballerina/\` stdlib and \`ballerinax/\`
-  connectors.
-- **Type mismatches**: Align types with declarations in \`internal_types.bal\` and connector return types.
-  Use \`check\` for error unions.
-- **Undefined symbols**: Check whether the symbol should come from another file in the same package, or
-  whether a function/type was not migrated and needs to be created. If the original source for that symbol
-  is missing, apply the missing-source strategy (implement a best-effort, type-correct version) — do not
-  leave an unresolved symbol that blocks compilation.
-- **Incompatible function signatures**: Match parameter types and return types. Pay attention to
-  \`returns error?\` vs \`returns SomeType|error\`.
-- **Config.toml mismatches**: Ensure every \`configurable\` variable in source has a matching key in
-  \`Config.toml\` with a compatible type (\`string\`, \`int\`, \`boolean\`).
-- **Cross-package references**: See the inter-package section below.
-- **Errors rooted in missing/erroneous original source**: If a diagnostic cannot be fixed by consulting the
-  original source (because the source itself was broken or absent), apply the minimum change that makes the
-  code compile: widen a type to \`anydata\`, replace an unresolvable expression with a typed placeholder, or
-  extract a helper function with a compatible signature. Always accompany such changes with a scoped comment
-  explaining the approximation.
+Process one package at a time. Read other packages for context but only modify them for compilation stubs.`;
+}
 
-Re-run diagnostics after each batch of fixes.
-**Do not proceed to Stage 3 until zero error-level diagnostics remain.**
+// ---------------------------------------------------------------------------
+// Stage 1 — Fidelity Check + Resolve TODO/FIXME Comments
+// ---------------------------------------------------------------------------
 
----
+function getStage1Prompt(): string {
+    return `## Your Task — Stage 1: Fidelity Check + Resolve TODO/FIXME Comments
 
-## Inter-Package References in a Ballerina Workspace
+Your sole focus: resolve every TODO/FIXME in source files (excluding \`tests/\`). A later stage handles
+diagnostics, tests, and documentation.
 
-When multiple Mule projects are migrated into a Ballerina workspace, flows that called across projects are
-converted into cross-package function calls. The static tool already resolves these by:
-- Adding an \`import <org>/<package>\` statement to the calling file.
-- Prefixing the call with the package name: \`packageName:functionName(ctx)\`.
+> **Do NOT** create any documentation files. **Do NOT** fix compilation errors (Stage 2 does that).
+> **Do NOT** create \`functions_new.bal\`, \`data_mappings_new.bal\`, or ANY copy of existing files.
 
-When resolving TODOs/FIXMEs or fixing errors involving cross-package calls:
-1. Verify the \`import\` statement is present and the package name matches the target package's \`Ballerina.toml\`
-   \`name\` field.
-2. Verify the called function is \`public\` in the target package.
-3. If the target function does not exist yet (because that Mule project has not been enhanced yet), create a
-   minimal compilable stub in the target package — typed correctly based on the call site — with a scoped
-   comment marking it for completion when that package is processed:
-   \`\`\`ballerina
-   // TODO: Stub created to unblock 'order-service'. Replace with full implementation
-   //       when 'payment-service' is enhanced.
-   public function processPayment(Context ctx) returns error? {
-   }
-   \`\`\`
-4. Ensure the workspace root \`Ballerina.toml\` lists all packages under \`[workspace]\` so they resolve correctly.
+### Workflow — Follow This Exact Order
 
----
+**Phase A: Quick fidelity scan (≤ 3 tool calls)**
+1. Call \`migration_source_list\` on the root directory (\`.\`) to see the source project structure.
+2. Compare the listed source files against the Ballerina project files in the initial message.
+3. Note any source constructs that have **no** Ballerina counterpart — you will implement them during Phase B.
+   **Do NOT read every source file now.** Just note which files exist.
 
-## Stage 3 — Refine and Validate Test Files
+**Phase B: Resolve TODOs file by file**
 
-> **Why this is a separate stage:** By this point the source files have been fully enhanced. Stage 3 uses
-> the *enhanced* Ballerina implementation as the source of truth for what the code actually does, and
-> cross-references it against the original MUnit tests to verify behavioural equivalence. The goal is to
-> produce test files that are complete, correctly typed, and structurally ready to run — **not** to execute
-> them (that is handled in a separate subsequent step).
+Process files in this order: \`todo.bal\` → \`main.bal\` → \`functions.bal\` → \`data_mappings.bal\` → other \`.bal\` files.
 
-### Preparation: build a behaviour map
-Before touching any test file, construct a mental map of the package by reading both sides:
-- **Enhanced Ballerina source** (\`functions.bal\`, \`data_mappings.bal\`, \`main.bal\`, etc.): understand the
-  actual function signatures, return types, error paths, and data shapes that exist after enhancement.
-- **Original MUnit XML files** (\`src/test/munit/*.xml\`): for each MUnit test, identify:
-  - The flow under test and the mock event / payload it sets up (\`<munit:set-event>\`, \`<mock:when>\`).
-  - The assertions it makes (\`<munit:assert-that>\`, \`<munit-tools:assert-equals>\`, etc.).
-  - Any mock configurations (\`<mock:spy>\`, \`<mock:when>\`) that replace connectors or sub-flows.
+For each file:
+1. Scan the file content (already in the initial message) for \`// TODO\` and \`// FIXME\` comments.
+2. For each TODO:
+   a. If it references a specific source construct/file, call \`migration_source_read\` to read **only that file**.
+   b. Implement the fix immediately using \`file_edit\` or \`file_multi_edit\`.
+   c. For \`// TODO: UNSUPPORTED ... BLOCK ENCOUNTERED\` comments: the commented-out source between the
+      \`// ---\` lines is the specification. Translate it to Ballerina and remove the entire commented block.
+3. After finishing all TODOs in one file, output one line: "✅ \`<filename>\`: resolved N TODOs".
+4. Move to the next file.
+
+**Phase C: Fidelity-gap implementation**
+
+Using the notes from Phase A, implement any source constructs that were silently dropped by the migration
+tool. Read the specific source file, then add the corresponding Ballerina code to the appropriate \`.bal\` file.
+
+**Phase D: Clean up todo.bal**
+
+If all constructs from \`todo.bal\` have been moved to their correct files, delete \`todo.bal\`.
+If some remain, continue implementing them.
+
+### Connector / Construct Mapping Quick Reference
+
+| Source construct | Ballerina equivalent |
+|---|---|
+| Custom loggers (json-logger, etc.) | \`log:printInfo\` / \`log:printError\` with structured fields |
+| Object stores / caches | \`ballerina/cache\` or \`map\` variable |
+| Message queues (Anypoint MQ, JMS) | \`ballerinax/rabbitmq\`, \`kafka\`, or \`java.jms\` |
+| Batch processors | \`foreach\` with error collection, or \`fork\`/\`worker\` |
+| Schedulers | \`ballerina/task\` or \`@schedule\` annotation |
+| DataWeave transforms | Expression-bodied Ballerina functions |
+| SOAP/XML services | \`ballerina/http\` + \`ballerina/xmldata\` |
+| Choice routers | \`if\`/\`else\` or \`match\` |
+| Error handling (on-error-propagate) | \`on fail\` / \`check\` |
+| Error handling (on-error-continue) | \`do { } on fail { }\` (no re-throw) |
+| Scatter-gather | \`fork\`/\`worker\` or \`future\` types |
+| Flow references | Ballerina function calls |
+
+### Anti-Patterns — DO NOT DO THESE
+
+The following actions are **failures**. If you catch yourself doing any of them, stop immediately:
+
+❌ Reading 4+ original source files before making your first \`file_edit\` call.
+❌ Creating \`functions_new.bal\`, \`data_mappings_new.bal\`, or any "-new" / "-v2" / "_backup" file.
+❌ Using \`file_write\` on a file that already has content (\`functions.bal\`, \`main.bal\`, etc.).
+❌ Writing a "Summary", "Remaining Work", "Next Steps", or "Recommendation" section.
+❌ Saying "Due to complexity..." or "Given the size..." or "time constraints" and stopping.
+❌ Creating a function that returns \`{}\`, \`""\`, \`()\`, or \`0\` as a "placeholder".
+❌ Writing more than 3 sentences of text between two consecutive tool calls.
+
+If a DataWeave file is 400 lines, you translate all 400 lines. Break the work into multiple
+\`file_edit\` calls if needed, each handling a section of the file.
+
+### Completion Criteria
+
+When every TODO/FIXME in source files (excluding \`tests/\`) is resolved, output one line:
+"Stage 1 complete: resolved N TODOs across M files. todo.bal: [deleted | N constructs remain]."
+Then stop. Do not write anything else.`;
+}
+
+// ---------------------------------------------------------------------------
+// Stage 2 — Zero Compilation Diagnostics
+// ---------------------------------------------------------------------------
+
+function getStage2Prompt(): string {
+    return `## Your Task — Stage 2: Achieve Zero Compilation Diagnostics
+
+You are running **Stage 2** of the enhancement pipeline. The previous stage resolved all TODO/FIXME comments.
+Your sole focus is achieving **zero error-level compilation diagnostics** across all source files
+(excluding \`tests/\`).
+
+> **Do NOT** create \`ENHANCEMENT_SUMMARY.md\` or any documentation files during this stage.
+> **Do NOT** work on test files — that is Stage 3.
+> Focus entirely on fixing compilation errors.
+
+### Workflow
+
+1. Run the diagnostics tool to get all current compilation errors.
+2. Address errors systematically:
+   - **Missing imports**: Add the correct \`import\` statement. Prefer \`ballerina/\` stdlib and \`ballerinax/\` connectors.
+   - **Type mismatches**: Align types with declarations in \`internal_types.bal\` and connector return types.
+     Use \`check\` for error unions.
+   - **Undefined symbols**: Check whether the symbol should come from another file in the same package, or
+     whether a function/type was not migrated and needs to be created.
+   - **Incompatible function signatures**: Match parameter types and return types. Pay attention to
+     \`returns error?\` vs \`returns SomeType|error\`.
+   - **Config.toml mismatches**: Ensure every \`configurable\` variable has a matching key in \`Config.toml\`.
+   - **Cross-package references**: Verify imports, ensure called functions are \`public\`, create stubs if needed.
+3. After each batch of fixes, **re-run diagnostics** to verify progress and catch new errors.
+4. Repeat until zero error-level diagnostics remain.
+
+### Important Notes
+
+- If a diagnostic cannot be fixed by consulting the original source (because the source itself was broken
+  or absent), apply the minimum change that makes the code compile: widen a type to \`anydata\`, extract a
+  helper function with a compatible signature, etc. Always add a scoped comment explaining the approximation.
+- You may use \`migration_source_read\` if you need to check original source for context while fixing errors.
+- If the previous stage left any unresolved TODOs that cause compilation errors, fix them now.
+
+### Completion Criteria for Stage 2
+
+When the diagnostics tool reports zero error-level diagnostics for all source files (excluding \`tests/\`):
+- Output the final diagnostics count (should be 0 errors).
+- List any best-effort approximations you made to fix diagnostics.
+
+Then stop. Stage 3 will handle test files.`;
+}
+
+// ---------------------------------------------------------------------------
+// Stage 3 — Test Refinement
+// ---------------------------------------------------------------------------
+
+function getStage3Prompt(): string {
+    return `## Your Task — Stage 3: Refine and Validate Test Files
+
+You are running **Stage 3** of the enhancement pipeline. Stages 1 and 2 have already resolved all TODOs
+and achieved zero compilation diagnostics in source files. Your sole focus is making the test files in
+\`tests/\` complete, correctly typed, and compilation-error free.
+
+> **Tests are not executed during this stage.** The goal is to produce structurally complete, correctly-typed
+> test files. Test execution and pass/fail validation is handled in a separate subsequent step.
+> **Do NOT** create \`ENHANCEMENT_SUMMARY.md\` during this stage — that is Stage 4.
+
+### Preparation: Build a Behaviour Map
+
+Before touching any test file:
+1. Read the enhanced Ballerina source files (\`functions.bal\`, \`data_mappings.bal\`, \`main.bal\`, etc.) to
+   understand actual function signatures, return types, error paths, and data shapes.
+2. Use \`migration_source_list\` and \`migration_source_read\` to read original test files (e.g. MUnit XML
+   under \`src/test/munit/\`) to understand the original test scenarios.
 
 ### For each test file in \`tests/\`:
-1. **Align with the enhanced implementation**: Read the corresponding Ballerina source functions that the test
-   exercises. Verify that the test is calling the correct function with the correct signature as it exists
-   after Stage 1/2 enhancement — update call sites if signatures changed.
-2. **Align with MUnit intent**: Cross-reference each test function against the MUnit XML to confirm it is
-   testing the same scenario. If the MUnit test mocked a connector, the Ballerina test should mock the
-   equivalent \`ballerinax/\` client using \`@test:Mock\`. If the MUnit test asserted on a transformed payload,
-   the Ballerina test should assert on the equivalent record or JSON value.
-3. **Resolve all \`// TODO\` and \`// FIXME\` comments** with correct test logic. Apply missing-source guidelines
-   if the MUnit file is absent — in that case, write tests that exercise the enhanced Ballerina functions
-   directly based on their visible behaviour.
-4. **Ensure meaningful assertions**: Every \`@test:Config\` annotated function must have at least one
-   substantive assertion (\`test:assertEquals\`, \`test:assertTrue\`, \`test:assertFail\`, etc.). Empty stubs or
-   trivially-true checks (\`test:assertTrue(true)\`) are not acceptable.
-5. **Check for dropped test coverage**: If a MUnit test exists in the original source but has no counterpart
-   in the Ballerina \`tests/\` directory, create the missing test function.
-6. **Mock connectors and external services**: Use \`@test:Mock\` to stub \`http:Client\`, database clients, and
-   any other connector that would make tests depend on live infrastructure.
-7. **Wire setup/teardown correctly**: Verify functions annotated with \`@test:BeforeSuite\`, \`@test:AfterSuite\`,
-   \`@test:BeforeEach\`, \`@test:AfterEach\` are present where needed and correctly annotated.
-8. **Ensure test files are compilation-error free**: Run the diagnostics tool including the \`tests/\`
-   directory and fix any errors. Test files must compile cleanly even though they are not executed here.
+
+1. **Align with enhanced implementation**: Verify test calls match current function signatures. Update
+   call sites if signatures changed during Stages 1/2.
+2. **Align with original test intent**: Cross-reference each test against original test files. If the
+   original mocked a connector, mock the equivalent \`ballerinax/\` client using \`@test:Mock\`.
+3. **Resolve all \`// TODO\` and \`// FIXME\` comments** with correct test logic.
+4. **Ensure meaningful assertions**: Every \`@test:Config\` function must have at least one substantive
+   assertion (\`test:assertEquals\`, \`test:assertTrue\`, \`test:assertFail\`, etc.). No trivially-true checks.
+5. **Check for dropped test coverage**: If a test exists in the original source but has no counterpart
+   in \`tests/\`, create the missing test function.
+6. **Mock connectors and external services**: Use \`@test:Mock\` for \`http:Client\`, database clients, etc.
+7. **Wire setup/teardown correctly**: \`@test:BeforeSuite\`, \`@test:AfterSuite\`, etc.
+8. **Ensure test files compile**: Run the diagnostics tool **including** the \`tests/\` directory and fix errors.
 9. **Do not delete or comment out existing test cases.**
 
----
+### Completion Criteria for Stage 3
 
-## Enhancement Documentation
+When all test files are complete and compilation-error free:
+- Output the diagnostics count for test files (should be 0 errors).
+- List test functions added or significantly modified.
 
-### Per-package: \`ENHANCEMENT_SUMMARY.md\`
-After completing all four stages for a package, create (or overwrite) a file named \`ENHANCEMENT_SUMMARY.md\`
-in the root of that package directory. It must contain the following sections:
+Then stop. Stage 4 will handle final validation and documentation.`;
+}
+
+// ---------------------------------------------------------------------------
+// Stage 4 — Final Validation & Documentation
+// ---------------------------------------------------------------------------
+
+function getStage4Prompt(): string {
+    return `## Your Task — Stage 4: Final Validation & Documentation
+
+You are running the **final stage** of the enhancement pipeline. Stages 1–3 have resolved TODOs, fixed
+diagnostics, and refined test files. Your focus is verifying completeness and writing \`ENHANCEMENT_SUMMARY.md\`.
+
+### Validation Checklist
+
+Verify each of the following. If any item fails, **fix it** before writing documentation:
+
+- [ ] **Source files**: Zero unresolved \`// TODO\` and \`// FIXME\` comments remain (or every remaining
+      comment is a scoped best-effort note — never an unimplemented stub).
+- [ ] **\`todo.bal\`**: Empty or deleted.
+- [ ] **UNSUPPORTED BLOCK comments**: Zero \`// TODO: UNSUPPORTED ... BLOCK ENCOUNTERED\` comments remain.
+- [ ] **Diagnostics**: Run the diagnostics tool. Zero error-level diagnostics in source files.
+- [ ] **Config.toml**: Has entries for all \`configurable\` variables.
+- [ ] **Test files**: Run diagnostics including \`tests/\`. All test files compile. Every original test
+      scenario has a Ballerina test function. No empty stubs.
+- [ ] **Cross-package stubs**: Any stubs written in other packages are noted.
+
+### Write ENHANCEMENT_SUMMARY.md
+
+After the checklist passes, create \`ENHANCEMENT_SUMMARY.md\` in the package root with these sections:
 
 \`\`\`markdown
 # Enhancement Summary — <package-name>
 
 ## Overview
-<One-paragraph description of what this package does, inferred from the Mule source and the enhanced code.>
+<One-paragraph description of what this package does.>
 
 ## Changes Made
 
 ### Fidelity Fixes
-List every construct that was silently dropped or partially converted by the static tool and was completed
-during the fidelity check. For each item include: construct type, original Mule file, and what was added.
+List constructs silently dropped by the static tool that were completed during fidelity check.
 
 ### TODO / FIXME Resolutions
-List every \`// TODO\` and \`// FIXME\` that was resolved. For each item include:
-- File and line (approximate)
-- Original comment text
-- What was implemented
+List every TODO/FIXME resolved: file, original comment, what was implemented.
 
 ### Best-Effort Approximations
-List every place where the original Mule source was missing or erroneous and a best-effort implementation
-was produced. For each item include:
-- What was missing (component name / file)
-- What approximation was used
-- What the developer should verify when the original source becomes available
+List places where original source was missing and a best-effort implementation was produced.
 
 ### Compilation Fixes
-List every diagnostic that was fixed in Stage 2 that was not already covered above. For each item include:
-- File, error description, and resolution applied.
+List diagnostics fixed in Stage 2.
 
 ### Test Changes
-Summarise what was done in Stage 3:
-- Tests updated to match the enhanced implementation.
-- New test functions added (with the MUnit scenario each covers).
-- Mocks added or updated.
-- Any MUnit scenarios that could not be covered and why.
+Summarise Stage 3 work: tests updated, added, mocks added, scenarios not covered.
 
 ## Remaining Scoped TODOs
-List all \`// TODO\` comments that remain in the package after enhancement (i.e. best-effort notes, not
-unimplemented stubs). For each: file, approximate line, and a brief description of what still needs
-human review.
+List all remaining \`// TODO\` comments (best-effort notes only).
 
 ## Compilation Status
-State: **✅ Zero diagnostics** or list any warnings that are acceptable to leave.
+**✅ Zero diagnostics** or list acceptable warnings.
 
 ## Test Readiness
-State: **✅ Test files compile and are structurally complete** or note any test files that still have
-unresolved gaps, with justification. Test execution results will be validated in a separate step.
+**✅ Test files compile and are structurally complete** or note gaps.
 \`\`\`
 
-### Workspace-level: \`ENHANCEMENT_SUMMARY.md\` at workspace root
-After all packages in a workspace have been enhanced, create (or overwrite) \`ENHANCEMENT_SUMMARY.md\` in the
-workspace root directory. It must contain:
+### Workspace-Level Summary (multi-package only)
+
+If this is a multi-package workspace and all packages are complete, also create \`ENHANCEMENT_SUMMARY.md\`
+at the workspace root:
 
 \`\`\`markdown
 # Enhancement Summary — Workspace
 
 ## Packages Enhanced
-
 | Package | Diagnostics | Test Files Ready | Remaining TODOs | Notes |
 |---|---|---|---|---|
-| \`order-service\` | ✅ 0 | ✅ Compile-clean | 2 best-effort | Missing logging util |
-| \`payment-service\` | ✅ 0 | ✅ Compile-clean | 0 | — |
-| ... | | | | |
 
 ## Cross-Package Stubs Created
-List every stub that was written in one package to unblock another, with the package it lives in, the
-package it unblocks, and the function/type involved. These stubs must be replaced when the target package
-is enhanced.
+List stubs written in one package to unblock another.
 
 ## Overall Remaining Work
-Summarise anything across the entire workspace that still requires human review: missing source components,
-approximated logic, skipped tests, and any known behavioural differences from the original Mule system.
+Summarise anything requiring human review.
 \`\`\`
 
----
+### Completion Criteria for Stage 4
 
-## Stage 4 — Final Validation
-
-Before declaring the current package complete, verify all of the following:
-
-- **Source files**: Zero \`// TODO\` and \`// FIXME\` comments remain, **or** every remaining comment is a
-  scoped best-effort note (following the missing-source format above) — never an unimplemented stub or an
-  unresolved symbol.
-- **Diagnostics**: Zero error-level compilation diagnostics in all source files (excluding \`tests/\`).
-- **Config.toml**: Has entries for all \`configurable\` variables used in the package.
-- **Test files**: All test files are compilation-error free. Every MUnit scenario from the original source
-  is represented by at least one Ballerina test function. No empty stubs remain. Test execution is out of
-  scope for this phase.
-- **Documentation**: \`ENHANCEMENT_SUMMARY.md\` has been written in the package root with all sections
-  completed.
-- **Cross-package stubs**: Any stubs written in other packages to unblock this one are listed in this
-  package's \`ENHANCEMENT_SUMMARY.md\` and marked for completion when those packages are processed.
-- **Workspace** *(multi-package only)*: Once all packages are complete, the workspace-level
-  \`ENHANCEMENT_SUMMARY.md\` is written at the workspace root.
-
-Work methodically through each stage in order. Do not declare a package complete until all checklist items
-above are satisfied.`;
+Output the final status: checklist results and confirmation that \`ENHANCEMENT_SUMMARY.md\` was written.`;
 }
 
 /**

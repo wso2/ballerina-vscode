@@ -205,16 +205,19 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 workspaceId: this.config.executionContext.projectPath,
                 generationId: this.config.generationId,
                 threadId: 'default',
+                migrationSourcePath: this.config.toolOptions?.migrationSourcePath,
             });
 
             // Stream LLM response — use injected model if provided, else default Anthropic
             const llmModel = this.config.model ?? await getAnthropicClient(ANTHROPIC_SONNET_4);
+            const maxSteps = this.config.agentLimits?.maxSteps ?? 50;
+            const maxOutputTokens = this.config.agentLimits?.maxOutputTokens ?? 8192;
             const { fullStream, response, usage } = streamText({
                 model: llmModel,
-                maxOutputTokens: 8192,
+                maxOutputTokens,
                 temperature: 0,
                 messages: allMessages,
-                stopWhen: stepCountIs(50),
+                stopWhen: stepCountIs(maxSteps),
                 tools,
                 abortSignal: this.config.abortController.signal,
             });
