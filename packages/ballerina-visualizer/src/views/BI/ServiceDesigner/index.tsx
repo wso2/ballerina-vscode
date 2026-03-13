@@ -29,7 +29,7 @@ import {
     ServiceModel,
     Protocol
 } from "@wso2/ballerina-core";
-import { buildBaseUrl, buildHurlString, buildMarkdownDoc, buildPayloadContext } from "./buildHurlString";
+import { buildBaseUrl, buildHurlString, buildMarkdownDoc } from "./buildHurlString";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { NodePosition } from "@wso2/syntax-tree";
@@ -742,10 +742,22 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         const serviceName = basePath?.replace(/^\//, "") || serviceModel.name || "Service";
         cells.push({ kind: "markdown", content: `### Try Service: '${serviceName}' (${baseUrl})` });
 
+        // Fetch OAI spec once for schema docs + sample values; fall back gracefully if unavailable
+        let oasSpec: any | undefined;
         try {
-            for (const resource of httpResources) {
-                if (!resource.position || !resource.path) { continue; }
+            const firstPath = httpResources.find(r => r.path)?.path;
+            const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
+                documentFilePath: firstPath,
+                basePath
+            });
+            oasSpec = oasResult.spec ?? undefined;
+        } catch {
+            // spec unavailable — cells will fall back to minimal placeholders
+        }
 
+        try {
+            const resourceCells = await Promise.all(httpResources.map(async (resource) => {
+                if (!resource.position || !resource.path) { return []; }
                 try {
                     const codeData: CodeData = {
                         lineRange: {
@@ -758,23 +770,16 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                         filePath: resource.path,
                         codedata: codeData
                     });
-                    const payloadCtx = buildPayloadContext(result.function, serviceModel.name || "", basePath || "");
-                    let examplePayload: object | undefined;
-                    if (payloadCtx) {
-                        try {
-                            examplePayload = await rpcClient.getServiceDesignerRpcClient().generateExamplePayloadJson(payloadCtx);
-                        } catch {
-                            // AI unavailable — fall back to empty body
-                        }
-                    }
-                    cells.push({ kind: "markdown", content: buildMarkdownDoc(result.function) });
-                    cells.push({ kind: "hurl", content: buildHurlString(result.function, baseUrl, examplePayload) });
+                    return [
+                        { kind: "markdown" as const, content: buildMarkdownDoc(result.function) },
+                        { kind: "hurl" as const, content: buildHurlString(result.function, baseUrl, oasSpec) }
+                    ];
                 } catch {
-                    // Fallback: minimal entry from resource metadata
                     const method = resource.icon?.split("-")[0]?.toUpperCase() ?? "GET";
-                    cells.push({ kind: "hurl", content: `${method} ${baseUrl}${resource.name}` });
+                    return [{ kind: "hurl" as const, content: `${method} ${baseUrl}${resource.name}` }];
                 }
-            }
+            }));
+            cells.push(...resourceCells.flat());
         } finally {
             setIsTryItLoading(false);
         }

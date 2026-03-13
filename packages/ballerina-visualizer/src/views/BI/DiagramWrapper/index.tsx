@@ -34,7 +34,7 @@ import { SwitchSkeleton, TitleBarSkeleton } from "../../../components/Skeletons"
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { ResourceForm } from "../ServiceDesigner/Forms/ResourceForm";
 import { removeForwardSlashes } from "../ServiceDesigner/utils";
-import { buildBaseUrl, buildHurlString, buildMarkdownDoc, buildPayloadContext } from "../ServiceDesigner/buildHurlString";
+import { buildBaseUrl, buildHurlString, buildMarkdownDoc } from "../ServiceDesigner/buildHurlString";
 
 const ActionButton = styled(Button)`
     display: flex;
@@ -340,16 +340,17 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                 codedata: codeData
             });
 
-            const payloadCtx = buildPayloadContext(result.function, serviceName, basePath);
-            let examplePayload: object | undefined;
-            if (payloadCtx) {
-                try {
-                    examplePayload = await rpcClient.getServiceDesignerRpcClient().generateExamplePayloadJson(payloadCtx);
-                } catch {
-                    // AI unavailable — fall back to empty body
-                }
+            let oasSpec: any | undefined;
+            try {
+                const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
+                    documentFilePath: docUri,
+                    basePath
+                });
+                oasSpec = oasResult.spec ?? undefined;
+            } catch {
+                // spec unavailable — fall back to minimal placeholder
             }
-            hurlContent = buildHurlString(result.function, baseUrl, examplePayload);
+            hurlContent = buildHurlString(result.function, baseUrl, oasSpec);
             markdownDoc = buildMarkdownDoc(result.function);
         } catch {
             // Fallback: generate a minimal hurl entry without FunctionModel

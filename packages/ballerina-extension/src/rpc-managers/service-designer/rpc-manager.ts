@@ -21,6 +21,8 @@ import {
     DIRECTORY_MAP,
     ExportOASRequest,
     ExportOASResponse,
+    GetOASSpecRequest,
+    GetOASSpecResponse,
     FunctionFromSourceRequest,
     FunctionFromSourceResponse,
     FunctionModelRequest,
@@ -493,5 +495,25 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
 
     async generateExamplePayloadJson(params: PayloadContext): Promise<object> {
         return await generateExamplePayload(params);
+    }
+
+    async getOASSpec(params: GetOASSpecRequest): Promise<GetOASSpecResponse> {
+        try {
+            const documentFilePath = params.documentFilePath || StateMachine.context().documentUri;
+            const result = await StateMachine.langClient().convertToOpenAPI({ documentFilePath }) as OpenAPISpec;
+            if (!result?.content?.length) { return { spec: null }; }
+            let match = result.content[0];
+            if (params.basePath) {
+                const normalised = params.basePath.replace(/^\//, '').toLowerCase();
+                const found = result.content.find(c =>
+                    c.spec?.servers?.[0]?.url?.toLowerCase().endsWith(normalised) ||
+                    c.serviceName?.toLowerCase() === normalised
+                );
+                if (found) { match = found; }
+            }
+            return { spec: match?.spec ?? null };
+        } catch {
+            return { spec: null };
+        }
     }
 }

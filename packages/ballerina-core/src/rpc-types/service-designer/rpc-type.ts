@@ -23,6 +23,8 @@ import { PayloadContext } from "../../interfaces/service";
 import {
     ExportOASRequest,
     ExportOASResponse,
+    GetOASSpecRequest,
+    GetOASSpecResponse,
 } from "./interfaces";
 import { RequestType } from "vscode-messenger-common";
 
@@ -48,3 +50,4 @@ export const updateResourceSourceCode: RequestType<FunctionSourceCodeRequest, Up
 export const getServiceInitModel: RequestType<ServiceModelRequest, ServiceModelInitResponse> = { method: `${_preFix}/getServiceInitModel` };
 export const createServiceAndListener: RequestType<ServiceInitSourceRequest, UpdatedArtifactsResponse> = { method: `${_preFix}/createServiceAndListener` };
 export const generateExamplePayloadJson: RequestType<PayloadContext, object> = { method: `${_preFix}/generateExamplePayloadJson` };
+export const getOASSpec: RequestType<GetOASSpecRequest, GetOASSpecResponse> = { method: `${_preFix}/getOASSpec` };

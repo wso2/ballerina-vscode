@@ -22,6 +22,8 @@ import { PayloadContext } from "../../interfaces/service";
 import {
     ExportOASRequest,
     ExportOASResponse,
+    GetOASSpecRequest,
+    GetOASSpecResponse,
 } from "./interfaces";
 
 export interface ServiceDesignerAPI {
@@ -46,4 +48,5 @@ export interface ServiceDesignerAPI {
     getServiceInitModel: (params: ServiceModelRequest) => Promise<ServiceModelInitResponse>;
     createServiceAndListener: (params: ServiceInitSourceRequest) => Promise<UpdatedArtifactsResponse>;
     generateExamplePayloadJson: (params: PayloadContext) => Promise<object>;
+    getOASSpec: (params: GetOASSpecRequest) => Promise<GetOASSpecResponse>;
 }
