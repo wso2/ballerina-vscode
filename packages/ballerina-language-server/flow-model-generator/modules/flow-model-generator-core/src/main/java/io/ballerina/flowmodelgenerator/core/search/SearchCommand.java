@@ -36,7 +36,7 @@ import java.util.Optional;
  * Abstract base class for search command operations that handles different types of searches in a module context. This
  * class provides the foundation for specific search implementations for the search API.
  *
- * <p>Search commands can be created using the factory method {@link #from(Kind, Project, LineRange, Map)}
+ * <p>Search commands can be created using the factory method
  * which returns the appropriate implementation based on the specified kind. The class follows the command design
  * pattern allowing to execute various search strategies depending on the commands.</p>
  *
@@ -79,6 +79,7 @@ public abstract class SearchCommand {
             case MEMORY_STORE -> new MemoryStoreSearchCommand(module, position, queryMap);
             case AGENT_TOOL -> new AgentToolSearchCommand(module, position, queryMap);
             case KNOWLEDGE_BASE -> new KnowledgeBaseSearchCommand(module, position, queryMap);
+            case ALL -> new AllKindsSearchCommand(module, position, queryMap, functionsDoc);
         };
     }
 
@@ -208,6 +209,7 @@ public abstract class SearchCommand {
         MEMORY,
         MEMORY_STORE,
         AGENT_TOOL,
-        KNOWLEDGE_BASE
+        KNOWLEDGE_BASE,
+        ALL
     }
 }

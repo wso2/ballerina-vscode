@@ -18,9 +18,18 @@
 
 package io.ballerina.flowmodelgenerator.core;
 
+import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.Documentation;
+import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
+import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.ParameterSymbol;
+import io.ballerina.compiler.api.symbols.Qualifier;
+import io.ballerina.compiler.api.symbols.StreamTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
@@ -31,6 +40,7 @@ import io.ballerina.flowmodelgenerator.core.model.Option;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.PropertyType;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.DependenciesToml;
@@ -289,8 +299,8 @@ public class AiUtils {
     }
 
     /**
-     * Creates a copy of a property with its types replaced by a single SINGLE_SELECT type with the given options.
-     * All other fields are preserved from the original property.
+     * Creates a copy of a property with its types replaced by a single SINGLE_SELECT type with the given options. All
+     * other fields are preserved from the original property.
      *
      * @param original the property to copy from
      * @param options  the list of option values to show in the select box
@@ -789,5 +799,102 @@ public class AiUtils {
             return "";
         }
         return input.replace("${\"`\"}", "`");
+    }
+
+    /**
+     * Result of a tool compatibility check.
+     *
+     * @param compatible whether the symbol is tool-compatible
+     * @param reason     the reason for incompatibility, or {@code null} if compatible
+     */
+    public record AgentToolCompatibility(boolean compatible, String reason) {
+    }
+
+    /**
+     * Checks whether a function or action is compatible for use as an agent tool. A symbol is tool-compatible if:
+     * <ul>
+     *   <li>It is isolated (remote methods always qualify)</li>
+     *   <li>All parameters are subtypes of {@code anydata}</li>
+     *   <li>The return type is a subtype of {@code anydata | stream&lt;subtype-of-anydata&gt; | http:Response}</li>
+     * </ul>
+     *
+     * @param qualifiers         the qualifiers of the function/method
+     * @param functionTypeSymbol the function type descriptor
+     * @param semanticModel      the semantic model for type resolution
+     * @return the compatibility result with a reason if incompatible
+     */
+    public static AgentToolCompatibility checkAgentToolCompatibility(List<Qualifier> qualifiers,
+                                                                     FunctionTypeSymbol functionTypeSymbol,
+                                                                     SemanticModel semanticModel) {
+        // 1. Check isolation (remote methods are always isolated)
+        if (!qualifiers.contains(Qualifier.REMOTE) && !qualifiers.contains(Qualifier.ISOLATED)) {
+            return new AgentToolCompatibility(false, "Function must be isolated to be used as an agent tool");
+        }
+
+        TypeSymbol anydata = semanticModel.types().ANYDATA;
+
+        // 2. Check all parameters are subtypes of anydata (skip typedesc params used for type inference)
+        Optional<List<ParameterSymbol>> optParams = functionTypeSymbol.params();
+        if (optParams.isPresent()) {
+            for (ParameterSymbol param : optParams.get()) {
+                if (CommonUtils.getRawType(param.typeDescriptor()).typeKind() == TypeDescKind.TYPEDESC) {
+                    continue;
+                }
+                if (!CommonUtils.subTypeOf(param.typeDescriptor(), anydata)) {
+                    return new AgentToolCompatibility(false,
+                            "Parameter '" + param.getName().orElse("?") + "' of type '"
+                                    + param.typeDescriptor().signature() + "' is not a subtype of anydata");
+                }
+            }
+        }
+
+        // 3. Check return type is subtype of anydata | stream<subtype-of-anydata> | http:Response
+        Optional<TypeSymbol> optReturnType = functionTypeSymbol.returnTypeDescriptor();
+        if (optReturnType.isPresent() && !isValidAgentToolReturnType(optReturnType.get(), anydata)) {
+            return new AgentToolCompatibility(false,
+                    "Return type must be a subtype of anydata, stream<anydata>, or http:Response");
+        }
+
+        return new AgentToolCompatibility(true, null);
+    }
+
+    private static boolean isValidAgentToolReturnType(TypeSymbol returnType, TypeSymbol anydata) {
+        TypeSymbol rawType = CommonUtils.getRawType(returnType);
+
+        if (rawType.typeKind() == TypeDescKind.UNION) {
+            UnionTypeSymbol unionType = (UnionTypeSymbol) rawType;
+            for (TypeSymbol memberType : unionType.memberTypeDescriptors()) {
+                TypeSymbol rawMember = CommonUtils.getRawType(memberType);
+                if (rawMember.typeKind() == TypeDescKind.ERROR) {
+                    continue;
+                }
+                if (!isValidAgentToolReturnType(rawMember, anydata)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        if (rawType.typeKind() == TypeDescKind.STREAM) {
+            return CommonUtils.subTypeOf(((StreamTypeSymbol) rawType).typeParameter(), anydata);
+        }
+
+        if (isHttpResponse(returnType)) {
+            return true;
+        }
+
+        return CommonUtils.subTypeOf(rawType, anydata);
+    }
+
+    private static boolean isHttpResponse(TypeSymbol typeSymbol) {
+        Optional<String> name = typeSymbol.getName();
+        Optional<ModuleSymbol> module = typeSymbol.getModule();
+        if (name.isPresent() && module.isPresent()) {
+            ModuleID moduleId = module.get().id();
+            return BALLERINA.equals(moduleId.orgName())
+                    && "http".equals(moduleId.packageName())
+                    && "Response".equals(name.get());
+        }
+        return false;
     }
 }

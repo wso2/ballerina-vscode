@@ -1,0 +1,8 @@
+[package]
+org = "wso2"
+name = "service_removal"
+version = "0.1.0"
+title = "service removal"
+
+[build-options]
+sticky = true

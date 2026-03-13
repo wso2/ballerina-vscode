@@ -1,0 +1,30 @@
+{
+  "description": "Get diff related to service removal",
+  "projectPath": "service_removal",
+  "output": {
+    "loadDesignDiagrams": true,
+    "semanticDiffs": [
+      {
+        "changeType": "DELETION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 11,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 13,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "get",
+          "servicePath": "/health",
+          "resourcePath": "."
+        }
+      }
+    ]
+  }
+}

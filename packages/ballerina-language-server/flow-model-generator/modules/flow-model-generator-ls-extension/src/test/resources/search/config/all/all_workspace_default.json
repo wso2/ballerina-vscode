@@ -1,0 +1,572 @@
+{
+  "description": "ALL search type - default view with workspace functions",
+  "kind": "ALL",
+  "source": "workspace1/package1/main.bal",
+  "position": {
+    "startLine": {
+      "line": 4,
+      "offset": 0
+    },
+    "endLine": {
+      "line": 4,
+      "offset": 1
+    }
+  },
+  "queryMap": {
+    "q": "f"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "health.fhir.r5",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "fhirBundleJsonSerializer",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5_1.0.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "health.fhir.r5",
+                "packageName": "health.fhir.r5",
+                "symbol": "fhirBundleJsonSerializer",
+                "version": "1.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fhirBundleXmlSerializer",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5_1.0.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "health.fhir.r5",
+                "packageName": "health.fhir.r5",
+                "symbol": "fhirBundleXmlSerializer",
+                "version": "1.0.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "health.fhir.r4",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "fhirBundleJsonSerializer",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.2.4.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "health.fhir.r4",
+                "packageName": "health.fhir.r4",
+                "symbol": "fhirBundleJsonSerializer",
+                "version": "6.2.4"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fhirBundleXmlSerializer",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r4_6.2.4.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "health.fhir.r4",
+                "packageName": "health.fhir.r4",
+                "symbol": "fhirBundleXmlSerializer",
+                "version": "6.2.4"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "edifact.d03a.finance",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "fromEdiString",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_edifact.d03a.finance_0.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "edifact.d03a.finance",
+                "packageName": "edifact.d03a.finance",
+                "symbol": "fromEdiString",
+                "version": "0.9.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "edifact.d03a.finance.mPRPAID",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "fromEdiString",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_edifact.d03a.finance_0.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "edifact.d03a.finance.mPRPAID",
+                "packageName": "edifact.d03a.finance",
+                "symbol": "fromEdiString",
+                "version": "0.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fromEdiStringWithSchema",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_edifact.d03a.finance_0.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "edifact.d03a.finance.mPRPAID",
+                "packageName": "edifact.d03a.finance",
+                "symbol": "fromEdiStringWithSchema",
+                "version": "0.9.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "edifact.d03a.finance.mDIRDEF",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "fromEdiString",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_edifact.d03a.finance_0.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "edifact.d03a.finance.mDIRDEF",
+                "packageName": "edifact.d03a.finance",
+                "symbol": "fromEdiString",
+                "version": "0.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fromEdiStringWithSchema",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_edifact.d03a.finance_0.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "edifact.d03a.finance.mDIRDEF",
+                "packageName": "edifact.d03a.finance",
+                "symbol": "fromEdiStringWithSchema",
+                "version": "0.9.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "edifact.d03a.finance.mDIRDEB",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "fromEdiString",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_edifact.d03a.finance_0.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "edifact.d03a.finance.mDIRDEB",
+                "packageName": "edifact.d03a.finance",
+                "symbol": "fromEdiString",
+                "version": "0.9.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Connectors"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "FHIR FHIRConnector",
+            "description": "This connector allows you to connect and interact with any FHIR server",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir_3.0.1.png"
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "health.clients.fhir",
+            "packageName": "health.clients.fhir",
+            "object": "FHIRConnector",
+            "symbol": "init",
+            "version": "3.0.1"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Epic FHIRClientConnector",
+            "description": "This connector allows you to connect and interact with any FHIR server",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir.epic_1.0.0.png"
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "health.clients.fhir.epic",
+            "packageName": "health.clients.fhir.epic",
+            "object": "FHIRClientConnector",
+            "symbol": "init",
+            "version": "1.0.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Files File",
+            "description": "Azure Storage File connector allows you to access the Azure Files REST API.\nThis connector lets you to access data stored in Azure file shares.\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure_storage_service_4.3.3.png"
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "azure_storage_service.files",
+            "packageName": "azure_storage_service",
+            "object": "FileClient",
+            "symbol": "init",
+            "version": "4.3.3"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Ai FunctionCallAgent",
+            "description": "Function call agent. \nThis agent uses OpenAI function call API to perform the tool selection.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png"
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "FunctionCallAgent",
+            "symbol": "init",
+            "version": "1.2.3"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "FTP",
+            "description": "FTP client for connecting to and managing FTP/SFTP servers.\nSupports reading files in various formats (text, JSON, XML, CSV, bytes) and writing files with overwrite or append options.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.16.0.png"
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerina",
+            "module": "ftp",
+            "packageName": "ftp",
+            "object": "Client",
+            "symbol": "init",
+            "version": "2.16.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Files",
+            "description": "This is a generated connector for [Xero Files API v2.16.1](https://developer.xero.com/documentation/api/files/overview) OpenAPI specification.\nThe Files API provides access to the files, folders, and the association of files within a Xero organisation. It can be used to upload/download files, manage folders and associate files to invoices, contacts, payments etc.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_xero.files_1.5.1.png"
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "xero.files",
+            "packageName": "xero.files",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.5.1"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Finetunes",
+            "description": "APIs for fine-tuning and managing deployments of OpenAI models.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.openai.finetunes_1.0.1.png"
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "azure.openai.finetunes",
+            "packageName": "azure.openai.finetunes",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.0.1"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Frauddetection",
+            "description": "This is a generated connector for [FraudLabsPro Fraud Detection API v1.1](https://www.fraudlabspro.com/developer/api/screen-order) OpenAPI specification.\nOnline payment fraud detection service. It helps merchants to minimize chargebacks and therefore maximize the revenue. \nIt can be used to detect fraud for various kinds of payment method, such as credit card, paypal, cod and so on. \nPlease visit https://www.fraudlabspro.com to learn more.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_fraudlabspro.frauddetection_1.5.1.png"
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "fraudlabspro.frauddetection",
+            "packageName": "fraudlabspro.frauddetection",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.5.1"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Flightcreateorders",
+            "description": "This is a generated connector for [Amadeus Flight Create Orders API](https://developers.amadeus.com/self-service/category/air/api-doc/flight-create-orders) OpenAPI specification. \nThis [Amadeus Flight Create Orders API](https://developers.amadeus.com/) provides the capability to perform the final booking for a chosen flight.  Use this after completing a flight search with Flight Offers Search and confirming real-time price and availability with Flight Offers Price.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_amadeus.flightcreateorders_1.3.1.png"
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "amadeus.flightcreateorders",
+            "packageName": "amadeus.flightcreateorders",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.3.1"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Flightofferssearch",
+            "description": "This is a generated connector for [Amadeus Flight Offers Search API](https://developers.amadeus.com/self-service/category/air/api-doc/flight-offers-search) OpenAPI specification. \nThis [Amadeus Flight Offers Search API](https://developers.amadeus.com/) provides the capability to search for the cheapest flight for a given itinerary.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_amadeus.flightofferssearch_1.3.1.png"
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "amadeus.flightofferssearch",
+            "packageName": "amadeus.flightofferssearch",
+            "object": "Client",
+            "symbol": "init",
+            "version": "1.3.1"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Current Workspace",
+        "description": "Components available in the current workspace",
+        "keywords": [
+          "Workspace",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "package1 (current)",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "findMax",
+                "description": "Finds the maximum value in an array\n",
+                "data": {
+                  "isDataMappedFunction": false,
+                  "isAgentTool": false,
+                  "isIsolatedFunction": false
+                }
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "testorg",
+                "module": "package1",
+                "symbol": "findMax",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "helperFunction",
+                "data": {
+                  "isDataMappedFunction": false,
+                  "isAgentTool": false,
+                  "isIsolatedFunction": true
+                }
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "testorg",
+                "module": "package1",
+                "symbol": "helperFunction",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "package2",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "filterGreaterThan",
+                "description": "Data Processing Functions\nFilters an array of integers based on a condition\n",
+                "data": {
+                  "isDataMappedFunction": false,
+                  "isAgentTool": false,
+                  "isIsolatedFunction": false
+                }
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "testorg",
+                "module": "package2",
+                "symbol": "filterGreaterThan",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "formatMessage",
+                "description": "Formats a message with two parts\n",
+                "data": {
+                  "isDataMappedFunction": false,
+                  "isAgentTool": false,
+                  "isIsolatedFunction": false
+                }
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "testorg",
+                "module": "package2",
+                "symbol": "formatMessage",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Imported Functions",
+        "description": "Functions imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Agent Tools",
+        "description": "Functions used as agent tools",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "package1 (current)",
+            "description": "",
+            "keywords": []
+          },
+          "items": []
+        },
+        {
+          "metadata": {
+            "label": "package2",
+            "description": "",
+            "keywords": []
+          },
+          "items": []
+        }
+      ]
+    }
+  ]
+}
