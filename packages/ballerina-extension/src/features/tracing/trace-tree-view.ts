@@ -26,7 +26,8 @@ import { TracerMachine } from './tracer-machine';
 class TraceNode {
     constructor(
         public readonly trace: Trace,
-        public readonly label: string
+        public readonly label: string,
+        public readonly description?: string
     ) {}
 }
 
@@ -42,17 +43,30 @@ class SpanNode {
     ) {}
 }
 
+type TreeNode = TraceNode | SpanNode | InfoNode;
+
+/**
+ * Represents an informational node in the tree view (e.g. filter status)
+ */
+class InfoNode {
+    constructor(
+        public readonly label: string,
+        public readonly icon?: string
+    ) {}
+}
+
 /**
  * TreeDataProvider for displaying traces and spans
  */
-export class TraceTreeDataProvider implements vscode.TreeDataProvider<TraceNode | SpanNode> {
-    private _onDidChangeTreeData: vscode.EventEmitter<TraceNode | SpanNode | undefined | null | void> = 
-        new vscode.EventEmitter<TraceNode | SpanNode | undefined | null | void>();
-    readonly onDidChangeTreeData: vscode.Event<TraceNode | SpanNode | undefined | null | void> = 
+export class TraceTreeDataProvider implements vscode.TreeDataProvider<TreeNode> {
+    private _onDidChangeTreeData: vscode.EventEmitter<TreeNode | undefined | null | void> =
+        new vscode.EventEmitter<TreeNode | undefined | null | void>();
+    readonly onDidChangeTreeData: vscode.Event<TreeNode | undefined | null | void> =
         this._onDidChangeTreeData.event;
 
     private traceServerUnsubscribeUpdated?: () => void;
     private traceServerUnsubscribeCleared?: () => void;
+    private _agentFilterEnabled = false;
 
     constructor() {
         // Subscribe to TracerMachine state changes
@@ -81,26 +95,59 @@ export class TraceTreeDataProvider implements vscode.TreeDataProvider<TraceNode 
         this._onDidChangeTreeData.fire();
     }
 
-    getTreeItem(element: TraceNode | SpanNode): vscode.TreeItem {
+    get agentFilterEnabled(): boolean {
+        return this._agentFilterEnabled;
+    }
+
+    toggleAgentFilter(): void {
+        this._agentFilterEnabled = !this._agentFilterEnabled;
+        this.refresh();
+    }
+
+    private hasInvokeAgentSpan(trace: Trace): boolean {
+        return !!this.findInvokeAgentSpan(trace);
+    }
+
+    private findInvokeAgentSpan(trace: Trace): Span | undefined {
+        return trace.spans.find(span =>
+            span.attributes?.some(a =>
+                a.key === 'gen_ai.operation.name' && a.value === 'invoke_agent'
+            )
+        );
+    }
+
+    getTreeItem(element: TreeNode): vscode.TreeItem {
+        if (element instanceof InfoNode) {
+            const item = new vscode.TreeItem(element.label, vscode.TreeItemCollapsibleState.None);
+            item.iconPath = new vscode.ThemeIcon(element.icon || 'info');
+            item.contextValue = 'info';
+            return item;
+        }
         if (element instanceof TraceNode) {
             const item = new vscode.TreeItem(
                 element.label,
                 vscode.TreeItemCollapsibleState.Collapsed
             );
-            item.tooltip = `Trace ID: ${element.trace.traceId}\n` +
-                `Resource: ${element.trace.resource.name}\n` +
-                `Scope: ${element.trace.scope.name}\n` +
-                `First Seen: ${element.trace.firstSeen.toLocaleString()}\n` +
-                `Last Seen: ${element.trace.lastSeen.toLocaleString()}\n` +
-                `Spans: ${element.trace.spans.length}`;
-            item.iconPath = new vscode.ThemeIcon('search');
+            if (element.description) {
+                item.description = element.description;
+            }
+            item.tooltip = this.buildTraceTooltip(element.trace);
+            item.iconPath = this.getTraceIcon(element.trace);
             item.contextValue = 'trace';
-            // Add command to open trace details when clicked
-            item.command = {
-                command: 'ballerina.showTraceDetails',
-                title: 'Show Trace Details',
-                arguments: [element.trace]
-            };
+            if (this._agentFilterEnabled) {
+                const agentSpan = this.findInvokeAgentSpan(element.trace);
+                item.command = {
+                    command: 'ballerina.showTraceDetails',
+                    title: 'Show Trace Details',
+                    arguments: [element.trace, agentSpan?.spanId, true, true]
+                };
+            } else {
+                item.command = {
+                    command: 'ballerina.showTraceDetails',
+                    title: 'Show Trace Details',
+                    arguments: [element.trace]
+                };
+            }
             return item;
         } else {
             // SpanNode
@@ -136,35 +183,56 @@ export class TraceTreeDataProvider implements vscode.TreeDataProvider<TraceNode 
         }
     }
 
-    async getChildren(element?: TraceNode | SpanNode): Promise<(TraceNode | SpanNode)[]> {
+    async getChildren(element?: TreeNode): Promise<TreeNode[]> {
+        if (element instanceof InfoNode) {
+            return [];
+        }
+
         // Check if tracing is enabled
         const isEnabled = TracerMachine.isEnabled();
-        
+
         if (!isEnabled) {
             // Return empty array - VS Code will show placeholder from viewsWelcome
             return [];
         }
-        
+
         // Get traces from TraceServer
         const traces = TraceServer.getTraces();
-        
+
         if (traces.length === 0) {
             // Return empty array - VS Code will show empty state placeholder
             // Make sure ballerina.tracesEmpty context is set to true
             await vscode.commands.executeCommand('setContext', 'ballerina.tracesEmpty', true);
             return [];
         }
-        
+
         // Update context - traces exist now
         await vscode.commands.executeCommand('setContext', 'ballerina.tracesEmpty', false);
-        
+
         // Return trace nodes or span nodes based on element
         if (!element) {
-            // Root level - return all traces
-            return traces.map(trace => new TraceNode(
-                trace,
-                `Trace: ${this.truncateId(trace.traceId)}`
-            ));
+            // Sort newest first
+            const sorted = [...traces].sort((a, b) => b.lastSeen.getTime() - a.lastSeen.getTime());
+            const filtered = this._agentFilterEnabled
+                ? sorted.filter(t => this.hasInvokeAgentSpan(t))
+                : sorted;
+
+            const nodes: TreeNode[] = [];
+
+            if (this._agentFilterEnabled) {
+                nodes.push(new InfoNode('Showing agent traces only', 'filter'));
+            }
+
+            for (const trace of filtered) {
+                const { description } = this.summarizeTrace(trace);
+                nodes.push(new TraceNode(
+                    trace,
+                    `Trace: ${this.truncateId(trace.traceId)}`,
+                    description
+                ));
+            }
+
+            return nodes;
         } else if (element instanceof TraceNode) {
             // Trace node - return child spans (organized hierarchically)
             return this.getSpansForTrace(element.trace);
@@ -176,7 +244,10 @@ export class TraceTreeDataProvider implements vscode.TreeDataProvider<TraceNode 
         return [];
     }
 
-    getParent(element: TraceNode | SpanNode): vscode.ProviderResult<TraceNode | SpanNode> {
+    getParent(element: TreeNode): vscode.ProviderResult<TreeNode> {
+        if (element instanceof InfoNode) {
+            return undefined;
+        }
         // Root elements (TraceNodes) have no parent
         if (element instanceof TraceNode) {
             return undefined;
@@ -194,7 +265,8 @@ export class TraceTreeDataProvider implements vscode.TreeDataProvider<TraceNode 
                 const traces = TraceServer.getTraces();
                 const trace = traces.find(t => t.traceId === element.traceId);
                 if (trace) {
-                    return new TraceNode(trace, `Trace: ${this.truncateId(trace.traceId)}`);
+                    const { description } = this.summarizeTrace(trace);
+                    return new TraceNode(trace, `Trace: ${this.truncateId(trace.traceId)}`, description);
                 }
                 return undefined;
             }
@@ -453,6 +525,123 @@ export class TraceTreeDataProvider implements vscode.TreeDataProvider<TraceNode 
             5: 'CONSUMER'
         };
         return kindMap[kind] || `UNKNOWN(${kind})`;
+    }
+
+    /**
+     * Find the root/entry span of a trace (the one with no parent).
+     * Falls back to the first span if none is found.
+     */
+    private findRootSpan(trace: Trace): Span | undefined {
+        return trace.spans.find(s =>
+            !s.parentSpanId || s.parentSpanId === '0000000000000000' || s.parentSpanId === ''
+        ) || trace.spans[0];
+    }
+
+    /**
+     * Get a span attribute value by key
+     */
+    private getSpanAttr(span: Span, key: string): string | undefined {
+        return span.attributes?.find(a => a.key === key)?.value;
+    }
+
+    /**
+     * Build a short description string from the root span's attributes.
+     * For HTTP traces: "POST /chat → 201"
+     * For other protocols: uses whatever is available
+     */
+    private summarizeTrace(trace: Trace): { description?: string } {
+        const root = this.findRootSpan(trace);
+        if (!root?.attributes?.length) {
+            return {};
+        }
+
+        const protocol = this.getSpanAttr(root, 'protocol');
+        const method = this.getSpanAttr(root, 'http.method');
+        const url = this.getSpanAttr(root, 'http.url');
+        const status = this.getSpanAttr(root, 'http.status_code');
+
+        const parts: string[] = [];
+        if (method) {
+            parts.push(method);
+        }
+        if (url) {
+            parts.push(url);
+        }
+        if (status) {
+            parts.push(`→ ${status}`);
+        }
+
+        if (parts.length > 0) {
+            return { description: parts.join(' ') };
+        }
+
+        // Non-HTTP: show protocol + entry function if available
+        const entryFn = this.getSpanAttr(root, 'entrypoint.function.name');
+        if (protocol && entryFn) {
+            return { description: `${protocol} ${entryFn}` };
+        }
+        if (protocol) {
+            return { description: protocol };
+        }
+        if (entryFn) {
+            return { description: entryFn };
+        }
+
+        return {};
+    }
+
+    /**
+     * Choose an icon based on the trace's protocol/status
+     */
+    private getTraceIcon(trace: Trace): vscode.ThemeIcon {
+        const root = this.findRootSpan(trace);
+        if (!root?.attributes?.length) {
+            return new vscode.ThemeIcon('search');
+        }
+
+        const status = this.getSpanAttr(root, 'http.status_code');
+        if (status) {
+            const code = parseInt(status, 10);
+            if (code >= 400) {
+                return new vscode.ThemeIcon('error', new vscode.ThemeColor('charts.red'));
+            }
+            if (code >= 200 && code < 300) {
+                return new vscode.ThemeIcon('pass', new vscode.ThemeColor('charts.green'));
+            }
+            return new vscode.ThemeIcon('circle-outline');
+        }
+
+        return new vscode.ThemeIcon('search');
+    }
+
+    /**
+     * Build a rich markdown tooltip for a trace
+     */
+    private buildTraceTooltip(trace: Trace): vscode.MarkdownString {
+        const md = new vscode.MarkdownString();
+        md.isTrusted = true;
+
+        md.appendMarkdown(`**Trace ID:** \`${trace.traceId}\`\n\n`);
+        md.appendMarkdown(`**Resource:** ${trace.resource.name}\n\n`);
+        md.appendMarkdown(`**Scope:** ${trace.scope.name}\n\n`);
+        md.appendMarkdown(`**Spans:** ${trace.spans.length}\n\n`);
+        md.appendMarkdown(`**First Seen:** ${trace.firstSeen.toLocaleString()}\n\n`);
+        md.appendMarkdown(`**Last Seen:** ${trace.lastSeen.toLocaleString()}\n\n`);
+
+        // Show root span attributes in a table
+        const root = this.findRootSpan(trace);
+        if (root?.attributes?.length) {
+            md.appendMarkdown(`---\n\n`);
+            md.appendMarkdown(`**Root Span Attributes:**\n\n`);
+            md.appendMarkdown(`| Key | Value |\n|---|---|\n`);
+            for (const attr of root.attributes) {
+                // Escape pipes in values for the markdown table
+                const val = attr.value.replace(/\|/g, '\\|');
+                md.appendMarkdown(`| ${attr.key} | ${val} |\n`);
+            }
+        }
+
+        return md;
     }
 
     /**

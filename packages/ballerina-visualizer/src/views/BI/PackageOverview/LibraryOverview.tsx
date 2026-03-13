@@ -16,7 +16,9 @@
  * under the License.
  */
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
 import {
     DIRECTORY_MAP,
     EVENT_TYPE,
@@ -25,145 +27,287 @@ import {
     ProjectStructureArtifactResponse,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, Icon, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, ThemeColors, Typography } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
-// ── Layout ──────────────────────────────────────────────────────────────
+// ── Layout ───────────────────────────────────────────────────────────────────
 
-const SectionsContainer = styled.div`
+const LibraryWrapper = styled.div`
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 16px;
-    width: 100%;
+    gap: 16px;
+    min-height: 0;
 `;
 
-const ColumnsLayout = styled.div`
-    display: flex;
-    gap: 12px;
-    align-items: stretch;
-`;
-
-const PrimaryColumn = styled.div`
-    flex: 2;
-    position: relative;
-    min-width: 0;
-`;
-
-const PrimaryColumnInner = styled.div`
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: row;
-    gap: 12px;
-    align-items: stretch;
-`;
-
-const SecondaryColumn = styled.div`
-    flex: 3;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-width: 0;
-`;
-
-// ── Section ─────────────────────────────────────────────────────────────
-
-const Section = styled.div<{ vertical?: boolean }>`
+const ArtifactsPanel = styled.div<{ constrainHeight?: boolean }>`
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 4px;
-    overflow: hidden;
-    background: var(--vscode-sideBar-background);
-    ${(props: { vertical?: boolean }) => props.vertical ? "flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column;" : ""}
+    display: flex;
+    flex-direction: column;
+    ${(props: { constrainHeight?: boolean }) => props.constrainHeight
+        ? `max-height: 380px; overflow: auto; flex-shrink: 0;`
+        : `flex: 1; min-height: 0; overflow: auto;`
+    }
 `;
 
-const SectionHeader = styled.div<{ accentColor: string }>`
+// ── Sticky header ─────────────────────────────────────────────────────────────
+
+const LibraryHeader = styled.div`
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--vscode-editor-background);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 12px;
-    user-select: none;
-    background-color: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 6%, transparent);
+    padding: 10px 16px;
+    gap: 12px;
 `;
 
-const SectionHeaderLeft = styled.div`
+const LibraryHeaderLeft = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+`;
+
+const LibraryHeaderTitle = styled(Typography)`
+    margin: 0;
+    font-size: 16px;
+`;
+
+const LibraryHeaderRight = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
 `;
 
-const SectionTitle = styled.span`
-    font-size: 14px;
-    font-weight: 500;
-    color: ${ThemeColors.ON_SURFACE};
-`;
+// ── Search bar ────────────────────────────────────────────────────────────────
 
-const ItemCount = styled.span`
-    font-size: 11px;
-    color: ${ThemeColors.ON_SURFACE};
-    opacity: 0.6;
-`;
-
-const SectionContent = styled.div<{ vertical?: boolean }>`
+const SearchBar = styled.div`
+    position: relative;
     display: flex;
-    flex-wrap: ${(props: { vertical?: boolean }) => props.vertical ? "nowrap" : "wrap"};
-    flex-direction: ${(props: { vertical?: boolean }) => props.vertical ? "column" : "row"};
-    gap: 6px;
-    padding: 12px 12px;
-    ${(props: { vertical?: boolean }) => props.vertical ? "flex: 1; overflow-y: auto;" : ""}
+    align-items: center;
+    width: clamp(160px, 28vw, 340px);
 `;
 
-// ── Empty state label ────────────────────────────────────────────────────
-
-const EmptySectionLabel = styled.span`
+const SearchInput = styled.input`
+    width: 100%;
+    padding: 5px 26px 5px 28px;
+    background: var(--vscode-input-background);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 4px;
+    color: var(--vscode-input-foreground);
     font-size: 12px;
+    font-family: var(--vscode-font-family);
+    &:focus {
+        outline: none;
+        border-color: var(--vscode-focusBorder);
+    }
+    &::placeholder {
+        color: var(--vscode-input-placeholderForeground);
+    }
+`;
+
+const SearchIcon = styled.div`
+    position: absolute;
+    left: 8px;
+    color: var(--vscode-input-placeholderForeground);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+`;
+
+const SearchClearButton = styled.button`
+    position: absolute;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--vscode-input-placeholderForeground);
+    font: inherit;
+    appearance: none;
+    padding: 0;
+    border: none;
+    background: none;
+    &:hover { color: var(--vscode-input-foreground); }
+`;
+
+// ── Overview: section summary cards ──────────────────────────────────────────
+
+const OverviewContent = styled.div`
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+`;
+
+const SectionCardGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+`;
+
+const SectionCard = styled.button`
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px;
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    border-radius: 4px;
+    background: ${ThemeColors.SURFACE_DIM};
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    appearance: none;
+    width: 100%;
+    &:hover {
+        background: ${ThemeColors.PRIMARY_CONTAINER};
+        border-color: ${ThemeColors.HIGHLIGHT};
+    }
+`;
+
+const SectionCardTopRow = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+`;
+
+const SectionCardIconWrapper = styled.div`
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    > div:first-child {
+        width: 18px;
+        height: 18px;
+        font-size: 18px;
+    }
+`;
+
+const SectionCardName = styled.span`
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: ${ThemeColors.ON_SURFACE};
+`;
+
+const SectionCountBadge = styled.span`
+    font-size: 11px;
+    font-weight: 600;
+    color: ${ThemeColors.ON_SURFACE};
+    background: color-mix(in srgb, ${ThemeColors.PRIMARY} 12%, transparent);
+    border: 1px solid color-mix(in srgb, ${ThemeColors.PRIMARY} 20%, transparent);
+    border-radius: 10px;
+    padding: 1px 8px;
+    line-height: 18px;
+    flex-shrink: 0;
+`;
+
+const SectionCardDescription = styled.span`
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    line-height: 1.4;
+`;
+
+
+// ── Search results (global) ───────────────────────────────────────────────────
+
+const SearchResultsContent = styled.div`
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+`;
+
+const SearchResultGroup = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+`;
+
+const SearchResultGroupHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+`;
+
+const SearchResultGroupTitle = styled.span`
+    font-size: 13px;
+    font-weight: 600;
     color: ${ThemeColors.ON_SURFACE};
     opacity: 0.7;
 `;
 
+const SearchResultGroupCount = styled.span`
+    font-size: 11px;
+    color: ${ThemeColors.ON_SURFACE};
+    opacity: 0.5;
+`;
 
-// ── Construct chip ──────────────────────────────────────────────────────
-
-const ConstructItem = styled.div<{ accentColor: string; fullWidth?: boolean }>`
-    display: ${(props: { fullWidth?: boolean }) => props.fullWidth ? "flex" : "inline-flex"};
-    align-items: center;
-    gap: 12px;
-    padding: 8px 10px;
-    border: 1px solid color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 25%, transparent);
-    border-radius: 4px;
-    cursor: pointer;
+const NoResultsLabel = styled.span`
     font-size: 12px;
-    color: ${(props: { accentColor: string }) => props.accentColor};
-    background: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 12%, transparent);
+    color: ${ThemeColors.ON_SURFACE};
+    opacity: 0.6;
+`;
+
+// ── Artifact card grid ────────────────────────────────────────────────────────
+
+const CardGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+`;
+
+// ── Artifact card (ReactNode title for search highlight) ──────────────────────
+
+const ArtifactCardRoot = styled.button`
+    width: 100%;
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    background-color: ${ThemeColors.SURFACE_DIM};
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    appearance: none;
     &:hover {
-        background: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 20%, transparent);
-        border-color: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 40%, transparent);
-    }
-    &:hover .delete-btn {
-        display: flex;
+        background-color: ${ThemeColors.PRIMARY_CONTAINER};
+        border-color: ${ThemeColors.HIGHLIGHT};
     }
 `;
 
-const ConstructItemIcon = styled.div`
+const ArtifactCardInner = styled.div`
+    display: flex;
+    gap: 12px;
+    align-items: center;
+`;
+
+const ArtifactCardIconContainer = styled.div`
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 4px;
-    > * {
-        width: 14px;
-        height: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
+    justify-content: center;
+    > div:first-child {
+        width: 24px;
+        height: 24px;
+        font-size: 24px;
     }
 `;
 
-const ConstructItemName = styled.span<{ flex?: boolean }>`
+const ArtifactCardContent = styled.div`
+    flex: 1;
     overflow: hidden;
+`;
+
+const ArtifactCardTitle = styled.p`
+    font-size: 13px;
+    font-weight: bold;
+    color: ${ThemeColors.ON_SURFACE};
+    margin: 0;
     white-space: nowrap;
+    overflow: hidden;
     text-overflow: ellipsis;
-    ${(props: { flex?: boolean }) => props.flex ? "flex: 1; min-width: 0;" : "max-width: 160px;"}
 `;
 
 const HighlightMatch = styled.span`
@@ -173,32 +317,135 @@ const HighlightMatch = styled.span`
     text-underline-offset: 2px;
 `;
 
-const DeleteButton = styled.div`
+// ── Empty-section "Add" card ──────────────────────────────────────────────────
+
+const AddArtifactCard = styled.button`
+    width: 100%;
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px dashed ${ThemeColors.OUTLINE_VARIANT};
+    background-color: transparent;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    appearance: none;
+    opacity: 0.6;
+    &:hover {
+        opacity: 1;
+        background-color: ${ThemeColors.PRIMARY_CONTAINER};
+        border-color: ${ThemeColors.PRIMARY};
+        border-style: solid;
+    }
+`;
+
+// ── Card wrapper with hover delete ────────────────────────────────────────────
+
+const CardWrapper = styled.div`
+    position: relative;
+    &:hover .delete-overlay { display: flex; }
+`;
+
+const DeleteOverlay = styled.button`
     display: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 8px;
     align-items: center;
     justify-content: center;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
     cursor: pointer;
     color: ${ThemeColors.ON_SURFACE};
-    opacity: 0.7;
+    background: var(--vscode-sideBar-background);
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    opacity: 0.9;
+    z-index: 1;
+    font: inherit;
+    appearance: none;
+    padding: 0;
     &:hover {
         color: ${ThemeColors.ERROR};
+        background: color-mix(in srgb, ${ThemeColors.ERROR} 10%, var(--vscode-sideBar-background));
+        border-color: color-mix(in srgb, ${ThemeColors.ERROR} 40%, transparent);
         opacity: 1;
     }
 `;
 
-// ── Config ──────────────────────────────────────────────────────────────
+// ── Section detail ────────────────────────────────────────────────────────────
+
+const SectionDetailContent = styled.div`
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+`;
+
+// ── README ────────────────────────────────────────────────────────────────────
+
+const ReadmeSection = styled.div`
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    border-radius: 4px;
+    padding: 16px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+`;
+
+const ReadmeHeaderRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+`;
+
+const ReadmeTitle = styled(Typography)`
+    margin: 0;
+`;
+
+const ReadmeContentArea = styled.div`
+    margin-top: 16px;
+    flex: 1;
+    overflow: auto;
+    text-wrap: pretty;
+    overflow-wrap: break-word;
+    p, li, td, th, blockquote { overflow-wrap: break-word; }
+    pre { overflow-x: auto; overflow-wrap: break-word; }
+    code { white-space: pre-wrap; overflow-wrap: break-word; }
+`;
+
+const EmptyReadmeContainer = styled.div`
+    display: flex;
+    margin: 32px 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+`;
+
+const LibraryEmptyState = styled.div`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    gap: 12px;
+`;
+
+// ── Config ────────────────────────────────────────────────────────────────────
 
 interface SectionConfig {
     key: DIRECTORY_MAP;
     title: string;
     icon: string;
-    emptyMessage: string;
-    accentColor: string;
+    description: string;
+    addLabel: string;
     addTooltip: string;
-    column: "primary" | "secondary";
+    npOnly?: boolean;
 }
 
 const SECTIONS: SectionConfig[] = [
@@ -206,89 +453,182 @@ const SECTIONS: SectionConfig[] = [
         key: DIRECTORY_MAP.TYPE,
         title: "Types",
         icon: "bi-type",
-        emptyMessage: "No types yet",
-        accentColor: "var(--vscode-charts-purple)",
+        description: "Custom data types defined in your library.",
+        addLabel: "Add a Type",
         addTooltip: "Add New Type",
-        column: "primary",
-    },
-    {
-        key: DIRECTORY_MAP.CONFIGURABLE,
-        title: "Configurations",
-        icon: "bi-config",
-        emptyMessage: "No configurations yet",
-        accentColor: "var(--vscode-charts-yellow)",
-        addTooltip: "Add New Configuration",
-        column: "primary",
-    },
-    {
-        key: DIRECTORY_MAP.CONNECTION,
-        title: "Connections",
-        icon: "bi-connection",
-        emptyMessage: "No connections yet",
-        accentColor: "var(--vscode-charts-blue)",
-        addTooltip: "Add New Connection",
-        column: "secondary",
     },
     {
         key: DIRECTORY_MAP.FUNCTION,
         title: "Functions",
         icon: "bi-function",
-        emptyMessage: "No functions yet",
-        accentColor: "var(--vscode-charts-green)",
+        description: "Functions defined in your library.",
+        addLabel: "Add a Function",
         addTooltip: "Add New Function",
-        column: "secondary",
-    },
-    {
-        key: DIRECTORY_MAP.NP_FUNCTION,
-        title: "Natural Functions",
-        icon: "bi-ai-function",
-        emptyMessage: "No natural functions yet",
-        accentColor: "var(--vscode-charts-orange)",
-        addTooltip: "Add New Natural Function",
-        column: "secondary",
     },
     {
         key: DIRECTORY_MAP.DATA_MAPPER,
         title: "Data Mappers",
         icon: "dataMapper",
-        emptyMessage: "No data mappers yet",
-        accentColor: "var(--vscode-charts-lines)",
+        description: "Data transformation mappings for your library.",
+        addLabel: "Add a Data Mapper",
         addTooltip: "Add New Data Mapper",
-        column: "secondary",
+    },
+    {
+        key: DIRECTORY_MAP.CONNECTION,
+        title: "Connections",
+        icon: "bi-connection",
+        description: "Client connections to external services.",
+        addLabel: "Add a Connection",
+        addTooltip: "Add New Connection",
+    },
+    {
+        key: DIRECTORY_MAP.CONFIGURABLE,
+        title: "Configurations",
+        icon: "bi-config",
+        description: "Configurable values defined in your library.",
+        addLabel: "Add a Configuration",
+        addTooltip: "Add New Configuration",
+    },
+    {
+        key: DIRECTORY_MAP.NP_FUNCTION,
+        title: "Natural Functions",
+        icon: "bi-ai-function",
+        description: "AI-powered functions written in natural language.",
+        addLabel: "Add a Natural Function",
+        addTooltip: "Add New Natural Function",
+        npOnly: true,
     },
 ];
 
-// ── Helpers ─────────────────────────────────────────────────────────────
+// ── ArtifactCard ──────────────────────────────────────────────────────────────
 
-function highlightName(name: string, query: string) {
-    if (!query) {
-        return <>{name}</>;
-    }
-    const idx = name.toLowerCase().indexOf(query);
-    if (idx === -1) {
-        return <>{name}</>;
-    }
+interface ArtifactCardProps {
+    icon: React.ReactNode;
+    title: string;
+    query: string;
+    onClick: () => void;
+}
+
+function ArtifactCard({ icon, title, query, onClick }: ArtifactCardProps) {
+    const highlightedTitle = useMemo(() => {
+        if (!query) return <>{title}</>;
+        const idx = title.toLowerCase().indexOf(query);
+        if (idx === -1) return <>{title}</>;
+        return (
+            <>
+                {title.slice(0, idx)}
+                <HighlightMatch>{title.slice(idx, idx + query.length)}</HighlightMatch>
+                {title.slice(idx + query.length)}
+            </>
+        );
+    }, [title, query]);
+
     return (
-        <>
-            {name.slice(0, idx)}
-            <HighlightMatch>{name.slice(idx, idx + query.length)}</HighlightMatch>
-            {name.slice(idx + query.length)}
-        </>
+        <ArtifactCardRoot
+            type="button"
+            onClick={onClick}
+            aria-label={`Open ${title}`}
+        >
+            <ArtifactCardInner>
+                <ArtifactCardIconContainer>{icon}</ArtifactCardIconContainer>
+                <ArtifactCardContent>
+                    <ArtifactCardTitle>{highlightedTitle}</ArtifactCardTitle>
+                </ArtifactCardContent>
+            </ArtifactCardInner>
+        </ArtifactCardRoot>
     );
 }
 
-// ── Component ───────────────────────────────────────────────────────────
+// ── Component ─────────────────────────────────────────────────────────────────
 
 interface LibraryOverviewProps {
     projectStructure: ProjectStructure;
-    searchQuery: string;
+    isNPSupported: boolean;
+    projectPath: string;
+    onRefresh: () => void;
 }
 
-export function LibraryOverview(props: LibraryOverviewProps) {
-    const { projectStructure, searchQuery } = props;
+export function LibraryOverview({ projectStructure, isNPSupported, projectPath, onRefresh }: LibraryOverviewProps) {
     const { rpcClient } = useRpcContext();
 
-    const isSearching = searchQuery.trim().length > 0;
+    const [activeSection, setActiveSection] = useState<SectionConfig | null>(null);
+    const [overviewSearch, setOverviewSearch] = useState("");
+    const [sectionSearch, setSectionSearch] = useState("");
+    const [experimentalEnabled, setExperimentalEnabled] = useState(false);
+    const [readmeContent, setReadmeContent] = useState("");
+
+    const overviewSearchRef = useRef<HTMLInputElement>(null);
+    const sectionSearchRef = useRef<HTMLInputElement>(null);
+
+    const fetchReadme = useCallback(() => {
+        rpcClient.getBIDiagramRpcClient().getReadmeContent({ projectPath }).then((res) => {
+            setReadmeContent(res.content);
+        });
+    }, [rpcClient, projectPath]);
+
+    useEffect(() => {
+        rpcClient.getCommonRpcClient().experimentalEnabled().then(setExperimentalEnabled);
+        fetchReadme();
+    }, [rpcClient, fetchReadme]);
+
+    useEffect(() => {
+        if (!rpcClient) {
+            return;
+        }
+        rpcClient.onProjectContentUpdated((state: boolean) => {
+            if (state) {
+                fetchReadme();
+            }
+        });
+    }, [rpcClient, fetchReadme]);
+
+    const showNaturalFunctions = isNPSupported && experimentalEnabled;
+
+    const isOverviewSearching = overviewSearch.trim().length > 0;
+    const overviewQuery = overviewSearch.trim().toLowerCase();
+    const isSectionSearching = sectionSearch.trim().length > 0;
+    const sectionQuery = sectionSearch.trim().toLowerCase();
+
+    const dirMap = projectStructure.directoryMap as Record<string, ProjectStructureArtifactResponse[]>;
+
+    const visibleSections = useMemo(
+        () => SECTIONS.filter((s) => !s.npOnly || showNaturalFunctions),
+        [showNaturalFunctions]
+    );
+
+    const sectionsWithItems = useMemo(() => {
+        return visibleSections.map((section) => {
+            const allItems: ProjectStructureArtifactResponse[] = dirMap[section.key] ?? [];
+            const filteredItems = isOverviewSearching
+                ? allItems.filter((item) => item.name.toLowerCase().includes(overviewQuery))
+                : allItems;
+            return { section, allItems, filteredItems };
+        });
+    }, [dirMap, visibleSections, overviewQuery, isOverviewSearching]);
+
+    const isLibraryEmpty = useMemo(
+        () => visibleSections.every((s) => (dirMap[s.key] ?? []).length === 0),
+        [visibleSections, dirMap]
+    );
+
+    const nonEmptySections = useMemo(
+        () => sectionsWithItems.filter((s) => s.allItems.length > 0),
+        [sectionsWithItems]
+    );
+
+    const sectionAllItems = useMemo(
+        () => (activeSection ? (dirMap[activeSection.key] ?? []) : []),
+        [activeSection, dirMap]
+    );
+
+    const sectionDetailItems = useMemo(() => {
+        if (!activeSection) return [];
+        return isSectionSearching
+            ? sectionAllItems.filter((item) => item.name.toLowerCase().includes(sectionQuery))
+            : sectionAllItems;
+    }, [activeSection, sectionAllItems, sectionQuery, isSectionSearching]);
+
+    // ── Action handlers ───────────────────────────────────────────────────────
 
     const handleAdd = (key: DIRECTORY_MAP) => {
         if (key === DIRECTORY_MAP.CONNECTION) {
@@ -329,20 +669,13 @@ export function LibraryOverview(props: LibraryOverviewProps) {
         if (key === DIRECTORY_MAP.CONNECTION) {
             rpcClient.getVisualizerRpcClient().openView({
                 type: EVENT_TYPE.OPEN_VIEW,
-                location: {
-                    view: MACHINE_VIEW.EditConnectionWizard,
-                    identifier: item.name,
-                },
+                location: { view: MACHINE_VIEW.EditConnectionWizard, identifier: item.name },
                 isPopup: true,
             });
         } else if (key === DIRECTORY_MAP.TYPE) {
             rpcClient.getVisualizerRpcClient().openView({
                 type: EVENT_TYPE.OPEN_VIEW,
-                location: {
-                    view: MACHINE_VIEW.TypeDiagram,
-                    documentUri: item.path,
-                    position: item.position,
-                },
+                location: { view: MACHINE_VIEW.TypeDiagram, documentUri: item.path, position: item.position },
             });
         } else if (key === DIRECTORY_MAP.CONFIGURABLE) {
             rpcClient.getVisualizerRpcClient().openView({
@@ -357,11 +690,9 @@ export function LibraryOverview(props: LibraryOverviewProps) {
         }
     };
 
-    const handleDelete = (item: ProjectStructureArtifactResponse) => {
-        if (!item.position || !item.path) {
-            return;
-        }
-        rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({
+    const handleDelete = async (item: ProjectStructureArtifactResponse) => {
+        if (!item.position || !item.path) return;
+        await rpcClient.getBIDiagramRpcClient().deleteByComponentInfo({
             filePath: item.path,
             component: {
                 name: item.name,
@@ -372,112 +703,266 @@ export function LibraryOverview(props: LibraryOverviewProps) {
                 endColumn: item.position.endColumn,
             },
         });
+        onRefresh();
     };
 
-    const dirMap = projectStructure.directoryMap as Record<string, ProjectStructureArtifactResponse[]>;
-    const query = searchQuery.trim().toLowerCase();
+    const handleSectionOpen = (section: SectionConfig) => {
+        setActiveSection(section);
+        setSectionSearch("");
+    };
 
-    const sectionsWithItems = useMemo(() => {
-        return SECTIONS.map((section) => {
-            const allItems: ProjectStructureArtifactResponse[] = dirMap[section.key] ?? [];
-            const filteredItems = isSearching
-                ? allItems.filter((item) => item.name.toLowerCase().includes(query))
-                : allItems;
-            return { section, allItems, filteredItems };
+    const handleBack = () => setActiveSection(null);
+
+    const handleAddArtifacts = () => {
+        rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: { view: MACHINE_VIEW.BIComponentView },
         });
-    }, [dirMap, query, isSearching]);
-
-    const primarySections = sectionsWithItems.filter((s) => s.section.column === "primary");
-    const secondarySections = sectionsWithItems.filter((s) => s.section.column === "secondary");
-
-    const renderSection = (
-        { section, allItems, filteredItems }: typeof sectionsWithItems[number],
-        vertical?: boolean,
-    ) => {
-        const displayItems = isSearching ? filteredItems : allItems;
-        const hasItems = displayItems.length > 0;
-        const publicTooltip = "Exposed to other integrations"
-
-        return (
-            <Section key={section.key} id={`section-${section.key}`} vertical={vertical}>
-                <SectionHeader accentColor={section.accentColor}>
-                    <SectionHeaderLeft>
-                        <Icon name={section.icon} sx={{ fontSize: 18, width: 18, height: 18 }} />
-                        <SectionTitle>{section.title}</SectionTitle>
-                        {hasItems && (
-                            <ItemCount>
-                                ({isSearching ? `${filteredItems.length}/${allItems.length}` : allItems.length})
-                            </ItemCount>
-                        )}
-                    </SectionHeaderLeft>
-                    <span title={section.addTooltip}>
-                        <Button
-                            appearance="icon"
-                            onClick={() => handleAdd(section.key)}
-                            buttonSx={{ padding: "2px 8px" }}
-                        >
-                            <Codicon name="add" sx={{ marginRight: 4 }} /> Add
-                        </Button>
-                    </span>
-                </SectionHeader>
-                {hasItems && (
-                    <SectionContent vertical={vertical}>
-                        {displayItems.map((item) => (
-                            <ConstructItem
-                                key={item.id}
-                                accentColor={section.accentColor}
-                                fullWidth={vertical}
-                                onClick={() => handleItemClick(section.key, item)}
-                                title={item.isPublic ? publicTooltip : undefined}
-                            >
-                                <ConstructItemIcon>
-                                    <Icon name={section.icon} />
-                                    {item.isPublic && (
-                                        <Codicon name="globe" iconSx={{ fontSize: 14 }} />
-                                    )}
-                                </ConstructItemIcon>
-                                <ConstructItemName flex={vertical}>
-                                    {highlightName(item.name, query)}
-                                </ConstructItemName>
-                                {item.position && item.path && (
-                                    <DeleteButton
-                                        className="delete-btn"
-                                        onClick={(e: React.MouseEvent) => {
-                                            e.stopPropagation();
-                                            handleDelete(item);
-                                        }}
-                                    >
-                                        <Codicon name="trash" iconSx={{ fontSize: 14 }} />
-                                    </DeleteButton>
-                                )}
-                            </ConstructItem>
-                        ))}
-                    </SectionContent>
-                )}
-                {!hasItems && (
-                    <SectionContent vertical={vertical}>
-                        <EmptySectionLabel>
-                            {isSearching ? `No matching ${section.title.toLowerCase()}` : section.emptyMessage}
-                        </EmptySectionLabel>
-                    </SectionContent>
-                )}
-            </Section>
-        );
     };
+
+    const handleEditReadme = () => {
+        rpcClient.getBIDiagramRpcClient().openReadme({ projectPath });
+    };
+
+    // ── Artifact cards renderer (shared by search results + section detail) ──
+
+    const renderArtifactCard = (
+        item: ProjectStructureArtifactResponse,
+        sectionKey: DIRECTORY_MAP,
+        icon: string,
+        query: string
+    ) => (
+        <CardWrapper key={item.id}>
+            <ArtifactCard
+                icon={<Icon name={icon} />}
+                title={item.name}
+                query={query}
+                onClick={() => handleItemClick(sectionKey, item)}
+            />
+            {item.position && item.path && (
+                <DeleteOverlay
+                    type="button"
+                    className="delete-overlay"
+                    aria-label="Delete artifact"
+                    onClick={(e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        handleDelete(item);
+                    }}
+                >
+                    <Codicon name="trash" iconSx={{ fontSize: 16 }} />
+                </DeleteOverlay>
+            )}
+        </CardWrapper>
+    );
+
+    // ── Section detail view ───────────────────────────────────────────────────
+
+    if (activeSection) {
+        return (
+            <LibraryWrapper>
+            <ArtifactsPanel>
+                <LibraryHeader>
+                    <LibraryHeaderLeft>
+                        <Button appearance="icon" onClick={handleBack} buttonSx={{ padding: "2px 6px" }}>
+                            <Codicon name="arrow-left" />
+                        </Button>
+                        <Icon name={activeSection.icon} sx={{ fontSize: 18, width: 18, height: 18 }} />
+                        <LibraryHeaderTitle variant="h2">{activeSection.title}</LibraryHeaderTitle>
+                    </LibraryHeaderLeft>
+                    <LibraryHeaderRight>
+                        <SearchBar>
+                            <SearchIcon><Codicon name="search" iconSx={{ fontSize: 12 }} /></SearchIcon>
+                            <SearchInput
+                                ref={sectionSearchRef}
+                                type="text"
+                                placeholder={`Search ${activeSection.title.toLowerCase()}`}
+                                value={sectionSearch}
+                                onChange={(e) => setSectionSearch(e.target.value)}
+                                autoFocus
+                            />
+                            {isSectionSearching && (
+                                <SearchClearButton
+                                    type="button"
+                                    aria-label="Clear search"
+                                    onClick={() => { setSectionSearch(""); sectionSearchRef.current?.focus(); }}
+                                >
+                                    <Codicon name="close" iconSx={{ fontSize: 12 }} />
+                                </SearchClearButton>
+                            )}
+                        </SearchBar>
+                        <Button
+                            appearance="primary"
+                            onClick={() => handleAdd(activeSection.key)}
+                        >
+                            <Codicon name="add" sx={{ marginRight: 8 }} /> Add {activeSection.addLabel.replace("Add a ", "")}
+                        </Button>
+                    </LibraryHeaderRight>
+                </LibraryHeader>
+
+                <SectionDetailContent>
+                    <CardGrid>
+                        {sectionDetailItems.map((item) =>
+                            renderArtifactCard(item, activeSection.key, activeSection.icon, sectionQuery)
+                        )}
+                        {sectionAllItems.length === 0 && (
+                            <AddArtifactCard
+                                type="button"
+                                onClick={() => handleAdd(activeSection.key)}
+                            >
+                                <ArtifactCardInner>
+                                    <ArtifactCardIconContainer>
+                                        <Codicon name="add" iconSx={{ fontSize: 24, width: 24, height: 24 }} />
+                                    </ArtifactCardIconContainer>
+                                    <ArtifactCardContent>
+                                        <ArtifactCardTitle>{activeSection.addLabel}</ArtifactCardTitle>
+                                    </ArtifactCardContent>
+                                </ArtifactCardInner>
+                            </AddArtifactCard>
+                        )}
+                        {isSectionSearching && sectionDetailItems.length === 0 && sectionAllItems.length > 0 && (
+                            <NoResultsLabel>No matching {activeSection.title.toLowerCase()}</NoResultsLabel>
+                        )}
+                    </CardGrid>
+                </SectionDetailContent>
+            </ArtifactsPanel>
+            </LibraryWrapper>
+        );
+    }
+
+    // ── Overview view ─────────────────────────────────────────────────────────
+
+    const searchGroups = sectionsWithItems.filter((s) => s.filteredItems.length > 0);
 
     return (
-        <SectionsContainer>
-            <ColumnsLayout>
-                <PrimaryColumn>
-                    <PrimaryColumnInner>
-                        {primarySections.map((s) => renderSection(s, true))}
-                    </PrimaryColumnInner>
-                </PrimaryColumn>
-                <SecondaryColumn>
-                    {secondarySections.map((s) => renderSection(s))}
-                </SecondaryColumn>
-            </ColumnsLayout>
-        </SectionsContainer>
+        <LibraryWrapper>
+            <ArtifactsPanel constrainHeight>
+            <LibraryHeader>
+                <LibraryHeaderLeft>
+                    <LibraryHeaderTitle variant="h2">Artifacts</LibraryHeaderTitle>
+                </LibraryHeaderLeft>
+                <LibraryHeaderRight>
+                    {!isLibraryEmpty && (
+                        <SearchBar>
+                            <SearchIcon><Codicon name="search" iconSx={{ fontSize: 12 }} /></SearchIcon>
+                            <SearchInput
+                                ref={overviewSearchRef}
+                                type="text"
+                                placeholder="Search across all sections"
+                                value={overviewSearch}
+                                onChange={(e) => setOverviewSearch(e.target.value)}
+                            />
+                            {isOverviewSearching && (
+                                <SearchClearButton
+                                    type="button"
+                                    aria-label="Clear search"
+                                    onClick={() => { setOverviewSearch(""); overviewSearchRef.current?.focus(); }}
+                                >
+                                    <Codicon name="close" iconSx={{ fontSize: 12 }} />
+                                </SearchClearButton>
+                            )}
+                        </SearchBar>
+                    )}
+                    {!isLibraryEmpty && (
+                        <Button appearance="primary" onClick={handleAddArtifacts}>
+                            <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifacts
+                        </Button>
+                    )}
+                </LibraryHeaderRight>
+            </LibraryHeader>
+
+            {/* Global search results */}
+            {isOverviewSearching && (
+                <SearchResultsContent>
+                    {searchGroups.length > 0 ? (
+                        searchGroups.map(({ section, filteredItems, allItems }) => (
+                            <SearchResultGroup key={section.key}>
+                                <SearchResultGroupHeader>
+                                    <Icon name={section.icon} sx={{ fontSize: 16, width: 16, height: 16 }} />
+                                    <SearchResultGroupTitle>{section.title}</SearchResultGroupTitle>
+                                    <SearchResultGroupCount>
+                                        {filteredItems.length}/{allItems.length}
+                                    </SearchResultGroupCount>
+                                </SearchResultGroupHeader>
+                                <CardGrid>
+                                    {filteredItems.map((item) =>
+                                        renderArtifactCard(item, section.key, section.icon, overviewQuery)
+                                    )}
+                                </CardGrid>
+                            </SearchResultGroup>
+                        ))
+                    ) : (
+                        <NoResultsLabel>No artifacts matching &ldquo;{overviewSearch.trim()}&rdquo;</NoResultsLabel>
+                    )}
+                </SearchResultsContent>
+            )}
+
+            {/* Overview: section cards (non-empty only) or empty state */}
+            {!isOverviewSearching && (
+                isLibraryEmpty ? (
+                    <LibraryEmptyState>
+                        <Typography variant="h3" sx={{ marginBottom: "8px" }}>
+                            Your library is empty
+                        </Typography>
+                        <Typography
+                            variant="body1"
+                            sx={{ marginBottom: "16px", color: "var(--vscode-descriptionForeground)" }}
+                        >
+                            Start by adding reusable artifacts to your library
+                        </Typography>
+                        <Button appearance="primary" onClick={handleAddArtifacts}>
+                            <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifacts
+                        </Button>
+                    </LibraryEmptyState>
+                ) : (
+                    <OverviewContent>
+                        <SectionCardGrid>
+                            {nonEmptySections.map(({ section, allItems }) => (
+                                <SectionCard
+                                    key={section.key}
+                                    id={`section-${section.key}`}
+                                    type="button"
+                                    onClick={() => handleSectionOpen(section)}
+                                >
+                                    <SectionCardTopRow>
+                                        <SectionCardIconWrapper>
+                                            <Icon name={section.icon} />
+                                        </SectionCardIconWrapper>
+                                        <SectionCardName>{section.title}</SectionCardName>
+                                        <SectionCountBadge>{allItems.length}</SectionCountBadge>
+                                    </SectionCardTopRow>
+                                    <SectionCardDescription>{section.description}</SectionCardDescription>
+                                </SectionCard>
+                            ))}
+                        </SectionCardGrid>
+                    </OverviewContent>
+                )
+            )}
+            </ArtifactsPanel>
+
+            {/* README — separate container, hidden when searching */}
+            {!isOverviewSearching && (
+                <ReadmeSection>
+                    <ReadmeHeaderRow>
+                        <ReadmeTitle variant="h2">README</ReadmeTitle>
+                        <Button appearance="icon" onClick={handleEditReadme} buttonSx={{ padding: "4px 8px" }}>
+                            <Icon name="bi-edit" sx={{ marginRight: 8, fontSize: 16 }} /> Edit
+                        </Button>
+                    </ReadmeHeaderRow>
+                    <ReadmeContentArea>
+                        {readmeContent ? (
+                            <ReactMarkdown>{readmeContent}</ReactMarkdown>
+                        ) : (
+                            <EmptyReadmeContainer>
+                                <Typography variant="body2" sx={{ color: "var(--vscode-descriptionForeground)" }}>
+                                    Describe your library to help users understand how to use it
+                                </Typography>
+                                <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
+                            </EmptyReadmeContainer>
+                        )}
+                    </ReadmeContentArea>
+                </ReadmeSection>
+            )}
+        </LibraryWrapper>
     );
 }
 

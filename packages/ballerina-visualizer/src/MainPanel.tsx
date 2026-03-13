@@ -646,9 +646,7 @@ const MainPanel = () => {
                         );
                         break;
                     case MACHINE_VIEW.ReviewMode:
-                        setViewComponent(
-                            <ReviewMode />
-                        );
+                        setViewComponent(<ReviewMode />);
                         break;
                     case MACHINE_VIEW.EvalsetViewer:
                         setViewComponent(
