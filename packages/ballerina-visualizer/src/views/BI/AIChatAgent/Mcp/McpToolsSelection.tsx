@@ -194,6 +194,137 @@ export const InfoMessage = styled.div<{ padding?: string }>`
     padding: ${(props: { padding?: string }) => props.padding || '0 12px'};
 `;
 
+const ScopeContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 12px 8px 44px;
+`;
+
+const ScopeTagsRow = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+`;
+
+const ScopeTag = styled.span`
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background-color: ${ThemeColors.SURFACE_CONTAINER};
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 12px;
+    color: ${ThemeColors.ON_SURFACE};
+`;
+
+const ScopeRemoveButton = styled.button`
+    background: none;
+    border: none;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    &:hover {
+        color: ${ThemeColors.ERROR};
+    }
+`;
+
+const ScopeInput = styled.input`
+    background: transparent;
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 12px;
+    color: ${ThemeColors.ON_SURFACE};
+    outline: none;
+    min-width: 100px;
+    width: auto;
+    &:focus {
+        border-color: ${ThemeColors.PRIMARY};
+    }
+    &::placeholder {
+        color: ${ThemeColors.ON_SURFACE_VARIANT};
+    }
+`;
+
+const ScopeKeyButton = styled.button<{ hasScopes?: boolean }>`
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    position: relative;
+    flex-shrink: 0;
+    align-self: center;
+    color: ${(props: { hasScopes?: boolean }) => props.hasScopes ? ThemeColors.PRIMARY : ThemeColors.ON_SURFACE_VARIANT};
+    &:hover {
+        background-color: ${ThemeColors.SURFACE_CONTAINER};
+    }
+`;
+
+const ScopeBadge = styled.span`
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: ${ThemeColors.PRIMARY};
+`;
+
+const ScopeTagInput: React.FC<{
+    scopes: string[];
+    onChange: (scopes: string[]) => void;
+}> = ({ scopes, onChange }) => {
+    const [inputValue, setInputValue] = useState('');
+
+    const addScope = () => {
+        const trimmed = inputValue.trim();
+        if (trimmed && !scopes.includes(trimmed)) {
+            onChange([...scopes, trimmed]);
+        }
+        setInputValue('');
+    };
+
+    const removeScope = (index: number) => {
+        onChange(scopes.filter((_, i) => i !== index));
+    };
+
+    return (
+        <ScopeContainer onClick={(e) => e.stopPropagation()}>
+            <ScopeTagsRow>
+                {scopes.map((scope, index) => (
+                    <ScopeTag key={`${scope}-${index}`}>
+                        {scope}
+                        <ScopeRemoveButton onClick={() => removeScope(index)} aria-label={`Remove ${scope}`}>
+                            <Codicon name="close" sx={{ fontSize: 10 }} />
+                        </ScopeRemoveButton>
+                    </ScopeTag>
+                ))}
+                <ScopeInput
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addScope();
+                        }
+                    }}
+                    onBlur={addScope}
+                    placeholder="Add scope..."
+                />
+            </ScopeTagsRow>
+        </ScopeContainer>
+    );
+};
+
 // Shared Modal Components
 export const ModalContainer = styled.div`
     position: fixed;
@@ -316,22 +447,54 @@ const ToolsList: React.FC<ToolsListProps> = ({
 
     return (
         <ToolCheckboxContainer maxHeight={maxHeight}>
-            {filteredTools.map((tool) => (
-                <ToolCheckboxItem
-                    key={tool.name}
-                    disabled={loading}
-                    onClick={() => !loading && onToolSelectionChange(tool.name, !selectedTools.has(tool.name))}
-                >
-                    <CheckBox
-                        label=""
-                        checked={selectedTools.has(tool.name)}
-                        disabled={loading}
-                        onChange={() => { }}
-                    >
-                    </CheckBox>
-                    <ToolItem tool={tool} />
-                </ToolCheckboxItem>
-            ))}
+            {filteredTools.map((tool) => {
+                const isSelected = selectedTools.has(tool.name);
+                const scopes = toolScopes?.[tool.name] || [];
+                const hasScopes = scopes.length > 0;
+                const isScopeExpanded = expandedScopeTool === tool.name;
+
+                return (
+                    <div key={tool.name}>
+                        <ToolCheckboxItem
+                            disabled={loading}
+                            onClick={() => !loading && onToolSelectionChange(tool.name, !isSelected)}
+                        >
+                            <CheckBox
+                                label=""
+                                checked={isSelected}
+                                disabled={loading}
+                                onChange={() => { }}
+                            >
+                            </CheckBox>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <ToolItem tool={tool} />
+                            </div>
+                            {isSelected && onToolScopesChange && (
+                                <div style={{ display: "flex", alignSelf: "center" }}>
+                                    <ScopeKeyButton
+                                        hasScopes={hasScopes}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setExpandedScopeTool(isScopeExpanded ? null : tool.name);
+                                        }}
+                                        aria-label="Configure scopes"
+                                        title={hasScopes ? `Scopes: ${scopes.join(', ')}` : 'Configure scopes'}
+                                    >
+                                        <Icon name="bi-shield-lock" sx={{ fontSize: 18, width: 18, height: 18 }} />
+                                        {hasScopes && <ScopeBadge />}
+                                    </ScopeKeyButton>
+                                </div>
+                            )}
+                        </ToolCheckboxItem>
+                        {isSelected && isScopeExpanded && onToolScopesChange && (
+                            <ScopeTagInput
+                                scopes={scopes}
+                                onChange={(newScopes) => onToolScopesChange(tool.name, newScopes)}
+                            />
+                        )}
+                    </div>
+                );
+            })}
             {filteredTools.length === 0 && searchQuery.trim() && (
                 <div style={{ color: ThemeColors.ON_SURFACE_VARIANT, fontSize: '12px', padding: '8px 0' }}>
                     No tools found matching &quot;{searchQuery}&quot;
