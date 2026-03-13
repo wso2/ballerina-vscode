@@ -19,8 +19,8 @@
 import React, { useRef } from "react";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import styled from '@emotion/styled';
-import { EditorFactory, FormField, InputMode, useFormContext, Provider as FormContextProvider } from "../..";
-import { InputType, ExpressionProperty } from "@wso2/ballerina-core";
+import { EditorFactory, FormField, InputMode, useFormContext, Provider as FormContextProvider, FormValues } from "../..";
+import { Imports, InputType, ExpressionProperty } from "@wso2/ballerina-core";
 import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
@@ -46,7 +46,9 @@ type FieldFactoryProps = {
     handleNewTypeSelected?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
     isContextTypeEditorSupported?: boolean;
+    handleFormValidation?: (formData?: FormValues) => Promise<boolean>;
     openFormTypeEditor?: (open: boolean, newType?: string) => void;
+    updateImports?: (key: string, imports: Imports) => void;
 }
 
 
@@ -57,6 +59,17 @@ export const FieldFactory = (props: FieldFactoryProps) => {
     const formContext = useFormContext();
     const { expressionEditor } = formContext;
 
+    const updatePropertyForCurrentMode = useCallback(
+        (property: ExpressionProperty, expression?: string): ExpressionProperty => {
+            const newTypes = property.types.map(type => ({
+                ...type,
+                selected: getInputModeFromTypes(type) === inputMode
+            }));
+            return { ...property, types: newTypes, ...(expression !== undefined && { value: expression }) };
+        },
+        [inputMode]
+    );
+
     const updatedGetExpressionEditorDiagnostics = useCallback(
         async (
             showDiagnostics: boolean,
@@ -64,11 +77,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
             key: string,
             property: ExpressionProperty
         ): Promise<void> => {
-            const newTypes = property.types.map(type => ({
-                ...type,
-                selected: getInputModeFromTypes(type) === inputMode
-            }));
-            const updatedProperty = { ...property, types: newTypes };
+            const updatedProperty = updatePropertyForCurrentMode(property, expression);
             expressionEditor?.getExpressionEditorDiagnostics?.(
                 showDiagnostics,
                 expression,
@@ -76,7 +85,41 @@ export const FieldFactory = (props: FieldFactoryProps) => {
                 updatedProperty
             )
         },
-        [expressionEditor, inputMode]
+        [expressionEditor, updatePropertyForCurrentMode]
+    );
+
+    const updatedRetrieveCompletions = useCallback(
+        async (
+            value: string,
+            property: ExpressionProperty,
+            offset: number,
+            triggerCharacter?: string
+        ): Promise<void> => {
+            const updatedProperty = updatePropertyForCurrentMode(property, value);
+            return expressionEditor?.retrieveCompletions?.(
+                value,
+                updatedProperty,
+                offset,
+                triggerCharacter
+            );
+        },
+        [expressionEditor, updatePropertyForCurrentMode]
+    );
+
+    const updatedExtractArgsFromFunction = useCallback(
+        async (
+            value: string,
+            property: ExpressionProperty,
+            cursorPosition: number
+        ) => {
+            const updatedProperty = updatePropertyForCurrentMode(property, value);
+            return expressionEditor?.extractArgsFromFunction?.(
+                value,
+                updatedProperty,
+                cursorPosition
+            );
+        },
+        [expressionEditor, updatePropertyForCurrentMode]
     );
 
     const updatedExpressionEditor = useMemo(() => {
@@ -85,9 +128,11 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         }
         return {
             ...expressionEditor,
-            getExpressionEditorDiagnostics: updatedGetExpressionEditorDiagnostics
-        };
-    }, [expressionEditor, updatedGetExpressionEditorDiagnostics]);
+            getExpressionEditorDiagnostics: updatedGetExpressionEditorDiagnostics,
+            ...(expressionEditor.retrieveCompletions && { retrieveCompletions: updatedRetrieveCompletions }),
+            ...(expressionEditor.extractArgsFromFunction && { extractArgsFromFunction: updatedExtractArgsFromFunction })
+        } as typeof expressionEditor;
+    }, [expressionEditor, updatedGetExpressionEditorDiagnostics, updatedRetrieveCompletions, updatedExtractArgsFromFunction]);
 
     const updatedFormContext = useMemo(() => ({
         ...formContext,
@@ -98,17 +143,13 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         if (!props.field.types || props.field.types.length === 0) {
             throw new Error("Field types are not defined");
         }
-        if (props.field.types.length === 1) {
-            return props.field.types[0];
-        }
-
         const selectedType = props.field.types.find(type => type.selected);
         if (selectedType) {
             return selectedType;
         }
-
-        // Fallback for refactored models where all types can be unselected.
-        // Prioritize the last type (usually EXPRESSION mode) for multi-type fields.
+        if (!props.field.value) {
+            return props.field.types[0];
+        }
         return props.field.types[props.field.types.length - 1];
     }
 
@@ -145,7 +186,8 @@ export const FieldFactory = (props: FieldFactoryProps) => {
     const handleModeChange = useCallback((mode: InputMode) => {
         setInputMode(mode);
         updateFieldTypesSelection(mode);
-    }, []);
+        props.handleFormValidation?.();
+    }, [props.handleFormValidation]);
 
     const editorElements = useMemo(() => {
         if (!renderingEditors) return null;

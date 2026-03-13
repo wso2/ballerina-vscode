@@ -42,6 +42,11 @@ import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from './tools/
 import { LIBRARY_SEARCH_TOOL, getLibrarySearchTool } from './tools/library-search';
 import { createConfigCollectorTool, CONFIG_COLLECTOR_TOOL } from './tools/config-collector';
 import { createTestRunnerTool, TEST_RUNNER_TOOL_NAME } from './tools/test-runner';
+import { createCurlTool, CURL_TOOL_NAME } from './tools/curl-tool';
+import { createBallerinaRunTool, BALLERINA_RUN_TOOL_NAME } from './tools/ballerina-run';
+import { createBallerinaGetLogsTool, BALLERINA_GET_LOGS_TOOL_NAME } from './tools/ballerina-get-logs';
+import { createBallerinaStopTool, BALLERINA_STOP_TOOL_NAME } from './tools/ballerina-stop';
+import { RunningServicesManager } from './tools/running-service-manager';
 
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
@@ -52,6 +57,7 @@ export interface ToolRegistryOptions {
     workspaceId: string;
     generationId: string;
     threadId?: string;
+    runningServices: RunningServicesManager;
 }
 
 export function createToolRegistry(opts: ToolRegistryOptions) {
@@ -103,5 +109,9 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         ),
         [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath, eventHandler),
         [TEST_RUNNER_TOOL_NAME]: createTestRunnerTool(tempProjectPath, eventHandler),
+        [CURL_TOOL_NAME]: createCurlTool(eventHandler),
+        [BALLERINA_RUN_TOOL_NAME]: createBallerinaRunTool(tempProjectPath, opts.runningServices, eventHandler),
+        [BALLERINA_GET_LOGS_TOOL_NAME]: createBallerinaGetLogsTool(opts.runningServices, eventHandler),
+        [BALLERINA_STOP_TOOL_NAME]: createBallerinaStopTool(opts.runningServices, eventHandler),
     };
 }

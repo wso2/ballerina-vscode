@@ -427,7 +427,8 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                     fieldOverrides={{
                         store: {
                             type: "ACTION_EXPRESSION",
-                            types: [{ fieldType: "ACTION_EXPRESSION", selected: false }],
+                            types: [{ fieldType: "ACTION_EXPRESSION", selected: true }, { fieldType: "EXPRESSION", selected: false }],
+                            codedata: { searchNodesKind: "MEMORY_STORE" },
                             actionCallback: handleOpenStoreSelection,
                             defaultValue: "In-Memory Short Term Memory Store",
                             actionLabel: (

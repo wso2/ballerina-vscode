@@ -43,7 +43,8 @@ import {
     InputType,
     getPrimaryInputType,
     functionKinds,
-    NodeProperties
+    NodeProperties,
+    DiagnosticMessage
 } from "@wso2/ballerina-core";
 import {
     FieldDerivation,
@@ -109,6 +110,7 @@ import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
 import { getFilteredTypesByKind } from "../../TypeEditor/utils";
 import { useModalStack } from "../../../../Context";
+import { getArraySubFormFieldFromTypes, stringToRawArrayElements } from "@wso2/ballerina-side-panel/lib/components/editors/utils";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -482,14 +484,45 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         const updatedFields = fields.map((field) => {
             const updatedField = { ...field };
 
-            // Update value from current form data
+            const isRepeatableList = field.types?.length === 1 && getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_LIST";
+            const selectedInputType = isRepeatableList? getPrimaryInputType(field.types) : field.types?.find(t => t.selected);
+
+            const nodeProperties = nodeWithDiagnostics?.properties as any;
+            let propertyDiagnostics: any = nodeProperties?.[field.key]?.diagnostics?.diagnostics;
+
+            // Update value from current form data and update diagnostics
             if (data[field.key] !== undefined) {
-                updatedField.value = data[field.key];
+                if (selectedInputType?.fieldType === "REPEATABLE_LIST" && typeof data[field.key] === "string") {
+                    const initialValues = stringToRawArrayElements(data[field.key]);
+                    const initialFields = initialValues.map((val, index) => {
+                        const key = crypto.randomUUID();
+                        return {
+                            ...getArraySubFormFieldFromTypes(key, (field.types[0] as any).template.types as InputType[]),
+                            value: val,
+                            diagnostics: nodeProperties?.[field.key]?.value?.[index]?.diagnostics?.diagnostics ?? []
+                        };
+                    });
+                    updatedField.value = initialFields;
+                }
+                else {
+                    updatedField.value = data[field.key];
+                }
             }
 
-            // Update diagnostics from nodeWithDiagnostics
-            const nodeProperties = nodeWithDiagnostics?.properties as any;
-            const propertyDiagnostics = nodeProperties?.[field.key]?.diagnostics?.diagnostics;
+
+            // If the field is a repeatable list, store a copy of collected diagnostics for each element in the root
+            // level so that the exp mode also can show the diagnostics. Property-level diagnostics don't have a
+            // `range`, so use a simple message-based dedupe and provide explicit typing to satisfy TypeScript.
+            if (isRepeatableList && !(Array.isArray(propertyDiagnostics) && propertyDiagnostics.length > 0)) {
+                const collectedDiagnostics = (
+                    nodeProperties?.[field.key]?.value?.map((val: any) => val?.diagnostics?.diagnostics) ?? []
+                ).flat().filter(Boolean) as Array<{ message?: string; severity?: string }>;
+
+                propertyDiagnostics = collectedDiagnostics.filter((d, i, arr) =>
+                    arr.findIndex(x => x.message === d.message) === i
+                );
+            }
+
             if (propertyDiagnostics && Array.isArray(propertyDiagnostics)) {
                 updatedField.diagnostics = propertyDiagnostics;
             } else {
@@ -709,7 +742,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         searchKind: 'TYPE'
                     });
 
-                    const allItems = searchResponse.categories.flatMap(category => 
+                    const allItems = searchResponse.categories.flatMap(category =>
                         category.items.flatMap(item => {
                             if ('codedata' in item) {
                                 return [item];
@@ -805,7 +838,14 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         }
 
         return Object.values(nodeProperties).some((property) => {
-            const diagnostics = property?.diagnostics?.diagnostics;
+            let diagnostics: DiagnosticMessage[] = [];
+            if ( property?.types?.length === 1 && getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_LIST") {
+                // For repeatable list, check diagnostics for each element in the list
+                const valueDiagnostics = (property.value as any[])?.map((val) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
+                diagnostics = [...diagnostics, ...valueDiagnostics];
+            } else {
+                diagnostics = property.diagnostics?.diagnostics ?? [];
+            }
             return Array.isArray(diagnostics) && diagnostics.some((diagnostic) => Boolean(diagnostic?.message?.trim()));
         });
     };
@@ -1687,6 +1727,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     onChange={onChange}
                     injectedComponents={injectedComponents}
                     derivedFields={props.derivedFields}
+                    updateImports={handleUpdateImports}
                 />
             )}
             {stack.map((item, i) => (

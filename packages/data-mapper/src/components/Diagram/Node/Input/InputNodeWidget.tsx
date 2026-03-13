@@ -71,7 +71,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
     
     const typeKind = dmType.kind;
     const isUnknownType = typeKind === TypeKind.Unknown;
-    const isConvertibleType = (typeKind === TypeKind.Json || typeKind === TypeKind.Xml) && !dmType.fields;
+    const isConvertibleType = context.reusable && (typeKind === TypeKind.Json || typeKind === TypeKind.Xml) && !dmType.fields;
 
     let fields: IOType[];
 

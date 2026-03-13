@@ -876,9 +876,11 @@ export interface BISourceCodeRequest {
 }
 
 export type BISourceCodeResponse = {
-    textEdits: {
+    textEdits?: {
         [key: string]: TextEdit[];
     };
+    errorMsg?: string;
+    stacktrace?: string;
 };
 
 export type BIDeleteByComponentInfoRequest = {
@@ -1468,6 +1470,11 @@ export interface Type {
     allowAdditionalFields?: boolean;
 }
 
+export interface SimpleType {
+    name: string;
+    imports?: Imports;
+}
+
 type ServiceFunctionKind = "RESOURCE" | "REMOTE" | "FUNCTION";
 
 export interface TypeFunctionModel {
@@ -1591,6 +1598,16 @@ export interface GetTypesResponse {
 
 export interface GetTypeResponse {
     type: Type;
+}
+
+export interface GetSimpleTypeOfExpressionRequest {
+    filePath: string;
+    position: LinePosition;
+    expression: string;
+}
+
+export interface GetSimpleTypeOfExpressionResponse {
+    type: SimpleType;
 }
 
 export interface JsonToTypeRequest {
@@ -2044,6 +2061,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getDesignModel: (params: BIDesignModelRequest) => Promise<BIDesignModelResponse>;
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
     getTypes: (params: GetTypesRequest) => Promise<GetTypesResponse>;
+    getSimpleTypeOfExpression: (params: GetSimpleTypeOfExpressionRequest) => Promise<GetSimpleTypeOfExpressionResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
     updateImports: (params: UpdateImportsRequest) => Promise<ImportsInfoResponse>;
     addFunction: (params: AddFunctionRequest) => Promise<AddImportItemResponse>;
@@ -2086,5 +2104,6 @@ export interface ExtendedLangClientInterface extends BIInterface {
     getDidOpenParams(): DidOpenParams;
     getProjectArtifacts(params: ProjectArtifactsRequest): Promise<ProjectArtifacts>;
     getProjectInfo(params: ProjectInfoRequest): Promise<ProjectInfo>;
+    getSimpleTypeOfExpression(params: GetSimpleTypeOfExpressionRequest): Promise<GetSimpleTypeOfExpressionResponse>;
     openConfigToml(params: OpenConfigTomlRequest): Promise<void>;
 }

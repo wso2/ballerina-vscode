@@ -32,12 +32,6 @@ import { CopilotEventHandler } from "../../features/ai/utils/events";
 import { VisualizerRpcManager } from "../visualizer/rpc-manager";
 import { renderDatamapper } from "../../../src/views/ai-panel/checkpoint/checkpointUtils";
 
-// const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
-//TODO: Temp workaround as custom domain seem to block file uploads
-const CONTEXT_UPLOAD_URL_V1 = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/ballerina-copilot/context-upload-api/v1.0";
-// const CONTEXT_UPLOAD_URL_V1 = BACKEND_BASE_URL + "/context-api/v1.0";
-// const ASK_API_URL_V1 = BACKEND_BASE_URL + "/ask-api/v1.0";
-
 // Common functions
 
 // Checks if an error object has both 'code' and 'message' properties

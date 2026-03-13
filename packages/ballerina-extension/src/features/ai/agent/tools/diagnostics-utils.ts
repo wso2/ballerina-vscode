@@ -100,6 +100,24 @@ export async function checkCompilationErrors(
         let diagnostics: Diagnostics[] = [];
         try {
             diagnostics = await checkProjectDiagnostics(langClient, tempProjectPath, true);
+            // HACK: When the generated code includes `import ballerinax/client.config;` (without the quoted
+            // identifier), the language server returns diagnostics with the module name stripped to
+            // `ballerinax/.config` — omitting "client". As a workaround, we detect this and
+            // instruct the agent to use the correct quoted form `import ballerinax/'client.config;`
+            // instead of attempting to resolve the dependency automatically.
+            const enrichedDiagnosticsTry = transformDiagnosticsToEnriched(diagnostics);
+            const hasInvalidClientModuleImport = enrichedDiagnosticsTry.some(
+                d => d.code === "BCE2003" && d.message.includes("ballerinax/.config")
+            );
+            if (hasInvalidClientModuleImport) {
+                console.log(`[DiagnosticsUtils] Detected invalid client module import 'ballerinax/client.config'.`);
+                return {
+                    diagnostics: enrichedDiagnosticsTry,
+                    message: `Found a module resolution error: the import 'import ballerinax/client.config;' is invalid. ` +
+                        `Fix this by replacing the import statement with 'import ballerinax/'client.config;'. ` +
+                        `After applying the fix, call the ${DIAGNOSTICS_TOOL_NAME} tool again to verify there are no remaining errors.`
+                };
+            }
         } catch (diagError) {
             // Resolve module dependencies using ai scheme
             const aiUri = Uri.file(tempProjectPath).with({ scheme: 'ai' }).toString();
@@ -127,24 +145,6 @@ export async function checkCompilationErrors(
             return {
                 diagnostics: [],
                 message: "No compilation errors found. Code compiles successfully.",
-            };
-        }
-
-        // HACK: When the generated code includes `import ballerinax/client.config;` (without the quoted
-        // identifier), the language server returns diagnostics with the module name stripped to
-        // `ballerinax/.config as config` — omitting "client". As a workaround, we detect this and
-        // instruct the agent to use the correct quoted form `import ballerinax/'client.config;`
-        // instead of attempting to resolve the dependency automatically.
-        const hasInvalidClientModuleImport = enrichedDiagnostics.some(
-            d => d.code === "BCE2003" && d.message.includes("ballerinax/.config as config")
-        );
-        if (hasInvalidClientModuleImport) {
-            console.log(`[DiagnosticsUtils] Detected invalid client module import 'ballerinax/client.config'.`);
-            return {
-                diagnostics: enrichedDiagnostics,
-                message: `Found a module resolution error: the import 'import ballerinax/client.config;' is invalid. ` +
-                    `Fix this by replacing the import statement with 'import ballerinax/'client.config;'. ` +
-                    `After applying the fix, call the ${DIAGNOSTICS_TOOL_NAME} tool again to verify there are no remaining errors.`
             };
         }
 

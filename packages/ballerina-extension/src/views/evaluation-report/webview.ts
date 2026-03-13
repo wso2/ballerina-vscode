@@ -16,125 +16,144 @@
  * under the License.
  */
 
-import { Disposable, Uri, ViewColumn, WebviewPanel, window } from "vscode";
+import {
+    Disposable,
+    Uri,
+    ViewColumn,
+    Webview,
+    WebviewPanel,
+    window,
+} from "vscode";
+import * as path from "path";
+import {
+    WebViewOptions,
+    getComposerWebViewOptions,
+    getLibraryWebViewContent,
+} from "../../utils/webview-utils";
+import { RPCLayer } from "../../RPCLayer";
 import { extension } from "../../BalExtensionContext";
-import path from "path";
-import * as fs from "fs";
 
 export class EvaluationReportWebview {
     public static currentPanel: EvaluationReportWebview | undefined;
-    private _panel: WebviewPanel;
+    public static readonly viewType = "ballerina.evaluation-report";
+    private readonly _panel: WebviewPanel;
     private _disposables: Disposable[] = [];
 
-    private constructor(panel: WebviewPanel, reportContent: string, reportDir: Uri) {
+    private constructor(panel: WebviewPanel) {
         this._panel = panel;
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-
-        // Convert local resource paths to webview URIs
-        const processedHtml = this.processHtmlContent(reportContent, reportDir);
-
-        this._panel.webview.html = processedHtml;
+        RPCLayer.create(this._panel);
     }
 
-    private processHtmlContent(reportContent: string, reportDir: Uri): string {
-        // First, inject VS Code API script
-        let html = reportContent.replace(
-            "</head>",
-            `<script>
-                const vscode = acquireVsCodeApi();
-                document.addEventListener('DOMContentLoaded', function() {
-                    const defaultStyles = document.getElementById('_defaultStyles');
-                    if (defaultStyles) {
-                        defaultStyles.remove();
-                    }
-                });
-            </script></head>`
-        );
-
-        // If </head> wasn't found, try injecting at the start of body
-        if (html === reportContent) {
-            html = reportContent.replace(
-                /<body([^>]*)>/i,
-                `<body$1><script>const vscode = acquireVsCodeApi();</script>`
-            );
-        }
-
-        // Convert relative paths to webview URIs
-        // Handle src="./..." or src="..." (relative paths)
-        html = html.replace(/(?:src|href)=["'](?!http|https|data:)([^"']+)["']/gi, (match, relativePath) => {
-            try {
-                const resourcePath = Uri.joinPath(reportDir, relativePath);
-                const webviewUri = this._panel.webview.asWebviewUri(resourcePath);
-                return match.replace(relativePath, webviewUri.toString());
-            } catch (e) {
-                console.error('Failed to convert resource path:', relativePath, e);
-                return match;
-            }
-        });
-
-        return html;
-    }
-
-    public static async createOrShow(reportUri: Uri): Promise<void> {
-        const reportPath = reportUri.fsPath;
-
-        // Validate file exists
-        if (!fs.existsSync(reportPath)) {
-            window.showErrorMessage(`Evaluation report not found: ${reportPath}`);
-            return;
-        }
-
-        // Read HTML content
-        let reportContent: string;
-        try {
-            reportContent = fs.readFileSync(reportPath, 'utf8');
-        } catch (error) {
-            window.showErrorMessage(`Failed to read evaluation report: ${error}`);
-            console.error('Failed to read evaluation report:', error);
-            return;
-        }
-
-        const fileName = path.basename(reportPath);
-        const reportDir = Uri.file(path.dirname(reportPath));
-
-        // Dispose existing panel so the new one can be created with the correct localResourceRoots
+    public static async createOrShow(reportPath: string): Promise<void> {
         if (EvaluationReportWebview.currentPanel) {
             EvaluationReportWebview.currentPanel.dispose();
         }
 
-        // Create new panel
         const panel = window.createWebviewPanel(
-            "ballerinaEvaluationReport",
-            `Evaluation Report - ${fileName}`,
+            EvaluationReportWebview.viewType,
+            "Evaluation Report",
             ViewColumn.Active,
             {
                 enableScripts: true,
+                localResourceRoots: [
+                    Uri.file(
+                        path.join(
+                            extension.context.extensionPath,
+                            "resources"
+                        )
+                    ),
+                ],
                 retainContextWhenHidden: true,
-                localResourceRoots: [reportDir],
             }
         );
 
-        panel.iconPath = {
-            light: Uri.file(path.join(extension.context.extensionPath, "resources", "icons", "dark-icon.svg")),
-            dark: Uri.file(path.join(extension.context.extensionPath, "resources", "icons", "light-icon.svg")),
-        };
-
-        EvaluationReportWebview.currentPanel = new EvaluationReportWebview(panel, reportContent, reportDir);
+        EvaluationReportWebview.currentPanel = new EvaluationReportWebview(
+            panel
+        );
+        EvaluationReportWebview.currentPanel._panel.webview.html =
+            EvaluationReportWebview.currentPanel.getWebviewContent(
+                panel.webview,
+                reportPath
+            );
     }
 
-    private updateContent(reportContent: string, reportDir: Uri): void {
-        const processedHtml = this.processHtmlContent(reportContent, reportDir);
-        this._panel.webview.html = processedHtml;
+    private getWebviewContent(
+        webView: Webview,
+        reportPath: string
+    ): string {
+        const escapedPath = reportPath
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;");
+
+        const body = `<div class="container" id="webview-container" data-report-path="${escapedPath}">
+                <div class="loader-wrapper">
+                    <div class="loader"></div>
+                </div>
+            </div>`;
+        const bodyCss = ``;
+        const styles = `
+            .container {
+                background-color: var(--vscode-editor-background);
+                height: 100vh;
+                width: 100%;
+            }
+            .loader-wrapper {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
+                width: 100%;
+            }
+            .loader {
+                width: 32px;
+                aspect-ratio: 1;
+                border-radius: 50%;
+                border: 4px solid var(--vscode-button-background);
+                animation:
+                    l20-1 0.8s infinite linear alternate,
+                    l20-2 1.6s infinite linear;
+            }
+            @keyframes l20-1{
+                0%    {clip-path: polygon(50% 50%,0       0,  50%   0%,  50%    0%, 50%    0%, 50%    0%, 50%    0% )}
+                12.5% {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100%   0%, 100%   0%, 100%   0% )}
+                25%   {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100% 100%, 100% 100%, 100% 100% )}
+                50%   {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100% 100%, 50%  100%, 0%   100% )}
+                62.5% {clip-path: polygon(50% 50%,100%    0, 100%   0%,  100%   0%, 100% 100%, 50%  100%, 0%   100% )}
+                75%   {clip-path: polygon(50% 50%,100% 100%, 100% 100%,  100% 100%, 100% 100%, 50%  100%, 0%   100% )}
+                100%  {clip-path: polygon(50% 50%,50%  100%,  50% 100%,   50% 100%,  50% 100%, 50%  100%, 0%   100% )}
+            }
+            @keyframes l20-2{
+                0%    {transform:scaleY(1)  rotate(0deg)}
+                49.99%{transform:scaleY(1)  rotate(135deg)}
+                50%   {transform:scaleY(-1) rotate(0deg)}
+                100%  {transform:scaleY(-1) rotate(-135deg)}
+            }
+        `;
+        const scripts = `
+            function loadedScript() {
+                visualizerWebview.renderWebview("evaluation-report", document.getElementById("webview-container"));
+            }
+        `;
+
+        const webViewOptions: WebViewOptions = {
+            ...getComposerWebViewOptions("Visualizer", webView),
+            body,
+            scripts,
+            styles,
+            bodyCss,
+        };
+
+        return getLibraryWebViewContent(webViewOptions, webView);
     }
 
     public dispose(): void {
         EvaluationReportWebview.currentPanel = undefined;
         this._panel.dispose();
-
         while (this._disposables.length) {
-            const disposable = this._disposables.pop();
-            if (disposable) {
-                disposable.dispose();
+            const d = this._disposables.pop();
+            if (d) {
+                d.dispose();
             }
         }
     }

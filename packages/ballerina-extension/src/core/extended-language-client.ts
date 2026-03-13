@@ -285,7 +285,11 @@ import {
     WSDLApiClientGenerationResponse,
     CopilotSearchLibrariesBySearchRequest,
     CopilotSearchLibrariesBySearchResponse,
-    CreateConvertedVariableRequest
+    CreateConvertedVariableRequest,
+    IntrospectCredentialsRequest,
+    IntrospectCredentialsResponse,
+    GetSimpleTypeOfExpressionResponse,
+    GetSimpleTypeOfExpressionRequest
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -412,6 +416,7 @@ enum EXTENDED_APIS {
     BI_TRIGGER_UPDATE_FUNCTION = 'triggerDesignService/updateTriggerFunction',
     BI_GET_TYPES = 'typesManager/getTypes',
     BI_GET_TYPE = 'typesManager/getType',
+    BI_GET_SIMPLE_TYPE_OF_EXPRESSION = 'typesManager/getTypeOfExpression',
     BI_UPDATE_TYPE = 'typesManager/updateType',
     BI_UPDATE_TYPES = 'typesManager/updateTypes',
     BI_GET_GRAPHQL_TYPE = 'typesManager/getGraphqlType',
@@ -472,6 +477,7 @@ enum EXTENDED_APIS {
     OPEN_API_GENERATED_MODULES = 'openAPIService/getModules',
     OPEN_API_CLIENT_DELETE = 'openAPIService/deleteModule',
     PERSIST_DATABASE_INTROSPECTION = 'persistService/introspectDatabase',
+    PERSIST_CREDENTIALS_INTROSPECTION = 'persistService/introspectCredentials',
     PERSIST_CLIENT_GENERATE = 'persistService/generatePersistClient',
     WSDL_API_CLIENT_GENERATE = 'wsdlService/genClient',
     GET_PROJECT_INFO = 'designModelService/projectInfo',
@@ -720,6 +726,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async generatePersistClient(params: PersistClientGenerateRequest): Promise<PersistClientGenerateResponse> {
         return this.sendRequest<PersistClientGenerateResponse>(EXTENDED_APIS.PERSIST_CLIENT_GENERATE, params);
+    }
+
+    async introspectCredentials(params: IntrospectCredentialsRequest): Promise<IntrospectCredentialsResponse> {
+        return this.sendRequest<IntrospectCredentialsResponse>(EXTENDED_APIS.PERSIST_CREDENTIALS_INTROSPECTION, params);
     }
 
     async generateWSDLApiClient(params: WSDLApiClientGenerationRequest): Promise<WSDLApiClientGenerationResponse> {
@@ -1337,6 +1347,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getType(params: GetTypeRequest): Promise<GetTypeResponse> {
         return this.sendRequest<GetTypeResponse>(EXTENDED_APIS.BI_GET_TYPE, params);
+    }
+
+    async getSimpleTypeOfExpression(params: GetSimpleTypeOfExpressionRequest): Promise<GetSimpleTypeOfExpressionResponse> {
+        return this.sendRequest<GetSimpleTypeOfExpressionResponse>(EXTENDED_APIS.BI_GET_SIMPLE_TYPE_OF_EXPRESSION, params);
     }
 
     async updateType(params: UpdateTypeRequest): Promise<UpdateTypeResponse> {

@@ -16,36 +16,34 @@
  * under the License.
  */
 
-import { keyframes } from "@emotion/css";
 import styled from "@emotion/styled";
 import React, { useState, useEffect, useRef } from "react";
 import { Task } from "@wso2/ballerina-core";
 
-const spin = keyframes`
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-`;
+// ── Animations ────────────────────────────────────────────────────────────────
 
-const TodoContainer = styled.div`
-    background-color: var(--vscode-editor-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 6px;
-    padding: 8px 10px;
-    margin: 6px 0;
+// ── Container ─────────────────────────────────────────────────────────────────
+
+const Container = styled.div`
+    display: flex;
+    flex-direction: column;
+    margin: 10px 0 12px 0;
     font-family: var(--vscode-font-family);
-    font-size: 12px;
-    color: var(--vscode-editor-foreground);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    padding: 5px 8px;
 `;
 
-const TodoHeader = styled.div`
+// ── Header row ────────────────────────────────────────────────────────────────
+
+const HeaderRow = styled.div`
     display: flex;
     align-items: center;
     gap: 6px;
+    min-height: 24px;
     cursor: pointer;
     user-select: none;
-    padding: 2px 2px 6px 2px;
-    border-bottom: 1px solid var(--vscode-widget-border);
-    transition: opacity 0.15s ease;
+    padding: 0 2px;
 
     &:hover {
         opacity: 0.8;
@@ -54,241 +52,237 @@ const TodoHeader = styled.div`
 
 const ChevronIcon = styled.span<{ expanded: boolean }>`
     transition: transform 0.2s ease;
-    transform: ${(props: { expanded: boolean }) => props.expanded ? 'rotate(90deg)' : 'rotate(0deg)'};
+    transform: ${(props: { expanded: boolean }) => props.expanded ? "rotate(90deg)" : "rotate(0deg)"};
     display: flex;
     align-items: center;
     color: var(--vscode-descriptionForeground);
     font-size: 11px;
+    flex-shrink: 0;
 `;
 
-const HeaderTitle = styled.span`
-    font-weight: 600;
-    font-size: 11px;
-    letter-spacing: 0.3px;
-    color: var(--vscode-descriptionForeground);
-    text-transform: uppercase;
+const HeaderLabel = styled.span`
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--vscode-editor-foreground);
     flex: 1;
 `;
 
-const StatusBadge = styled.span<{ status: "building" | "done" | "ready" }>`
-    font-size: 10px;
-    font-weight: 500;
-    padding: 1px 7px;
-    border-radius: 10px;
-    background-color: ${(props: { status: "building" | "done" | "ready" }) =>
-        props.status === "done"
-            ? "rgba(35, 134, 54, 0.15)"
-            : props.status === "building"
-            ? "rgba(75, 110, 175, 0.15)"
-            : "rgba(128, 128, 128, 0.12)"};
-    color: ${(props: { status: "building" | "done" | "ready" }) =>
-        props.status === "done"
-            ? "var(--vscode-testing-iconPassed)"
-            : props.status === "building"
-            ? "var(--vscode-charts-blue)"
-            : "var(--vscode-descriptionForeground)"};
-`;
-
 const CollapsedActiveTask = styled.span`
-    color: var(--vscode-charts-blue);
-    font-size: 11px;
-    font-weight: 500;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 220px;
+    flex: 1;
 `;
 
-const TodoList = styled.div`
+const ApprovalLabel = styled.span`
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--vscode-descriptionForeground);
+    opacity: 0.75;
+    flex-shrink: 0;
+`;
+
+const ApprovalComment = styled.span`
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    opacity: 0.6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1;
+`;
+
+// ── Task list (two-column: rail + content) ────────────────────────────────────
+
+const TaskList = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    margin-left: 8px;
     overflow-y: auto;
-    max-height: 250px;
-    padding-top: 4px;
+    max-height: 200px;
+    padding-bottom: 4px;
 `;
 
-const TodoItem = styled.div<{ status: string }>`
+const TaskBlock = styled.div`
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 6px;
-    border-radius: 4px;
-    background-color: ${(props: { status: string }) =>
-        props.status === "in_progress"
-            ? "rgba(75, 110, 175, 0.1)"
-            : "transparent"};
-    opacity: ${(props: { status: string }) => props.status === "completed" ? 0.5 : 1};
-    transition: background-color 0.2s ease, opacity 0.2s ease;
-    border-left: 2px solid ${(props: { status: string }) =>
-        props.status === "in_progress"
-            ? "var(--vscode-charts-blue)"
-            : props.status === "completed"
-            ? "var(--vscode-testing-iconPassed)"
-            : "transparent"};
+    flex-direction: row;
 `;
 
-const TodoIcon = styled.span<{ status: string }>`
+const TaskRail = styled.div<{ isLast: boolean }>`
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 16px;
     flex-shrink: 0;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        bottom: ${(props: { isLast: boolean }) => props.isLast ? "4px" : "0"};
+        left: 50%;
+        transform: translateX(-50%);
+        width: 1px;
+        background-color: var(--vscode-panel-border);
+        opacity: 0.8;
+    }
+`;
+
+const DotWrapper = styled.div`
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 14px;
-    height: 14px;
-
-    &.pending .codicon {
-        color: var(--vscode-descriptionForeground);
-        opacity: 0.5;
-    }
-
-    &.in_progress .codicon {
-        color: #4d9cf8;
-        animation: ${spin} 0.8s linear infinite;
-        font-size: 13px;
-    }
-
-    &.in_progress_static .codicon {
-        color: #4d9cf8;
-        font-size: 13px;
-    }
-
-    &.completed .codicon {
-        color: var(--vscode-testing-iconPassed);
-    }
-
-    &.review .codicon {
-        color: var(--vscode-charts-orange);
-    }
+    width: 16px;
+    height: 20px;
+    flex-shrink: 0;
+    background-color: var(--vscode-editor-background);
 `;
 
-const TodoText = styled.span<{ status: string }>`
+const TaskContent = styled.div`
+    display: flex;
+    align-items: center;
     flex: 1;
+    min-width: 0;
+    padding-left: 5px;
+    min-height: 20px;
+`;
+
+const TaskLabel = styled.span<{ status: string }>`
     font-size: 12px;
-    line-height: 16px;
-    text-decoration: ${(props: { status: string }) =>
-        props.status === "completed" ? "line-through" : "none"};
-    color: ${(props: { status: string }) =>
-        props.status === "in_progress"
-            ? "var(--vscode-editor-foreground)"
-            : "var(--vscode-descriptionForeground)"};
+    color: var(--vscode-editor-foreground);
+    opacity: ${(props: { status: string }) =>
+        props.status === "completed" ? 0.5 : 1};
 `;
 
-const MessageHint = styled.div`
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-    padding: 5px 4px 2px 4px;
+// ── Node indicator ────────────────────────────────────────────────────────────
+
+const Bullet = styled.span`
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background-color: var(--vscode-descriptionForeground);
+    opacity: 0.85;
 `;
 
+// ── Component ─────────────────────────────────────────────────────────────────
 
 interface TodoSectionProps {
     tasks: Task[];
     message?: string;
-    isLoading?: boolean;
+    initialExpanded?: boolean;
+    approvalStatus?: "approved" | "revised";
+    approvalComment?: string;
 }
 
-const getStatusIcon = (status: string, isLoading: boolean): { className: string; icon: string } => {
-    switch (status) {
-        case "in_progress":
-            return { className: isLoading ? "in_progress" : "in_progress_static", icon: "codicon-loading" };
-        case "review":
-            return { className: "review", icon: "codicon-eye" };
-        case "completed":
-            return { className: "completed", icon: "codicon-check" };
-        case "pending":
-        default:
-            return { className: "pending", icon: "codicon-circle-outline" };
-    }
-};
-
-const TodoSection: React.FC<TodoSectionProps> = ({ tasks, message, isLoading = false }) => {
-    const [isExpanded, setIsExpanded] = useState(true);
+const TodoSection: React.FC<TodoSectionProps> = ({
+    tasks,
+    initialExpanded = true,
+    approvalStatus,
+    approvalComment,
+}) => {
+    const [isExpanded, setIsExpanded] = useState(initialExpanded);
     const inProgressRef = useRef<HTMLDivElement>(null);
-    const todoListRef = useRef<HTMLDivElement>(null);
+    const listRef = useRef<HTMLDivElement>(null);
     const scrollTimeoutRef = useRef<number | null>(null);
-    const completedCount = tasks.filter((t) => t.status === "completed").length;
-    const inProgressTask = tasks.find((t) => t.status === "in_progress");
-    const allCompleted = completedCount === tasks.length;
+
+    const inProgressTask = tasks.find(t => t.status === "in_progress");
     const hasInProgress = !!inProgressTask;
 
-    const toggleExpanded = () => setIsExpanded(!isExpanded);
-
-    const scrollToInProgress = () => {
-        if (inProgressRef.current) {
-            inProgressRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }
-    };
-
+    // Collapse once when approval status arrives
     useEffect(() => {
-        if (isExpanded && hasInProgress) {
-            scrollToInProgress();
+        if (approvalStatus) {
+            setIsExpanded(false);
+        }
+    }, [approvalStatus]);
+
+    // Scroll to in-progress task when expanded
+    useEffect(() => {
+        if (isExpanded && hasInProgress && inProgressRef.current) {
+            inProgressRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
     }, [isExpanded, inProgressTask?.description]);
 
     useEffect(() => {
-        const todoList = todoListRef.current;
-        if (!todoList || !hasInProgress) return;
-
+        const list = listRef.current;
+        if (!list || !hasInProgress) return;
         const handleScroll = () => {
             if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-            scrollTimeoutRef.current = setTimeout(() => scrollToInProgress(), 3000);
+            scrollTimeoutRef.current = setTimeout(() => {
+                if (inProgressRef.current) {
+                    inProgressRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                }
+            }, 3000);
         };
-
-        todoList.addEventListener("scroll", handleScroll);
+        list.addEventListener("scroll", handleScroll);
         return () => {
-            todoList.removeEventListener("scroll", handleScroll);
+            list.removeEventListener("scroll", handleScroll);
             if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
         };
     }, [hasInProgress, inProgressTask?.description]);
 
-    const badgeStatus: "building" | "done" | "ready" =
-        allCompleted ? "done" : (hasInProgress || isLoading) ? "building" : "ready";
-
-    const badgeLabel =
-        allCompleted ? `Done` : hasInProgress ? `${completedCount}/${tasks.length}` : `${completedCount}/${tasks.length}`;
+    const renderDot = (_status: string) => <Bullet />;
 
     return (
-        <TodoContainer>
-            <TodoHeader onClick={toggleExpanded}>
+        <Container>
+            {/* Header row */}
+            <HeaderRow onClick={() => setIsExpanded(prev => !prev)}>
                 <ChevronIcon expanded={isExpanded}>
-                    <span className="codicon codicon-chevron-right"></span>
+                    <span className="codicon codicon-chevron-right" />
                 </ChevronIcon>
-                <HeaderTitle>Plan</HeaderTitle>
-                {!isExpanded && inProgressTask && (
-                    <CollapsedActiveTask>{inProgressTask.description}</CollapsedActiveTask>
+                {approvalStatus ? (
+                    <>
+                        <ApprovalLabel>
+                            {approvalStatus === "approved" ? "Plan approved" : "Plan revised"}
+                        </ApprovalLabel>
+                        {approvalStatus === "revised" && approvalComment && (
+                            <ApprovalComment title={approvalComment}>— {approvalComment}</ApprovalComment>
+                        )}
+                    </>
+                ) : (
+                    <>
+                        <HeaderLabel>Tasks</HeaderLabel>
+                        {!isExpanded && inProgressTask && (
+                            <CollapsedActiveTask>{inProgressTask.description}</CollapsedActiveTask>
+                        )}
+                    </>
                 )}
-                <StatusBadge status={badgeStatus}>{badgeLabel}</StatusBadge>
-            </TodoHeader>
+            </HeaderRow>
+
+            {/* Task list */}
             {isExpanded && (
-                <>
-                    {message && <MessageHint>{message}</MessageHint>}
-                    <TodoList ref={todoListRef}>
-                        {tasks.map((task) => {
-                            const statusInfo = getStatusIcon(task.status, isLoading);
-                            const isInProgress = task.status === "in_progress";
-                            const isReview = task.status === "review";
-                            return (
-                                <TodoItem
-                                    key={task.description}
-                                    status={task.status}
-                                    ref={isInProgress ? inProgressRef : null}
-                                    style={isReview ? {
-                                        backgroundColor: "rgba(128, 128, 128, 0.15)",
-                                        borderLeft: "2px solid var(--vscode-charts-orange)",
-                                    } : undefined}
-                                >
-                                    <TodoIcon status={task.status} className={statusInfo.className}>
-                                        <span className={`codicon ${statusInfo.icon}`}></span>
-                                    </TodoIcon>
-                                    <TodoText status={task.status}>
+                <TaskList ref={listRef}>
+                    {tasks.map((task, idx) => {
+                        const isLast = idx === tasks.length - 1;
+                        const isInProgress = task.status === "in_progress";
+                        return (
+                            <TaskBlock
+                                key={task.description}
+                                ref={isInProgress ? inProgressRef : null}
+                            >
+                                <TaskRail isLast={isLast}>
+                                    <DotWrapper>
+                                        {renderDot(task.status)}
+                                    </DotWrapper>
+                                </TaskRail>
+                                <TaskContent>
+                                    <TaskLabel status={task.status}>
                                         {task.description}
-                                    </TodoText>
-                                </TodoItem>
-                            );
-                        })}
-                    </TodoList>
-                </>
+                                    </TaskLabel>
+                                </TaskContent>
+                            </TaskBlock>
+                        );
+                    })}
+                </TaskList>
             )}
-        </TodoContainer>
+        </Container>
     );
 };
 

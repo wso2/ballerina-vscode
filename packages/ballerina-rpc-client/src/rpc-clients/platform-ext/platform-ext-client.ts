@@ -16,10 +16,10 @@
  * under the License.
  */
 
-import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getMarketplaceIdl, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent, deployIntegrationInDevant, deleteDevantTempConfigs, generateCustomConnectorFromOAS, addDevantTempConfig, setSelectedEnv, createConnectionConfig, replaceDevantTempConfigValues, registerDevantMarketplaceService, createThirdPartyConnection, initializeDevantOASConnection, createInternalConnection, getComponentList } from "@wso2/ballerina-core";
+import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getMarketplaceIdl, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent, deployIntegrationInDevant, deleteDevantTempConfigs, generateCustomConnectorFromOAS, addDevantTempConfig, setSelectedEnv, createConnectionConfig, replaceDevantTempConfigValues, registerDevantMarketplaceService, createThirdPartyConnection, initializeDevantOASConnection, createInternalConnection, getComponentList, getMarketplaceDatabases, getDatabaseServer, getDatabaseAdminCredential, getDatabaseCredentials, getProjectEnvs, createDatabaseConnection, getMarketplaceDatabaseItem, resolveConnectionSecrets } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
-import { GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, CreateLocalConnectionsConfigReq, CreateThirdPartyConnectionReq, CreateComponentConnectionReq, GetComponentsReq } from "@wso2/wso2-platform-core"
+import { GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, CreateLocalConnectionsConfigReq, CreateThirdPartyConnectionReq, CreateComponentConnectionReq, GetComponentsReq, MarketplaceDatabaseListResp, DatabaseServer, GetDatabaseServerReq, DatabaseAdminCredential, DatabaseCredential, GetProjectEnvsReq, Environment, CreateDatabaseConnectionReq, GetDatabaseItemReq, ResolveConnectionSecretsReq, ResolveConnectionSecretsResp } from "@wso2/wso2-platform-core"
 import { AddDevantTempConfigReq, AddDevantTempConfigResp, DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, GenerateCustomConnectorFromOASResp, InitializeDevantOASConnectionReq, InitializeDevantOASConnectionResp, PlatformExtState, RegisterDevantMarketplaceServiceReq, ReplaceDevantTempConfigValuesReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 export class PlatformExtRpcClient implements PlatformExtAPI {
@@ -35,6 +35,30 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
 
     getMarketplaceItems(params: GetMarketplaceListReq): Promise<MarketplaceListResp> {
         return this._messenger.sendRequest(getMarketplaceItems, HOST_EXTENSION, params);
+    }
+
+    getMarketplaceDatabases(params: { orgId: string }): Promise<MarketplaceDatabaseListResp> {
+        return this._messenger.sendRequest(getMarketplaceDatabases, HOST_EXTENSION, params);
+    }
+
+    getMarketplaceDatabaseItem(params: GetDatabaseItemReq): Promise<MarketplaceItem> {
+        return this._messenger.sendRequest(getMarketplaceDatabaseItem, HOST_EXTENSION, params);
+    }
+
+    getDatabaseServer(params: GetDatabaseServerReq): Promise<DatabaseServer> {
+        return this._messenger.sendRequest(getDatabaseServer, HOST_EXTENSION, params);
+    }
+
+    getDatabaseAdminCredential(params: GetDatabaseServerReq): Promise<DatabaseAdminCredential> {
+        return this._messenger.sendRequest(getDatabaseAdminCredential, HOST_EXTENSION, params);
+    }
+
+    getDatabaseCredentials(params: GetDatabaseServerReq): Promise<DatabaseCredential[]> {
+        return this._messenger.sendRequest(getDatabaseCredentials, HOST_EXTENSION, params);
+    }
+
+    createDatabaseConnection(params: CreateDatabaseConnectionReq): Promise<ConnectionDetailed> {
+        return this._messenger.sendRequest(createDatabaseConnection, HOST_EXTENSION, params);
     }
 
     getMarketplaceItem(params: GetMarketplaceItemReq): Promise<MarketplaceItem> {
@@ -95,6 +119,14 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
 
     getDevantConsoleUrl(): Promise<string> {
         return this._messenger.sendRequest(getDevantConsoleUrl, HOST_EXTENSION, undefined);
+    }
+
+    getProjectEnvs(params: GetProjectEnvsReq): Promise<Environment[]> {
+        return this._messenger.sendRequest(getProjectEnvs, HOST_EXTENSION, params);
+    }
+
+    resolveConnectionSecrets(params: ResolveConnectionSecretsReq): Promise<ResolveConnectionSecretsResp> {
+        return this._messenger.sendRequest(resolveConnectionSecrets, HOST_EXTENSION, params);
     }
 
     createConnectionConfig(params: CreateLocalConnectionsConfigReq): Promise<string> {
