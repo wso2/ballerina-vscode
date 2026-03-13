@@ -799,7 +799,7 @@
                 {
                     "id": "ballerina-evalsets",
                     "name": "Evalsets",
-                    "when": "isBIProject || isBallerinaProject"
+                    "when": "hasEvalsetSupport"
                 }
             ],
             "ballerina-traceView": [

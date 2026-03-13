@@ -27,6 +27,7 @@ export async function createNewEvalset(): Promise<void> {
     try {
         // 1. Ensure evalsets directory exists
         const evalsetsDir = await ensureEvalsetsDirectory();
+        if (!evalsetsDir) { return; } // User cancelled project selection
 
         // 2. Prompt for name
         const name = await vscode.window.showInputBox({
