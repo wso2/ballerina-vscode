@@ -22,6 +22,7 @@
           "type": "TYPE",
           "name": "User",
           "scope": "Global",
+          "visibility": "public",
           "children": {}
         },
         "Post": {
@@ -40,6 +41,7 @@
           "type": "TYPE",
           "name": "Post",
           "scope": "Global",
+          "visibility": "public",
           "children": {}
         }
       }
