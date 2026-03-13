@@ -54,7 +54,7 @@ import { RelativeLoader } from "../../../components/RelativeLoader";
 import styled from "@emotion/styled";
 import { URI, Utils } from "vscode-uri";
 import { cloneDeep } from "lodash";
-import { createDefaultParameterValue, createToolInputFields, createToolParameters } from "./formUtils";
+import { createDefaultParameterValue, createToolInputFields, createToolParameters, prepareToolInputFields } from "./formUtils";
 import { FUNCTION_CALL, METHOD_CALL, REMOTE_ACTION_CALL, RESOURCE_ACTION_CALL } from "../../../constants";
 import { NewToolSelectionMode } from "./NewTool";
 
@@ -65,6 +65,16 @@ const LoaderContainer = styled.div`
     height: 100%;
 `;
 
+const ImplementationInfoContainer = styled.div`
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 20px;
+    margin-top: -4px;
+    border-top: 1px solid var(--vscode-editorWidget-border);
+`;
+
 const ImplementationInfo = styled.div`
     display: flex;
     align-items: center;
@@ -72,10 +82,14 @@ const ImplementationInfo = styled.div`
     border: 1px solid var(--vscode-editorWidget-border);
     padding: 10px 10px;
     border-radius: 4px;
-    cursor: pointer;
+    margin-top: 4px;
     p {
         margin: 0;
     }
+`;
+
+const ImplementationDescription = styled.span`
+    color: var(--vscode-list-deemphasizedForeground)
 `;
 
 export enum SidePanelView {
@@ -87,6 +101,9 @@ export interface BIFlowDiagramProps {
     projectPath: string;
     onSubmit: (data: ExtendedAgentToolRequest) => void;
     mode?: NewToolSelectionMode;
+    onViewChange?: (view: SidePanelView, navigateBack?: () => void) => void;
+    onAgentToolCreated?: (functionName: string) => void;
+    onCancel?: () => void;
 }
 
 export interface ExtendedAgentToolRequest extends AgentToolRequest {
@@ -94,8 +111,33 @@ export interface ExtendedAgentToolRequest extends AgentToolRequest {
     flowNode?: FlowNode;
 }
 
+const INITIAL_FIELDS: FormField[] = [
+    {
+        key: `name`,
+        label: "Tool Name",
+        type: "IDENTIFIER",
+        optional: false,
+        editable: true,
+        documentation: "Enter a unique name for the tool.",
+        value: "",
+        types: [{ fieldType: "IDENTIFIER", scope: "Global", selected: false }],
+        enabled: true,
+    },
+    {
+        key: `description`,
+        label: "Description",
+        type: "TEXTAREA",
+        optional: true,
+        editable: true,
+        documentation: "Describe what this tool does. The agent uses this to decide when to invoke the tool.",
+        value: "",
+        types: [{ fieldType: "STRING", selected: false }],
+        enabled: true,
+    },
+];
+
 export function AIAgentSidePanel(props: BIFlowDiagramProps) {
-    const { projectPath, onSubmit, mode = NewToolSelectionMode.ALL } = props;
+    const { projectPath, onSubmit, mode = NewToolSelectionMode.ALL, onViewChange, onAgentToolCreated, onCancel } = props;
     const { rpcClient } = useRpcContext();
 
     const [sidePanelView, setSidePanelView] = useState<SidePanelView>(SidePanelView.NODE_LIST);
@@ -106,33 +148,8 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const functionNode = useRef<FunctionNode>(null);
     const flowNode = useRef<FlowNode>(null);
 
-    const initialFields: FormField[] = [
-        {
-            key: `name`,
-            label: "Tool Name",
-            type: "IDENTIFIER",
-            optional: false,
-            editable: true,
-            documentation: "Enter the name of the tool.",
-            value: "",
-            types: [{fieldType: "IDENTIFIER", scope: "Global", selected: false }],
-            enabled: true,
-        },
-        {
-            key: `description`,
-            label: "Description",
-            type: "TEXTAREA",
-            optional: true,
-            editable: true,
-            documentation: "Enter the description of the tool.",
-            value: "",
-            types: [{fieldType: "STRING", selected: false }],
-            enabled: true,
-        },
-    ];
-
     const [loading, setLoading] = useState<boolean>(false);
-    const [fields, setFields] = useState<FormField[]>(initialFields);
+    const [fields, setFields] = useState<FormField[]>(INITIAL_FIELDS);
 
     const targetRef = useRef<LineRange>({ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } });
     const initialCategoriesRef = useRef<PanelCategory[]>([]);
@@ -154,15 +171,25 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         fetchNodes();
     }, []);
 
-    const handleBackToNodeList = () => {
-        setSidePanelView(SidePanelView.NODE_LIST);
-        setFields(initialFields);
-        setSelectedNodeCodeData(undefined);
-        setToolNodeId(undefined);
-        selectedNodeRef.current = undefined;
-        functionNode.current = null;
-        flowNode.current = null;
-    };
+    const hasAutoTriggered = useRef(false);
+    useEffect(() => {
+        if (mode === NewToolSelectionMode.CUSTOM_TOOL && !loading && !hasAutoTriggered.current) {
+            hasAutoTriggered.current = true;
+            handleOnAddFunction(MACHINE_VIEW.BIAgentToolForm, DIRECTORY_MAP.AGENT_TOOL);
+        }
+    }, [loading]);
+
+    useEffect(() => {
+        if (sidePanelView === SidePanelView.TOOL_FORM) {
+            onViewChange?.(SidePanelView.TOOL_FORM, () => {
+                setSidePanelView(SidePanelView.NODE_LIST);
+                setFields(INITIAL_FIELDS);
+                onViewChange?.(SidePanelView.NODE_LIST);
+            });
+        } else {
+            onViewChange?.(SidePanelView.NODE_LIST);
+        }
+    }, [sidePanelView]);
 
     const getImplementationString = (codeData: CodeData | undefined): string => {
         if (!codeData) {
@@ -186,62 +213,87 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     useEffect(() => {
         rpcClient.onParentPopupSubmitted((parent: ParentPopupData) => {
             console.log(">>> on parent popup submitted", parent);
+            if (parent.artifactType === DIRECTORY_MAP.AGENT_TOOL && parent.recentIdentifier) {
+                onAgentToolCreated?.(parent.recentIdentifier);
+                return;
+            }
+            if (mode === NewToolSelectionMode.CUSTOM_TOOL && parent.artifactType === DIRECTORY_MAP.AGENT_TOOL) {
+                // User dismissed the popup without submitting — navigate back
+                onCancel?.();
+                return;
+            }
             setLoading(true);
-            //HACK: 3 seconds delay
-            setTimeout(() => {
-                fetchNodes();
-            }, 3000);
+            fetchNodes();
         });
     }, [rpcClient]);
 
-    const fetchNodes = () => {
+    const fetchNodes = async () => {
         setLoading(true);
-        const getNodeRequest: BIAvailableNodesRequest = {
-            position: targetRef.current.startLine,
-            filePath: agentFilePath.current,
-        };
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getAvailableNodes(getNodeRequest)
-            .then(async (response) => {
-                console.log(">>> Available nodes", response);
-                if (!response.categories) {
-                    console.error(">>> Error getting available nodes", response);
-                    return;
-                }
-                const connectionsCategory = response.categories.filter(
-                    (item) => item.metadata.label === "Connections"
-                ) as Category[];
-                // remove connections which names start with _ underscore
-                if (connectionsCategory.at(0)?.items) {
-                    const filteredConnectionsCategory = connectionsCategory
-                        .at(0)
-                        ?.items.filter((item) => !item.metadata.label.startsWith("_"));
-                    connectionsCategory.at(0).items = filteredConnectionsCategory;
-                }
-                const convertedCategories = convertBICategoriesToSidePanelCategories(connectionsCategory);
-                console.log("convertedCategories", convertedCategories);
 
-                let filteredCategories = [];
+        // CUSTOM_TOOL mode: skip loading entirely — popup is auto-triggered
+        if (mode === NewToolSelectionMode.CUSTOM_TOOL) {
+            setLoading(false);
+            return;
+        }
 
-                // Filter categories based on mode
-                if (mode === NewToolSelectionMode.CONNECTION) {
-                    filteredCategories = convertedCategories;
-                } else if (mode === NewToolSelectionMode.FUNCTION) {
-                    const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
-                    filteredCategories = filteredFunctions;
-                } else {
-                    const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
-                    filteredCategories = convertedCategories.concat(filteredFunctions);
+        // FUNCTION mode: skip getAvailableNodes entirely — connections are not needed
+        if (mode === NewToolSelectionMode.FUNCTION) {
+            const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
+            const categories = filteredFunctions || [];
+            setCategories(categories);
+            initialCategoriesRef.current = categories;
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const getNodeRequest: BIAvailableNodesRequest = {
+                position: targetRef.current.startLine,
+                filePath: agentFilePath.current,
+                queryMap: {
+                    "checkAgentToolCompatibility": "true"
                 }
+            };
+            const response = await rpcClient.getBIDiagramRpcClient().getAvailableNodes(getNodeRequest);
+            console.log(">>> Available nodes", response);
+            if (!response.categories) {
+                console.error(">>> Error getting available nodes", response);
+                return;
+            }
+            const connectionsCategory = response.categories.filter(
+                (item) => item.metadata.label === "Connections"
+            ) as Category[];
+            // remove connections which names start with _ underscore or are not tool compatible
+            if (connectionsCategory.at(0)?.items) {
+                const filteredConnectionsCategory = connectionsCategory
+                    .at(0)
+                    ?.items.filter((item) => !item.metadata.label.startsWith("_"));
+                // filter out tool-incompatible nodes within each sub-category
+                filteredConnectionsCategory?.forEach((subCategory) => {
+                    if ("items" in subCategory && subCategory.items) {
+                        subCategory.items = subCategory.items.filter((node) =>
+                            String((node as AvailableNode).codedata?.data?.agentToolCompatible) !== "false"
+                        );
+                    }
+                });
+                connectionsCategory.at(0).items = filteredConnectionsCategory;
+            }
+            const convertedCategories = convertBICategoriesToSidePanelCategories(connectionsCategory);
+            console.log("convertedCategories", convertedCategories);
 
-                setCategories(filteredCategories);
-                initialCategoriesRef.current = filteredCategories; // Store initial categories
-                setLoading(false);
-            })
-            .finally(() => {
-                setLoading(false);
-            });
+            let filteredCategories: PanelCategory[] = convertedCategories;
+
+            // ALL mode: also fetch functions — CONNECTION mode only needs connections
+            if (mode !== NewToolSelectionMode.CONNECTION) {
+                const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
+                filteredCategories = convertedCategories.concat(filteredFunctions);
+            }
+
+            setCategories(filteredCategories);
+            initialCategoriesRef.current = filteredCategories;
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSearchFunction = async (
@@ -249,6 +301,10 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         functionType: FUNCTION_TYPE,
         isSearching: boolean = true
     ) => {
+        if (isSearching && !searchText) {
+            setCategories(initialCategoriesRef.current); // Reset the categories list when the search input is empty
+            return;
+        }
         const request: BISearchRequest = {
             position: {
                 startLine: targetRef.current.startLine,
@@ -266,18 +322,13 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             searchKind: "FUNCTION",
         };
         const response = await rpcClient.getBIDiagramRpcClient().search(request);
-        if (isSearching && !searchText) {
-            setCategories(initialCategoriesRef.current); // Reset the categories list when the search input is empty
-            return;
-        }
 
-        // HACK: filter response until library functions are supported from LS
         const filteredResponse = response.categories.filter((category) => {
-            return category.metadata.label === "Current Integration";
+            return category.metadata.label !== "Agent Tools";
         });
 
         // Remove agent tool functions from integration category
-        const currentIntegrationCategory = filteredResponse.find((category) => category.metadata.label === "Current Integration");
+        const currentIntegrationCategory = filteredResponse[0];
         if (currentIntegrationCategory && Array.isArray(currentIntegrationCategory.items)) {
             currentIntegrationCategory.items = currentIntegrationCategory.items.filter((item) => {
                 return !(item.metadata?.data as NodeMetadata)?.isAgentTool;
@@ -294,116 +345,103 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         return convertFunctionCategoriesToSidePanelCategories(filteredResponse, functionType);
     };
 
+    const loadFunctionCallFields = async (node: AvailableNode): Promise<void> => {
+        try {
+            const functionNodeResponse = await rpcClient.getBIDiagramRpcClient().getFunctionNode({
+                functionName: node.codedata.symbol,
+                fileName: functionFilePath.current,
+                projectPath: projectPath,
+            });
+
+            const funcDef = functionNodeResponse.functionDefinition;
+            functionNode.current = funcDef;
+
+            let toolInputFields: FormField[] = [];
+            if (funcDef?.properties !== undefined) {
+                funcDef.properties.parameters.metadata.label = "Tool Inputs";
+                funcDef.properties.parameters.metadata.description = "Define the inputs the agent must provide when invoking this tool.";
+                toolInputFields = convertConfig(funcDef.properties, ["functionName", "functionNameDescription", "isIsolated", "type", "typeDescription", "isPublic"]);
+            }
+
+            const functionNodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+                position: funcDef?.codedata.lineRange.startLine || { line: 0, offset: 0 },
+                filePath: functionFilePath.current,
+                id: node.codedata,
+            });
+
+            let functionParameterFields: FormField[] = [];
+            if (toolInputFields.length === 0 && functionNodeTemplate.flowNode?.properties) {
+                functionParameterFields = convertConfig(functionNodeTemplate.flowNode.properties, ["variable"], false);
+                toolInputFields = createToolInputFields(prepareToolInputFields(functionParameterFields));
+                functionNode.current = functionNodeTemplate.flowNode as FunctionNode;
+            } else if (functionNodeTemplate.flowNode?.properties) {
+                functionParameterFields = convertConfig(functionNodeTemplate.flowNode.properties, ["variable"], false);
+                functionParameterFields.forEach((field, idx) => {
+                    if (field.key === "type") {
+                        functionParameterFields[idx].documentation = "The data type this tool will return to the agent.";
+                        return;
+                    }
+                    field.label = `${field.label} Mapping`;
+                    if (field.optional == false) field.value = field.key;
+                });
+            }
+
+            const templateDescription = functionNodeTemplate.flowNode?.metadata?.description || "";
+            setFields((prevFields) => [
+                ...prevFields.map((field) =>
+                    field.key === "description" ? { ...field, value: templateDescription } : field
+                ),
+                ...toolInputFields,
+                ...functionParameterFields,
+            ]);
+        } catch (error) {
+            console.error(">>> Error fetching function node or template", error);
+        }
+    };
+
+    const loadConnectionCallFields = async (node: AvailableNode): Promise<void> => {
+        try {
+            const nodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+                position: { line: 0, offset: 0 },
+                filePath: agentFilePath.current,
+                id: node.codedata,
+            });
+
+            if (nodeTemplate.flowNode) {
+                flowNode.current = nodeTemplate.flowNode;
+            } else {
+                console.error("Node template flowNode not found");
+            }
+
+            const nodeParameterFields = nodeTemplate.flowNode?.properties
+                ? convertConfig(nodeTemplate.flowNode.properties)
+                : [];
+
+            const toolInputFields = createToolInputFields(prepareToolInputFields(nodeParameterFields));
+            const templateDescription = nodeTemplate.flowNode?.metadata?.description || "";
+
+            setFields((prevFields) => [
+                ...prevFields.map((field) =>
+                    field.key === "description" ? { ...field, value: templateDescription } : field
+                ),
+                ...toolInputFields,
+                ...nodeParameterFields,
+            ]);
+        } catch (error) {
+            console.error(">>> Error fetching node template", error);
+        }
+    };
+
     const handleOnSelectNode = async (nodeId: string, metadata?: any) => {
         const { node } = metadata as { node: AvailableNode };
-        // default node
         setToolNodeId(nodeId);
-        console.log(">>> on select node", { nodeId, metadata });
         selectedNodeRef.current = node;
         setSelectedNodeCodeData(node.codedata);
 
-        let toolInputFields: FormField[] = [];
-        let functionParameterFields: FormField[] = [];
-        let nodeParameterFields: FormField[] = [];
-
         if (nodeId === FUNCTION_CALL) {
-            try {
-                const functionNodeResponse = await rpcClient.getBIDiagramRpcClient().getFunctionNode({
-                    functionName: node.codedata.symbol,
-                    fileName: functionFilePath.current,
-                    projectPath: projectPath,
-                });
-                console.log(">>> Function definition response", { functionNodeResponse });
-
-                functionNode.current = functionNodeResponse.functionDefinition;
-
-                // Hide unnecessary properties
-                (["functionName", "functionNameDescription", "isIsolated", "type", "typeDescription"] as Array<keyof typeof functionNodeResponse.functionDefinition.properties>).forEach(
-                    key => {
-                        if (functionNodeResponse.functionDefinition.properties[key]) {
-                            functionNodeResponse.functionDefinition.properties[key].hidden = true;
-                        }
-                    }
-                );
-
-                functionNodeResponse.functionDefinition.properties.parameters.metadata.label = "Tool Inputs";
-                functionNodeResponse.functionDefinition.properties.parameters.metadata.description = "";
-
-                if (functionNodeResponse.functionDefinition.properties) {
-                    toolInputFields = convertConfig(functionNodeResponse.functionDefinition.properties);
-                }
-                console.log(">>> Tool input fields", { toolInputFields });
-
-                const functionNodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
-                    position: functionNodeResponse.functionDefinition.codedata.lineRange.startLine,
-                    filePath: functionFilePath.current,
-                    id: node.codedata
-                });
-                console.log(">>> Function node template response", { functionNodeTemplate });
-
-                if (functionNodeTemplate.flowNode.properties) {
-                    functionParameterFields = convertConfig(functionNodeTemplate.flowNode.properties);
-                }
-                functionParameterFields.forEach((field) => {
-                    field.value = field.key;
-                    field.optional = false;
-                    field.advanced = false;
-                });
-                console.log(">>> Function parameter fields", { functionParameterFields });
-
-                setFields((prevFields) => {
-                    return [...prevFields, ...toolInputFields, ...functionParameterFields];
-                });
-            } catch (error) {
-                console.error(">>> Error fetching function node or template", error);
-            }
+            await loadFunctionCallFields(node);
         } else if (nodeId === REMOTE_ACTION_CALL || nodeId === RESOURCE_ACTION_CALL || nodeId === METHOD_CALL) {
-            try {
-                const nodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
-                    position: { line: 0, offset: 0 },
-                    filePath: agentFilePath.current,
-                    id: node.codedata,
-                });
-                console.log(">>> Node template response", { nodeTemplate });
-
-                if (nodeTemplate.flowNode) {
-                    flowNode.current = nodeTemplate.flowNode;
-                } else {
-                    console.error("Node template flowNode not found");
-                }
-
-                const includedKeys: string[] = [];
-                if (nodeTemplate.flowNode.properties) {
-                    nodeParameterFields = convertConfig(nodeTemplate.flowNode.properties);
-                }
-                nodeParameterFields.forEach((field) => {
-                    if (["type", "targetType", "variable", "checkError", "connection", "resourcePath"].includes(field.key)) {
-                        field.hidden = true;
-                        return;
-                    }
-                    field.value = field.key;
-                    field.optional = false;
-                    field.advanced = false;
-                    // hack: remove headers and additionalValues from the tool inputs and set default value to ()
-                    if (["headers", "additionalValues"].includes(field.key)) {
-                        field.value = "{}";
-                        return;
-                    }
-                    includedKeys.push(field.key);
-                });
-                console.log(">>> Node parameter fields", { nodeParameterFields });
-
-                const filteredNodeParameterFields = nodeParameterFields.filter(field => includedKeys.includes(field.key));
-                toolInputFields = createToolInputFields(filteredNodeParameterFields);
-
-                console.log(">>> Tool input fields", { toolInputFields });
-
-                setFields((prevFields) => {
-                    return [...prevFields, ...toolInputFields, ...nodeParameterFields];
-                });
-            } catch (error) {
-                console.error(">>> Error fetching node template", error);
-            }
+            await loadConnectionCallFields(node);
         }
 
         setSidePanelView(SidePanelView.TOOL_FORM);
@@ -420,12 +458,12 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         });
     };
 
-    const handleOnAddFunction = () => {
+    const handleOnAddFunction = (view: MACHINE_VIEW, artifactType: DIRECTORY_MAP) => {
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
-                view: MACHINE_VIEW.BIFunctionForm,
-                artifactType: DIRECTORY_MAP.FUNCTION,
+                view: view,
+                artifactType: artifactType,
             },
             isPopup: true,
         });
@@ -485,17 +523,24 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
         if (toolNodeId === FUNCTION_CALL && Array.isArray(data["parameters"])) {
             clonedFunctionNode = functionNode.current ? cloneDeep(functionNode.current) : null;
-            toolParameters = updateToolParameters(data["parameters"], functionNode.current?.properties?.parameters as unknown as ToolParameters | undefined);
+            const existingParameters = clonedFunctionNode?.properties?.parameters;
+            toolParameters = updateToolParameters(data["parameters"], existingParameters as unknown as ToolParameters | undefined);
 
-            // Update clonedFunctionNode parameter values from data["parameters"]
-            const parametersValue = clonedFunctionNode?.properties?.parameters?.value;
-            if (parametersValue && typeof parametersValue === "object" && !Array.isArray(parametersValue)) {
-                Object.keys(parametersValue).forEach((key) => {
-                    const paramValue = data[key];
-                    if ((parametersValue as ToolParametersValue)[key]?.value?.variable) {
-                        (parametersValue as ToolParametersValue)[key].value.variable.value = paramValue;
-                    }
-                });
+            if (existingParameters) {
+                // User-defined function: update parameter values in the cloned function node
+                const parametersValue = existingParameters.value;
+                if (parametersValue && typeof parametersValue === "object" && !Array.isArray(parametersValue)) {
+                    Object.keys(parametersValue).forEach((key) => {
+                        const paramValue = data[key];
+                        if ((parametersValue as ToolParametersValue)[key]?.value?.variable) {
+                            (parametersValue as ToolParametersValue)[key].value.variable.value = paramValue;
+                        }
+                    });
+                }
+            } else if (clonedFunctionNode?.properties) {
+                // Library function: the template flowNode has no parameters property,
+                // so inject the constructed toolParameters so genTool can read it
+                (clonedFunctionNode.properties as any).parameters = toolParameters;
             }
         } else if ((toolNodeId === REMOTE_ACTION_CALL || toolNodeId === RESOURCE_ACTION_CALL || toolNodeId === METHOD_CALL) && Array.isArray(data["parameters"])) {
             clonedFlowNode = flowNode.current ? cloneDeep(flowNode.current) : null;
@@ -555,21 +600,6 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         onSubmit(toolModel);
     };
 
-    // add concert message to the fields if the tool is a function call
-    let concertMessage = "";
-    let concertRequired = false;
-    let description = "";
-    if (
-        selectedNodeRef.current &&
-        selectedNodeRef.current.codedata.node === FUNCTION_CALL &&
-        !(selectedNodeRef.current.metadata?.data as NodeMetadata)?.isIsolatedFunction
-    ) {
-        concertMessage = `Convert ${selectedNodeRef.current.metadata.label} function to an isolated function`;
-        concertRequired = true;
-        description =
-            "Only isolated functions can be used as tools. Isolated functions ensure predictable behavior by avoiding shared state.";
-    }
-
     let searchPlaceholder = "Search";
     if (mode === NewToolSelectionMode.CONNECTION) {
         searchPlaceholder = "Search connections";
@@ -589,23 +619,21 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     categories={categories}
                     onSelect={handleOnSelectNode}
                     onAddConnection={handleOnAddConnection}
-                    onAddFunction={handleOnAddFunction}
+                    onAddFunction={() => handleOnAddFunction(MACHINE_VIEW.BIFunctionForm, DIRECTORY_MAP.FUNCTION)}
                     onSearchTextChange={(searchText) => handleSearchFunction(searchText, FUNCTION_TYPE.REGULAR, true)}
                     title={"Functions"}
                     searchPlaceholder={searchPlaceholder}
+                    panelBodySx={{ height: "calc(100vh - 140px)" }}
                 />
             )}
             {sidePanelView === SidePanelView.TOOL_FORM && (
                 <FormGeneratorNew
-                    preserveFieldOrder={true}
+                    preserveFieldOrder={false}
                     fileName={agentFilePath.current}
                     targetLineRange={{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } }}
                     fields={fields}
                     onSubmit={handleToolSubmit}
                     submitText={"Save Tool"}
-                    concertMessage={concertMessage}
-                    concertRequired={concertRequired}
-                    description={description}
                     helperPaneSide="left"
                     customDiagnosticFilter={customDiagnosticFilter}
                     onChange={(fieldKey, value) => {
@@ -617,12 +645,13 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     injectedComponents={[
                         {
                             component: (
-                                <div style={{ width: "100%" }}>
-                                    <p style={{ margin: "0px 0px 8px", fontWeight: "bold" }}>Implementation</p>
-                                    <ImplementationInfo onClick={handleBackToNodeList}>
+                                <ImplementationInfoContainer>
+                                    <p style={{ margin: "0px", fontWeight: "bold" }}>Implementation</p>
+                                    <ImplementationDescription>Configure how tool inputs map to the {mode === NewToolSelectionMode.CONNECTION ? "connection" : "function"}.</ImplementationDescription>
+                                    <ImplementationInfo>
                                         <p>{getImplementationString(selectedNodeRef.current.codedata)}</p>
                                     </ImplementationInfo>
-                                </div>
+                                </ImplementationInfoContainer>
                             ),
                             index: 3,
                         },

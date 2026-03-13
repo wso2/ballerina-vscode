@@ -60,7 +60,7 @@ export interface AttributeData {
 declare global {
     interface Window {
         traceVisualizer: {
-            renderWebview: (traceData: TraceData, isAgentChat: boolean, target: HTMLElement, focusSpanId?: string, sessionId?: string) => void;
+            renderWebview: (traceData: TraceData, isAgentChat: boolean, target: HTMLElement, focusSpanId?: string, sessionId?: string, showSidebar?: boolean) => void;
         };
         traceVisualizerAPI?: {
             requestSessionTraces: (sessionId: string) => void;
@@ -75,7 +75,7 @@ declare global {
 // Store root instances by target element to reuse them
 const rootMap = new WeakMap<HTMLElement, ReturnType<typeof createRoot>>();
 
-export function renderWebview(traceData: TraceData, isAgentChat: boolean, target: HTMLElement, focusSpanId?: string, sessionId?: string) {
+export function renderWebview(traceData: TraceData, isAgentChat: boolean, target: HTMLElement, focusSpanId?: string, sessionId?: string, showSidebar?: boolean) {
     // Get existing root or create a new one
     let root = rootMap.get(target);
     if (!root) {
@@ -85,7 +85,7 @@ export function renderWebview(traceData: TraceData, isAgentChat: boolean, target
 
     root.render(
         <React.StrictMode>
-            <TraceVisualizer initialTraceData={traceData} isAgentChat={isAgentChat} focusSpanId={focusSpanId} sessionId={sessionId} />
+            <TraceVisualizer initialTraceData={traceData} isAgentChat={isAgentChat} focusSpanId={focusSpanId} sessionId={sessionId} showSidebar={showSidebar} />
         </React.StrictMode>
     );
 }

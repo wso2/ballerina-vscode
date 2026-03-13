@@ -136,9 +136,8 @@ export class AiAgentRpcManager implements AIAgentAPI {
             const context = StateMachine.context();
             try {
                 const response: AIGentToolsResponse = await context.langClient.genTool(params);
-                await updateSourceCode({ textEdits: response.textEdits });
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                resolve(response);
+                const artifacts = await updateSourceCode({ textEdits: response.textEdits });
+                resolve({ artifacts, textEdits: response.textEdits });
             } catch (error) {
                 console.log(error);
             }
