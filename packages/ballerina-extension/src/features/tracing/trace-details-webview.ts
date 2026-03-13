@@ -75,6 +75,7 @@ export class TraceDetailsWebview {
     private _isAgentChat: boolean = false;
     private _focusSpanId: string | undefined;
     private _sessionId: string | undefined;
+    private _showSidebar: boolean | undefined;
     private _traceUpdateUnsubscribe: (() => void) | undefined;
 
     private constructor() {
@@ -101,6 +102,7 @@ export class TraceDetailsWebview {
                                 isAgentChat: this._isAgentChat,
                                 focusSpanId: this._focusSpanId,
                                 sessionId: this._sessionId,
+                                showSidebar: this._showSidebar,
                             });
                         }
                         break;
@@ -187,7 +189,7 @@ export class TraceDetailsWebview {
         return panel;
     }
 
-    public static show(trace: Trace, isAgentChat: boolean = false, focusSpanId?: string, sessionId?: string): void {
+    public static show(trace: Trace, isAgentChat: boolean = false, focusSpanId?: string, sessionId?: string, showSidebar?: boolean): void {
         if (!TraceDetailsWebview.instance || !TraceDetailsWebview.instance._panel) {
             // Create new instance if it doesn't exist or was disposed
             TraceDetailsWebview.instance = new TraceDetailsWebview();
@@ -199,6 +201,7 @@ export class TraceDetailsWebview {
         instance._isAgentChat = isAgentChat;
         instance._focusSpanId = focusSpanId;
         instance._sessionId = sessionId;
+        instance._showSidebar = showSidebar;
 
         // Update title based on isAgentChat flag
         if (instance._panel) {
@@ -243,7 +246,8 @@ export class TraceDetailsWebview {
             data: traceData,
             isAgentChat: this._isAgentChat,
             focusSpanId: this._focusSpanId,
-            sessionId: this._sessionId
+            sessionId: this._sessionId,
+            showSidebar: this._showSidebar
         });
     }
 
@@ -737,6 +741,7 @@ export class TraceDetailsWebview {
             let isAgentChat = false;
             let focusSpanId = undefined;
             let sessionId = false;
+            let showSidebar = undefined;
 
             // Expose API for React components to communicate with extension
             window.traceVisualizerAPI = {
@@ -776,7 +781,7 @@ export class TraceDetailsWebview {
                 if (window.traceVisualizer && window.traceVisualizer.renderWebview) {
                     const container = document.getElementById("webview-container");
                     if (container) {
-                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container, focusSpanId, sessionId);
+                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container, focusSpanId, sessionId, showSidebar);
                     }
                 } else if (!traceData && !sessionId) {
                     // Request trace data from extension only if we don't have sessionId
@@ -796,6 +801,7 @@ export class TraceDetailsWebview {
                         isAgentChat = message.isAgentChat || false;
                         focusSpanId = message.focusSpanId;
                         sessionId = message.sessionId || false;
+                        showSidebar = message.showSidebar;
                         renderTraceDetails();
                         break;
                 }

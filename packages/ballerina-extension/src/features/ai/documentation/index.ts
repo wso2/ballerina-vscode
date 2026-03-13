@@ -77,8 +77,9 @@ export async function generateDocumentationCore(
             }
             case "finish": {
                 eventHandler({
-                    type: "content_block",
-                    content: `\n\n<button type="save_documentation">Save Documentation</button>`,
+                    type: "chat_component",
+                    componentType: "button",
+                    data: { buttonType: "save_documentation" },
                 });
                 eventHandler({
                     type: "intermediary_state",
