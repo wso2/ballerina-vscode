@@ -18,46 +18,27 @@
 
 package io.ballerina.persist.extension;
 
+import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.Value;
+
+import java.util.Map;
+
 /**
  * Represents a request to introspect a database and retrieve table metadata.
+ * <p>
+ * The {@code data} field carries the resolved credential model returned by the
+ * {@code introspectCredentials} API, allowing the caller to pass connection
+ * details (dbSystem, host, port, user, password, database) together with an
+ * optional {@code modelFilePath} that, when present, enables intersection
+ * detection against existing persist model records.
  *
  * @since 1.5.0
  */
 public class DatabaseIntrospectionRequest {
     private String projectPath;
-    private String name;
-    private String dbSystem;
-    private String host;
-    private Integer port;
-    private String user;
-    private String password;
-    private String database;
+    private IntrospectDatabaseData data;
 
     public DatabaseIntrospectionRequest() {
-    }
-
-    /**
-     * Constructor for DatabaseIntrospectionRequest.
-     *
-     * @param projectPath The project path
-     * @param name        Name of the database connector
-     * @param dbSystem    Database system type (mysql, postgresql, mssql)
-     * @param host        Database host address
-     * @param port        Database port number
-     * @param user        Database username
-     * @param password    Database user password
-     * @param database    Name of the database to connect
-     */
-    public DatabaseIntrospectionRequest(String projectPath, String name, String dbSystem, String host,
-                                        Integer port, String user, String password, String database) {
-        this.projectPath = projectPath;
-        this.name = name;
-        this.dbSystem = dbSystem;
-        this.host = host;
-        this.port = port;
-        this.user = user;
-        this.password = password;
-        this.database = database;
     }
 
     public String getProjectPath() {
@@ -68,60 +49,24 @@ public class DatabaseIntrospectionRequest {
         this.projectPath = projectPath;
     }
 
-    public String getName() {
-        return name;
+    public IntrospectDatabaseData getData() {
+        return data;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setData(IntrospectDatabaseData data) {
+        this.data = data;
     }
 
-    public String getDbSystem() {
-        return dbSystem;
-    }
-
-    public void setDbSystem(String dbSystem) {
-        this.dbSystem = dbSystem;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public Integer getPort() {
-        return port;
-    }
-
-    public void setPort(Integer port) {
-        this.port = port;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(String database) {
-        this.database = database;
+    /**
+     * Holds the introspection request data.
+     *
+     * @param metadata      Metadata describing the connection (label, description)
+     * @param properties    Map of credential property values keyed by property label
+     *                      (e.g. "Database System", "Host", "Port", "User", "Password", "Database")
+     * @param targetModule  The fully-qualified target module name (e.g., "myapp.testdb")
+     * @param modelFilePath The relative path to the persist model file (e.g., "persist/testdb/model.bal")
+     */
+    public record IntrospectDatabaseData(MetaData metadata, Map<String, Value> properties,
+                                         String targetModule, String modelFilePath) {
     }
 }
-

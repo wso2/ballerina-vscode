@@ -1,4 +1,4 @@
 [package]
 org = "test"
-name = "sample_project_with_config"
+name = "sample_project_no_connections"
 version = "0.1.0"
