@@ -236,6 +236,11 @@ export function ReviewMode(): JSX.Element {
     const [isWorkspace, setIsWorkspace] = useState(false);
     const [showOldVersion, setShowOldVersion] = useState(false);
     const pendingIndexRef = useRef<number | null>(null);
+    const viewsLengthRef = useRef<number>(0);
+
+    useEffect(() => {
+        viewsLengthRef.current = views.length;
+    }, [views.length]);
 
     // Derive current view from views array and currentIndex - no separate state needed
     const currentView =
@@ -318,14 +323,14 @@ export function ReviewMode(): JSX.Element {
     // Listen for direct index navigation from chip clicks (bypasses state machine)
     useEffect(() => {
         rpcClient.onNavigateReviewIndex((index: number) => {
-            if (views.length === 0) {
+            if (viewsLengthRef.current === 0) {
                 pendingIndexRef.current = index;
             } else {
-                setCurrentIndex(index >= 0 && index < views.length ? index : 0);
+                setCurrentIndex(index >= 0 && index < viewsLengthRef.current ? index : 0);
                 setShowOldVersion(false);
             }
         });
-    }, [rpcClient, views]);
+    }, [rpcClient]);
 
     // Set metadata for component diagram when view changes
     useEffect(() => {
