@@ -137,13 +137,31 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     @Override
     public Optional<Document> document(Path filePath) {
         Document document = documentService.document(filePath, null);
-        return Optional.ofNullable(document);
+        if (document != null) {
+            return Optional.of(document);
+        }
+        try {
+            Project project = projectService.loadOrCreate(filePath, null);
+            DocumentId docId = project.documentId(filePath);
+            return Optional.of(project.currentPackage().module(docId.moduleId()).document(docId));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     @Override
     public Optional<Document> document(Path filePath, CancelChecker cancelChecker) {
         Document document = documentService.document(filePath, cancelChecker);
-        return Optional.ofNullable(document);
+        if (document != null) {
+            return Optional.of(document);
+        }
+        try {
+            Project project = projectService.loadOrCreate(filePath, cancelChecker);
+            DocumentId docId = project.documentId(filePath);
+            return Optional.of(project.currentPackage().module(docId.moduleId()).document(docId));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -173,9 +191,18 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<SemanticModel> semanticModel(Path filePath) {
-        SemanticModel model = compilationService.semanticModel(filePath, null);
-        if (model != null) {
-            return Optional.of(model);
+        // Use the cached compilation (module-neutral) and resolve the correct module's SM.
+        // compilationService.semanticModel() only stores the default-module SM and returns
+        // the wrong SM for files in sub-modules, so we use compilation() instead.
+        PackageCompilation cached = compilationService.compilation(filePath, null);
+        if (cached != null) {
+            try {
+                Project project = projectService.loadOrCreate(filePath, null);
+                DocumentId docId = project.documentId(filePath);
+                return Optional.of(cached.getSemanticModel(docId.moduleId()));
+            } catch (Exception e) {
+                // fall through to sync fallback
+            }
         }
         try {
             Project project = projectService.loadOrCreate(filePath, null);
@@ -189,8 +216,24 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<SemanticModel> semanticModel(Path filePath, CancelChecker cancelChecker) {
-        SemanticModel model = compilationService.semanticModel(filePath, cancelChecker);
-        return Optional.ofNullable(model);
+        PackageCompilation cached = compilationService.compilation(filePath, cancelChecker);
+        if (cached != null) {
+            try {
+                Project project = projectService.loadOrCreate(filePath, cancelChecker);
+                DocumentId docId = project.documentId(filePath);
+                return Optional.of(cached.getSemanticModel(docId.moduleId()));
+            } catch (Exception e) {
+                // fall through to sync fallback
+            }
+        }
+        try {
+            Project project = projectService.loadOrCreate(filePath, cancelChecker);
+            DocumentId docId = project.documentId(filePath);
+            PackageCompilation compilation = project.currentPackage().getCompilation();
+            return Optional.of(compilation.getSemanticModel(docId.moduleId()));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -216,6 +259,11 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     @Override
     public void didOpen(Path filePath, DidOpenTextDocumentParams params) throws WorkspaceDocumentException {
         documentService.didOpen(filePath, params);
+        // Apply VFS content synchronously so subsequent compilation uses editor content
+        String vfsContent = documentService.openFileContent(filePath);
+        if (vfsContent != null) {
+            projectService.applyDocumentContent(filePath, vfsContent);
+        }
     }
 
     @Override

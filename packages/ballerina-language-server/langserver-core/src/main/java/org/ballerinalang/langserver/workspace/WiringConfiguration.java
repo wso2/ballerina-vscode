@@ -116,6 +116,12 @@ public final class WiringConfiguration implements AutoCloseable {
         // fallback in WorkspaceManagerFacadeImpl returns the latest editor content.
         eventBus.subscribe("wiring-doc-changed-bridge", SubscriberTier.CRITICAL,
                 Set.of(EventKind.DOCUMENT_CHANGED), this::onDocumentChanged);
+
+        // Bridge: DS-E1 (document opened) → apply VFS content to the cached project.
+        // Ensures that after didOpen(), the synchronous compilation path uses the editor
+        // content instead of stale disk content.
+        eventBus.subscribe("wiring-doc-opened-bridge", SubscriberTier.CRITICAL,
+                Set.of(EventKind.DOCUMENT_OPENED), this::onDocumentOpened);
     }
 
     /**
@@ -145,6 +151,42 @@ public final class WiringConfiguration implements AutoCloseable {
             }
         } catch (Exception e) {
             LOG.log(Level.FINE, "Could not apply document content for DS-E2 event: " + uriString, e);
+        }
+    }
+
+    /**
+     * On DS-E1 (document opened): apply the current VFS content to the cached project.
+     *
+     * <p>This ensures that after didOpen(), the synchronous compilation path uses the
+     * editor content instead of stale disk content. Without this, TestUtil.compileAndGetDiagnostics()
+     * and similar synchronous operations would compile using disk content that doesn't
+     * reflect the editor state.</p>
+     *
+     * @param event the document opened event
+     */
+    private void onDocumentOpened(DomainEvent event) {
+        // DS-E1 coalesceScope is the document URI
+        String uriString = event.coalesceScope();
+        if (uriString == null || !uriString.startsWith("file:")) {
+            return;
+        }
+
+        try {
+            URI uri = URI.create(uriString);
+            Path filePath = Path.of(uri).toAbsolutePath().normalize();
+            if (!filePath.toString().endsWith(".bal")) {
+                return;
+            }
+
+            DocumentUri.FileUri docUri = new DocumentUri.FileUri(uri);
+            if (virtualFileSystem.isOverlaid(docUri)) {
+                // Editor content available: apply to cached project
+                String content = virtualFileSystem.content(docUri);
+                projectService.applyDocumentContent(filePath, content);
+            }
+            // Note: If not overlaid, the document was opened from disk, so no need to apply
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "Could not apply document content for DS-E1 event: " + uriString, e);
         }
     }
 

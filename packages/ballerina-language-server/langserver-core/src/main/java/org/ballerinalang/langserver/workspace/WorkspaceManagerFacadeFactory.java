@@ -42,7 +42,10 @@ import org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
 import org.eclipse.lsp4j.ClientCapabilities;
 
+import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Factory that assembles a fully-wired {@link WorkspaceManagerFacadeImpl} from a
@@ -83,7 +86,7 @@ public final class WorkspaceManagerFacadeFactory {
                 throw new IllegalStateException("ProjectService not yet initialized");
             }
             io.ballerina.projects.Project project =
-                    ps.loadOrCreate(task.sourceRoot().path(), () -> { });
+                    ps.loadOrCreate(task.sourceRoot().path(), null);
             PackageCompilation compilation = project.currentPackage().getCompilation();
             Module module = project.currentPackage().getDefaultModule();
             SemanticModel semanticModel = compilation.getSemanticModel(module.moduleId());
@@ -92,10 +95,18 @@ public final class WorkspaceManagerFacadeFactory {
                 syntaxTree = module.document(docId).syntaxTree();
                 break;
             }
-            if (syntaxTree == null) {
+            Map<Path, SyntaxTree> syntaxTrees = new HashMap<>();
+            project.currentPackage().moduleIds().forEach(moduleId -> {
+                Module packageModule = project.currentPackage().module(moduleId);
+                packageModule.documentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
+                        syntaxTrees.put(path.normalize(), packageModule.document(docId).syntaxTree())));
+                packageModule.testDocumentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
+                        syntaxTrees.put(path.normalize(), packageModule.document(docId).syntaxTree())));
+            });
+            if (syntaxTree == null || syntaxTrees.isEmpty()) {
                 throw new RuntimeException("No source documents in project: " + task.sourceRoot());
             }
-            return new ProjectSnapshot(compilation, semanticModel, syntaxTree, task.contentVersion());
+            return new ProjectSnapshot(compilation, semanticModel, syntaxTree, syntaxTrees, task.contentVersion());
         };
 
         WiringConfiguration config = WiringConfiguration.builder()

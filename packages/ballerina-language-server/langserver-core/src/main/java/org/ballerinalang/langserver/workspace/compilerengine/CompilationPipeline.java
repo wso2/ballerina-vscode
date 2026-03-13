@@ -240,8 +240,10 @@ public class CompilationPipeline implements AutoCloseable {
     }
 
     private void emitEvent(EventKind kind) {
+        System.err.println("[CP] Emitting event: " + kind + " for " + sourceRoot.path());
         try {
-            DomainEvent event = new DomainEvent(Instant.now(), sourceRoot.toString(), kind);
+            DomainEvent event = new DomainEvent(Instant.now(), "compilation-pipeline", kind,
+                    sourceRoot.path().toString());
             eventBus.publish(event);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to emit event " + kind + " for " + sourceRoot, e);

@@ -18,17 +18,15 @@
 
 package org.ballerinalang.langserver.workspace.observability;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 
 /**
  * Thread-safe metric registry for collecting counters, histograms, and gauges.
- * 
+ *
  * <p>This registry is designed to be lossy under memory pressure - it drops
- * metrics rather than causing out-of-memory errors. All operations are
- * lock-free and non-blocking.
+ * metrics rather than causing out-of-memory errors. All operations are lock-free and non-blocking.
  *
  * @since 1.7.0
  */
@@ -52,7 +50,7 @@ public class MetricRegistry {
 
     /**
      * Increments a counter metric by 1.
-     * 
+     *
      * <p>If the metric key doesn't exist, it is created. If the registry
      * is at capacity, the increment may be silently dropped.
      *
@@ -62,7 +60,7 @@ public class MetricRegistry {
         if (name == null || name.isBlank()) {
             return;
         }
-        
+
         LongAdder counter = counters.get(name);
         if (counter == null) {
             if (counters.size() >= MAX_METRIC_KEYS) {
@@ -85,7 +83,7 @@ public class MetricRegistry {
         if (name == null || name.isBlank()) {
             return;
         }
-        
+
         LongAdder counter = counters.get(name);
         if (counter == null) {
             if (counters.size() >= MAX_METRIC_KEYS) {
@@ -112,18 +110,18 @@ public class MetricRegistry {
 
     /**
      * Records a value in a histogram metric.
-     * 
+     *
      * <p>Histograms track the distribution of values over time. Under
      * memory pressure, old values may be dropped to make room for new ones.
      *
-     * @param name the histogram name
+     * @param name  the histogram name
      * @param value the value to record
      */
     public void recordHistogram(String name, long value) {
         if (name == null || name.isBlank()) {
             return;
         }
-        
+
         Histogram histogram = histograms.get(name);
         if (histogram == null) {
             if (histograms.size() >= MAX_METRIC_KEYS) {
@@ -150,17 +148,17 @@ public class MetricRegistry {
 
     /**
      * Sets a gauge to a specific value.
-     * 
+     *
      * <p>Gauges represent point-in-time values that can go up and down.
      *
-     * @param name the gauge name
+     * @param name  the gauge name
      * @param value the value to set
      */
     public void setGauge(String name, long value) {
         if (name == null || name.isBlank()) {
             return;
         }
-        
+
         AtomicLong gauge = gauges.get(name);
         if (gauge == null) {
             if (gauges.size() >= MAX_METRIC_KEYS) {
@@ -201,6 +199,7 @@ public class MetricRegistry {
      * Internal histogram implementation with bounded storage.
      */
     private static class Histogram {
+
         private final long[] values;
         private final AtomicLong index;
         private final AtomicLong count;
@@ -215,7 +214,7 @@ public class MetricRegistry {
             long currentCount = count.incrementAndGet();
             long idx = index.getAndIncrement() % values.length;
             values[(int) idx] = value;
-            
+
             // If we've wrapped around, maintain accurate count
             if (currentCount > values.length) {
                 count.set(values.length);
@@ -230,7 +229,7 @@ public class MetricRegistry {
 
             long[] snapshotValues = new long[(int) currentCount];
             long startIdx = Math.max(0, index.get() - currentCount);
-            
+
             for (int i = 0; i < currentCount; i++) {
                 long idx = (startIdx + i) % values.length;
                 snapshotValues[i] = values[(int) idx];
@@ -247,6 +246,7 @@ public class MetricRegistry {
  * @since 1.7.0
  */
 class HistogramSnapshot {
+
     private final long count;
     private final long min;
     private final long max;
@@ -261,7 +261,7 @@ class HistogramSnapshot {
     HistogramSnapshot(long[] values) {
         this.values = values.clone();
         this.count = values.length;
-        
+
         if (count == 0) {
             this.min = 0;
             this.max = 0;
@@ -270,13 +270,13 @@ class HistogramSnapshot {
             long sum = 0;
             long minVal = values[0];
             long maxVal = values[0];
-            
+
             for (long value : values) {
                 sum += value;
                 if (value < minVal) minVal = value;
                 if (value > maxVal) maxVal = value;
             }
-            
+
             this.min = minVal;
             this.max = maxVal;
             this.mean = (double) sum / count;

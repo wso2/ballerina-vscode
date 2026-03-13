@@ -23,6 +23,8 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.PackageCompilation;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 
+import java.nio.file.Path;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -33,13 +35,15 @@ import java.util.Objects;
  *
  * @param compilation    the package compilation result
  * @param semanticModel  the semantic model derived from the compilation
- * @param syntaxTree     the syntax tree of the compiled document
+ * @param syntaxTree     the primary syntax tree of the compiled project snapshot
+ * @param syntaxTrees    syntax trees keyed by normalized document path
  * @param contentVersion the content version that produced this snapshot
  * @since 1.7.0
  */
 public record ProjectSnapshot(PackageCompilation compilation,
                                SemanticModel semanticModel,
                                SyntaxTree syntaxTree,
+                               Map<Path, SyntaxTree> syntaxTrees,
                                ContentVersion contentVersion) {
 
     /**
@@ -49,6 +53,34 @@ public record ProjectSnapshot(PackageCompilation compilation,
         Objects.requireNonNull(compilation, "compilation must not be null");
         Objects.requireNonNull(semanticModel, "semanticModel must not be null");
         Objects.requireNonNull(syntaxTree, "syntaxTree must not be null");
+        Objects.requireNonNull(syntaxTrees, "syntaxTrees must not be null");
         Objects.requireNonNull(contentVersion, "contentVersion must not be null");
+        syntaxTrees = Map.copyOf(syntaxTrees);
+    }
+
+    /**
+     * Creates a snapshot with only a primary syntax tree.
+     *
+     * @param compilation the package compilation result
+     * @param semanticModel the semantic model derived from the compilation
+     * @param syntaxTree the primary syntax tree of the compiled project snapshot
+     * @param contentVersion the content version that produced this snapshot
+     */
+    public ProjectSnapshot(PackageCompilation compilation,
+                           SemanticModel semanticModel,
+                           SyntaxTree syntaxTree,
+                           ContentVersion contentVersion) {
+        this(compilation, semanticModel, syntaxTree, Map.of(), contentVersion);
+    }
+
+    /**
+     * Returns the cached syntax tree for the given file path, if present.
+     *
+     * @param filePath normalized or non-normalized document path
+     * @return cached syntax tree, or {@code null} when not available
+     */
+    public SyntaxTree syntaxTree(Path filePath) {
+        Objects.requireNonNull(filePath, "filePath must not be null");
+        return syntaxTrees.getOrDefault(filePath.normalize(), syntaxTree);
     }
 }

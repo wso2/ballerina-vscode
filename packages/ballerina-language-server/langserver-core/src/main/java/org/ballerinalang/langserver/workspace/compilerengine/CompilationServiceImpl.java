@@ -110,7 +110,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     @Override
     public SyntaxTree syntaxTree(Path path, CancelChecker cancelChecker) {
         return findSnapshot(path)
-                .map(ProjectSnapshot::syntaxTree)
+                .map(snapshot -> snapshot.syntaxTree(path.normalize()))
                 .orElse(null);
     }
 
@@ -157,9 +157,13 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
     private void handleWorkspaceEvent(DomainEvent event) {
         SourceRoot sourceRoot = reconstructSourceRoot(event);
+        System.err.println("[CE] Workspace event: " + event.eventKind() + " for " + sourceRoot.path());
 
         switch (event.eventKind()) {
-            case WORKSPACE_PROJECT_REGISTERED -> createPipelineIfAbsent(sourceRoot);
+            case WORKSPACE_PROJECT_REGISTERED -> {
+                System.err.println("[CE] Creating pipeline for: " + sourceRoot.path());
+                createPipelineIfAbsent(sourceRoot);
+            }
             case WORKSPACE_PROJECT_EVICTED -> evictPipeline(sourceRoot);
             case WORKSPACE_PROJECT_KIND_TRANSITIONED -> {
                 evictPipeline(sourceRoot);
@@ -205,16 +209,20 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
     private void createPipelineIfAbsent(SourceRoot sourceRoot) {
         if (pipelines.containsKey(sourceRoot)) {
+            System.err.println("[CE] Pipeline already exists for: " + sourceRoot.path());
             return;
         }
+        System.err.println("[CE] Creating new pipeline for: " + sourceRoot.path());
         CircuitBreakerAction circuitAction = new CircuitBreakerAction(sourceRoot);
         CompilationPipeline pipeline = new CompilationPipeline(sourceRoot, snapshotStore, eventBus, circuitAction);
         CompilationPipeline existing = pipelines.putIfAbsent(sourceRoot, pipeline);
         if (existing != null) {
+            System.err.println("[CE] Pipeline race condition for: " + sourceRoot.path());
             pipeline.close();
             return;
         }
         circuitActions.put(sourceRoot, circuitAction);
+        System.err.println("[CE] Requesting compilation for: " + sourceRoot.path());
         pipeline.requestCompilation(new ContentVersion(versionCounter.getAndIncrement()));
     }
 
@@ -235,7 +243,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     private SourceRoot reconstructSourceRoot(DomainEvent event) {
-        return new SourceRoot(Path.of(event.sourceContext()).normalize());
+        return new SourceRoot(Path.of(event.coalesceScope()).normalize());
     }
 
     // ---- Inner Class: CircuitBreakerAction ----
