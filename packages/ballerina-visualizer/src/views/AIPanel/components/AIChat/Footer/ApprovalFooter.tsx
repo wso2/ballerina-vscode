@@ -19,7 +19,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "@emotion/styled";
 import { FooterContainer } from "./index";
-import { InlineCardActions } from "../../AgentStreamView/styles";
 
 // Matches the InputContainer styling — same border, radius, padding, height — so the
 // two elements look like a unified stacked group.
@@ -61,6 +60,7 @@ const PromptText = styled.div`
     font-weight: 500;
     color: var(--vscode-editor-foreground);
     margin-bottom: 4px;
+    padding-left: 2px;
 `;
 
 const InputContainer = styled.div`
@@ -168,31 +168,29 @@ const ApprovalFooter: React.FC<ApprovalFooterProps> = ({
         <FooterContainer>
             <ApprovalContainer>
                 <PromptText>{promptText}</PromptText>
-                <InlineCardActions style={{ flexDirection: "column" }}>
-                    <ApproveButton
-                        onClick={handleApprove}
+                <ApproveButton
+                    onClick={handleApprove}
+                    disabled={isSubmitting}
+                >
+                    {approveButtonText}
+                </ApproveButton>
+                <InputContainer>
+                    <Input
+                        type="text"
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="What should be different?"
                         disabled={isSubmitting}
+                    />
+                    <SendButton
+                        onClick={handleRejectSubmit}
+                        disabled={!comment.trim() || isSubmitting}
+                        title="Request Revision"
                     >
-                        {approveButtonText}
-                    </ApproveButton>
-                    <InputContainer>
-                        <Input
-                            type="text"
-                            value={comment}
-                            onChange={(e) => setComment(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder="What should be different?"
-                            disabled={isSubmitting}
-                        />
-                        <SendButton
-                            onClick={handleRejectSubmit}
-                            disabled={!comment.trim() || isSubmitting}
-                            title="Request Revision"
-                        >
-                            <span className="codicon codicon-send"></span>
-                        </SendButton>
-                    </InputContainer>
-                </InlineCardActions>
+                        <span className="codicon codicon-send"></span>
+                    </SendButton>
+                </InputContainer>
             </ApprovalContainer>
         </FooterContainer>
     );
