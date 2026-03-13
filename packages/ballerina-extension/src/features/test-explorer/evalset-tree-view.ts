@@ -19,6 +19,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { getBallerinaPackages } from '../../utils/config';
 
 // Interface matching the EvalThread object structure
 interface EvalThreadJson {
@@ -34,6 +35,16 @@ interface EvalSetJson {
     description?: string;
     threads: EvalThreadJson[]; // Array of Thread objects
     created_on?: number;
+}
+
+/**
+ * Represents a Ballerina project node in the tree view (for multi-project workspaces)
+ */
+class ProjectNode {
+    constructor(
+        public readonly projectPath: string,
+        public readonly label: string
+    ) { }
 }
 
 /**
@@ -61,7 +72,7 @@ class EvalsetThreadNode {
     ) { }
 }
 
-type EvalsetNode = EvalsetFileNode | EvalsetThreadNode;
+type EvalsetNode = ProjectNode | EvalsetFileNode | EvalsetThreadNode;
 
 /**
  * TreeDataProvider for displaying evalsets
@@ -85,7 +96,7 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
         }
 
         // Watch all evalset files in workspace
-        const pattern = '**/tests/evalsets/**/*.evalset.json';
+        const pattern = '**/tests/resources/evalsets/**/*.evalset.json';
         this.fileWatcher = vscode.workspace.createFileSystemWatcher(pattern);
 
         // Refresh on file changes
@@ -99,7 +110,15 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
     }
 
     getTreeItem(element: EvalsetNode): vscode.TreeItem {
-        if (element instanceof EvalsetFileNode) {
+        if (element instanceof ProjectNode) {
+            const item = new vscode.TreeItem(
+                element.label,
+                vscode.TreeItemCollapsibleState.Expanded
+            );
+            item.iconPath = new vscode.ThemeIcon('project');
+            item.contextValue = 'evalsetProject';
+            return item;
+        } else if (element instanceof EvalsetFileNode) {
             const item = new vscode.TreeItem(
                 element.label,
                 vscode.TreeItemCollapsibleState.Collapsed
@@ -137,10 +156,10 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
 
     async getChildren(element?: EvalsetNode): Promise<EvalsetNode[]> {
         if (!element) {
-            // Root level - return all evalset files
-            return this.getEvalsetFiles();
+            return this.getRootChildren();
+        } else if (element instanceof ProjectNode) {
+            return this.getEvalsetFilesForProject(element.projectPath);
         } else if (element instanceof EvalsetFileNode) {
-            // Return threads for this evalset file
             return this.getThreadsForFile(element.uri);
         }
 
@@ -148,15 +167,69 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
     }
 
     /**
-     * Get all evalset files in the workspace
+     * Get root-level children. If multiple Ballerina projects exist, show project nodes.
+     * Otherwise, show evalset files directly.
      */
-    private async getEvalsetFiles(): Promise<EvalsetFileNode[]> {
+    private async getRootChildren(): Promise<EvalsetNode[]> {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders || workspaceFolders.length === 0) {
             return [];
         }
 
-        const evalsetFiles = await vscode.workspace.findFiles('**/tests/evalsets/**/*.evalset.json');
+        // Discover all Ballerina packages across all workspace folders
+        const allPackages: string[] = [];
+        for (const folder of workspaceFolders) {
+            const packages = await getBallerinaPackages(folder.uri);
+            allPackages.push(...packages);
+        }
+
+        if (allPackages.length > 1) {
+            // Multiple projects: show project grouping nodes (only for projects that have evalsets)
+            const projectNodes: ProjectNode[] = [];
+            for (const packagePath of allPackages) {
+                const hasEvalsets = await this.projectHasEvalsets(packagePath);
+                if (hasEvalsets) {
+                    const label = path.basename(packagePath);
+                    projectNodes.push(new ProjectNode(packagePath, label));
+                }
+            }
+            return projectNodes;
+        }
+
+        // Single project or no packages found: show evalset files directly
+        return this.getEvalsetFiles();
+    }
+
+    /**
+     * Check if a project directory contains any evalset files
+     */
+    private async projectHasEvalsets(projectPath: string): Promise<boolean> {
+        const pattern = new vscode.RelativePattern(projectPath, 'tests/resources/evalsets/**/*.evalset.json');
+        const files = await vscode.workspace.findFiles(pattern, undefined, 1);
+        return files.length > 0;
+    }
+
+    /**
+     * Get evalset files scoped to a specific project
+     */
+    private async getEvalsetFilesForProject(projectPath: string): Promise<EvalsetFileNode[]> {
+        const pattern = new vscode.RelativePattern(projectPath, 'tests/resources/evalsets/**/*.evalset.json');
+        const evalsetFiles = await vscode.workspace.findFiles(pattern);
+        return this.parseEvalsetFiles(evalsetFiles);
+    }
+
+    /**
+     * Get all evalset files in the workspace (used for single-project workspaces)
+     */
+    private async getEvalsetFiles(): Promise<EvalsetFileNode[]> {
+        const evalsetFiles = await vscode.workspace.findFiles('**/tests/resources/evalsets/**/*.evalset.json');
+        return this.parseEvalsetFiles(evalsetFiles);
+    }
+
+    /**
+     * Parse evalset file URIs into EvalsetFileNodes
+     */
+    private async parseEvalsetFiles(evalsetFiles: vscode.Uri[]): Promise<EvalsetFileNode[]> {
         const nodes: EvalsetFileNode[] = [];
 
         for (const uri of evalsetFiles) {

@@ -111,8 +111,8 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
         return new Promise(async (resolve) => {
             try {
                 const pattern = params.projectPath
-                    ? new vscode.RelativePattern(vscode.Uri.file(params.projectPath), '**/tests/evalsets/**/*.evalset.json')
-                    : '**/tests/evalsets/**/*.evalset.json';
+                    ? new vscode.RelativePattern(vscode.Uri.file(params.projectPath), '**/tests/resources/evalsets/**/*.evalset.json')
+                    : '**/tests/resources/evalsets/**/*.evalset.json';
                 const evalsetFiles = await vscode.workspace.findFiles(pattern);
                 const evalsets: EvalsetItem[] = [];
 
@@ -183,7 +183,13 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
             const rawData = fs.readFileSync(reportPath, 'utf-8');
             const jsonData = JSON.parse(rawData);
 
-            const moduleStatus = (jsonData.moduleStatus ?? []).map((mod: any) => ({
+            // Handle both single-project and workspace formats
+            // Workspace format nests data under packages[]
+            const resolvedData = jsonData.packages
+                ? this.resolveWorkspaceReport(jsonData)
+                : jsonData;
+
+            const moduleStatus = (resolvedData.moduleStatus ?? []).map((mod: any) => ({
                 name: mod.name,
                 totalTests: mod.totalTests ?? 0,
                 passed: mod.passed ?? 0,
@@ -193,7 +199,7 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
                     name: test.name,
                     status: test.status,
                     failureMessage: test.failureMessage,
-                    isEvaluation: test.isEvaluation ?? false,
+                    isEvaluation: test.isEvaluation ?? !!test.evaluationSummary,
                     evaluationSummary: test.evaluationSummary ? {
                         evaluationRuns: (test.evaluationSummary.evaluationRuns ?? []).map((r: any) => ({
                             id: r.id,
@@ -211,11 +217,11 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
             }));
 
             const data: EvaluationReportData = {
-                projectName: jsonData.projectName ?? "Unknown",
-                totalTests: jsonData.totalTests ?? 0,
-                passed: jsonData.passed ?? 0,
-                failed: jsonData.failed ?? 0,
-                skipped: jsonData.skipped ?? 0,
+                projectName: resolvedData.projectName ?? "Unknown",
+                totalTests: resolvedData.totalTests ?? 0,
+                passed: resolvedData.passed ?? 0,
+                failed: resolvedData.failed ?? 0,
+                skipped: resolvedData.skipped ?? 0,
                 moduleStatus,
                 gitState: jsonData.gitState,
             };
@@ -253,6 +259,24 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
                 error: error?.message ?? "Failed to restore checkpoint",
             };
         }
+    }
+
+    /**
+     * Flatten a workspace-format report (with packages[]) into a single-project shape.
+     * Merges moduleStatus from all packages so the rest of the code can treat it uniformly.
+     */
+    private resolveWorkspaceReport(jsonData: any): any {
+        const packages: any[] = jsonData.packages ?? [];
+        const moduleStatus = packages.flatMap((pkg: any) => pkg.moduleStatus ?? []);
+        const projectName = packages[0]?.projectName ?? jsonData.workspaceName ?? "Unknown";
+        return {
+            projectName,
+            totalTests: jsonData.totalTests ?? 0,
+            passed: jsonData.passed ?? 0,
+            failed: jsonData.failed ?? 0,
+            skipped: jsonData.skipped ?? 0,
+            moduleStatus,
+        };
     }
 
     private parseDateFromFilename(filename: string): Date | undefined {
@@ -307,14 +331,19 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
 
             const jsonReportPath = path.join(reportsDir, jsonFile);
 
-            const projectName: string = jsonData.projectName ?? "Unknown";
+            // Handle both single-project and workspace formats
+            const resolvedData = jsonData.packages
+                ? this.resolveWorkspaceReport(jsonData)
+                : jsonData;
+
+            const projectName: string = resolvedData.projectName ?? "Unknown";
             projectNames.add(projectName);
 
-            const moduleStatus: any[] = jsonData.moduleStatus ?? [];
+            const moduleStatus: any[] = resolvedData.moduleStatus ?? [];
             for (const mod of moduleStatus) {
                 const tests: any[] = mod.tests ?? [];
                 for (const test of tests) {
-                    if (!test.isEvaluation) {
+                    if (!test.isEvaluation && !test.evaluationSummary) {
                         continue;
                     }
 

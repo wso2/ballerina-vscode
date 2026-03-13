@@ -240,6 +240,7 @@ export function NewTool(props: NewToolProps): JSX.Element {
         <>
             {agentFilePath.current && !savingForm && (
                 <AIAgentSidePanel
+                    agentNode={agentNode}
                     projectPath={projectPath.current}
                     onSubmit={handleOnSubmit}
                     mode={mode}

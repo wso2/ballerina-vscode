@@ -447,6 +447,7 @@ export class TraceDetailsWebview {
         try {
             // 1. Ensure evalsets directory exists
             const evalsetsDir = await ensureEvalsetsDirectory();
+            if (!evalsetsDir) { return; } // User cancelled project selection
 
             // 2. Prompt for name
             const name = await vscode.window.showInputBox({
@@ -500,6 +501,7 @@ export class TraceDetailsWebview {
         try {
             // 1. Ensure evalsets directory exists
             const evalsetsDir = await ensureEvalsetsDirectory();
+            if (!evalsetsDir) { return; } // User cancelled project selection
 
             // 2. Prompt for name
             const name = await vscode.window.showInputBox({
@@ -553,6 +555,7 @@ export class TraceDetailsWebview {
         try {
             // 1. Ensure evalsets directory and find files
             const evalsetsDir = await ensureEvalsetsDirectory();
+            if (!evalsetsDir) { return; } // User cancelled project selection
             const existingEvalsets = await findExistingEvalsets(evalsetsDir);
 
             if (existingEvalsets.length === 0) {
@@ -638,6 +641,7 @@ export class TraceDetailsWebview {
         try {
             // 1. Ensure evalsets directory and find files
             const evalsetsDir = await ensureEvalsetsDirectory();
+            if (!evalsetsDir) { return; } // User cancelled project selection
             const existingEvalsets = await findExistingEvalsets(evalsetsDir);
 
             if (existingEvalsets.length === 0) {

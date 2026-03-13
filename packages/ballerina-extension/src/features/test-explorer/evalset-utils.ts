@@ -19,20 +19,41 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { getCurrentProjectRoot } from '../../utils/project-utils';
+import { getBallerinaPackages } from '../../utils/config';
 
-export async function ensureEvalsetsDirectory(): Promise<string> {
+export async function ensureEvalsetsDirectory(): Promise<string | undefined> {
     // Check if workspace is open
     if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
         throw new Error('Please open a workspace first');
     }
 
+    // Discover all Ballerina packages across workspace folders
+    const allPackages: string[] = [];
+    for (const folder of vscode.workspace.workspaceFolders) {
+        const packages = await getBallerinaPackages(folder.uri);
+        allPackages.push(...packages);
+    }
+
     let projectRoot: string;
-    try {
-        projectRoot = await getCurrentProjectRoot();
-    } catch (error) {
-        // Fallback to workspace root if project root cannot be determined
-        projectRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    if (allPackages.length === 0) {
+        throw new Error('No Ballerina packages found in workspace');
+    } else if (allPackages.length === 1) {
+        projectRoot = allPackages[0];
+    } else {
+        const selected = await vscode.window.showQuickPick(
+            allPackages.map(pkg => ({
+                label: path.basename(pkg),
+                description: vscode.workspace.asRelativePath(pkg),
+                packagePath: pkg
+            })),
+            { placeHolder: 'Select a project to create the evalset in' }
+        );
+
+        if (!selected) {
+            return undefined;
+        }
+
+        projectRoot = selected.packagePath;
     }
 
     const testsDir = path.join(projectRoot, 'tests');
@@ -43,7 +64,15 @@ export async function ensureEvalsetsDirectory(): Promise<string> {
         // Directory might exist, ignore
     }
 
-    const evalsetsDir = path.join(testsDir, 'evalsets');
+    const resourcesDir = path.join(testsDir, 'resources');
+    const resourcesDirUri = vscode.Uri.file(resourcesDir);
+    try {
+        await vscode.workspace.fs.createDirectory(resourcesDirUri);
+    } catch (e) {
+        // Directory might exist, ignore
+    }
+
+    const evalsetsDir = path.join(resourcesDir, 'evalsets');
     const evalsetsDirUri = vscode.Uri.file(evalsetsDir);
     try {
         await vscode.workspace.fs.createDirectory(evalsetsDirUri);
