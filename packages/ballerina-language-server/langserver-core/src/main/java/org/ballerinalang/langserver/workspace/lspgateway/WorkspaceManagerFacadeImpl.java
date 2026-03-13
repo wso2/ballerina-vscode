@@ -253,7 +253,15 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     @Override
     public Optional<PackageCompilation> waitAndGetPackageCompilation(Path filePath, CancelChecker cancelChecker) {
         PackageCompilation compilation = compilationService.compilation(filePath, cancelChecker);
-        return Optional.ofNullable(compilation);
+        if (compilation != null) {
+            return Optional.of(compilation);
+        }
+        try {
+            Project project = projectService.loadOrCreate(filePath, cancelChecker);
+            return Optional.of(project.currentPackage().getCompilation());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     @Override
