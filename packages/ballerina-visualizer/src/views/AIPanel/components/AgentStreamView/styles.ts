@@ -296,22 +296,31 @@ export const InlineCardActions = styled.div`
     margin: 4px 0 2px 0;
 `;
 
-export const InlineButton = styled.button<{ variant?: "primary" | "secondary" }>`
+export const InlineButton = styled.button<{ variant?: "primary" | "secondary" | "danger" }>`
     padding: 3px 10px;
     font-size: 12px;
     font-weight: 500;
     border-radius: 3px;
-    border: none;
     cursor: pointer;
     font-family: var(--vscode-font-family);
     background-color: ${(props: { variant?: string }) =>
         props.variant === "primary"
             ? "var(--vscode-button-background)"
-            : "var(--vscode-button-secondaryBackground)"};
+            : props.variant === "danger"
+            ? "var(--vscode-inputValidation-errorBackground, transparent)"
+            : "var(--vscode-button-secondaryBackground, transparent)"};
     color: ${(props: { variant?: string }) =>
         props.variant === "primary"
             ? "var(--vscode-button-foreground)"
-            : "var(--vscode-button-secondaryForeground)"};
+            : props.variant === "danger"
+            ? "var(--vscode-errorForeground)"
+            : "var(--vscode-button-secondaryForeground, var(--vscode-foreground))"};
+    border: 1px solid ${(props: { variant?: string }) =>
+        props.variant === "primary"
+            ? "transparent"
+            : props.variant === "danger"
+            ? "var(--vscode-errorForeground)"
+            : "var(--vscode-button-border, var(--vscode-panel-border))"};
     &:hover:not(:disabled) {
         opacity: 0.85;
     }
