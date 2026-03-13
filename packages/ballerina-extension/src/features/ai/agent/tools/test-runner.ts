@@ -14,12 +14,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import * as path from 'path';
 import { tool } from 'ai';
 import { z } from 'zod';
-import child_process from 'child_process';
 import { CopilotEventHandler } from '../../utils/events';
 import { extension } from '../../../../BalExtensionContext';
-import { quoteShellPath } from '../../../../utils/config';
+import { createProcessTerminal, killProcessGroup } from './running-service-manager';
+import { BALLERINA_COMMANDS } from '../../../project/cmds/cmd-runner';
 import { DIAGNOSTICS_TOOL_NAME } from './diagnostics';
 
 export const TEST_RUNNER_TOOL_NAME = "runTests";
@@ -30,16 +31,8 @@ export interface TestRunResult {
 
 const TestRunnerInputSchema = z.object({});
 
-/**
- * Creates the test runner tool for the AI agent.
- *
- * Executes `bal test` in the temp project directory and returns the full output
- * so the agent can diagnose failures and fix them before completing a task.
- *
- * @param tempProjectPath - Path to the temporary project directory (agent's working dir)
- * @param eventHandler - Event handler to emit tool execution events to the visualizer
- * @returns Tool instance for running the Ballerina test suite
- */
+const DEFAULT_TEST_TIMEOUT = 120000;
+
 export function createTestRunnerTool(
     tempProjectPath: string,
     eventHandler: CopilotEventHandler
@@ -94,21 +87,46 @@ function parseTestSummary(output: string): string {
     return "Tests completed";
 }
 
-/**
- * Executes `bal test` in the given directory and parses the output.
- */
 async function runBallerinaTests(cwd: string): Promise<TestRunResult> {
-    return new Promise((resolve) => {
-        const balCmd = extension.ballerinaExtInstance.getBallerinaCmd();
-        const command = `${quoteShellPath(balCmd)} test`;
+    const balCmd = extension.ballerinaExtInstance.getBallerinaCmd();
+    const packageName = path.basename(cwd);
 
-        console.log(`[TestRunner] Running: ${command} in ${cwd}`);
+    const logs: string[] = [];
+    const { terminal, process: proc } = createProcessTerminal(
+        `Bal Test: ${packageName}`,
+        balCmd,
+        [BALLERINA_COMMANDS.TEST],
+        cwd,
+        logs
+    );
+    terminal.show(true);
 
-        child_process.exec(command, { cwd }, (err, stdout, stderr) => {
-            const output = [stdout, stderr].filter(Boolean).join('\n').trim();
-
-            console.log(`[TestRunner] Completed. Exit code: ${err?.code ?? 0}`);
-            resolve({ output });
-        });
+    let exited = false;
+    proc.on('close', () => {
+        exited = true;
     });
+    proc.on('error', (err) => {
+        logs.push(`\nFailed to start process: ${err.message}\n`);
+        exited = true;
+    });
+
+    // Wait for completion
+    const startTime = Date.now();
+    const pollInterval = 500;
+
+    while (!exited && (Date.now() - startTime) < DEFAULT_TEST_TIMEOUT) {
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+    }
+
+    const output = logs.join('');
+
+    if (!exited) {
+        killProcessGroup(proc, 'SIGTERM');
+        terminal.dispose();
+        return {
+            output: output + `\n\nTest execution timed out after ${DEFAULT_TEST_TIMEOUT}ms.`,
+        };
+    }
+
+    return { output };
 }

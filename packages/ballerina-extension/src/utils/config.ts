@@ -18,7 +18,7 @@
 
 import { SemanticVersion, PackageTomlValues, SCOPE, WorkspaceTomlValues, ProjectInfo } from '@wso2/ballerina-core';
 import { BallerinaExtension } from '../core';
-import { WorkspaceConfiguration, workspace, Uri, RelativePattern } from 'vscode';
+import { WorkspaceConfiguration, workspace, Uri, RelativePattern, extensions } from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { parse } from '@iarna/toml';
@@ -48,6 +48,8 @@ export const BI_PROJECT_FILES = [
     MAIN_FILE,
     TYPES_FILE
 ];
+
+export const WI_EXTENSION_ID = 'wso2.wso2-integrator';
 
 interface BallerinaPluginConfig extends WorkspaceConfiguration {
     home?: string;
@@ -208,6 +210,10 @@ export function isSupportedSLVersion(
 }
 
 export function checkIsBI(uri: Uri): boolean {
+    if (isInWI()) {
+        return true;
+    }
+
     const config = workspace.getConfiguration('ballerina', uri);
     const inspected = config.inspect<boolean>('isBI');
 
@@ -220,6 +226,10 @@ export function checkIsBI(uri: Uri): boolean {
         return valuesToCheck.find(value => value === true) !== undefined; // Return true if isBI is set to true
     }
     return false; // Return false if isBI is not set
+}
+
+export function isInWI(): boolean {
+    return !!extensions.getExtension(WI_EXTENSION_ID);
 }
 
 export async function checkIsBallerinaPackage(uri: Uri): Promise<boolean> {

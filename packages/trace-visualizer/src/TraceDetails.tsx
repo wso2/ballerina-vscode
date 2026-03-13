@@ -47,6 +47,7 @@ interface TraceDetailsProps {
     isAgentChat: boolean;
     focusSpanId?: string;
     onViewSession?: () => void;
+    showSidebar?: boolean;
 }
 
 // ============================================================================
@@ -254,7 +255,7 @@ const ActionButton = styled.button`
 // COMPONENT DEFINITIONS
 // ============================================================================
 
-export function TraceDetails({ traceData, isAgentChat, focusSpanId, onViewSession }: TraceDetailsProps) {
+export function TraceDetails({ traceData, isAgentChat, focusSpanId, onViewSession, showSidebar }: TraceDetailsProps) {
     const [selectedSpanId, setSelectedSpanId] = useState<string | null>(null);
     const [showFullTrace] = useState<boolean>(false);
 
@@ -262,7 +263,9 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, onViewSessio
     const [userAdvancedModePreference, setUserAdvancedModePreference] = useState<boolean>(false);
 
     const [viewMode, setViewMode] = useState<'tree' | 'timeline'>('tree');
-    const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(!(isAgentChat && focusSpanId !== undefined));
+    const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(
+        showSidebar !== undefined ? showSidebar : !(isAgentChat && focusSpanId !== undefined)
+    );
 
     const [expandedSpans, setExpandedSpans] = useState<Set<string>>(new Set());
     const [expandedAdvancedSpanGroups, setExpandedAdvancedSpanGroups] = useState<Set<string>>(new Set());

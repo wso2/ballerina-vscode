@@ -16,12 +16,14 @@
  * under the License.
  */
 
-import { useEffect, useMemo, useState } from 'react';
-import { ActionButtons, Divider, SidePanelBody, ProgressIndicator, Tooltip, CheckBoxGroup, CheckBox, Codicon, LinkButton, Dropdown, Typography, RadioButtonGroup, HeaderExpressionEditor } from '@wso2/ui-toolkit';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActionButtons, Divider, SidePanelBody, ProgressIndicator, Tooltip, CheckBoxGroup, CheckBox, Codicon, LinkButton, Dropdown, Typography, RadioButtonGroup } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
-import { FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceModel, Protocol, Imports, PropertyModel } from '@wso2/ballerina-core';
+import { Diagnostic, FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceModel, Protocol, Imports, PropertyModel } from '@wso2/ballerina-core';
+import { cloneDeep } from 'lodash';
 import { EntryPointTypeCreator } from '../../../../../components/EntryPointTypeCreator';
 import { Parameters } from './Parameters/Parameters';
+import { MoveToField } from './MoveToField';
 
 const FileConfigContainer = styled.div`
     margin-bottom: 0;
@@ -166,6 +168,11 @@ export interface FTPFormProps {
     selectedHandler?: string;
 }
 
+type MoveToValidationState = {
+    isValidating: boolean;
+    hasValidationFailure: boolean;
+};
+
 export function FTPForm(props: FTPFormProps) {
     const { model, isSaving, onSave, onClose, isNew, selectedHandler } = props;
 
@@ -205,7 +212,7 @@ export function FTPForm(props: FTPFormProps) {
             return;
         }
         const initialFunction = nonEnabledFunctions[0];
-        setFunctionModel(initialFunction);
+        setFunctionModel(cloneDeep(initialFunction));
         setSelectedFileFormat(initialFunction.name?.metadata?.label || '');
     }, [isNew, nonEnabledFunctions]);
 
@@ -214,7 +221,7 @@ export function FTPForm(props: FTPFormProps) {
         if (isNew) {
             return;
         }
-        setFunctionModel(props.functionModel || null);
+        setFunctionModel(props.functionModel ? cloneDeep(props.functionModel) : null);
         setSelectedFileFormat(props.functionModel?.name?.metadata?.label || '');
     }, [isNew, props.functionModel]);
 
@@ -245,7 +252,7 @@ export function FTPForm(props: FTPFormProps) {
         const selectedFunction = nonEnabledFunctions.find(fn => fn.name?.metadata?.label === value);
 
         if (selectedFunction) {
-            setFunctionModel(selectedFunction);
+            setFunctionModel(cloneDeep(selectedFunction));
             setSelectedFileFormat(value);
         }
     };
@@ -500,7 +507,11 @@ export function FTPForm(props: FTPFormProps) {
         }
         const moveToValue = selectedChoice.properties?.moveTo?.value || "";
         const trimmedMoveTo = moveToValue.trim();
-        return !trimmedMoveTo || trimmedMoveTo === '""' || trimmedMoveTo === "''";
+        if (!trimmedMoveTo || trimmedMoveTo === '""' || trimmedMoveTo === "''") {
+            return true;
+        }
+        const match = trimmedMoveTo.match(/^string\s*`([\s\S]*)`$/);
+        return !!match && match[1].trim() === "";
     };
 
     const selectedSuccessAction = getSelectedActionValue(postProcessActionOnSuccess);
@@ -509,127 +520,219 @@ export function FTPForm(props: FTPFormProps) {
         isMoveToRequiredAndEmpty(postProcessActionOnSuccess, selectedSuccessAction) ||
         isMoveToRequiredAndEmpty(postProcessActionOnError, selectedErrorAction);
 
-    // Generic handler for post-process action change (nested under postProcessAction)
-    const handleActionChange = (propertyKey: string, action: PropertyModel | undefined, value: string) => {
-        if (!functionModel || !action?.choices || !postProcessAction) return;
+    const [moveToDiagnosticsByAction, setMoveToDiagnosticsByAction] = useState<Record<string, Diagnostic[]>>({});
+    const [moveToValidationStateByAction, setMoveToValidationStateByAction] = useState<Record<string, MoveToValidationState>>({});
 
-        const updatedChoices = action.choices.map((choice: PropertyModel) => ({
-            ...choice,
-            enabled: choice.value === value
+    useEffect(() => {
+        // Reset diagnostics when switching between handlers (to avoid leaking state across handler forms).
+        setMoveToDiagnosticsByAction({});
+        setMoveToValidationStateByAction({});
+    }, [functionModel?.name?.value]);
+
+    const handleMoveToDiagnosticsChange = useCallback((propertyKey: string, diagnostics: Diagnostic[]) => {
+        setMoveToDiagnosticsByAction(prev => ({
+            ...prev,
+            [propertyKey]: diagnostics
         }));
+    }, []);
 
-        setFunctionModel({
-            ...functionModel,
-            properties: {
-                ...functionModel.properties,
-                postProcessAction: {
-                    ...postProcessAction,
-                    properties: {
-                        ...postProcessAction.properties,
-                        [propertyKey]: {
-                            ...action,
-                            enabled: true,
-                            choices: updatedChoices
+    const hasMoveToErrorDiagnostics = useMemo(() => {
+        return Object.values(moveToDiagnosticsByAction).some((diags) => diags?.some((d) => d.severity === 1));
+    }, [moveToDiagnosticsByAction]);
+
+    const handleMoveToValidationStateChange = useCallback(
+        (propertyKey: string, state: MoveToValidationState) => {
+            setMoveToValidationStateByAction(prev => ({
+                ...prev,
+                [propertyKey]: state
+            }));
+        },
+        []
+    );
+
+    const hasPendingMoveToValidation = useMemo(() => {
+        return Object.values(moveToValidationStateByAction).some((state) => state?.isValidating);
+    }, [moveToValidationStateByAction]);
+
+    const hasMoveToValidationFailure = useMemo(() => {
+        return Object.values(moveToValidationStateByAction).some((state) => state?.hasValidationFailure);
+    }, [moveToValidationStateByAction]);
+
+    const isSaveDisabled = hasInvalidMoveTo || hasMoveToErrorDiagnostics || hasPendingMoveToValidation || hasMoveToValidationFailure;
+    const saveTooltip = useMemo(() => {
+        if (isSaving) {
+            return "Saving...";
+        }
+        if (hasPendingMoveToValidation) {
+            return "Waiting for Move To diagnostics...";
+        }
+        if (isSaveDisabled) {
+            return "Fix Move To validation errors";
+        }
+        return "Save";
+    }, [isSaveDisabled, isSaving, hasPendingMoveToValidation]);
+
+    // Generic handler for post-process action change (nested under postProcessAction)
+    const handleActionChange = (propertyKey: string, _action: PropertyModel | undefined, value: string) => {
+        setFunctionModel((prev) => {
+            if (!prev) {
+                return prev;
+            }
+
+            const prevPostProcessAction = prev.properties?.postProcessAction as PropertyModel | undefined;
+            const prevAction = prevPostProcessAction?.properties?.[propertyKey] as PropertyModel | undefined;
+            if (!prevPostProcessAction || !prevAction?.choices) {
+                return prev;
+            }
+
+            const updatedChoices = prevAction.choices.map((choice: PropertyModel) => ({
+                ...choice,
+                enabled: choice.value === value
+            }));
+
+            return {
+                ...prev,
+                properties: {
+                    ...prev.properties,
+                    postProcessAction: {
+                        ...prevPostProcessAction,
+                        properties: {
+                            ...prevPostProcessAction.properties,
+                            [propertyKey]: {
+                                ...prevAction,
+                                enabled: true,
+                                choices: updatedChoices
+                            }
                         }
                     }
                 }
-            }
+            };
         });
     };
 
     const handleActionToggle = (
         propertyKey: string,
-        action: PropertyModel | undefined,
+        _action: PropertyModel | undefined,
         checked: boolean,
         selectedValue?: string
     ) => {
-        if (!functionModel || !action?.choices || !postProcessAction) return;
+        setFunctionModel((prev) => {
+            if (!prev) {
+                return prev;
+            }
 
-        let updatedChoices = action.choices;
-        if (checked) {
-            const selectedIndex = selectedValue
-                ? action.choices.findIndex((choice: PropertyModel) => choice.value === selectedValue)
-                : -1;
-            const moveIndex = action.choices.findIndex((choice: PropertyModel) => choice.value === 'MOVE');
-            const existingEnabledIndex = action.choices.findIndex((choice: PropertyModel) => choice.enabled);
-            const indexToEnable = existingEnabledIndex !== -1
-                ? existingEnabledIndex
-                : (selectedIndex >= 0 && selectedIndex < action.choices.length)
-                    ? selectedIndex
-                    : (moveIndex !== -1 ? moveIndex : 0);
+            const prevPostProcessAction = prev.properties?.postProcessAction as PropertyModel | undefined;
+            const prevAction = prevPostProcessAction?.properties?.[propertyKey] as PropertyModel | undefined;
+            if (!prevPostProcessAction || !prevAction?.choices) {
+                return prev;
+            }
 
-            updatedChoices = action.choices.map((choice: PropertyModel, index: number) => ({
-                ...choice,
-                enabled: index === indexToEnable
-            }));
-        }
+            let updatedChoices = prevAction.choices;
+            if (checked) {
+                const selectedIndex = selectedValue
+                    ? prevAction.choices.findIndex((choice: PropertyModel) => choice.value === selectedValue)
+                    : -1;
+                const moveIndex = prevAction.choices.findIndex((choice: PropertyModel) => choice.value === 'MOVE');
+                const existingEnabledIndex = prevAction.choices.findIndex((choice: PropertyModel) => choice.enabled);
+                const indexToEnable = existingEnabledIndex !== -1
+                    ? existingEnabledIndex
+                    : (selectedIndex >= 0 && selectedIndex < prevAction.choices.length)
+                        ? selectedIndex
+                        : (moveIndex !== -1 ? moveIndex : 0);
 
-        setFunctionModel({
-            ...functionModel,
-            properties: {
-                ...functionModel.properties,
-                postProcessAction: {
-                    ...postProcessAction,
-                    properties: {
-                        ...postProcessAction.properties,
-                        [propertyKey]: {
-                            ...action,
-                            enabled: checked,
-                            choices: updatedChoices
+                updatedChoices = prevAction.choices.map((choice: PropertyModel, index: number) => ({
+                    ...choice,
+                    enabled: index === indexToEnable
+                }));
+            }
+
+            return {
+                ...prev,
+                properties: {
+                    ...prev.properties,
+                    postProcessAction: {
+                        ...prevPostProcessAction,
+                        properties: {
+                            ...prevPostProcessAction.properties,
+                            [propertyKey]: {
+                                ...prevAction,
+                                enabled: checked,
+                                choices: updatedChoices
+                            }
                         }
                     }
                 }
-            }
+            };
         });
     };
 
     // Generic handler for Move To change (nested under postProcessAction)
-    const handleMoveToChangeGeneric = (propertyKey: string, action: PropertyModel | undefined, value: string) => {
-        if (!functionModel || !action?.choices || !postProcessAction) return;
-
-        const moveChoiceIndex = action.choices.findIndex((choice: PropertyModel) => choice.value === 'MOVE');
-        if (moveChoiceIndex === -1) return;
-
-        const updatedChoices = [...action.choices];
-        updatedChoices[moveChoiceIndex] = {
-            ...updatedChoices[moveChoiceIndex],
-            properties: {
-                ...updatedChoices[moveChoiceIndex].properties,
-                moveTo: {
-                    ...updatedChoices[moveChoiceIndex].properties?.moveTo,
-                    value: value
-                }
+    const handleMoveToChangeGeneric = (propertyKey: string, _action: PropertyModel | undefined, value: string) => {
+        setFunctionModel((prev) => {
+            if (!prev) {
+                return prev;
             }
-        };
 
-        setFunctionModel({
-            ...functionModel,
-            properties: {
-                ...functionModel.properties,
-                postProcessAction: {
-                    ...postProcessAction,
-                    properties: {
-                        ...postProcessAction.properties,
-                        [propertyKey]: {
-                            ...action,
-                            choices: updatedChoices
+            const prevPostProcessAction = prev.properties?.postProcessAction as PropertyModel | undefined;
+            const prevAction = prevPostProcessAction?.properties?.[propertyKey] as PropertyModel | undefined;
+            if (!prevPostProcessAction || !prevAction?.choices) {
+                return prev;
+            }
+
+            const moveChoiceIndex = prevAction.choices.findIndex((choice: PropertyModel) => choice.value === 'MOVE');
+            if (moveChoiceIndex === -1) {
+                return prev;
+            }
+
+            const updatedChoices = [...prevAction.choices];
+            const existingMoveChoice = updatedChoices[moveChoiceIndex];
+            if (!existingMoveChoice) {
+                return prev;
+            }
+            const existingMoveTo = existingMoveChoice.properties?.moveTo as PropertyModel | undefined;
+
+            updatedChoices[moveChoiceIndex] = {
+                ...existingMoveChoice,
+                properties: {
+                    ...existingMoveChoice.properties,
+                    moveTo: {
+                        ...existingMoveTo,
+                        value: value
+                    }
+                }
+            };
+
+            return {
+                ...prev,
+                properties: {
+                    ...prev.properties,
+                    postProcessAction: {
+                        ...prevPostProcessAction,
+                        properties: {
+                            ...prevPostProcessAction.properties,
+                            [propertyKey]: {
+                                ...prevAction,
+                                choices: updatedChoices
+                            }
                         }
                     }
                 }
-            }
+            };
         });
     };
 
     // Get the current MOVE choice properties for any action
     const getMoveChoicePropertiesGeneric = (action: PropertyModel | undefined) => {
-        if (!action?.choices) return { moveTo: "" };
+        if (!action?.choices) return { moveTo: "", moveToProperty: undefined as PropertyModel | undefined };
         const moveChoice = action.choices.find((choice: PropertyModel) => choice.value === 'MOVE');
-        if (!moveChoice?.properties) return { moveTo: "" };
+        if (!moveChoice?.properties) return { moveTo: "", moveToProperty: undefined as PropertyModel | undefined };
 
-        const moveToValue = moveChoice.properties.moveTo?.value || "";
+        const moveToProperty = moveChoice.properties.moveTo as PropertyModel | undefined;
+        const moveToValue = moveToProperty?.value || "";
 
         return {
-            moveTo: moveToValue
+            moveTo: moveToValue,
+            moveToProperty
         };
     };
 
@@ -644,8 +747,6 @@ export function FTPForm(props: FTPFormProps) {
 
         const isActionEnabled = action.enabled ?? true;
         const moveProperties = getMoveChoicePropertiesGeneric(action);
-        const trimmedMoveTo = moveProperties.moveTo?.trim();
-        const isMoveToEmpty = !trimmedMoveTo || trimmedMoveTo === '""' || trimmedMoveTo === "''";
 
         return (
             <PostProcessSection>
@@ -682,28 +783,19 @@ export function FTPForm(props: FTPFormProps) {
                 {/* Show nested fields for MOVE action */}
                 {isActionEnabled && selectedValue === 'MOVE' && (
                     <NestedFields>
-                        <div>
-                            <Typography variant="body3" sx={{ marginBottom: 4 }}>
-                                Move To
-                            </Typography>
-                            <HeaderExpressionEditor
-                                value={moveProperties.moveTo}
-                                placeholder='"/path/to/dir"'
-                                ariaLabel="Move To"
-                                completions={[]}
-                                onChange={(value) => handleMoveToChangeGeneric(propertyKey, action, value)}
-                                onSave={() => {}}
-                                onCancel={() => {}}
-                            />
-                            <Typography variant="body3" sx={{ marginTop: 4, color: 'var(--vscode-descriptionForeground)' }}>
-                                Destination path expression to move the file
-                            </Typography>
-                            {isMoveToEmpty && (
-                                <Typography variant="body3" sx={{ marginTop: 4, color: 'var(--vscode-errorForeground)' }}>
-                                    Move To is required
-                                </Typography>
-                            )}
-                        </div>
+                        <MoveToField
+                            id={`ftp-${functionModel?.name?.value ?? 'handler'}-${propertyKey}-move-to`}
+                            key={`ftp-${functionModel?.name?.value ?? 'handler'}-${propertyKey}-move-to`}
+                            value={moveProperties.moveTo}
+                            moveToProperty={moveProperties.moveToProperty}
+                            filePath={props.filePath}
+                            targetLineRange={functionModel?.codedata?.lineRange}
+                            required={true}
+                            disabled={isSaving}
+                            onChange={(value) => handleMoveToChangeGeneric(propertyKey, action, value)}
+                            onDiagnosticsChange={(diags) => handleMoveToDiagnosticsChange(propertyKey, diags)}
+                            onValidationStateChange={(state) => handleMoveToValidationStateChange(propertyKey, state)}
+                        />
                     </NestedFields>
                 )}
             </PostProcessSection>
@@ -907,8 +999,8 @@ export function FTPForm(props: FTPFormProps) {
                     primaryButton={{
                         text: isSaving ? "Saving..." : "Save",
                         onClick: handleSave,
-                        tooltip: isSaving ? "Saving..." : hasInvalidMoveTo ? "Move To is required" : "Save",
-                        disabled: isSaving || hasInvalidMoveTo,
+                        tooltip: saveTooltip,
+                        disabled: isSaving || isSaveDisabled,
                         loading: isSaving,
                     }}
                     secondaryButton={{

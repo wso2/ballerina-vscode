@@ -88,6 +88,7 @@ export interface PlatformExtConnectionState {
 }
 
 export interface PlatformExtState {
+    isExtInstalled?: boolean;
     isLoggedIn: boolean;
     userInfo: UserInfo | null;
     hasPossibleComponent?: boolean;
@@ -100,31 +101,14 @@ export interface PlatformExtState {
     devantConns?: PlatformExtConnectionState;
 }
 
-export enum DevantConnectionFlow {
-    // Create related flows
-    CREATE_INTERNAL_OAS = "CREATE_INTERNAL_OAS",
-    CREATE_INTERNAL_OTHER = "CREATE_INTERNAL_OTHER",
-    CREATE_INTERNAL_OTHER_SELECT_BI_CONNECTOR = "CREATE_INTERNAL_OTHER_SELECT_BI_CONNECTOR",
-    CREATE_THIRD_PARTY_OAS = "CREATE_THIRD_PARTY_OAS",
-    CREATE_THIRD_PARTY_OTHER = "CREATE_THIRD_PARTY_OTHER",
-    CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR = "CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR",
-    REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR = "REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR",
-    REGISTER_CREATE_THIRD_PARTY_FROM_OAS = "REGISTER_CREATE_THIRD_PARTY_FROM_OAS",
-    // Import related flows
-    IMPORT_INTERNAL_OAS = "IMPORT_INTERNAL_OAS",
-    IMPORT_INTERNAL_OTHER = "IMPORT_INTERNAL_OTHER",
-    IMPORT_INTERNAL_OTHER_SELECT_BI_CONNECTOR = "IMPORT_INTERNAL_OTHER_SELECT_BI_CONNECTOR",
-    IMPORT_THIRD_PARTY_OAS = "IMPORT_THIRD_PARTY_OAS",
-    IMPORT_THIRD_PARTY_OTHER = "IMPORT_THIRD_PARTY_OTHER",
-    IMPORT_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR = "IMPORT_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR",
-}
-
 export interface DevantTempConfig {
+    /** The id matching the key in devant side */
     id: string;
+    /** The unique identifier in ballerina code */
     name: string;
     value: string;
     isSecret: boolean;
     node?: ModuleVarDecl;
     description?: string;
-    type?: string;
+    type?: "string" | "int";
 }

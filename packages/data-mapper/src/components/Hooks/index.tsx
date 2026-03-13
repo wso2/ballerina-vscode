@@ -29,6 +29,7 @@ import { ErrorNodeKind } from '../DataMapper/Error/RenderingError';
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMSearchStore } from '../../store/store';
 import {
     ArrayOutputNode,
+    ConvertibleOutputNode,
     EmptyInputsNode,
     InputNode,
     LinkConnectorNode,
@@ -79,6 +80,7 @@ export const useRepositionedNodes = (
             || node instanceof ArrayOutputNode
             || node instanceof PrimitiveOutputNode
             || node instanceof QueryOutputNode
+            || node instanceof ConvertibleOutputNode
             || node instanceof OutputDataImportNodeModel
         ) {
             const x = (window.innerWidth) * (100 / zoomLevel) - IO_NODE_DEFAULT_WIDTH;
