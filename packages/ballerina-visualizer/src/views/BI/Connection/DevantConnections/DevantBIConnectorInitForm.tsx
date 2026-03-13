@@ -276,7 +276,7 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
             loading={isCreating}
             customValidator={(fieldKey, value) => {
                 if (fieldKey === "variable") {
-                    return isValidDevantConnName(value, existingDevantConnNames, biConnectionNames);
+                    return isValidDevantConnName(value, existingDevantConnNames, biConnectionNames, !!importedConnection);
                 }
                 return undefined;
             }}

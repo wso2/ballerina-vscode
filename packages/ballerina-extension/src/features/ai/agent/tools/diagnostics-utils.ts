@@ -102,12 +102,12 @@ export async function checkCompilationErrors(
             diagnostics = await checkProjectDiagnostics(langClient, tempProjectPath, true);
             // HACK: When the generated code includes `import ballerinax/client.config;` (without the quoted
             // identifier), the language server returns diagnostics with the module name stripped to
-            // `ballerinax/.config as config` — omitting "client". As a workaround, we detect this and
+            // `ballerinax/.config` — omitting "client". As a workaround, we detect this and
             // instruct the agent to use the correct quoted form `import ballerinax/'client.config;`
             // instead of attempting to resolve the dependency automatically.
             const enrichedDiagnosticsTry = transformDiagnosticsToEnriched(diagnostics);
             const hasInvalidClientModuleImport = enrichedDiagnosticsTry.some(
-                d => d.code === "BCE2003" && d.message.includes("ballerinax/.config as config")
+                d => d.code === "BCE2003" && d.message.includes("ballerinax/.config")
             );
             if (hasInvalidClientModuleImport) {
                 console.log(`[DiagnosticsUtils] Detected invalid client module import 'ballerinax/client.config'.`);

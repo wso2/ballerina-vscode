@@ -94,7 +94,7 @@ async function extractLearnPages(query: string): Promise<Document[]> {
 
 async function fetchDocumentationFromVectorStore(query: string): Promise<Document[]> {
     try {
-        const response = await fetchWithAuth(`${BACKEND_URL}/learn-docs-api/v1.0/topK`, {
+        const response = await fetchWithAuth(`${BACKEND_URL}/ask-api/v1.0/topK`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

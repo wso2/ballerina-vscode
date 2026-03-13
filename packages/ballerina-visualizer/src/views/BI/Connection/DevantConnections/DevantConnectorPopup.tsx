@@ -400,6 +400,8 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
 
     const isRootLoading = isLoadingImportConnectorData;
 
+    const hidePadding = [DevantConnectionFlow.CREATE_DATABASE_PERSIST, DevantConnectionFlow.IMPORT_DATABASE_PERSIST, DevantConnectionFlow.CREATE_THIRD_PARTY_PERSIST, DevantConnectionFlow.IMPORT_THIRD_PARTY_PERSIST, DevantConnectionFlow.CREATE_DATABASE_PERSIST_DB_SELECTED].includes(selectedFlow)
+
     return (
         <>
             <PopupOverlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }} />
@@ -423,7 +425,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                         <Stepper steps={steps} currentStep={currentStepIndex} alignment="center" />
                     </StepperContainer>
                 )}
-                <PopupContent>
+                <PopupContent style={ hidePadding ? { padding: 0 } : {padding:"16px 20px"}}>
                     {isRootLoading ? (
                         <ProgressWrap>
                             <ProgressRing />

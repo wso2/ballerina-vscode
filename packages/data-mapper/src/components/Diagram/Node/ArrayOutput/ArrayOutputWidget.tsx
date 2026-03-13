@@ -65,7 +65,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const [isLoading, setLoading] = useState(false);
 
 	const collapsedFieldsStore = useDMCollapsedFieldsStore();
-	const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
+	const exprBarFocusedPort = useDMExpressionBarStore(state => state.focusedPort);
 
 	const { setIsIOConfigPanelOpen, setIOConfigPanelType, setIsSchemaOverridden } = useDMIOConfigPanelStore(
 		useShallow(state => ({
@@ -84,6 +84,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const isRootArray = context.views.length == 1 || isWithinSubMappingRootView(context.views);
 
 	const portIn = getPort(`${id}.IN`);
+	const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
@@ -196,7 +197,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 		<>
 			<TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick}>
 				<TreeHeader
-					isSelected={portState !== PortState.Unselected}
+					isSelected={portState !== PortState.Unselected || isExprBarFocused}
 					isDisabled={isDisabled} id={"recordfield-" + id}
 				>
 					<span className={classes.inPort}>

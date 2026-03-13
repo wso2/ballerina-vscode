@@ -35,9 +35,16 @@ export async function ensureEvalsetsDirectory(): Promise<string> {
         projectRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
     }
 
-    const evalsetsDir = path.join(projectRoot, 'evalsets');
-    const evalsetsDirUri = vscode.Uri.file(evalsetsDir);
+    const testsDir = path.join(projectRoot, 'tests');
+    const testsDirUri = vscode.Uri.file(testsDir);
+    try {
+        await vscode.workspace.fs.createDirectory(testsDirUri);
+    } catch (e) {
+        // Directory might exist, ignore
+    }
 
+    const evalsetsDir = path.join(testsDir, 'evalsets');
+    const evalsetsDirUri = vscode.Uri.file(evalsetsDir);
     try {
         await vscode.workspace.fs.createDirectory(evalsetsDirUri);
     } catch (e) {

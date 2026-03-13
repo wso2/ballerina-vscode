@@ -43,7 +43,6 @@ import {
     StartProxyServerResp,
     StopProxyServerReq,
     ConnectionDetailed,
-    CommandIds as PlatformExtCommandIds,
     DevantScopes,
     ICreateComponentCmdParams,
     ComponentKind,
@@ -64,6 +63,10 @@ import {
     GetProjectEnvsReq,
     CreateDatabaseConnectionReq,
     GetDatabaseItemReq,
+    ResolveConnectionSecretsResp,
+    ResolveConnectionSecretsReq,
+    WICommandIds,
+    ICreateNewIntegrationCmdParams,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
@@ -95,31 +98,67 @@ import {
 } from "./platform-utils";
 import { debounce } from "lodash";
 import { BiDiagramRpcManager } from "../bi-diagram/rpc-manager";
-import { updateSourceCode } from "../../utils";
-import { getPlatformExtensionAPI } from "../../utils/ai/auth";
+import { updateSourceCode, WI_EXTENSION_ID } from "../../utils";
 
 export class PlatformExtRpcManager implements PlatformExtAPI {
-    static platformExtAPI: IWso2PlatformExtensionAPI;
+    static platformExtAPI: IWso2PlatformExtensionAPI | undefined;
     private async getPlatformExt() {
         if (PlatformExtRpcManager.platformExtAPI) {
             return PlatformExtRpcManager.platformExtAPI;
         }
-        const platformExtAPI = await getPlatformExtensionAPI();
-        if (!platformExtAPI) {
-            throw new Error("platform ext not installed");
+        const platformExt = vscode.extensions.getExtension(WI_EXTENSION_ID);
+        if (!platformExt) {
+            return undefined;
         }
+        if (!platformExt.isActive) {
+            await platformExt.activate();
+        }
+        platformExtStore.getState().setState({ isExtInstalled: true });
+        const platformExtAPI: IWso2PlatformExtensionAPI = platformExt.exports?.cloudAPIs;
         PlatformExtRpcManager.platformExtAPI = platformExtAPI;
         return platformExtAPI;
     }
 
+    public async initStateSubscription(messenger: Messenger) {
+        // if extension is not installed, the store will not be rehydrated
+        const platformExt = await this.getPlatformExt();
+        if (!platformExt) {
+            return;
+        }
+        await platformExtStore.persist.rehydrate();
+        await this.initAuthState();
+        let projectPath = StateMachine.context()?.projectPath;
+        let disposeProjectPathWatcher = await this.initProjectPathWatcher(projectPath);
+        if (projectPath) {
+            this.debouncedRefreshConnectionList();
+        }
+        await this.initFileWatcher();
+        const debouncedInitProjectPathWatcher = debounce(
+            async (projectPath: string) => await this.initProjectPathWatcher(projectPath),
+            250,
+        );
+        StateMachine.service().subscribe(async (state) => {
+            if (state.context?.projectPath && state.context?.projectPath !== projectPath) {
+                projectPath = state.context?.projectPath;
+                if (disposeProjectPathWatcher) {
+                    disposeProjectPathWatcher();
+                }
+
+                disposeProjectPathWatcher = await debouncedInitProjectPathWatcher(projectPath);
+            }
+        });
+
+        await this.initSelfStoreSubscription(messenger);
+    }
+
     private async initAuthState() {
         const platformExt = await this.getPlatformExt();
-        const userInfo = platformExt.getAuthState().userInfo;
-        const selectedContext = platformExt.getSelectedContext();
+        const userInfo = platformExt?.getAuthState().userInfo;
+        const selectedContext = platformExt?.getSelectedContext();
         platformExtStore.getState().setState({ userInfo, isLoggedIn: !!userInfo, selectedContext });
 
         if (selectedContext?.project) {
-            const envs = await platformExt.getProjectEnvs({
+            const envs = await platformExt?.getProjectEnvs({
                 orgId: selectedContext?.org?.id?.toString(),
                 orgUuid: selectedContext?.org?.uuid,
                 projectId: selectedContext?.project?.id,
@@ -129,13 +168,13 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             platformExtStore.getState().setState({ envs, selectedEnv });
         }
 
-        platformExt.subscribeAuthState((authState) => {
+        platformExt?.subscribeAuthState((authState) => {
             platformExtStore.getState().setState({ userInfo: authState.userInfo, isLoggedIn: !!authState.userInfo });
         });
 
         const debouncedEnvListRefresh = debounce(async (org?: Organization, project?: Project) => {
             if (org && project) {
-                const envs = await platformExt.getProjectEnvs({
+                const envs = await platformExt?.getProjectEnvs({
                     orgId: org.id?.toString(),
                     orgUuid: org.uuid,
                     projectId: project.id,
@@ -146,7 +185,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             }
         }, 1000);
 
-        platformExt.subscribeContextState(async (selectedContext) => {
+        platformExt?.subscribeContextState(async (selectedContext) => {
             platformExtStore.getState().setState({ selectedContext });
             debouncedEnvListRefresh(selectedContext?.org, selectedContext?.project);
         });
@@ -156,7 +195,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         const platformExt = await this.getPlatformExt();
         const debouncedOnFilChange = debounce(async () => {
             if (StateMachine.context().projectPath) {
-                const hasLocalChanges = await platformExt.localRepoHasChanges(StateMachine.context().projectPath);
+                const hasLocalChanges = await platformExt?.localRepoHasChanges(StateMachine.context().projectPath);
                 platformExtStore.getState().setState({ hasLocalChanges });
             }
         }, 1000);
@@ -178,11 +217,11 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         let hasLocalChanges = false;
         let hasProjectYaml = false;
         if (projectPath) {
-            components = platformExt.getDirectoryComponents(projectPath);
+            components = platformExt?.getDirectoryComponents(projectPath);
             matchingComponent = components.find(
                 (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id,
             );
-            hasLocalChanges = await platformExt.localRepoHasChanges(projectPath);
+            hasLocalChanges = await platformExt?.localRepoHasChanges(projectPath);
             hasProjectYaml = hasContextYaml(projectPath);
             await this.debouncedRefreshConnectionList();
         }
@@ -194,7 +233,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             hasPossibleComponent: components.length > 0 || hasProjectYaml,
         });
 
-        const unsubscribeDirCompWatcher = platformExt.subscribeDirComponents(projectPath, (components) => {
+        const unsubscribeDirCompWatcher = platformExt?.subscribeDirComponents(projectPath, (components) => {
             const hasProjectYaml = hasContextYaml(projectPath);
             const matchingComponent = components.find(
                 (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id,
@@ -243,33 +282,6 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 this.debouncedRefreshConnectionList();
             }
         });
-    }
-
-    public async initStateSubscription(messenger: Messenger) {
-        await platformExtStore.persist.rehydrate();
-        await this.initAuthState();
-        let projectPath = StateMachine.context()?.projectPath;
-        let disposeProjectPathWatcher = await this.initProjectPathWatcher(projectPath);
-        if (projectPath) {
-            this.debouncedRefreshConnectionList();
-        }
-        await this.initFileWatcher();
-        const debouncedInitProjectPathWatcher = debounce(
-            async (projectPath: string) => await this.initProjectPathWatcher(projectPath),
-            250,
-        );
-        StateMachine.service().subscribe(async (state) => {
-            if (state.context?.projectPath && state.context?.projectPath !== projectPath) {
-                projectPath = state.context?.projectPath;
-                if (disposeProjectPathWatcher) {
-                    disposeProjectPathWatcher();
-                }
-
-                disposeProjectPathWatcher = await debouncedInitProjectPathWatcher(projectPath);
-            }
-        });
-
-        await this.initSelfStoreSubscription(messenger);
     }
 
     async getMarketplaceItems(params: GetMarketplaceListReq): Promise<MarketplaceListResp> {
@@ -425,6 +437,15 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
+    async resolveConnectionSecrets(params: ResolveConnectionSecretsReq): Promise<ResolveConnectionSecretsResp> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return await platformExt?.resolveConnectionSecrets(params);
+        } catch (err) {
+            log(`Failed to resolve connection secrets: ${err}`);
+        }
+    }
+
     async createInternalConnection(params: CreateComponentConnectionReq): Promise<ConnectionDetailed> {
         try {
             const platformExt = await this.getPlatformExt();
@@ -505,14 +526,12 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             integrationType = selectedScope as DevantScopes;
         }
 
-        const deployementParams: ICreateComponentCmdParams = {
-            integrationType: integrationType,
-            buildPackLang: "ballerina",
-            name: path.basename(StateMachine.context().projectPath),
-            componentDir: StateMachine.context().projectPath,
-            extName: "Devant",
+        const deployementParams: ICreateNewIntegrationCmdParams = {
+            buildPackLang:"ballerina",
+            workspaceDir: StateMachine.context().workspacePath || StateMachine.context().projectPath,
+            integrations: [{ fsPath: StateMachine.context().projectPath, supportedIntegrationTypes: [integrationType] }]
         };
-        vscode.commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deployementParams);
+        vscode.commands.executeCommand(WICommandIds.CreateNewComponent, deployementParams);
     }
 
     async getAllConnections(): Promise<ConnectionListItem[]> {
@@ -522,7 +541,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 platformExtStore.getState().state.isLoggedIn &&
                 platformExtStore.getState().state.selectedContext?.project?.id
             ) {
-                const projectPromise = platformExt.getConnections({
+                const projectPromise = platformExt?.getConnections({
                     orgId: platformExtStore.getState().state.selectedContext?.org?.id?.toString(),
                     projectId: platformExtStore.getState().state.selectedContext?.project?.id,
                     componentId: "",
@@ -530,7 +549,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
                 const componentPromise: Promise<ConnectionListItem[]> = platformExtStore.getState().state
                     .selectedComponent
-                    ? platformExt.getConnections({
+                    ? platformExt?.getConnections({
                           orgId: platformExtStore.getState().state.selectedContext?.org?.id?.toString(),
                           projectId: platformExtStore.getState().state.selectedContext?.project?.id,
                           componentId: platformExtStore.getState().state.selectedComponent?.metadata?.id,
@@ -605,9 +624,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                         )
                         .then((res) => {
                             if (res === "Login") {
-                                vscode.commands.executeCommand(PlatformExtCommandIds.SignIn, {
-                                    extName: "Devant",
-                                } as ICmdParamsBase);
+                                vscode.commands.executeCommand(WICommandIds.SignIn);
                             }
                         });
                     return;
@@ -621,9 +638,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                         )
                         .then((res) => {
                             if (res === "Manage Project") {
-                                vscode.commands.executeCommand(PlatformExtCommandIds.ManageDirectoryContext, {
-                                    extName: "Devant",
-                                } as ICmdParamsBase);
+                                vscode.commands.executeCommand(WICommandIds.ManageDirectoryContext);
                             }
                         });
                     return;
@@ -707,7 +722,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                             connectionName: matchingConnListItem.name,
                         });
                         if (matchingConnListItem?.componentId) {
-                            await platformExt.deleteConnection({
+                            await platformExt?.deleteConnection({
                                 componentPath: projectPath,
                                 connectionId: matchingConnListItem.groupUuid,
                                 connectionName: matchingConnListItem.name,
@@ -959,7 +974,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         try {
             const platformExt = await this.getPlatformExt();
 
-            const marketplaceItems = await platformExt.getMarketplaceItems({
+            const marketplaceItems = await platformExt?.getMarketplaceItems({
                 orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
                 request: {
                     query: params.name,
@@ -976,7 +991,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 idlContent = Buffer.from(idlFileContent).toString("base64");
             }
 
-            const envs = await platformExt.getProjectEnvs({
+            const envs = await platformExt?.getProjectEnvs({
                 orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
                 orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
                 projectId: platformExtStore.getState().state?.selectedContext?.project?.id,
@@ -1016,7 +1031,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 name: findUniqueConnectionName(params.name, marketplaceItems.data),
             });
 
-            const marketplaceService = await platformExt.getMarketplaceItem({
+            const marketplaceService = await platformExt?.getMarketplaceItem({
                 orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
                 serviceId: registeredMarketplaceItem.serviceId,
             });

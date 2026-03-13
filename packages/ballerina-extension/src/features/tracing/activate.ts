@@ -23,6 +23,7 @@ import { TraceServer, Trace } from './trace-server';
 import { TraceDetailsWebview } from './trace-details-webview';
 import { StateMachine } from '../../stateMachine';
 import { VisualizerWebview } from '../../views/visualizer/webview';
+import { initTraceAnimation, disposeTraceAnimation } from './trace-animation';
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from '../../utils/project-utils';
 import { findBallerinaPackageRoot } from '../../utils';
 import { requiresPackageSelection, selectPackageOrPrompt } from '../../utils/command-utils';
@@ -50,9 +51,21 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
         showCollapseAll: true
     });
 
+    let prevEnabled = false;
     // Subscribe to TracerMachine state changes to update VS Code context
     TracerMachine.onUpdate(async (state: any) => {
         await updateContextFromState(state);
+
+        // Initialize trace animation when tracing transitions to enabled, dispose when it transitions to disabled
+        const isEnabled = typeof state === 'string'
+            ? state === 'enabled'
+            : (typeof state === 'object' && state !== null && 'enabled' in state);
+        if (!prevEnabled && isEnabled) {
+            initTraceAnimation();
+        } else if (prevEnabled && !isEnabled) {
+            disposeTraceAnimation();
+        }
+        prevEnabled = isEnabled;
     });
 
     // Set initial context based on current state
@@ -65,7 +78,7 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
     });
 
     const enableTracingCommand = vscode.commands.registerCommand(ENABLE_TRACING_COMMAND, async () => {
-        const targetPath = await resolveTracingTargetPath("Select a package to enable tracing");
+        const targetPath = await resolveTracingTargetPath("Select an integration to enable tracing");
         if (!targetPath) {
             return;
         }
@@ -76,7 +89,7 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
     });
 
     const disableTracingCommand = vscode.commands.registerCommand(DISABLE_TRACING_COMMAND, async () => {
-        const targetPath = await resolveTracingTargetPath("Select a package to disable tracing");
+        const targetPath = await resolveTracingTargetPath("Select an integration to disable tracing");
         if (!targetPath) {
             return;
         }
@@ -111,8 +124,8 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
 
 /**
  * Resolves the target project path for tracing operations.
- * Handles package selection when required and updates the state machine accordingly.
- * @param promptMessage - The message to display when prompting for package selection
+ * Handles integration selection when required and updates the state machine accordingly.
+ * @param promptMessage - The message to display when prompting for integration selection
  * @returns The resolved target path, or undefined if the user cancelled the selection
  */
 async function resolveTracingTargetPath(promptMessage: string): Promise<string | undefined> {
