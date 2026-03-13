@@ -48,8 +48,8 @@ import { getCustomEntryNodeIcon } from "../ComponentListView/EventIntegrationPan
 import { McpToolForm } from "./Forms/McpToolForm";
 import { removeForwardSlashes, canDataBind, getReadableListenerName } from "./utils";
 import { DatabindForm } from "./Forms/DatabindForm";
-import { FTPForm } from "./Forms/FTPForm";
-import FTPConfigForm from "./Forms/FTPForm/FTPConfigForm";
+import { FileIntegrationForm } from "./Forms/FileIntegrationForm";
+import FileIntegrationConfigForm from "./Forms/FileIntegrationForm/FileIntegrationConfigForm";
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -1360,7 +1360,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     show={showFunctionConfigForm}
                                     onClose={handleFunctionConfigClose}
                                 >
-                                    <FTPConfigForm
+                                    <FileIntegrationConfigForm
                                         isSaving={isSaving}
                                         serviceModel={serviceModel}
                                         onSubmit={handleNewFTPFunction}
@@ -1392,7 +1392,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     width={400}
                                 >
                                     {showForm && functionModel && (
-                                        <FTPForm
+                                        <FileIntegrationForm
                                             key={`${isNew ? "new" : "edit"}-${selectedFTPHandler ?? functionModel.name?.value ?? "handler"}`}
                                             functionModel={functionModel}
                                             isNew={isNew}
