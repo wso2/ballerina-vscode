@@ -219,7 +219,7 @@ export class TraceTreeDataProvider implements vscode.TreeDataProvider<TreeNode> 
 
             const nodes: TreeNode[] = [];
 
-            if (this._agentFilterEnabled) {
+            if (this._agentFilterEnabled && filtered.length > 0) {
                 nodes.push(new InfoNode('Showing agent traces only', 'filter'));
             }
 

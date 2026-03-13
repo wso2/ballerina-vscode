@@ -477,16 +477,22 @@ const ChatInterface: React.FC = () => {
         try {
             const info = await rpcClient.getAgentChatRpcClient().getSessionInfo();
             setSessionInfo(info);
+            setShowInfoPopover(true);
         } catch (error) {
             console.error('Failed to get session info:', error);
+            setSessionInfo(null);
+            setShowInfoPopover(false);
         }
-        setShowInfoPopover(true);
     };
 
-    const handleCopy = (field: string, value: string) => {
-        navigator.clipboard.writeText(value);
-        setCopiedField(field);
-        setTimeout(() => setCopiedField(null), 1500);
+    const handleCopy = async (field: string, value: string) => {
+        try {
+            await navigator.clipboard.writeText(value);
+            setCopiedField(field);
+            setTimeout(() => setCopiedField(null), 1500);
+        } catch (error) {
+            console.error('Failed to copy to clipboard:', error);
+        }
     };
 
     const handleSendMessage = async (text: string) => {
@@ -579,6 +585,9 @@ const ChatInterface: React.FC = () => {
             await rpcClient.getAgentChatRpcClient().clearChatHistory();
             // Clear the messages in the UI
             setMessages([]);
+            // Invalidate cached session info and popover
+            setSessionInfo(null);
+            setShowInfoPopover(false);
             // Close the warning popup
             setShowClearWarning(false);
         } catch (error) {

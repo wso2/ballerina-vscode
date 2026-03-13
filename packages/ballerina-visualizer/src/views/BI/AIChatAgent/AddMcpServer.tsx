@@ -20,7 +20,6 @@ import { attemptValueResolution, createMockTools, extractOriginalValues, generat
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
 import { extractAccessToken, findAgentNodeFromAgentCallNode, getEndOfFileLineRange, resolveVariableValue, resolveAuthConfig } from "./utils";
-import { URI, Utils } from "vscode-uri";
 
 interface Tool {
     name: string;
