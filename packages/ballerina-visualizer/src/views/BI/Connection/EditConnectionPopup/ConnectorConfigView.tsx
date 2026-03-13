@@ -167,7 +167,7 @@ export function ConnectorConfigView(props: ConnectorConfigViewProps) {
                             name="persist-diagram"
                             sx={{ fontSize: "14px", width: "14px", height: "14px", marginRight: "6px" }}
                         />
-                        View ERD
+                        View ER Diagram
                     </ConnectorActionButton>
                 </ConnectorActionsRow>
             </ConnectorDetailsCard>
