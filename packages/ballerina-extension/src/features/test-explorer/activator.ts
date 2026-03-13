@@ -25,6 +25,7 @@ import { createNewEvalset, createNewThread, deleteEvalset, deleteThread } from "
 import { discoverTestFunctionsInProject, handleFileChange as handleTestFileUpdate, handleFileDelete as handleTestFileDelete } from "./discover";
 import { getCurrentBallerinaProject, getWorkspaceRoot } from "../../utils/project-utils";
 import { checkIsBallerinaPackage, checkIsBallerinaWorkspace } from "../../utils";
+import { hasMultipleBallerinaPackages } from "../../utils/config";
 import { PROJECT_TYPE } from "../project";
 import { EvalsetTreeDataProvider } from "./evalset-tree-view";
 import { openView } from "../../stateMachine";
@@ -104,12 +105,16 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
 
     const isBallerinaWorkspace = await checkIsBallerinaWorkspace(Uri.file(workspaceRoot));
     const isBallerinaProject = !isBallerinaWorkspace && await checkIsBallerinaPackage(Uri.file(workspaceRoot));
-    const currentProject = !isBallerinaWorkspace && !isBallerinaProject && await getCurrentBallerinaProject();
+    const isMultiProjectWorkspace = !isBallerinaWorkspace && !isBallerinaProject && await hasMultipleBallerinaPackages(Uri.file(workspaceRoot));
+    const currentProject = !isBallerinaWorkspace && !isBallerinaProject && !isMultiProjectWorkspace && await getCurrentBallerinaProject();
     const isSingleFile = currentProject && currentProject.kind === PROJECT_TYPE.SINGLE_FILE;
 
-    if (!isBallerinaWorkspace && !isBallerinaProject && !isSingleFile) {
+    if (!isBallerinaWorkspace && !isBallerinaProject && !isMultiProjectWorkspace && !isSingleFile) {
         return;
     }
+
+    // Make evalset view visible — this runs only after we've confirmed a valid Ballerina project context
+    commands.executeCommand('setContext', 'hasEvalsetSupport', true);
 
     // Create and register Evalset TreeView
     const evalsetTreeDataProvider = new EvalsetTreeDataProvider();
