@@ -19,9 +19,10 @@ import { NodeModel } from "@projectstorm/react-diagrams";
 
 import { InputNode, ObjectOutputNode, QueryOutputNode, SubMappingNode } from "../Node";
 import { InputOutputPortModel } from "../Port";
-import { ARRAY_OUTPUT_TARGET_PORT_PREFIX, OBJECT_OUTPUT_TARGET_PORT_PREFIX, PRIMITIVE_OUTPUT_TARGET_PORT_PREFIX, QUERY_OUTPUT_TARGET_PORT_PREFIX, SUB_MAPPING_INPUT_SOURCE_PORT_PREFIX } from "./constants";
+import { ARRAY_OUTPUT_TARGET_PORT_PREFIX, CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX, OBJECT_OUTPUT_TARGET_PORT_PREFIX, PRIMITIVE_OUTPUT_TARGET_PORT_PREFIX, QUERY_OUTPUT_TARGET_PORT_PREFIX, SUB_MAPPING_INPUT_SOURCE_PORT_PREFIX } from "./constants";
 import { ArrayOutputNode } from "../Node/ArrayOutput/ArrayOutputNode";
 import { PrimitiveOutputNode } from "../Node/PrimitiveOutput/PrimitiveOutputNode";
+import { ConvertibleOutputNode } from "../Node/ConvertibleOutput/ConvertibleOutputNode";
 
 export function getInputPort(node: InputNode | SubMappingNode, inputField: string): InputOutputPortModel {
     const portId = node instanceof SubMappingNode
@@ -37,7 +38,7 @@ export function getInputPort(node: InputNode | SubMappingNode, inputField: strin
 }
 
 export function getOutputPort(
-    node: ObjectOutputNode | ArrayOutputNode | PrimitiveOutputNode | QueryOutputNode,
+    node: ObjectOutputNode | ArrayOutputNode | PrimitiveOutputNode | QueryOutputNode | ConvertibleOutputNode,
     outputField: string
 ): [InputOutputPortModel, InputOutputPortModel] {
     const portId = `${getTargetPortPrefix(node)}.${outputField}.IN`;
@@ -67,6 +68,8 @@ export function getTargetPortPrefix(node: NodeModel): string {
             return PRIMITIVE_OUTPUT_TARGET_PORT_PREFIX;
         case node instanceof QueryOutputNode:
                 return QUERY_OUTPUT_TARGET_PORT_PREFIX;
+        case node instanceof ConvertibleOutputNode:
+            return CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX;
 		default:
 			return "";
 	}

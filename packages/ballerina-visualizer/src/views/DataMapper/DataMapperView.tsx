@@ -679,7 +679,7 @@ export function DataMapperView(props: DataMapperViewProps) {
     const onEdit = () => {
         const context: VisualizerLocation = {
             view: MACHINE_VIEW.BIDataMapperForm,
-            identifier: modelState.model.output.name,
+            identifier: name,
             documentUri: filePath,
         };
 

@@ -81,7 +81,7 @@ async function handleWorkspaceLevelAIPanel(projectInfo: ProjectInfo): Promise<bo
     const availablePackages = projectInfo?.children.map((child: ProjectInfo) => child.projectPath) ?? [];
 
     try {
-        const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select a package to open AI panel");
+        const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select an integration to open AI panel");
         if (!selectedPackage) {
             return true;
         }
@@ -89,7 +89,7 @@ async function handleWorkspaceLevelAIPanel(projectInfo: ProjectInfo): Promise<bo
         openPackageOverviewView(selectedPackage);
         return false; // Continue to open AI webview
     } catch (error) {
-        console.error("Error selecting package:", error);
+        console.error("Error selecting integration:", error);
         return true;
     }
 }

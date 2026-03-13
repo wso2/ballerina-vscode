@@ -16,12 +16,12 @@
  * under the License.
  */
 import { LinkModel, LinkModelGenerics, PortModel, PortModelGenerics } from "@projectstorm/react-diagrams";
-import { IOType, Mapping } from "@wso2/ballerina-core";
+import { IOType, Mapping, TypeKind } from "@wso2/ballerina-core";
 
 import { DataMapperLinkModel, MappingType } from "../../Link";
 import { IntermediatePortModel } from "../IntermediatePort";
 import { createNewMapping, mapSeqToX } from "../../utils/modification-utils";
-import { getMappingType, isPendingMappingRequired } from "../../utils/common-utils";
+import { getMappingType, isPendingMappingRequired, isQueryHeaderPort } from "../../utils/common-utils";
 import { DataMapperNodeModel } from "../../Node/commons/DataMapperNode";
 
 export interface InputOutputPortModelGenerics {
@@ -120,7 +120,9 @@ export class InputOutputPortModel extends PortModel<PortModelGenerics & InputOut
 				return port.getID() === linkedPort.getID()
 			})
 		}
-		return this.attributes.portType !== port.attributes.portType && !isLinkExists
-				&& ((port instanceof IntermediatePortModel) || (!port.isDisabled()));
+		return this.attributes.portType !== port.attributes.portType
+			&& !isLinkExists
+			&& ((port instanceof IntermediatePortModel) || (!port.isDisabled()))
+			&& (this.attributes.field.kind === TypeKind.Array || !isQueryHeaderPort(port));
 	}
 }

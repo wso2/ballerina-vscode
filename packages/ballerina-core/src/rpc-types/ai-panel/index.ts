@@ -81,7 +81,6 @@ export interface AIPanelAPI {
     addFilesToProject: (params: AddFilesToProjectRequest) => Promise<boolean>;
     isUserAuthenticated: () => Promise<boolean>;
     openAIPanel: (params: AIPanelPrompt) => Promise<void>;
-    isPlanModeFeatureEnabled: () => Promise<boolean>;
     // AI schema related functions
     getSemanticDiff: (params: SemanticDiffRequest) => Promise<SemanticDiffResponse>;
     getAffectedPackages: () => Promise<string[]>;
