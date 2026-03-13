@@ -1451,7 +1451,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .template(template)
                 .selected(true)
                 .stepOut();
-        builder.handleIncludedRecordRestArgs(builder, values);
+        builder.handleIncludedRecordRestArgs(builder, values, diagnosticHandler);
     }
 
     private void buildPropertyType(Property.Builder<?> builder, ParameterData paramData, Node value) {
@@ -1493,7 +1493,8 @@ public class CodeAnalyzer extends NodeVisitor {
                     builder.type(Property.ValueType.RAW_TEMPLATE);
                 }
             } else {
-                builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder);
+                builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder,
+                        diagnosticHandler);
             }
         }
     }
@@ -1632,7 +1633,7 @@ public class CodeAnalyzer extends NodeVisitor {
      *
      * @param functionData the function data containing the module name
      * @param packageName  the package name to strip from the module name
-     * @param classSymbol the class symbol representing the persist client
+     * @param classSymbol  the class symbol representing the persist client
      */
     private void updatePersistRelatedMetadata(FunctionData functionData, String packageName, ClassSymbol classSymbol) {
         String moduleName = functionData.moduleName();
@@ -2882,7 +2883,6 @@ public class CodeAnalyzer extends NodeVisitor {
                 .map(node -> node.toString().trim())
                 .collect(Collectors.joining());
     }
-
 
     private boolean isAgent(ServiceDeclarationNode serviceDeclarationNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceDeclarationNode.expressions();
