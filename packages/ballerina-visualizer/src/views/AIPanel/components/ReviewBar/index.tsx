@@ -19,6 +19,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
 import { SemanticDiff, ChangeTypeEnum, MACHINE_VIEW, VisualizerLocation } from "@wso2/ballerina-core";
+import { getColorByMethod } from "../../../BI/ServiceDesigner/components/ResourceAccordion";
 
 const Container = styled.div`
     display: flex;
@@ -265,6 +266,19 @@ const TitleRow = styled.button`
     }
 `;
 
+const MethodBadge = styled.span<{ $color: string }>`
+    background-color: ${({ $color }: { $color: string }) => $color};
+    color: #fff;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-family: var(--vscode-font-family);
+    white-space: nowrap;
+    flex-shrink: 0;
+`;
+
 // nodeKind === 2 is TYPE in semantic diffs
 const NODE_KIND_TYPE = 2;
 const NODE_KIND_RESOURCE = 1;
@@ -274,6 +288,7 @@ interface DiffEntry {
     symbol: string;
     changeType: number;
     label: string;
+    accessor?: string;
     kindLabel: string;
     nodeKind: number;
     viewIndex: number;
@@ -303,7 +318,7 @@ function getDiffLabel(diff: SemanticDiff): string {
     if (diff.metadata) {
         if (diff.nodeKind === NODE_KIND_RESOURCE) {
             const m = diff.metadata as { accessor: string; servicePath: string; resourcePath: string };
-            return `${m.accessor} ${m.resourcePath}`;
+            return m.resourcePath;
         }
         const m = diff.metadata as { name?: string };
         if (m.name) return m.name;
@@ -357,6 +372,9 @@ function buildGroups(semanticDiffs: SemanticDiff[], loadDesignDiagrams?: boolean
             symbol: getSymbol(diff.changeType),
             changeType: diff.changeType,
             label: isType ? "Types" : getDiffLabel(diff),
+            accessor: diff.nodeKind === NODE_KIND_RESOURCE
+                ? (diff.metadata as { accessor: string } | undefined)?.accessor?.toUpperCase()
+                : undefined,
             kindLabel: getDiffKindLabel(diff),
             nodeKind: diff.nodeKind,
             viewIndex,
@@ -400,6 +418,11 @@ function renderCard(entry: DiffEntry, i: number, onClickEntry?: (viewIndex: numb
         >
             <CardLeft>
                 <CardKindLabel>{entry.kindLabel}</CardKindLabel>
+                {entry.accessor && (
+                    <MethodBadge $color={getColorByMethod(entry.accessor)}>
+                        {entry.accessor}
+                    </MethodBadge>
+                )}
                 <CardFileName>{entry.label}</CardFileName>
             </CardLeft>
             <TypePill changeType={entry.changeType}>{getChangeTypeLabel(entry.changeType)}</TypePill>
@@ -427,7 +450,7 @@ const CollapsibleGroupList: React.FC<{
 
                 const displayLabel = isService
                     ? group.groupLabel.slice("service ".length)
-                    : "function";
+                    : "functions";
 
                 return (
                     <React.Fragment key={gi}>
@@ -443,6 +466,7 @@ const CollapsibleGroupList: React.FC<{
                                 {isFunctions && (
                                     <span className="codicon codicon-symbol-method" style={{ fontSize: "11px", color: "var(--vscode-descriptionForeground)" }} />
                                 )}
+                                {isService && <span style={{ color: "var(--vscode-descriptionForeground)", fontWeight: 400 }}>service</span>}
                                 <span>{displayLabel}</span>
                                 <CountBadge>{group.entries.length}</CountBadge>
                             </CollapsibleHeader>

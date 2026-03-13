@@ -26,7 +26,7 @@ import { DataMapper } from "./views/DataMapper";
 import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
 import { ConnectionConfigurationPopup } from "./views/BI/Connection/ConnectionConfigurationPopup";
 import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
-import { ConfigurationCollector } from "./views/BI/ConfigurationCollector";
+import { ConfigurationCollector } from "./views/AIPanel/components/ConfigurationCollector";
 
 const ViewContainer = styled.div<{ isFullScreen?: boolean }>`
     position: fixed;

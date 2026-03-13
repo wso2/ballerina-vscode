@@ -226,6 +226,7 @@ interface StreamEntryComponentProps {
     onToggle: () => void;
     innerRef?: (el: HTMLDivElement | null) => void;
     rpcClient?: any;
+    hasNextNamedEntry?: boolean;
 }
 
 const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
@@ -236,6 +237,7 @@ const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
     onToggle,
     innerRef,
     rpcClient,
+    hasNextNamedEntry = false,
 }) => {
     const hasItems = entry.items.length > 0;
 
@@ -254,7 +256,7 @@ const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
 
     return (
         <EntryBlock style={{ marginLeft: "-7px" }}>
-            <EntryRail isLast={isLast}>
+            <EntryRail showLine={expanded || hasNextNamedEntry}>
                 <DotWrapper>
                     {nodeStatus === "active" ? (
                         <SonarWrapper>
