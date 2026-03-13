@@ -125,6 +125,7 @@
                 {
                   "type": "ListenerConfig",
                   "packageInfo": "ballerinax:trigger.github:0.10.0",
+                  "packageName": "trigger.github",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }

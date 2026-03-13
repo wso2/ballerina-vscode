@@ -921,11 +921,13 @@
                 {
                   "type": "TopicSubsConfig",
                   "packageInfo": "ballerinax:asb:3.9.0",
+                  "packageName": "asb",
                   "kind": "RECORD_TYPE"
                 },
                 {
                   "type": "QueueConfig",
                   "packageInfo": "ballerinax:asb:3.9.0",
+                  "packageName": "asb",
                   "kind": "RECORD_TYPE"
                 }
               ]
@@ -1368,6 +1370,7 @@
                 {
                   "type": "CredentialsConfig",
                   "packageInfo": "ballerinax:salesforce:8.2.0",
+                  "packageName": "salesforce",
                   "kind": "RECORD_TYPE"
                 }
               ]

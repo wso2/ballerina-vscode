@@ -256,6 +256,7 @@
                 {
                   "type": "SecureDatabaseConnection",
                   "packageInfo": "ballerinax:cdc:1.0.3",
+                  "packageName": "cdc",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
@@ -291,6 +292,7 @@
                 {
                   "type": "Options",
                   "packageInfo": "ballerinax:cdc:1.0.3",
+                  "packageName": "cdc",
                   "kind": "RECORD_TYPE",
                   "selected": true
                 }

@@ -692,7 +692,7 @@ class ServiceIndexGenerator {
                                       List<PropertyType> types, String sourceKind) {
     }
 
-    record ServiceInitializerPropertyMemberType(String type, String packageInfo, String kind) {
+    record ServiceInitializerPropertyMemberType(String type, String packageInfo, String packageName, String kind) {
     }
 
     record Annotation(List<String> attachmentPoints, String displayName, String description, String typeConstraint) {
