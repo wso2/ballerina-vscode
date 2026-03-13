@@ -57,6 +57,7 @@
             "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
           },
           "placeholder": "0",
+          "value": "",
           "types": [
             {
               "fieldType": "NUMBER",

@@ -1593,6 +1593,7 @@
         "listenOn": {
           "label": "Listen On",
           "description": "The port to listen on",
+          "defaultValue": "",
           "placeholder": "0",
           "types": [
             {
