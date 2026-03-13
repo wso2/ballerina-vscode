@@ -1625,9 +1625,6 @@ const AIChat: React.FC = () => {
                                                         rpcClient={rpcClient}
                                                     />
                                                 );
-                                            } else if (segment.type === SegmentType.ReviewActions) {
-                                                // Legacy segment — no longer emitted, kept for backward compat parsing
-                                                return null;
                                             } else if (segment.type === SegmentType.Attachment) {
                                                 return (
                                                     <AttachmentsContainer>
