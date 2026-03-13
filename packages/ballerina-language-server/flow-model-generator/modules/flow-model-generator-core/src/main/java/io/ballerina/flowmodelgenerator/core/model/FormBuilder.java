@@ -144,9 +144,12 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
-    public FormBuilder<T> data(String typeSignature, Set<String> names, String label, String doc) {
+    public FormBuilder<T> data(String typeSignature, Set<String> names, String label, String doc,
+                               boolean isConnection) {
         String varName = typeSignature.contains(RemoteActionCallBuilder.TARGET_TYPE_KEY)
                 ? NameUtil.generateTypeName("var", names)
+                : isConnection
+                ? NameUtil.generateTypeName(NameUtil.toCamelCase(typeSignature), names)
                 : NameUtil.generateVariableName(typeSignature, names);
         propertyBuilder
                 .metadata()

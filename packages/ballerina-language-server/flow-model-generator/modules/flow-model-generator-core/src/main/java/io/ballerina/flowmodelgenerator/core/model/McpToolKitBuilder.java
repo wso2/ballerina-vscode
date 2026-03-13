@@ -214,7 +214,7 @@ public class McpToolKitBuilder extends NodeBuilder {
 
     private void setReturnType(String returnType, TemplateContext context) {
         properties().type(returnType, false, null, true, RESULT_TYPE_LABEL)
-                .data(returnType, context.getAllVisibleSymbolNames(), RESULT_NAME, RESULT_DOC);
+                .data(returnType, context.getAllVisibleSymbolNames(), RESULT_NAME, RESULT_DOC, false);
     }
 
     @Override
