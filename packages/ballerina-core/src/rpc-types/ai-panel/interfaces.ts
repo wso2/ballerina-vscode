@@ -502,3 +502,9 @@ export interface UsageResponse {
     remainingUsagePercentage: number;
     resetsIn: number; // in seconds
 }
+
+export interface OpenFileDiffRequest {
+    originalFilePath: string;
+    modifiedFilePath: string;
+    fileName: string;
+}
