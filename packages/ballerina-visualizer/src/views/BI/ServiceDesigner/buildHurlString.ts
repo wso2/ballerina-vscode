@@ -18,7 +18,6 @@
 
 import { FunctionModel } from "@wso2/ballerina-core";
 
-/** A notebook cell passed to `wso2-http-book.importHurlString` when rich cells are needed. */
 export interface NotebookCell {
     kind: "markdown" | "hurl";
     content: string;
