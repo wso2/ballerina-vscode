@@ -224,7 +224,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [initFunction, setInitFunction] = useState<FunctionModel>(undefined);
     const [selectedFTPHandler, setSelectedFTPHandler] = useState<string>(undefined);
     const [addMore, setAddMore] = useState<boolean>(false);
-    const [isTryItLoading, setIsTryItLoading] = useState<boolean>(false);
 
     const handleCloseInitFunction = () => {
         setInitFunction(undefined);
@@ -735,8 +734,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             .sort((a, b) => (a.position?.startLine ?? 0) - (b.position?.startLine ?? 0));
         if (httpResources.length === 0) { return; }
 
-        setIsTryItLoading(true);
-
         const cells: { kind: "markdown" | "hurl"; content: string }[] = [];
 
         const serviceName = basePath?.replace(/^\//, "") || serviceModel.name || "Service";
@@ -780,8 +777,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 }
             }));
             cells.push(...resourceCells.flat());
-        } finally {
-            setIsTryItLoading(false);
+        } catch (error) {
+            console.error("Error generating try-it cells: ", error);
         }
 
         if (cells.length === 0) { return; }
@@ -927,11 +924,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     {
                                         serviceModel && (isHttpService || isMcpService) && (
                                             <>
-                                                <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt} disabled={isTryItLoading}>
-                                                    {isTryItLoading
-                                                        ? <><ProgressRing sx={{ width: 16, height: 16, marginRight: 8 }} /> <ButtonText>Preparing...</ButtonText></>
-                                                        : <><Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText></>
-                                                    }
+                                                <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
+                                                    <><Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText></>
                                                 </Button>
                                             </>
                                         )
