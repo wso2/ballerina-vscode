@@ -591,7 +591,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             context.eventHandler({
                 type: "chat_component",
                 componentType: "review",
-                data: { modifiedFiles: accumulatedModifiedFiles, semanticDiffs, loadDesignDiagrams, affectedPackages, status: "pending" }
+                data: { modifiedFiles: accumulatedModifiedFiles, semanticDiffs, loadDesignDiagrams, affectedPackages, status: "pending", tempProjectPath: context.ctx.tempProjectPath, projectPath: context.ctx.projectPath }
             });
         }
 

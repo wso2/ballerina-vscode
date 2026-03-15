@@ -27,14 +27,14 @@ import {
     approvePlan,
     approveTask,
     ApproveTaskRequest,
-    cancelConnectorSpec,
     cancelConfiguration,
+    cancelConnectorSpec,
     clearChat,
     clearInitialPrompt,
-    ConnectorSpecCancelRequest,
-    ConnectorSpecRequest,
     ConfigurationCancelRequest,
     ConfigurationProvideRequest,
+    ConnectorSpecCancelRequest,
+    ConnectorSpecRequest,
     createTestDirecoryIfNotExists,
     declineChanges,
     declinePlan,
@@ -59,6 +59,7 @@ import {
     getLoginMethod,
     getSemanticDiff,
     getServiceNames,
+    getUsage,
     isCopilotSignedIn,
     isPlatformExtensionAvailable,
     isUserAuthenticated,
@@ -67,12 +68,14 @@ import {
     MetadataWithAttachments,
     openAIPanel,
     openChatWindowWithCommand,
+    openFileDiff,
+    OpenFileDiffRequest,
     PlanApprovalRequest,
     ProcessContextTypeCreationRequest,
     ProcessMappingParametersRequest,
     promptGithubAuthorize,
-    provideConnectorSpec,
     provideConfiguration,
+    provideConnectorSpec,
     RequirementSpecification,
     restoreCheckpoint,
     RestoreCheckpointRequest,
@@ -83,8 +86,7 @@ import {
     TaskDeclineRequest,
     updateChatMessage,
     UpdateChatMessageRequest,
-    updateRequirementSpecification,
-    getUsage
+    updateRequirementSpecification
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { AiPanelRpcManager } from "./rpc-manager";
@@ -137,4 +139,5 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(updateChatMessage, (args: UpdateChatMessageRequest) => rpcManger.updateChatMessage(args));
     messenger.onRequest(getActiveTempDir, () => rpcManger.getActiveTempDir());
     messenger.onRequest(getUsage, () => rpcManger.getUsage());
+    messenger.onNotification(openFileDiff, (args: OpenFileDiffRequest) => rpcManger.openFileDiff(args));
 }

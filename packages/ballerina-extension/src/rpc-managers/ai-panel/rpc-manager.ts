@@ -32,6 +32,7 @@ import {
     LLMDiagnostics,
     LoginMethod,
     MetadataWithAttachments,
+    OpenFileDiffRequest,
     ProcessContextTypeCreationRequest,
     ProcessMappingParametersRequest,
     RequirementSpecification,
@@ -46,7 +47,7 @@ import {
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";
-import { workspace } from 'vscode';
+import * as vscode from 'vscode';
 
 import { isNumber } from "lodash";
 import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
@@ -56,8 +57,11 @@ import { extension } from "../../BalExtensionContext";
 import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
+import { BACKEND_URL } from "../../features/ai/utils";
+import { fetchWithAuth } from "../../features/ai/utils/ai-client";
+import { sendChatComponentNotification, sendSaveChatNotification } from "../../features/ai/utils/ai-utils";
 import { submitFeedback as submitFeedbackUtil } from "../../features/ai/utils/feedback";
-import { sendGenerationKeptTelemetry, sendGenerationDiscardTelemetry } from "../../features/ai/utils/generation-response";
+import { sendGenerationDiscardTelemetry, sendGenerationKeptTelemetry } from "../../features/ai/utils/generation-response";
 import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
 import { isInWI } from "../../utils";
@@ -67,10 +71,7 @@ import { refreshDataMapper } from "../data-mapper/utils";
 import {
     TEST_DIR_NAME
 } from "./constants";
-import { fetchWithAuth } from "../../features/ai/utils/ai-client";
-import { BACKEND_URL } from "../../features/ai/utils";
-import { sendChatComponentNotification, sendSaveChatNotification } from "../../features/ai/utils/ai-utils";
-import { addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
+import { addToIntegration, searchDocumentation } from "./utils";
 
 import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent } from '../../features/ai/agent/index';
 import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
@@ -714,5 +715,53 @@ export class AiPanelRpcManager implements AIPanelAPI {
             console.error("Failed to fetch usage:", error);
             return undefined;
         }
+    }
+
+    private static diffContentProviderRegistered = false;
+    private static diffContentMap = new Map<string, string>();
+
+    private static registerDiffContentProvider() {
+        if (AiPanelRpcManager.diffContentProviderRegistered) { return; }
+        const provider: vscode.TextDocumentContentProvider = {
+            provideTextDocumentContent(uri: vscode.Uri): string {
+                return AiPanelRpcManager.diffContentMap.get(uri.toString()) ?? '';
+            }
+        };
+        extension.context.subscriptions.push(
+            vscode.workspace.registerTextDocumentContentProvider('bi-diff', provider)
+        );
+        AiPanelRpcManager.diffContentProviderRegistered = true;
+    }
+
+    async openFileDiff(params: OpenFileDiffRequest): Promise<void> {
+        AiPanelRpcManager.registerDiffContentProvider();
+
+        // Clear previous diff entries to prevent unbounded memory growth
+        AiPanelRpcManager.diffContentMap.clear();
+
+        let originalContent = '';
+        try {
+            originalContent = fs.readFileSync(params.originalFilePath, 'utf8');
+        } catch {
+            // File doesn't exist (new file) — left side will be empty
+        }
+
+        let modifiedContent = '';
+        try {
+            modifiedContent = fs.readFileSync(params.modifiedFilePath, 'utf8');
+        } catch (error) {
+            console.error("[openFileDiff] Error reading modified file:", error);
+            return;
+        }
+
+        const ts = Date.now();
+        const originalUri = vscode.Uri.parse(`bi-diff:original/${params.fileName}?${ts}`);
+        const modifiedUri = vscode.Uri.parse(`bi-diff:modified/${params.fileName}?${ts}`);
+
+        AiPanelRpcManager.diffContentMap.set(originalUri.toString(), originalContent);
+        AiPanelRpcManager.diffContentMap.set(modifiedUri.toString(), modifiedContent);
+
+        const title = `${params.fileName} (Review Diff)`;
+        await vscode.commands.executeCommand('vscode.diff', originalUri, modifiedUri, title);
     }
 }

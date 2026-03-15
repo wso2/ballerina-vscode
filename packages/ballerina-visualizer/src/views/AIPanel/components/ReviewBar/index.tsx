@@ -16,9 +16,9 @@
  * under the License.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { SemanticDiff, ChangeTypeEnum, MACHINE_VIEW, VisualizerLocation } from "@wso2/ballerina-core";
+import { SemanticDiff, ChangeTypeEnum } from "@wso2/ballerina-core";
 import { getColorByMethod } from "../../../BI/ServiceDesigner/components/ResourceAccordion";
 
 const Container = styled.div`
@@ -42,28 +42,6 @@ const Title = styled.div`
     font-size: 13px;
     font-weight: 600;
     color: var(--vscode-foreground);
-`;
-
-const ReviewIconButton = styled.button`
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: transparent;
-    border: none;
-    padding: 2px 6px;
-    margin: 0;
-    cursor: pointer;
-    font-size: 11px;
-    font-family: var(--vscode-font-family);
-    color: var(--vscode-foreground);
-    border-radius: 3px;
-    &:hover:not(:disabled) {
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
-    &:disabled {
-        opacity: 0.45;
-        cursor: not-allowed;
-    }
 `;
 
 const ChangeList = styled.div`
@@ -299,6 +277,48 @@ interface DiffGroup {
     entries: DiffEntry[];
 }
 
+type ViewMode = "diagram" | "code";
+
+const ToggleGroup = styled.div`
+    display: flex;
+    align-items: center;
+    height: 24px;
+    padding: 2px;
+    gap: 1px;
+    border-radius: 6px;
+    background-color: var(--vscode-editor-inactiveSelectionBackground);
+`;
+
+const ToggleOption = styled.button<{ active?: boolean; disabled?: boolean }>`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    padding: 0 5px;
+    border: none;
+    border-radius: 4px;
+    background-color: ${(props: { active?: boolean }) =>
+        props.active ? "var(--vscode-button-background)" : "transparent"};
+    color: ${(props: { active?: boolean }) =>
+        props.active ? "var(--vscode-button-foreground)" : "var(--vscode-descriptionForeground)"};
+    cursor: ${(props: { disabled?: boolean }) => props.disabled ? "not-allowed" : "pointer"};
+    opacity: ${(props: { disabled?: boolean }) => props.disabled ? 0.45 : 1};
+    font-size: 11px;
+    white-space: nowrap;
+    transition: background-color 0.1s, color 0.1s;
+
+    &:hover:not(:disabled) {
+        background-color: ${(props: { active?: boolean }) =>
+            props.active
+                ? "var(--vscode-button-background)"
+                : "var(--vscode-toolbar-hoverBackground)"};
+        color: ${(props: { active?: boolean }) =>
+            props.active
+                ? "var(--vscode-button-foreground)"
+                : "var(--vscode-foreground)"};
+    }
+`;
+
 interface ReviewBarProps {
     modifiedFiles: string[];
     semanticDiffs?: SemanticDiff[];
@@ -307,6 +327,8 @@ interface ReviewBarProps {
     rpcClient?: any;
     isActive?: boolean;
     onStatusChange?: (status: "accepted" | "discarded") => void;
+    tempProjectPath?: string;
+    projectPath?: string;
 }
 
 function getFileName(filePath: string): string {
@@ -502,23 +524,14 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     rpcClient,
     isActive = false,
     onStatusChange,
+    tempProjectPath,
+    projectPath,
 }) => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [isReviewModeOpen, setIsReviewModeOpen] = useState(false);
 
-    useEffect(() => {
-        if (!rpcClient || !isActive) return;
-        rpcClient.getVisualizerLocation().then((loc: VisualizerLocation) => {
-            setIsReviewModeOpen(loc.view === MACHINE_VIEW.ReviewMode);
-        });
-        rpcClient.onReviewModeOpened(() => {
-            setIsReviewModeOpen(true);
-        });
-        rpcClient.onReviewModeClosed(() => {
-            setIsReviewModeOpen(false);
-        });
-    }, [rpcClient, isActive]);
+    const hasDiagramView = !!(semanticDiffs && semanticDiffs.length > 0);
+    const [viewMode, setViewMode] = useState<ViewMode>(hasDiagramView ? "diagram" : "code");
 
     const groups = useMemo(() => {
         if (!semanticDiffs || semanticDiffs.length === 0) return null;
@@ -528,6 +541,14 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     const navigateReviewMode = (index = 0) => {
         if (!rpcClient) return;
         rpcClient.getVisualizerRpcClient().navigateReviewMode(index);
+    };
+
+    const openFileDiff = (relativePath: string) => {
+        if (!rpcClient || !tempProjectPath || !projectPath) return;
+        const originalFilePath = projectPath + "/" + relativePath;
+        const modifiedFilePath = tempProjectPath + "/" + relativePath;
+        const fileName = getFileName(relativePath);
+        rpcClient.getAiPanelRpcClient().openFileDiff({ originalFilePath, modifiedFilePath, fileName });
     };
 
     const handleAccept = async () => {
@@ -560,6 +581,44 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
         }
     };
 
+    const renderViewToggle = () => (
+        <ToggleGroup>
+            <ToggleOption
+                active={viewMode === "diagram"}
+                disabled={!hasDiagramView}
+                title={hasDiagramView ? "Diagram View" : "No diagram changes available"}
+                onClick={() => hasDiagramView && setViewMode("diagram")}
+            >
+                Diagram View
+            </ToggleOption>
+            <ToggleOption
+                active={viewMode === "code"}
+                title="Code View"
+                onClick={() => setViewMode("code")}
+            >
+                Code View
+            </ToggleOption>
+        </ToggleGroup>
+    );
+
+    const renderCodeView = (disabled = false) => (
+        <ChangeList>
+            {modifiedFiles.map((file, i) => (
+                <ChangeCard
+                    key={i}
+                    onClick={disabled ? undefined : () => openFileDiff(file)}
+                    disabled={disabled}
+                    title={file}
+                >
+                    <CardLeft>
+                        <span className="codicon codicon-file" style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }} />
+                        <CardFileName>{getFileName(file)}</CardFileName>
+                    </CardLeft>
+                </ChangeCard>
+            ))}
+        </ChangeList>
+    );
+
     if (status !== "pending") {
         return (
             <CompactContainer>
@@ -573,18 +632,7 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
                 {isExpanded && (
                     groups && groups.length > 0
                         ? <CollapsibleGroupList groups={groups} />
-                        : modifiedFiles.length > 0 && (
-                            <ChangeList>
-                                {modifiedFiles.map((file, i) => (
-                                    <ChangeCard key={i} disabled title={file}>
-                                        <CardLeft>
-                                            <span className="codicon codicon-file" style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }} />
-                                            <CardFileName>{getFileName(file)}</CardFileName>
-                                        </CardLeft>
-                                    </ChangeCard>
-                                ))}
-                            </ChangeList>
-                        )
+                        : modifiedFiles.length > 0 && renderCodeView(true)
                 )}
             </CompactContainer>
         );
@@ -594,32 +642,13 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
         <Container>
             <TitleBarRow>
                 <Title>Changes ready to review</Title>
-                {isActive && (
-                    <ReviewIconButton
-                        onClick={() => navigateReviewMode(0)}
-                        disabled={isProcessing || isReviewModeOpen}
-                        title="Open review mode"
-                        style={{ visibility: isReviewModeOpen ? "hidden" : "visible" }}
-                    >
-                        <span className="codicon codicon-open-preview" style={{ fontSize: "12px" }} />
-                        <span>Review</span>
-                    </ReviewIconButton>
-                )}
+                {renderViewToggle()}
             </TitleBarRow>
-            {groups && groups.length > 0
+            {viewMode === "diagram" && groups && groups.length > 0
                 ? <CollapsibleGroupList groups={groups} onClickEntry={(viewIndex: number) => navigateReviewMode(viewIndex)} />
-                : (
-                    <ChangeList>
-                        {modifiedFiles.map((file, i) => (
-                            <ChangeCard key={i} onClick={() => navigateReviewMode(0)} title={file}>
-                                <CardLeft>
-                                    <span className="codicon codicon-file" style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }} />
-                                    <CardFileName>{getFileName(file)}</CardFileName>
-                                </CardLeft>
-                            </ChangeCard>
-                        ))}
-                    </ChangeList>
-                )
+                : viewMode === "code" && modifiedFiles.length > 0
+                    ? renderCodeView()
+                    : null
             }
             {isActive && (
                 <ActionRow>
