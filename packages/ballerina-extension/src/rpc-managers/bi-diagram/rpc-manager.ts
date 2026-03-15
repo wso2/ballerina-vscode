@@ -20,6 +20,7 @@
 import {
     AIChatRequest,
     AddFieldRequest,
+    InlineAgentChatRequest,
     AddFunctionRequest,
     AddImportItemResponse,
     AddProjectToWorkspaceRequest,
@@ -154,7 +155,9 @@ import {
     NodePosition,
     PackageTomlValues,
     UpdateProjectTitleRequest,
-    SuggestedProjectDefaultsResponse
+    SuggestedProjectDefaultsResponse,
+    EVENT_TYPE,
+    MACHINE_VIEW
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -212,7 +215,25 @@ import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
 import { getRepoRoot } from "../platform-ext/platform-utils";
 import { WI_EXTENSION_ID } from "../../utils";
 import { notifyOnIdentifierUpdated } from "../../RPCLayer";
+import { openView } from "../../stateMachine";
 
+function ensureGitignoreEntry(projectRoot: string): void {
+    const gitignorePath = path.join(projectRoot, '.gitignore');
+    const entry = '_agent_chat.bal';
+
+    try {
+        let content = '';
+        if (fs.existsSync(gitignorePath)) {
+            content = fs.readFileSync(gitignorePath, 'utf8');
+        }
+        if (!content.split('\n').some(line => line.trim() === entry)) {
+            const newline = content.endsWith('\n') || content === '' ? '' : '\n';
+            fs.appendFileSync(gitignorePath, `${newline}${entry}\n`);
+        }
+    } catch (e) {
+        console.warn('[agent-chat] Failed to update .gitignore:', e);
+    }
+}
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -805,7 +826,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise(async (resolve) => {
             const projectPath = StateMachine.context().projectPath;
             if (!projectPath) {
-                resolve({ components: {packages: []} });
+                resolve({ components: { packages: [] } });
                 return;
             }
             const components = await StateMachine.langClient().getBallerinaProjectComponents({
@@ -1188,7 +1209,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             window.showWarningMessage("No deployable projects found in the workspace.");
             return { isCompleted: true };
         }
-        const integrations: ICreateNewIntegrationCmdIntegrations[]= [];
+        const integrations: ICreateNewIntegrationCmdIntegrations[] = [];
 
         // If there is only one project in the workspace and it has multiple integration types,
         // ask the user to pick the type similar to the single project deploy flow.
@@ -1201,7 +1222,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 return { isCompleted: true };
             }
 
-            integrations.push({fsPath: projectPath, supportedIntegrationTypes: [integrationType] });
+            integrations.push({ fsPath: projectPath, supportedIntegrationTypes: [integrationType] });
         } else {
             for (const projectScope of projectScopes) {
                 const { projectPath, integrationTypes } = projectScope;
@@ -1210,7 +1231,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     continue;
                 }
 
-                integrations.push({fsPath: projectPath, supportedIntegrationTypes: integrationTypes });
+                integrations.push({ fsPath: projectPath, supportedIntegrationTypes: integrationTypes });
             }
         }
 
@@ -1257,6 +1278,110 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             });
         } else {
             openAIPanelWithPrompt(undefined);
+        }
+    }
+
+    async startInlineAgentChat(params: InlineAgentChatRequest): Promise<void> {
+        try {
+            // 1. Confirm with the user
+            const confirm = await window.showInformationMessage(
+                'This will generate a chat service for this agent in your project.',
+                'Continue',
+                'Cancel'
+            );
+            if (confirm !== 'Continue') {
+                return;
+            }
+
+            // 2. Call LS to add agent service to _agent_chat.bal
+            const result: any = await StateMachine.langClient().sendRequest(
+                "agentManager/addAgentChatService",
+                {
+                    filePath: params.filePath,
+                    agentVariableName: params.agentVarName,
+                }
+            );
+
+            if (result.errorMsg) {
+                window.showErrorMessage(`Failed to add agent chat service: ${result.errorMsg}`);
+                return;
+            }
+
+            const generatedFilePath = result.filePath as string;
+            const servicePosition = {
+                startLine: result.startLine as number,
+                startColumn: result.startColumn as number,
+                endLine: result.endLine as number,
+                endColumn: result.endColumn as number,
+            };
+
+            // 3. Add _agent_chat.bal to .gitignore
+            const projectRoot = path.dirname(params.filePath);
+            ensureGitignoreEntry(projectRoot);
+
+            console.log(`[agent-chat] Service added for ${params.agentVarName} in ${generatedFilePath}`);
+
+            // 4. Notify the LS that the file changed so it reloads before we navigate
+            const fileUri = vscode.Uri.file(generatedFilePath);
+            await StateMachine.langClient().sendNotification(
+                'workspace/didChangeWatchedFiles',
+                { changes: [{ uri: fileUri.toString(), type: 2 /* Changed */ }] }
+            );
+
+            // 5. Navigate the visualizer to the flow diagram of the chat resource function
+            openView(EVENT_TYPE.OPEN_VIEW, {
+                view: MACHINE_VIEW.BIDiagram,
+                documentUri: generatedFilePath,
+                position: servicePosition,
+            });
+
+            // 7. Auto-trigger the Try It / Chat panel
+            //    Pass only serviceMetadata (no resourceMetadata) to avoid OpenAPI-based lookup
+            //    which fails before the project is running.
+            vscode.commands.executeCommand('ballerina.tryIt',
+                false,
+                undefined,
+                { basePath: `/agent-chat/${params.agentVarName}`, listener: 'agentChatListener' },
+                generatedFilePath,
+                true, // autoRun — skip "Run Integration" prompt, start automatically
+            );
+
+        } catch (error) {
+            window.showErrorMessage(`Failed to set up agent chat: ${error}`);
+        }
+    }
+
+    async cleanupAgentChatServices(): Promise<boolean> {
+        try {
+            const projectRoot = StateMachine.context().projectPath;
+            if (!projectRoot) { return false; }
+            const chatFile = path.join(projectRoot, '_agent_chat.bal');
+            if (fs.existsSync(chatFile)) {
+                const confirm = await window.showWarningMessage(
+                    'Remove all test chat services from your project?',
+                    { modal: true },
+                    'Remove'
+                );
+                if (confirm !== 'Remove') { return false; }
+
+                fs.unlinkSync(chatFile);
+                console.log(`[agent-chat] Deleted ${chatFile}`);
+
+                // Notify the LS that the file was deleted so it re-indexes
+                const fileUri = vscode.Uri.file(chatFile);
+                await StateMachine.langClient().sendNotification(
+                    'workspace/didChangeWatchedFiles',
+                    { changes: [{ uri: fileUri.toString(), type: 3 /* Deleted */ }] }
+                );
+                // Wait for LS to process the deletion
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('[agent-chat] Failed to delete _agent_chat.bal:', error);
+            return false;
         }
     }
 

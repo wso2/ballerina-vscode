@@ -106,7 +106,7 @@ const MODES = {
     AGENT_CHAT: "agent-chat",
     MIGRATION: "migration",
     EVALUATION_HISTORY: "evaluation-history",
-    EVALUATION_REPORT: "evaluation-report"
+    EVALUATION_REPORT: "evaluation-report",
 };
 
 export function Visualizer({ mode }: { mode: string }) {
