@@ -2380,6 +2380,19 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         // TODO: implement the edit agent logic
     };
 
+    const handleOnChatWithAgent = (agentCallNode: FlowNode) => {
+        const agentVarName = agentCallNode.properties?.connection?.value as string;
+        if (!agentVarName || !model?.fileName) {
+            console.error('Cannot start inline agent chat: missing agent variable name or file path');
+            return;
+        }
+        rpcClient.getBIDiagramRpcClient().startInlineAgentChat({
+            agentVarName,
+            filePath: model.fileName,
+            agentNode: agentCallNode,
+        });
+    };
+
     // AI Agent callback handlers
     const handleOnEditAgentModel = async (agentCallNode: FlowNode) => {
         const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
@@ -2755,6 +2768,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const flowModel = originalModel && suggestedModel ? suggestedModel : model;
+
+    // Hide "Chat" button on agent nodes when already inside a chat agent flow diagram
+    const isChatAgentFlow = (() => {
+        const eventStartNode = flowModel?.nodes.find((node) => node.codedata.node === "EVENT_START");
+        const meta = eventStartNode?.metadata?.data as { kind?: string; label?: string } | undefined;
+        return meta?.kind === "AI Chat Agent" && meta?.label === "chat";
+    })();
+
     const memoizedDiagramProps = useMemo(
         () => ({
             model: flowModel,
@@ -2784,6 +2805,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 goToTool: handleOnGoToTool,
                 onSelectMemoryManager: handleOnSelectMemoryManager,
                 onDeleteMemoryManager: handleOnDeleteMemoryManager,
+                onChatWithAgent: isChatAgentFlow ? undefined : handleOnChatWithAgent,
             },
             suggestions: {
                 fetching: fetchingAiSuggestions,

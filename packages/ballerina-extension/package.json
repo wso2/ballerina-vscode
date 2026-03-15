@@ -790,6 +790,12 @@
                 "enablement": "isSupportedProject"
             },
             {
+                "command": "ballerina.startTraceServer",
+                "title": "Start Trace Server",
+                "category": "Ballerina",
+                "enablement": "isSupportedProject && ballerina.tracingEnabled"
+            },
+            {
                 "command": "ballerina.clearTraces",
                 "title": "Clear Traces",
                 "category": "Ballerina",

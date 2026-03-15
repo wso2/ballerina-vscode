@@ -99,6 +99,12 @@ export function TraceVisualizer({
     }, []);
 
     const handleViewSession = () => {
+        // If we already have session traces loaded, just switch back to overview
+        if (sessionTraces.length > 0 && currentSessionId) {
+            setViewMode('overview');
+            return;
+        }
+
         if (!currentTraceData) return;
 
         // Extract session ID from the current trace
@@ -112,7 +118,6 @@ export function TraceVisualizer({
         }
 
         if (extractedSessionId) {
-            // Request session traces from extension
             if (window.vscode) {
                 window.vscode.postMessage({
                     command: 'requestSessionTraces',

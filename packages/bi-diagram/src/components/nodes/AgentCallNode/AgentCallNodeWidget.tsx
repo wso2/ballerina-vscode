@@ -488,8 +488,7 @@ export interface NodeWidgetProps extends Omit<AgentCallNodeWidgetProps, "childre
 
 export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId, entrypointContext } =
-        useDiagramContext();
+    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId, entrypointContext } = useDiagramContext();
     const traceAnimation = useTraceAnimation();
 
     const isSelected = selectedNodeId === model.node.id;
@@ -670,7 +669,17 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
         setAiColor(getAIColor());
     };
 
+    const onChatWithAgent = () => {
+        agentNode?.onChatWithAgent?.(model.node);
+        setAnchorEl(null);
+    };
+
     const menuItems: Item[] = [
+        ...(agentNode?.onChatWithAgent ? [{
+            id: "chat",
+            label: "Chat",
+            onClick: () => onChatWithAgent(),
+        }] : []),
         {
             id: "edit",
             label: "Edit",
