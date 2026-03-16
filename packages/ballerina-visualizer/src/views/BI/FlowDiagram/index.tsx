@@ -276,14 +276,20 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setIsUserAuthenticated(false);
             });
 
-        // Check for identifier renames
-        rpcClient.onIdentifierUpdated((renames) => {
+    });
+
+    useEffect(() => {
+        const unsubscribe = rpcClient.onIdentifierUpdated((renames) => {
             if (!isMountedRef.current) return;
             if (renames?.length > 0) {
                 hasRenameOperation.current = true;
             }
         });
-    });
+
+        return () => {
+            unsubscribe?.();
+        };
+    }, [rpcClient]);
 
     const updateConnectionWithNewItem = (recentIdentifier: string) => {
         // Add a new item as loading into the "Connections" category
