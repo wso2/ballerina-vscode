@@ -546,25 +546,31 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             const semanticDiffs: SemanticDiff[] = [];
             let loadDesignDiagrams = false;
             let affectedPackages: string[] = [];
+            const diffPackageMap: string[] = []; // parallel array: diffPackageMap[i] = package name for semanticDiffs[i]
             const langClient = StateMachine.context().langClient;
             const tempDir = context.ctx.tempProjectPath!;
             affectedPackages = await determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, tempDir);
+            const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
             for (const pkg of affectedPackages) {
+                // Skip workspace root — it only contains Ballerina.toml, not a real package
+                if (isWorkspace && pkg === tempDir) continue;
+                const pkgName = path.basename(pkg);
                 try {
                     const res = await langClient.getSemanticDiff({ projectPath: pkg });
                     if (res) {
+                        diffPackageMap.push(...Array(res.semanticDiffs.length).fill(pkgName));
                         semanticDiffs.push(...res.semanticDiffs);
                         loadDesignDiagrams = loadDesignDiagrams || res.loadDesignDiagrams;
                     }
                 } catch (err) {
                     console.error(`[AgentExecutor] getSemanticDiff failed for package ${pkg}, falling back to plain modifiedFiles`, err);
                     semanticDiffs.length = 0;
+                    diffPackageMap.length = 0;
                     loadDesignDiagrams = false;
                     break;
                 }
             }
 
-            const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
             const reviewData: ReviewModeData = {
                 views: [],
                 currentIndex: 0,
@@ -584,7 +590,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             context.eventHandler({
                 type: "chat_component",
                 componentType: "review",
-                data: { modifiedFiles: accumulatedModifiedFiles, semanticDiffs, loadDesignDiagrams, affectedPackages, status: "pending" }
+                data: { modifiedFiles: accumulatedModifiedFiles, semanticDiffs, loadDesignDiagrams, affectedPackages, isWorkspace, diffPackageMap, status: "pending" }
             });
         }
 
