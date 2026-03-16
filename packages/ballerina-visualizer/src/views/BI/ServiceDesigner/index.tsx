@@ -33,7 +33,7 @@ import { buildBaseUrl, buildHurlString, buildMarkdownDoc } from "./buildHurlStri
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { NodePosition } from "@wso2/syntax-tree";
-import { Button, Codicon, Icon, ProgressRing, TextField, Typography, View } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, TextField, Typography, View } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { LoadingRing } from "../../../components/Loader";
