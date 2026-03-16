@@ -31,9 +31,9 @@ export function createBallerinaStopTool(
     eventHandler: CopilotEventHandler
 ) {
     return tool({
-        description: `Stops a running Ballerina service or program by disposing its terminal.
+        description: `Stops a running Ballerina service or program by terminating the process.
 
-**Usage:** Pass the \`taskId\` from \`${BALLERINA_RUN_TOOL_NAME}\` to stop the service and close its terminal.
+**Usage:** Pass the \`taskId\` from \`${BALLERINA_RUN_TOOL_NAME}\` to stop the service.
 `,
         inputSchema: BallerinaStopInputSchema,
         execute: async (input, context?: { toolCallId?: string }) => {
@@ -72,7 +72,6 @@ async function stopService(
     }
 
     if (service.exited) {
-        service.terminal.dispose();
         runningServices.remove(input.taskId);
         return {
             status: "already_exited",
@@ -87,11 +86,10 @@ async function stopService(
 
     await waitForExit(service.process);
 
-    service.terminal.dispose();
     runningServices.remove(input.taskId);
 
     return {
         status: "stopped",
-        message: "Service stopped and terminal closed.",
+        message: "Service stopped.",
     };
 }

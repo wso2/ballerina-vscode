@@ -23,6 +23,7 @@ import { TraceServer, Trace } from './trace-server';
 import { TraceDetailsWebview } from './trace-details-webview';
 import { StateMachine } from '../../stateMachine';
 import { VisualizerWebview } from '../../views/visualizer/webview';
+import { initTraceAnimation, disposeTraceAnimation } from './trace-animation';
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from '../../utils/project-utils';
 import { findBallerinaPackageRoot } from '../../utils';
 import { requiresPackageSelection, selectPackageOrPrompt } from '../../utils/command-utils';
@@ -32,6 +33,7 @@ export const ENABLE_TRACING_COMMAND = 'ballerina.enableTracing';
 export const DISABLE_TRACING_COMMAND = 'ballerina.disableTracing';
 export const CLEAR_TRACES_COMMAND = 'ballerina.clearTraces';
 export const SHOW_TRACE_DETAILS_COMMAND = 'ballerina.showTraceDetails';
+export const TOGGLE_AGENT_FILTER_COMMAND = 'ballerina.toggleAgentFilter';
 export const TRACE_VIEW_ID = 'ballerina-traceView';
 
 let treeDataProvider: TraceTreeDataProvider | undefined;
@@ -50,9 +52,21 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
         showCollapseAll: true
     });
 
+    let prevEnabled = false;
     // Subscribe to TracerMachine state changes to update VS Code context
     TracerMachine.onUpdate(async (state: any) => {
         await updateContextFromState(state);
+
+        // Initialize trace animation when tracing transitions to enabled, dispose when it transitions to disabled
+        const isEnabled = typeof state === 'string'
+            ? state === 'enabled'
+            : (typeof state === 'object' && state !== null && 'enabled' in state);
+        if (!prevEnabled && isEnabled) {
+            initTraceAnimation();
+        } else if (prevEnabled && !isEnabled) {
+            disposeTraceAnimation();
+        }
+        prevEnabled = isEnabled;
     });
 
     // Set initial context based on current state
@@ -92,8 +106,22 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
 
     const showTraceDetailsCommand = vscode.commands.registerCommand(
         SHOW_TRACE_DETAILS_COMMAND,
-        (trace: Trace, focusSpanId?: string) => {
-            showTraceDetails(trace, focusSpanId);
+        (trace: Trace, focusSpanId?: string, isAgentChat?: boolean, showSidebar?: boolean) => {
+            showTraceDetails(trace, focusSpanId, isAgentChat, showSidebar);
+        }
+    );
+
+    const toggleAgentFilterCommand = vscode.commands.registerCommand(
+        TOGGLE_AGENT_FILTER_COMMAND,
+        async () => {
+            treeDataProvider!.toggleAgentFilter();
+            const enabled = treeDataProvider!.agentFilterEnabled;
+            await vscode.commands.executeCommand('setContext', 'ballerina.agentFilterEnabled', enabled);
+            // Set empty state context: filter is on but no agent traces matched
+            const hasAgentTraces = enabled && TraceServer.getTraces().some(t =>
+                t.spans.some(s => s.attributes?.some(a => a.key === 'gen_ai.operation.name' && a.value === 'invoke_agent'))
+            );
+            await vscode.commands.executeCommand('setContext', 'ballerina.agentFilterEmpty', enabled && !hasAgentTraces);
         }
     );
 
@@ -105,6 +133,7 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
         disableTracingCommand,
         clearTracesCommand,
         showTraceDetailsCommand,
+        toggleAgentFilterCommand,
         treeDataProvider
     );
 }
@@ -192,9 +221,9 @@ async function showTraceWindow(): Promise<void> {
 /**
  * Show trace details in a webview
  */
-function showTraceDetails(trace: Trace, focusSpanId?: string): void {
+function showTraceDetails(trace: Trace, focusSpanId?: string, isAgentChat?: boolean, showSidebar?: boolean): void {
     try {
-        TraceDetailsWebview.show(trace, false, focusSpanId);
+        TraceDetailsWebview.show(trace, isAgentChat ?? false, focusSpanId, undefined, showSidebar);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         vscode.window.showErrorMessage(`Failed to show trace details: ${message}`);

@@ -379,7 +379,7 @@ const stateMachine = createMachine<MachineContext>(
                                     focusFlowDiagramView: (context, event) => event.data.focusFlowDiagramView,
                                     agentMetadata: (context, event) => event.data.agentMetadata,
                                     dataMapperMetadata: (context, event) => event.data.dataMapperMetadata,
-                                    reviewData: (context, event) => event.data.reviewData,
+                                    reviewData: (context, event) => event.data.reviewData ?? context.reviewData,
                                     evalsetData: (context, event) => event.data.evalsetData,
                                     isViewUpdateTransition: false
                                 })

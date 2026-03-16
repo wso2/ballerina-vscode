@@ -380,6 +380,20 @@ export function JsonTreeViewer({
 
         // Handle arrays
         if (Array.isArray(value)) {
+            if (value.length === 0) {
+                return (
+                    <NodeRow key={path}>
+                        {!isFlatRoot && <Spacer />}
+                        <KeyBadge isArrayIndex={isArrayIndex}>
+                            {highlightText(key, searchQuery)}
+                        </KeyBadge>
+                        <TypeIndicator>[ ]</TypeIndicator>
+                        <StyledCopyWrapper>
+                            <CopyButton text="[]" size="small" inline />
+                        </StyledCopyWrapper>
+                    </NodeRow>
+                );
+            }
             return (
                 <div key={path}>
                     <ExpandableRow onClick={() => toggleExpanded(path)}>
@@ -410,6 +424,20 @@ export function JsonTreeViewer({
         // Handle objects
         if (value !== null && typeof value === 'object') {
             const keys = Object.keys(value);
+            if (keys.length === 0) {
+                return (
+                    <NodeRow key={path}>
+                        {!isFlatRoot && <Spacer />}
+                        <KeyBadge isArrayIndex={isArrayIndex}>
+                            {highlightText(key, searchQuery)}
+                        </KeyBadge>
+                        <TypeIndicator>{'{ }'}</TypeIndicator>
+                        <StyledCopyWrapper>
+                            <CopyButton text="{}" size="small" inline />
+                        </StyledCopyWrapper>
+                    </NodeRow>
+                );
+            }
             return (
                 <div key={path}>
                     <ExpandableRow onClick={() => toggleExpanded(path)}>
@@ -453,6 +481,10 @@ export function JsonTreeViewer({
     };
 
     if (Array.isArray(parsedData)) {
+        if (parsedData.length === 0) {
+            return <Container><TypeIndicator>[ ]</TypeIndicator></Container>;
+        }
+
         const showCondensedView = expandLastOnly && parsedData.length > 4 && !showHiddenItems && !searchQuery;
         const numItemsToShowAtStart = 0;
 
@@ -494,6 +526,10 @@ export function JsonTreeViewer({
     }
 
     if (parsedData !== null && typeof parsedData === 'object') {
+        if (Object.keys(parsedData as object).length === 0) {
+            return <Container><TypeIndicator>{'{ }'}</TypeIndicator></Container>;
+        }
+
         return (
             <Container>
                 {Object.entries(parsedData).map(([key, value]) => (

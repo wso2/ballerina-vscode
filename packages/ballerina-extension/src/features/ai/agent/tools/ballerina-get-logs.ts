@@ -52,7 +52,7 @@ export function createBallerinaGetLogsTool(
                 type: "tool_result",
                 toolName: BALLERINA_GET_LOGS_TOOL_NAME,
                 toolCallId,
-                toolOutput: { status: result.status },
+                toolOutput: { status: result.status, logs: result.logs },
             });
 
             return result;

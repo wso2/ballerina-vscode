@@ -18,12 +18,23 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { FlowNode } from "@wso2/ballerina-core";
+import { EVENT_TYPE, FlowNode } from "@wso2/ballerina-core";
+import { NodePosition } from "@wso2/syntax-tree";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { AIAgentSidePanel, ExtendedAgentToolRequest } from "./AIAgentSidePanel";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { addToolToAgentNode, findAgentNodeFromAgentCallNode, updateFlowNodePropertyValuesWithKeys } from "./utils";
 import { FUNCTION_CALL } from "../../../constants";
+
+// Module-level cache: avoids re-fetching the same agent node when switching between modes
+const agentNodeCache = new Map<string, FlowNode>();
+
+function getAgentCacheKey(node: FlowNode): string {
+    const agentName = node.properties?.connection?.value ?? "";
+    const fileName = node.codedata?.lineRange?.fileName;
+    const fileId = fileName ?? JSON.stringify(node.codedata?.lineRange ?? "");
+    return `${fileId}-${agentName}`;
+}
 
 const LoaderContainer = styled.div`
     display: flex;
@@ -36,6 +47,7 @@ export enum NewToolSelectionMode {
     CONNECTION = "connection",
     FUNCTION = "function",
     ALL = "all",
+    CUSTOM_TOOL = "custom_tool",
 }
 
 interface NewToolProps {
@@ -43,10 +55,11 @@ interface NewToolProps {
     mode?: NewToolSelectionMode;
     onBack?: () => void;
     onSave?: () => void;
+    onSetBackOverride?: (handler: (() => void) | null) => void;
 }
 
 export function NewTool(props: NewToolProps): JSX.Element {
-    const { agentCallNode, mode = NewToolSelectionMode.ALL, onSave, onBack } = props;
+    const { agentCallNode, mode = NewToolSelectionMode.ALL, onSave, onBack, onSetBackOverride } = props;
     const { rpcClient } = useRpcContext();
 
     const [agentNode, setAgentNode] = useState<FlowNode | null>(null);
@@ -69,80 +82,152 @@ export function NewTool(props: NewToolProps): JSX.Element {
     };
 
     const fetchAgentNode = async () => {
+        const cacheKey = getAgentCacheKey(agentCallNode);
+
+        const cached = agentNodeCache.get(cacheKey);
+        if (cached) {
+            console.log(">>> agent node (from cache)", { cached, agentNodeCache });
+            setAgentNode(cached);
+            return;
+        }
+
         const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
         console.log(">>> agent node found", { agentNode });
+        if (agentNode) {
+            agentNodeCache.set(cacheKey, agentNode);
+        }
         setAgentNode(agentNode);
     };
 
+    const handleAgentToolCreated = async (functionName: string) => {
+        if (!agentNode) {
+            console.error("Agent node not found");
+            return;
+        }
+        try {
+            const updatedAgentNode = await addToolToAgentNode(agentNode, functionName);
+            if (!updatedAgentNode) {
+                console.error("Failed to add tool to agent node");
+                return;
+            }
+
+            const { filePath: agentFile } = await rpcClient.getVisualizerRpcClient().joinProjectPath({
+                segments: [updatedAgentNode.codedata.lineRange.fileName],
+            });
+            await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: agentFile, flowNode: updatedAgentNode });
+
+            // Invalidate cache so the updated agent node is re-fetched next time
+            agentNodeCache.delete(getAgentCacheKey(agentCallNode));
+
+            // Fetch the newly created function to get its source position
+            const agentsFileName = "agents.bal";
+            const { filePath: agentsFilePath } = await rpcClient.getVisualizerRpcClient().joinProjectPath({
+                segments: [agentsFileName],
+            });
+            const functionNodeResponse = await rpcClient.getBIDiagramRpcClient().getFunctionNode({
+                functionName,
+                fileName: agentsFileName,
+                projectPath: projectPath.current,
+            });
+            const linePosition = functionNodeResponse?.functionDefinition?.codedata?.lineRange?.startLine;
+            const position: NodePosition = {
+                startLine: linePosition?.line ?? 0,
+                startColumn: linePosition?.offset ?? 0,
+            };
+
+            // Close the panel and navigate to the function's flow diagram
+            onSave?.();
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: { documentUri: agentsFilePath, position },
+            });
+        } catch (error) {
+            console.error("Error handling custom agent tool creation", { error });
+        }
+    };
+
     const handleOnSubmit = async (data: ExtendedAgentToolRequest) => {
-        console.log(">>> submit value", { data });
-        setSavingForm(true);
+        if (!agentNode) {
+            console.error("Agent node not found");
+            return;
+        }
         if (!data.toolName) {
             console.error("Tool name is required");
             return;
         }
-        try {
-            const updatedAgentNode = await addToolToAgentNode(agentNode, data.toolName);
-            const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [updatedAgentNode.codedata.lineRange.fileName] })).filePath;
-            // generate the source code
-            const agentResponse = await rpcClient
-                .getBIDiagramRpcClient()
-                .getSourceCode({ filePath: filePath, flowNode: updatedAgentNode });
-            console.log(">>> response getSourceCode with template ", { agentResponse });
 
-            // wait for 2 seconds
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+        // Resolve the flow node and connection based on the tool source type
+        let flowNode: FlowNode;
+        let connection: string;
 
-            // add tools
-            if (data.selectedCodeData.node === FUNCTION_CALL) {
-                // create tool from existing function
-                // get function definition
-                const functionDefinition = data.functionNode;
-                if (!functionDefinition) {
-                    console.error("Function definition not found");
-                    return;
-                }
-                if (functionDefinition?.codedata) {
-                    functionDefinition.codedata.isNew = true;
-                    functionDefinition.codedata.lineRange = {
-                        ...agentNode.codedata.lineRange,
-                        endLine: agentNode.codedata.lineRange.startLine,
-                    };
-                }
-                // save tool
-                const toolResponse = await rpcClient.getAIAgentRpcClient().genTool({
-                    toolName: data.toolName,
-                    description: data.description,
-                    filePath: agentFilePath.current,
-                    flowNode: functionDefinition as FlowNode,
-                    connection: "",
-                    toolParameters: data.toolParameters,
-                });
-                console.log(">>> response save tool", { toolResponse });
-            } else {
-                // create tool from existing connection
-                if (!data.flowNode) {
-                    console.error("Node template not found");
-                    return;
-                }
-                if (data.flowNode?.codedata) {
-                    data.flowNode.codedata.isNew = true;
-                    data.flowNode.codedata.lineRange = {
-                        ...agentNode.codedata.lineRange,
-                        endLine: agentNode.codedata.lineRange.startLine,
-                    };
-                }
-                // save tool
-                const toolResponse = await rpcClient.getAIAgentRpcClient().genTool({
-                    toolName: data.toolName,
-                    description: data.description,
-                    filePath: agentFilePath.current,
-                    flowNode: data.flowNode,
-                    connection: data.selectedCodeData.parentSymbol || "",
-                    toolParameters: data.toolParameters,
-                });
-                console.log(">>> response save tool", { toolResponse });
+        if (data.selectedCodeData.node === FUNCTION_CALL) {
+            if (!data.functionNode) {
+                console.error("Function definition not found");
+                return;
             }
+            flowNode = data.functionNode as FlowNode;
+            connection = "";
+        } else {
+            if (!data.flowNode) {
+                console.error("Node template not found");
+                return;
+            }
+            flowNode = data.flowNode;
+            connection = data.selectedCodeData.parentSymbol || "";
+        }
+
+        setSavingForm(true);
+
+        try {
+            if (flowNode.codedata) {
+                flowNode.codedata.isNew = true;
+                flowNode.codedata.lineRange = {
+                    ...agentNode.codedata.lineRange,
+                    endLine: agentNode.codedata.lineRange.startLine,
+                };
+            }
+
+            const toolResponse = await rpcClient.getAIAgentRpcClient().genTool({
+                toolName: data.toolName,
+                description: data.description,
+                filePath: agentFilePath.current,
+                flowNode,
+                connection,
+                toolParameters: data.toolParameters,
+            });
+
+            if (!toolResponse) {
+                console.error("Tool generation failed");
+                return;
+            }
+
+            const updatedAgentNode = await addToolToAgentNode(agentNode, data.toolName);
+            if (!updatedAgentNode) {
+                console.error("Failed to add tool to agent node");
+                return;
+            }
+
+            // Find the updated agent node in the response artifacts and update the local state
+            if (toolResponse.artifacts?.length > 0) {
+                const updatedAgentArtifact = toolResponse.artifacts.find(artifact => artifact?.name === agentNode?.properties?.variable?.value);
+                // Update line range so subsequent tool additions target the correct source location
+                if (updatedAgentArtifact?.position) {
+                    updatedAgentNode.codedata.lineRange.startLine.line = updatedAgentArtifact.position.startLine;
+                    updatedAgentNode.codedata.lineRange.startLine.offset = updatedAgentArtifact.position.startColumn;
+                    updatedAgentNode.codedata.lineRange.endLine.line = updatedAgentArtifact.position.endLine;
+                    updatedAgentNode.codedata.lineRange.endLine.offset = updatedAgentArtifact.position.endColumn;
+                }
+            }
+
+            const { filePath } = await rpcClient.getVisualizerRpcClient().joinProjectPath({
+                segments: [updatedAgentNode.codedata.lineRange.fileName],
+            });
+
+            // Generate the source code
+            await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath, flowNode: updatedAgentNode });
+
+            // Invalidate cache so the updated agent node is re-fetched next time
+            agentNodeCache.delete(getAgentCacheKey(agentCallNode));
             onSave?.();
         } catch (error) {
             console.error("Error saving tool", { error });
@@ -154,7 +239,17 @@ export function NewTool(props: NewToolProps): JSX.Element {
     return (
         <>
             {agentFilePath.current && !savingForm && (
-                <AIAgentSidePanel projectPath={projectPath.current} onSubmit={handleOnSubmit} mode={mode} />
+                <AIAgentSidePanel
+                    agentNode={agentNode}
+                    projectPath={projectPath.current}
+                    onSubmit={handleOnSubmit}
+                    mode={mode}
+                    onViewChange={(_view, navigateBack) => {
+                        onSetBackOverride?.(navigateBack || null);
+                    }}
+                    onAgentToolCreated={handleAgentToolCreated}
+                    onCancel={onBack}
+                />
             )}
             {(!agentFilePath.current || savingForm) && (
                 <LoaderContainer>

@@ -204,15 +204,11 @@ export function AddConnectionPopupContent(props: Props) {
         if (searchText) {
             return category.items && category.items.length > 0;
         }
-        // Map filterType to category labels similar to ConnectorView
-        // "Standard" maps to "StandardLibrary" (exclude Local and CurrentOrg)
-        // "Organization" maps to "CurrentOrg"
-        if (filterType === "Standard") {
-            return category.metadata.label !== "Local" && category.metadata.label !== "CurrentOrg";
-        } else if (filterType === "Organization") {
-            return category.metadata.label === "CurrentOrg";
+        // Standard & All: exclude Local (Local only appears in search results)
+        // Organization: backend pre-filters with filterByCurrentOrg - show all returned
+        if (filterType === "Organization") {
+            return true;
         }
-        // "All" shows all categories except Local (which is handled separately)
         return category.metadata.label !== "Local";
     });
 

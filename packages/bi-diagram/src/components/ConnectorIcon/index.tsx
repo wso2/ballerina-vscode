@@ -63,16 +63,16 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
     }
 
     // use custom icon for ai module
-    if (url?.includes("ballerinax_ai_") || url?.includes("ballerina_ai")) {
+    if ((url?.includes("ballerinax_ai_") || url?.includes("ballerina_ai")) && codedata && !(codedata.node === "AGENT_CALL" || codedata.node === "AGENT_RUN")) {
         return <Icon name="bi-ai-model" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
+    }
+
+    if ((url?.includes("ballerinax_ai_") || url?.includes("ballerina_ai")) && codedata && (codedata.node === "AGENT_CALL" || codedata.node === "AGENT_RUN")) {
+        return <Icon name="bi-ai-agent" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
     if (url && isValidUrl(url) && !imageError) {
         return <img src={url} className={className} onError={() => setImageError(true)} style={{ ...style }} />;
-    }
-
-    if (codedata && (codedata.node === "AGENT_CALL" || codedata.node === "AGENT_RUN")) {
-        return <Icon name="bi-ai-agent" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
     if (fallbackIcon) {

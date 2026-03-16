@@ -82,6 +82,7 @@ export enum MACHINE_VIEW {
     BIAddProjectForm = "BI Add Project SKIP",
     BIComponentView = "BI Component View",
     AddConnectionWizard = "Add Connection Wizard",
+    ConnectionConfiguration = "Connection Configuration",
     AddCustomConnector = "Add Custom Connector",
     ViewConfigVariables = "View Config Variables",
     EditConfigVariables = "Edit Config Variables",
@@ -89,6 +90,7 @@ export enum MACHINE_VIEW {
     EditConnectionWizard = "Edit Connection Wizard",
     BIMainFunctionForm = "Add Automation SKIP",
     BIFunctionForm = "Add Function SKIP",
+    BIAgentToolForm = "Add Agent Tool SKIP",
     BINPFunctionForm = "Add Natural Function SKIP",
     BITestFunctionForm = "Add Test Function SKIP",
     BIAIEvaluationForm = "AI Evaluation SKIP",
@@ -201,6 +203,20 @@ export interface VisualizerMetadata {
     featureSupport?: {
         aiEvaluation?: boolean;
     };
+    // Connection Configuration metadata
+    selectedConnectorId?: string;
+    selectedConnectorOrg?: string;
+    selectedConnectorModule?: string;
+    selectedConnectorPackageName?: string;
+    selectedConnectorObject?: string;
+    selectedConnectorSymbol?: string;
+    selectedConnectorVersion?: string;
+    selectedConnectorIsGenerated?: boolean;
+    selectedConnectorNode?: string;
+    selectedConnectorLabel?: string;
+    selectedConnectorDescription?: string;
+    selectedConnectorIcon?: string;
+    categoryName?: string;
 }
 
 export interface DataMapperMetadata {
@@ -209,11 +225,12 @@ export interface DataMapperMetadata {
 }
 
 export interface ReviewViewItem {
-    type: 'component' | 'flow';
+    type: 'component' | 'flow' | 'type';
     filePath: string;
     position: NodePosition;
     projectPath: string;
     label?: string;
+    changeType?: number;
 }
 
 export interface ReviewModeData {
@@ -221,6 +238,12 @@ export interface ReviewModeData {
     currentIndex: number;
     onAccept?: string;
     onReject?: string;
+    semanticDiffs?: object[];
+    loadDesignDiagrams?: boolean;
+    affectedPackages?: string[];
+    modifiedFiles?: string[];
+    tempProjectPath?: string;
+    isWorkspace?: boolean;
 }
 
 // --- Evalset Trace Types ---
@@ -286,7 +309,7 @@ export interface EvalsetTrace {
 
 export interface EvalThread {
     id: string;
-    name: string;
+    description: string;
     traces: EvalsetTrace[];
     created_on: string;
 }
@@ -343,7 +366,7 @@ export type ChatNotify =
     | GeneratedSourcesEvent
     | ConnectorGenerationNotification
     | ConfigurationCollectionEvent
-    | CodeReviewActions
+    | ChatComponentEvent
     | PlanUpdated;
 
 export interface ChatStart {
@@ -482,8 +505,10 @@ export interface ConfigurationCollectionEvent {
     };
 }
 
-export interface CodeReviewActions {
-    type: "review_actions";
+export interface ChatComponentEvent {
+    type: "chat_component";
+    componentType: string;
+    data: Record<string, any>;
 }
 
 export interface PlanUpdated {
@@ -494,7 +519,6 @@ export interface PlanUpdated {
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
-export const onHideReviewActions: NotificationType<void> = { method: 'onHideReviewActions' };
 export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
 export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
 export const onMigratedProject: NotificationType<ProjectMigrationResult> = { method: 'onMigratedProject' };
@@ -832,3 +856,15 @@ export interface ConnectorGeneratorResponsePayload {
     comment?: string;
 }
 export const sendConnectorGeneratorResponse: RequestType<ConnectorGeneratorResponsePayload, void> = { method: 'sendConnectorGeneratorResponse' };
+
+// Trace animation notification types
+export interface TraceAnimationEvent {
+    type: 'invoke_agent' | 'chat' | 'execute_tool';
+    toolNames: string[];
+    activeToolName?: string;
+    spanId: string;
+    active: boolean;
+    systemInstructions?: string;
+}
+
+export const traceAnimationChanged: NotificationType<TraceAnimationEvent> = { method: 'traceAnimationChanged' };
