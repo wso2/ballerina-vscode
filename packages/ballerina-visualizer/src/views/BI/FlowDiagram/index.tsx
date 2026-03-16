@@ -155,9 +155,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         originalModel,
     } = useDraftNodeManager(model);
 
+    const isMountedRef = useRef(true);
     const selectedNodeRef = useRef<FlowNode>();
     const parentNodeRef = useRef<FlowNode>();
     const nodeTemplateRef = useRef<FlowNode>();
+    const hasRenameOperation = useRef<boolean>(false);
     const topNodeRef = useRef<FlowNode | Branch>();
     const targetRef = useRef<LineRange>();
     const suggestedText = useRef<string>();
@@ -177,11 +179,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewDataLoader = useRef<boolean>(false);
     const isCreatingNewChunker = useRef<boolean>(false);
 
-    const { platformExtState, platformRpcClient, onLinkDevantProject,  importConnection: importDevantConn } = usePlatformExtContext()
+    const { platformExtState, platformRpcClient, onLinkDevantProject, importConnection: importDevantConn } = usePlatformExtContext()
 
-    const enrichedCategories = useMemo(()=>{
-         return  enrichCategoryWithDevant(platformExtState?.devantConns?.list, categories, importingConn)
-    },[platformExtState, categories, importingConn])
+    const enrichedCategories = useMemo(() => {
+        return enrichCategoryWithDevant(platformExtState?.devantConns?.list, categories, importingConn)
+    }, [platformExtState, categories, importingConn])
 
     const handleClickImportDevantConn = (data: ConnectionListItem) => {
         rpcClient.getVisualizerRpcClient().openView({
@@ -195,6 +197,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         });
         importDevantConn.setConnection(data)
     }
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     useEffect(() => {
         debouncedGetFlowModelForBreakpoints();
@@ -245,7 +254,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .catch(() => {
                 setIsUserAuthenticated(false);
             });
-    }, [rpcClient]);
+
+        // Check for identifier renames
+        rpcClient.onIdentifierUpdated((renames) => {
+            if (!isMountedRef.current) return;
+            if (renames?.length > 0) {
+                hasRenameOperation.current = true;
+            }
+        });
+    });
 
     const updateConnectionWithNewItem = (recentIdentifier: string) => {
         // Add a new item as loading into the "Connections" category
@@ -1350,6 +1367,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             debouncedGetFlowModel();
             return;
         }
+
+        // The form holds a stale copy of the node, so its lineRange may be outdated
+        // after source-modifying operations like renames. Patch it from selectedNodeRef
+        // which is kept up-to-date by handleRenameComplete and getFlowModel.
+        if (hasRenameOperation.current) {
+            updatedNode.codedata.lineRange = selectedNodeRef.current.codedata.lineRange;
+            hasRenameOperation.current = false;
+        }
+
         setShowProgressIndicator(true);
         // TODO: Uncomment this when the draft added with AI agent is implemented
         // savingDraft(); 
@@ -1448,7 +1474,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             return;
                         }
                     }
-                
+
                     if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER
                         || (updatedNode?.codedata?.node === "AGENT_CALL" && updatedNode?.properties?.model?.value === "")) {
                         await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
