@@ -73,7 +73,7 @@
         "description": "The port on which the webhook listener accepts incoming HTTP requests"
       },
       "placeholder": "8090",
-      "value": "",
+      "value": "8090",
       "types": [
         {
           "fieldType": "NUMBER",
