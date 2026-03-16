@@ -471,6 +471,7 @@ export function expandDMModel(
         query: model.query,
         source: "",
         rootViewId,
+        hasInvalidOutput: model.hasInvalidOutput,
         triggerRefresh: model.triggerRefresh,
         focusInputRootMap: model.focusInputRootMap
     };
@@ -526,7 +527,7 @@ function isModuleLevelInput(input: IORoot): boolean {
  */
 function buildModuleLevelInputsGroup(moduleLevelInputs: IORoot[], model: DMModel): IOType {
     
-    const id = "MODULE_LEVEL_INPUTS$"; // Suffix $ to avoid conflicts with user defined names and special case port handling
+    const id = "MODULE_LEVEL_INPUTS_G#"; // Suffix G# to avoid conflicts with user defined names and special case port handling
     model.traversingRoot = id;
     const fields = moduleLevelInputs.map(input => {
         model.focusInputRootMap[input.name] = model.traversingRoot;

@@ -24,7 +24,7 @@ import { cloneDeep } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { FormGenerator } from "../Forms/FormGenerator";
-import { getAgentFilePath, getAiModuleOrg, getNodeTemplate } from "./utils";
+import { getAiModuleOrg, getNodeTemplate } from "./utils";
 import { usePanelOverlay } from "../FlowDiagram/hooks/usePanelOverlay";
 import { ConnectionSelectionList } from "../../../components/ConnectionSelector/ConnectionSelectionList";
 import { ConnectionCreator } from "../../../components/ConnectionSelector/ConnectionCreator";
@@ -97,7 +97,7 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
 
         try {
             // Fetch initial configuration data
-            agentFilePath.current = await getAgentFilePath(rpcClient);
+            agentFilePath.current = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [agentNode?.codedata?.lineRange?.fileName] })).filePath;
             aiModuleOrg.current = await getAiModuleOrg(rpcClient);
 
             // Load available memory
@@ -427,7 +427,8 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                     fieldOverrides={{
                         store: {
                             type: "ACTION_EXPRESSION",
-                            types: [{ fieldType: "ACTION_EXPRESSION", selected: false }],
+                            types: [{ fieldType: "ACTION_EXPRESSION", selected: true }, { fieldType: "EXPRESSION", selected: false }],
+                            codedata: { searchNodesKind: "MEMORY_STORE" },
                             actionCallback: handleOpenStoreSelection,
                             defaultValue: "In-Memory Short Term Memory Store",
                             actionLabel: (

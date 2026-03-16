@@ -50,6 +50,7 @@ import {
     getPrimaryInputType,
     MACHINE_VIEW,
     EditorDisplayMode,
+    Imports,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -68,6 +69,7 @@ namespace S {
         display: flex;
         flex-direction: column;
         gap: ${({ compact }) => (compact ? "8px" : "20px")};
+        padding: ${({ nestedForm }) => (nestedForm ? "16px 5px" : "16px")};
         height: ${({ nestedForm, footerActionButton }) => {
             if (nestedForm) return "unset";
             if (footerActionButton) return "100%";
@@ -396,6 +398,7 @@ export interface FormProps {
     injectedComponents?: {
         component: React.ReactNode;
         index: number;
+        advanced?: boolean;
     }[];
     hideSaveButton?: boolean; // Option to hide the save button
     footerActionButton?: boolean; // Render save button as footer action button
@@ -403,6 +406,7 @@ export interface FormProps {
     changeOptionalFieldTitle?: string; // Option to change the title of optional fields
     openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
+    updateImports?: (key: string, imports: Imports) => void;
 }
 
 export const Form = forwardRef((props: FormProps) => {
@@ -444,7 +448,8 @@ export const Form = forwardRef((props: FormProps) => {
         onValidityChange,
         changeOptionalFieldTitle = undefined,
         openFormTypeEditor,
-        derivedFields = []
+        derivedFields = [],
+        updateImports,
     } = props;
 
     const {
@@ -1019,10 +1024,12 @@ export const Form = forwardRef((props: FormProps) => {
                     let renderedFieldCount = 0;
                     const injectedIndices = new Set<number>(); // Track which injections have been added
 
+                    const nonAdvancedInjections = injectedComponents?.filter((ic) => !ic.advanced);
+
                     fieldsToRender.forEach((field) => {
                         // Check if we need to inject components before this field
-                        if (injectedComponents) {
-                            injectedComponents.forEach((injected) => {
+                        if (nonAdvancedInjections) {
+                            nonAdvancedInjections.forEach((injected) => {
                                 if (injected.index === renderedFieldCount && !injectedIndices.has(injected.index)) {
                                     renderedComponents.push(
                                         <React.Fragment key={`injected-${injected.index}`}>
@@ -1054,6 +1061,7 @@ export const Form = forwardRef((props: FormProps) => {
                                     }
                                     openSubPanel={handleOpenSubPanel}
                                     subPanelView={subPanelView}
+                                    handleFormValidation={handleFormValidation}
                                     handleOnFieldFocus={handleOnFieldFocus}
                                     autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField) && !hideSaveButton}
                                     recordTypeFields={recordTypeFields}
@@ -1067,6 +1075,7 @@ export const Form = forwardRef((props: FormProps) => {
                                         openFormTypeEditor &&
                                         ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
                                     }
+                                    updateImports={updateImports}
                                 />
                                 {updatedField.key === "scope" && scopeFieldAddon}
                             </S.Row>
@@ -1075,8 +1084,8 @@ export const Form = forwardRef((props: FormProps) => {
                     });
 
                     // Check if we need to inject components after all fields
-                    if (injectedComponents) {
-                        injectedComponents.forEach((injected) => {
+                    if (nonAdvancedInjections) {
+                        nonAdvancedInjections.forEach((injected) => {
                             if (injected.index >= renderedFieldCount && !injectedIndices.has(injected.index)) {
                                 renderedComponents.push(
                                     <React.Fragment key={`injected-${injected.index}`}>
@@ -1124,29 +1133,64 @@ export const Form = forwardRef((props: FormProps) => {
                 )}
                 {hasAdvanceFields &&
                     showAdvancedOptions &&
-                    formFields.map((field) => {
-                        if (field.advanced && !field.hidden) {
-                            const updatedField = updateFormFieldWithImports(field, formImports);
-                            return (
-                                <S.Row key={updatedField.key}>
-                                    <FieldFactory
-                                        field={updatedField}
-                                        openRecordEditor={
-                                            openRecordEditor &&
-                                            ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                    (() => {
+                        const advancedComponents: React.ReactNode[] = [];
+                        let advancedFieldCount = 0;
+                        const advancedInjectedIndices = new Set<number>();
+                        const advancedInjections = injectedComponents?.filter((ic) => ic.advanced);
+
+                        formFields.forEach((field) => {
+                            if (field.advanced && !field.hidden) {
+                                if (advancedInjections) {
+                                    advancedInjections.forEach((injected) => {
+                                        if (injected.index === advancedFieldCount && !advancedInjectedIndices.has(injected.index)) {
+                                            advancedComponents.push(
+                                                <React.Fragment key={`injected-advanced-${injected.index}`}>
+                                                    {injected.component}
+                                                </React.Fragment>
+                                            );
+                                            advancedInjectedIndices.add(injected.index);
                                         }
-                                        subPanelView={subPanelView}
-                                        handleOnFieldFocus={handleOnFieldFocus}
-                                        recordTypeFields={recordTypeFields}
-                                        onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                        handleOnTypeChange={handleOnTypeChange}
-                                        onBlur={handleOnBlur}
-                                    />
-                                </S.Row>
-                            );
+                                    });
+                                }
+
+                                const updatedField = updateFormFieldWithImports(field, formImports);
+                                advancedComponents.push(
+                                    <S.Row key={updatedField.key}>
+                                        <FieldFactory
+                                            field={updatedField}
+                                            openRecordEditor={
+                                                openRecordEditor &&
+                                                ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                                            }
+                                            subPanelView={subPanelView}
+                                            handleOnFieldFocus={handleOnFieldFocus}
+                                            recordTypeFields={recordTypeFields}
+                                            onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                            handleOnTypeChange={handleOnTypeChange}
+                                            onBlur={handleOnBlur}
+                                        />
+                                    </S.Row>
+                                );
+                                advancedFieldCount++;
+                            }
+                        });
+
+                        if (advancedInjections) {
+                            advancedInjections.forEach((injected) => {
+                                if (injected.index >= advancedFieldCount && !advancedInjectedIndices.has(injected.index)) {
+                                    advancedComponents.push(
+                                        <React.Fragment key={`injected-advanced-${injected.index}`}>
+                                            {injected.component}
+                                        </React.Fragment>
+                                    );
+                                    advancedInjectedIndices.add(injected.index);
+                                }
+                            });
                         }
-                        return null;
-                    })}
+
+                        return advancedComponents;
+                    })()}
                 {hasAdvanceFields &&
                     showAdvancedOptions &&
                     advancedChoiceFields.map((field) => {
@@ -1165,6 +1209,7 @@ export const Form = forwardRef((props: FormProps) => {
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                     handleOnTypeChange={handleOnTypeChange}
                                     onBlur={handleOnBlur}
+                                    handleFormValidation={handleFormValidation}
                                 />
                             </S.Row>
                         );
@@ -1180,6 +1225,8 @@ export const Form = forwardRef((props: FormProps) => {
                             recordTypeFields={recordTypeFields}
                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             onBlur={handleOnBlur}
+                            handleFormValidation={handleFormValidation}
+
                         />
                     )}
                     {typeField && !isInferredReturnType && (
@@ -1195,7 +1242,7 @@ export const Form = forwardRef((props: FormProps) => {
                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             handleNewTypeSelected={handleNewTypeSelected}
                             onBlur={handleOnBlur}
-
+                            handleFormValidation={handleFormValidation}
                         />
                     )}
                     {targetTypeField && !targetTypeField.advanced && (
@@ -1208,6 +1255,7 @@ export const Form = forwardRef((props: FormProps) => {
                                 handleNewTypeSelected={handleNewTypeSelected}
                                 handleOnTypeChange={handleOnTypeChange}
                                 onBlur={handleOnBlur}
+                                handleFormValidation={handleFormValidation}
                             />
                             {typeField && (
                                 <TypeHelperText

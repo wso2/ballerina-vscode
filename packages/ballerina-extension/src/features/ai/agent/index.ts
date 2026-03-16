@@ -15,7 +15,6 @@
 // under the License.
 
 import { Command, ExecutionContext, GenerateAgentCodeRequest } from "@wso2/ballerina-core";
-import { workspace } from 'vscode';
 import { StateMachine } from "../../../stateMachine";
 import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
 import { AICommandConfig } from "../executors/base/AICommandExecutor";
@@ -82,12 +81,6 @@ export function createExecutorConfig<TParams>(
  */
 export async function generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {
     try {
-        const isPlanModeEnabled = workspace.getConfiguration('ballerina.ai').get<boolean>('planMode', false);
-
-        if (!isPlanModeEnabled) {
-            params.isPlanMode = false;
-        }
-
         // Check for pending review to reuse temp project path
         const projectRootPath = resolveProjectRootPath();
         const threadId = params.threadId || 'default';

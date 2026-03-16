@@ -46,11 +46,11 @@ export const getMigrationProgressHeaderData = (state: MigrationDisplayState, isM
         if (isMultiProject) {
             headerText = "Migration Completed Successfully!";
             headerDesc =
-                "Your integration project with multiple packages has been successfully migrated. You can now proceed to the final step to create and open your project.";
+                "Your project with multiple integrations has been successfully migrated. You can now proceed to the final step to create and open your project.";
         } else {
             headerText = "Migration Completed Successfully!";
             headerDesc =
-                "Your integration project has been successfully migrated. You can now proceed to the final step to create and open your project.";
+                "Your integration has been successfully migrated. You can now proceed to the final step to create and open your integration.";
         }
     } else if (state.isFailed) {
         headerText = "Migration Failed";
@@ -61,7 +61,7 @@ export const getMigrationProgressHeaderData = (state: MigrationDisplayState, isM
             headerDesc = "Please wait while we migrate your multi-project integration.";
         } else {
             headerText = "Migration in Progress...";
-            headerDesc = "Please wait while we set up your new integration project.";
+            headerDesc = "Please wait while we set up your new integration.";
         }
     }
 
@@ -109,4 +109,3 @@ export const handleMultiProjectReportOpening = (
         }
     }
 }
-

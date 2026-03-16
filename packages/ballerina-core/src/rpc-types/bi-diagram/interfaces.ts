@@ -23,8 +23,8 @@ import { RemoteFunction, ServiceType } from "../../interfaces/ballerina";
 import { ImportInfo } from "../ai-panel/interfaces";
 
 export interface ProjectRequest {
-    projectName: string;
-    packageName: string;
+    projectName?: string;
+    packageName?: string;
     projectPath: string;
     createDirectory: boolean;
     createAsWorkspace?: boolean;
@@ -218,6 +218,7 @@ export interface ValidateProjectFormRequest {
     projectPath: string;
     projectName: string;
     createDirectory: boolean;
+    createAsWorkspace?: boolean;
 }
 
 export interface ValidateProjectFormResponse {

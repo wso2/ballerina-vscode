@@ -16,11 +16,12 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Icon, Popover, ThemeColors } from "@wso2/ui-toolkit";
-import { DiagnosticMessage, FlowNode, NodeProperties, Property } from "@wso2/ballerina-core";
+import { Icon, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
+import { DiagnosticMessage, FlowNode, LineRange, NodeProperties, Property } from "@wso2/ballerina-core";
 import { NODE_WIDTH } from "../../resources/constants";
+import { useDiagramContext } from "../DiagramContext";
 
 const IconBtn = styled.div`
     width: 20px;
@@ -43,6 +44,30 @@ const PopupContainer = styled.div`
         margin: 0;
         padding-left: 20px;
     }
+
+    li {
+        margin-bottom: 4px;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+`;
+
+const Footer = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+`;
+
+const FixButton = styled.button<{ disabled?: boolean }>`
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    border-radius: 4px;
+    color: ${(props: { disabled?: boolean }) => (props.disabled ? ThemeColors.OUTLINE_VARIANT : ThemeColors.PRIMARY)};
+    background: ${(props: { disabled?: boolean }) => (props.disabled ? ThemeColors.SURFACE_DIM : ThemeColors.SURFACE_BRIGHT)};
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 4px 8px;
+    cursor: ${(props: { disabled?: boolean }) => (props.disabled ? "not-allowed" : "pointer")};
 `;
 
 export interface DiagnosticsPopUpProps {
@@ -51,10 +76,10 @@ export interface DiagnosticsPopUpProps {
 
 export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
     const { node } = props;
+    const { onAddNodePrompt, isUserAuthenticated, readOnly } = useDiagramContext();
 
     const [diagnosticsAnchorEl, setDiagnosticsAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isDiagnosticsOpen = Boolean(diagnosticsAnchorEl);
-    const diagnosticMessages: DiagnosticMessage[] = node.diagnostics?.diagnostics || [];
 
     const handleOnDiagnosticsClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         setDiagnosticsAnchorEl(event.currentTarget);
@@ -64,25 +89,100 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
         setDiagnosticsAnchorEl(null);
     };
 
-    const getPropertyDiagnostics = (properties: NodeProperties) => {
+    const getPropertyDiagnostics = (properties: NodeProperties, diagnostics: DiagnosticMessageWithRange[]) => {
         for (const key in properties) {
             if (Object.prototype.hasOwnProperty.call(properties, key)) {
                 const property = properties[key] as Property;
                 if (property.diagnostics && property.diagnostics.hasDiagnostics) {
-                    diagnosticMessages.push(...property.diagnostics.diagnostics);
+                    diagnostics.push(
+                        ...(property.diagnostics.diagnostics || []).map((diagnostic) => ({
+                            diagnostic,
+                            range: property.codedata?.lineRange,
+                        }))
+                    );
                 }
             }
         }
     };
 
-    if (node.properties) {
-        getPropertyDiagnostics(node.properties);
-    }
-    if (node.branches?.length > 0) {
-        node.branches.forEach((branch) => {
-            getPropertyDiagnostics(branch.properties);
+    const diagnosticsWithRanges = useMemo(() => {
+        const diagnostics: DiagnosticMessageWithRange[] = [];
+
+        diagnostics.push(
+            ...((node.diagnostics?.diagnostics || []).map((diagnostic) => ({
+                diagnostic,
+                range: node.codedata?.lineRange,
+            })))
+        );
+
+        if (node.properties) {
+            getPropertyDiagnostics(node.properties, diagnostics);
+        }
+        if (node.branches?.length > 0) {
+            node.branches.forEach((branch) => {
+                getPropertyDiagnostics(branch.properties, diagnostics);
+            });
+        }
+
+        return diagnostics;
+    }, [node]);
+
+    const diagnosticMessages = useMemo(() => {
+        const uniqueDiagnostics = new Map<string, DiagnosticMessage>();
+
+        diagnosticsWithRanges.forEach(({ diagnostic }) => {
+            const key = `${diagnostic.severity}:${diagnostic.message}`;
+            if (!uniqueDiagnostics.has(key)) {
+                uniqueDiagnostics.set(key, diagnostic);
+            }
         });
-    }
+
+        return Array.from(uniqueDiagnostics.values());
+    }, [diagnosticsWithRanges]);
+
+    const targetRange: LineRange | undefined = node.codedata?.lineRange || diagnosticsWithRanges.find((entry) => entry.range)?.range;
+    const canFix =
+        !readOnly &&
+        !!onAddNodePrompt &&
+        !!isUserAuthenticated &&
+        !!targetRange &&
+        diagnosticMessages.length > 0;
+
+    const handleOnFix = () => {
+        if (!canFix || !onAddNodePrompt || !targetRange) {
+            return;
+        }
+
+        const fixPrompt = [
+            "Fix the following diagnostics at this code location:",
+            ...diagnosticMessages.map((diagnostic, index) => `${index + 1}. [${diagnostic.severity}] ${diagnostic.message}`),
+            "",
+            "Apply the minimum required code changes to resolve these diagnostics.",
+        ].join("\n");
+
+        onAddNodePrompt(
+            node,
+            {
+                fileName: targetRange.fileName,
+                startLine: targetRange.startLine,
+                endLine: targetRange.endLine,
+            },
+            fixPrompt,
+            {
+                planMode: false,
+                autoSubmit: true,
+            }
+        );
+        handleOnDiagnosticsClose();
+    };
+
+    const disabledFixTooltip = !isUserAuthenticated
+        ? "You need to be logged into BI Copilot to fix diagnostics"
+        : !targetRange
+            ? "No source location available for diagnostics"
+            : diagnosticMessages.length === 0
+                ? "No diagnostics found to fix"
+                : undefined;
 
     return (
         <>
@@ -99,12 +199,28 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
             >
                 <PopupContainer>
                     <ul>
-                        {diagnosticMessages?.map((diagnostic) => (
-                            <li key={diagnostic.message}>{diagnostic.message}</li>
+                        {diagnosticMessages?.map((diagnostic, index) => (
+                            <li key={`${diagnostic.severity}-${diagnostic.message}-${index}`}>
+                                [{diagnostic.severity}] {diagnostic.message}
+                            </li>
                         ))}
                     </ul>
+                    <Footer>
+                        <Tooltip content={disabledFixTooltip}>
+                            <span>
+                                <FixButton disabled={!canFix} onClick={handleOnFix}>
+                                    Fix with BI Copilot
+                                </FixButton>
+                            </span>
+                        </Tooltip>
+                    </Footer>
                 </PopupContainer>
             </Popover>
         </>
     );
 }
+
+type DiagnosticMessageWithRange = {
+    diagnostic: DiagnosticMessage;
+    range?: LineRange;
+};

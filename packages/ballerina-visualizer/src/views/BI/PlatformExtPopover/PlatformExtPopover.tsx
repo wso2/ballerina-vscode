@@ -26,7 +26,7 @@ import {
     ICreateDirCtxCmdParams,
     IManageDirContextCmdParams,
     IOpenInConsoleCmdParams,
-    CommandIds as PlatformExtCommandIds,
+    WICommandIds,
 } from "@wso2/wso2-platform-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { QuickPickItem } from "vscode";
@@ -97,7 +97,7 @@ export interface DiagnosticsPopUpProps {
 
 export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
     const { isVisible, onClose, anchorEl, projectPath } = props;
-    const { platformExtState, platformRpcClient, loginToDevant } = usePlatformExtContext();
+    const { platformExtState, platformRpcClient, loginToDevant, handleLinkWorkspace } = usePlatformExtContext();
     const { rpcClient } = useRpcContext();
 
     const handleSignOut = () => {
@@ -110,7 +110,7 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
             .then((res) => {
                 if (res === "Yes") {
                     rpcClient.getCommonRpcClient().executeCommand({
-                        commands: [PlatformExtCommandIds.SignOut],
+                        commands: [WICommandIds.SignOut],
                     });
                 }
             });
@@ -119,25 +119,10 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
     const handleSwitchProject = () => {
         rpcClient.getCommonRpcClient().executeCommand({
             commands: [
-                PlatformExtCommandIds.ManageDirectoryContext,
+                WICommandIds.ManageDirectoryContext,
                 {
-                    extName: "Devant",
                     onlyShowSwitchProject: true,
                 } as IManageDirContextCmdParams,
-            ],
-        });
-    };
-
-    const handleLinkWorkspace = async () => {
-        const visualizerLocation = await rpcClient.getVisualizerLocation();
-        rpcClient.getCommonRpcClient().executeCommand({
-            commands: [
-                PlatformExtCommandIds.CreateDirectoryContext,
-                {
-                    extName: "Devant",
-                    skipComponentExistCheck: true,
-                    fsPath: visualizerLocation?.workspacePath || visualizerLocation?.projectPath || "",
-                } as ICreateDirCtxCmdParams,
             ],
         });
     };
@@ -162,9 +147,8 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
     const openIntegrationInConsole = () => {
         rpcClient.getCommonRpcClient().executeCommand({
             commands: [
-                PlatformExtCommandIds.OpenInConsole,
+                WICommandIds.OpenInConsole,
                 {
-                    extName: "Devant",
                     componentFsPath: projectPath,
                     component: platformExtState?.selectedComponent,
                     newComponentParams: { buildPackLang: "ballerina" },

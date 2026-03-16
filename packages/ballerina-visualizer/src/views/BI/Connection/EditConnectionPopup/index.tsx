@@ -20,8 +20,10 @@ import React, { useEffect, useState, useMemo } from "react";
 import styled from "@emotion/styled";
 import { FlowNode, LinePosition, ParentPopupData, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Codicon, ThemeColors, Typography, ProgressRing, Button, Icon } from "@wso2/ui-toolkit";
+import { Codicon, ThemeColors, Typography, ProgressRing } from "@wso2/ui-toolkit";
 import ConnectionConfigView from "../ConnectionConfigView";
+import { ConnectorConfigView } from "./ConnectorConfigView";
+import { EditConnectorForm } from "./EditConnectorForm";
 import { getFormProperties } from "../../../../utils/bi";
 import { ExpressionFormField } from "@wso2/ballerina-side-panel";
 import { cloneDeep } from "lodash";
@@ -29,20 +31,27 @@ import { PopupOverlay, PopupContainer, PopupHeader as ConfigHeader, BackButton, 
 import { ConnectionKind, ConnectionSelectionList, ConnectionCreator } from "../../../../components/ConnectionSelector";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { getNodeTemplateForConnection } from "../../FlowDiagram/utils";
+import type { IntrospectCredentialsResponse } from "@wso2/ballerina-core";
+
+const PersistContentLayout = styled.div`
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+`;
+
+const ConnectionDetailsWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+`;
 
 const ConnectionDetailsSection = styled.div`
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-`;
-
-const ConnectionDetailsTitleSection = styled.div`
-    display: flex;
     flex-direction: column;
     gap: 4px;
-    flex: 1;
 `;
 
 const ConnectionDetailsTitle = styled(Typography)`
@@ -62,6 +71,12 @@ const Separator = styled.div`
     width: 100%;
     height: 1px;
     background-color: ${ThemeColors.OUTLINE_VARIANT};
+    margin: 12px 0;
+`;
+
+const ConnectorConfigWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
 `;
 
 const ContentContainer = styled.div<{ hasFooterButton?: boolean }>`
@@ -86,14 +101,9 @@ const LoadingContainer = styled.div`
 enum PopupView {
     CONNECTION_CONFIG = "CONNECTION_CONFIG",
     CONNECTION_SELECT = "CONNECTION_SELECT",
-    CONNECTION_CREATE = "CONNECTION_CREATE"
+    CONNECTION_CREATE = "CONNECTION_CREATE",
+    EDIT_CONNECTOR = "EDIT_CONNECTOR"
 }
-
-interface PersistConnectionInfo {
-    isPersist: boolean;
-    modelFilePath: string;
-}
-
 interface EditConnectionPopupProps {
     connectionName: string;
     fileName?: string;
@@ -110,15 +120,14 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [updatedExpressionField, setUpdatedExpressionField] = useState<ExpressionFormField>(undefined);
-    const [persistConnection, setPersistConnection] = useState<PersistConnectionInfo>({
-        isPersist: false,
-        modelFilePath: ""
-    });
 
     // Navigation state
     const [currentView, setCurrentView] = useState<PopupView>(PopupView.CONNECTION_CONFIG);
     const [selectedConnectionKind, setSelectedConnectionKind] = useState<ConnectionKind>();
     const [nodeFormTemplate, setNodeFormTemplate] = useState<FlowNode>();
+
+    // Connector credentials from introspectCredentials API (for persist connections)
+    const [connectorCredentials, setConnectorCredentials] = useState<IntrospectCredentialsResponse["data"] | null>(null);
 
     useEffect(() => {
         const fetchConnection = async () => {
@@ -162,10 +171,24 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                 // Check if this is a persist connection and store connection info
                 const metadataData = connector.metadata?.data as any;
                 const isPersist = metadataData?.connectorType === "persist";
-                setPersistConnection({
-                    isPersist: isPersist,
-                    modelFilePath: isPersist && metadataData?.persistModelFile ? metadataData.persistModelFile : ""
-                });
+
+                // Fetch connector credentials for persist connections
+                if (isPersist) {
+                    try {
+                        const visualizerLocation = await rpcClient.getVisualizerLocation();
+                        const connectorWizard = rpcClient.getConnectorWizardRpcClient() as unknown as { introspectCredentials: (p: { connection?: string; projectPath: string }) => Promise<IntrospectCredentialsResponse> };
+                        const response = await connectorWizard.introspectCredentials({
+                            connection: connectionName,
+                            projectPath: visualizerLocation.projectPath
+                        });
+                    
+                        if (response?.data) {
+                            setConnectorCredentials(response.data);
+                        }
+                    } catch (err) {
+                        console.error(">>> Error fetching connector credentials", err);
+                    }
+                }
 
                 const formProperties = getFormProperties(connector);
                 console.log(">>> Connector form properties", formProperties);
@@ -277,20 +300,34 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
             case PopupView.CONNECTION_CREATE:
                 setCurrentView(PopupView.CONNECTION_SELECT);
                 break;
+            case PopupView.EDIT_CONNECTOR:
+                setCurrentView(PopupView.CONNECTION_CONFIG);
+                break;
             default:
                 handleClosePopup();
         }
     };
 
+    const handleEditConnector = () => {
+        setCurrentView(PopupView.EDIT_CONNECTOR);
+    };
+
     const handleOpenERDiagram = async () => {
+        if(!connectorCredentials?.modelFilePath) {
+            return;
+        }
+        
         const visualizerLocation = await rpcClient.getVisualizerLocation();
+        const modelDocumentUri = (await rpcClient.getVisualizerRpcClient().joinProjectPath({
+            segments: [connectorCredentials.modelFilePath]
+        })).filePath;
 
         rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 view: MACHINE_VIEW.ERDiagram,
                 projectPath: visualizerLocation.projectPath,
-                documentUri: persistConnection.modelFilePath
+                documentUri: modelDocumentUri
             }
         });
     };
@@ -301,6 +338,8 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                 return `Select ${connection?.codedata?.module || ''} Connection`;
             case PopupView.CONNECTION_CREATE:
                 return `Create ${connection?.codedata?.module || ''} Connection`;
+            case PopupView.EDIT_CONNECTOR:
+                return "Edit Database Connector";
             default:
                 return "Edit Connection";
         }
@@ -312,6 +351,8 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                 return "Choose a connection type";
             case PopupView.CONNECTION_CREATE:
                 return "Configure new connection";
+            case PopupView.EDIT_CONNECTOR:
+                return "Update your database connector credentials and selected tables";
             default:
                 return "Update connection details";
         }
@@ -336,42 +377,60 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                         onSave={handleConnectionCreated}
                     />
                 );
+            case PopupView.EDIT_CONNECTOR:
+                return connectorCredentials ? (
+                    <EditConnectorForm
+                        properties={connectorCredentials.properties}
+                        metadata={connectorCredentials.metadata}
+                        connectionName={connectionName}
+                        targetModule={connectorCredentials.targetModule}
+                        modelFilePath={connectorCredentials.modelFilePath}
+                        handleClosePopup={handleClosePopup}
+                    />
+                ) : null;
             default:
-                return (
-                    <>
-                        <ConnectionDetailsSection>
-                            <ConnectionDetailsTitleSection>
+                return connectorCredentials ? (
+                    <PersistContentLayout>
+                        <ConnectorConfigWrapper>
+                            <ConnectorConfigView
+                                connectorLabel={connectorCredentials.metadata?.label || connectionName}
+                                connectorDescription={connectorCredentials.metadata?.description}
+                                properties={connectorCredentials.properties}
+                                onEditConnector={handleEditConnector}
+                                onViewERD={handleOpenERDiagram}
+                            />
+                        </ConnectorConfigWrapper>
+                        <Separator />
+                        <ConnectionDetailsWrapper>
+                            <ConnectionDetailsSection>
                                 <ConnectionDetailsTitle variant="h3">Connection Details</ConnectionDetailsTitle>
                                 <ConnectionDetailsSubtitle variant="body2">
                                     Configure your connection settings
                                 </ConnectionDetailsSubtitle>
-                            </ConnectionDetailsTitleSection>
-                            {persistConnection.isPersist && (
-                                <Button
-                                    appearance="secondary"
-                                    onClick={handleOpenERDiagram}
-                                    buttonSx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        fontSize: "13px",
-                                        whiteSpace: "nowrap"
-                                    }}
-                                    tooltip="View Entity Relationship Diagram"
-                                >
-                                    <Icon
-                                        name="persist-diagram"
-                                        sx={{
-                                            fontSize: "14px",
-                                            width: "14px",
-                                            height: "14px",
-                                            marginRight: "4px"
-                                        }}
-                                    />
-                                    View ER Diagram
-                                </Button>
+                            </ConnectionDetailsSection>
+                            {selectedNode && (
+                                <ConnectionConfigView
+                                    submitText={isSaving ? "Updating..." : "Update Connection"}
+                                    fileName={filePath}
+                                    selectedNode={selectedNode}
+                                    onSubmit={handleOnFormSubmit}
+                                    updatedExpressionField={updatedExpressionField}
+                                    resetUpdatedExpressionField={handleResetUpdatedExpressionField}
+                                    isSaving={isSaving}
+                                    footerActionButton={true}
+                                    navigateToPanel={handleNavigateToPanel}
+                                />
                             )}
+                        </ConnectionDetailsWrapper>
+                    </PersistContentLayout>
+                ) : (
+                    <>
+                        <ConnectionDetailsSection>
+                            <ConnectionDetailsTitle variant="h3">Connection Details</ConnectionDetailsTitle>
+                            <ConnectionDetailsSubtitle variant="body2">
+                                Configure your connection settings
+                            </ConnectionDetailsSubtitle>
                         </ConnectionDetailsSection>
-                        {persistConnection.isPersist && <Separator />}
                         {selectedNode && (
                             <ConnectionConfigView
                                 submitText={isSaving ? "Updating..." : "Update Connection"}
@@ -437,9 +496,13 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                         <Codicon name="close" />
                     </CloseButton>
                 </ConfigHeader>
-                <ContentContainer hasFooterButton={currentView === PopupView.CONNECTION_CONFIG}>
-                    {renderCurrentView()}
-                </ContentContainer>
+                {currentView === PopupView.EDIT_CONNECTOR ? (
+                    renderCurrentView()
+                ) : (
+                    <ContentContainer hasFooterButton={currentView === PopupView.CONNECTION_CONFIG}>
+                        {renderCurrentView()}
+                    </ContentContainer>
+                )}
             </PopupContainer>
         </>
     );

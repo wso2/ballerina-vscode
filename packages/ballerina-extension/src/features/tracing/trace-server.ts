@@ -70,6 +70,7 @@ export interface TraceServer {
     getTraceByLastSeen(lastSeen: Date): Trace;
     onTracesUpdated(callback: () => void): () => void;
     onTracesCleared(callback: () => void): () => void;
+    onNewSpans(callback: (spans: Span[]) => void): () => void;
     getTracesBySessionId(sessionId: string): Trace[];
     getSessionIds(): string[];
 }
@@ -434,8 +435,15 @@ app.post('/v1/traces', async (req, res) => {
             // Enforce LRU eviction if we exceed the limit
             enforceTraceLimit();
 
+            // Collect all new processed spans for animation notifications
+            const allNewSpans: Span[] = [];
+            traceMap.forEach((traceData) => {
+                allNewSpans.push(...traceData.spans);
+            });
+
             // Emit event for trace updates
             traceEvents.emit('tracesUpdated');
+            traceEvents.emit('newSpans', allNewSpans);
 
             // Simple logging - just show received data
             console.log(`${colors.cyan}📨 Received ${totalSpans} span(s) across ${traceMap.size} trace(s) | Total stored: ${traceStore.size} trace(s)${colors.reset}`);
@@ -524,6 +532,10 @@ export const TraceServer: TraceServer = {
     onTracesCleared: (callback: () => void) => {
         traceEvents.on('tracesCleared', callback);
         return () => traceEvents.off('tracesCleared', callback);
+    },
+    onNewSpans: (callback: (spans: Span[]) => void) => {
+        traceEvents.on('newSpans', callback);
+        return () => traceEvents.off('newSpans', callback);
     },
     getTracesBySessionId: (sessionId: string) => {
         return Array.from(traceStore.values()).filter(trace =>

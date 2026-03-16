@@ -137,10 +137,14 @@ export class VisualizerWebview {
     }
 
     private static createWebview(): vscode.WebviewPanel {
+        // If the AI panel is open, open the visualizer in column One so they don't stack in the same column.
+        // ViewColumn.Active resolves to the AI panel's column when it is the active webview.
+        const aiPanelOpen = AiPanelWebview.currentPanel !== undefined;
+        const targetColumn = aiPanelOpen ? ViewColumn.One : ViewColumn.Active;
         const panel = vscode.window.createWebviewPanel(
             VisualizerWebview.viewType,
             VisualizerWebview.webviewTitle,
-            { viewColumn: ViewColumn.Active, preserveFocus: true },
+            { viewColumn: targetColumn, preserveFocus: true },
             {
                 enableScripts: true,
                 localResourceRoots: [Uri.file(path.join(extension.context.extensionPath, "resources"))],

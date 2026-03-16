@@ -186,8 +186,17 @@ export const getNodeChartColor = (nodeType: NodeKind): string => {
     return CHART_COLORS.DEFAULT;
 };
 
-// Get AI-specific color (reusable across components)
+// Detect high contrast theme via body class set by VS Code
+export const isHighContrastTheme = (): boolean => {
+    return document.body.classList.contains("vscode-high-contrast") ||
+        document.body.classList.contains("vscode-high-contrast-light");
+};
+
+// Get AI-specific color
 export const getAIColor = (): string => {
+    if (isHighContrastTheme()) {
+        return "rgb(243, 133, 24)";
+    }
     const dark = isDarkTheme();
     return dark ? CHART_COLORS.BRIGHT_CYAN : CHART_COLORS.CYAN;
 };

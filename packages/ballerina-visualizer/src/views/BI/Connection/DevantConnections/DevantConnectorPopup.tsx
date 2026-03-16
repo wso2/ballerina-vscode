@@ -37,13 +37,14 @@ import { DevantConnectorCreateForm } from "./DevantConnectorCreateForm";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { DevantConnectionFlow, DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { DevantBIConnectorCreateForm } from "./DevantBIConnectorInitForm";
 import { DevantBIConnectorSelect } from "./DevantBIConnectorSelect";
 import { AddConnectionPopupContent } from "../AddConnectionPopup/AddConnectionPopupContent";
 import { APIConnectionForm } from "../APIConnectionPopup";
 import {
     DEVANT_CONNECTION_FLOWS_STEPS,
+    DevantConnectionFlow,
     DevantConnectionFlowStep,
     DevantConnectionFlowSubTitles,
     DevantConnectionFlowTitles,
@@ -53,6 +54,7 @@ import {
 } from "./utils";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { URI } from "vscode-uri";
+import { DevantDatabaseCredentials } from "./DevantDatabaseCredentials";
 
 interface DevantConnectorPopupProps {
     onClose?: (parent?: ParentPopupData) => void;
@@ -104,10 +106,16 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
             const balOrgConnectors = await rpcClient
                 .getBIDiagramRpcClient()
                 .search({ filePath: fileName, queryMap: { limit: 60, orgName: "ballerina" }, searchKind: "CONNECTOR" });
-            const service = await platformRpcClient.getMarketplaceItem({
-                orgId: platformExtState?.selectedContext?.org?.id?.toString(),
-                serviceId: connection.serviceId,
-            });
+            const service =
+                connection.resourceType === "DATABASE"
+                    ? await platformRpcClient.getMarketplaceDatabaseItem({
+                          orgId: platformExtState?.selectedContext?.org?.id?.toString(),
+                          resourceId: connection.serviceId,
+                      })
+                    : await platformRpcClient.getMarketplaceItem({
+                          orgId: platformExtState?.selectedContext?.org?.id?.toString(),
+                          serviceId: connection.serviceId,
+                      });
 
             let availableNode: AvailableNode | undefined;
             if (service.serviceType === "REST") {
@@ -118,12 +126,29 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                 availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerina", "soap");
             } else if (service.serviceType === "GRPC") {
                 availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerina", "grpc");
+            } else if (service.resourceDetails?.databaseType === "postgres") {
+                availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerinax", "postgresql");
+            } else if (service.resourceDetails?.databaseType === "mysql") {
+                availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerinax", "mysql");
+            } else if (service.resourceDetails?.databaseType === "redis") {
+                availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerinax", "redis");
+            } else if (service.resourceDetails?.databaseType === "kafka") {
+                availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerinax", "kafka");
             }
 
             setSelectedMarketplaceItem(service);
             setAvailableNode(availableNode);
 
-            if (service.isThirdParty) {
+            if (service.resourceType === "DATABASE") {
+                if (["postgres", "mysql"].includes(service.resourceDetails?.databaseType)) {
+                    setSelectedFlow(DevantConnectionFlow.IMPORT_DATABASE_PERSIST);
+                } else {
+                    console.error(
+                        `Connection import from type ${service.resourceDetails?.databaseType} is not supported yet.`,
+                    );
+                    return;
+                }
+            } else if (service.isThirdParty) {
                 if (service.serviceType === "REST") {
                     setSelectedFlow(DevantConnectionFlow.IMPORT_THIRD_PARTY_OAS);
                 } else if (availableNode) {
@@ -148,6 +173,8 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
         if (selectedFlow) {
             const flowSteps = DEVANT_CONNECTION_FLOWS_STEPS[selectedFlow] || [];
             setSteps(flowSteps);
+        } else {
+            setSteps([]);
         }
     }, [selectedFlow]);
 
@@ -184,7 +211,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                     value: "",
                     isSecret: entry.isSensitive,
                     description: entry.description,
-                    type: entry.type,
+                    type: entry.type as "string" | "int",
                     selected: true,
                 };
             });
@@ -373,6 +400,8 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
 
     const isRootLoading = isLoadingImportConnectorData;
 
+    const hidePadding = [DevantConnectionFlow.CREATE_DATABASE_PERSIST, DevantConnectionFlow.IMPORT_DATABASE_PERSIST, DevantConnectionFlow.CREATE_THIRD_PARTY_PERSIST, DevantConnectionFlow.IMPORT_THIRD_PARTY_PERSIST, DevantConnectionFlow.CREATE_DATABASE_PERSIST_DB_SELECTED].includes(selectedFlow)
+
     return (
         <>
             <PopupOverlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }} />
@@ -396,7 +425,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                         <Stepper steps={steps} currentStep={currentStepIndex} alignment="center" />
                     </StepperContainer>
                 )}
-                <PopupContent>
+                <PopupContent style={ hidePadding ? { padding: 0 } : {padding:"16px 20px"}}>
                     {isRootLoading ? (
                         <ProgressWrap>
                             <ProgressRing />
@@ -515,6 +544,28 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                                                     }}
                                                 />
                                             )}
+                                            {[
+                                                DevantConnectionFlow.CREATE_DATABASE_PERSIST,
+                                                DevantConnectionFlow.CREATE_DATABASE_PERSIST_DB_SELECTED,
+                                                DevantConnectionFlow.CREATE_THIRD_PARTY_PERSIST,
+                                                DevantConnectionFlow.IMPORT_DATABASE_PERSIST,
+                                                DevantConnectionFlow.IMPORT_THIRD_PARTY_PERSIST,
+                                            ].includes(selectedFlow) && (
+                                                <DevantDatabaseCredentials
+                                                    biConnectionNames={biConnectionNames}
+                                                    existingDevantConnNames={existingDevantConnNames}
+                                                    projectPath={projectPath}
+                                                    onClose={onClose}
+                                                    setSelectedMarketplaceItem={setSelectedMarketplaceItem}
+                                                    selectedMarketplaceItem={selectedMarketplaceItem}
+                                                    importedConnection={importingConn}
+                                                    devantConfigs={devantConfigs}
+                                                    selectedStep={steps[currentStepIndex]}
+                                                    goToNextStep={goToNextStep}
+                                                    selectedFlow={selectedFlow}
+                                                    setSelectedFlow={setSelectedFlow}
+                                                />
+                                            )}
                                         </>
                                     )}
                                 </>
@@ -528,9 +579,10 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                                         );
                                     }}
                                     handleApiSpecConnection={() => {
-                                        setSelectedFlow(
-                                            DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS,
-                                        );
+                                        setSelectedFlow(DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS);
+                                    }}
+                                    handleDatabaseConnection={() => {
+                                        setSelectedFlow(DevantConnectionFlow.CREATE_THIRD_PARTY_PERSIST);
                                     }}
                                     DevantServicesSection={({ searchText }) => (
                                         <DevantConnectorList

@@ -34,7 +34,9 @@ import {
     ClearChatResponse,
     getChatHistory,
     clearChatHistory,
-    getAgentStatus
+    getAgentStatus,
+    getSessionInfo,
+    SessionInfoResponse
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -76,5 +78,9 @@ export class AgentChatRpcClient implements AgentChatAPI {
 
     getAgentStatus(): Promise<AgentStatusResponse> {
         return this._messenger.sendRequest(getAgentStatus, HOST_EXTENSION);
+    }
+
+    getSessionInfo(): Promise<SessionInfoResponse> {
+        return this._messenger.sendRequest(getSessionInfo, HOST_EXTENSION);
     }
 }

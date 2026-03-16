@@ -39,7 +39,7 @@ interface Props extends AddConnectionPopupProps {
 export function AddConnectionPopupContent(props: Props) {
     const { fileName, target, handleDatabaseConnection, handleApiSpecConnection, handleSelectConnector, DevantServicesSection } = props;
     const { rpcClient } = useRpcContext();
-    const { platformExtState, loginToDevant } = usePlatformExtContext();
+    const { platformExtState, loginToDevant, handleLinkWorkspace, platformRpcClient } = usePlatformExtContext();
 
     const [searchText, setSearchText] = useState<string>("");
     const [connectors, setConnectors] = useState<Category[]>([]);
@@ -204,15 +204,11 @@ export function AddConnectionPopupContent(props: Props) {
         if (searchText) {
             return category.items && category.items.length > 0;
         }
-        // Map filterType to category labels similar to ConnectorView
-        // "Standard" maps to "StandardLibrary" (exclude Local and CurrentOrg)
-        // "Organization" maps to "CurrentOrg"
-        if (filterType === "Standard") {
-            return category.metadata.label !== "Local" && category.metadata.label !== "CurrentOrg";
-        } else if (filterType === "Organization") {
-            return category.metadata.label === "CurrentOrg";
+        // Standard & All: exclude Local (Local only appears in search results)
+        // Organization: backend pre-filters with filterByCurrentOrg - show all returned
+        if (filterType === "Organization") {
+            return true;
         }
-        // "All" shows all categories except Local (which is handled separately)
         return category.metadata.label !== "Local";
     });
 
@@ -267,15 +263,29 @@ export function AddConnectionPopupContent(props: Props) {
 
     return (
         <>
-            {(platformExtState?.hasPossibleComponent && !platformExtState?.isLoggedIn) && (
-                 <IntroText>
-                    <VSCodeLink onClick={loginToDevant}>
-                        Login
-                    </VSCodeLink>{" "}
-                    to Devant in order to connect with Devant dependencies
-                </IntroText>
+            {platformExtState?.isExtInstalled && !platformExtState?.isLoggedIn && (
+                <>
+                    {!platformExtState?.hasPossibleComponent ? (
+                        <IntroText>
+                            <VSCodeLink onClick={platformRpcClient.deployIntegrationInDevant}>
+                                Deploy integration to Devant
+                            </VSCodeLink>{" "}
+                            or{" "}
+                            <VSCodeLink onClick={handleLinkWorkspace}>
+                                associate with a Devant project
+                            </VSCodeLink>{" "}
+                            in order to connect with Devant dependencies
+                        </IntroText>
+                    ) : <IntroText>
+                        <VSCodeLink onClick={loginToDevant}>
+                            Login
+                        </VSCodeLink>{" "}
+                        to Devant in order to connect with Devant dependencies
+                    </IntroText>
+                    }
+                </>
             )}
-            {platformExtState?.selectedContext?.project ? (
+            {(platformExtState?.isLoggedIn && platformExtState?.selectedContext?.project) ? (
                 <IntroText>
                     To establish your connection, first define a connector. You may create a custom connector using an
                     API specification. Alternatively, you can select one of the pre-built

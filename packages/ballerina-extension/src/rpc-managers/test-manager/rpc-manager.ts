@@ -27,6 +27,20 @@ import {
     GetEvalsetsRequest,
     GetEvalsetsResponse,
     EvalsetItem,
+    GetEvaluationHistoryRequest,
+    GetEvaluationHistoryResponse,
+    OpenEvaluationReportRequest,
+    EvaluationHistoryData,
+    EvaluationTestHistory,
+    EvaluationRun,
+    EvaluationRunDataPoint,
+    GetEvaluationReportRequest,
+    GetEvaluationReportResponse,
+    EvaluationReportData,
+    GitDiffRequest,
+    GitDiffResponse,
+    RestoreGitSnapshotRequest,
+    RestoreGitSnapshotResponse,
 } from "@wso2/ballerina-core";
 import { ModulePart, NodePosition, STKindChecker } from "@wso2/syntax-tree";
 import * as fs from 'fs';
@@ -35,6 +49,8 @@ import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { EvaluationReportWebview } from "../../views/evaluation-report/webview";
+import { getDiffStat, getDiffFull, objectExists, restoreToCheckpoint } from "../../utils/git-utils";
 
 export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
 
@@ -95,8 +111,8 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
         return new Promise(async (resolve) => {
             try {
                 const pattern = params.projectPath
-                    ? new vscode.RelativePattern(vscode.Uri.file(params.projectPath), '**/evalsets/**/*.evalset.json')
-                    : '**/evalsets/**/*.evalset.json';
+                    ? new vscode.RelativePattern(vscode.Uri.file(params.projectPath), '**/tests/resources/evalsets/**/*.evalset.json')
+                    : '**/tests/resources/evalsets/**/*.evalset.json';
                 const evalsetFiles = await vscode.workspace.findFiles(pattern);
                 const evalsets: EvalsetItem[] = [];
 
@@ -135,5 +151,260 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
                 resolve({ evalsets: [] });
             }
         });
+    }
+
+    async getEvaluationHistory(params: GetEvaluationHistoryRequest): Promise<GetEvaluationHistoryResponse> {
+        return new Promise(async (resolve) => {
+            try {
+                const reportsDir = path.join(params.projectPath, "tests", "evaluation-reports");
+                const data = this.loadReportData(reportsDir);
+                resolve({ data });
+            } catch (error) {
+                console.error('Failed to get evaluation history:', error);
+                resolve({ data: { tests: [], totalRunFiles: 0, projectNames: [] } });
+            }
+        });
+    }
+
+    async openEvaluationReport(params: OpenEvaluationReportRequest): Promise<void> {
+        try {
+            await EvaluationReportWebview.createOrShow(params.reportPath);
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to open evaluation report: ${error}`);
+        }
+    }
+
+    async getEvaluationReport(params: GetEvaluationReportRequest): Promise<GetEvaluationReportResponse> {
+        try {
+            const reportPath = params.reportPath;
+            if (!fs.existsSync(reportPath)) {
+                return { data: { projectName: "Unknown", totalTests: 0, passed: 0, failed: 0, skipped: 0, moduleStatus: [] } };
+            }
+            const rawData = fs.readFileSync(reportPath, 'utf-8');
+            const jsonData = JSON.parse(rawData);
+
+            // Handle both single-project and workspace formats
+            // Workspace format nests data under packages[]
+            const resolvedData = jsonData.packages
+                ? this.resolveWorkspaceReport(jsonData)
+                : jsonData;
+
+            const moduleStatus = (resolvedData.moduleStatus ?? []).map((mod: any) => ({
+                name: mod.name,
+                totalTests: mod.totalTests ?? 0,
+                passed: mod.passed ?? 0,
+                failed: mod.failed ?? 0,
+                skipped: mod.skipped ?? 0,
+                tests: (mod.tests ?? []).map((test: any) => ({
+                    name: test.name,
+                    status: test.status,
+                    failureMessage: test.failureMessage,
+                    isEvaluation: test.isEvaluation ?? !!test.evaluationSummary,
+                    evaluationSummary: test.evaluationSummary ? {
+                        evaluationRuns: (test.evaluationSummary.evaluationRuns ?? []).map((r: any) => ({
+                            id: r.id,
+                            passRate: r.passRate ?? 0,
+                            outcomes: (r.outcomes ?? []).map((o: any) => ({
+                                id: o.id,
+                                passed: !o.errorMessage,
+                                errorMessage: o.errorMessage,
+                            })),
+                        })),
+                        targetPassRate: test.evaluationSummary.targetPassRate ?? 0.8,
+                        observedPassRate: test.evaluationSummary.observedPassRate ?? 0,
+                    } : undefined,
+                })),
+            }));
+
+            const data: EvaluationReportData = {
+                projectName: resolvedData.projectName ?? "Unknown",
+                totalTests: resolvedData.totalTests ?? 0,
+                passed: resolvedData.passed ?? 0,
+                failed: resolvedData.failed ?? 0,
+                skipped: resolvedData.skipped ?? 0,
+                moduleStatus,
+                gitState: jsonData.gitState,
+            };
+
+            return { data };
+        } catch (error) {
+            console.error('Failed to load evaluation report:', error);
+            return { data: { projectName: "Unknown", totalTests: 0, passed: 0, failed: 0, skipped: 0, moduleStatus: [] } };
+        }
+    }
+
+    async getGitDiff(params: GitDiffRequest): Promise<GitDiffResponse> {
+        const [diffStat, diffFull] = await Promise.all([
+            getDiffStat(params.projectPath, params.fromSha, params.toSha),
+            getDiffFull(params.projectPath, params.fromSha, params.toSha),
+        ]);
+        return { diffStat, diffFull };
+    }
+
+    async restoreGitSnapshot(params: RestoreGitSnapshotRequest): Promise<RestoreGitSnapshotResponse> {
+        try {
+            const exists = await objectExists(params.projectPath, params.sha);
+            if (!exists) {
+                return {
+                    success: false,
+                    error: "Snapshot no longer available — it may have been garbage collected.",
+                };
+            }
+
+            const result = await restoreToCheckpoint(params.projectPath, params.sha, params.isDirty);
+            return { success: true, safetyStashSha: result.safetyStashSha };
+        } catch (error: any) {
+            return {
+                success: false,
+                error: error?.message ?? "Failed to restore checkpoint",
+            };
+        }
+    }
+
+    /**
+     * Flatten a workspace-format report (with packages[]) into a single-project shape.
+     * Merges moduleStatus from all packages so the rest of the code can treat it uniformly.
+     */
+    private resolveWorkspaceReport(jsonData: any): any {
+        const packages: any[] = jsonData.packages ?? [];
+        const moduleStatus = packages.flatMap((pkg: any) => pkg.moduleStatus ?? []);
+        const projectName = packages[0]?.projectName ?? jsonData.workspaceName ?? "Unknown";
+        return {
+            projectName,
+            totalTests: jsonData.totalTests ?? 0,
+            passed: jsonData.passed ?? 0,
+            failed: jsonData.failed ?? 0,
+            skipped: jsonData.skipped ?? 0,
+            moduleStatus,
+        };
+    }
+
+    private parseDateFromFilename(filename: string): Date | undefined {
+        const match = filename.match(
+            /^(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})-(\d{3})/
+        );
+        if (!match) {
+            return undefined;
+        }
+        const [, year, month, day, hour, minute, second, ms] = match;
+        return new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day),
+            parseInt(hour),
+            parseInt(minute),
+            parseInt(second),
+            parseInt(ms)
+        );
+    }
+
+    private loadReportData(reportsDir: string): EvaluationHistoryData {
+        const testMap = new Map<string, EvaluationTestHistory>();
+        const projectNames = new Set<string>();
+        let totalRunFiles = 0;
+
+        if (!fs.existsSync(reportsDir)) {
+            return { tests: [], totalRunFiles: 0, projectNames: [] };
+        }
+
+        const files = fs.readdirSync(reportsDir);
+        const jsonFiles = files
+            .filter((f) => f.endsWith("_test_results.json"))
+            .sort();
+
+        for (const jsonFile of jsonFiles) {
+            const date = this.parseDateFromFilename(jsonFile);
+            if (!date) {
+                continue;
+            }
+
+            let jsonData: any;
+            try {
+                jsonData = JSON.parse(
+                    fs.readFileSync(path.join(reportsDir, jsonFile), "utf-8")
+                );
+            } catch {
+                continue;
+            }
+
+            totalRunFiles++;
+
+            const jsonReportPath = path.join(reportsDir, jsonFile);
+
+            // Handle both single-project and workspace formats
+            const resolvedData = jsonData.packages
+                ? this.resolveWorkspaceReport(jsonData)
+                : jsonData;
+
+            const projectName: string = resolvedData.projectName ?? "Unknown";
+            projectNames.add(projectName);
+
+            const moduleStatus: any[] = resolvedData.moduleStatus ?? [];
+            for (const mod of moduleStatus) {
+                const tests: any[] = mod.tests ?? [];
+                for (const test of tests) {
+                    if (!test.isEvaluation && !test.evaluationSummary) {
+                        continue;
+                    }
+
+                    const testName: string = test.name;
+                    const status: "PASSED" | "FAILURE" =
+                        test.status === "PASSED" ? "PASSED" : "FAILURE";
+
+                    const evalSummary = test.evaluationSummary ?? {};
+                    const observedPassRate: number =
+                        typeof evalSummary.observedPassRate === "number"
+                            ? evalSummary.observedPassRate
+                            : 0;
+                    const targetPassRate: number =
+                        typeof evalSummary.targetPassRate === "number"
+                            ? evalSummary.targetPassRate
+                            : 0.8;
+
+                    const evaluationRuns: EvaluationRun[] = (
+                        evalSummary.evaluationRuns ?? []
+                    ).map((r: any) => ({
+                        id: r.id,
+                        passRate: r.passRate ?? 0,
+                        outcomes: (r.outcomes ?? []).map((o: any) => ({
+                            id: o.id,
+                            passed: !o.errorMessage,
+                            errorMessage: o.errorMessage,
+                        })),
+                    }));
+
+                    const run: EvaluationRunDataPoint = {
+                        date: date.toISOString(),
+                        passRate: observedPassRate,
+                        targetPassRate,
+                        status,
+                        evaluationRuns,
+                        jsonReportPath,
+                        failureMessage: test.failureMessage,
+                        gitState: jsonData.gitState,
+                    };
+
+                    if (!testMap.has(testName)) {
+                        testMap.set(testName, {
+                            testName,
+                            runs: [],
+                            projectName,
+                        });
+                    }
+                    testMap.get(testName)!.runs.push(run);
+                }
+            }
+        }
+
+        const tests = Array.from(testMap.values());
+        for (const t of tests) {
+            t.runs.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        }
+
+        return {
+            tests,
+            totalRunFiles,
+            projectNames: Array.from(projectNames),
+        };
     }
 }
