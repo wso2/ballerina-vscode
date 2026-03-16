@@ -73,7 +73,6 @@ import {
 } from "./constants";
 import { addToIntegration, searchDocumentation } from "./utils";
 
-import { onHideReviewActions } from '@wso2/ballerina-core';
 import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent, resolveProjectRootPath } from '../../features/ai/agent/index';
 import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
 import { LLM_API_BASE_PATH } from "../../features/ai/constants";

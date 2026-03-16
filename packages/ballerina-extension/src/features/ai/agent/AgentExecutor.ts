@@ -32,8 +32,6 @@ import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
 import { updateAndSaveChat } from '../utils/events';
 import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
-import { RPCLayer } from '../../../RPCLayer';
-import { VisualizerWebview } from '../../../views/visualizer/webview';
 import * as path from 'path';
 import { approvalViewManager } from '../state/ApprovalViewManager';
 import {
@@ -550,7 +548,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             let affectedPackages: string[] = [];
             const langClient = StateMachine.context().langClient;
             const tempDir = context.ctx.tempProjectPath!;
-            affectedPackages = determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, tempDir);
+            affectedPackages = await determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, tempDir);
             for (const pkg of affectedPackages) {
                 try {
                     const res = await langClient.getSemanticDiff({ projectPath: pkg });
