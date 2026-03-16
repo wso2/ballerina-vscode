@@ -18,7 +18,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Uri } from 'vscode';
 import { StateMachine } from "../../../../stateMachine";
-import { ProjectSource } from "@wso2/ballerina-core";
+import { ProjectSource, PROJECT_KIND } from "@wso2/ballerina-core";
 
 /**
  * Sends didOpen notifications for a file to both file:// and ai:// schemas
@@ -183,7 +183,17 @@ export function sendAISchemaDidChange(tempProjectPath: string, filePath: string)
  */
 export function sendAgentDidOpenForFreshProjects(tempProjectPath: string, projects: ProjectSource[]): void {
   const allFiles: string[] = [];
-  
+
+  // For workspace projects, open the workspace root Ballerina.toml first so the LSP
+  // can resolve cross-package dependencies when checking diagnostics per-package.
+  const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
+  if (isWorkspace) {
+    const workspaceTomlPath = path.join(tempProjectPath, 'Ballerina.toml');
+    if (fs.existsSync(workspaceTomlPath)) {
+      allFiles.push('Ballerina.toml');
+    }
+  }
+
   projects.forEach(project => {
     const pkgPath = project.packagePath || ""; // Empty for single package, relative path for workspace
     
@@ -273,7 +283,13 @@ export function sendAgentDidCloseBatch(tempProjectPath: string, files: string[])
  */
 export function sendAgentDidCloseForProjects(tempProjectPath: string, projects: ProjectSource[]): void {
   const allFiles: string[] = [];
-  
+
+  // Close workspace root Ballerina.toml if it was opened
+  const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
+  if (isWorkspace) {
+    allFiles.push('Ballerina.toml');
+  }
+
   projects.forEach(project => {
     const pkgPath = project.packagePath || ""; // Empty for single package, relative path for workspace
     
