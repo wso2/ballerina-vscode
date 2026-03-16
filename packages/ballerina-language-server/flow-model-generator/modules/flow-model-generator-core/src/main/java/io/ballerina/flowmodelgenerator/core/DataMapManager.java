@@ -1734,7 +1734,7 @@ public class DataMapManager {
         List<TextEdit> textEdits = new ArrayList<>();
         textEditsMap.put(filePath, textEdits);
 
-        if (targetNode != null) {
+        if (targetNode != null && targetNode.matchingNode() != null && targetNode.matchingNode().expr() != null) {
             ExpressionNode expr = targetNode.matchingNode().expr();
             boolean removeAll = removeInvalidFields(expr, semanticModel, textEdits);
             if (removeAll) {

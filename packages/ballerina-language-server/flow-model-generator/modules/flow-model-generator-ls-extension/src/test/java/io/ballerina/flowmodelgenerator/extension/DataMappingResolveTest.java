@@ -62,7 +62,10 @@ public class DataMappingResolveTest extends AbstractLSTest {
     @Test(dataProvider = "data-provider")
     public void test(Path config) throws IOException {
         Path configJsonPath = configDir.resolve(config);
-        TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
+        TestConfig testConfig;
+        try (var reader = Files.newBufferedReader(configJsonPath)) {
+            testConfig = gson.fromJson(reader, TestConfig.class);
+        }
 
         DataMapperResolveRequest request = new DataMapperResolveRequest(
                 sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(), testConfig.codedata(),
