@@ -1455,8 +1455,6 @@ const AIChat: React.FC = () => {
                                                                 rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
                                                                 isActive={isLatestAssistantMessage && !isLoading}
                                                                 onStatusChange={(newStatus) => updateReviewStatus(message, newStatus)}
-                                                                tempProjectPath={(reviewItem as any).data.tempProjectPath}
-                                                                projectPath={(reviewItem as any).data.projectPath}
                                                             />
                                                         )}
                                                         {buttonItems.map((item: StreamItem, ci: number) => {

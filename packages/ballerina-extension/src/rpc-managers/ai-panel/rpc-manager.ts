@@ -736,32 +736,56 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async openFileDiff(params: OpenFileDiffRequest): Promise<void> {
         AiPanelRpcManager.registerDiffContentProvider();
 
+        // Resolve roots on the host — never trust webview-supplied absolute paths
+        const context = StateMachine.context();
+        // Use workspace root when available; modifiedFiles are relative to the workspace root in workspace mode
+        const originalRoot = context.workspacePath || context.projectPath;
+        const workspaceId = context.projectPath;
+        const threadId = 'default';
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        const tempProjectPath = pendingReview?.reviewState.tempProjectPath;
+
+        if (!tempProjectPath) {
+            console.error("[openFileDiff] No active review with temp project path");
+            return;
+        }
+
+        const originalFilePath = path.resolve(originalRoot, params.relativePath);
+        const modifiedFilePath = path.resolve(tempProjectPath, params.relativePath);
+
+        // Reject paths that escape the project roots
+        if (!originalFilePath.startsWith(originalRoot + path.sep) || !modifiedFilePath.startsWith(tempProjectPath + path.sep)) {
+            console.error("[openFileDiff] Path escapes project root, rejecting");
+            return;
+        }
+
         // Clear previous diff entries to prevent unbounded memory growth
         AiPanelRpcManager.diffContentMap.clear();
 
         let originalContent = '';
         try {
-            originalContent = fs.readFileSync(params.originalFilePath, 'utf8');
+            originalContent = fs.readFileSync(originalFilePath, 'utf8');
         } catch {
             // File doesn't exist (new file) — left side will be empty
         }
 
         let modifiedContent = '';
         try {
-            modifiedContent = fs.readFileSync(params.modifiedFilePath, 'utf8');
+            modifiedContent = fs.readFileSync(modifiedFilePath, 'utf8');
         } catch (error) {
             console.error("[openFileDiff] Error reading modified file:", error);
             return;
         }
 
+        const fileName = path.basename(params.relativePath);
         const ts = Date.now();
-        const originalUri = vscode.Uri.parse(`bi-diff:original/${params.fileName}?${ts}`);
-        const modifiedUri = vscode.Uri.parse(`bi-diff:modified/${params.fileName}?${ts}`);
+        const originalUri = vscode.Uri.parse(`bi-diff:original/${fileName}?${ts}`);
+        const modifiedUri = vscode.Uri.parse(`bi-diff:modified/${fileName}?${ts}`);
 
         AiPanelRpcManager.diffContentMap.set(originalUri.toString(), originalContent);
         AiPanelRpcManager.diffContentMap.set(modifiedUri.toString(), modifiedContent);
 
-        const title = `${params.fileName} (Review Diff)`;
+        const title = `${fileName} (Review Diff)`;
         await vscode.commands.executeCommand('vscode.diff', originalUri, modifiedUri, title);
     }
 }
