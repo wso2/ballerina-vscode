@@ -27,6 +27,7 @@ import {
     sendToolCallNotification,
     sendToolResultNotification,
     sendTaskApprovalRequestNotification,
+    sendWebToolApprovalNotification,
     sendAbortNotification,
     sendSaveChatNotification,
     sendConnectorGenerationNotification,
@@ -106,6 +107,9 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 break;
             case "chat_component":
                 sendChatComponentNotification(event.componentType, event.data);
+                break;
+            case "web_tool_approval_request":
+                sendWebToolApprovalNotification(event.requestId, event.toolName, event.content);
                 break;
             default:
                 console.warn(`Unhandled event type: ${event}`);

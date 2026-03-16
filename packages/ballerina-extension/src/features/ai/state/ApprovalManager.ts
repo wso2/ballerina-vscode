@@ -80,6 +80,9 @@ export class ApprovalManager {
     private taskApprovals = new Map<string, PromiseResolver<TaskApprovalResponse>>();
     private connectorSpecs = new Map<string, PromiseResolver<ConnectorSpecResponse>>();
     private configurationRequests = new Map<string, PromiseResolver<ConfigurationResponse>>();
+    private webToolApprovals = new Map<string, PromiseResolver<{ approved: boolean }>>();
+    private notificationCounters = new Map<string, number>();
+    private notificationHandlers = new Map<string, (active: boolean) => void>();
 
     // Default timeout for abandoned approvals (30 minutes)
     private readonly DEFAULT_TIMEOUT_MS = 30 * 60 * 1000;
@@ -405,6 +408,89 @@ export class ApprovalManager {
     }
 
     // ============================================
+    // Web Tool Approval
+    // ============================================
+
+    /**
+     * Request user approval before executing a web tool.
+     * Emits web_tool_approval_request event and waits for Allow/Deny.
+     */
+    requestWebToolApproval(
+        requestId: string,
+        toolName: "web_search" | "web_fetch",
+        content: string,
+        eventHandler: CopilotEventHandler,
+    ): Promise<{ approved: boolean }> {
+        console.log(`[ApprovalManager] Requesting web tool approval: ${requestId} (${toolName})`);
+
+        eventHandler({
+            type: "web_tool_approval_request",
+            requestId,
+            toolName,
+            content,
+        });
+
+        return new Promise((resolve) => {
+            const timeoutId = setTimeout(() => {
+                this.webToolApprovals.delete(requestId);
+                resolve({ approved: false });
+            }, this.DEFAULT_TIMEOUT_MS);
+
+            this.webToolApprovals.set(requestId, { resolve, reject: () => resolve({ approved: false }), timeoutId });
+        });
+    }
+
+    // ============================================
+    // Notification Counter
+    // ============================================
+
+    /**
+     * Register a callback fired when a notification type transitions between idle and active.
+     * active=true fires on 0→1, active=false fires on 1→0.
+     */
+    registerNotificationHandler(type: string, handler: (active: boolean) => void): void {
+        this.notificationHandlers.set(type, handler);
+    }
+
+    /** Increment active count for type. Fires handler(true) on 0 → 1. */
+    trackNotificationStart(type: string): void {
+        const count = (this.notificationCounters.get(type) ?? 0) + 1;
+        this.notificationCounters.set(type, count);
+        if (count === 1) {
+            this.notificationHandlers.get(type)?.(true);
+        }
+    }
+
+    /** Decrement active count for type. Fires handler(false) on 1 → 0. */
+    trackNotificationEnd(type: string): void {
+        const count = Math.max(0, (this.notificationCounters.get(type) ?? 0) - 1);
+        this.notificationCounters.set(type, count);
+        if (count === 0) {
+            this.notificationHandlers.get(type)?.(false);
+        }
+    }
+
+    /**
+     * Resolve a pending web tool approval (called by RPC handler when user responds).
+     */
+    resolveWebToolApproval(requestId: string, approved: boolean): void {
+        const resolver = this.webToolApprovals.get(requestId);
+        if (!resolver) {
+            console.warn(`[ApprovalManager] No pending web tool approval for request: ${requestId}`);
+            return;
+        }
+
+        console.log(`[ApprovalManager] Resolving web tool approval: ${requestId}, approved: ${approved}`);
+
+        if (resolver.timeoutId) {
+            clearTimeout(resolver.timeoutId);
+        }
+
+        resolver.resolve({ approved });
+        this.webToolApprovals.delete(requestId);
+    }
+
+    // ============================================
     // Cleanup
     // ============================================
 
@@ -456,17 +542,35 @@ export class ApprovalManager {
             resolver.resolve({ provided: false, comment: reason });
         }
         this.configurationRequests.clear();
+
+        // Auto-deny all pending web tool approvals
+        for (const [, resolver] of this.webToolApprovals.entries()) {
+            if (resolver.timeoutId) {
+                clearTimeout(resolver.timeoutId);
+            }
+            resolver.resolve({ approved: false });
+        }
+        this.webToolApprovals.clear();
+
+        // Reset all notification counters and fire handlers (e.g. turn off globe)
+        for (const [type, count] of this.notificationCounters.entries()) {
+            if (count > 0) {
+                this.notificationCounters.set(type, 0);
+                this.notificationHandlers.get(type)?.(false);
+            }
+        }
     }
 
     /**
      * Get count of pending approvals (useful for debugging)
      */
-    getPendingCount(): { plans: number; tasks: number; connectorSpecs: number; configurations: number } {
+    getPendingCount(): { plans: number; tasks: number; connectorSpecs: number; configurations: number; webTools: number } {
         return {
             plans: this.planApprovals.size,
             tasks: this.taskApprovals.size,
             connectorSpecs: this.connectorSpecs.size,
             configurations: this.configurationRequests.size,
+            webTools: this.webToolApprovals.size,
         };
     }
 }
