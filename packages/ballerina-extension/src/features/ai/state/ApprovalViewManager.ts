@@ -339,9 +339,10 @@ export class ApprovalViewManager {
      * Open ReviewMode with review data passed via OPEN_VIEW reviewData field.
      * Data is cached for chip re-clicks while review is active.
      */
-    openReviewMode(data: ReviewModeData): void {
+    openReviewMode(data: ReviewModeData, autoOpen: boolean = true): void {
         if (!AiPanelWebview.currentPanel) { return; }
         this.cachedReviewData = data;
+        if (!autoOpen) { return; }
         openMainView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ReviewMode, reviewData: data });
         RPCLayer._messenger.sendNotification(reviewModeOpened, { type: 'webview', webviewType: AiPanelWebview.viewType });
     }

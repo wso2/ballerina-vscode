@@ -586,7 +586,11 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 tempProjectPath: context.ctx.tempProjectPath!,
                 isWorkspace,
             };
-            approvalViewManager.openReviewMode(reviewData);
+
+            const hasSemanticResults = loadDesignDiagrams || semanticDiffs.length > 0;
+            const isBI = StateMachine.context().isBI;
+            const autoOpen = !!(isBI && hasSemanticResults);
+            approvalViewManager.openReviewMode(reviewData, autoOpen);
 
             context.eventHandler({
                 type: "chat_component",
