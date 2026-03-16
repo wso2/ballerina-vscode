@@ -581,6 +581,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
         approvalManager.resolveConfiguration(params.requestId, false, undefined, params.comment);
     }
 
+    async approveWebTool(params: { requestId: string }): Promise<void> {
+        approvalManager.resolveWebToolApproval(params.requestId, true);
+    }
+
+    async declineWebTool(params: { requestId: string }): Promise<void> {
+        approvalManager.resolveWebToolApproval(params.requestId, false);
+    }
+
     async restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
         // Get project root path and thread identifiers
         const projectRootPath = resolveProjectRootPath();

@@ -78,6 +78,8 @@ function getToolCallDisplay(toolName: string | undefined, toolInput: any): { pre
         case "runBallerinaPackage": return { prefix: `Running ${toolInput?.runType === "service" ? "service" : "program"}...` };
         case "getServiceLogs": return { prefix: "Fetching logs..." };
         case "stopBallerinaService": return { prefix: "Stopping service..." };
+        case "web_search": return { prefix: "Searching the web..." };
+        case "web_fetch":  return { prefix: "Fetching URL..." };
         default: return { prefix: "Working..." };
     }
 }
@@ -121,6 +123,8 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any): { 
             const status = toolOutput?.status ?? "stopped";
             return { prefix: status === "stopped" ? "Service stopped" : status === "already_exited" ? "Service already exited" : "Service not found" };
         }
+        case "web_search": return { prefix: "Web search completed" };
+        case "web_fetch":  return { prefix: "URL fetched" };
         default: return { prefix: "Done" };
     }
 }

@@ -197,9 +197,9 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 generationId: this.config.generationId,
                 threadId: 'default',
                 runningServices: runningServicesManager,
+                webSearchEnabled: params.webSearchEnabled ?? false,
             });
 
-            // Stream LLM response
             const { fullStream, response, usage } = streamText({
                 model: await getAnthropicClient(ANTHROPIC_SONNET_4),
                 maxOutputTokens: 8192,
