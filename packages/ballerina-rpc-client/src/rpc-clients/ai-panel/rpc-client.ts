@@ -25,16 +25,17 @@ import {
     AddFilesToProjectRequest,
     ApproveTaskRequest,
     CheckpointInfo,
-    ConnectorSpecCancelRequest,
-    ConnectorSpecRequest,
     ConfigurationCancelRequest,
     ConfigurationProvideRequest,
+    ConnectorSpecCancelRequest,
+    ConnectorSpecRequest,
     DocGenerationRequest,
     GenerateAgentCodeRequest,
     GenerateOpenAPIRequest,
     LLMDiagnostics,
     LoginMethod,
     MetadataWithAttachments,
+    OpenFileDiffRequest,
     PlanApprovalRequest,
     ProcessContextTypeCreationRequest,
     ProcessMappingParametersRequest,
@@ -53,8 +54,8 @@ import {
     addFilesToProject,
     approvePlan,
     approveTask,
-    cancelConnectorSpec,
     cancelConfiguration,
+    cancelConnectorSpec,
     clearChat,
     clearInitialPrompt,
     createTestDirecoryIfNotExists,
@@ -78,23 +79,23 @@ import {
     getLoginMethod,
     getSemanticDiff,
     getServiceNames,
+    getUsage,
     isCopilotSignedIn,
-    isPlanModeFeatureEnabled,
     isPlatformExtensionAvailable,
     isUserAuthenticated,
     isWorkspaceProject,
     markAlertShown,
     openAIPanel,
     openChatWindowWithCommand,
+    openFileDiff,
     promptGithubAuthorize,
-    provideConnectorSpec,
     provideConfiguration,
+    provideConnectorSpec,
     restoreCheckpoint,
     showSignInAlert,
     submitFeedback,
     updateChatMessage,
-    updateRequirementSpecification,
-    getUsage
+    updateRequirementSpecification
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -210,9 +211,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(openAIPanel, HOST_EXTENSION, params);
     }
 
-    isPlanModeFeatureEnabled(): Promise<boolean> {
-        return this._messenger.sendRequest(isPlanModeFeatureEnabled, HOST_EXTENSION);
-    }
 
     getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
         return this._messenger.sendRequest(getSemanticDiff, HOST_EXTENSION, params);
@@ -292,5 +290,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getUsage(): Promise<UsageResponse | undefined> {
         return this._messenger.sendRequest(getUsage, HOST_EXTENSION);
+    }
+
+    openFileDiff(params: OpenFileDiffRequest): void {
+        return this._messenger.sendNotification(openFileDiff, HOST_EXTENSION, params);
     }
 }

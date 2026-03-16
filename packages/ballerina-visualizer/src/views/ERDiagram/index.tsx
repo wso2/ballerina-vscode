@@ -74,14 +74,14 @@ export function ERDiagram(props: ERDiagramProps) {
                     <>
                         <ActionButton
                             onClick={() => setIsCollapsedMode(!collapsedMode)}
-                            appearance="secondary" 
+                            appearance="primary"
                         >
                             {collapsedMode ? (
                                 <Icon name="unfold-more" sx={{ marginRight: "5px", width: 16, height: 16, fontSize: 14 }} />
                             ) : (
                                 <Icon name="unfold-less" sx={{ marginRight: "5px", width: 16, height: 16, fontSize: 14 }} />
                             )}
-                            {collapsedMode ? "Expand" : "Collapse"}
+                            {collapsedMode ? "Expand Entities" : "Collapse Entities"}
                         </ActionButton>
                     </>
                 }

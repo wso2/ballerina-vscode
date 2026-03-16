@@ -32,8 +32,8 @@ import styled from "@emotion/styled";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 import { useMutation } from "@tanstack/react-query";
 import { ActionButton, ConnectorContentContainer, ConnectorInfoContainer, FooterContainer } from "../styles";
-import { DevantConnectionFlow, DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
-import { generateInitialConnectionName, isValidDevantConnName } from "./utils";
+import { DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { DevantConnectionFlow, generateInitialConnectionName, isValidDevantConnName } from "./utils";
 
 const Row = styled.div<{}>`
     display: flex;
@@ -334,7 +334,7 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
                             sx={{ width: "100%" }}
                             {...form.register("name", {
                                 validate: (value) =>
-                                    isValidDevantConnName(value, existingDevantConnNames, biConnectionNames),
+                                    isValidDevantConnName(value, existingDevantConnNames, biConnectionNames, false),
                             })}
                             errorMsg={form.formState.errors.name?.message}
                         />

@@ -90,7 +90,7 @@ function validateConfigVariables(
         if (!validateVariableName(variable.name)) {
             return createErrorResult(
                 "INVALID_VARIABLE_NAME",
-                `Invalid variable name: ${variable.name}. Use uppercase with underscores (e.g., API_KEY)`
+                `Invalid variable name: ${variable.name}. Use camelCase alphanumeric names (e.g., apiKey)`
             );
         }
     }

@@ -45,6 +45,7 @@ import {
     CheckpointInfo,
     AbortAIGenerationRequest,
     UsageResponse,
+    OpenFileDiffRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -81,7 +82,6 @@ export interface AIPanelAPI {
     addFilesToProject: (params: AddFilesToProjectRequest) => Promise<boolean>;
     isUserAuthenticated: () => Promise<boolean>;
     openAIPanel: (params: AIPanelPrompt) => Promise<void>;
-    isPlanModeFeatureEnabled: () => Promise<boolean>;
     // AI schema related functions
     getSemanticDiff: (params: SemanticDiffRequest) => Promise<SemanticDiffResponse>;
     getAffectedPackages: () => Promise<string[]>;
@@ -109,4 +109,5 @@ export interface AIPanelAPI {
     updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;
     getActiveTempDir: () => Promise<string>;
     getUsage: () => Promise<UsageResponse | undefined>;
+    openFileDiff: (params: OpenFileDiffRequest) => void;
 }

@@ -23,6 +23,7 @@ export * from "./ObjectOutput";
 export * from "./ArrayOutput";
 export * from "./PrimitiveOutput";
 export * from "./QueryOutput";
+export * from "./ConvertibleOutput";
 export * from "./LinkConnector";
 export * from "./QueryExprConnector";
 export * from "./ClauseConnector";

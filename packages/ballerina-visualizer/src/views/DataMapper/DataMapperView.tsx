@@ -527,6 +527,24 @@ export function DataMapperView(props: DataMapperViewProps) {
         }
     };
 
+    const resolveOutput = async () => {
+        try {
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .resolveOutput({
+                    filePath,
+                    codedata: viewState.codedata,
+                    varName: name,
+                    targetField: viewState.viewId,
+                    subMappingName: viewState.subMappingName
+                });
+            console.log(">>> [Data Mapper] resolveOutput response:", resp);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    };
+
     const goToFunction = async (functionRange: LineRange) => {
         const documentUri: string = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [functionRange.fileName] })).filePath;
         const position: NodePosition = {
@@ -679,7 +697,7 @@ export function DataMapperView(props: DataMapperViewProps) {
     const onEdit = () => {
         const context: VisualizerLocation = {
             view: MACHINE_VIEW.BIDataMapperForm,
-            identifier: modelState.model.output.name,
+            identifier: name,
             documentUri: filePath,
         };
 
@@ -818,6 +836,7 @@ export function DataMapperView(props: DataMapperViewProps) {
                             deleteSubMapping={deleteSubMapping}
                             mapWithCustomFn={mapWithCustomFn}
                             mapWithTransformFn={mapWithTransformFn}
+                            resolveOutput={resolveOutput}
                             goToFunction={goToFunction}
                             enrichChildFields={enrichChildFields}
                             genUniqueName={genUniqueName}

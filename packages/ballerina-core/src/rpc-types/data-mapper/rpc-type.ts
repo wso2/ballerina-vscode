@@ -50,7 +50,8 @@ import {
     ClausePositionResponse,
     ConvertExpressionRequest,
     ConvertExpressionResponse,
-    CreateConvertedVariableRequest
+    CreateConvertedVariableRequest,
+    ResolveOutputRequest
 } from "../../interfaces/extended-lang-client";
 import { RequestType } from "vscode-messenger-common";
 
@@ -68,6 +69,7 @@ export const deleteMapping: RequestType<DeleteMappingRequest, DataMapperSourceRe
 export const deleteSubMapping: RequestType<DeleteSubMappingRequest, DataMapperSourceResponse> = { method: `${_preFix}/deleteSubMapping` };
 export const mapWithCustomFn: RequestType<MapWithFnRequest, DataMapperSourceResponse> = { method: `${_preFix}/mapWithCustomFn` };
 export const mapWithTransformFn: RequestType<MapWithFnRequest, DataMapperSourceResponse> = { method: `${_preFix}/mapWithTransformFn` };
+export const resolveOutput: RequestType<ResolveOutputRequest, DataMapperSourceResponse> = { method: `${_preFix}/resolveOutput` };
 export const getDataMapperCodedata: RequestType<GetDataMapperCodedataRequest, GetDataMapperCodedataResponse> = { method: `${_preFix}/getDataMapperCodedata` };
 export const getSubMappingCodedata: RequestType<GetSubMappingCodedataRequest, GetDataMapperCodedataResponse> = { method: `${_preFix}/getSubMappingCodedata` };
 export const getProperty: RequestType<PropertyRequest, PropertyResponse> = { method: `${_preFix}/getProperty` };

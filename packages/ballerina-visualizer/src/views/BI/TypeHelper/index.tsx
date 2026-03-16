@@ -64,6 +64,7 @@ type TypeHelperProps = {
     onTypeCreate: (typeName: string) => void;
     onCloseCompletions?: () => void;
     typeHelperContext?: TypeHelperContext;
+    recordsOnly?: boolean;
 };
 
 const TypeHelperEl = (props: TypeHelperProps) => {
@@ -83,7 +84,8 @@ const TypeHelperEl = (props: TypeHelperProps) => {
         onTypeCreate,
         onCloseCompletions,
         exprRef,
-        typeHelperContext
+        typeHelperContext,
+        recordsOnly
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -269,11 +271,11 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                 currentCursorPosition={currentCursorPosition}
                 loading={loading}
                 loadingTypeBrowser={loadingTypeBrowser}
-                referenceTypes={basicTypes}
-                basicTypes={filteredBasicTypes}
+                referenceTypes={recordsOnly ? [] : basicTypes}
+                basicTypes={recordsOnly ? [] : filteredBasicTypes}
                 importedTypes={importedTypes}
                 workspaceTypes={workspaceTypes}
-                operators={filteredOperators}
+                operators={recordsOnly ? [] : filteredOperators}
                 typeBrowserTypes={filteredTypeBrowserTypes}
                 typeBrowserRef={typeBrowserRef}
                 typeHelperHeight={helperPaneHeight}
@@ -282,7 +284,7 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                 onSearchTypeBrowser={handleSearchTypeBrowser}
                 onTypeItemClick={handleTypeItemClick}
                 onClose={handleTypeHelperClose}
-                onTypeCreate={handleTypeCreate}
+                onTypeCreate={recordsOnly ? undefined : handleTypeCreate}
                 onCloseCompletions={onCloseCompletions}
                 exprRef={exprRef}
             />
