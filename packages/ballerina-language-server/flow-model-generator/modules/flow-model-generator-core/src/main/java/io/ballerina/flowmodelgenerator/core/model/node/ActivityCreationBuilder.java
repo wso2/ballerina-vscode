@@ -90,7 +90,7 @@ public class ActivityCreationBuilder extends NodeBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        new ActivityBuilder().toSource(sourceBuilder); // This will build activity and update the sourceBuilder.textEditsMap
+        new ActivityBuilder().toSource(sourceBuilder); // Build activity and update the sourceBuilder.textEditsMap
 
         Optional<Property> typeProp = sourceBuilder.getProperty(Property.TYPE_KEY);
         Optional<Property> variableProp = sourceBuilder.getProperty(Property.VARIABLE_KEY);
