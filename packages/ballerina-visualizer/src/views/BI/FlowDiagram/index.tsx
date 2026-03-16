@@ -231,7 +231,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 // Skip if the parent is a data mapper popup
                 return;
             }
-                setSearchText("");
+            setSearchText("");
             if (parent.artifactType === DIRECTORY_MAP.AGENT_TOOL) {
                 // Agent tool creation is handled by AIAgentSidePanel — skip to avoid interfering
                 return;
@@ -276,7 +276,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setIsUserAuthenticated(false);
             });
 
-    });
+    }, [rpcClient]);
 
     useEffect(() => {
         const unsubscribe = rpcClient.onIdentifierUpdated((renames) => {
@@ -988,7 +988,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
             if (response.categories) {
 
-                if(searchKind==="ALL"){                // Convert search API results
+                if (searchKind === "ALL") {                // Convert search API results
                     const searchCategories = convertFunctionCategoriesToSidePanelCategories(
                         response.categories as Category[],
                         functionType
@@ -1161,7 +1161,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         };
                     }
                     return null; // Filter out this subcategory
-                } 
+                }
                 return null;
             }).filter(item => item !== null);
         };
