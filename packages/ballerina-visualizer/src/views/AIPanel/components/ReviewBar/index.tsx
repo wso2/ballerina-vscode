@@ -16,9 +16,9 @@
  * under the License.
  */
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { SemanticDiff, ChangeTypeEnum } from "@wso2/ballerina-core";
+import { SemanticDiff, ChangeTypeEnum, MACHINE_VIEW, VisualizerLocation } from "@wso2/ballerina-core";
 import { getColorByMethod } from "../../../BI/ServiceDesigner/components/ResourceAccordion";
 
 const Container = styled.div`
@@ -42,6 +42,28 @@ const Title = styled.div`
     font-size: 13px;
     font-weight: 600;
     color: var(--vscode-foreground);
+`;
+
+const ReviewIconButton = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    padding: 2px 6px;
+    margin: 0;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-foreground);
+    border-radius: 3px;
+    &:hover:not(:disabled) {
+        background-color: var(--vscode-toolbar-hoverBackground);
+    }
+    &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
 `;
 
 const ChangeList = styled.div`
@@ -327,8 +349,6 @@ interface ReviewBarProps {
     rpcClient?: any;
     isActive?: boolean;
     onStatusChange?: (status: "accepted" | "discarded") => void;
-    tempProjectPath?: string;
-    projectPath?: string;
 }
 
 function getFileName(filePath: string): string {
@@ -524,14 +544,32 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     rpcClient,
     isActive = false,
     onStatusChange,
-    tempProjectPath,
-    projectPath,
 }) => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isReviewModeOpen, setIsReviewModeOpen] = useState(false);
 
     const hasDiagramView = !!(semanticDiffs && semanticDiffs.length > 0);
     const [viewMode, setViewMode] = useState<ViewMode>(hasDiagramView ? "diagram" : "code");
+
+    useEffect(() => {
+        if (hasDiagramView) {
+            setViewMode("diagram");
+        }
+    }, [hasDiagramView]);
+
+    useEffect(() => {
+        if (!rpcClient || !isActive) return;
+        rpcClient.getVisualizerLocation().then((loc: VisualizerLocation) => {
+            setIsReviewModeOpen(loc.view === MACHINE_VIEW.ReviewMode);
+        });
+        rpcClient.onReviewModeOpened(() => {
+            setIsReviewModeOpen(true);
+        });
+        rpcClient.onReviewModeClosed(() => {
+            setIsReviewModeOpen(false);
+        });
+    }, [rpcClient, isActive]);
 
     const groups = useMemo(() => {
         if (!semanticDiffs || semanticDiffs.length === 0) return null;
@@ -544,11 +582,8 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     };
 
     const openFileDiff = (relativePath: string) => {
-        if (!rpcClient || !tempProjectPath || !projectPath) return;
-        const originalFilePath = projectPath + "/" + relativePath;
-        const modifiedFilePath = tempProjectPath + "/" + relativePath;
-        const fileName = getFileName(relativePath);
-        rpcClient.getAiPanelRpcClient().openFileDiff({ originalFilePath, modifiedFilePath, fileName });
+        if (!rpcClient) return;
+        rpcClient.getAiPanelRpcClient().openFileDiff({ relativePath });
     };
 
     const handleAccept = async () => {
@@ -642,7 +677,19 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
         <Container>
             <TitleBarRow>
                 <Title>Changes ready to review</Title>
-                {renderViewToggle()}
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    {isActive && !isReviewModeOpen && hasDiagramView && (
+                        <ReviewIconButton
+                            onClick={() => navigateReviewMode(0)}
+                            disabled={isProcessing}
+                            title="Open review mode"
+                        >
+                            <span className="codicon codicon-open-preview" style={{ fontSize: "12px" }} />
+                            <span>Review</span>
+                        </ReviewIconButton>
+                    )}
+                    {renderViewToggle()}
+                </div>
             </TitleBarRow>
             {viewMode === "diagram" && groups && groups.length > 0
                 ? <CollapsibleGroupList groups={groups} onClickEntry={(viewIndex: number) => navigateReviewMode(viewIndex)} />

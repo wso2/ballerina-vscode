@@ -504,7 +504,5 @@ export interface UsageResponse {
 }
 
 export interface OpenFileDiffRequest {
-    originalFilePath: string;
-    modifiedFilePath: string;
-    fileName: string;
+    relativePath: string;
 }
