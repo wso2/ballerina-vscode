@@ -1548,7 +1548,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         // after source-modifying operations like renames. Patch it from selectedNodeRef
         // which is kept up-to-date by handleRenameComplete and getFlowModel.
         if (hasRenameOperation.current) {
-            updatedNode.codedata.lineRange = selectedNodeRef.current.codedata.lineRange;
+            const selectedLineRange = selectedNodeRef.current?.codedata?.lineRange;
+            if (selectedLineRange && updatedNode.codedata) {
+                updatedNode.codedata.lineRange = selectedLineRange;
+            }
             hasRenameOperation.current = false;
         }
 
