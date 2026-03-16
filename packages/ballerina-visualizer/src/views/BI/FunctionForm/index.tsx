@@ -67,6 +67,14 @@ export function FunctionForm(props: FunctionFormProps) {
 
     const fileName = filePath.split(/[\\/]/).pop();
     const formType = useRef("Function");
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     useEffect(() => {
         let nodeKind: NodeKind;
@@ -124,6 +132,7 @@ export function FunctionForm(props: FunctionFormProps) {
         setFunctionFields(fields);
 
         rpcClient.onIdentifierUpdated(async (response) => {
+            if (!isMountedRef.current) return;
             console.log("Identifier Updated: ", response);
             let artifact;
             if (response.length > 1) {
@@ -138,6 +147,7 @@ export function FunctionForm(props: FunctionFormProps) {
                     fileName,
                     projectPath
                 });
+            if (!isMountedRef.current) return;
             let flowNode = changedFunctionNode.functionDefinition;
             const updatedFunctionNode = { ...functionNode };
             updatedFunctionNode.codedata.lineRange = {
