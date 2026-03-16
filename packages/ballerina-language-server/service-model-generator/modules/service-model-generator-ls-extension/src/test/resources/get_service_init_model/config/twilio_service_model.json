@@ -51,13 +51,13 @@
         "listenOn": {
           "metadata": {
             "label": "Webhook Listener Port",
-            "description": "The port on which the webhook listener accepts incoming HTTP requests (default: 8090)"
+            "description": "The port on which the webhook listener accepts incoming requests"
           },
           "codedata": {
             "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
           },
           "placeholder": "8090",
-          "value": "",
+          "value": "8090",
           "types": [
             {
               "fieldType": "NUMBER",
