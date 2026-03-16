@@ -19,7 +19,7 @@
         "basePath": {
           "metadata": {
             "label": "Event Channel",
-            "description": "The event channel name"
+            "description": "The type of GitHub event to listen for"
           },
           "codedata": {
             "argType": "SERVICE_TYPE_DESCRIPTOR"
@@ -80,15 +80,36 @@
           "optional": false,
           "advanced": false
         },
+        "webhookSecret": {
+          "metadata": {
+            "label": "Webhook Secret",
+            "description": "Secret used to validate incoming GitHub webhook requests"
+          },
+          "placeholder": "",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
         "listenOn": {
           "metadata": {
-            "label": "Listen On",
-            "description": "The port to listen on"
+            "label": "Webhook Listener Port",
+            "description": "The port on which the webhook listener accepts incoming HTTP requests (default: 8090)"
           },
-          "codedata": {
-            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
-          },
-          "placeholder": "0",
+          "placeholder": "8090",
           "value": "",
           "types": [
             {
@@ -104,43 +125,7 @@
           ],
           "enabled": true,
           "editable": true,
-          "optional": false,
-          "advanced": false
-        },
-        "listenerConfig": {
-          "metadata": {
-            "label": "Listener Config",
-            "description": "The listener configuration"
-          },
-          "codedata": {
-            "argType": "LISTENER_PARAM_INCLUDED_FIELD"
-          },
-          "placeholder": "{}",
-          "value": "{}",
-          "types": [
-            {
-              "fieldType": "RECORD_MAP_EXPRESSION",
-              "ballerinaType": "github:ListenerConfig",
-              "typeMembers": [
-                {
-                  "type": "ListenerConfig",
-                  "packageInfo": "ballerinax:trigger.github:0.10.0",
-                  "packageName": "trigger.github",
-                  "kind": "RECORD_TYPE",
-                  "selected": false
-                }
-              ],
-              "selected": true
-            },
-            {
-              "fieldType": "EXPRESSION",
-              "ballerinaType": "github:ListenerConfig",
-              "selected": false
-            }
-          ],
-          "enabled": true,
-          "editable": true,
-          "optional": false,
+          "optional": true,
           "advanced": false
         },
         "listenerVarName": {

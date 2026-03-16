@@ -1466,10 +1466,10 @@
           "sourceKind": "SERVICE_TYPE_DESCRIPTOR"
         },
         "listenOn": {
-          "label": "Listen On",
-          "description": "The port to listen on",
-          "defaultValue": "",
-          "placeholder": "0",
+          "label": "Webhook Listener Port",
+          "description": "The port on which the webhook listener accepts incoming requests",
+          "defaultValue": "8090",
+          "placeholder": "8090",
           "types": [
             {
               "fieldType": "NUMBER",
@@ -1594,10 +1594,10 @@
           "sourceKind": "SERVICE_TYPE_DESCRIPTOR"
         },
         "listenOn": {
-          "label": "Listen On",
-          "description": "The port to listen on",
-          "defaultValue": "",
-          "placeholder": "0",
+          "label": "Webhook Listener Port",
+          "description": "The port on which the webhook listener accepts incoming requests",
+          "defaultValue": "8090",
+          "placeholder": "8090",
           "types": [
             {
               "fieldType": "NUMBER",
