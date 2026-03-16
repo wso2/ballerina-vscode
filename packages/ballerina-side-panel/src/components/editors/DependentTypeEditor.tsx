@@ -180,6 +180,25 @@ function hasPartialSelection(member: Member, referencedTypes: Type[], visited: S
     return anySelected && !allSelected;
 }
 
+/**
+ * Checks if at least one field is selected in the entire tree.
+ */
+function hasAnySelection(members: Member[], referencedTypes: Type[], visited: Set<string> = new Set()): boolean {
+    for (const m of members) {
+        if (m.kind !== "FIELD") continue;
+        if (m.selected) return true;
+
+        const newVisited = new Set(visited);
+        if (m.refs?.length) newVisited.add(m.refs[0]);
+
+        const children = resolveChildren(m, referencedTypes, newVisited);
+        if (children.length && hasAnySelection(children, referencedTypes, newVisited)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // ─── Styled Components ──────────────────────────────────────────
 
 const Container = styled.div`
@@ -334,7 +353,16 @@ export function DependentTypeEditor(props: DependentTypeEditorProps) {
 
     // Register field and sync initial value
     useEffect(() => {
-        register(field.key);
+        register(field.key, {
+            validate: () => {
+                // Only validate if field is required
+                if (!field.optional && rootType?.members) {
+                    const hasSelection = hasAnySelection(rootType.members, referencedTypes);
+                    return hasSelection || "At least one field must be selected";
+                }
+                return true;
+            }
+        });
         syncToForm();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [field.key, register]);
@@ -349,8 +377,8 @@ export function DependentTypeEditor(props: DependentTypeEditorProps) {
             return t;
         });
         // field.types = updatedTypes;
-        setValue(field.key, updatedTypes);
-    }, [data, field, setValue]);
+        setValue(field.key, updatedTypes, { shouldValidate: true });
+    }, [data, field, setValue, rootType, referencedTypes]);
 
     // Force re-render by incrementing a dummy state
     const [, forceUpdate] = useState(0);
