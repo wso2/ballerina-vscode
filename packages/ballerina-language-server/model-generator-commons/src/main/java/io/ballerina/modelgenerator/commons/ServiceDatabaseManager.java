@@ -191,9 +191,8 @@ public class ServiceDatabaseManager {
 
                 // Add member type if present
                 if (memberType != null) {
-                    String memberPackageName = extractPackageName(memberPackage);
                     ParameterMemberTypeData memberData = new ParameterMemberTypeData(
-                            memberType, memberKind, memberPackage, memberPackageName);
+                            memberType, memberKind, memberPackage, memberPackage);
                     builder.typeMembers.add(memberData);
                 }
             }
@@ -646,24 +645,6 @@ public class ServiceDatabaseManager {
             Logger.getGlobal().severe("Error executing query: " + e.getMessage());
             return List.of();
         }
-    }
-
-    /**
-     * Extracts the package name from a package identifier string.
-     * The package identifier format is "org:packageName:version".
-     *
-     * @param packageIdentifier the full package identifier
-     * @return the package name, or the original string if the format is unexpected
-     */
-    private static String extractPackageName(String packageIdentifier) {
-        if (packageIdentifier == null || packageIdentifier.isEmpty()) {
-            return packageIdentifier;
-        }
-        String[] parts = packageIdentifier.split(":");
-        if (parts.length >= 2) {
-            return parts[1];
-        }
-        return packageIdentifier;
     }
 
     // Helper builder class
