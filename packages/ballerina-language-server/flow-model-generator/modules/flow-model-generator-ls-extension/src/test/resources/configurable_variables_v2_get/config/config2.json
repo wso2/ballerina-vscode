@@ -1173,7 +1173,7 @@
                   "typeMembers": [
                     {
                       "type": "ListenerConfiguration",
-                      "packageInfo": "ballerina:http:2.15.4",
+                      "packageInfo": "ballerina:http:2.16.0",
                       "packageName": "http",
                       "kind": "RECORD_TYPE",
                       "selected": false
@@ -1247,7 +1247,7 @@
           "flags": 0
         },
         {
-          "id": "50637",
+          "id": "51629",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -1257,11 +1257,11 @@
             "lineRange": {
               "fileName": "http_log_manager.bal",
               "startLine": {
-                "line": 19,
+                "line": 20,
                 "offset": 0
               },
               "endLine": {
-                "line": 19,
+                "line": 20,
                 "offset": 45
               }
             }
@@ -1371,7 +1371,7 @@
           "flags": 0
         },
         {
-          "id": "78439",
+          "id": "96295",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -1381,11 +1381,11 @@
             "lineRange": {
               "fileName": "http_log_manager.bal",
               "startLine": {
-                "line": 47,
+                "line": 65,
                 "offset": 0
               },
               "endLine": {
-                "line": 47,
+                "line": 65,
                 "offset": 71
               }
             }
@@ -1421,7 +1421,7 @@
                   "typeMembers": [
                     {
                       "type": "TraceLogAdvancedConfiguration",
-                      "packageInfo": "ballerina:http:2.15.4",
+                      "packageInfo": "ballerina:http:2.16.0",
                       "packageName": "http",
                       "kind": "RECORD_TYPE",
                       "selected": false
@@ -1495,7 +1495,7 @@
           "flags": 0
         },
         {
-          "id": "79417",
+          "id": "97273",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -1505,11 +1505,11 @@
             "lineRange": {
               "fileName": "http_log_manager.bal",
               "startLine": {
-                "line": 48,
+                "line": 66,
                 "offset": 0
               },
               "endLine": {
-                "line": 48,
+                "line": 66,
                 "offset": 57
               }
             }
@@ -1545,7 +1545,7 @@
                   "typeMembers": [
                     {
                       "type": "AccessLogConfiguration",
-                      "packageInfo": "ballerina:http:2.15.4",
+                      "packageInfo": "ballerina:http:2.16.0",
                       "packageName": "http",
                       "kind": "RECORD_TYPE",
                       "selected": false
