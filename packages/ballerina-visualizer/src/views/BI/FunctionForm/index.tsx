@@ -175,6 +175,7 @@ export function FunctionForm(props: FunctionFormProps) {
     const fileName = filePath.split(/[\\/]/).pop();
     const formType = useRef("Function");
     const isMountedRef = useRef(true);
+    const functionNodeRef = useRef<FunctionNode>();
 
     useEffect(() => {
         isMountedRef.current = true;
@@ -182,6 +183,10 @@ export function FunctionForm(props: FunctionFormProps) {
             isMountedRef.current = false;
         };
     }, []);
+
+    useEffect(() => {
+        functionNodeRef.current = functionNode;
+    }, [functionNode]);
 
     useEffect(() => {
         let nodeKind: NodeKind;
@@ -297,16 +302,18 @@ export function FunctionForm(props: FunctionFormProps) {
         }
 
         setFunctionFields(fields);
+    }, [functionNode]);
 
-        rpcClient.onIdentifierUpdated(async (response) => {
-            if (!isMountedRef.current) return;
+    useEffect(() => {
+        const subscription = rpcClient.onIdentifierUpdated(async (response) => {
+            if (!isMountedRef.current || !response?.length) return;
             console.log("Identifier Updated: ", response);
-            let artifact;
-            if (response.length > 1) {
-                artifact = response.find(res => res.name === functionName || res.context === functionName);
-            } else {
-                artifact = response[0];
-            }
+
+            const artifact = response.length > 1
+                ? response.find(res => res.name === functionName || res.context === functionName)
+                : response[0];
+            if (!artifact?.name) return;
+
             const changedFunctionNode = await rpcClient
                 .getBIDiagramRpcClient()
                 .getFunctionNode({
@@ -315,14 +322,26 @@ export function FunctionForm(props: FunctionFormProps) {
                     projectPath
                 });
             if (!isMountedRef.current) return;
-            let flowNode = changedFunctionNode.functionDefinition;
-            const updatedFunctionNode = { ...functionNode };
-            updatedFunctionNode.codedata.lineRange = {
-                ...flowNode.codedata.lineRange
-            };
-            setFunctionNode(updatedFunctionNode);
+
+            const flowNode = changedFunctionNode.functionDefinition;
+            const currentFunctionNode = functionNodeRef.current;
+            if (!currentFunctionNode?.codedata?.lineRange || !flowNode?.codedata?.lineRange) return;
+
+            setFunctionNode({
+                ...currentFunctionNode,
+                codedata: {
+                    ...currentFunctionNode.codedata,
+                    lineRange: {
+                        ...flowNode.codedata.lineRange
+                    }
+                }
+            });
         });
-    }, [functionNode]);
+
+        return () => {
+            subscription?.();
+        };
+    }, [rpcClient, functionName, fileName, projectPath]);
 
     const getFunctionNode = async (kind: NodeKind) => {
         setIsLoading(true);
