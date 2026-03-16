@@ -19,7 +19,7 @@
 import React, { useState } from "react";
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
-import { Button, Codicon, ProgressRing, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, ProgressRing, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
 import { IOType, TypeKind } from '@wso2/ballerina-core';
 import classnames from "classnames";
 
@@ -35,6 +35,7 @@ import { ValueConfigMenu, ValueConfigMenuItem, ValueConfigOption } from "../comm
 import { useShallow } from "zustand/react/shallow";
 import { fieldFQNFromPortName, getDefaultValue, isWithinSubMappingRootView } from "../../utils/common-utils";
 import { addValue, removeMapping } from "../../utils/modification-utils";
+import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
 
 export interface ArrayOutputWidgetProps {
 	id: string;
@@ -224,6 +225,26 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 						</FieldActionWrapper>
 						{label}
 					</span>
+					{context.model.hasInvalidOutput && (
+						<DiagnosticTooltip
+							placement="right"
+							diagnostic="Output has invalid fields"
+							actionText="Fix by removing invalid fields"
+							onClick={context.resolveOutput}
+						>
+							<Button
+								appearance="icon"
+								data-testid={`array-widget-field-${portIn?.getName()}`}
+								data-field-action
+							>
+								<Icon
+									name="error-icon"
+									sx={{ height: "14px", width: "14px" }}
+									iconSx={{ fontSize: "14px", color: "var(--vscode-errorForeground)" }}
+								/>
+							</Button>
+						</DiagnosticTooltip>
+					)}
 					{(isLoading) ? (
 						<ProgressRing />
 					) : (

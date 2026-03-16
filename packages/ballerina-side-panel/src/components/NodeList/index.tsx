@@ -21,7 +21,6 @@ import ReactMarkdown from "react-markdown";
 import {
     Button,
     Codicon,
-    ProgressRing,
     SearchBox,
     SidePanelBody,
     Switch,
@@ -33,7 +32,7 @@ import styled from "@emotion/styled";
 import { BackIcon, CloseIcon, LogIcon } from "../../resources";
 import { Category, Item, Node } from "./types";
 import { cloneDeep, debounce } from "lodash";
-import { GroupListSkeleton } from "../Skeletons";
+import { GroupListSkeleton, NodeListSkeleton } from "../Skeletons";
 import GroupList from "../GroupList";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { getExpandedCategories, setExpandedCategories, getDefaultExpandedState } from "../../utils/localStorage";
@@ -346,6 +345,7 @@ interface NodeListProps {
     showAiPanel?: boolean;
     title?: string;
     onSelect: (id: string, metadata?: any) => void;
+    onSelectConnector?: (id: string, metadata?: any) => void; // For connector routing
     onSearchTextChange?: (text: string) => void;
     onAddConnection?: () => void;
     onAddFunction?: () => void;
@@ -357,6 +357,8 @@ interface NodeListProps {
     onImportDevantConn?: (devantConn: ConnectionListItem) => void;
     onLinkDevantProject?: () => void;
     onRefreshDevantConnections?: () => void;
+    searchText?: string;
+    panelBodySx?: React.CSSProperties;
 }
 
 export function NodeList(props: NodeListProps) {
@@ -365,6 +367,7 @@ export function NodeList(props: NodeListProps) {
         showAiPanel,
         title,
         onSelect,
+        onSelectConnector,
         onSearchTextChange,
         onAddConnection,
         onAddFunction,
@@ -376,10 +379,17 @@ export function NodeList(props: NodeListProps) {
         onImportDevantConn,
         onLinkDevantProject,
         onRefreshDevantConnections,
+        panelBodySx
     } = props;
 
     const [searchText, setSearchText] = useState<string>("");
     const [showGeneratePanel, setShowGeneratePanel] = useState(false);
+
+    useEffect(() => {
+        if (props.searchText !== undefined) {
+            setSearchText(props.searchText);
+        }
+    }, [props.searchText]);
     const [isSearching, setIsSearching] = useState(false);
     const [expandedMoreSections, setExpandedMoreSections] = useState<Record<string, boolean>>({});
     const [expandedCategories, setExpandedCategoriesState] = useState<Record<string, boolean>>({});
@@ -410,6 +420,12 @@ export function NodeList(props: NodeListProps) {
 
     useEffect(() => {
         if (onSearchTextChange) {
+            if (!searchText.trim()) {
+                setIsSearching(false);
+                debouncedSearch.cancel();
+                onSearchTextChange("");
+                return;
+            }
             setIsSearching(true);
             debouncedSearch(searchText);
             return () => debouncedSearch.cancel();
@@ -453,7 +469,12 @@ export function NodeList(props: NodeListProps) {
 
     const handleAddNode = (node: Node, category?: string) => {
         if (node.enabled) {
-            onSelect(node.id, { node: node.metadata, category });
+            // Check if this item is from a "Connectors" category and should use connector routing
+            if (category === "Connectors" && onSelectConnector) {
+                onSelectConnector(node.id, { node: node.metadata, category });
+            } else {
+                onSelect(node.id, { node: node.metadata, category });
+            }
         }
     };
 
@@ -526,7 +547,7 @@ export function NodeList(props: NodeListProps) {
                             >
                                 <S.Component
                                     enabled={node.enabled}
-                                    onClick={() => handleAddNode(node)}
+                                    onClick={() => handleAddNode(node, parentCategoryTitle)}
                                 >
                                     <S.IconContainer>{node.icon || <LogIcon />}</S.IconContainer>
                                     <S.ComponentTitle
@@ -612,7 +633,8 @@ export function NodeList(props: NodeListProps) {
     const getCategoryContainer = (groups: Category[], isSubCategory = false, parentCategoryTitle?: string) => {
         // Configuration for special categories
         const categoryConfig = {
-            "Connections": { hasBackground: false },
+            "Connections": { hasBackground: false }, // Existing connections (already configured)
+            "Connectors": { hasBackground: true }, // Available connectors to be added
             "Statement": { hasBackground: true, showSeparatorBefore: true }, // Show separator before Statement
             "AI": { hasBackground: true, targetPosition: 3 }, // 4th position (0-indexed)
             "Control": { hasBackground: true },
@@ -904,13 +926,11 @@ export function NodeList(props: NodeListProps) {
             </S.HeaderContainer>
             {isSearching && (
                 <S.PanelBody>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
-                        <ProgressRing />
-                    </div>
+                    <NodeListSkeleton />
                 </S.PanelBody>
             )}
             {!showGeneratePanel && !isSearching && (
-                <S.PanelBody>
+                <S.PanelBody style={{ ...props.panelBodySx }}>
                     {getCategoryContainer(filteredCategories)}
                     {/* Show More Functions button - moved outside Logging category */}
                     {callFunctionNode && !searchText && (
@@ -934,7 +954,7 @@ export function NodeList(props: NodeListProps) {
                 </S.PanelBody>
             )}
             {showAiPanel && showGeneratePanel && (
-                <S.PanelBody>
+                <S.PanelBody style={{ ...props.panelBodySx }}>
                     <S.AiContainer>
                         <S.Title>Describe what you want you want to do</S.Title>
                         <TextArea

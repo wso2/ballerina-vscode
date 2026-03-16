@@ -58,11 +58,14 @@ import {
     dependencyPullProgress,
     ProjectMigrationResult,
     onMigratedProject,
-    refreshReviewMode,
-    onHideReviewActions,
+    navigateReviewIndex,
+    reviewModeOpened,
+    reviewModeClosed,
     approvalOverlayState,
     ApprovalOverlayState,
-    onIdentifierUpdated
+    onIdentifierUpdated,
+    traceAnimationChanged,
+    TraceAnimationEvent
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -287,15 +290,23 @@ export class BallerinaRpcClient {
         this.messenger.onNotification(currentThemeChanged, callback);
     }
 
-    onRefreshReviewMode(callback: () => void) {
-        this.messenger.onNotification(refreshReviewMode, callback);
+    onNavigateReviewIndex(callback: (index: number) => void) {
+        this.messenger.onNotification(navigateReviewIndex, callback);
     }
 
-    onHideReviewActions(callback: () => void) {
-        this.messenger.onNotification(onHideReviewActions, callback);
+    onReviewModeOpened(callback: () => void) {
+        this.messenger.onNotification(reviewModeOpened, callback);
+    }
+
+    onReviewModeClosed(callback: () => void) {
+        this.messenger.onNotification(reviewModeClosed, callback);
     }
 
     onApprovalOverlayState(callback: (data: ApprovalOverlayState) => void) {
         this.messenger.onNotification(approvalOverlayState, callback);
+    }
+
+    onTraceAnimationChanged(callback: (event: TraceAnimationEvent) => void) {
+        this.messenger.onNotification(traceAnimationChanged, callback);
     }
 }

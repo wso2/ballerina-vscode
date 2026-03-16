@@ -186,7 +186,8 @@ import {
     createBIAutomation,
     createBIFunction,
     createBIProjectPure,
-    createBIWorkspace,
+    createBIWorkspaceWithProject,
+    createEmptyBIWorkspace,
     deleteProjectFromWorkspace,
     openInVSCode
     , validateProjectPath
@@ -528,7 +529,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             StateMachine.langClient()
                 .getAvailableNodes({
                     position: params.position,
-                    filePath
+                    filePath,
+                    queryMap: params.queryMap
                 })
                 .then((model) => {
                     console.log(">>> bi available nodes from ls", model);
@@ -684,8 +686,13 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async createProject(params: ProjectRequest): Promise<void> {
         if (params.createAsWorkspace) {
-            const workspaceRoot = await createBIWorkspace(params);
-            openInVSCode(workspaceRoot);
+            if (params.projectName) {
+                const workspaceRoot = await createBIWorkspaceWithProject(params);
+                openInVSCode(workspaceRoot);
+            } else {
+                const workspaceRoot = await createEmptyBIWorkspace(params);
+                openInVSCode(workspaceRoot);
+            }
         } else {
             const projectRoot = await createBIProjectPure(params);
             openInVSCode(projectRoot);
@@ -929,7 +936,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .deleteFlowNode(params)
                 .then(async (model) => {
                     console.log(">>> bi delete node from ls", model);
-                    const artifacts = await updateSourceCode({ textEdits: model.textEdits, description: 'Flow Node Deletion - ' + params.flowNode.metadata.label });
+                    const artifacts = await updateSourceCode({ textEdits: model.textEdits, description: 'Flow Node Deletion - ' + params.flowNode.metadata.label, skipPayloadCheck: true });
                     resolve({ artifacts });
                 })
                 .catch((error) => {

@@ -183,7 +183,7 @@ const LoginPanel: React.FC = () => {
             <FooterContent>
                 <LegalNotice />
                 {isPlatformAvailable && (
-                    <StyledButton onClick={handleCopilotLogin}>Login using Devant</StyledButton>
+                    <StyledButton onClick={handleCopilotLogin}>Login using WSO2 Cloud</StyledButton>
                 )}
                 {isPlatformAvailable && <Divider>or</Divider>}
                 <TextButton onClick={handleAnthropicKeyClick}>Enter your Anthropic API key</TextButton>

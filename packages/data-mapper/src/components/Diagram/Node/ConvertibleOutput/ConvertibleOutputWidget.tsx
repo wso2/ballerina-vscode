@@ -33,6 +33,7 @@ import { OutputSearchHighlight } from '../commons/Search';
 import { CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX } from '../../utils/constants';
 import { FieldActionButton } from '../commons/FieldActionButton';
 import { PayloadWidget } from '../commons/PayloadWidget';
+import { DiagnosticTooltip } from '../../Diagnostic/DiagnosticTooltip';
 
 export interface ConvertibleOutputWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -184,6 +185,26 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
                             />
                         )}
                     </span>
+                    {context.model.hasInvalidOutput && outputType.category !== InputCategory.ConvertedVariable && (
+                        <DiagnosticTooltip
+                            placement="right"
+                            diagnostic="Output has invalid fields"
+                            actionText="Fix by removing invalid fields"
+                            onClick={context.resolveOutput}
+                        >
+                            <Button
+                                appearance="icon"
+                                data-testid={`array-widget-field-${portIn?.getName()}`}
+                                data-field-action
+                            >
+                                <Icon
+                                    name="error-icon"
+                                    sx={{ height: "14px", width: "14px" }}
+                                    iconSx={{ fontSize: "14px", color: "var(--vscode-errorForeground)" }}
+                                />
+                            </Button>
+                        </DiagnosticTooltip>
+                    )}
                 </TreeHeader>
                 {expanded && hasFields && (
                     <TreeBody>

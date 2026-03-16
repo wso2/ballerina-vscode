@@ -256,6 +256,8 @@ function getShortNames(name: string) {
             return "Natural Function";
         case MACHINE_VIEW.BITestFunctionForm:
             return "Test Function";
+        case MACHINE_VIEW.BIAgentToolForm:
+            return "Agent Tool";
         case MACHINE_VIEW.BIAIEvaluationForm:
             return "AI Evaluation";
         case MACHINE_VIEW.EvalsetViewer:

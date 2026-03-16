@@ -34,7 +34,7 @@ import {
     exchangeStsToCopilotToken
 } from '../../utils/ai/auth';
 import { getBedrockRegionalPrefix } from '../../features/ai/utils/ai-client';
-import { WICommandIds } from '@wso2/wso2-platform-core';
+import { CommandIds } from '@wso2/wso2-platform-core';
 
 const LEGACY_ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';
 const LEGACY_REFRESH_TOKEN_SECRET_KEY = 'BallerinaAIRefreshToken';
@@ -102,7 +102,7 @@ export const logout = async (_isUserLogout: boolean = true) => {
     const loginMethod = await getLoginMethod();
     if (loginMethod === LoginMethod.BI_INTEL && isPlatformExtensionAvailable()) {
         try {
-            await vscode.commands.executeCommand(WICommandIds.SignOut);
+            await vscode.commands.executeCommand(CommandIds.SignOut);
         } catch (error) {
             console.error('Error signing out from WSO2 Platform extension:', error);
         }
@@ -122,7 +122,7 @@ export async function initiateDevantAuth(): Promise<boolean> {
     }
 
     // Trigger platform extension login command
-    await vscode.commands.executeCommand(WICommandIds.SignIn);
+    await vscode.commands.executeCommand(CommandIds.SignIn);
     return true;
 }
 
@@ -142,7 +142,7 @@ export const validateApiKey = async (apiKey: string, loginMethod: LoginMethod): 
         });
 
         await generateText({
-            model: directAnthropic('claude-3-haiku-20240307'),
+            model: directAnthropic('claude-haiku-4-5-20251001'),
             maxOutputTokens: 1,
             messages: [{ role: 'user', content: 'Hi' }]
         });
@@ -216,7 +216,7 @@ export const validateAwsCredentials = async (credentials: {
 
         // Get regional prefix based on AWS region and construct model ID
         const regionalPrefix = getBedrockRegionalPrefix(region);
-        const modelId = `${regionalPrefix}.anthropic.claude-3-5-haiku-20241022-v1:0`;
+        const modelId = `${regionalPrefix}.anthropic.claude-haiku-4-5-20251001-v1:0`;
         const bedrockClient = bedrock(modelId);
 
         // Make a minimal test call to validate credentials

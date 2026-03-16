@@ -73,7 +73,7 @@ import { cloneDeep } from "lodash";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import hljs from "highlight.js";
-import { COMPLETION_ITEM_KIND, CompletionItem, CompletionItemKind, convertCompletionItemKind, FnSignatureDocumentation, VSCodeColors } from "@wso2/ui-toolkit";
+import { COMPLETION_ITEM_KIND, CompletionItem, CompletionItemKind, convertCompletionItemKind, FnSignatureDocumentation } from "@wso2/ui-toolkit";
 import { FunctionDefinition, STNode } from "@wso2/syntax-tree";
 import { DocSection } from "../components/ExpressionEditor";
 
@@ -102,7 +102,20 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
         description: node.metadata.description,
         enabled: node.enabled,
         metadata: node,
-        icon: (
+        icon: node.codedata.node === "NEW_CONNECTION" ? (
+            <ConnectorIcon
+                url={node.metadata.icon}
+                style={{ width: "16px", height: "16px", fontSize: "16px" }}
+                codedata={node.codedata}
+                connectorType={(node.metadata.data as NodeMetadata)?.connectorType}
+                fallbackIcon={
+                    <NodeIcon
+                        type={functionType === FUNCTION_TYPE.EXPRESSION_BODIED ? "DATA_MAPPER_CALL" : node.codedata.node}
+                        size={16}
+                    />
+                }
+            />
+        ) : (
             <NodeIcon
                 type={functionType === FUNCTION_TYPE.EXPRESSION_BODIED ? "DATA_MAPPER_CALL" : node.codedata.node}
                 size={16}
@@ -110,6 +123,7 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
         ),
     };
 }
+
 
 function convertDiagramCategoryToSidePanelCategory(category: Category, functionType?: FUNCTION_TYPE): PanelCategory {
     const items: PanelItem[] = category.items
@@ -125,15 +139,17 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
                 return false;
             }
             if ((item as PanelCategory).items !== undefined) {
+                // For categories, use recursive check to see if they have any functions
                 return (item as PanelCategory).items.length > 0;
             }
             return true;
         });
 
-    // HACK: use the icon of the first item in the category
+
+    const connectorType = (category?.metadata?.data as NodeMetadata)?.connectorType;
+
     const icon = category.items.at(0)?.metadata.icon;
     const codedata = (category.items.at(0) as AvailableNode)?.codedata;
-    const connectorType = (category?.metadata?.data as NodeMetadata)?.connectorType;
 
     return {
         title: category.metadata.label,
@@ -449,6 +465,8 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             return `Select ${getConnectionDisplayName(connectionKind)}`;
         case SidePanelView.CONNECTION_CREATE:
             return `Create ${getConnectionDisplayName(connectionKind)}`;
+        case SidePanelView.CONNECTOR_ERROR:
+            return "Error";
         case SidePanelView.AGENT_MEMORY_MANAGER:
             return "Configure Memory";
         case SidePanelView.AGENT_TOOL:
