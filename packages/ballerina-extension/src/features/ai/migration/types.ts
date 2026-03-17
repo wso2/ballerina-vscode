@@ -58,8 +58,6 @@ export interface EnhanceTomlData {
     aiFeatureUsed: boolean;
     /** `true` once the AI enhancement pipeline has completed successfully for this project. */
     fullyEnhanced: boolean;
-    /** `true` when the AI enhancement was started but paused / aborted before completion. */
-    isPartiallyEnhanced?: boolean;
     /** Absolute path to the original source project (e.g. Mule XML directory). */
     sourcePath?: string;
 }
@@ -75,6 +73,4 @@ export interface ActiveMigrationSessionLocal {
     aiFeatureUsed: boolean;
     /** `true` once the enhancement pipeline has completed successfully (read from the toml). */
     fullyEnhanced: boolean;
-    /** `true` when the AI enhancement was started but paused before completion. */
-    isPartiallyEnhanced?: boolean;
 }

@@ -48,13 +48,13 @@ const _wizardEnhancementReady = { method: "migrate-integration/wizardEnhancement
 const _openMigratedProject = { method: "migrate-integration/openMigratedProject" } as const;
 const _abortMigrationAgent = { method: "migrate-integration/abortMigrationAgent" } as const;
 const _seedMigrationHistory = { method: "migrate-integration/seedMigrationHistory" } as const;
+const _getMigrationHistoryMessages = { method: "migrate-integration/getMigrationHistoryMessages" } as const;
 
 /** Local mirror until @wso2/ballerina-core is rebuilt. */
 export interface ActiveMigrationSession {
     isActive: boolean;
     aiFeatureUsed: boolean;
     fullyEnhanced: boolean;
-    isPartiallyEnhanced?: boolean;
 }
 
 export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
@@ -138,5 +138,12 @@ export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
      */
     seedMigrationHistory(): Promise<boolean> {
         return this._messenger.sendRequest(_seedMigrationHistory as any, HOST_EXTENSION);
+    }
+
+    /**
+     * Retrieves the persisted migration conversation history messages.
+     */
+    getMigrationHistoryMessages(): Promise<Array<{ role: string; content: string }>> {
+        return this._messenger.sendRequest(_getMigrationHistoryMessages as any, HOST_EXTENSION);
     }
 }

@@ -47,13 +47,13 @@ import {
     runWizardMigrationEnhancement,
     openMigratedProject,
     seedMigrationHistoryIntoChatState,
+    getMigrationHistoryMessages,
 } from "../../features/ai/migration/orchestrator";
 
 interface ActiveMigrationSession {
     isActive: boolean;
     aiFeatureUsed: boolean;
     fullyEnhanced: boolean;
-    isPartiallyEnhanced?: boolean;
 }
 
 export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
@@ -285,5 +285,9 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
 
     async seedMigrationHistory(): Promise<boolean> {
         return seedMigrationHistoryIntoChatState();
+    }
+
+    async getMigrationHistoryMessages(): Promise<Array<{ role: string; content: string }>> {
+        return getMigrationHistoryMessages();
     }
 }

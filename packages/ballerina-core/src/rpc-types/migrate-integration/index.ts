@@ -35,4 +35,8 @@ export interface MigrateIntegrationAPI {
     seedMigrationHistory: () => Promise<boolean>;
     /** Triggers the wizard-level streaming enhancement pipeline (called from AI Chat after startMigrationEnhancement). */
     wizardEnhancementReady: () => Promise<void>;
+    /** Aborts the currently running migration AI agent. */
+    abortMigrationAgent: () => Promise<void>;
+    /** Retrieves the persisted migration conversation history messages for display in AI Chat. */
+    getMigrationHistoryMessages: () => Promise<Array<{ role: string; content: string }>>;
 }
