@@ -8,7 +8,7 @@
     "offset": 1
   },
   "source": "check.bal",
-  "description": "Tests flow nodes generation for new xml variables",
+  "description": "Tests flow nodes generation and diagnostics for 'check' expressions",
   "diagram": {
     "fileName": "check.bal",
     "nodes": [
