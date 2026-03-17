@@ -189,7 +189,7 @@ const CommonApprovalFooter: React.FC<CommonApprovalFooterProps> = (props) => {
                         <InlineButton variant="primary" style={{ flex: 1, height: "28px" }} onClick={onAllow}>
                             Allow
                         </InlineButton>
-                        <InlineButton variant="danger" style={{ flex: 1, height: "28px" }} onClick={onDeny}>
+                        <InlineButton variant="secondary" style={{ flex: 1, height: "28px" }} onClick={onDeny}>
                             Deny
                         </InlineButton>
                     </ButtonRow>

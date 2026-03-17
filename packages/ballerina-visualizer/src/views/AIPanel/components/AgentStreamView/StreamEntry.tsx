@@ -59,10 +59,10 @@ function getFileName(filePath: string | undefined): string {
 
 function getToolCallDisplay(toolName: string | undefined, toolInput: any): { label: string; detail?: string } {
     switch (toolName) {
-        case "file_read":    return { label: "Reading ",   detail: getFileName(toolInput?.fileName) + "..." };
-        case "file_write":   return { label: "Creating ",  detail: getFileName(toolInput?.fileName) + "..." };
+        case "file_read":    return { label: "Reading",   detail: getFileName(toolInput?.fileName) + "..." };
+        case "file_write":   return { label: "Creating",  detail: getFileName(toolInput?.fileName) + "..." };
         case "file_edit":
-        case "file_batch_edit": return { label: "Updating ", detail: getFileName(toolInput?.fileName) + "..." };
+        case "file_batch_edit": return { label: "Updating", detail: getFileName(toolInput?.fileName) + "..." };
         case "TaskWrite":    return { label: "Planning..." };
         case "LibrarySearchTool": {
             const desc = toolInput?.searchDescription;
@@ -78,18 +78,18 @@ function getToolCallDisplay(toolName: string | undefined, toolInput: any): { lab
         case "runBallerinaPackage": return { label: `Running ${toolInput?.runType === "service" ? "service" : "program"}...` };
         case "getServiceLogs": return { label: "Fetching logs..." };
         case "stopBallerinaService": return { label: "Stopping service..." };
-        case "web_search": return { label: "Searching: ", detail: toolInput?.query || "the web" };
-        case "web_fetch":  return { label: "Fetching: ",  detail: toolInput?.url || "URL" };
+        case "web_search": return { label: toolInput?.query ? "Searching the web:" : "Searching the web...", detail: toolInput?.query };
+        case "web_fetch":  return { label: toolInput?.url ? "Fetching from web:" : "Fetching from web...", detail: toolInput?.url };
         default: return { label: "Working..." };
     }
 }
 
 function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hint?: string): { label: string; detail?: string } {
     switch (toolName) {
-        case "file_read":    return { label: "Read ",    detail: getFileName(toolOutput?.fileName) };
-        case "file_write":   return { label: toolOutput?.action === "updated" ? "Updated " : "Created ", detail: getFileName(toolOutput?.fileName) };
+        case "file_read":    return { label: "Read",    detail: getFileName(toolOutput?.fileName) };
+        case "file_write":   return { label: toolOutput?.action === "updated" ? "Updated" : "Created", detail: getFileName(toolOutput?.fileName) };
         case "file_edit":
-        case "file_batch_edit": return { label: "Updated ", detail: getFileName(toolOutput?.fileName) };
+        case "file_batch_edit": return { label: "Updated", detail: getFileName(toolOutput?.fileName) };
         case "TaskWrite":    return { label: "Plan ready" };
         case "LibrarySearchTool": {
             const desc = toolOutput?.searchDescription;
@@ -123,8 +123,8 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hin
             const status = toolOutput?.status ?? "stopped";
             return { label: status === "stopped" ? "Service stopped" : status === "already_exited" ? "Service already exited" : "Service not found" };
         }
-        case "web_search": return { label: "Searched: ", detail: hint || "web" };
-        case "web_fetch":  return { label: "Fetched: ",  detail: hint || "URL" };
+        case "web_search": return { label: hint ? "Web search:" : "Web search completed", detail: hint };
+        case "web_fetch":  return { label: hint ? "Web fetch:" : "Web fetch completed",  detail: hint };
         default: return { label: "Done" };
     }
 }
