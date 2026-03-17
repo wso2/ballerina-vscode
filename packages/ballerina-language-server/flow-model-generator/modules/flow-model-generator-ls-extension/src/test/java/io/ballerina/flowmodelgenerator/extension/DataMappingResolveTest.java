@@ -55,6 +55,7 @@ public class DataMappingResolveTest extends AbstractLSTest {
                 {Path.of("variable3.json")},
                 {Path.of("variable4.json")},
                 {Path.of("variable5.json")},
+                {Path.of("variable6.json")},
         };
     }
 
@@ -118,7 +119,7 @@ public class DataMappingResolveTest extends AbstractLSTest {
 
     @Override
     protected String getApiName() {
-        return "resolve";
+        return "resolveOutput";
     }
 
     @Override

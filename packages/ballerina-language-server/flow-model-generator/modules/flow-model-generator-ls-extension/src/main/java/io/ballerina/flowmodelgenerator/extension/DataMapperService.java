@@ -187,7 +187,7 @@ public class DataMapperService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<DataMappingDeleteResponse> resolve(DataMapperResolveRequest request) {
+    public CompletableFuture<DataMappingDeleteResponse> resolveOutput(DataMapperResolveRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             DataMappingDeleteResponse response = new DataMappingDeleteResponse();
             try {

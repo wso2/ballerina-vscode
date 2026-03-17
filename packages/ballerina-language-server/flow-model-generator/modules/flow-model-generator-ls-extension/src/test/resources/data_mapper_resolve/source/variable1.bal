@@ -26,10 +26,11 @@ service OASServiceType on new http:Listener(9090) {
         do {
             UserInfo userInfo = {username: "un", password: "pw"};
             Student student = {yyy: {username: xxx.username}};
-            Student student1 = {credentials: {username: xxx.username}};
-            Student student2 = {credentials: {username: xxx.username, password: userInfo.password, field1: userInfo.username}};
-            Student student3 = {credentials: {username: userInfo.username, password: xxx.password, field1: userInfo.username}};
-            Student student4 = {credentials: {username: userInfo.username, password: userInfo.password, field1: xxx.username}};
+            Student student1 = {credentialz: {username: xxx.username}};
+            Student student2 = {credentials: {userneme: xxx.username, password: userInfo.password, field1: userInfo.username}};
+            Student student3 = {credentials: {username: userInfo.username, pessword: xxx.password, field1: userInfo.username}};
+            Student student4 = {credentials: {username: userInfo.username, password: userInfo.password, field4: xxx.username}};
+            Student student5 = {id: {username: xxx.username}};
 		} on fail error e {
 			return http:NOT_FOUND;
 		}
