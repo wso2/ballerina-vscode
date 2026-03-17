@@ -19,7 +19,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "@emotion/styled";
 import { FooterContainer } from "./index";
-import { InlineButton } from "../../AgentStreamView/styles";
+import { ActionButton } from "../../AgentStreamView/styles";
 
 // ── Shared layout ─────────────────────────────────────────────────────────────
 
@@ -40,32 +40,6 @@ const PromptText = styled.div`
 
 // ── Plan / completion styles ───────────────────────────────────────────────────
 
-const ApproveButton = styled.button`
-    display: flex;
-    align-items: center;
-    width: 100%;
-    height: 36px;
-    box-sizing: border-box;
-    padding: 8px 14px;
-    font-size: 12px;
-    font-weight: 500;
-    font-family: var(--vscode-font-family);
-    text-align: left;
-    border-radius: 4px;
-    border: 1px solid var(--vscode-input-border);
-    background-color: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    cursor: pointer;
-
-    &:hover:not(:disabled) {
-        background-color: var(--vscode-button-hoverBackground);
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-`;
 
 const InputContainer = styled.div`
     display: flex;
@@ -140,11 +114,6 @@ const WebToolContent = styled.div`
     padding-left: 2px;
 `;
 
-const ButtonRow = styled.div`
-    display: flex;
-    gap: 8px;
-    margin-top: 4px;
-`;
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -185,14 +154,8 @@ const CommonApprovalFooter: React.FC<CommonApprovalFooterProps> = (props) => {
                         {label}
                     </WebToolHeader>
                     <WebToolContent>{content}</WebToolContent>
-                    <ButtonRow>
-                        <InlineButton variant="primary" style={{ flex: 1, height: "28px" }} onClick={onAllow}>
-                            Allow
-                        </InlineButton>
-                        <InlineButton variant="secondary" style={{ flex: 1, height: "28px" }} onClick={onDeny}>
-                            Deny
-                        </InlineButton>
-                    </ButtonRow>
+                    <ActionButton onClick={onAllow}>Allow</ActionButton>
+                    <ActionButton variant="secondary" onClick={onDeny}>Deny</ActionButton>
                 </ApprovalContainer>
             </FooterContainer>
         );
@@ -225,9 +188,9 @@ const CommonApprovalFooter: React.FC<CommonApprovalFooterProps> = (props) => {
         <FooterContainer>
             <ApprovalContainer>
                 <PromptText>{promptText}</PromptText>
-                <ApproveButton onClick={() => onApprove(false)} disabled={isSubmitting}>
+                <ActionButton onClick={() => onApprove(false)} disabled={isSubmitting}>
                     {approveButtonText}
-                </ApproveButton>
+                </ActionButton>
                 <InputContainer>
                     <Input
                         type="text"
