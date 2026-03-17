@@ -72,13 +72,15 @@ function resolveChildren(member: Member, referencedTypes: Type[], visited: Set<s
 function toggleSelection(member: Member, selected: boolean, referencedTypes: Type[], visited: Set<string> = new Set()): void {
     member.selected = selected;
 
-    // Track this member's ref to prevent cycles
+    // Track this member's ref to prevent cycles when recursing into children
     const newVisited = new Set(visited);
     if (member.refs?.length) {
         newVisited.add(member.refs[0]);
     }
 
-    const children = resolveChildren(member, referencedTypes, newVisited);
+    // Pass `visited` (not newVisited) so we can resolve children - the current ref must not
+    // be in visited yet, otherwise resolveChildren returns [] due to circular guard
+    const children = resolveChildren(member, referencedTypes, visited);
     for (const child of children) {
         toggleSelection(child, selected, referencedTypes, newVisited);
     }
@@ -132,7 +134,7 @@ function propagateSelectionUpwards(members: Member[], referencedTypes: Type[], v
             }
         }
 
-        const children = resolveChildren(member, referencedTypes, newVisited);
+        const children = resolveChildren(member, referencedTypes, visited);
         if (children.length > 0) {
             // First, recursively propagate for children
             propagateSelectionUpwards(children, referencedTypes, newVisited);
