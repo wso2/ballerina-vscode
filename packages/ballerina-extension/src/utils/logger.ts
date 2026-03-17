@@ -17,14 +17,58 @@
  */
 
 import * as vscode from 'vscode';
-import { getPluginConfig } from '../utils/config';
+import { ENABLE_DEBUG_LOG } from '../core/preferences';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
 
-export const outputChannel = vscode.window.createOutputChannel("Ballerina");
+function createPersistedOutputChannel(name: string): vscode.OutputChannel {
+    const channel = vscode.window.createOutputChannel(name);
+    return {
+        name: channel.name,
+        append(value: string): void {
+            channel.append(value);
+            if (isDebugLogEnabled()) {
+                persistDebugLogs(value);
+            }
+        },
+        appendLine(value: string): void {
+            channel.appendLine(value);
+            if (isDebugLogEnabled()) {
+                persistDebugLogs(value);
+            }
+        },
+        replace(value: string): void {
+            channel.replace(value);
+            if (isDebugLogEnabled()) {
+                persistDebugLogs(value);
+            }
+        },
+        clear(): void {
+            channel.clear();
+        },
+        show(columnOrPreserveFocus?: vscode.ViewColumn | boolean, preserveFocus?: boolean): void {
+            if (typeof columnOrPreserveFocus === 'number') {
+                channel.show(columnOrPreserveFocus, preserveFocus);
+            } else {
+                channel.show(columnOrPreserveFocus);
+            }
+        },
+        hide(): void {
+            channel.hide();
+        },
+        dispose(): void {
+            channel.dispose();
+        }
+    };
+}
+
+export const outputChannel = createPersistedOutputChannel("Ballerina");
 export const buildOutputChannel = vscode.window.createOutputChannel("Ballerina Build");
-const logLevelDebug: boolean = getPluginConfig().get('debugLog') === true;
+
+function isDebugLogEnabled(): boolean {
+    return vscode.workspace.getConfiguration().get(ENABLE_DEBUG_LOG) === true;
+}
 
 function withNewLine(value: string) {
     if (typeof value === 'string' && !value.endsWith('\n')) {
@@ -37,10 +81,9 @@ function withNewLine(value: string) {
 export function debug(value: string): void {
     const output = withNewLine(value);
     console.log(output);
-    if (logLevelDebug) {
+    if (isDebugLogEnabled()) {
         outputChannel.append(output);
     }
-    persistDebugLogs(value);
 }
 
 // This function will log the value to the Ballerina output channel
@@ -48,11 +91,10 @@ export function log(value: string): void {
     const output = withNewLine(value);
     console.log(output);
     outputChannel.append(output);
-    persistDebugLogs(value);
 }
 
 export function getOutputChannel() {
-    if (logLevelDebug) {
+    if (isDebugLogEnabled()) {
         return outputChannel;
     }
 }
