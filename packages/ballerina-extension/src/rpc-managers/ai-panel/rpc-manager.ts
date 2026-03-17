@@ -747,7 +747,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         const context = StateMachine.context();
         // Use workspace root when available; modifiedFiles are relative to the workspace root in workspace mode
         const originalRoot = context.workspacePath || context.projectPath;
-        const workspaceId = context.projectPath;
+        const workspaceId = context.workspacePath || context.projectPath;
         const threadId = 'default';
         const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
         const tempProjectPath = pendingReview?.reviewState.tempProjectPath;
