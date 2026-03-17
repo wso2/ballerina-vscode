@@ -169,7 +169,7 @@ async function executeWebSearch(
         const content = result.text || 'Web search completed but returned no content.';
         console.log(`[WebSearchTool] Completed. Content length: ${content.length}`);
 
-        eventHandler({ type: "tool_result", toolName: WEB_SEARCH_TOOL_NAME, toolOutput: { content }, toolCallId });
+        eventHandler({ type: "tool_result", toolName: WEB_SEARCH_TOOL_NAME, toolOutput: { query: input.query }, toolCallId });
         return content;
     } catch (error: any) {
         console.error('[WebSearchTool] Failed:', error?.message || error);
@@ -255,7 +255,7 @@ async function executeWebFetch(
         const content = extractToolOutput(result);
         console.log(`[WebFetchTool] Completed. Content length: ${content?.length ?? 0}`);
 
-        eventHandler({ type: "tool_result", toolName: WEB_FETCH_TOOL_NAME, toolOutput: { content }, toolCallId });
+        eventHandler({ type: "tool_result", toolName: WEB_FETCH_TOOL_NAME, toolOutput: { url: input.url }, toolCallId });
         return content || 'Web fetch completed.';
     } catch (error: any) {
         console.error('[WebFetchTool] Failed:', error?.message || error);
