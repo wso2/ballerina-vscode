@@ -27,10 +27,16 @@ import { MultiProjectFormData, MultiProjectFormFields } from "./components/Multi
 import {
     AIEnhancementSection,
     AIEnhancementTitle,
-    AIEnhancementToggleRow,
-    AIEnhancementDescription,
     ButtonWrapper,
 } from "./styles";
+import {
+    RadioGroup,
+    RadioOption,
+    RadioInput,
+    RadioContent,
+    RadioTitle,
+    RadioDescription,
+} from "../ProjectForm/styles";
 import { ConfigureProjectFormProps } from "./types";
 
 interface AIEnhancementToggleProps {
@@ -45,24 +51,36 @@ function AIEnhancementToggle({ enabled, onChange }: AIEnhancementToggleProps) {
                 <Codicon name="sparkle" />
                 AI Enhancement
             </AIEnhancementTitle>
-            <AIEnhancementToggleRow onClick={() => onChange(!enabled)}>
-                <input
-                    type="checkbox"
-                    checked={enabled}
-                    onChange={(e) => onChange(e.target.checked)}
-                    style={{ margin: 0, cursor: "pointer" }}
-                />
-                <div>
-                    <span style={{ fontWeight: 500, fontSize: 13, color: "var(--vscode-foreground)" }}>
-                        Enable (Recommended)
-                    </span>
-                    <AIEnhancementDescription>
-                        {enabled
-                            ? "AI will automatically resolve unmapped elements, fix build errors, refine tests, and run them before opening the project."
-                            : "Open the project as-is. You can trigger AI enhancement later from the Migration Assistance panel."}
-                    </AIEnhancementDescription>
-                </div>
-            </AIEnhancementToggleRow>
+            <RadioGroup>
+                <RadioOption isSelected={enabled} onClick={() => onChange(true)}>
+                    <RadioInput
+                        type="radio"
+                        name="ai-enhancement"
+                        checked={enabled}
+                        onChange={() => onChange(true)}
+                    />
+                    <RadioContent>
+                        <RadioTitle>Enable AI Enhancement</RadioTitle>
+                        <RadioDescription>
+                            AI will automatically resolve unmapped elements, fix build errors, and refine tests.
+                        </RadioDescription>
+                    </RadioContent>
+                </RadioOption>
+                <RadioOption isSelected={!enabled} onClick={() => onChange(false)}>
+                    <RadioInput
+                        type="radio"
+                        name="ai-enhancement"
+                        checked={!enabled}
+                        onChange={() => onChange(false)}
+                    />
+                    <RadioContent>
+                        <RadioTitle>Skip for Now – Enhance Later</RadioTitle>
+                        <RadioDescription>
+                            Open the project as-is. You can trigger AI enhancement later from the BI Copilot.
+                        </RadioDescription>
+                    </RadioContent>
+                </RadioOption>
+            </RadioGroup>
         </AIEnhancementSection>
     );
 }

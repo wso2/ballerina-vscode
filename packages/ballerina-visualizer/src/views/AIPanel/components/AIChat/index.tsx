@@ -160,6 +160,7 @@ const AIChat: React.FC = () => {
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
 
     const [migrationSession, setMigrationSession] = useState<ActiveMigrationSession | null>(null);
+    const [isMigrationEnhancementRunning, setIsMigrationEnhancementRunning] = useState(false);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -756,6 +757,7 @@ const AIChat: React.FC = () => {
             console.log("Received stop signal");
             setIsCodeLoading(false);
             setIsLoading(false);
+            setIsMigrationEnhancementRunning(false);
         } else if (type === "abort") {
             console.log("Received abort signal");
             const interruptedMessage = "\n\n*[Request interrupted by user]*";
@@ -775,6 +777,16 @@ const AIChat: React.FC = () => {
             });
             setIsCodeLoading(false);
             setIsLoading(false);
+            if (isMigrationEnhancementRunning) {
+                setIsMigrationEnhancementRunning(false);
+                // Re-fetch session so the Resume card appears
+                try {
+                    const updatedSession = await rpcClient.getMigrateIntegrationRpcClient().getActiveMigrationSession();
+                    setMigrationSession(updatedSession);
+                } catch (e) {
+                    console.error('[AIChat] Failed to refresh migration session after abort:', e);
+                }
+            }
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
             const messageId = response.messageId;
@@ -936,11 +948,32 @@ const AIChat: React.FC = () => {
             // Prime the chat UI so streaming events have a message to append to
             setMigrationSession(null);
             setIsLoading(true);
+
+            // aiFeatureUsed=true && fullyEnhanced=false means enhancement was previously
+            // started (at the wizard or via AI Chat) but never finished — this is a resume.
+            const isResume = migrationSession?.aiFeatureUsed === true;
+
+            if (isResume) {
+                // Load any persisted history into the chat UI before resuming
+                const historyMessages = await rpcClient.getMigrateIntegrationRpcClient().getMigrationHistoryMessages();
+                if (historyMessages.length > 0) {
+                    const historyUiMessages = historyMessages.map((m) => ({
+                        role: m.role === "user" ? "User" : "Copilot",
+                        content: m.content,
+                        type: m.role === "user" ? "user_message" : "assistant_message",
+                    }));
+                    setMessages((prev) => [...prev, ...historyUiMessages]);
+                }
+            }
+
+            // Push the user trigger and empty assistant placeholder
             setMessages((prevMessages) => [
                 ...prevMessages,
-                { role: "User", content: "Start AI Enhancement", type: "user_message" },
+                { role: "User", content: isResume ? "Continue AI Enhancement" : "Start AI Enhancement", type: "user_message" },
                 { role: "Copilot", content: "", type: "assistant_message" },
             ]);
+
+            setIsMigrationEnhancementRunning(true);
 
             // Seed saved conversation history into AI chat state
             await rpcClient.getMigrateIntegrationRpcClient().seedMigrationHistory();
@@ -950,6 +983,7 @@ const AIChat: React.FC = () => {
             await rpcClient.getMigrateIntegrationRpcClient().wizardEnhancementReady();
         } catch (error) {
             console.error('[AIChat] Failed to continue migration enhancement:', error);
+            setIsMigrationEnhancementRunning(false);
             setIsLoading(false);
         }
     }
@@ -1288,6 +1322,14 @@ const AIChat: React.FC = () => {
     }
 
     async function handleStop() {
+        if (isMigrationEnhancementRunning) {
+            // Stop the migration agent - partial state and VS Code notification are
+            // handled by the orchestrator's abort catch block.
+            await rpcClient.getMigrateIntegrationRpcClient().abortMigrationAgent();
+            setIsLoading(false);
+            setIsCodeLoading(false);
+            return;
+        }
         // Call RPC with empty params (defaults to current workspace + 'default' thread)
         rpcClient.getAiPanelRpcClient().abortAIGeneration({});
 

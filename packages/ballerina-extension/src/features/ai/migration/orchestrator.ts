@@ -24,7 +24,7 @@ import { AIStateMachine, openAIPanelWithPrompt } from "../../../views/ai-panel/a
 import { AgentExecutor } from "../agent/AgentExecutor";
 import { AICommandConfig } from "../executors/base/AICommandExecutor";
 import { createMigrationEventHandler, createVisualizerMigrationEventHandler, createAIPanelMigrationEventHandler } from "../utils/events";
-import { sendVisualizerMigrationNotification } from "../utils/ai-utils";
+import { sendVisualizerMigrationNotification, sendAIPanelNotification } from "../utils/ai-utils";
 import { getEnhancementStages } from "./prompts";
 import { saveAgentHistory, loadAgentHistory, clearAgentHistory } from "./history";
 import { chatStateStorage } from "../../../views/ai-panel/chatStateStorage";
@@ -49,6 +49,9 @@ let _activeSession: ActiveMigrationSessionLocal = { isActive: false, aiFeatureUs
 /** `true` when enhancement was triggered from AI Chat (not the wizard). Routes events to the AI Panel. */
 let _enhancementFromAIChat = false;
 
+/** `true` while `runWizardMigrationEnhancement` is executing in AI Chat mode. Used to route the abort handler. */
+let _runningFromAIChat = false;
+
 // ===========================================================================
 // Toml helpers – `.ai-migrate-enhance.toml`
 // ===========================================================================
@@ -66,12 +69,10 @@ export function readEnhanceToml(projectRoot: string): EnhanceTomlData | null {
         const content = fs.readFileSync(filePath, "utf8");
         const aiFeatureUsedMatch = content.match(/aiFeatureUsed\s*=\s*(true|false)/);
         const fullyEnhancedMatch = content.match(/fullyEnhanced\s*=\s*(true|false)/);
-        const partialMatch = content.match(/isPartiallyEnhanced\s*=\s*(true|false)/);
         const sourcePathMatch = content.match(/sourcePath\s*=\s*"([^"]+)"/);
         return {
             aiFeatureUsed: aiFeatureUsedMatch?.[1] === "true",
             fullyEnhanced: fullyEnhancedMatch?.[1] === "true",
-            isPartiallyEnhanced: partialMatch?.[1] === "true",
             sourcePath: sourcePathMatch?.[1],
         };
     } catch {
@@ -87,7 +88,6 @@ export function writeEnhanceToml(
     aiFeatureUsed: boolean,
     fullyEnhanced: boolean,
     sourcePath?: string,
-    isPartiallyEnhanced?: boolean,
 ): void {
     const dir = path.join(projectRoot, AI_MIGRATION_DIR);
     if (!fs.existsSync(dir)) {
@@ -95,9 +95,6 @@ export function writeEnhanceToml(
     }
     const filePath = path.join(dir, AI_ENHANCE_TOML_FILENAME);
     let content = `[enhancement]\naiFeatureUsed = ${aiFeatureUsed}\nfullyEnhanced = ${fullyEnhanced}\n`;
-    if (isPartiallyEnhanced !== undefined) {
-        content += `isPartiallyEnhanced = ${isPartiallyEnhanced}\n`;
-    }
     if (sourcePath) {
         content += `sourcePath = "${sourcePath}"\n`;
     }
@@ -137,7 +134,6 @@ export function getActiveMigrationSessionState(): ActiveMigrationSessionLocal {
             isActive: false,
             aiFeatureUsed: data.aiFeatureUsed,
             fullyEnhanced: data.fullyEnhanced,
-            isPartiallyEnhanced: data.isPartiallyEnhanced,
         };
     }
 
@@ -305,8 +301,7 @@ export async function checkAndRunPendingEnhancement(): Promise<void> {
         // Set session state so other parts of the extension know about the migration
         _activeSession = { isActive: false, aiFeatureUsed: true, fullyEnhanced: false };
 
-        // Determine notification message based on partial state
-        const message = data.isPartiallyEnhanced
+        const message = loadAgentHistory(stored.projectRoot)
             ? "Migration AI enhancement was paused. You can resume it from AI Chat."
             : "Migration project created. You can start AI enhancement from AI Chat.";
 
@@ -458,6 +453,34 @@ export function abortMigrationAgent(): void {
     }
 }
 
+/**
+ * Returns the persisted migration conversation history messages as simple
+ * role/content pairs suitable for display in the AI Chat panel.
+ */
+export function getMigrationHistoryMessages(): Array<{ role: string; content: string }> {
+    const projectRoot = _resolveCurrentProjectRoot();
+    if (!projectRoot) {
+        return [];
+    }
+    const history = loadAgentHistory(projectRoot);
+    if (!history) {
+        return [];
+    }
+    return history.messages
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .map((m) => ({
+            role: m.role,
+            content: typeof m.content === "string"
+                ? m.content
+                : Array.isArray(m.content)
+                    ? m.content
+                          .filter((part: any) => part.type === "text")
+                          .map((part: any) => part.text)
+                          .join("")
+                    : String(m.content),
+        }));
+}
+
 // ===========================================================================
 // Wizard-level AI Enhancement
 // ===========================================================================
@@ -569,6 +592,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
     // Route events to AI Chat when triggered from there, otherwise to the wizard Visualizer.
     const fromAIChat = _enhancementFromAIChat;
     _enhancementFromAIChat = false; // consume the flag
+    _runningFromAIChat = fromAIChat;
     const eventHandler = fromAIChat
         ? createAIPanelMigrationEventHandler(Command.Agent)
         : createVisualizerMigrationEventHandler(Command.Agent);
@@ -583,9 +607,11 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
         return;
     }
 
-    // The agent will access source files on demand via migration_source_list /
-    // migration_source_read tools, so no up-front loading is needed.
-    const sourcePath = _wizardSourcePath;
+    // Read the source path fresh from the toml so that any edits the user made
+    // to state.toml after the enhancement was scheduled are honoured.
+    // Fall back to the in-memory value captured at wizard/startMigrationEnhancement time.
+    const tomlData = readEnhanceToml(projectRoot);
+    const sourcePath = tomlData?.sourcePath ?? _wizardSourcePath;
 
     // --- Multi-stage execution ---
     // Each stage runs in a fresh AgentExecutor with its own context window.
@@ -629,7 +655,9 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                     fileAttachmentContents: [],
                     isPlanMode: false,
                 },
-                chatStorage: undefined,
+                chatStorage: fromAIChat
+                    ? { workspaceId: projectRoot, threadId: "default", enabled: true }
+                    : undefined,
                 onMessagesAvailable: (messages, status) => {
                     saveAgentHistory(projectRoot, messages, status);
                     console.log(`[MigrationEnhancement] Saved ${stage.name} history (${status}, ${messages.length} messages)`);
@@ -668,10 +696,27 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
     } catch (error) {
         if (_migrationAbortController.signal.aborted) {
             console.log("[MigrationEnhancement] Wizard migration agent was aborted by user.");
+            if (_runningFromAIChat && projectRoot) {
+                // Persist partial state so the Resume button can appear
+                const data = readEnhanceToml(projectRoot);
+                writeEnhanceToml(projectRoot, data?.aiFeatureUsed ?? true, false, data?.sourcePath);
+                // Notify AI Chat panel to show the interrupted message
+                sendAIPanelNotification({ type: "abort", command: Command.Agent });
+                // Show a VS Code notification so the user can jump back to AI Chat
+                window.showInformationMessage(
+                    "AI Enhancement paused. Your progress has been saved.",
+                    "Open AI Chat"
+                ).then((selection) => {
+                    if (selection === "Open AI Chat") {
+                        openAIPanelWithPrompt();
+                    }
+                });
+            }
         } else {
             console.error("[MigrationEnhancement] Wizard migration agent error:", error);
         }
     } finally {
+        _runningFromAIChat = false;
         _migrationAbortController = undefined;
     }
 }
@@ -692,10 +737,10 @@ export function openMigratedProject(): void {
     const aiFeatureUsed = data?.aiFeatureUsed ?? true;
     const sourcePath = data?.sourcePath ?? _wizardSourcePath;
 
-    // If the AI agent was running (paused by user), mark as partially enhanced
+    // If the AI agent was running (paused by user), the toml already reflects fullyEnhanced=false
     const wasRunning = _migrationAbortController !== undefined;
     if (wasRunning && data && !data.fullyEnhanced) {
-        writeEnhanceToml(projectRoot, aiFeatureUsed, false, sourcePath, true);
+        writeEnhanceToml(projectRoot, aiFeatureUsed, false, sourcePath);
     }
 
     scheduleMigrationEnhancement(aiFeatureUsed, projectRoot, sourcePath);

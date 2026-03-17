@@ -76,8 +76,6 @@ export interface ActiveMigrationSession {
     aiFeatureUsed: boolean;
     /** `true` once the AI enhancement pipeline has completed successfully. */
     fullyEnhanced: boolean;
-    /** `true` when the AI enhancement was started but paused before completion. */
-    isPartiallyEnhanced?: boolean;
 }
 
 export interface MigrateRequest {

@@ -47,6 +47,7 @@ const setMigrationModelMethod = { method: "migrate-integration/setMigrationModel
 const wizardEnhancementReadyMethod = { method: "migrate-integration/wizardEnhancementReady" } as const;
 const openMigratedProjectMethod = { method: "migrate-integration/openMigratedProject" } as const;
 const seedMigrationHistoryMethod = { method: "migrate-integration/seedMigrationHistory" } as const;
+const getMigrationHistoryMessagesMethod = { method: "migrate-integration/getMigrationHistoryMessages" } as const;
 
 export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     const rpcManger = MigrateIntegrationRpcManager.getInstance();
@@ -67,4 +68,5 @@ export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     messenger.onRequest(abortMigrationAgentMethod, () => rpcManger.abortMigrationAgent());
     messenger.onRequest(setMigrationModelMethod, (args: { modelId: string }) => rpcManger.setMigrationModel(args.modelId));
     messenger.onRequest(seedMigrationHistoryMethod, () => rpcManger.seedMigrationHistory());
+    messenger.onRequest(getMigrationHistoryMessagesMethod, () => rpcManger.getMigrationHistoryMessages());
 }

@@ -313,9 +313,12 @@ export abstract class AICommandExecutor<TParams = any> {
             });
         }
 
-        // Attempt cleanup on error
+        // Attempt cleanup on error, but never delete an existingTempPath —
+        // that is a real project directory supplied by the caller (e.g. migration
+        // enhancement), not a throwaway temp created by this executor.
         const tempProjectPath = this.config.executionContext.tempProjectPath;
-        if (tempProjectPath && !process.env.AI_TEST_ENV) {
+        const isExistingPath = this.config.lifecycle?.existingTempPath === tempProjectPath;
+        if (tempProjectPath && !isExistingPath && !process.env.AI_TEST_ENV) {
             try {
                 await cleanupTempProject(tempProjectPath);
             } catch (cleanupError) {

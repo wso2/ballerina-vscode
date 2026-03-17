@@ -90,26 +90,23 @@ export function MigrationContextCard({ session, onContinueEnhancement }: Migrati
         return null;
     }
 
-    const isPartial = session.isPartiallyEnhanced;
     const aiEnabled = session.aiFeatureUsed;
 
     return (
         <Card>
             <CardHeader>
                 <span className="codicon codicon-sparkle" />
-                {isPartial ? "Migration AI Enhancement Paused" : "Migration AI Enhancement Available"}
+                {"Migration AI Enhancement Available"}
             </CardHeader>
             <CardBody>
-                {isPartial
-                    ? "The AI enhancement for this migrated project was paused. You can resume where you left off — the previous conversation context will be restored."
-                    : aiEnabled
-                        ? "This project was created from a migration. You can start AI enhancement to resolve unmapped elements, fix build errors, and refine tests."
-                        : "This project was migrated without AI enhancement. You can run AI enhancement now to fix build errors, resolve TODOs, and refine tests."}
+                {aiEnabled
+                    ? "AI enhancement was previously started for this project. Continue to restore conversation context and pick up where you left off."
+                    : "This project was migrated without AI enhancement. You can run AI enhancement now to fix build errors, resolve TODOs, and refine tests."}
             </CardBody>
             <div>
                 <ActionButton onClick={onContinueEnhancement}>
                     <span className="codicon codicon-sparkle" />
-                    {isPartial ? "Resume AI Enhancement" : "Start AI Enhancement"}
+                    {aiEnabled ? "Continue AI Enhancement" : "Start AI Enhancement"}
                 </ActionButton>
             </div>
         </Card>
