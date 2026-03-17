@@ -437,6 +437,7 @@ export type DiagramLabel = "On Fail" | "Body";
 
 export type NodePropertyKey =
     | "agentType"
+    | "agentCredential"
     | "annotations"
     | "auth"
     | "checkError"
