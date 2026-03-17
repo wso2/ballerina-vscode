@@ -1,0 +1,315 @@
+{
+  "start": {
+    "line": 4,
+    "offset": 0
+  },
+  "end": {
+    "line": 7,
+    "offset": 1
+  },
+  "source": "check.bal",
+  "description": "Tests flow nodes generation for new xml variables",
+  "diagram": {
+    "fileName": "check.bal",
+    "nodes": [
+      {
+        "id": "36457",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "function3",
+            "isServiceFunction": false
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "check.bal",
+            "startLine": {
+              "line": 4,
+              "offset": 21
+            },
+            "endLine": {
+              "line": 7,
+              "offset": 1
+            }
+          },
+          "sourceCode": "function function3() {\n    string stringVar = check function1();\n    string var2 = check function1();\n}"
+        },
+        "returning": false,
+        "diagnostics": {
+          "hasDiagnostics": true
+        },
+        "flags": 0
+      },
+      {
+        "id": "36869",
+        "metadata": {
+          "label": "function1",
+          "description": ""
+        },
+        "codedata": {
+          "node": "FUNCTION_CALL",
+          "org": "$anon",
+          "module": ".",
+          "packageName": ".",
+          "symbol": "function1",
+          "version": "0.0.0",
+          "lineRange": {
+            "fileName": "check.bal",
+            "startLine": {
+              "line": 5,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 5,
+              "offset": 41
+            }
+          },
+          "sourceCode": "string stringVar = check function1();"
+        },
+        "returning": false,
+        "properties": {
+          "view": {
+            "metadata": {
+              "label": "View",
+              "description": "Function definition location"
+            },
+            "types": [
+              {
+                "fieldType": "VIEW",
+                "selected": true
+              }
+            ],
+            "value": {
+              "fileName": "check.bal",
+              "startLine": {
+                "line": 0,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 2,
+                "offset": 1
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Trigger error flow"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "selected": true
+              }
+            ],
+            "value": true,
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true
+          },
+          "variable": {
+            "metadata": {
+              "label": "Result",
+              "description": "Name of the result variable"
+            },
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "value": "stringVar",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "check.bal",
+                "startLine": {
+                  "line": 5,
+                  "offset": 11
+                },
+                "endLine": {
+                  "line": 5,
+                  "offset": 20
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Result Type",
+              "description": "Type of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "value": "string",
+            "placeholder": "var",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          }
+        },
+        "diagnostics": {
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "invalid usage of the 'check' expression operator: no matching error return type(s) in the enclosing invokable"
+            }
+          ]
+        },
+        "flags": 1
+      },
+      {
+        "id": "37856",
+        "metadata": {
+          "label": "function1",
+          "description": ""
+        },
+        "codedata": {
+          "node": "FUNCTION_CALL",
+          "org": "$anon",
+          "module": ".",
+          "packageName": ".",
+          "symbol": "function1",
+          "version": "0.0.0",
+          "lineRange": {
+            "fileName": "check.bal",
+            "startLine": {
+              "line": 6,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 6,
+              "offset": 36
+            }
+          },
+          "sourceCode": "string var2 = check function1();"
+        },
+        "returning": false,
+        "properties": {
+          "view": {
+            "metadata": {
+              "label": "View",
+              "description": "Function definition location"
+            },
+            "types": [
+              {
+                "fieldType": "VIEW",
+                "selected": true
+              }
+            ],
+            "value": {
+              "fileName": "check.bal",
+              "startLine": {
+                "line": 0,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 2,
+                "offset": 1
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Trigger error flow"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "selected": true
+              }
+            ],
+            "value": true,
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true
+          },
+          "variable": {
+            "metadata": {
+              "label": "Result",
+              "description": "Name of the result variable"
+            },
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "value": "var2",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "check.bal",
+                "startLine": {
+                  "line": 6,
+                  "offset": 11
+                },
+                "endLine": {
+                  "line": 6,
+                  "offset": 15
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Result Type",
+              "description": "Type of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "value": "string",
+            "placeholder": "var",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          }
+        },
+        "diagnostics": {
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "invalid usage of the 'check' expression operator: no matching error return type(s) in the enclosing invokable"
+            }
+          ]
+        },
+        "flags": 1
+      }
+    ],
+    "connections": []
+  }
+}
