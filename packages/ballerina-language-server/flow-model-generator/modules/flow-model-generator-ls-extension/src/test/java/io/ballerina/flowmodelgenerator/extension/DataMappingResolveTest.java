@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Tests for deleting data-mappings.
+ * Tests for deleting invalid fields.
  *
  * @since 2.0.0
  */

@@ -473,11 +473,12 @@ public class DataMapManager {
         }
 
         for (Diagnostic diagnostic : semanticModel.diagnostics()) {
-            if (!diagnostic.diagnosticInfo().code().equals(DiagnosticErrorCode.UNDEFINED_STRUCTURE_FIELD_WITH_TYPE.diagnosticId())) {
+            if (!diagnostic.diagnosticInfo().code().equals(
+                    DiagnosticErrorCode.UNDEFINED_STRUCTURE_FIELD_WITH_TYPE.diagnosticId())) {
                 continue;
             }
             List<DiagnosticProperty<?>> properties = diagnostic.properties();
-            if (properties.size() < 2) {
+            if (properties.size() != 3) {
                 continue;
             }
             DiagnosticProperty<?> property = properties.get(2);
@@ -1802,8 +1803,31 @@ public class DataMapManager {
         } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
             ListConstructorExpressionNode listConstructor = (ListConstructorExpressionNode) expr;
             boolean allRemoved = true;
-            for (Node member : listConstructor.expressions()) {
-                allRemoved = allRemoved && removeInvalidFields(member, semanticModel, textExits);
+            List<Integer> removable = new ArrayList<>();
+            SeparatedNodeList<Node> members = listConstructor.expressions();
+            for (int i = 0; i < members.size(); i++) {
+                boolean removed = removeInvalidFields(members.get(i), semanticModel, textExits);
+                allRemoved = allRemoved && removed;
+                if (removed) {
+                    removable.add(i);
+                }
+            }
+            if (!allRemoved) {
+                for (int i = removable.size() - 1; i >= 0; i--) {
+                    int idx = removable.get(i);
+                    LinePosition start;
+                    LinePosition end;
+                    if (idx == 0) {
+                        start = members.get(idx).lineRange().startLine();
+                        end = (members.size() > 1)
+                                ? members.get(idx + 1).lineRange().startLine()
+                                : members.get(idx).lineRange().endLine();
+                    } else {
+                        start = members.get(idx - 1).lineRange().endLine();
+                        end = members.get(idx).lineRange().endLine();
+                    }
+                    textExits.add(new TextEdit(CommonUtils.toRange(start, end), ""));
+                }
             }
             return allRemoved;
         } else {
@@ -1847,7 +1871,8 @@ public class DataMapManager {
         if (indexToRemove.size() == fieldsSize) {
             return true;
         } else {
-            for (int index : indexToRemove) {
+            for (int i = indexToRemove.size() - 1; i >= 0; i--) {
+                int index = indexToRemove.get(i);
                 MappingFieldNode field = fields.get(index);
                 LinePosition start;
                 LinePosition end;
