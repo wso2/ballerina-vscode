@@ -8,17 +8,15 @@
       {
         "id": "34805",
         "metadata": {
-          "label": "getDefaultModelProvider",
+          "label": "Model Provider",
           "description": "Creates a default model provider based on the provided `wso2ProviderConfig`.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.10.0.png"
         },
         "codedata": {
-          "node": "FUNCTION_CALL",
+          "node": "MODEL_PROVIDER",
           "org": "ballerina",
           "module": "ai",
-          "packageName": "ai",
           "symbol": "getDefaultModelProvider",
-          "version": "1.9.0",
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
@@ -37,7 +35,7 @@
           "checkError": {
             "metadata": {
               "label": "Check Error",
-              "description": "Trigger error flow"
+              "description": "Terminate on error"
             },
             "types": [
               {
@@ -47,14 +45,31 @@
             ],
             "value": true,
             "optional": false,
+            "editable": false,
+            "advanced": true,
+            "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "types": [
+              {
+                "fieldType": "ENUM",
+                "selected": true
+              }
+            ],
+            "value": "Global",
+            "optional": false,
             "editable": true,
             "advanced": true,
             "hidden": true
           },
           "variable": {
             "metadata": {
-              "label": "Result",
-              "description": "Name of the result variable"
+              "label": "Variable Name",
+              "description": "Name of the variable"
             },
             "types": [
               {
@@ -83,7 +98,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Result Type",
+              "label": "Variable Type",
               "description": "Type of the variable"
             },
             "types": [
@@ -95,7 +110,7 @@
             "value": "ai:Wso2ModelProvider",
             "placeholder": "var",
             "optional": false,
-            "editable": false,
+            "editable": true,
             "advanced": false,
             "hidden": false,
             "codedata": {}
@@ -108,7 +123,7 @@
         "metadata": {
           "label": "HTTP",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -212,7 +227,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientHttp1Settings",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -249,7 +264,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientHttp2Settings",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -342,7 +357,7 @@
                 "typeMembers": [
                   {
                     "type": "FollowRedirects",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -379,7 +394,7 @@
                 "typeMembers": [
                   {
                     "type": "PoolConfiguration",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -416,7 +431,7 @@
                 "typeMembers": [
                   {
                     "type": "CacheConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -494,49 +509,49 @@
                 "typeMembers": [
                   {
                     "type": "CredentialsConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "BearerTokenConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "JwtIssuerConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2ClientCredentialsGrantConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2PasswordGrantConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2RefreshTokenGrantConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2JwtBearerGrantConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -573,7 +588,7 @@
                 "typeMembers": [
                   {
                     "type": "CircuitBreakerConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -610,7 +625,7 @@
                 "typeMembers": [
                   {
                     "type": "RetryConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -647,7 +662,7 @@
                 "typeMembers": [
                   {
                     "type": "CookieConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -684,7 +699,7 @@
                 "typeMembers": [
                   {
                     "type": "ResponseLimitConfigs",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -721,7 +736,7 @@
                 "typeMembers": [
                   {
                     "type": "ProxyConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -786,7 +801,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientSocketConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -851,7 +866,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientSecureSocket",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -967,7 +982,7 @@
         "metadata": {
           "label": "Agent",
           "description": "Represents an agent.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.10.0.png"
         },
         "codedata": {
           "node": "AGENT",
@@ -1002,7 +1017,7 @@
                 "typeMembers": [
                   {
                     "type": "SystemPrompt",
-                    "packageInfo": "ballerina:ai:1.9.0",
+                    "packageInfo": "ballerina:ai:1.10.0",
                     "packageName": "ai",
                     "kind": "RECORD_TYPE",
                     "selected": true
@@ -1069,7 +1084,7 @@
                       "typeMembers": [
                         {
                           "type": "ToolConfig",
-                          "packageInfo": "ballerina:ai:1.9.0",
+                          "packageInfo": "ballerina:ai:1.10.0",
                           "packageName": "ai",
                           "kind": "RECORD_TYPE",
                           "selected": false
@@ -1312,17 +1327,15 @@
       {
         "id": "33802",
         "metadata": {
-          "label": "getDefaultModelProvider",
+          "label": "Model Provider",
           "description": "Creates a default model provider based on the provided `wso2ProviderConfig`.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.10.0.png"
         },
         "codedata": {
-          "node": "FUNCTION_CALL",
+          "node": "MODEL_PROVIDER",
           "org": "ballerina",
           "module": "ai",
-          "packageName": "ai",
           "symbol": "getDefaultModelProvider",
-          "version": "1.9.0",
           "lineRange": {
             "fileName": "tests/tests.bal",
             "startLine": {
@@ -1341,7 +1354,7 @@
           "checkError": {
             "metadata": {
               "label": "Check Error",
-              "description": "Trigger error flow"
+              "description": "Terminate on error"
             },
             "types": [
               {
@@ -1351,14 +1364,31 @@
             ],
             "value": true,
             "optional": false,
+            "editable": false,
+            "advanced": true,
+            "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "types": [
+              {
+                "fieldType": "ENUM",
+                "selected": true
+              }
+            ],
+            "value": "Global",
+            "optional": false,
             "editable": true,
             "advanced": true,
             "hidden": true
           },
           "variable": {
             "metadata": {
-              "label": "Result",
-              "description": "Name of the result variable"
+              "label": "Variable Name",
+              "description": "Name of the variable"
             },
             "types": [
               {
@@ -1387,7 +1417,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Result Type",
+              "label": "Variable Type",
               "description": "Type of the variable"
             },
             "types": [
@@ -1399,7 +1429,7 @@
             "value": "ai:Wso2ModelProvider",
             "placeholder": "var",
             "optional": false,
-            "editable": false,
+            "editable": true,
             "advanced": false,
             "hidden": false,
             "codedata": {}

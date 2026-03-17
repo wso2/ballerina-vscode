@@ -20,6 +20,7 @@ package io.ballerina.copilotagent.core.models;
 
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
+import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 
@@ -36,6 +37,7 @@ public class STNodeRefMap {
     private final Map<String, FunctionDefinitionNode> functionNodeMap = new HashMap<>();
     private final Map<String, ServiceDeclarationNode> serviceNodeMap = new HashMap<>();
     private final Map<String, TypeDefinitionNode> typeDefNodeMap = new HashMap<>();
+    private final Map<String, ModuleVariableDeclarationNode> moduleVarNodeMap = new HashMap<>();
 
     public Map<String, ListenerDeclarationNode> getListenerNodeMap() {
         return this.listenerNodeMap;
@@ -53,6 +55,10 @@ public class STNodeRefMap {
         return this.typeDefNodeMap;
     }
 
+    public Map<String, ModuleVariableDeclarationNode> getModuleVarNodeMap() {
+        return this.moduleVarNodeMap;
+    }
+
     public void putListenerNode(String key, ListenerDeclarationNode node) {
         this.listenerNodeMap.put(key, node);
     }
@@ -67,5 +73,9 @@ public class STNodeRefMap {
 
     public void putTypeDefNode(String key, TypeDefinitionNode node) {
         this.typeDefNodeMap.put(key, node);
+    }
+
+    public void putModuleVarNode(String key, ModuleVariableDeclarationNode node) {
+        this.moduleVarNodeMap.put(key, node);
     }
 }

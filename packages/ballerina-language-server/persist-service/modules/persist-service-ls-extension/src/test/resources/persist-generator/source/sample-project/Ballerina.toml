@@ -2,3 +2,56 @@
 org = "test"
 name = "sample_project"
 version = "0.1.0"
+
+[[tool.persist]]
+id = "sample_project.testdb_mssql"
+targetModule = "sample_project.testdb_mssql"
+filePath = "persist/testdb_mssql/model.bal"
+options.datastore = "mssql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[tool.persist]]
+id = "sample_project.employees_mssql"
+targetModule = "sample_project.employees_mssql"
+filePath = "persist/employees_mssql/model.bal"
+options.datastore = "mssql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[tool.persist]]
+id = "sample_project.testdb"
+targetModule = "sample_project.testdb"
+filePath = "persist/testdb/model.bal"
+options.datastore = "mysql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[tool.persist]]
+id = "sample_project.employees"
+targetModule = "sample_project.employees"
+filePath = "persist/employees/model.bal"
+options.datastore = "mysql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[tool.persist]]
+id = "sample_project.testdb_pg"
+targetModule = "sample_project.testdb_pg"
+filePath = "persist/testdb_pg/model.bal"
+options.datastore = "postgresql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[tool.persist]]
+id = "sample_project.employees_pg"
+targetModule = "sample_project.employees_pg"
+filePath = "persist/employees_pg/model.bal"
+options.datastore = "postgresql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[dependency]]
+org = "ballerina"
+name = "tool.persist"
+version = "1.9.0"

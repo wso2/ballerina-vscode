@@ -1,0 +1,8 @@
+[package]
+org = "wso2"
+name = "connection_param_change"
+version = "0.1.0"
+title = "connection param change"
+
+[build-options]
+sticky = true

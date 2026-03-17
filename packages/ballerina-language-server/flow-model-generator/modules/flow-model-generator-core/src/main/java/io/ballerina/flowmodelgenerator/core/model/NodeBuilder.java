@@ -325,5 +325,19 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
                 return new HashSet<>();
             }
         }
+
+        public Set<String> getAllModuleSymbolNames() {
+            try {
+                workspaceManager.loadProject(filePath);
+                SemanticModel semanticModel =
+                        workspaceManager.semanticModel(filePath).orElseThrow();
+                return semanticModel.moduleSymbols().parallelStream()
+                        .filter(s -> s.getName().isPresent())
+                        .map(s -> s.getName().get())
+                        .collect(Collectors.toSet());
+            } catch (Throwable e) {
+                return new HashSet<>();
+            }
+        }
     }
 }

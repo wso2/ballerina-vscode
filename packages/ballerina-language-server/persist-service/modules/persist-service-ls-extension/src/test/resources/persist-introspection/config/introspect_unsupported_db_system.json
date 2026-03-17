@@ -1,13 +1,78 @@
 {
   "description": "Database introspection test - unsupported database system",
   "testProjectFolder": "sample-project",
-  "name": "testdb",
-  "dbSystem": "oracle",
-  "host": "localhost",
-  "port": 1521,
-  "user": "root",
-  "password": "Test123#",
-  "database": "testdb",
+  "targetModule": "",
+  "modelFilePath": "",
+  "connection": "testdb",
+  "properties": {
+    "dbSystem": {
+      "metadata": {
+        "label": "Database System",
+        "description": "The database system type (e.g., mysql, postgresql, mssql)"
+      },
+      "value": "oracle",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "Database server host address"
+      },
+      "value": "localhost",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "port": {
+      "metadata": {
+        "label": "Port",
+        "description": "Database server port number"
+      },
+      "value": "1521",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "user": {
+      "metadata": {
+        "label": "User",
+        "description": "Database username"
+      },
+      "value": "root",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "password": {
+      "metadata": {
+        "label": "Password",
+        "description": "Database user password"
+      },
+      "value": "Test123#",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "database": {
+      "metadata": {
+        "label": "Database",
+        "description": "Name of the database to connect"
+      },
+      "value": "testdb",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    }
+  },
+  "tables": [],
   "expectError": true,
   "expectedErrorMessage": "Invalid database system"
 }
