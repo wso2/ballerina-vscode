@@ -152,10 +152,10 @@ function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamAc
             const { label, detail } = getToolCallDisplay(item.toolName, item.toolInput);
             return (
                 <ItemRow key={idx}>
-                    <ToolIcon loading={true}>
+                    <ToolIcon loading={streamActive}>
                         <span className="codicon codicon-symbol-property" />
                     </ToolIcon>
-                    <ItemLabel loading={true}>
+                    <ItemLabel loading={streamActive}>
                         {label}{detail && <ItemDetail title={detail}>{detail}</ItemDetail>}
                     </ItemLabel>
                 </ItemRow>
