@@ -73,7 +73,7 @@ import {
 } from "./constants";
 import { addToIntegration, searchDocumentation } from "./utils";
 
-import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent } from '../../features/ai/agent/index';
+import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent, resolveProjectRootPath } from '../../features/ai/agent/index';
 import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
 import { LLM_API_BASE_PATH } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
@@ -251,15 +251,15 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async abortAIGeneration(params: AbortAIGenerationRequest): Promise<void> {
-        const workspaceId = params?.workspaceId || StateMachine.context().projectPath;
+        const projectRootPath = params?.projectRootPath || resolveProjectRootPath();
         const threadId = params?.threadId || 'default';
 
-        const aborted = chatStateStorage.abortActiveExecution(workspaceId, threadId);
+        const aborted = chatStateStorage.abortActiveExecution(projectRootPath, threadId);
 
         if (aborted) {
-            console.log(`[RPC] Aborted execution for workspace=${workspaceId}, thread=${threadId}`);
+            console.log(`[RPC] Aborted execution for projectRootPath=${projectRootPath}, thread=${threadId}`);
         } else {
-            console.warn(`[RPC] No active execution found for workspace=${workspaceId}, thread=${threadId}`);
+            console.warn(`[RPC] No active execution found for projectRootPath=${projectRootPath}, thread=${threadId}`);
         }
     }
 
@@ -387,13 +387,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getAffectedPackages(): Promise<string[]> {
-        // Get workspace ID and thread ID
-        const ctx = createExecutionContextFromStateMachine();
-        const workspaceId = ctx.projectPath;
+        // Get project root path and thread ID
+        const projectRootPath = resolveProjectRootPath();
         const threadId = 'default';
 
         // Get the LATEST under_review generation (not the first one)
-        const thread = chatStateStorage.getOrCreateThread(workspaceId, threadId);
+        const thread = chatStateStorage.getOrCreateThread(projectRootPath, threadId);
         const underReviewGenerations = thread.generations.filter(
             g => g.reviewState.status === 'under_review'
         );
@@ -419,13 +418,13 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async acceptChanges(): Promise<void> {
         try {
-            // Get workspace ID and thread ID
+            // Get project root path and thread ID
             const ctx = createExecutionContextFromStateMachine();
-            const workspaceId = ctx.projectPath;
+            const projectRootPath = resolveProjectRootPath();
             const threadId = 'default';
 
             // Get ALL under_review generations
-            const thread = chatStateStorage.getOrCreateThread(workspaceId, threadId);
+            const thread = chatStateStorage.getOrCreateThread(projectRootPath, threadId);
             const underReviewGenerations = thread.generations.filter(
                 g => g.reviewState.status === 'under_review'
             );
@@ -438,6 +437,18 @@ export class AiPanelRpcManager implements AIPanelAPI {
             // Get LATEST generation for integration
             const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
             console.log(`[Review Actions] Accepting generation ${latestReview.id} with ${latestReview.reviewState.modifiedFiles.length} modified file(s)`);
+
+            // In workspace mode, if no active project is set, resolve it from the modified files
+            // so that artifact notifications can find the correct project in the structure.
+            if (!ctx.projectPath && ctx.workspacePath && latestReview.reviewState.modifiedFiles.length > 0) {
+                const firstBalFile = latestReview.reviewState.modifiedFiles.find(f => f.endsWith('.bal'));
+                if (firstBalFile) {
+                    const packageName = firstBalFile.split('/')[0];
+                    if (packageName) {
+                        StateMachine.context().projectPath = path.join(ctx.workspacePath, packageName);
+                    }
+                }
+            }
 
             // Integrate LATEST generation's code to workspace
             if (latestReview.reviewState.modifiedFiles.length > 0) {
@@ -460,7 +471,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
 
             // Mark ALL under_review generations as accepted
-            chatStateStorage.acceptAllReviews(workspaceId, threadId);
+            chatStateStorage.acceptAllReviews(projectRootPath, threadId);
             console.log("[Review Actions] Marked all under_review generations as accepted");
 
             // Send telemetry for generation kept
@@ -468,7 +479,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
             // Clear affectedPackagePaths from all completed reviews to prevent stale data
             for (const generation of underReviewGenerations) {
-                chatStateStorage.updateReviewState(workspaceId, threadId, generation.id, {
+                chatStateStorage.updateReviewState(projectRootPath, threadId, generation.id, {
                     affectedPackagePaths: []
                 });
             }
@@ -486,13 +497,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async declineChanges(): Promise<void> {
         try {
-            // Get workspace ID and thread ID
-            const ctx = createExecutionContextFromStateMachine();
-            const workspaceId = ctx.projectPath;
+            // Get project root path and thread ID
+            const projectRootPath = resolveProjectRootPath();
             const threadId = 'default';
 
             // Get ALL under_review generations
-            const thread = chatStateStorage.getOrCreateThread(workspaceId, threadId);
+            const thread = chatStateStorage.getOrCreateThread(projectRootPath, threadId);
             const underReviewGenerations = thread.generations.filter(
                 g => g.reviewState.status === 'under_review'
             );
@@ -514,7 +524,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
 
             // Mark ALL under_review generations as error/declined
-            chatStateStorage.declineAllReviews(workspaceId, threadId);
+            chatStateStorage.declineAllReviews(projectRootPath, threadId);
             console.log("[Review Actions] Marked all under_review generations as declined");
 
             // Send telemetry for generation discard
@@ -523,7 +533,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
             // Clear affectedPackagePaths from all completed reviews to prevent stale data
             for (const generation of underReviewGenerations) {
-                chatStateStorage.updateReviewState(workspaceId, threadId, generation.id, {
+                chatStateStorage.updateReviewState(projectRootPath, threadId, generation.id, {
                     affectedPackagePaths: []
                 });
             }
@@ -572,12 +582,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
-        // Get workspace and thread identifiers
-        const workspaceId = StateMachine.context().projectPath;
+        // Get project root path and thread identifiers
+        const projectRootPath = resolveProjectRootPath();
         const threadId = 'default';
 
         // Find the checkpoint
-        const found = chatStateStorage.findCheckpoint(workspaceId, threadId, params.checkpointId);
+        const found = chatStateStorage.findCheckpoint(projectRootPath, threadId, params.checkpointId);
 
         if (!found) {
             throw new Error(`Checkpoint ${params.checkpointId} not found`);
@@ -590,7 +600,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
         // 2. Truncate thread history to this checkpoint
         const restored = chatStateStorage.restoreThreadToCheckpoint(
-            workspaceId,
+            projectRootPath,
             threadId,
             params.checkpointId
         );
@@ -601,22 +611,22 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async clearChat(): Promise<void> {
-        // Get workspace identifier
-        const workspaceId = StateMachine.context().projectPath;
+        // Get project root path
+        const projectRootPath = resolveProjectRootPath();
 
         // Clear the workspace (all threads)
-        await chatStateStorage.clearWorkspace(workspaceId);
+        await chatStateStorage.clearWorkspace(projectRootPath);
 
-        console.log(`[RPC] Cleared chat for workspace: ${workspaceId}`);
+        console.log(`[RPC] Cleared chat for projectRootPath: ${projectRootPath}`);
     }
 
     async updateChatMessage(params: UpdateChatMessageRequest): Promise<void> {
-        const workspaceId = StateMachine.context().projectPath;
+        const projectRootPath = resolveProjectRootPath();
         const threadId = 'default';
 
         // The messageId is actually a generation ID
         // This is called when streaming completes to save the final UI-formatted response
-        const generation = chatStateStorage.getGeneration(workspaceId, threadId, params.messageId);
+        const generation = chatStateStorage.getGeneration(projectRootPath, threadId, params.messageId);
 
         if (!generation) {
             console.warn(`[RPC] Generation ${params.messageId} not found in thread ${threadId}`);
@@ -624,7 +634,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
 
         // Update the UI response with the final formatted content
-        chatStateStorage.updateGeneration(workspaceId, threadId, params.messageId, {
+        chatStateStorage.updateGeneration(projectRootPath, threadId, params.messageId, {
             uiResponse: params.content
         });
 
@@ -632,12 +642,11 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getChatMessages(): Promise<UIChatMessage[]> {
-        const ctx = StateMachine.context();
-        const workspaceId = ctx.projectPath;
+        const projectRootPath = resolveProjectRootPath();
         const threadId = 'default';
 
         // Get all generations from chat storage
-        const generations = chatStateStorage.getGenerations(workspaceId, threadId);
+        const generations = chatStateStorage.getGenerations(projectRootPath, threadId);
 
         // Convert generations to UI messages format
         const uiMessages: UIChatMessage[] = [];
@@ -664,12 +673,11 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getCheckpoints(): Promise<CheckpointInfo[]> {
-        const ctx = StateMachine.context();
-        const workspaceId = ctx.projectPath;
+        const projectRootPath = resolveProjectRootPath();
         const threadId = 'default';
 
         // Get checkpoints from ChatStateStorage
-        const checkpoints = chatStateStorage.getCheckpoints(workspaceId, threadId);
+        const checkpoints = chatStateStorage.getCheckpoints(projectRootPath, threadId);
 
         // Convert to CheckpointInfo format
         return checkpoints.map(cp => ({
@@ -681,12 +689,11 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getActiveTempDir(): Promise<string> {
-        const context = StateMachine.context();
-        const workspaceId = context.projectPath;
+        const projectRootPath = resolveProjectRootPath();
         const threadId = 'default';
 
         // Always get tempProjectPath from active generation in chatStateStorage
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
         if (!pendingReview || !pendingReview.reviewState.tempProjectPath) {
             console.log(">>> no pending review or temp project path found for semantic diff");
             return undefined;
@@ -740,7 +747,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         const context = StateMachine.context();
         // Use workspace root when available; modifiedFiles are relative to the workspace root in workspace mode
         const originalRoot = context.workspacePath || context.projectPath;
-        const workspaceId = context.projectPath;
+        const workspaceId = context.workspacePath || context.projectPath;
         const threadId = 'default';
         const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
         const tempProjectPath = pendingReview?.reviewState.tempProjectPath;

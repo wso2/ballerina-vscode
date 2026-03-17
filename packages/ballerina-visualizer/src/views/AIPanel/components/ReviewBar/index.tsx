@@ -345,6 +345,8 @@ interface ReviewBarProps {
     modifiedFiles: string[];
     semanticDiffs?: SemanticDiff[];
     loadDesignDiagrams?: boolean;
+    isWorkspace?: boolean;
+    diffPackageMap?: string[];
     status: "pending" | "accepted" | "discarded";
     rpcClient?: any;
     isActive?: boolean;
@@ -398,7 +400,54 @@ function getChangeTypeLabel(changeType: number): string {
 
 function buildGroups(semanticDiffs: SemanticDiff[], loadDesignDiagrams?: boolean): DiffGroup[] {
     const designCount = loadDesignDiagrams ? 1 : 0;
-    let viewIndex = designCount;
+    return buildGroupsWithOffset(semanticDiffs, designCount).groups;
+}
+
+const PackageContent = styled.div`
+    padding-left: 8px;
+`;
+
+interface PackageGroup {
+    packageName: string;
+    groups: DiffGroup[];
+}
+
+function buildPackageGroups(
+    semanticDiffs: SemanticDiff[],
+    diffPackageMap: string[],
+    loadDesignDiagrams?: boolean
+): PackageGroup[] {
+    const designCount = loadDesignDiagrams ? 1 : 0;
+    let globalViewIndex = designCount;
+
+    // Group diffs by package name using the parallel map, preserving order
+    const orderedPkgs: string[] = [];
+    const pkgDiffsMap: Record<string, SemanticDiff[]> = {};
+    for (let i = 0; i < semanticDiffs.length; i++) {
+        const pkgName = diffPackageMap[i] || "unknown";
+        if (!pkgDiffsMap[pkgName]) {
+            pkgDiffsMap[pkgName] = [];
+            orderedPkgs.push(pkgName);
+        }
+        pkgDiffsMap[pkgName].push(semanticDiffs[i]);
+    }
+
+    const result: PackageGroup[] = [];
+    for (const pkgName of orderedPkgs) {
+        const diffs = pkgDiffsMap[pkgName];
+        if (diffs.length === 0) continue;
+
+        const { groups, viewCount } = buildGroupsWithOffset(diffs, globalViewIndex);
+        globalViewIndex += viewCount;
+
+        result.push({ packageName: pkgName, groups });
+    }
+
+    return result;
+}
+
+function buildGroupsWithOffset(semanticDiffs: SemanticDiff[], startIndex: number): { groups: DiffGroup[]; viewCount: number } {
+    let viewIndex = startIndex;
 
     const serviceGroups: Record<string, DiffEntry[]> = {};
     const functionEntries: DiffEntry[] = [];
@@ -447,8 +496,107 @@ function buildGroups(semanticDiffs: SemanticDiff[], loadDesignDiagrams?: boolean
         groups.push({ groupLabel: "types", entries: typeEntries });
     }
 
+    return { groups, viewCount: viewIndex - startIndex };
+}
+
+function groupFilesByPackage(files: string[]): Record<string, string[]> {
+    const groups: Record<string, string[]> = {};
+    for (const file of files) {
+        const slashIdx = file.indexOf("/");
+        const pkg = slashIdx !== -1 ? file.substring(0, slashIdx) : "Workspace";
+        if (!groups[pkg]) groups[pkg] = [];
+        groups[pkg].push(file);
+    }
     return groups;
 }
+
+const PackageGroupList: React.FC<{
+    packageGroups: PackageGroup[];
+    onClickEntry?: (viewIndex: number) => void;
+}> = ({ packageGroups, onClickEntry }) => {
+    const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
+
+    const toggle = (pi: number) =>
+        setCollapsed(prev => ({ ...prev, [pi]: !prev[pi] }));
+
+    return (
+        <ChangeList>
+            {packageGroups.map((pkg, pi) => {
+                const isCollapsed = !!collapsed[pi];
+                const totalEntries = pkg.groups.reduce((sum, g) => sum + g.entries.length, 0);
+                return (
+                    <React.Fragment key={pi}>
+                        <CollapsibleHeader onClick={() => toggle(pi)}>
+                            <span
+                                className={`codicon ${isCollapsed ? "codicon-chevron-right" : "codicon-chevron-down"}`}
+                                style={{ fontSize: "10px" }}
+                            />
+                            <span className="codicon codicon-package" style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }} />
+                            <span>{pkg.packageName}</span>
+                            <CountBadge>{totalEntries}</CountBadge>
+                        </CollapsibleHeader>
+                        {!isCollapsed && (
+                            <PackageContent>
+                                <CollapsibleGroupList groups={pkg.groups} onClickEntry={onClickEntry} />
+                            </PackageContent>
+                        )}
+                    </React.Fragment>
+                );
+            })}
+        </ChangeList>
+    );
+};
+
+const CodeViewPackageList: React.FC<{
+    filesByPkg: Record<string, string[]>;
+    pkgNames: string[];
+    disabled: boolean;
+    openFileDiff: (relativePath: string) => void;
+}> = ({ filesByPkg, pkgNames, disabled, openFileDiff }) => {
+    const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
+
+    const toggle = (pi: number) =>
+        setCollapsed(prev => ({ ...prev, [pi]: !prev[pi] }));
+
+    return (
+        <ChangeList>
+            {pkgNames.map((pkg, pi) => {
+                const files = filesByPkg[pkg];
+                const isCollapsed = !!collapsed[pi];
+                return (
+                    <React.Fragment key={pi}>
+                        <CollapsibleHeader onClick={() => toggle(pi)}>
+                            <span
+                                className={`codicon ${isCollapsed ? "codicon-chevron-right" : "codicon-chevron-down"}`}
+                                style={{ fontSize: "10px" }}
+                            />
+                            <span className="codicon codicon-package" style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }} />
+                            <span>{pkg}</span>
+                            <CountBadge>{files.length}</CountBadge>
+                        </CollapsibleHeader>
+                        {!isCollapsed && (
+                            <PackageContent>
+                                {files.map((file, i) => (
+                                    <ChangeCard
+                                        key={i}
+                                        onClick={disabled ? undefined : () => openFileDiff(file)}
+                                        disabled={disabled}
+                                        title={file}
+                                    >
+                                        <CardLeft>
+                                            <span className="codicon codicon-file" style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }} />
+                                            <CardFileName>{getFileName(file)}</CardFileName>
+                                        </CardLeft>
+                                    </ChangeCard>
+                                ))}
+                            </PackageContent>
+                        )}
+                    </React.Fragment>
+                );
+            })}
+        </ChangeList>
+    );
+};
 
 function renderCard(entry: DiffEntry, i: number, onClickEntry?: (viewIndex: number) => void) {
     return (
@@ -540,6 +688,8 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     modifiedFiles,
     semanticDiffs,
     loadDesignDiagrams,
+    isWorkspace,
+    diffPackageMap,
     status,
     rpcClient,
     isActive = false,
@@ -575,6 +725,11 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
         if (!semanticDiffs || semanticDiffs.length === 0) return null;
         return buildGroups(semanticDiffs, loadDesignDiagrams);
     }, [semanticDiffs, loadDesignDiagrams]);
+
+    const packageGroups = useMemo(() => {
+        if (!isWorkspace || !semanticDiffs || semanticDiffs.length === 0 || !diffPackageMap || diffPackageMap.length === 0) return null;
+        return buildPackageGroups(semanticDiffs, diffPackageMap, loadDesignDiagrams);
+    }, [isWorkspace, semanticDiffs, diffPackageMap, loadDesignDiagrams]);
 
     const navigateReviewMode = (index = 0) => {
         if (!rpcClient) return;
@@ -636,23 +791,34 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
         </ToggleGroup>
     );
 
-    const renderCodeView = (disabled = false) => (
-        <ChangeList>
-            {modifiedFiles.map((file, i) => (
-                <ChangeCard
-                    key={i}
-                    onClick={disabled ? undefined : () => openFileDiff(file)}
-                    disabled={disabled}
-                    title={file}
-                >
-                    <CardLeft>
-                        <span className="codicon codicon-file" style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }} />
-                        <CardFileName>{getFileName(file)}</CardFileName>
-                    </CardLeft>
-                </ChangeCard>
-            ))}
-        </ChangeList>
-    );
+    const filesByPkg = useMemo(() => {
+        if (!isWorkspace || modifiedFiles.length === 0) return null;
+        return groupFilesByPackage(modifiedFiles);
+    }, [isWorkspace, modifiedFiles]);
+
+    const renderCodeView = (disabled = false) => {
+        if (filesByPkg) {
+            const pkgNames = Object.keys(filesByPkg);
+            return <CodeViewPackageList filesByPkg={filesByPkg} pkgNames={pkgNames} disabled={disabled} openFileDiff={openFileDiff} />;
+        }
+        return (
+            <ChangeList>
+                {modifiedFiles.map((file, i) => (
+                    <ChangeCard
+                        key={i}
+                        onClick={disabled ? undefined : () => openFileDiff(file)}
+                        disabled={disabled}
+                        title={file}
+                    >
+                        <CardLeft>
+                            <span className="codicon codicon-file" style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }} />
+                            <CardFileName>{getFileName(file)}</CardFileName>
+                        </CardLeft>
+                    </ChangeCard>
+                ))}
+            </ChangeList>
+        );
+    };
 
     if (status !== "pending") {
         return (
@@ -665,9 +831,11 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
                     {status === "accepted" ? "Changes accepted" : "Changes discarded"}
                 </TitleRow>
                 {isExpanded && (
-                    groups && groups.length > 0
-                        ? <CollapsibleGroupList groups={groups} />
-                        : modifiedFiles.length > 0 && renderCodeView(true)
+                    packageGroups && packageGroups.length > 0
+                        ? <PackageGroupList packageGroups={packageGroups} />
+                        : groups && groups.length > 0
+                            ? <CollapsibleGroupList groups={groups} />
+                            : modifiedFiles.length > 0 && renderCodeView(true)
                 )}
             </CompactContainer>
         );
@@ -691,11 +859,13 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
                     {renderViewToggle()}
                 </div>
             </TitleBarRow>
-            {viewMode === "diagram" && groups && groups.length > 0
-                ? <CollapsibleGroupList groups={groups} onClickEntry={(viewIndex: number) => navigateReviewMode(viewIndex)} />
-                : viewMode === "code" && modifiedFiles.length > 0
-                    ? renderCodeView()
-                    : null
+            {viewMode === "diagram" && packageGroups && packageGroups.length > 0
+                ? <PackageGroupList packageGroups={packageGroups} onClickEntry={(viewIndex: number) => navigateReviewMode(viewIndex)} />
+                : viewMode === "diagram" && groups && groups.length > 0
+                    ? <CollapsibleGroupList groups={groups} onClickEntry={(viewIndex: number) => navigateReviewMode(viewIndex)} />
+                    : viewMode === "code" && modifiedFiles.length > 0
+                        ? renderCodeView()
+                        : null
             }
             {isActive && (
                 <ActionRow>

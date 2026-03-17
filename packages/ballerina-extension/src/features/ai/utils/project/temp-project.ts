@@ -240,6 +240,12 @@ async function getCurrentProjectSource(
         projectName: packageName
     };
 
+    // Include package Ballerina.toml in sources so the agent sees the package structure
+    if (fs.existsSync(ballerinaTomlPath)) {
+        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+        project.sources['Ballerina.toml'] = tomlContent;
+    }
+
     // Read root-level .bal files
     const rootFiles = fs.readdirSync(targetProjectPath);
     for (const file of rootFiles) {
