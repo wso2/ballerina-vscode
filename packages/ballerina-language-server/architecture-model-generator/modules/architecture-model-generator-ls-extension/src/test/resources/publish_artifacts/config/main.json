@@ -89,7 +89,7 @@
           "name": "httpListener",
           "scope": "Global",
           "visibility": "module",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png",
           "module": "http",
           "children": {}
         }
@@ -114,7 +114,7 @@
           "name": "HTTP Service - /restaurant",
           "scope": "Global",
           "visibility": "module",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png",
           "module": "http",
           "children": {
             "post#orders": {
