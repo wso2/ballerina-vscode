@@ -19,10 +19,6 @@ import { z } from 'zod';
 import { CopilotEventHandler } from '../../utils/events';
 import { Task, TaskStatus, TaskTypes, Plan } from '@wso2/ballerina-core';
 import { chatStateStorage } from '../../../../views/ai-panel/chatStateStorage';
-import { integrateCodeToWorkspace } from '../utils';
-import { checkCompilationErrors } from './diagnostics-utils';
-import { DIAGNOSTICS_TOOL_NAME } from './diagnostics';
-import { createExecutionContextFromStateMachine } from '..';
 import { approvalManager } from '../../state/ApprovalManager';
 
 export const TASK_WRITE_TOOL_NAME = "TaskWrite";
@@ -57,9 +53,9 @@ export type TaskWriteInput = z.infer<typeof TaskWriteInputSchema>;
 
 export function createTaskWriteTool(
     eventHandler: CopilotEventHandler,
-    tempProjectPath: string,
-    modifiedFiles: string[] | undefined,
-    workspaceId: string,
+    _tempProjectPath: string,
+    _modifiedFiles: string[] | undefined,
+    projectRootPath: string,
     generationId: string,
     threadId: string = 'default'
 ) {
@@ -160,7 +156,7 @@ Rules:
                     if (input.isPlanApproval === true) {
                         // Explicit plan approval gate — show full task list to user and wait for approval
                         approvalType = "plan";
-                        approvalResult = await handlePlanApproval(allTasks, eventHandler, workspaceId, generationId, threadId);
+                        approvalResult = await handlePlanApproval(allTasks, eventHandler, projectRootPath, generationId, threadId);
                     } else if (input.requestReview === true) {
                         // TODO: Re-enable approval gate (handleTaskCompletion) when review flow is ready
                         // Skip review gate — mark as completed and continue autonomously
@@ -263,7 +259,7 @@ function createPlan(allTasks: Task[]): Plan {
 async function handlePlanApproval(
     allTasks: Task[],
     eventHandler: CopilotEventHandler,
-    workspaceId: string,
+    projectRootPath: string,
     generationId: string,
     threadId: string
 ): Promise<{ approved: boolean; comment?: string }> {
@@ -272,7 +268,7 @@ async function handlePlanApproval(
     const plan = createPlan(allTasks);
 
     // Store plan in ChatStateStorage with the generation
-    chatStateStorage.updateGeneration(workspaceId, threadId, generationId, { plan });
+    chatStateStorage.updateGeneration(projectRootPath, threadId, generationId, { plan });
 
     // Use ApprovalManager for plan approval (replaces state machine subscription)
     const requestId = `plan-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
@@ -280,67 +276,6 @@ async function handlePlanApproval(
     const approvalPromise = approvalManager.requestPlanApproval(
         requestId,
         allTasks,
-        eventHandler
-    );
-
-    return approvalPromise;
-}
-
-async function handleTaskCompletion(
-    allTasks: Task[],
-    newlyCompletedTasks: Task[],
-    eventHandler: CopilotEventHandler,
-    tempProjectPath: string,
-    modifiedFiles?: string[]
-): Promise<{ approved: boolean; comment?: string; approvedTaskDescription?: string }> {
-    const lastCompletedTask = newlyCompletedTasks[newlyCompletedTasks.length - 1];
-    console.log(`[TaskWrite Tool] Detected ${newlyCompletedTasks.length} newly completed task(s)`);
-
-    // const diagnosticResult = await checkCompilationErrors(tempProjectPath);
-
-    // if (diagnosticResult.diagnostics.length > 0) {
-    //     const errorCount = diagnosticResult.diagnostics.length;
-    //     console.error(`[TaskWrite Tool] Found ${errorCount} compilation error(s), blocking task completion`);
-
-    //     return {
-    //         approved: false,
-    //         comment: `Cannot complete task: ${errorCount} compilation error(s) detected. Use the ${DIAGNOSTICS_TOOL_NAME} tool to check the errors and fix them before marking the task as completed.`,
-    //         approvedTaskDescription: lastCompletedTask.description
-    //     };
-    // }
-
-    if (tempProjectPath && modifiedFiles) {
-        const modifiedFilesSet = new Set(modifiedFiles);
-        console.log(`[TaskWrite Tool] Integrating ${modifiedFilesSet.size} modified file(s)`);
-        const ctx = createExecutionContextFromStateMachine();
-        await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
-    }
-
-    // Always request manual approval - visualizer will auto-respond if auto-approve is enabled
-    return handleManualTaskApproval(allTasks, newlyCompletedTasks, lastCompletedTask, eventHandler);
-}
-
-async function handleManualTaskApproval(
-    allTasks: Task[],
-    newlyCompletedTasks: Task[],
-    lastCompletedTask: Task,
-    eventHandler: CopilotEventHandler
-): Promise<{ approved: boolean; comment?: string; approvedTaskDescription?: string }> {
-    console.log(`[TaskWrite Tool] Manual approval mode`);
-
-    const tasksForUI = allTasks.map(task => {
-        const isNewlyCompleted = newlyCompletedTasks.some(t => t.description === task.description);
-        return isNewlyCompleted ? { ...task, status: TaskStatus.REVIEW } : { ...task };
-    });
-
-    // Use ApprovalManager for task approval (replaces state machine subscription)
-    // requestTaskApproval will emit the task_approval_request event with requestId
-    const requestId = `task-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-
-    const approvalPromise = approvalManager.requestTaskApproval(
-        requestId,
-        lastCompletedTask.description,
-        tasksForUI,
         eventHandler
     );
 
