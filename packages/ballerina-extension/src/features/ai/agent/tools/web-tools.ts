@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { tool, generateText, stepCountIs, Tool } from 'ai';
+import { tool, generateText, hasToolCall, Tool } from 'ai';
 import { z } from 'zod';
 import { anthropic } from '@ai-sdk/anthropic';
 import { v4 as uuidv4 } from 'uuid';
@@ -23,31 +23,21 @@ import { approvalManager } from '../../state/ApprovalManager';
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from '../../utils/ai-client';
 import { sendWebToolToggleNotification } from '../../utils/ai-utils';
 
-// ─── Setup ────────────────────────────────────────────────────────────────────
-
 const WEB_TOOL_NOTIFICATION_TYPE = "webtool";
 
 export const WEB_SEARCH_TOOL_NAME = "web_search";
 export const WEB_FETCH_TOOL_NAME = "web_fetch";
 
-// Register the globe-toggle notification handler once at module load
 approvalManager.registerNotificationHandler(WEB_TOOL_NOTIFICATION_TYPE, (active) => {
     sendWebToolToggleNotification(active);
 });
 
-// ─── Shared helpers ───────────────────────────────────────────────────────────
-
-/** Deduplicates and trims a list of domain strings. Returns undefined if empty. */
 function sanitizeDomainList(domains?: string[]): string[] | undefined {
     if (!domains || domains.length === 0) return undefined;
     const sanitized = Array.from(new Set(domains.map(d => d.trim()).filter(d => d.length > 0)));
     return sanitized.length > 0 ? sanitized : undefined;
 }
 
-/**
- * Resolves a provider tool factory by trying candidate names in order.
- * Handles SDK version differences where tool method names may vary.
- */
 function getProviderToolFactory(candidateNames: string[]): ((args: Record<string, unknown>) => Tool<unknown, unknown>) | null {
     for (const name of candidateNames) {
         const factory = (anthropic as any)?.tools?.[name];
@@ -56,29 +46,30 @@ function getProviderToolFactory(candidateNames: string[]): ((args: Record<string
     return null;
 }
 
-/**
- * Extracts the raw output from the first tool result step in a generateText response.
- * Falls back to result.text if no tool result is found.
- */
 function extractToolOutput(result: any): string {
     try {
-        const stepWithResults = (result.steps ?? []).find(
-            (step: any) => Array.isArray(step?.toolResults) && step.toolResults.length > 0
-        );
-        const toolOutput = stepWithResults?.toolResults?.[0]?.output;
-        if (toolOutput !== undefined) {
-            return typeof toolOutput === 'string' ? toolOutput : JSON.stringify(toolOutput, null, 2);
+        for (const step of result.steps ?? []) {
+            if (Array.isArray(step?.toolResults) && step.toolResults.length > 0) {
+                const toolOutput = step.toolResults[0]?.output;
+                if (toolOutput !== undefined) {
+                    return typeof toolOutput === 'string' ? toolOutput : JSON.stringify(toolOutput, null, 2);
+                }
+            }
+            if (Array.isArray(step?.content)) {
+                for (const part of step.content) {
+                    if (part?.type === 'tool-error') {
+                        const errorCode = (part?.error as any)?.errorCode ?? (part?.error as any)?.type ?? 'unknown';
+                        return `Web fetch failed: ${errorCode} (url: ${(part?.input as any)?.url ?? 'unknown'})`;
+                    }
+                }
+            }
         }
     } catch {
-        // Fall through to result.text
+        // fall through
     }
     return result.text;
 }
 
-/**
- * Requests user approval for a web tool call when the web toggle is off.
- * Returns true if the call should proceed.
- */
 async function requestApprovalIfNeeded(
     toolName: typeof WEB_SEARCH_TOOL_NAME | typeof WEB_FETCH_TOOL_NAME,
     displayContent: string,
@@ -90,8 +81,6 @@ async function requestApprovalIfNeeded(
     const { approved } = await approvalManager.requestWebToolApproval(requestId, toolName, displayContent, eventHandler);
     return approved;
 }
-
-// ─── web_search ───────────────────────────────────────────────────────────────
 
 const WebSearchInputSchema = z.object({
     query: z.string().describe('The search query.'),
@@ -108,11 +97,6 @@ Rules:
 - Include all relevant details, facts, and code examples. Cite sources where applicable.
 - If you made a significant decision while researching (e.g. chose one version/approach over another), briefly state why — this helps the main agent reason correctly.`;
 
-/**
- * Creates a web_search tool that acts as a research sub-agent.
- * Searches the web and returns a synthesized, detailed answer — not raw results.
- * Asks for user approval before searching unless the web toggle is already on.
- */
 export function createWebSearchTool(eventHandler: CopilotEventHandler, webSearchEnabled: boolean) {
     return tool({
         description: 'Search the web for information on a query. Acts as a research sub-agent: performs the search and returns a synthesized, detailed answer with relevant facts and sources — not raw results. Provide the search query and the context of what you are trying to accomplish so the results can be focused. Supports optional domain allow/block filters.',
@@ -185,8 +169,6 @@ async function executeWebSearch(
     }
 }
 
-// ─── web_fetch ────────────────────────────────────────────────────────────────
-
 const WebFetchInputSchema = z.object({
     url: z.string().url().describe('The URL to fetch.'),
     prompt: z.string().describe('What to extract or analyze from the fetched page.'),
@@ -195,10 +177,6 @@ const WebFetchInputSchema = z.object({
 });
 export type WebFetchInput = z.infer<typeof WebFetchInputSchema>;
 
-/**
- * Creates a web_fetch tool that retrieves raw content from a specific URL.
- * Asks for user approval before fetching unless the web toggle is already on.
- */
 export function createWebFetchTool(eventHandler: CopilotEventHandler, webSearchEnabled: boolean) {
     return tool({
         description: 'Fetch and return the raw content of a specific URL. Use this when you have an exact URL (documentation page, API spec, JSON endpoint, etc.) and need its content. Returns the raw page content as-is. Supports optional domain allow/block filters.',
@@ -241,7 +219,8 @@ async function executeWebFetch(
         console.log(`[WebTools] fetch | url: ${input.url}`);
         const result = await generateText({
             model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-            prompt: `URL: ${input.url}\nTask: ${input.prompt}\nUse the web_fetch tool to retrieve the page content.`,
+            system: 'You are a web fetcher. Your only job is to invoke the web_fetch tool with the given URL. STRICT RULES: (1) Do NOT write any text before the tool call. (2) Do NOT write any text after the tool call. (3) Do NOT summarize, describe, or explain the result. The tool result is consumed programmatically — any text you emit is ignored and wastes tokens.',
+            prompt: `URL: ${input.url}`,
             tools: {
                 web_fetch: fetchFactory({
                     maxUses: 3,
@@ -249,7 +228,8 @@ async function executeWebFetch(
                     ...(blockedDomains ? { blockedDomains } : {}),
                 }),
             },
-            stopWhen: stepCountIs(1),
+            toolChoice: { type: 'tool', toolName: 'web_fetch' },
+            stopWhen: hasToolCall('web_fetch'),
         });
 
         const content = extractToolOutput(result);
