@@ -221,7 +221,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         const rawPath = this.toRawPath(tempFilePath);
         const context = StateMachine.context();
         const originalRoot = context.workspacePath || context.projectPath;
-        const workspaceId = context.projectPath;
+        const workspaceId = context.workspacePath || context.projectPath;
         const threadId = 'default';
         const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
         if (pendingReview?.reviewState?.tempProjectPath && originalRoot) {

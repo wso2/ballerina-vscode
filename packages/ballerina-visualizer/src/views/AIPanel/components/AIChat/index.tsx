@@ -1451,6 +1451,8 @@ const AIChat: React.FC = () => {
                                                                 modifiedFiles={(reviewItem as any).data.modifiedFiles ?? []}
                                                                 semanticDiffs={(reviewItem as any).data.semanticDiffs}
                                                                 loadDesignDiagrams={(reviewItem as any).data.loadDesignDiagrams}
+                                                                isWorkspace={(reviewItem as any).data.isWorkspace}
+                                                                diffPackageMap={(reviewItem as any).data.diffPackageMap}
                                                                 status={(reviewItem as any).data.status ?? "pending"}
                                                                 rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
                                                                 isActive={isLatestAssistantMessage && !isLoading}
