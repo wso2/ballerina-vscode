@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { tool, generateText, stepCountIs } from 'ai';
+import { tool, generateText, stepCountIs, Tool } from 'ai';
 import { z } from 'zod';
 import { anthropic } from '@ai-sdk/anthropic';
 import { v4 as uuidv4 } from 'uuid';
@@ -37,6 +37,44 @@ approvalManager.registerNotificationHandler(WEB_TOOL_NOTIFICATION_TYPE, (active)
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
+/** Deduplicates and trims a list of domain strings. Returns undefined if empty. */
+function sanitizeDomainList(domains?: string[]): string[] | undefined {
+    if (!domains || domains.length === 0) return undefined;
+    const sanitized = Array.from(new Set(domains.map(d => d.trim()).filter(d => d.length > 0)));
+    return sanitized.length > 0 ? sanitized : undefined;
+}
+
+/**
+ * Resolves a provider tool factory by trying candidate names in order.
+ * Handles SDK version differences where tool method names may vary.
+ */
+function getProviderToolFactory(candidateNames: string[]): ((args: Record<string, unknown>) => Tool<unknown, unknown>) | null {
+    for (const name of candidateNames) {
+        const factory = (anthropic as any)?.tools?.[name];
+        if (typeof factory === 'function') return factory;
+    }
+    return null;
+}
+
+/**
+ * Extracts the raw output from the first tool result step in a generateText response.
+ * Falls back to result.text if no tool result is found.
+ */
+function extractToolOutput(result: any): string {
+    try {
+        const stepWithResults = (result.steps ?? []).find(
+            (step: any) => Array.isArray(step?.toolResults) && step.toolResults.length > 0
+        );
+        const toolOutput = stepWithResults?.toolResults?.[0]?.output;
+        if (toolOutput !== undefined) {
+            return typeof toolOutput === 'string' ? toolOutput : JSON.stringify(toolOutput, null, 2);
+        }
+    } catch {
+        // Fall through to result.text
+    }
+    return result.text;
+}
+
 /**
  * Requests user approval for a web tool call when the web toggle is off.
  * Returns true if the call should proceed.
@@ -53,25 +91,13 @@ async function requestApprovalIfNeeded(
     return approved;
 }
 
-/**
- * Extracts the raw string output from the first tool result step in a generateText response.
- * Falls back to result.text if no tool result is found.
- */
-function extractToolOutput(result: any): string {
-    const stepWithResults = (result.steps ?? []).find(
-        (step: any) => Array.isArray(step?.toolResults) && step.toolResults.length > 0
-    );
-    const toolOutput = stepWithResults?.toolResults?.[0]?.output;
-    return toolOutput !== undefined
-        ? (typeof toolOutput === 'string' ? toolOutput : JSON.stringify(toolOutput, null, 2))
-        : result.text;
-}
-
 // ─── web_search ───────────────────────────────────────────────────────────────
 
 const WebSearchInputSchema = z.object({
     query: z.string().describe('The search query.'),
     context: z.string().describe('What you are trying to accomplish with this search. Helps focus the synthesized results.'),
+    allowed_domains: z.array(z.string()).optional().describe('Optional allow-list of domains to restrict search results to.'),
+    blocked_domains: z.array(z.string()).optional().describe('Optional block-list of domains to exclude from search results.'),
 });
 export type WebSearchInput = z.infer<typeof WebSearchInputSchema>;
 
@@ -89,7 +115,7 @@ Rules:
  */
 export function createWebSearchTool(eventHandler: CopilotEventHandler, webSearchEnabled: boolean) {
     return tool({
-        description: 'Search the web for information on a query. Acts as a research sub-agent: performs the search and returns a synthesized, detailed answer with relevant facts and sources — not raw results. Provide the search query and the context of what you are trying to accomplish so the results can be focused.',
+        description: 'Search the web for information on a query. Acts as a research sub-agent: performs the search and returns a synthesized, detailed answer with relevant facts and sources — not raw results. Provide the search query and the context of what you are trying to accomplish so the results can be focused. Supports optional domain allow/block filters.',
         inputSchema: WebSearchInputSchema,
         execute: async (input, context?: { toolCallId?: string }) => {
             const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
@@ -118,12 +144,26 @@ async function executeWebSearch(
             approvalManager.trackNotificationStart(WEB_TOOL_NOTIFICATION_TYPE);
         }
 
+        const searchFactory = getProviderToolFactory(['webSearch_20250305']);
+        if (!searchFactory) {
+            return 'Web search tool is unavailable in this environment.';
+        }
+
+        const allowedDomains = sanitizeDomainList(input.allowed_domains);
+        const blockedDomains = sanitizeDomainList(input.blocked_domains);
+
         console.log(`[WebSearchTool] Searching: ${input.query}`);
         const result = await generateText({
             model: await getAnthropicClient(ANTHROPIC_SONNET_4),
             system: WEB_SEARCH_SYSTEM_PROMPT,
             prompt: `Context: ${input.context}\n\nSearch query: ${input.query}\n\nSearch the web and provide a detailed, accurate answer based on the results.`,
-            tools: { web_search: anthropic.tools.webSearch_20250305({ maxUses: 5 }) },
+            tools: {
+                web_search: searchFactory({
+                    maxUses: 5,
+                    ...(allowedDomains ? { allowedDomains } : {}),
+                    ...(blockedDomains ? { blockedDomains } : {}),
+                }),
+            },
         });
 
         const content = result.text || 'Web search completed but returned no content.';
@@ -133,7 +173,11 @@ async function executeWebSearch(
         return content;
     } catch (error: any) {
         console.error('[WebSearchTool] Failed:', error?.message || error);
-        throw error;
+        const errorMessage = error?.message || String(error);
+        if (errorMessage.includes('responses API is unavailable')) {
+            return 'Web search failed: Anthropic responses API is unavailable in this environment.';
+        }
+        return `Web search failed: ${errorMessage}`;
     } finally {
         if (!webSearchEnabled) {
             approvalManager.trackNotificationEnd(WEB_TOOL_NOTIFICATION_TYPE);
@@ -146,6 +190,8 @@ async function executeWebSearch(
 const WebFetchInputSchema = z.object({
     url: z.string().url().describe('The URL to fetch.'),
     prompt: z.string().describe('What to extract or analyze from the fetched page.'),
+    allowed_domains: z.array(z.string()).optional().describe('Optional allow-list of domains that fetch requests can access.'),
+    blocked_domains: z.array(z.string()).optional().describe('Optional block-list of domains that fetch requests must avoid.'),
 });
 export type WebFetchInput = z.infer<typeof WebFetchInputSchema>;
 
@@ -155,7 +201,7 @@ export type WebFetchInput = z.infer<typeof WebFetchInputSchema>;
  */
 export function createWebFetchTool(eventHandler: CopilotEventHandler, webSearchEnabled: boolean) {
     return tool({
-        description: 'Fetch and return the raw content of a specific URL. Use this when you have an exact URL (documentation page, API spec, JSON endpoint, etc.) and need its content. Returns the raw page content as-is.',
+        description: 'Fetch and return the raw content of a specific URL. Use this when you have an exact URL (documentation page, API spec, JSON endpoint, etc.) and need its content. Returns the raw page content as-is. Supports optional domain allow/block filters.',
         inputSchema: WebFetchInputSchema,
         execute: async (input, context?: { toolCallId?: string }) => {
             const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
@@ -184,11 +230,25 @@ async function executeWebFetch(
             approvalManager.trackNotificationStart(WEB_TOOL_NOTIFICATION_TYPE);
         }
 
+        const fetchFactory = getProviderToolFactory(['webFetch_20250910', 'webFetch_20250305']);
+        if (!fetchFactory) {
+            return 'Web fetch tool is unavailable in this environment.';
+        }
+
+        const allowedDomains = sanitizeDomainList(input.allowed_domains);
+        const blockedDomains = sanitizeDomainList(input.blocked_domains);
+
         console.log(`[WebFetchTool] Fetching: ${input.url}`);
         const result = await generateText({
             model: await getAnthropicClient(ANTHROPIC_SONNET_4),
             prompt: `URL: ${input.url}\nTask: ${input.prompt}\nUse the web_fetch tool to retrieve the page content.`,
-            tools: { web_fetch: anthropic.tools.webFetch_20250910({ maxUses: 3 }) },
+            tools: {
+                web_fetch: fetchFactory({
+                    maxUses: 3,
+                    ...(allowedDomains ? { allowedDomains } : {}),
+                    ...(blockedDomains ? { blockedDomains } : {}),
+                }),
+            },
             stopWhen: stepCountIs(1),
         });
 
@@ -199,7 +259,11 @@ async function executeWebFetch(
         return content || 'Web fetch completed.';
     } catch (error: any) {
         console.error('[WebFetchTool] Failed:', error?.message || error);
-        throw error;
+        const errorMessage = error?.message || String(error);
+        if (errorMessage.includes('responses API is unavailable')) {
+            return 'Web fetch failed: Anthropic responses API is unavailable in this environment.';
+        }
+        return `Web fetch failed: ${errorMessage}`;
     } finally {
         if (!webSearchEnabled) {
             approvalManager.trackNotificationEnd(WEB_TOOL_NOTIFICATION_TYPE);
