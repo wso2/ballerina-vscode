@@ -22,21 +22,6 @@ import type { TextEdit } from "vscode-languageserver-protocol";
 import { StateMachine } from "../../../stateMachine";
 
 /**
- * File extensions to include in codebase structure
- */
-const CODEBASE_STRUCTURE_FILE_TYPES = [".bal"];
-
-/**
- * Directories to ignore in codebase structure
- */
-const CODEBASE_STRUCTURE_IGNORE_FOLDERS = ["target", ".ballerina", ".vscode", ".git"];
-
-/**
- * Files to ignore in codebase structure
- */
-const CODEBASE_STRUCTURE_IGNORE_FILES = ["Ballerina.toml", "Config.toml", "Dependencies.toml"];
-
-/**
  * Files that require path sanitization (temp paths replaced with workspace paths)
  */
 const FILES_REQUIRING_PATH_SANITIZATION = ["Ballerina.toml"];
@@ -197,8 +182,9 @@ function collectFilesFromProject(project: ProjectSource, includePackagePath: boo
  * @returns Formatted XML string for the file
  */
 function formatFileWithContent(file: SourceFile): string {
+    const lang = file.filePath.endsWith('.toml') ? 'toml' : 'ballerina';
     return `<file path="${file.filePath}">
-\`\`\`ballerina
+\`\`\`${lang}
 ${file.content}
 \`\`\`
 </file>`;
@@ -210,7 +196,7 @@ ${file.content}
  * @param projects Array of ProjectSource objects
  * @returns Formatted XML string with codebase structure including file contents
  */
-export function formatCodebaseStructure(projects: ProjectSource[]): string {
+export function formatCodebaseStructure(projects: ProjectSource[], tempProjectPath?: string): string {
     let text = "<codebase_structure>\n";
     text += "This is the complete structure of the codebase you are working with. ";
     text += "You do not need to acknowledge or list these files in your response. ";
@@ -218,6 +204,12 @@ export function formatCodebaseStructure(projects: ProjectSource[]): string {
 
     const context = StateMachine.context();
     const isWorkspace = context.projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
+
+    // Include workspace Ballerina.toml for workspace projects
+    if (isWorkspace && tempProjectPath) {
+        text += formatWorkspaceToml(tempProjectPath);
+    }
+
     for (const project of projects) {
         const files = collectFilesFromProject(project, isWorkspace);
         const activeStatus = project.isActive ? ' active="true"' : "";
@@ -239,6 +231,26 @@ When creating or modifying files, you should always prefer making edits for the 
     }
 
     return text;
+}
+
+/**
+ * Reads the workspace root Ballerina.toml and formats it as XML for the codebase structure.
+ * Only applicable for workspace projects (containing [workspace] section).
+ * @param tempProjectPath Path to the temporary project directory
+ * @returns Formatted XML string with workspace config, or empty string if not found
+ */
+function formatWorkspaceToml(tempProjectPath: string): string {
+    const tomlPath = path.join(tempProjectPath, "Ballerina.toml");
+    if (!fs.existsSync(tomlPath)) {
+        return "";
+    }
+    try {
+        const content = fs.readFileSync(tomlPath, "utf-8");
+        return `<workspace_config path="Ballerina.toml">\n${content}\n</workspace_config>\n\n`;
+    } catch (error) {
+        console.warn("[formatWorkspaceToml] Error reading workspace Ballerina.toml:", error);
+        return "";
+    }
 }
 
 /**
