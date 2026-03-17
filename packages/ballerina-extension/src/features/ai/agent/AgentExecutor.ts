@@ -534,7 +534,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
      */
     private async emitReviewActions(context: StreamContext): Promise<void> {
         // Use accumulated modifiedFiles from chatStateStorage (merged across review continuations)
-        const workspaceId = context.ctx.projectPath;
+        const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
         const threadId = 'default';
         const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
         const accumulatedModifiedFiles = pendingReview
