@@ -336,7 +336,7 @@ const AIChat: React.FC = () => {
         const fetchSession = async () => {
             try {
                 const session = await rpcClient.getMigrateIntegrationRpcClient().getActiveMigrationSession();
-                if (session && session.isActive && !session.isEnhanced && session.mode !== 'none') {
+                if (session && !session.fullyEnhanced) {
                     setMigrationSession(session);
                 } else {
                     setMigrationSession(null);
@@ -933,14 +933,24 @@ const AIChat: React.FC = () => {
      */
     async function handleContinueMigrationEnhancement() {
         try {
+            // Prime the chat UI so streaming events have a message to append to
+            setMigrationSession(null);
+            setIsLoading(true);
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                { role: "User", content: "Start AI Enhancement", type: "user_message" },
+                { role: "Copilot", content: "", type: "assistant_message" },
+            ]);
+
             // Seed saved conversation history into AI chat state
             await rpcClient.getMigrateIntegrationRpcClient().seedMigrationHistory();
-            // Trigger the auto-fix pipeline which pushes a default prompt
-            await rpcClient.getMigrateIntegrationRpcClient().startMigrationEnhancement('auto-fix');
-            // Hide the card since enhancement is now running
-            setMigrationSession(null);
+            // Prepare the pipeline (updates toml, sets _wizardProjectRoot, marks session active, flags AI Chat routing)
+            await rpcClient.getMigrateIntegrationRpcClient().startMigrationEnhancement();
+            // Actually start the wizard-level streaming pipeline — events now routed to AI Chat
+            await rpcClient.getMigrateIntegrationRpcClient().wizardEnhancementReady();
         } catch (error) {
             console.error('[AIChat] Failed to continue migration enhancement:', error);
+            setIsLoading(false);
         }
     }
 

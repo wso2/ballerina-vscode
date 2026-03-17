@@ -29,6 +29,10 @@ export interface MigrateIntegrationAPI {
     saveMigrationReport: (params: SaveMigrationReportRequest) => void;
     migrateProject: (params: MigrateRequest) => void;
     getActiveMigrationSession: () => Promise<ActiveMigrationSession>;
+    /** Starts (or resumes) the AI enhancement pipeline from AI Chat. */
+    startMigrationEnhancement: () => Promise<void>;
     /** Seeds any persisted migration conversation history into the chat state. */
     seedMigrationHistory: () => Promise<boolean>;
+    /** Triggers the wizard-level streaming enhancement pipeline (called from AI Chat after startMigrationEnhancement). */
+    wizardEnhancementReady: () => Promise<void>;
 }

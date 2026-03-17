@@ -14,8 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { MigrationEnhancementMode } from "@wso2/ballerina-core";
-
 /** globalState key – only one pending enhancement is allowed at a time */
 export const PENDING_MIGRATION_ENHANCEMENT_KEY = "ballerina.pendingMigrationEnhancement";
 
@@ -23,13 +21,16 @@ export const PENDING_MIGRATION_ENHANCEMENT_KEY = "ballerina.pendingMigrationEnha
  * Persistent globalState key that stores just the project root of the most
  * recently migrated project.  Unlike `PENDING_MIGRATION_ENHANCEMENT_KEY` this
  * entry is never TTL-expired so `getActiveMigrationSessionState` can always
- * locate the `.ai-migrate-enhance.toml` even if the webview mounts before
+ * locate the state file even if the webview mounts before
  * `checkAndRunPendingEnhancement` runs.
  */
 export const MIGRATION_PROJECT_ROOT_KEY = "ballerina.migrationProjectRoot";
 
-/** Filename written by the migration tool into the project root */
-export const AI_ENHANCE_TOML_FILENAME = ".ai-migrate-enhance.toml";
+/** Hidden directory inside the project root that stores AI migration metadata. */
+export const AI_MIGRATION_DIR = ".ballerina-ai-migration";
+
+/** State TOML filename inside AI_MIGRATION_DIR. */
+export const AI_ENHANCE_TOML_FILENAME = "state.toml";
 
 /**
  * Shape of the value stored in VS Code globalState before the
@@ -37,7 +38,8 @@ export const AI_ENHANCE_TOML_FILENAME = ".ai-migrate-enhance.toml";
  * be resumed in the freshly opened window.
  */
 export interface PendingMigrationEnhancement {
-    mode: MigrationEnhancementMode;
+    /** `true` when the AI enhancement feature was used (wizard or post-wizard). */
+    aiFeatureUsed: boolean;
     projectRoot: string;
     /** epoch ms – used to discard stale entries (>10 min) */
     timestamp: number;
@@ -45,16 +47,17 @@ export interface PendingMigrationEnhancement {
     sourcePath?: string;
 }
 
-/** Seconds before a stale pending-enhancement entry is discarded */
+/** Milliseconds before a stale pending-enhancement entry is discarded */
 export const PENDING_ENHANCEMENT_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 /**
- * Shape of the `.ai-migrate-enhance.toml` file written at migration time.
+ * Shape of the `state.toml` file written inside `.ballerina-ai-migration/`.
  */
 export interface EnhanceTomlData {
-    mode: MigrationEnhancementMode;
-    /** `true` once the AI enhancement pipeline has completed for this project. */
-    isEnhanced: boolean;
+    /** `true` when the AI enhancement feature was used (wizard or post-wizard). */
+    aiFeatureUsed: boolean;
+    /** `true` once the AI enhancement pipeline has completed successfully for this project. */
+    fullyEnhanced: boolean;
     /** `true` when the AI enhancement was started but paused / aborted before completion. */
     isPartiallyEnhanced?: boolean;
     /** Absolute path to the original source project (e.g. Mule XML directory). */
@@ -68,9 +71,10 @@ export interface EnhanceTomlData {
  */
 export interface ActiveMigrationSessionLocal {
     isActive: boolean;
-    mode: MigrationEnhancementMode;
-    /** `true` once the enhancement pipeline has completed (read from the toml). */
-    isEnhanced: boolean;
+    /** `true` when the AI enhancement feature was used (wizard or post-wizard). */
+    aiFeatureUsed: boolean;
+    /** `true` once the enhancement pipeline has completed successfully (read from the toml). */
+    fullyEnhanced: boolean;
     /** `true` when the AI enhancement was started but paused before completion. */
     isPartiallyEnhanced?: boolean;
 }

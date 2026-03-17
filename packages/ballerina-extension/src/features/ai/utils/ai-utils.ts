@@ -300,7 +300,7 @@ export function sendConfigurationCollectionNotification(event: ChatNotify & { ty
     sendAIPanelNotification(event);
 }
 
-function sendAIPanelNotification(msg: ChatNotify): void {
+export function sendAIPanelNotification(msg: ChatNotify): void {
     RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
 }
 

@@ -52,8 +52,8 @@ const _seedMigrationHistory = { method: "migrate-integration/seedMigrationHistor
 /** Local mirror until @wso2/ballerina-core is rebuilt. */
 export interface ActiveMigrationSession {
     isActive: boolean;
-    mode: 'auto-fix' | 'none';
-    isEnhanced: boolean;
+    aiFeatureUsed: boolean;
+    fullyEnhanced: boolean;
     isPartiallyEnhanced?: boolean;
 }
 
@@ -104,8 +104,8 @@ export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
         return this._messenger.sendRequest(_markEnhancementComplete as any, HOST_EXTENSION);
     }
 
-    startMigrationEnhancement(mode: 'auto-fix'): Promise<void> {
-        return this._messenger.sendRequest(_startMigrationEnhancement as any, HOST_EXTENSION, { mode });
+    startMigrationEnhancement(): Promise<void> {
+        return this._messenger.sendRequest(_startMigrationEnhancement as any, HOST_EXTENSION);
     }
 
     /**

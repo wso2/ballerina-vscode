@@ -617,14 +617,14 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
     debug(`BI project created successfully at ${projectRoot}`);
 
     const resolvedRoot = path.resolve(projectRoot);
-    const mode = params.enhancementMode ?? 'none';
+    const aiEnabled = params.aiFeatureUsed ?? false;
 
     // Write the AI enhancement state file – acts as the source of truth for the
-    // migration UI banner.  This is done for ALL modes including "none" so the
-    // banner can offer a "Start Enhancement" button even when the user skipped.
-    writeEnhanceToml(resolvedRoot, mode, false, params.sourcePath);
+    // migration UI banner.  This is done for ALL values of aiFeatureUsed so
+    // the card can offer a "Start Enhancement" button even when the user skipped.
+    writeEnhanceToml(resolvedRoot, aiEnabled, false, params.sourcePath);
 
-    if (mode === 'auto-fix') {
+    if (aiEnabled) {
         // When AI enhancement is enabled, return the project root to the caller
         // so the wizard can run the enhancement pipeline before opening the folder.
         // The caller (RPC manager) will notify the webview with the project root
@@ -634,7 +634,7 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
     }
 
     // No AI enhancement – open the project immediately.
-    scheduleMigrationEnhancement(mode, resolvedRoot, params.sourcePath);
+    scheduleMigrationEnhancement(aiEnabled, resolvedRoot, params.sourcePath);
     commands.executeCommand('vscode.openFolder', Uri.file(resolvedRoot));
     return resolvedRoot;
 }

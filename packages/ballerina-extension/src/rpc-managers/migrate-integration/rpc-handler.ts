@@ -60,7 +60,7 @@ export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     messenger.onNotification(migrateProject, (args: MigrateRequest) => rpcManger.migrateProject(args));
     messenger.onRequest(getActiveMigrationSession, () => rpcManger.getActiveMigrationSession());
     messenger.onRequest(markEnhancementCompleteMethod, () => rpcManger.markEnhancementComplete());
-    messenger.onRequest(startMigrationEnhancementMethod, (args: { mode: 'auto-fix' }) => rpcManger.startMigrationEnhancement(args.mode));
+    messenger.onRequest(startMigrationEnhancementMethod, () => rpcManger.startMigrationEnhancement());
     messenger.onRequest(migrationPanelReadyMethod, () => rpcManger.migrationPanelReady());
     messenger.onRequest(wizardEnhancementReadyMethod, () => rpcManger.wizardEnhancementReady());
     messenger.onRequest(openMigratedProjectMethod, () => rpcManger.openMigratedProjectInVSCode());
