@@ -152,7 +152,7 @@ async function executeWebSearch(
         const allowedDomains = sanitizeDomainList(input.allowed_domains);
         const blockedDomains = sanitizeDomainList(input.blocked_domains);
 
-        console.log(`[WebSearchTool] Searching: ${input.query}`);
+        console.log(`[WebTools] search | query: ${input.query} | context: ${input.context}`);
         const result = await generateText({
             model: await getAnthropicClient(ANTHROPIC_SONNET_4),
             system: WEB_SEARCH_SYSTEM_PROMPT,
@@ -167,12 +167,12 @@ async function executeWebSearch(
         });
 
         const content = result.text || 'Web search completed but returned no content.';
-        console.log(`[WebSearchTool] Completed. Content length: ${content.length}`);
+        console.log(`[WebTools] search | done | length: ${content.length}`);
 
         eventHandler({ type: "tool_result", toolName: WEB_SEARCH_TOOL_NAME, toolOutput: { query: input.query }, toolCallId });
         return content;
     } catch (error: any) {
-        console.error('[WebSearchTool] Failed:', error?.message || error);
+        console.error('[WebTools] search | error:', error?.message || error);
         const errorMessage = error?.message || String(error);
         if (errorMessage.includes('responses API is unavailable')) {
             return 'Web search failed: Anthropic responses API is unavailable in this environment.';
@@ -238,7 +238,7 @@ async function executeWebFetch(
         const allowedDomains = sanitizeDomainList(input.allowed_domains);
         const blockedDomains = sanitizeDomainList(input.blocked_domains);
 
-        console.log(`[WebFetchTool] Fetching: ${input.url}`);
+        console.log(`[WebTools] fetch | url: ${input.url}`);
         const result = await generateText({
             model: await getAnthropicClient(ANTHROPIC_SONNET_4),
             prompt: `URL: ${input.url}\nTask: ${input.prompt}\nUse the web_fetch tool to retrieve the page content.`,
@@ -253,12 +253,12 @@ async function executeWebFetch(
         });
 
         const content = extractToolOutput(result);
-        console.log(`[WebFetchTool] Completed. Content length: ${content?.length ?? 0}`);
+        console.log(`[WebTools] fetch | done | length: ${content?.length ?? 0}`);
 
         eventHandler({ type: "tool_result", toolName: WEB_FETCH_TOOL_NAME, toolOutput: { url: input.url }, toolCallId });
         return content || 'Web fetch completed.';
     } catch (error: any) {
-        console.error('[WebFetchTool] Failed:', error?.message || error);
+        console.error('[WebTools] fetch | error:', error?.message || error);
         const errorMessage = error?.message || String(error);
         if (errorMessage.includes('responses API is unavailable')) {
             return 'Web fetch failed: Anthropic responses API is unavailable in this environment.';
