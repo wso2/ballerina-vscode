@@ -1801,35 +1801,7 @@ public class DataMapManager {
         if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
             return removeInvalidFields((MappingConstructorExpressionNode) expr, semanticModel, textExits);
         } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
-            ListConstructorExpressionNode listConstructor = (ListConstructorExpressionNode) expr;
-            boolean allRemoved = true;
-            List<Integer> removable = new ArrayList<>();
-            SeparatedNodeList<Node> members = listConstructor.expressions();
-            for (int i = 0; i < members.size(); i++) {
-                boolean removed = removeInvalidFields(members.get(i), semanticModel, textExits);
-                allRemoved = allRemoved && removed;
-                if (removed) {
-                    removable.add(i);
-                }
-            }
-            if (!allRemoved) {
-                for (int i = removable.size() - 1; i >= 0; i--) {
-                    int idx = removable.get(i);
-                    LinePosition start;
-                    LinePosition end;
-                    if (idx == 0) {
-                        start = members.get(idx).lineRange().startLine();
-                        end = (members.size() > 1)
-                                ? members.get(idx + 1).lineRange().startLine()
-                                : members.get(idx).lineRange().endLine();
-                    } else {
-                        start = members.get(idx - 1).lineRange().endLine();
-                        end = members.get(idx).lineRange().endLine();
-                    }
-                    textExits.add(new TextEdit(CommonUtils.toRange(start, end), ""));
-                }
-            }
-            return allRemoved;
+            return removeInvalidFields((ListConstructorExpressionNode) expr, semanticModel, textExits);
         } else {
             return false;
         }
@@ -1887,6 +1859,38 @@ public class DataMapManager {
             }
             return false;
         }
+    }
+
+    private boolean removeInvalidFields(ListConstructorExpressionNode listCtrExpr, SemanticModel semanticModel,
+                                        List<TextEdit> textExits) {
+        boolean allRemoved = true;
+        List<Integer> removable = new ArrayList<>();
+        SeparatedNodeList<Node> members = listCtrExpr.expressions();
+        for (int i = 0; i < members.size(); i++) {
+            boolean removed = removeInvalidFields(members.get(i), semanticModel, textExits);
+            allRemoved = allRemoved && removed;
+            if (removed) {
+                removable.add(i);
+            }
+        }
+        if (!allRemoved) {
+            for (int i = removable.size() - 1; i >= 0; i--) {
+                int idx = removable.get(i);
+                LinePosition start;
+                LinePosition end;
+                if (idx == 0) {
+                    start = members.get(idx).lineRange().startLine();
+                    end = (members.size() > 1)
+                            ? members.get(idx + 1).lineRange().startLine()
+                            : members.get(idx).lineRange().endLine();
+                } else {
+                    start = members.get(idx - 1).lineRange().endLine();
+                    end = members.get(idx).lineRange().endLine();
+                }
+                textExits.add(new TextEdit(CommonUtils.toRange(start, end), ""));
+            }
+        }
+        return allRemoved;
     }
 
     private ExpressionNode findConvertedVariable(LetExpressionNode letExpr) {
