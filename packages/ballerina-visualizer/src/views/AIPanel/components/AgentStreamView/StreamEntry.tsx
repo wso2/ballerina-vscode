@@ -31,7 +31,7 @@ import {
     EntryHeader,
     EntryRail,
     ExpandIcon,
-    FileNameChip,
+    ItemDetail,
     ItemLabel,
     ItemMarkdownWrapper,
     ItemRow,
@@ -57,75 +57,75 @@ function getFileName(filePath: string | undefined): string {
     return i !== -1 ? filePath.substring(i + 1) : filePath;
 }
 
-function getToolCallDisplay(toolName: string | undefined, toolInput: any): { prefix: string; fileName?: string } {
+function getToolCallDisplay(toolName: string | undefined, toolInput: any): { label: string; detail?: string } {
     switch (toolName) {
-        case "file_read":    return { prefix: "Reading",   fileName: getFileName(toolInput?.fileName) + "..." };
-        case "file_write":   return { prefix: "Creating",  fileName: getFileName(toolInput?.fileName) + "..." };
+        case "file_read":    return { label: "Reading ",   detail: getFileName(toolInput?.fileName) + "..." };
+        case "file_write":   return { label: "Creating ",  detail: getFileName(toolInput?.fileName) + "..." };
         case "file_edit":
-        case "file_batch_edit": return { prefix: "Updating", fileName: getFileName(toolInput?.fileName) + "..." };
-        case "TaskWrite":    return { prefix: "Planning..." };
+        case "file_batch_edit": return { label: "Updating ", detail: getFileName(toolInput?.fileName) + "..." };
+        case "TaskWrite":    return { label: "Planning..." };
         case "LibrarySearchTool": {
             const desc = toolInput?.searchDescription;
-            return { prefix: desc ? `Searching for ${desc}...` : "Searching libraries..." };
+            return { label: desc ? `Searching for ${desc}...` : "Searching libraries..." };
         }
-        case "LibraryGetTool": return { prefix: "Fetching library details..." };
-        case "HealthcareLibraryProviderTool": return { prefix: "Analyzing healthcare libraries..." };
-        case "getCompilationErrors": return { prefix: "Checking for errors..." };
-        case "ConfigCollector": return { prefix: "Reading config..." };
-        case "ConnectorGeneratorTool": return { prefix: "Generating connector..." };
-        case "runTests": return { prefix: "Running tests..." };
-        case "curlRequest": return { prefix: "Sending HTTP request..." };
-        case "runBallerinaPackage": return { prefix: `Running ${toolInput?.runType === "service" ? "service" : "program"}...` };
-        case "getServiceLogs": return { prefix: "Fetching logs..." };
-        case "stopBallerinaService": return { prefix: "Stopping service..." };
-        case "web_search": return { prefix: "Searching the web..." };
-        case "web_fetch":  return { prefix: "Fetching URL..." };
-        default: return { prefix: "Working..." };
+        case "LibraryGetTool": return { label: "Fetching library details..." };
+        case "HealthcareLibraryProviderTool": return { label: "Analyzing healthcare libraries..." };
+        case "getCompilationErrors": return { label: "Checking for errors..." };
+        case "ConfigCollector": return { label: "Reading config..." };
+        case "ConnectorGeneratorTool": return { label: "Generating connector..." };
+        case "runTests": return { label: "Running tests..." };
+        case "curlRequest": return { label: "Sending HTTP request..." };
+        case "runBallerinaPackage": return { label: `Running ${toolInput?.runType === "service" ? "service" : "program"}...` };
+        case "getServiceLogs": return { label: "Fetching logs..." };
+        case "stopBallerinaService": return { label: "Stopping service..." };
+        case "web_search": return { label: "Searching: ", detail: toolInput?.query || "the web" };
+        case "web_fetch":  return { label: "Fetching: ",  detail: toolInput?.url || "URL" };
+        default: return { label: "Working..." };
     }
 }
 
-function getToolResultDisplay(toolName: string | undefined, toolOutput: any): { prefix: string; fileName?: string } {
+function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hint?: string): { label: string; detail?: string } {
     switch (toolName) {
-        case "file_read":    return { prefix: "Read",    fileName: getFileName(toolOutput?.fileName) };
-        case "file_write":   return { prefix: toolOutput?.action === "updated" ? "Updated" : "Created", fileName: getFileName(toolOutput?.fileName) };
+        case "file_read":    return { label: "Read ",    detail: getFileName(toolOutput?.fileName) };
+        case "file_write":   return { label: toolOutput?.action === "updated" ? "Updated " : "Created ", detail: getFileName(toolOutput?.fileName) };
         case "file_edit":
-        case "file_batch_edit": return { prefix: "Updated", fileName: getFileName(toolOutput?.fileName) };
-        case "TaskWrite":    return { prefix: "Plan ready" };
+        case "file_batch_edit": return { label: "Updated ", detail: getFileName(toolOutput?.fileName) };
+        case "TaskWrite":    return { label: "Plan ready" };
         case "LibrarySearchTool": {
             const desc = toolOutput?.searchDescription;
-            return { prefix: desc ? `${desc.charAt(0).toUpperCase() + desc.slice(1)} search completed` : "Library search completed" };
+            return { label: desc ? `${desc.charAt(0).toUpperCase() + desc.slice(1)} search completed` : "Library search completed" };
         }
         case "LibraryGetTool": {
             const names: string[] = toolOutput || [];
-            return { prefix: names.length > 0 ? `Fetched: [${names.join(", ")}]` : "No relevant libraries found" };
+            return { label: names.length > 0 ? `Fetched: [${names.join(", ")}]` : "No relevant libraries found" };
         }
         case "HealthcareLibraryProviderTool": {
             const names: string[] = toolOutput || [];
-            return { prefix: names.length > 0 ? `Fetched: [${names.join(", ")}]` : "No relevant healthcare libraries found" };
+            return { label: names.length > 0 ? `Fetched: [${names.join(", ")}]` : "No relevant healthcare libraries found" };
         }
         case "getCompilationErrors": {
             const count = toolOutput?.diagnostics?.length ?? 0;
-            return { prefix: count > 0 ? `Found ${count} error(s)` : "No issues found" };
+            return { label: count > 0 ? `Found ${count} error(s)` : "No issues found" };
         }
-        case "ConfigCollector": return { prefix: "Config loaded" };
-        case "ConnectorGeneratorTool": return { prefix: "Connector ready" };
-        case "runTests": return { prefix: toolOutput?.summary ?? "Tests completed" };
-        case "curlRequest": return { prefix: "HTTP request completed" };
+        case "ConfigCollector": return { label: "Config loaded" };
+        case "ConnectorGeneratorTool": return { label: "Connector ready" };
+        case "runTests": return { label: toolOutput?.summary ?? "Tests completed" };
+        case "curlRequest": return { label: "HTTP request completed" };
         case "runBallerinaPackage": {
             const status = toolOutput?.status ?? "completed";
-            return { prefix: status === "started" ? "Service started" : status === "completed" ? "Program completed" : status === "timeout" ? "Program timed out" : "Run failed" };
+            return { label: status === "started" ? "Service started" : status === "completed" ? "Program completed" : status === "timeout" ? "Program timed out" : "Run failed" };
         }
         case "getServiceLogs": {
             const status = toolOutput?.status ?? "running";
-            return { prefix: status === "exited" ? "Service exited" : status === "not_found" ? "Service not found" : "Logs retrieved" };
+            return { label: status === "exited" ? "Service exited" : status === "not_found" ? "Service not found" : "Logs retrieved" };
         }
         case "stopBallerinaService": {
             const status = toolOutput?.status ?? "stopped";
-            return { prefix: status === "stopped" ? "Service stopped" : status === "already_exited" ? "Service already exited" : "Service not found" };
+            return { label: status === "stopped" ? "Service stopped" : status === "already_exited" ? "Service already exited" : "Service not found" };
         }
-        case "web_search": return { prefix: "Web search completed" };
-        case "web_fetch":  return { prefix: "URL fetched" };
-        default: return { prefix: "Done" };
+        case "web_search": return { label: "Searched: ", detail: hint || "web" };
+        case "web_fetch":  return { label: "Fetched: ",  detail: hint || "URL" };
+        default: return { label: "Done" };
     }
 }
 
@@ -149,14 +149,14 @@ function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamAc
             if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
                 return <CommandOutputCard key={idx} toolName={item.toolName} toolInput={item.toolInput} />;
             }
-            const { prefix, fileName } = getToolCallDisplay(item.toolName, item.toolInput);
+            const { label, detail } = getToolCallDisplay(item.toolName, item.toolInput);
             return (
                 <ItemRow key={idx}>
                     <ToolIcon loading={true}>
                         <span className="codicon codicon-symbol-property" />
                     </ToolIcon>
                     <ItemLabel loading={true}>
-                        {prefix}{fileName && <FileNameChip>{fileName}</FileNameChip>}
+                        {label}{detail && <ItemDetail title={detail}>{detail}</ItemDetail>}
                     </ItemLabel>
                 </ItemRow>
             );
@@ -168,14 +168,15 @@ function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamAc
             if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
                 return <CommandOutputCard key={idx} toolName={item.toolName} toolOutput={item.toolOutput} isResult={true} />;
             }
-            const { prefix, fileName } = getToolResultDisplay(item.toolName, item.toolOutput);
+            const hint = item.toolOutput?.query ?? item.toolOutput?.url;
+            const { label, detail } = getToolResultDisplay(item.toolName, item.toolOutput, hint);
             return (
                 <ItemRow key={idx}>
                     <ToolIcon loading={false} failed={item.failed}>
                         <span className="codicon codicon-symbol-property" />
                     </ToolIcon>
                     <ItemLabel loading={false} failed={item.failed}>
-                        {prefix}{fileName && <FileNameChip>{fileName}</FileNameChip>}
+                        {label}{detail && <ItemDetail title={detail}>{detail}</ItemDetail>}
                     </ItemLabel>
                 </ItemRow>
             );

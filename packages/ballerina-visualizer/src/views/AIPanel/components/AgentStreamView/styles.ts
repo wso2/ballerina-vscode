@@ -247,9 +247,7 @@ export const ItemLabel = styled.span<{ loading: boolean; failed?: boolean }>`
     text-overflow: ellipsis;
 `;
 
-export const FileNameChip = styled.span`
-    font-weight: 600;
-    color: var(--vscode-editor-foreground);
+export const ItemDetail = styled.span`
     margin-left: 3px;
     font-size: 12px;
 `;
