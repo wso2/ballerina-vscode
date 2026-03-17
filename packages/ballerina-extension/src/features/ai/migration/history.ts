@@ -14,22 +14,18 @@
 // specific language governing permissions and limitations
 // under the License.
 
-/**
- * Disk-based conversation history persistence for migration AI enhancement.
- *
- * The wizard migration flow does NOT use `chatStateStorage` (it passes
- * `chatStorage: undefined`), so we persist the full `ModelMessage[]` array
- * to a JSON file inside the project root.  This allows exact resumption of
- * the conversation when the user opens the project later and triggers the
- * "Continue AI Enhancement" action from AI Chat.
- */
-
 import * as fs from "fs";
 import * as path from "path";
 import { ModelMessage } from "ai";
+import { AI_MIGRATION_DIR } from "./types";
 
-/** File written next to `.ai-migrate-enhance.toml` inside the project root. */
-export const AI_MIG_HISTORY_FILENAME = ".ai-mig-history.json";
+/** Filename for the conversation history file inside AI_MIGRATION_DIR. */
+export const AI_MIG_HISTORY_FILENAME = "history.json";
+
+/** Returns the absolute path to the history file for the given project root. */
+function historyFilePath(projectRoot: string): string {
+    return path.join(projectRoot, AI_MIGRATION_DIR, AI_MIG_HISTORY_FILENAME);
+}
 
 /**
  * Shape of the persisted history file.
@@ -59,13 +55,17 @@ export function saveAgentHistory(
     messages: ModelMessage[],
     status: MigrationHistory["completionStatus"],
 ): void {
-    const filePath = path.join(projectRoot, AI_MIG_HISTORY_FILENAME);
+    const filePath = historyFilePath(projectRoot);
+    const dir = path.dirname(filePath);
     const data: MigrationHistory = {
         messages,
         savedAt: new Date().toISOString(),
         completionStatus: status,
     };
     try {
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
         fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
         console.log(`[MigrationHistory] Saved ${messages.length} messages (${status}) to ${filePath}`);
     } catch (err) {
@@ -80,7 +80,7 @@ export function saveAgentHistory(
  * @returns  The history object, or `null` if no history file exists.
  */
 export function loadAgentHistory(projectRoot: string): MigrationHistory | null {
-    const filePath = path.join(projectRoot, AI_MIG_HISTORY_FILENAME);
+    const filePath = historyFilePath(projectRoot);
     try {
         if (!fs.existsSync(filePath)) {
             return null;
@@ -100,7 +100,7 @@ export function loadAgentHistory(projectRoot: string): MigrationHistory | null {
  * @param projectRoot  Absolute path to the migrated project root.
  */
 export function clearAgentHistory(projectRoot: string): void {
-    const filePath = path.join(projectRoot, AI_MIG_HISTORY_FILENAME);
+    const filePath = historyFilePath(projectRoot);
     try {
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);

@@ -61,8 +61,9 @@ const Container = styled.div`
 
 const HeaderRow = styled.div`
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
     font-size: 13px;
     font-weight: 600;
     color: var(--vscode-editor-foreground);
@@ -143,6 +144,13 @@ const SpinnerIcon = styled.span`
     }
 `;
 
+const SubText = styled.span`
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--vscode-descriptionForeground);
+    margin-top: 1px;
+`;
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Component
 // ──────────────────────────────────────────────────────────────────────────────
@@ -156,10 +164,32 @@ export function WizardAIEnhancementView() {
     // Single content string with inline <toolcall>/<toolresult> markup,
     // exactly like the AI Panel's approach.
     const [content, setContent] = useState("");
+    // Uptime counter – seconds since the enhancement started
+    const [elapsed, setElapsed] = useState(0);
 
     // Track terminal status in a ref so the callback always sees the latest
     // value without needing `status` in its dependency array.
     const terminalRef = useRef(false);
+
+    // ── Uptime counter ─────────────────────────────────────────────────────
+    useEffect(() => {
+        if (status !== "running") {
+            return;
+        }
+        setElapsed(0);
+        const id = setInterval(() => setElapsed((s) => s + 1), 1000);
+        return () => clearInterval(id);
+    }, [status]);
+
+    function formatElapsed(seconds: number): string {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        if (h > 0) {
+            return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+        }
+        return `${m}:${String(s).padStart(2, "0")}`;
+    }
 
     // ── Helper to update content ──────────────────────────────────────────
     const updateContent = useCallback(
@@ -457,14 +487,20 @@ export function WizardAIEnhancementView() {
             <HeaderRow>
                 {isRunning && (
                     <>
-                        <SpinnerIcon className="codicon codicon-sync" />
-                        <StatusText variant="running">
-                            AI Enhancement in progress…
-                        </StatusText>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <SpinnerIcon className="codicon codicon-sync" />
+                            <StatusText variant="running">
+                                AI Enhancement in progress…
+                            </StatusText>
+                            <span style={{ fontSize: "11px", color: "var(--vscode-descriptionForeground)", fontVariantNumeric: "tabular-nums" }}>
+                                [{formatElapsed(elapsed)}]
+                            </span>
+                        </div>
+                        <SubText>This may take a while.</SubText>
                     </>
                 )}
                 {status === "completed" && (
-                    <>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                         <span
                             className="codicon codicon-check"
                             style={{
@@ -474,10 +510,10 @@ export function WizardAIEnhancementView() {
                         <StatusText variant="success">
                             AI Enhancement completed
                         </StatusText>
-                    </>
+                    </div>
                 )}
                 {status === "error" && (
-                    <>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                         <span
                             className="codicon codicon-error"
                             style={{
@@ -487,15 +523,15 @@ export function WizardAIEnhancementView() {
                         <StatusText variant="error">
                             AI Enhancement encountered an error
                         </StatusText>
-                    </>
+                    </div>
                 )}
                 {status === "aborted" && (
-                    <>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                         <span className="codicon codicon-circle-slash" />
                         <StatusText>
                             AI Enhancement was skipped
                         </StatusText>
-                    </>
+                    </div>
                 )}
             </HeaderRow>
 

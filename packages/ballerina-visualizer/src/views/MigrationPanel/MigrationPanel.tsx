@@ -27,12 +27,12 @@ import MigrationEnhancementBanner from "../AIPanel/components/MigrationEnhanceme
 // Types
 // ──────────────────────────────────────────────────────────────────────────────
 
-type MigrationEnhancementMode = "auto-fix" | "none";
+type MigrationEnhancementMode = "auto-fix";
 
 interface MigrationSessionState {
     isActive: boolean;
-    mode: MigrationEnhancementMode;
-    isEnhanced: boolean;
+    aiFeatureUsed: boolean;
+    fullyEnhanced: boolean;
 }
 
 interface StreamMessage {
@@ -279,8 +279,8 @@ export function MigrationPanel() {
     // Session state from the backend
     const [session, setSession] = useState<MigrationSessionState>({
         isActive: false,
-        mode: "none",
-        isEnhanced: true,
+        aiFeatureUsed: false,
+        fullyEnhanced: true,
     });
     // Tracks whether we've received at least one real session state from the backend
     const [sessionLoaded, setSessionLoaded] = useState(false);
@@ -304,7 +304,7 @@ export function MigrationPanel() {
 
                 // Signal the backend that the panel is ready — this triggers
                 // the migration agent if the session is active and not enhanced.
-                if (state && state.isActive && !state.isEnhanced && !readySignalSent.current) {
+                if (state && state.isActive && !state.fullyEnhanced && !readySignalSent.current) {
                     readySignalSent.current = true;
                     client.migrationPanelReady().catch((e: unknown) =>
                         console.error("[MigrationPanel] migrationPanelReady failed:", e)
@@ -432,7 +432,7 @@ export function MigrationPanel() {
     }, [rpcClient]);
 
     const handleStartEnhancement = useCallback(
-        async (mode: "auto-fix") => {
+        async () => {
             try {
                 // Reset for a fresh run
                 setMessages([]);
@@ -441,8 +441,8 @@ export function MigrationPanel() {
                 readySignalSent.current = false;
 
                 const client = rpcClient.getMigrateIntegrationRpcClient() as any;
-                await client.startMigrationEnhancement(mode);
-                setSession({ isActive: true, mode, isEnhanced: false });
+                await client.startMigrationEnhancement();
+                setSession({ isActive: true, aiFeatureUsed: true, fullyEnhanced: false });
                 // Panel is already open — directly trigger the agent
                 readySignalSent.current = true;
                 client.migrationPanelReady().catch((e: unknown) =>
@@ -459,13 +459,13 @@ export function MigrationPanel() {
         try {
             const client = rpcClient.getMigrateIntegrationRpcClient() as any;
             await client.markEnhancementComplete();
-            setSession((prev) => ({ ...prev, isEnhanced: true }));
+            setSession((prev) => ({ ...prev, fullyEnhanced: true }));
         } catch {
             // ignore
         }
     }, [rpcClient]);
 
-    const showBanner = session.isActive && !session.isEnhanced && !bannerDismissed && messages.length > 0;
+    const showBanner = session.isActive && !session.fullyEnhanced && !bannerDismissed && messages.length > 0;
 
     // Derive simple messages array for banner stage derivation
     const bannerMessages = messages.map((m) => ({
@@ -506,9 +506,9 @@ export function MigrationPanel() {
             {/* Stage progress banner */}
             {showBanner && (
                 <MigrationEnhancementBanner
-                    mode={session.mode}
+                    aiFeatureUsed={session.aiFeatureUsed}
                     isActive={session.isActive || isStreaming}
-                    isEnhanced={session.isEnhanced}
+                    fullyEnhanced={session.fullyEnhanced}
                     messages={bannerMessages}
                     onDismiss={() => setBannerDismissed(true)}
                     onStartEnhancement={handleStartEnhancement}
@@ -525,7 +525,7 @@ export function MigrationPanel() {
                             Automatically fix compilation errors, resolve TODO comments, and ensure all tests pass in your migrated Ballerina project.
                         </EmptyStateDesc>
                         <ModeCardRow>
-                            <ModeCard onClick={() => handleStartEnhancement("auto-fix")} disabled={isStreaming}>
+                            <ModeCard onClick={handleStartEnhancement} disabled={isStreaming}>
                                 <ModeCardTitle>
                                     <span className="codicon codicon-run-all" style={{ fontSize: "13px" }} />
                                     Auto-Fix
@@ -535,7 +535,7 @@ export function MigrationPanel() {
                                 </ModeCardDesc>
                             </ModeCard>
                         </ModeCardRow>
-                        {sessionLoaded && session.isEnhanced && (
+                        {sessionLoaded && session.fullyEnhanced && (
                             <EmptyStateDesc style={{ opacity: 0.5, marginTop: 8 }}>
                                 Previous enhancement complete &mdash; start a new run above.
                             </EmptyStateDesc>
@@ -620,7 +620,7 @@ export function MigrationPanel() {
                                 New Run
                             </ActionButton>
                         )}
-                        {!session.isEnhanced && messages.length > 0 && (
+                        {!session.fullyEnhanced && messages.length > 0 && (
                             <ActionButton
                                 variant="primary"
                                 style={{ marginLeft: "auto" }}

@@ -49,12 +49,10 @@ import {
     seedMigrationHistoryIntoChatState,
 } from "../../features/ai/migration/orchestrator";
 
-type MigrationEnhancementMode = 'auto-fix' | 'none';
-
 interface ActiveMigrationSession {
     isActive: boolean;
-    mode: MigrationEnhancementMode;
-    isEnhanced: boolean;
+    aiFeatureUsed: boolean;
+    fullyEnhanced: boolean;
     isPartiallyEnhanced?: boolean;
 }
 
@@ -223,7 +221,7 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
     async migrateProject(params: MigrateRequest): Promise<void> {
         const projectRoot = await createBIProjectFromMigration(params);
 
-        if (params.enhancementMode === 'auto-fix' && projectRoot) {
+        if (params.aiFeatureUsed === true && projectRoot) {
             // Store the project root for wizard-level AI enhancement.
             // The webview will call wizardEnhancementReady once it shows the
             // enhancement step, which triggers the agent.
@@ -239,8 +237,8 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
         markEnhancementComplete();
     }
 
-    async startMigrationEnhancement(mode: 'auto-fix'): Promise<void> {
-        await startMigrationEnhancement(mode);
+    async startMigrationEnhancement(): Promise<void> {
+        await startMigrationEnhancement();
     }
 
     /**
@@ -250,7 +248,7 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
      */
     async migrationPanelReady(): Promise<void> {
         const session = getActiveMigrationSessionState();
-        if (session.isActive && !session.isEnhanced && session.mode !== "none") {
+        if (session.isActive && !session.fullyEnhanced) {
             // Fire and forget – the agent streams events back to the panel
             runMigrationAgent().catch((err) =>
                 console.error("[MigrateIntegrationRpc] Migration agent failed:", err)

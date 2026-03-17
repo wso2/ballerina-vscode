@@ -36,7 +36,7 @@ import { ImportIntegrationForm } from "./ImportIntegrationForm";
 import { MigrationProgressView } from "./MigrationProgressView";
 import { WizardAIEnhancementView } from "./WizardAIEnhancementView";
 import { FormContainer, TitleContainer, IconButton } from "./styles";
-import { FinalIntegrationParams, MigrationEnhancementMode } from "./types";
+import { FinalIntegrationParams } from "./types";
 
 export function ImportIntegration() {
     const { rpcClient } = useRpcContext();
@@ -103,26 +103,26 @@ export function ImportIntegration() {
             });
     };
 
-    const handleCreateIntegrationFiles = (project: ProjectRequest, enhancementMode: MigrationEnhancementMode) => {
-        console.log("Creating integration files with params:", importParams, "enhancementMode:", enhancementMode);
+    const handleCreateIntegrationFiles = (project: ProjectRequest, aiFeatureUsed: boolean) => {
+        console.log("Creating integration files with params:", importParams, "aiFeatureUsed:", aiFeatureUsed);
         if (migrationResponse) {
             const params: MigrateRequest = {
                 project: project,
                 textEdits: migrationResponse.textEdits,
                 projects: migratedProjects,
-                enhancementMode,
+                aiFeatureUsed: aiFeatureUsed,
                 sourcePath: importParams?.importSourcePath,
             };
             rpcClient.getMigrateIntegrationRpcClient().migrateProject(params);
 
             // Track whether AI enhancement is enabled for the stepper
-            setAiEnhancementEnabled(enhancementMode === 'auto-fix');
+            setAiEnhancementEnabled(aiFeatureUsed);
 
-            if (enhancementMode === 'auto-fix') {
+            if (aiFeatureUsed) {
                 // Advance to the AI Enhancement step (step 3)
                 setStep(3);
             }
-            // When mode is 'none', migrateProject opens the project directly
+            // When AI is not enabled, migrateProject opens the project directly
         }
     };
 

@@ -34,6 +34,7 @@ import {
     sendReviewActionsNotification,
     sendMigrationPanelNotification,
     sendVisualizerMigrationNotification,
+    sendAIPanelNotification,
 } from "./ai-utils";
 
 export type CopilotEventHandler = (event: ChatNotify) => void;
@@ -127,6 +128,16 @@ export function createMigrationEventHandler(command: Command): CopilotEventHandl
     return (event: ChatNotify) => {
         // Route all events through the migration-panel notification channel
         sendMigrationPanelNotification(event);
+    };
+}
+
+/**
+ * Event handler factory that routes agent/executor events to the AI Chat panel.
+ * Used when the user starts migration enhancement directly from AI Chat (static project).
+ */
+export function createAIPanelMigrationEventHandler(command: Command): CopilotEventHandler {
+    return (event: ChatNotify) => {
+        sendAIPanelNotification(event);
     };
 }
 

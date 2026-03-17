@@ -65,8 +65,6 @@ export interface SaveMigrationReportRequest {
     };
 }
 
-export type MigrationEnhancementMode = 'auto-fix' | 'none';
-
 /**
  * Describes the current state of a migration AI enhancement session.
  * Returned by `getActiveMigrationSession` so the UI can show a live banner.
@@ -74,10 +72,10 @@ export type MigrationEnhancementMode = 'auto-fix' | 'none';
 export interface ActiveMigrationSession {
     /** `true` while the enhancement pipeline is running. */
     isActive: boolean;
-    /** The mode that is currently running (or was last run). */
-    mode: MigrationEnhancementMode;
-    /** `true` once the AI enhancement pipeline has completed. */
-    isEnhanced: boolean;
+    /** `true` when the AI enhancement feature was used (wizard or post-wizard). */
+    aiFeatureUsed: boolean;
+    /** `true` once the AI enhancement pipeline has completed successfully. */
+    fullyEnhanced: boolean;
     /** `true` when the AI enhancement was started but paused before completion. */
     isPartiallyEnhanced?: boolean;
 }
@@ -88,7 +86,8 @@ export interface MigrateRequest {
         [key: string]: string;
     };
     projects?: ProjectMigrationResult[];
-    enhancementMode?: MigrationEnhancementMode;
+    /** `true` when the AI enhancement feature was used (wizard or post-wizard). */
+    aiFeatureUsed?: boolean;
     /** Absolute path to the original source project (e.g. Mule XML directory). */
     sourcePath?: string;
 }

@@ -20,9 +20,6 @@ import styled from "@emotion/styled";
 import { Codicon } from "@wso2/ui-toolkit";
 import React, { useMemo } from "react";
 
-/** Local mirror – avoids depending on a rebuilt @wso2/ballerina-core */
-type MigrationEnhancementMode = 'auto-fix' | 'none';
-
 // ──────────────────────────────────────────────────────────────────────────────
 // Types
 // ──────────────────────────────────────────────────────────────────────────────
@@ -35,14 +32,14 @@ export interface StageInfo {
 }
 
 export interface MigrationEnhancementBannerProps {
-    mode: MigrationEnhancementMode;
+    aiFeatureUsed: boolean;
     isActive: boolean;
-    isEnhanced: boolean;
+    fullyEnhanced: boolean;
     /** All AI conversation messages – used to derive per-stage status. */
     messages: Array<{ role: string; content: string }>;
     onDismiss: () => void;
-    /** Called when user picks a mode from the "none" banner to kick off the pipeline. */
-    onStartEnhancement?: (mode: Exclude<MigrationEnhancementMode, 'none'>) => void;
+    /** Called when user picks "Auto-fix" from the skip banner to kick off the pipeline. */
+    onStartEnhancement?: () => void;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -141,24 +138,16 @@ const BannerTitle = styled.span`
     opacity: 0.85;
 `;
 
-const ModeBadge = styled.span<{ mode: Exclude<MigrationEnhancementMode, "none"> }>`
+const ModeBadge = styled.span`
     display: inline-block;
     padding: 1px 6px;
     border-radius: 10px;
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.3px;
-    background-color: ${(props: { mode: Exclude<MigrationEnhancementMode, "none"> }) =>
-        props.mode === "auto-fix" ? "rgba(52, 163, 84, 0.2)" : "rgba(0, 120, 212, 0.15)"};
-    color: ${(props: { mode: Exclude<MigrationEnhancementMode, "none"> }) =>
-        props.mode === "auto-fix"
-            ? "var(--vscode-gitDecoration-addedResourceForeground)"
-            : "var(--vscode-textLink-foreground)"};
-    border: 1px solid
-        ${(props: { mode: Exclude<MigrationEnhancementMode, "none"> }) =>
-            props.mode === "auto-fix"
-                ? "var(--vscode-gitDecoration-addedResourceForeground)"
-                : "var(--vscode-textLink-foreground)"};
+    background-color: rgba(52, 163, 84, 0.2);
+    color: var(--vscode-gitDecoration-addedResourceForeground);
+    border: 1px solid var(--vscode-gitDecoration-addedResourceForeground);
 `;
 
 const StartButton = styled.button<{ variant: 'primary' | 'secondary' }>`
@@ -288,9 +277,9 @@ function StageIcon({ state }: { state: StageState }) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export function MigrationEnhancementBanner({
-    mode,
+    aiFeatureUsed,
     isActive,
-    isEnhanced,
+    fullyEnhanced,
     messages,
     onDismiss,
     onStartEnhancement,
@@ -298,12 +287,12 @@ export function MigrationEnhancementBanner({
     const stages = useMemo(() => deriveStages(messages), [messages]);
 
     // Banner is hidden once enhancement is completed
-    if (isEnhanced) {
+    if (fullyEnhanced) {
         return null;
     }
 
-    // ── "Skip" banner: user chose none, offer to start later ──────────────
-    if (mode === 'none') {
+    // ── "Skip" banner: user did not enable AI at wizard, offer to start later ──
+    if (!aiFeatureUsed) {
         return (
             <BannerContainer>
                 <BannerHeader>
@@ -319,7 +308,7 @@ export function MigrationEnhancementBanner({
                     <span style={{ fontSize: '11px', opacity: 0.7 }}>Start AI enhancement pipeline:</span>
                     <StartButton
                         variant="primary"
-                        onClick={() => onStartEnhancement?.('auto-fix')}
+                        onClick={() => onStartEnhancement?.()}
                         title="Automatically fix build errors, resolve TODOs, and run tests"
                     >
                         <span className="codicon codicon-zap" style={{ fontSize: '11px' }} />
@@ -332,16 +321,13 @@ export function MigrationEnhancementBanner({
     }
 
     // ── Active / pending enhancement banner ───────────────────────────────
-    const modeLabel = 'Auto-fix';
-    const modeKey = mode as Exclude<MigrationEnhancementMode, 'none'>;
-
     return (
         <BannerContainer>
             <BannerHeader>
                 <BannerTitle>
                     <span className="codicon codicon-rocket" style={{ fontSize: '11px', opacity: 0.7 }} />
                     Migration Enhancement
-                    <ModeBadge mode={modeKey}>{modeLabel}</ModeBadge>
+                    <ModeBadge>Auto-fix</ModeBadge>
                     {isActive && (
                         <span
                             className="codicon codicon-loading spin"

@@ -31,7 +31,7 @@ import {
     AIEnhancementDescription,
     ButtonWrapper,
 } from "./styles";
-import { ConfigureProjectFormProps, MigrationEnhancementMode } from "./types";
+import { ConfigureProjectFormProps } from "./types";
 
 interface AIEnhancementToggleProps {
     enabled: boolean;
@@ -54,7 +54,7 @@ function AIEnhancementToggle({ enabled, onChange }: AIEnhancementToggleProps) {
                 />
                 <div>
                     <span style={{ fontWeight: 500, fontSize: 13, color: "var(--vscode-foreground)" }}>
-                        {enabled ? "Enabled" : "Disabled"}
+                        Enable (Recommended)
                     </span>
                     <AIEnhancementDescription>
                         {enabled
@@ -184,7 +184,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                 workspaceName: singleProjectData.workspaceName,
                 orgName: singleProjectData.orgName || undefined,
                 version: singleProjectData.version || undefined,
-            }, aiEnhancementEnabled ? 'auto-fix' : 'none');
+            }, aiEnhancementEnabled);
         } catch (error) {
             setSingleProjectPathError("An error occurred during validation");
             setIsValidating(false);
@@ -240,7 +240,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                 projectPath: multiProjectData.path,
                 createDirectory: multiProjectData.createDirectory,
                 createAsWorkspace: false,
-            }, aiEnhancementEnabled ? 'auto-fix' : 'none');
+            }, aiEnhancementEnabled);
         } catch (error) {
             setPathError("An error occurred during validation");
             setIsValidating(false);

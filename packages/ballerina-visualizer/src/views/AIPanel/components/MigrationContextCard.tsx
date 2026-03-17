@@ -86,11 +86,12 @@ interface MigrationContextCardProps {
  */
 export function MigrationContextCard({ session, onContinueEnhancement }: MigrationContextCardProps) {
     // Only show when enhancement is needed
-    if (session.isEnhanced || session.mode === "none") {
+    if (session.fullyEnhanced) {
         return null;
     }
 
     const isPartial = session.isPartiallyEnhanced;
+    const aiEnabled = session.aiFeatureUsed;
 
     return (
         <Card>
@@ -101,7 +102,9 @@ export function MigrationContextCard({ session, onContinueEnhancement }: Migrati
             <CardBody>
                 {isPartial
                     ? "The AI enhancement for this migrated project was paused. You can resume where you left off — the previous conversation context will be restored."
-                    : "This project was created from a migration. You can start AI enhancement to resolve unmapped elements, fix build errors, and refine tests."}
+                    : aiEnabled
+                        ? "This project was created from a migration. You can start AI enhancement to resolve unmapped elements, fix build errors, and refine tests."
+                        : "This project was migrated without AI enhancement. You can run AI enhancement now to fix build errors, resolve TODOs, and refine tests."}
             </CardBody>
             <div>
                 <ActionButton onClick={onContinueEnhancement}>

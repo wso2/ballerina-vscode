@@ -18,8 +18,6 @@
 
 import { DownloadProgress, ImportIntegrationResponse, MigrationTool, ProjectMigrationResult, ProjectRequest } from "@wso2/ballerina-core";
 
-export type MigrationEnhancementMode = 'auto-fix' | 'none';
-
 export interface FinalIntegrationParams {
     importSourcePath: string;
     type: string;
@@ -79,7 +77,7 @@ export interface ConfigureProjectFormProps {
     isMultiProject: boolean;
     /** Absolute path to the original source project (e.g. Mule XML directory). */
     importSourcePath?: string;
-    onNext: (project: ProjectRequest, enhancementMode: MigrationEnhancementMode) => void;
+    onNext: (project: ProjectRequest, aiFeatureUsed: boolean) => void;
     onBack: () => void;
 }
 
