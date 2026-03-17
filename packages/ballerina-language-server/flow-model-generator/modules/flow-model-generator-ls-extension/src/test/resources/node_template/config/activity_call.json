@@ -142,6 +142,61 @@
         "editable": true,
         "advanced": true,
         "hidden": true
+      },
+      "options": {
+        "metadata": {
+          "label": "Activity call configurations",
+          "description": "Activity call configurations"
+        },
+        "types": [
+          {
+            "fieldType": "ADVANCE_PARAM_LIST",
+            "selected": false
+          }
+        ],
+        "value": {
+          "options": {
+            "metadata": {
+              "label": "Options",
+              "description": "Optional activity options for retry policy and error handling behavior"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "workflow:ActivityOptions",
+                "typeMembers": [
+                  {
+                    "type": "ActivityOptions",
+                    "packageInfo": "ballerina:workflow:0.2.0",
+                    "packageName": "workflow",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "workflow:ActivityOptions?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "options"
+            },
+            "defaultValue": "()"
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
       }
     },
     "flags": 0

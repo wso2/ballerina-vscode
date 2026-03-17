@@ -346,7 +346,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         TYPE,
         ENUM,
         VIEW,
-        CUSTOM,
         NUMBER,
         ACTION_TYPE,
         DATA_MAPPING_EXPRESSION,
@@ -359,7 +358,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
          * {@link RecordSelectorType} model so the client can display a tree of record fields for the user
          * to choose from, generating a typed subset record on save.
          */
-        RECORD_FIELD_SELECTOR
+        RECORD_FIELD_SELECTOR,
+        ADVANCE_PARAM_LIST
     }
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {

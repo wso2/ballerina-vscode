@@ -41,12 +41,17 @@ import io.ballerina.flowmodelgenerator.core.utils.TypeUtils;
 import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
+import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
+import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.projects.Module;
 import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -55,6 +60,7 @@ import java.util.Set;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_CTX_PARAM_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowModule;
 
 /**
@@ -68,6 +74,9 @@ public class ActivityCallBuilder extends CallBuilder {
     public static final String DESCRIPTION = "Call a workflow activity function";
     public static final String CALL_ACTIVITY_METHOD = "callActivity";
     public static final String DEFAULT_RETURN_TYPE = "anydata";
+    public static final String OPTIONS_PARAM_NAME = "options";
+    public static final String ADVANCE_CONFIGURATIONS = "Activity call configurations";
+    private static final Set<String> EXCLUDED_CALL_ACTIVITY_PARAMS = Set.of("activityFunction", "args", "T");
 
     @Override
     protected NodeKind getFunctionNodeKind() {
@@ -77,6 +86,37 @@ public class ActivityCallBuilder extends CallBuilder {
     @Override
     protected FunctionData.Kind getFunctionResultKind() {
         return FunctionData.Kind.ACTIVITY;
+    }
+
+    @Override
+    public void setConcreteTemplateData(TemplateContext context) {
+        super.setConcreteTemplateData(context);
+        addCallActivityOptions(context);
+    }
+
+    private void addCallActivityOptions(TemplateContext context) {
+        ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
+        FunctionData callActivityData = new FunctionDataBuilder()
+                .name(CALL_ACTIVITY_METHOD)
+                .moduleInfo(workflowModuleInfo)
+                .parentSymbolType(CONTEXT_CLASS_NAME)
+                .functionResultKind(FunctionData.Kind.REMOTE)
+                .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
+                .userModuleInfo(moduleInfo)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath())
+                .build();
+
+        LinkedHashMap<String, ParameterData> filteredParams = new LinkedHashMap<>(callActivityData.parameters());
+        filteredParams.keySet().removeAll(EXCLUDED_CALL_ACTIVITY_PARAMS);
+        callActivityData.setParameters(filteredParams);
+
+        Module module = context.workspaceManager().module(context.filePath()).orElse(null);
+
+        properties().nestedProperty();
+        setParameterProperties(callActivityData, module);
+        properties().endNestedProperty(Property.ValueType.ADVANCE_PARAM_LIST, OPTIONS_PARAM_NAME,
+                ADVANCE_CONFIGURATIONS, ADVANCE_CONFIGURATIONS);
     }
 
     @Override
@@ -143,10 +183,10 @@ public class ActivityCallBuilder extends CallBuilder {
                 .name(qualifiedActivityFunction)
                 .keyword(SyntaxKind.COMMA_TOKEN);
 
-        // Add function parameters (excluding variable, type, checkError)
+        // Add activity function parameters as a map {key: value, ...}
+        // Exclude variable, type, checkError, and the options named arg (handled separately below)
         Set<String> excludedKeys = Set.of(Property.VARIABLE_KEY, Property.TYPE_KEY,
-                Property.CHECK_ERROR_KEY);
-        // Include the parameters as a map of key-value pairs in of the function call.
+                Property.CHECK_ERROR_KEY, OPTIONS_PARAM_NAME);
         sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
         Map<String, Property> properties = flowNode.properties();
         if (properties != null) {
@@ -176,7 +216,28 @@ public class ActivityCallBuilder extends CallBuilder {
         }
 
         sourceBuilder.token()
-                .keyword(SyntaxKind.CLOSE_BRACE_TOKEN)
+                .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
+
+        // Emit options = <value> as a named arg when the user has provided a non-default value.
+        // navigate: properties["options"] (GROUP) -> value (Map) -> get("options") -> inner Property.
+        if (properties != null) {
+            Property optionsProp = properties.get(OPTIONS_PARAM_NAME);
+            if (optionsProp != null && optionsProp.value() instanceof Map<?, ?> options) {
+                    for (Map.Entry<?, ?> optionEntry : options.entrySet()) {
+                        if (optionEntry.getKey() instanceof String paramName && !paramName.isEmpty() &&
+                                optionEntry.getValue() instanceof Map<?, ?> option) {
+                            sourceBuilder.token()
+                                    .keyword(SyntaxKind.COMMA_TOKEN)
+                                    .name(paramName)
+                                    .whiteSpace()
+                                    .keyword(SyntaxKind.EQUAL_TOKEN)
+                                    .name(Property.convertToProperty(option).toSourceCode());
+                        }
+                    }
+            }
+        }
+
+        sourceBuilder.token()
                 .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
                 .endOfStatement();
 
