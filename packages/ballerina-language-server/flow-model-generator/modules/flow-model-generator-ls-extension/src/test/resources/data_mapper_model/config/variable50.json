@@ -386,6 +386,7 @@
         "typeName": "",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

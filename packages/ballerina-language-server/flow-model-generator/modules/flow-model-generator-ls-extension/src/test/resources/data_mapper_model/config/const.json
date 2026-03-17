@@ -50,6 +50,7 @@
         "isFunctionCall": false
       }
     ],
-    "refs": {}
+    "refs": {},
+    "hasInvalidOutput": false
   }
 }
