@@ -67,6 +67,15 @@ interface PromiseResolver<T> {
 }
 
 /**
+ * A queued approval item — holds the emit function that fires the UI event.
+ * The queue processes one item at a time so UI prompts never overlap.
+ */
+interface ApprovalQueueItem {
+    requestId: string;
+    emit: () => void;
+}
+
+/**
  * ApprovalManager - Global singleton for managing human-in-the-loop approval workflows
  *
  * Replaces XState state machine subscription pattern with promise-based approvals.
@@ -81,6 +90,8 @@ export class ApprovalManager {
     private connectorSpecs = new Map<string, PromiseResolver<ConnectorSpecResponse>>();
     private configurationRequests = new Map<string, PromiseResolver<ConfigurationResponse>>();
     private webToolApprovals = new Map<string, PromiseResolver<{ approved: boolean }>>();
+    private approvalQueue: ApprovalQueueItem[] = [];
+    private approvalQueueActive = false;
     private notificationCounters = new Map<string, number>();
     private notificationHandlers = new Map<string, (active: boolean) => void>();
 
@@ -413,7 +424,7 @@ export class ApprovalManager {
 
     /**
      * Request user approval before executing a web tool.
-     * Emits web_tool_approval_request event and waits for Allow/Deny.
+     * Requests are serialised through the approval queue so UI prompts never overlap.
      */
     requestWebToolApproval(
         requestId: string,
@@ -421,33 +432,73 @@ export class ApprovalManager {
         content: string,
         eventHandler: CopilotEventHandler,
     ): Promise<{ approved: boolean }> {
-        console.log(`[ApprovalManager] Requesting web tool approval: ${requestId} (${toolName})`);
-
-        eventHandler({
-            type: "web_tool_approval_request",
-            requestId,
-            toolName,
-            content,
-        });
+        console.log(`[ApprovalManager] Queuing web tool approval: ${requestId} (${toolName})`);
 
         return new Promise((resolve) => {
             const timeoutId = setTimeout(() => {
                 this.webToolApprovals.delete(requestId);
+                this._advanceApprovalQueue(requestId);
                 resolve({ approved: false });
             }, this.DEFAULT_TIMEOUT_MS);
 
             this.webToolApprovals.set(requestId, { resolve, reject: () => resolve({ approved: false }), timeoutId });
+
+            this.approvalQueue.push({
+                requestId,
+                emit: () => {
+                    console.log(`[ApprovalManager] Emitting web tool approval: ${requestId} (${toolName})`);
+                    eventHandler({ type: "web_tool_approval_request", requestId, toolName, content });
+                },
+            });
+
+            this._flushApprovalQueue();
         });
+    }
+
+    /**
+     * Emit the next queued approval request if none is currently active.
+     */
+    private _flushApprovalQueue(): void {
+        if (this.approvalQueueActive || this.approvalQueue.length === 0) {
+            return;
+        }
+        this.approvalQueueActive = true;
+        this.approvalQueue[0].emit();
+    }
+
+    /**
+     * Mark the current approval as done and flush the next one.
+     */
+    private _advanceApprovalQueue(requestId: string): void {
+        const idx = this.approvalQueue.findIndex(item => item.requestId === requestId);
+        if (idx !== -1) {
+            this.approvalQueue.splice(idx, 1);
+        }
+        this.approvalQueueActive = false;
+        this._flushApprovalQueue();
+    }
+
+    /** Resolve a pending web tool approval (called by RPC handler when user responds). */
+    resolveWebToolApproval(requestId: string, approved: boolean): void {
+        const resolver = this.webToolApprovals.get(requestId);
+        if (!resolver) {
+            console.warn(`[ApprovalManager] No pending web tool approval for request: ${requestId}`);
+            return;
+        }
+
+        console.log(`[ApprovalManager] Resolving web tool approval: ${requestId}, approved: ${approved}`);
+
+        if (resolver.timeoutId) { clearTimeout(resolver.timeoutId); }
+        resolver.resolve({ approved });
+        this.webToolApprovals.delete(requestId);
+        this._advanceApprovalQueue(requestId);
     }
 
     // ============================================
     // Notification Counter
     // ============================================
 
-    /**
-     * Register a callback fired when a notification type transitions between idle and active.
-     * active=true fires on 0→1, active=false fires on 1→0.
-     */
+    /** Register a callback fired when a type transitions between idle (0) and active (>0). */
     registerNotificationHandler(type: string, handler: (active: boolean) => void): void {
         this.notificationHandlers.set(type, handler);
     }
@@ -468,26 +519,6 @@ export class ApprovalManager {
         if (count === 0) {
             this.notificationHandlers.get(type)?.(false);
         }
-    }
-
-    /**
-     * Resolve a pending web tool approval (called by RPC handler when user responds).
-     */
-    resolveWebToolApproval(requestId: string, approved: boolean): void {
-        const resolver = this.webToolApprovals.get(requestId);
-        if (!resolver) {
-            console.warn(`[ApprovalManager] No pending web tool approval for request: ${requestId}`);
-            return;
-        }
-
-        console.log(`[ApprovalManager] Resolving web tool approval: ${requestId}, approved: ${approved}`);
-
-        if (resolver.timeoutId) {
-            clearTimeout(resolver.timeoutId);
-        }
-
-        resolver.resolve({ approved });
-        this.webToolApprovals.delete(requestId);
     }
 
     // ============================================
@@ -543,7 +574,7 @@ export class ApprovalManager {
         }
         this.configurationRequests.clear();
 
-        // Auto-deny all pending web tool approvals
+        // Auto-deny all pending web tool approvals and clear the queue
         for (const [, resolver] of this.webToolApprovals.entries()) {
             if (resolver.timeoutId) {
                 clearTimeout(resolver.timeoutId);
@@ -551,6 +582,8 @@ export class ApprovalManager {
             resolver.resolve({ approved: false });
         }
         this.webToolApprovals.clear();
+        this.approvalQueue = [];
+        this.approvalQueueActive = false;
 
         // Reset all notification counters and fire handlers (e.g. turn off globe)
         for (const [type, count] of this.notificationCounters.entries()) {
