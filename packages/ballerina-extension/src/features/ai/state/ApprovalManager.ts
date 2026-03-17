@@ -475,7 +475,9 @@ export class ApprovalManager {
             this.approvalQueue.splice(idx, 1);
         }
         this.approvalQueueActive = false;
-        this._flushApprovalQueue();
+        // Defer the next emit so the current IPC response finishes delivering
+        // and the webview re-registers its listener before the next notification fires.
+        setImmediate(() => this._flushApprovalQueue());
     }
 
     /** Resolve a pending web tool approval (called by RPC handler when user responds). */
