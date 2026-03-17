@@ -2621,6 +2621,7 @@ public class CodeAnalyzer extends NodeVisitor {
      * only adds the node to the diagram if there is no active parent node which is building its branches.
      */
     private void endNode(Node node) {
+        diagnosticHandler.resolveUnconsumed(nodeBuilder);
         nodeBuilder.codedata().nodeInfo(node);
         endNode();
     }

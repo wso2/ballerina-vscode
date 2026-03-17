@@ -38,6 +38,8 @@ public class DiagnosticHandler {
     private final Iterator<Diagnostic> iterator;
     private Diagnostic currentDiagnostic;
     private boolean hasNodeAnnotated;
+    private DiagnosticCapable pendingBuilder;
+    private LineRange pendingNodeLineRange;
 
     public DiagnosticHandler(SemanticModel semanticModel) {
         // TODO: Consider all the diagnostics once fixed: #256
@@ -115,6 +117,8 @@ public class DiagnosticHandler {
                     continue;
                 }
                 builder.diagnostics().hasDiagnostics();
+                pendingBuilder = builder;
+                pendingNodeLineRange = nodeLineRange;
             }
             return;
         }
@@ -139,6 +143,33 @@ public class DiagnosticHandler {
     private void addDiagnostic(DiagnosticCapable builder) {
         builder.diagnostics()
                 .diagnostic(currentDiagnostic.diagnosticInfo().severity(), currentDiagnostic.message());
+        pendingBuilder = null;
+        pendingNodeLineRange = null;
+    }
+
+    /**
+     * Resolves any pending diagnostics that were not consumed by child nodes. If the current diagnostic is still
+     * within the pending node's range and no child has claimed it, attaches the full diagnostic to the pending node.
+     *
+     * @param builder the builder of the node being ended
+     */
+    public void resolveUnconsumed(DiagnosticCapable builder) {
+        if (pendingBuilder == null || pendingBuilder != builder || currentDiagnostic == null) {
+            return;
+        }
+        LineRange nodeLineRange = pendingNodeLineRange;
+        pendingBuilder = null;
+        pendingNodeLineRange = null;
+        LineRange diagnosticLineRange = currentDiagnostic.location().lineRange();
+        while (currentDiagnostic != null &&
+                PositionUtil.isWithinLineRange(diagnosticLineRange, nodeLineRange)) {
+            builder.diagnostics()
+                    .diagnostic(currentDiagnostic.diagnosticInfo().severity(), currentDiagnostic.message());
+            next();
+            if (currentDiagnostic != null) {
+                diagnosticLineRange = currentDiagnostic.location().lineRange();
+            }
+        }
     }
 
     private static boolean hasDiagnosticPassed(LinePosition nodeStartLine, LinePosition diagnosticEndLine,
