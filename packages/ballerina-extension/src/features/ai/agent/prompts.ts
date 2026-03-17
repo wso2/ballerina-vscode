@@ -227,6 +227,14 @@ ${getNPSuffix(projects, op)}
  * @param tempProjectPath Path to temp project
  * @param projects Project source information
  */
+function getSystemContextBlock(): string {
+    const now = new Date();
+    return `<system-reminder>
+System context:
+- Current date and time: ${now.toUTCString()}
+</system-reminder>`;
+}
+
 export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath: string, projects: ProjectSource[]) {
     const content = [];
 
@@ -276,6 +284,11 @@ ${params.usecase}
             text: getWebToolsHint()
         });
     }
+
+    content.push({
+        type: 'text' as const,
+        text: getSystemContextBlock()
+    });
 
     return content;
 }
