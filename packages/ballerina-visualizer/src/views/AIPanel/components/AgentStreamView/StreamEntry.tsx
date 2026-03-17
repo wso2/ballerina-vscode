@@ -135,7 +135,7 @@ function renderItem(item: StreamItem, idx: number, rpcClient?: any): React.React
         }
         case "tool_call": {
             if (item.toolName === "hurlRunnerTool") {
-                return <TryItCard key={idx} input={item.toolInput} />;
+                return <TryItCard key={idx} input={item.toolInput} rpcClient={rpcClient} />;
             }
             const { prefix, fileName } = getToolCallDisplay(item.toolName, item.toolInput);
             return (
@@ -151,7 +151,7 @@ function renderItem(item: StreamItem, idx: number, rpcClient?: any): React.React
         }
         case "tool_result": {
             if (item.toolName === "hurlRunnerTool") {
-                return <TryItCard key={idx} output={item.toolOutput} />;
+                return <TryItCard key={idx} output={item.toolOutput} rpcClient={rpcClient} />;
             }
             const { prefix, fileName } = getToolResultDisplay(item.toolName, item.toolOutput);
             return (

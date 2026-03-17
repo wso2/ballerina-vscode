@@ -18,7 +18,7 @@
 
 import styled from "@emotion/styled";
 import React, { useState } from "react";
-import { HTTPErrorResponse, HTTPResponse, ParsedHTTPRequest, HurlToolOutput } from "../TryItScenariosSegment/types";
+import { HurlToolOutput } from "../TryItScenariosSegment/types";
 import {
     InlineCard,
     InlineCardHeader,
@@ -26,6 +26,7 @@ import {
     InlineCardTitle,
 } from "./styles";
 
+const HURL_IMPORT_VSCODE_COMMAND = "http-book.importHurlString";
 // ── Styled components ─────────────────────────────────────────────────────────
 
 const METHOD_COLORS: Record<string, string> = {
@@ -218,12 +219,31 @@ const ScenarioGroup = styled.div`
 `;
 
 const ScenarioHeader = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     color: var(--vscode-foreground);
     padding: 4px 10px;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+`;
+
+const EditButton = styled.button`
+    background: none;
+    border: 1px solid var(--vscode-panel-border);
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 8px;
+    &:hover {
+        background-color: var(--vscode-toolbar-hoverBackground);
+        color: var(--vscode-foreground);
+    }
 `;
 
 const ScenarioContent = styled.div`
@@ -268,104 +288,11 @@ const renderBody = (data: unknown) => {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-interface HTTPRequestDetailProps {
-    request: ParsedHTTPRequest;
-    output?: HTTPResponse | HTTPErrorResponse;
-}
-
 interface HTTPTestScenarioDetailProps {
     loading:boolean;
     input?: HurlToolOutput["input"];
     output?: HurlToolOutput["output"];
 }
-
-const HTTPRequestDetail: React.FC<HTTPRequestDetailProps> = ({ request, output }) => {
-    const [expanded, setExpanded] = useState(false);
-
-    const isResult = !!output;
-    const isError = isResult && "error" in output! && (output as HTTPErrorResponse).error;
-    const statusCode = isError
-        ? (output as HTTPErrorResponse).response?.status
-        : isResult ? (output as HTTPResponse).status : undefined;
-
-    return (
-        <>
-            <RequestRow>
-                {isResult ? (
-                    <InlineCardIcon style={{ fontSize: 12, color: isError ? "var(--vscode-errorForeground)" : "var(--vscode-charts-green, #388a34)" }}>
-                        <span className={`codicon ${isError ? "codicon-chrome-close" : "codicon-check"}`} />
-                    </InlineCardIcon>
-                ) : (
-                    <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
-                        <span className="codicon codicon-loading codicon-modifier-spin" />
-                    </InlineCardIcon>
-                )}
-                <MethodBadge method={request.method}>{request.method}</MethodBadge>
-                <UrlLabel>{request.url}</UrlLabel>
-                {statusCode !== undefined && <StatusBadge status={statusCode}>{statusCode}</StatusBadge>}
-                <ExpandButton onClick={() => setExpanded(p => !p)} title={expanded ? "Collapse" : "Expand"}>
-                    <span className={`codicon ${expanded ? "codicon-chevron-up" : "codicon-chevron-down"}`} />
-                </ExpandButton>
-            </RequestRow>
-
-            {expanded && (
-                <DetailsBlock>
-                    <Section>
-                        <SectionLabel>Request</SectionLabel>
-                        <CodeBlock>
-                            <InnerSection>
-                                <StatusLine>
-                                    <span style={{ color: METHOD_COLORS[request.method?.toUpperCase()] ?? "#666", fontWeight: 700, fontSize: 11 }}>
-                                        {request.method}
-                                    </span>
-                                    <span style={{ color: "var(--vscode-textLink-foreground)", fontSize: 11 }}>{request.url}</span>
-                                </StatusLine>
-                            </InnerSection>
-                            {request.headers && renderHeaders(request.headers)}
-                            {renderBody(request.data)}
-                        </CodeBlock>
-                    </Section>
-
-                    {isResult && output && (
-                        <Section>
-                            <SectionLabel>Response</SectionLabel>
-                            {isError ? (
-                                <CodeBlock>
-                                    <InnerSection>
-                                        <ErrorMessage>{(output as HTTPErrorResponse).message}</ErrorMessage>
-                                    </InnerSection>
-                                    {(output as HTTPErrorResponse).response && (
-                                        <InnerSection>
-                                            <StatusLine>
-                                                <StatusCode status={(output as HTTPErrorResponse).response!.status}>
-                                                    {(output as HTTPErrorResponse).response!.status}
-                                                </StatusCode>
-                                                <StatusText>{(output as HTTPErrorResponse).response!.statusText}</StatusText>
-                                            </StatusLine>
-                                        </InnerSection>
-                                    )}
-                                </CodeBlock>
-                            ) : (
-                                <CodeBlock>
-                                    <InnerSection>
-                                        <StatusLine>
-                                            <StatusCode status={(output as HTTPResponse).status}>
-                                                {(output as HTTPResponse).status}
-                                            </StatusCode>
-                                            <StatusText>{(output as HTTPResponse).statusText}</StatusText>
-                                        </StatusLine>
-                                    </InnerSection>
-                                    {(output as HTTPResponse).headers && renderHeaders((output as HTTPResponse).headers)}
-                                    {renderBody((output as HTTPResponse).data)}
-                                </CodeBlock>
-                            )}
-                        </Section>
-                    )}
-                </DetailsBlock>
-            )}
-        </>
-    );
-};
 
 interface HTTPEntryRowProps {
     entry: HurlToolOutput["output"]["entries"][number];
@@ -490,11 +417,12 @@ const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading
 interface TryItCardProps {
     input?: any;
     output?: {hurlScript: string; scenario?: string; runResult: HurlToolOutput};
+    rpcClient?: any;
 }
 
-const TryItCard: React.FC<TryItCardProps> = ({ input, output }) => {
+const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
     if (!input?.hurlScript && !output?.hurlScript) return null;
-
+    const hurlScript = input?.hurlScript ?? output?.hurlScript;
     const hasScenario = !!(input?.scenario || output?.scenario);
     const scenario = input?.scenario ?? output?.scenario;
 
@@ -517,7 +445,27 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output }) => {
 
             {hasScenario ? (
                 <ScenarioGroup>
-                    <ScenarioHeader>{scenario}</ScenarioHeader>
+                    <ScenarioHeader>
+                        <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{scenario}</div>
+                        <EditButton
+                            title="Edit in VS Code"
+                            onClick={async () => {
+                                try {
+                                    console.log("Invoking edit command with Hurl script:", hurlScript);
+                                    await rpcClient?.getCommonRpcClient?.()?.executeCommand?.({
+                                        commands: [
+                                            HURL_IMPORT_VSCODE_COMMAND,
+                                            hurlScript,
+                                        ]});
+                                } catch (e) {
+                                    // eslint-disable-next-line no-console
+                                    console.error("Failed to invoke edit command", e);
+                                }
+                            }}
+                        >
+                            <span className="codicon codicon-edit" />
+                        </EditButton>
+                    </ScenarioHeader>
                     <ScenarioContent>{content}</ScenarioContent>
                 </ScenarioGroup>
             ) : (
