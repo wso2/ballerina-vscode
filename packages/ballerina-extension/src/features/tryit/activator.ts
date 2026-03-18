@@ -78,14 +78,28 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
                     const projectAndServices = await getProjectPathAndServices(serviceMetadata, filePath);
                     if (!projectAndServices) { return; }
 
-                    const { projectPath } = projectAndServices;
+                    const { projectPath, services } = projectAndServices;
                     const processesRunning = await checkBallerinaProcessRunning(projectPath);
                     if (!processesRunning) { return; }
 
                     if (content) {
                         const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
                         if (isOasDescriptor(content)) {
-                            await openHurlNotebook(content, savePath, options);
+                            // Resolve the actual running service port (same logic as Code Lens Try It)
+                            let descriptor = content;
+                            try {
+                                const matchingService = services.find(s =>
+                                    s.basePath === serviceMetadata?.basePath
+                                ) ?? services[0];
+                                if (matchingService) {
+                                    const actualPort = await getServicePort(projectPath, matchingService, content.oasSpec);
+                                    const bp = matchingService.basePath === '/' ? '' : matchingService.basePath;
+                                    descriptor = { ...content, baseUrl: `http://localhost:${actualPort}${bp}` };
+                                }
+                            } catch {
+                                // Fall back to the static baseUrl already in the descriptor
+                            }
+                            await openHurlNotebook(descriptor, savePath, options);
                         } else {
                             await vscode.commands.executeCommand('http-book.importHurlString', content, { ...options, savePath, viewColumn: 'beside' });
                         }
