@@ -34,7 +34,7 @@ import { SwitchSkeleton, TitleBarSkeleton } from "../../../components/Skeletons"
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { ResourceForm } from "../ServiceDesigner/Forms/ResourceForm";
 import { removeForwardSlashes } from "../ServiceDesigner/utils";
-import { buildBaseUrl, buildHurlString, buildMarkdownDoc } from "../ServiceDesigner/buildHurlString";
+import { buildBaseUrl } from "../ServiceDesigner/buildHurlString";
 
 const ActionButton = styled(Button)`
     display: flex;
@@ -319,54 +319,26 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         if (serviceType !== "http") { return; }
 
         const baseUrl = buildBaseUrl(listener, basePath);
+        const serviceName = basePath?.replace(/^\//, "") || "Service";
 
-        let hurlContent: string;
-        let markdownDoc: string | undefined;
+        const location = await rpcClient.getVisualizerLocation();
+        const docUri = filePath ?? location.documentUri;
+
+        let oasSpec: any | undefined;
         try {
-            const location = await rpcClient.getVisualizerLocation();
-            const pos = location.position;
-            const docUri = filePath ?? location.documentUri;
-
-            const codeData: CodeData = {
-                lineRange: {
-                    fileName: docUri,
-                    startLine: { line: pos.startLine, offset: pos.startColumn },
-                    endLine: { line: pos.endLine, offset: pos.endColumn },
-                }
-            };
-
-            const result = await rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({
-                filePath: docUri,
-                codedata: codeData
+            const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
+                documentFilePath: docUri,
+                basePath
             });
-
-            let oasSpec: any | undefined;
-            try {
-                const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
-                    documentFilePath: docUri,
-                    basePath
-                });
-                oasSpec = oasResult.spec ?? undefined;
-            } catch {
-                // spec unavailable — fall back to minimal placeholder
-            }
-            hurlContent = buildHurlString(result.function, baseUrl, oasSpec);
-            markdownDoc = buildMarkdownDoc(result.function);
+            oasSpec = oasResult.spec ?? undefined;
         } catch {
-            // Fallback: generate a minimal hurl entry without FunctionModel
-            const normalizedPath = pathValue.replace(
-                /\[(?:[a-zA-Z][\w]*\s+)?([a-zA-Z][\w]*)\]/g, "{{$1}}"
-            );
-            const url = `${baseUrl}/${normalizedPath.replace(/^\//, "")}`;
-            hurlContent = `${methodValue.toUpperCase()} ${url}`;
+            // spec unavailable — extension will fall back to minimal placeholder
         }
 
-        // Start the Ballerina service (checks if running, prompts user if not), then open notebook
-        const cells = markdownDoc
-            ? [{ kind: "markdown" as const, content: markdownDoc }, { kind: "hurl" as const, content: hurlContent }]
-            : [{ kind: "hurl" as const, content: hurlContent }];
+        // Delegate cell-building to the extension so both Resource Try It (diagram) and Code Lens
+        // Try It share the same buildHurlCellsFromOASSpec logic via ballerina.startService
         rpcClient.getCommonRpcClient().executeCommand({
-            commands: ["ballerina.startService", cells, { savable: false }, { basePath, listener }]
+            commands: ["ballerina.startService", { oasSpec, baseUrl, serviceName, resourceMetadata: { methodValue, pathValue } }, { savable: false }, { basePath, listener }]
         });
     };
 
