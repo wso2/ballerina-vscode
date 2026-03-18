@@ -26,14 +26,12 @@ import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.mockito.Mockito.mock;
 
@@ -47,19 +45,31 @@ public class DualSnapshotTest {
     // ---- SyntaxSnapshot sealed interface ----
 
     @Test
-    public void syntaxSnapshot_permitsStableSnapshot() {
-        // Verify that StableSnapshot implements SyntaxSnapshot
-        SyntaxSnapshot snapshot = createMockStableSnapshot();
-        Assert.assertNotNull(snapshot);
-        Assert.assertTrue(snapshot instanceof StableSnapshot);
+    public void syntaxSnapshot_permitsStableAndInProgress() {
+        // Verify both types implement SyntaxSnapshot
+        SyntaxSnapshot stable = createMockStableSnapshot();
+        SyntaxSnapshot inProgress = createMockInProgressSnapshot();
+        
+        Assert.assertNotNull(stable);
+        Assert.assertNotNull(inProgress);
+        Assert.assertTrue(stable instanceof StableSnapshot);
+        Assert.assertTrue(inProgress instanceof InProgressSnapshot);
     }
 
     @Test
     public void syntaxSnapshot_isSealed() {
         // Verify SyntaxSnapshot is sealed by checking permits clause via reflection
         Class<?>[] permits = SyntaxSnapshot.class.getPermittedSubclasses();
-        Assert.assertEquals(permits.length, 1, "SyntaxSnapshot should permit exactly one subclass");
-        Assert.assertEquals(permits[0], StableSnapshot.class, "SyntaxSnapshot should permit StableSnapshot");
+        Assert.assertEquals(permits.length, 2, "SyntaxSnapshot should permit two subclasses");
+        // Verify both StableSnapshot and InProgressSnapshot are permitted
+        boolean hasStable = false;
+        boolean hasInProgress = false;
+        for (Class<?> cls : permits) {
+            if (cls == StableSnapshot.class) hasStable = true;
+            if (cls == InProgressSnapshot.class) hasInProgress = true;
+        }
+        Assert.assertTrue(hasStable, "SyntaxSnapshot should permit StableSnapshot");
+        Assert.assertTrue(hasInProgress, "SyntaxSnapshot should permit InProgressSnapshot");
     }
 
     // ---- StableSnapshot ----
@@ -112,8 +122,21 @@ public class DualSnapshotTest {
     }
 
     @Test
+    public void stableSnapshot_compilationReturnsCorrectResult() {
+        PackageCompilation compilation = mock(PackageCompilation.class);
+
+        StableSnapshot snapshot = new StableSnapshot(
+                compilation,
+                mock(SemanticModel.class),
+                Map.of(),
+                new ContentVersion(1)
+        );
+
+        Assert.assertSame(snapshot.compilation(), compilation);
+    }
+
+    @Test
     public void stableSnapshot_isImmutableRecord() {
-        // Records are immutable by design; verify fields are accessible but not modifiable
         ModuleId moduleId = mock(ModuleId.class);
         SyntaxTree syntaxTree = mock(SyntaxTree.class);
         SemanticModel semanticModel = mock(SemanticModel.class);
@@ -130,8 +153,21 @@ public class DualSnapshotTest {
 
         // Verify record accessors
         Assert.assertSame(snapshot.semanticModel(), semanticModel);
+        Assert.assertSame(snapshot.compilation(), compilation);
         Assert.assertSame(snapshot.syntaxTree(moduleId), syntaxTree);
         Assert.assertEquals(snapshot.contentVersion(), version);
+    }
+
+    @Test
+    public void stableSnapshot_rejectsNullCompilation() {
+        Assert.assertThrows(NullPointerException.class, () ->
+                new StableSnapshot(
+                        null,
+                        mock(SemanticModel.class),
+                        Map.of(),
+                        new ContentVersion(1)
+                )
+        );
     }
 
     @Test
@@ -220,96 +256,240 @@ public class DualSnapshotTest {
     // ---- InProgressSnapshot ----
 
     @Test
-    public void inProgressSnapshot_awaitReturnsStableSnapshotOnSuccess() throws Exception {
-        StableSnapshot expected = createMockStableSnapshot();
-        CompletableFuture<StableSnapshot> future = CompletableFuture.completedFuture(expected);
+    public void inProgressSnapshot_syntaxTreeReturnsCorrectTree() {
+        ModuleId moduleId = mock(ModuleId.class);
+        SyntaxTree syntaxTree = mock(SyntaxTree.class);
+        Map<ModuleId, SyntaxTree> syntaxTrees = Map.of(moduleId, syntaxTree);
 
-        InProgressSnapshot snapshot = new InProgressSnapshot(future);
+        InProgressSnapshot snapshot = new InProgressSnapshot(
+                syntaxTrees,
+                new CompletableFuture<>(),
+                new CompletableFuture<>(),
+                new ContentVersion(1)
+        );
 
-        StableSnapshot result = snapshot.await(Duration.ofSeconds(1));
-        Assert.assertSame(result, expected);
-    }
-
-    @Test(expectedExceptions = TimeoutException.class)
-    public void inProgressSnapshot_awaitThrowsTimeoutExceptionOnTimeout() throws Exception {
-        CompletableFuture<StableSnapshot> future = new CompletableFuture<>();
-        InProgressSnapshot snapshot = new InProgressSnapshot(future);
-
-        // This should timeout since future is never completed
-        snapshot.await(Duration.ofMillis(50));
+        Assert.assertSame(snapshot.syntaxTree(moduleId), syntaxTree);
     }
 
     @Test
-    public void inProgressSnapshot_cancelCancelsUnderlyingFuture() {
-        CompletableFuture<StableSnapshot> future = new CompletableFuture<>();
-        InProgressSnapshot snapshot = new InProgressSnapshot(future);
+    public void inProgressSnapshot_syntaxTreeReturnsNullForUnknownModule() {
+        ModuleId knownModule = mock(ModuleId.class);
+        ModuleId unknownModule = mock(ModuleId.class);
+        SyntaxTree syntaxTree = mock(SyntaxTree.class);
+        Map<ModuleId, SyntaxTree> syntaxTrees = Map.of(knownModule, syntaxTree);
 
-        Assert.assertFalse(future.isCancelled());
+        InProgressSnapshot snapshot = new InProgressSnapshot(
+                syntaxTrees,
+                new CompletableFuture<>(),
+                new CompletableFuture<>(),
+                new ContentVersion(1)
+        );
+
+        Assert.assertNull(snapshot.syntaxTree(unknownModule));
+    }
+
+    @Test
+    public void inProgressSnapshot_syntaxTreeAvailableImmediately() {
+        ModuleId moduleId = mock(ModuleId.class);
+        SyntaxTree syntaxTree = mock(SyntaxTree.class);
+        Map<ModuleId, SyntaxTree> syntaxTrees = Map.of(moduleId, syntaxTree);
+
+        // Create InProgressSnapshot with incomplete futures
+        InProgressSnapshot snapshot = new InProgressSnapshot(
+                syntaxTrees,
+                new CompletableFuture<>(),  // Not completed
+                new CompletableFuture<>(),  // Not completed
+                new ContentVersion(1)
+        );
+
+        // Syntax tree should be available even though futures aren't complete
+        Assert.assertSame(snapshot.syntaxTree(moduleId), syntaxTree);
+    }
+
+    @Test
+    public void inProgressSnapshot_semanticModelReturnsFuture() {
+        CompletableFuture<SemanticModel> semanticFuture = new CompletableFuture<>();
+
+        InProgressSnapshot snapshot = new InProgressSnapshot(
+                Map.of(),
+                semanticFuture,
+                new CompletableFuture<>(),
+                new ContentVersion(1)
+        );
+
+        Assert.assertSame(snapshot.semanticModel(), semanticFuture);
+    }
+
+    @Test
+    public void inProgressSnapshot_compilationReturnsFuture() {
+        CompletableFuture<PackageCompilation> compilationFuture = new CompletableFuture<>();
+
+        InProgressSnapshot snapshot = new InProgressSnapshot(
+                Map.of(),
+                new CompletableFuture<>(),
+                compilationFuture,
+                new ContentVersion(1)
+        );
+
+        Assert.assertSame(snapshot.compilation(), compilationFuture);
+    }
+
+    @Test
+    public void inProgressSnapshot_semanticModelCompletesSuccessfully() throws Exception {
+        SemanticModel expectedModel = mock(SemanticModel.class);
+        CompletableFuture<SemanticModel> semanticFuture = CompletableFuture.completedFuture(expectedModel);
+
+        InProgressSnapshot snapshot = new InProgressSnapshot(
+                Map.of(),
+                semanticFuture,
+                new CompletableFuture<>(),
+                new ContentVersion(1)
+        );
+
+        SemanticModel result = snapshot.semanticModel().get(1, TimeUnit.SECONDS);
+        Assert.assertSame(result, expectedModel);
+    }
+
+    @Test
+    public void inProgressSnapshot_compilationCompletesSuccessfully() throws Exception {
+        PackageCompilation expectedCompilation = mock(PackageCompilation.class);
+        CompletableFuture<PackageCompilation> compilationFuture = CompletableFuture.completedFuture(expectedCompilation);
+
+        InProgressSnapshot snapshot = new InProgressSnapshot(
+                Map.of(),
+                new CompletableFuture<>(),
+                compilationFuture,
+                new ContentVersion(1)
+        );
+
+        PackageCompilation result = snapshot.compilation().get(1, TimeUnit.SECONDS);
+        Assert.assertSame(result, expectedCompilation);
+    }
+
+    @Test
+    public void inProgressSnapshot_cancelCancelsBothFutures() {
+        CompletableFuture<SemanticModel> semanticFuture = new CompletableFuture<>();
+        CompletableFuture<PackageCompilation> compilationFuture = new CompletableFuture<>();
+
+        InProgressSnapshot snapshot = new InProgressSnapshot(
+                Map.of(),
+                semanticFuture,
+                compilationFuture,
+                new ContentVersion(1)
+        );
+
+        Assert.assertFalse(semanticFuture.isCancelled());
+        Assert.assertFalse(compilationFuture.isCancelled());
 
         snapshot.cancel();
 
-        Assert.assertTrue(future.isCancelled());
+        Assert.assertTrue(semanticFuture.isCancelled());
+        Assert.assertTrue(compilationFuture.isCancelled());
     }
 
     @Test
-    public void inProgressSnapshot_awaitAfterCancelThrowsException() {
-        CompletableFuture<StableSnapshot> future = new CompletableFuture<>();
-        InProgressSnapshot snapshot = new InProgressSnapshot(future);
+    public void inProgressSnapshot_cancelReturnsTrueIfAnyFutureWasCancelled() {
+        // Already completed futures cannot be cancelled
+        CompletableFuture<SemanticModel> semanticFuture = CompletableFuture.completedFuture(mock(SemanticModel.class));
+        CompletableFuture<PackageCompilation> compilationFuture = new CompletableFuture<>();
 
-        snapshot.cancel();
+        InProgressSnapshot snapshot = new InProgressSnapshot(
+                Map.of(),
+                semanticFuture,
+                compilationFuture,
+                new ContentVersion(1)
+        );
 
-        // Attempting to await a cancelled future should throw
-        Assert.assertThrows(Exception.class, () -> snapshot.await(Duration.ofSeconds(1)));
+        boolean result = snapshot.cancel();
+
+        Assert.assertTrue(result); // One future was cancelled
+        Assert.assertFalse(semanticFuture.isCancelled()); // Already completed
+        Assert.assertTrue(compilationFuture.isCancelled()); // Was cancelled
     }
 
     @Test
-    public void inProgressSnapshot_rejectsNullFuture() {
-        Assert.assertThrows(NullPointerException.class, () -> new InProgressSnapshot(null));
+    public void inProgressSnapshot_rejectsNullSyntaxTrees() {
+        Assert.assertThrows(NullPointerException.class, () ->
+                new InProgressSnapshot(
+                        null,
+                        new CompletableFuture<>(),
+                        new CompletableFuture<>(),
+                        new ContentVersion(1)
+                )
+        );
     }
 
     @Test
-    public void inProgressSnapshot_awaitPropagatesException() {
-        CompletableFuture<StableSnapshot> future = new CompletableFuture<>();
-        future.completeExceptionally(new RuntimeException("Compilation failed"));
-        InProgressSnapshot snapshot = new InProgressSnapshot(future);
-
-        Assert.assertThrows(java.util.concurrent.ExecutionException.class, 
-                () -> snapshot.await(Duration.ofSeconds(1)));
+    public void inProgressSnapshot_rejectsNullSemanticFuture() {
+        Assert.assertThrows(NullPointerException.class, () ->
+                new InProgressSnapshot(
+                        Map.of(),
+                        null,
+                        new CompletableFuture<>(),
+                        new ContentVersion(1)
+                )
+        );
     }
 
     @Test
-    public void inProgressSnapshot_concurrentAwaitAndCancel() throws Exception {
-        CompletableFuture<StableSnapshot> future = new CompletableFuture<>();
-        InProgressSnapshot snapshot = new InProgressSnapshot(future);
-        int threadCount = 4;
-        CountDownLatch startLatch = new CountDownLatch(1);
-        CountDownLatch doneLatch = new CountDownLatch(threadCount);
+    public void inProgressSnapshot_rejectsNullCompilationFuture() {
+        Assert.assertThrows(NullPointerException.class, () ->
+                new InProgressSnapshot(
+                        Map.of(),
+                        new CompletableFuture<>(),
+                        null,
+                        new ContentVersion(1)
+                )
+        );
+    }
+
+    @Test
+    public void inProgressSnapshot_rejectsNullContentVersion() {
+        Assert.assertThrows(NullPointerException.class, () ->
+                new InProgressSnapshot(
+                        Map.of(),
+                        new CompletableFuture<>(),
+                        new CompletableFuture<>(),
+                        null
+                )
+        );
+    }
+
+    @Test
+    public void inProgressSnapshot_contentVersionReturnsCorrectValue() {
+        ContentVersion version = new ContentVersion(42);
+
+        InProgressSnapshot snapshot = new InProgressSnapshot(
+                Map.of(),
+                new CompletableFuture<>(),
+                new CompletableFuture<>(),
+                version
+        );
+
+        Assert.assertEquals(snapshot.contentVersion(), version);
+    }
+
+    @Test
+    public void inProgressSnapshot_threadSafeAccess() throws InterruptedException {
+        InProgressSnapshot snapshot = createMockInProgressSnapshot();
+        int threadCount = 8;
+        CountDownLatch latch = new CountDownLatch(threadCount);
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
 
         for (int i = 0; i < threadCount; i++) {
-            final int threadId = i;
             executor.submit(() -> {
                 try {
-                    startLatch.await();
-                    if (threadId == 0) {
-                        snapshot.cancel();
-                    } else {
-                        try {
-                            snapshot.await(Duration.ofMillis(100));
-                        } catch (TimeoutException | RuntimeException | java.util.concurrent.ExecutionException e) {
-                            // Expected: either timeout or cancellation
-                        }
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    // Access snapshot from multiple threads
+                    Assert.assertNotNull(snapshot.contentVersion());
+                    Assert.assertNotNull(snapshot.semanticModel());
+                    Assert.assertNotNull(snapshot.compilation());
                 } finally {
-                    doneLatch.countDown();
+                    latch.countDown();
                 }
             });
         }
 
-        startLatch.countDown(); // Start all threads
-        Assert.assertTrue(doneLatch.await(2, TimeUnit.SECONDS), "Concurrent operations timed out");
+        Assert.assertTrue(latch.await(5, TimeUnit.SECONDS), "Concurrent access timed out");
         executor.shutdown();
     }
 
@@ -320,6 +500,15 @@ public class DualSnapshotTest {
                 mock(PackageCompilation.class),
                 mock(SemanticModel.class),
                 Map.of(),
+                new ContentVersion(1)
+        );
+    }
+
+    private InProgressSnapshot createMockInProgressSnapshot() {
+        return new InProgressSnapshot(
+                Map.of(),
+                new CompletableFuture<>(),
+                new CompletableFuture<>(),
                 new ContentVersion(1)
         );
     }

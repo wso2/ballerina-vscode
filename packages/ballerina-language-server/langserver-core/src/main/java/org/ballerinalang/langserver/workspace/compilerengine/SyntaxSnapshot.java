@@ -29,7 +29,7 @@ import io.ballerina.projects.ModuleId;
  *
  * @since 1.7.0
  */
-public sealed interface SyntaxSnapshot permits StableSnapshot {
+public sealed interface SyntaxSnapshot permits StableSnapshot, InProgressSnapshot {
 
     /**
      * Returns the syntax tree for the given module.
