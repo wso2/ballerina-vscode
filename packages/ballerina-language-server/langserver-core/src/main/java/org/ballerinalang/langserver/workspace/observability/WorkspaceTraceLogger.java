@@ -185,7 +185,8 @@ public class WorkspaceTraceLogger implements AutoCloseable {
                  WORKSPACE_BATCH_PROJECTS_REGISTERED,
                  WORKSPACE_LOCKING_MODE_CHANGED,
                  EXECUTION_PROCESS_OUTPUT,
-                 CACHE_INVALIDATION_REQUESTED -> "TRACE";
+                 CACHE_INVALIDATION_REQUESTED,
+                 RESOURCE_MONITOR_HEAP_PRESSURE_DETECTED -> "TRACE";
         };
     }
 
