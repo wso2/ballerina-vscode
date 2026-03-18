@@ -188,12 +188,22 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         setInputMode(mode);
         updateFieldTypesSelection(mode);
 
+        if (!formContext?.form) {
+            props.handleFormValidation?.();
+            return;
+        }
+
         const currentValues = formContext.form.getValues();
         const currentFieldValue = currentValues[props.field.key];
         if (typeof currentFieldValue === 'string' && currentFieldValue !== '') {
-            const config = getEditorConfiguration(mode);
-            const convertedValue = config.deserializeValue(currentFieldValue);
-            props.handleFormValidation?.({ ...currentValues, [props.field.key]: convertedValue });
+            try {
+                const config = getEditorConfiguration(mode);
+                const convertedValue = config.deserializeValue(currentFieldValue);
+                props.handleFormValidation?.({ ...currentValues, [props.field.key]: convertedValue });
+            } catch (error) {
+                console.error("Error converting field value on mode change", error);
+                props.handleFormValidation?.(currentValues);
+            }
         } else {
             props.handleFormValidation?.();
         }
