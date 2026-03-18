@@ -553,7 +553,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
             for (const pkg of affectedPackages) {
                 // Skip workspace root — it only contains Ballerina.toml, not a real package
-                if (isWorkspace && pkg === tempDir) continue;
+                if (isWorkspace && pkg === tempDir) { continue; }
                 const pkgName = path.basename(pkg);
                 try {
                     const res = await langClient.getSemanticDiff({ projectPath: pkg });
