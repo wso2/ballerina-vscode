@@ -185,9 +185,22 @@ ${getLanglibInstructions()}
     )} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.
-- Do not manually add/modify toml files (Ballerina.toml/Dependencies.toml).
-- NEVER read Config.toml or tests/Config.toml directly as it contains sensitive values.
+- Do not manually add/modify Dependencies.toml. For Config.toml configuration management, use ${CONFIG_COLLECTOR_TOOL}.
+- NEVER read Config.toml or tests/Config.toml directly. Use ${CONFIG_COLLECTOR_TOOL} CHECK mode to inspect configuration status — actual values must never be visible to you.
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
+
+## Workspace Management
+When working with Ballerina workspace projects (projects with a root Ballerina.toml containing a [workspace] section):
+
+### Creating a new package
+1. Create the package directory with a Ballerina.toml containing the [package] section (name, org, version).
+2. Update the root workspace Ballerina.toml to add the new package path to the packages array.
+3. Create initial .bal files in the new package.
+
+### Guidelines
+- Always prefer modifying existing packages over creating new ones unless the user specifically asks to create a new package.
+- The root workspace Ballerina.toml should only contain a [workspace] section with a packages array.
+- Avoid modifying existing package Ballerina.toml files for dependency management.
 
 # Running, invoking and tests
 - You should only Run or write tests if the user explicitly asks to do so.
@@ -216,7 +229,7 @@ export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath:
 
     content.push({
         type: 'text' as const,
-        text: formatCodebaseStructure(projects)
+        text: formatCodebaseStructure(projects, tempProjectPath)
     });
 
     // Add code context if available
