@@ -30,7 +30,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.logging.Logger;
 
 /**
@@ -136,13 +135,13 @@ public class SearchDatabaseManager {
                         p.package_name,
                         p.org AS package_org,
                         p.version AS package_version,
-                        0 AS rank
+                        1.0 AS rank
                     FROM Function AS f
                     JOIN Package AS p ON f.package_id = p.id
-                    WHERE LOWER(f.name) LIKE ?
+                    WHERE f.name LIKE ? COLLATE NOCASE
                 )
                 GROUP BY id
-                ORDER BY rank
+                ORDER BY rank, function_name
                 LIMIT ?
                 OFFSET ?;
                 """;
@@ -151,7 +150,7 @@ public class SearchDatabaseManager {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, sanitizedQuery.isEmpty() ? "*" : sanitizedQuery + "*");
-            stmt.setString(2, "%" + sanitizedQuery.toLowerCase(Locale.ROOT) + "%");
+            stmt.setString(2, "%" + sanitizedQuery + "%");
             stmt.setInt(3, limit);
             stmt.setInt(4, offset);
 
