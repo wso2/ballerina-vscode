@@ -158,6 +158,7 @@
         "typeName": "Sale",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }
