@@ -25,6 +25,7 @@ import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } fro
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
 import { ModeSwitcherProvider } from "./ModeSwitcherContext";
+import { getEditorConfiguration } from "./ExpressionField";
 
 const Container = styled.div`
     width: 100%;
@@ -186,8 +187,17 @@ export const FieldFactory = (props: FieldFactoryProps) => {
     const handleModeChange = useCallback((mode: InputMode) => {
         setInputMode(mode);
         updateFieldTypesSelection(mode);
-        props.handleFormValidation?.();
-    }, [props.handleFormValidation]);
+
+        const currentValues = formContext.form.getValues();
+        const currentFieldValue = currentValues[props.field.key];
+        if (typeof currentFieldValue === 'string' && currentFieldValue !== '') {
+            const config = getEditorConfiguration(mode);
+            const convertedValue = config.deserializeValue(currentFieldValue);
+            props.handleFormValidation?.({ ...currentValues, [props.field.key]: convertedValue });
+        } else {
+            props.handleFormValidation?.();
+        }
+    }, [props.handleFormValidation, formContext.form, props.field.key]);
 
     const editorElements = useMemo(() => {
         if (!renderingEditors) return null;
