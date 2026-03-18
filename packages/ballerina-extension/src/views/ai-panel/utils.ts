@@ -34,7 +34,7 @@ import {
     exchangeStsToCopilotToken
 } from '../../utils/ai/auth';
 import { getBedrockRegionalPrefix } from '../../features/ai/utils/ai-client';
-import { CommandIds } from '@wso2/wso2-platform-core';
+import { WICommandIds } from '@wso2/wso2-platform-core';
 
 const LEGACY_ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';
 const LEGACY_REFRESH_TOKEN_SECRET_KEY = 'BallerinaAIRefreshToken';
@@ -102,7 +102,7 @@ export const logout = async (_isUserLogout: boolean = true) => {
     const loginMethod = await getLoginMethod();
     if (loginMethod === LoginMethod.BI_INTEL && isPlatformExtensionAvailable()) {
         try {
-            await vscode.commands.executeCommand(CommandIds.SignOut);
+            await vscode.commands.executeCommand(WICommandIds.SignOut);
         } catch (error) {
             console.error('Error signing out from WSO2 Platform extension:', error);
         }
@@ -122,7 +122,7 @@ export async function initiateDevantAuth(): Promise<boolean> {
     }
 
     // Trigger platform extension login command
-    await vscode.commands.executeCommand(CommandIds.SignIn);
+    await vscode.commands.executeCommand(WICommandIds.SignIn);
     return true;
 }
 

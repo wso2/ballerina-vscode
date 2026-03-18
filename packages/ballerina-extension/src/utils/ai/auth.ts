@@ -23,7 +23,7 @@ import axios from 'axios';
 import { AuthCredentials, BIIntelSecrets, LoginMethod } from '@wso2/ballerina-core';
 import { IWso2PlatformExtensionAPI } from '@wso2/wso2-platform-core';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
-import { WI_EXTENSION_ID } from '../../features/ai/constants';
+import { WI_EXTENSION_ID } from '../config';
 
 export const TOKEN_NOT_AVAILABLE_ERROR_MESSAGE = "Access token is not available.";
 export const TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL = "Token refresh is only supported for BI Intelligence authentication";
@@ -42,7 +42,7 @@ export const getPlatformExtensionAPI = async (): Promise<IWso2PlatformExtensionA
     if (!platformExt.isActive) {
         await platformExt.activate();
     }
-    return (platformExt.exports?.cloudAPIs ?? platformExt.exports) as IWso2PlatformExtensionAPI;
+    return platformExt.exports?.cloudAPIs as IWso2PlatformExtensionAPI;
 };
 
 //TODO: What if user doesnt have github copilot.
