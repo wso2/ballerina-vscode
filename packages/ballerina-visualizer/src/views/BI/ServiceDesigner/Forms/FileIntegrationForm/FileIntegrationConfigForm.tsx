@@ -34,27 +34,25 @@ export function FunctionConfigForm(props: FunctionConfigFormProps) {
 
     const { onBack, onSubmit, isSaving, serviceModel } = props;
 
-    const events = [
-        { name: 'onCreate', description: 'Triggered when a new file is created' },
-        { name: 'onDelete', description: 'Triggered when a file is deleted' },
-        { name: 'onError', description: 'Triggered when an error occurs during file processing' }
-    ];
-
-    // Check if all functions with a specific metadata.label are enabled
-    const hasAvailableFunctions = (handlerType: string) => {
-        const functionsWithHandler = serviceModel.functions?.filter(fn => fn.metadata?.label === handlerType) || [];
-        if (functionsWithHandler.length === 0) return false;
-
-        // Return true if there's at least one non-enabled function
-        return functionsWithHandler.some(fn => !fn.enabled);
-    };
+    // Derive event categories from model — unique metadata.label values that have at least one non-enabled function
+    const availableEvents = React.useMemo(() => {
+        const seen = new Set<string>();
+        return (serviceModel.functions || [])
+            .filter(fn => {
+                const label = fn.metadata?.label;
+                if (!label || seen.has(label)) return false;
+                seen.add(label);
+                return (serviceModel.functions || []).some(f => f.metadata?.label === label && !f.enabled);
+            })
+            .map(fn => ({
+                name: fn.metadata?.label,
+                description: fn.metadata?.description || ''
+            }));
+    }, [serviceModel.functions]);
 
     const handleEventClick = (handlerName: string) => {
         onSubmit && onSubmit(handlerName);
     };
-
-    // Filter events to only show those with available functions
-    const availableEvents = events.filter(event => hasAvailableFunctions(event.name));
 
     return (
         <SidePanelBody>

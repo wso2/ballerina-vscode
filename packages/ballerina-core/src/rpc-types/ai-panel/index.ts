@@ -45,6 +45,7 @@ import {
     CheckpointInfo,
     AbortAIGenerationRequest,
     UsageResponse,
+    OpenFileDiffRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -108,4 +109,5 @@ export interface AIPanelAPI {
     updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;
     getActiveTempDir: () => Promise<string>;
     getUsage: () => Promise<UsageResponse | undefined>;
+    openFileDiff: (params: OpenFileDiffRequest) => void;
 }

@@ -42,9 +42,11 @@ import {
     MemoryManagersResponse,
     NodePosition
 } from "@wso2/ballerina-core";
+import { existsSync } from "fs";
 import vscode from "vscode";
 import { URI, Utils } from "vscode-uri";
 import { StateMachine } from "../../stateMachine";
+import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { CONFIGURE_DEFAULT_MODEL_COMMAND } from "../../features/ai/constants";
 
@@ -136,9 +138,8 @@ export class AiAgentRpcManager implements AIAgentAPI {
             const context = StateMachine.context();
             try {
                 const response: AIGentToolsResponse = await context.langClient.genTool(params);
-                await updateSourceCode({ textEdits: response.textEdits });
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                resolve(response);
+                const artifacts = await updateSourceCode({ textEdits: response.textEdits });
+                resolve({ artifacts, textEdits: response.textEdits });
             } catch (error) {
                 console.log(error);
             }
@@ -413,6 +414,9 @@ export class AiAgentRpcManager implements AIAgentAPI {
         const projectPath = StateMachine.context().projectPath;
         const agentsFilePath = Utils.joinPath(URI.file(projectPath), params.agentFlowNode.codedata.lineRange.fileName).fsPath;
         const connectionsFilePath = Utils.joinPath(URI.file(projectPath), "connections.bal").fsPath;
+        if (!existsSync(connectionsFilePath)) {
+            await writeBallerinaFileDidOpen(connectionsFilePath, "\n");
+        }
         const mcpToolKitVarName = params.updatedNode.properties["variable"].value;
 
         // 1. Use the updatedNode from params for the MCP ToolKit edits
@@ -424,6 +428,36 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 if ("permittedTools" in params.updatedNode.properties) {
                     params.updatedNode.properties["permittedTools"].value = `[${params.selectedTools.map(tool => `"${tool}"`).join(", ")}]`;
                 }
+            }
+
+            // Set per-tool scopes on the node for the LS to generate @ai:AgentTool annotations
+            const filteredScopes: Record<string, string[]> = {};
+            if (params.toolScopes && params.selectedTools.length > 0) {
+                for (const tool of params.selectedTools) {
+                    const scopes = params.toolScopes[tool];
+                    if (scopes && scopes.length > 0) {
+                        filteredScopes[tool] = scopes;
+                    }
+                }
+            }
+
+            if (Object.keys(filteredScopes).length > 0) {
+                (params.updatedNode.properties as any)["toolScopes"] = {
+                    metadata: { label: "Tool Scopes" },
+                    valueType: "EXPRESSION",
+                    value: JSON.stringify(filteredScopes),
+                    optional: true,
+                    editable: true,
+                    advanced: true,
+                    hidden: true,
+                    codedata: {
+                        kind: "INCLUDED_FIELD",
+                        originalName: "toolScopes"
+                    }
+                };
+            } else {
+                // Remove stale toolScopes from the node when all scopes have been cleared
+                delete (params.updatedNode.properties as any)["toolScopes"];
             }
 
             // Use only the template node for generating text edits

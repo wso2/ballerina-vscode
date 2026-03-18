@@ -58,10 +58,14 @@ import {
     dependencyPullProgress,
     ProjectMigrationResult,
     onMigratedProject,
-    refreshReviewMode,
-    onHideReviewActions,
+    navigateReviewIndex,
+    reviewModeOpened,
+    reviewModeClosed,
     approvalOverlayState,
-    ApprovalOverlayState
+    ApprovalOverlayState,
+    onIdentifierUpdated,
+    traceAnimationChanged,
+    TraceAnimationEvent
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -99,6 +103,7 @@ export class BallerinaRpcClient {
     private _icpManager: ICPServiceRpcClient;
     private _agentChat: AgentChatRpcClient;
     private _platformExt: PlatformExtRpcClient;
+    private _identifierUpdatedCallbacks = new Set<(response: ProjectStructureArtifactResponse[]) => void>();
 
     constructor() {
         this.messenger = new Messenger(vscode);
@@ -122,6 +127,9 @@ export class BallerinaRpcClient {
         this._icpManager = new ICPServiceRpcClient(this.messenger);
         this._agentChat = new AgentChatRpcClient(this.messenger);
         this._platformExt = new PlatformExtRpcClient(this.messenger);
+        this.messenger.onNotification(onIdentifierUpdated, (response: ProjectStructureArtifactResponse[]) => {
+            this._identifierUpdatedCallbacks.forEach((callback) => callback(response));
+        });
     }
 
     getAIAgentRpcClient(): AiAgentRpcClient {
@@ -224,6 +232,13 @@ export class BallerinaRpcClient {
         this.messenger.onNotification(projectContentUpdated, callback);
     }
 
+    onIdentifierUpdated(callback: (response: ProjectStructureArtifactResponse[]) => void) {
+        this._identifierUpdatedCallbacks.add(callback);
+        return () => {
+            this._identifierUpdatedCallbacks.delete(callback);
+        };
+    }
+
     // <----- This is used to register given artifact updated callback notification ----->
     onArtifactUpdated(artifactData: ArtifactData, callback: (artifacts: ProjectStructureArtifactResponse[]) => void) {
         this.messenger.sendRequest(onArtifactUpdatedRequest, HOST_EXTENSION, artifactData);
@@ -282,15 +297,23 @@ export class BallerinaRpcClient {
         this.messenger.onNotification(currentThemeChanged, callback);
     }
 
-    onRefreshReviewMode(callback: () => void) {
-        this.messenger.onNotification(refreshReviewMode, callback);
+    onNavigateReviewIndex(callback: (index: number) => void) {
+        this.messenger.onNotification(navigateReviewIndex, callback);
     }
 
-    onHideReviewActions(callback: () => void) {
-        this.messenger.onNotification(onHideReviewActions, callback);
+    onReviewModeOpened(callback: () => void) {
+        this.messenger.onNotification(reviewModeOpened, callback);
+    }
+
+    onReviewModeClosed(callback: () => void) {
+        this.messenger.onNotification(reviewModeClosed, callback);
     }
 
     onApprovalOverlayState(callback: (data: ApprovalOverlayState) => void) {
         this.messenger.onNotification(approvalOverlayState, callback);
+    }
+
+    onTraceAnimationChanged(callback: (event: TraceAnimationEvent) => void) {
+        this.messenger.onNotification(traceAnimationChanged, callback);
     }
 }

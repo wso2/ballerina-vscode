@@ -20,7 +20,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { CopilotEventHandler } from '../../utils/events';
 import { extension } from '../../../../BalExtensionContext';
-import { RunningServicesManager, createProcessTerminal, killProcessGroup } from './running-service-manager';
+import { RunningServicesManager, spawnProcess, killProcessGroup } from './running-service-manager';
 import { DIAGNOSTICS_TOOL_NAME } from './diagnostics';
 import { getRunCommand } from '../../../project/cmds/cmd-runner';
 
@@ -41,13 +41,15 @@ export function createBallerinaRunTool(
     eventHandler: CopilotEventHandler
 ) {
     return tool({
-        description: `Runs a Ballerina package using \`bal run\` in a VS Code terminal.
+        description: `Runs a Ballerina package using \`bal run\`.
 
 **Prerequisites:** The project must compile cleanly. Always run \`${DIAGNOSTICS_TOOL_NAME}\` first and resolve all compilation errors before invoking this tool.
 
 **Modes:**
 - \`service\`: Starts a long-running service. Returns immediately with a \`taskId\`. Use \`getServiceLogs\` to check output and \`stopBallerinaService\` to stop it.
 - \`main\`: Runs a main function to completion. Waits for the program to exit and returns its output.
+
+**Timeout for main programs:** Always set a generous timeout based on the code complexity (e.g., loops, delays, data processing). The default 120s is a safe choice — do not use small timeouts unless the program is trivially simple.
 
 **REQUIRED before calling this tool:** You MUST tell the user what you are about to run and why.
 `,
@@ -59,6 +61,7 @@ export function createBallerinaRunTool(
                 type: "tool_call",
                 toolName: BALLERINA_RUN_TOOL_NAME,
                 toolCallId,
+                toolInput: { command: "bal run", runType: input.runType },
             });
 
             const result = await executeRun(input, tempProjectPath, runningServices);
@@ -67,7 +70,7 @@ export function createBallerinaRunTool(
                 type: "tool_result",
                 toolName: BALLERINA_RUN_TOOL_NAME,
                 toolCallId,
-                toolOutput: { status: result.status },
+                toolOutput: { status: result.status, command: "bal run", exitCode: result.exitCode, output: result.output },
             });
 
             return result;
@@ -90,31 +93,28 @@ async function executeRun(
     const packageName = input.packagePath || path.basename(tempProjectPath);
 
     const logs: string[] = [];
-    const { terminal, process: proc } = createProcessTerminal(
-        `Bal: ${packageName}`,
+    const { process: proc } = spawnProcess(
         balCmd,
         [runCmd],
         cwd,
         logs
     );
-    terminal.show(true);
 
     const service = {
         taskId,
-        terminal,
         process: proc,
         logs,
         logCursor: 0,
         packagePath: cwd,
         startedAt: Date.now(),
         exited: false,
-        exitCode: null as number | null,
+        exitCode: -1,
     };
 
     // Track process exit
     proc.on('close', (code) => {
         service.exited = true;
-        service.exitCode = code ?? null;
+        service.exitCode = code ?? -1;
     });
 
     runningServices.register(service);
@@ -124,7 +124,6 @@ async function executeRun(
 
         if (!readyResult.ready) {
             killProcessGroup(proc, 'SIGTERM');
-            terminal.dispose();
             runningServices.remove(taskId);
             return {
                 status: "error",
@@ -150,7 +149,6 @@ async function executeRun(
 
     if (completionResult.timedOut) {
         killProcessGroup(proc, 'SIGTERM');
-        terminal.dispose();
         runningServices.remove(taskId);
         return {
             status: "timeout",
@@ -207,18 +205,31 @@ async function waitForCompletion(
     service: { exited: boolean; exitCode: number | null; logs: string[] },
     timeout: number
 ): Promise<{ logs: string; timedOut: boolean }> {
-    const startTime = Date.now();
-    const pollInterval = 500;
+    return new Promise((resolve) => {
+        const startTime = Date.now();
+        const pollInterval = 500;
 
-    while (!service.exited && (Date.now() - startTime) < timeout) {
-        await new Promise(resolve => setTimeout(resolve, pollInterval));
-    }
+        const timer = setTimeout(() => {
+            // Yield to the event loop once so a pending 'close' event can fire
+            setImmediate(() => {
+                const logs = service.logs.join('');
+                if (service.exited) {
+                    resolve({ logs, timedOut: false });
+                } else {
+                    resolve({ logs, timedOut: true });
+                }
+            });
+        }, timeout);
 
-    const logs = service.logs.join('');
+        const check = () => {
+            if (service.exited) {
+                clearTimeout(timer);
+                resolve({ logs: service.logs.join(''), timedOut: false });
+                return;
+            }
+            setTimeout(check, pollInterval);
+        };
 
-    if (!service.exited) {
-        return { logs, timedOut: true };
-    }
-
-    return { logs, timedOut: false };
+        check();
+    });
 }

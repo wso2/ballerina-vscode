@@ -31,7 +31,7 @@ import {
     CloseButton,
     PopupContent,
     PopupFooter,
-} from "../Connection/styles";
+} from "../../../BI/Connection/styles";
 
 // Form styled components
 const FormSection = styled.div`
@@ -238,8 +238,8 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
     if (!data) {
         return (
             <>
-                <PopupOverlay 
-                    sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }} 
+                <PopupOverlay
+                    sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }}
                     onClose={handleOverlayClick}
                 />
                 <PopupContainer>
@@ -251,8 +251,8 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
 
     return (
         <>
-            <PopupOverlay 
-                sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }} 
+            <PopupOverlay
+                sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.5` }}
                 onClose={handleOverlayClick}
             />
             <PopupContainer>

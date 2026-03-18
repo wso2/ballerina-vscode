@@ -25,11 +25,13 @@ import { createNewEvalset, createNewThread, deleteEvalset, deleteThread } from "
 import { discoverTestFunctionsInProject, handleFileChange as handleTestFileUpdate, handleFileDelete as handleTestFileDelete } from "./discover";
 import { getCurrentBallerinaProject, getWorkspaceRoot } from "../../utils/project-utils";
 import { checkIsBallerinaPackage, checkIsBallerinaWorkspace } from "../../utils";
+import { hasMultipleBallerinaPackages } from "../../utils/config";
 import { PROJECT_TYPE } from "../project";
 import { EvalsetTreeDataProvider } from "./evalset-tree-view";
 import { openView } from "../../stateMachine";
 import { EvalSet, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
 import * as fs from 'fs';
+import { EvaluationHistoryWebview } from '../../views/evaluation-history/webview';
 
 export let testController: TestController;
 
@@ -77,6 +79,27 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
         }
     });
 
+    // Register command to open evaluation history summary webview
+    // When invoked from the test explorer inline button, the TestItem is passed as the first arg.
+    const openEvalHistoryCommand = commands.registerCommand('ballerina.openEvaluationHistory', async (testItem?: any) => {
+        // Try to resolve the project path from the clicked test item
+        let projectPath: string | undefined;
+        if (testItem?.uri?.fsPath) {
+            projectPath = testItem.uri.fsPath;
+        } else if (testItem?.parent?.uri?.fsPath) {
+            projectPath = testItem.parent.uri.fsPath;
+        }
+
+        if (!projectPath) {
+            projectPath = getWorkspaceRoot();
+        }
+        if (!projectPath) {
+            window.showErrorMessage('No workspace found');
+            return;
+        }
+        await EvaluationHistoryWebview.createOrShow(projectPath);
+    });
+
     // Register commands for creating evalsets and threads
     const createEvalsetCommand = commands.registerCommand('ballerina.createNewEvalset', createNewEvalset);
     const createThreadCommand = commands.registerCommand('ballerina.createNewThread', createNewThread);
@@ -93,12 +116,16 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
 
     const isBallerinaWorkspace = await checkIsBallerinaWorkspace(Uri.file(workspaceRoot));
     const isBallerinaProject = !isBallerinaWorkspace && await checkIsBallerinaPackage(Uri.file(workspaceRoot));
-    const currentProject = !isBallerinaWorkspace && !isBallerinaProject && await getCurrentBallerinaProject();
+    const isMultiProjectWorkspace = !isBallerinaWorkspace && !isBallerinaProject && await hasMultipleBallerinaPackages(Uri.file(workspaceRoot));
+    const currentProject = !isBallerinaWorkspace && !isBallerinaProject && !isMultiProjectWorkspace && await getCurrentBallerinaProject();
     const isSingleFile = currentProject && currentProject.kind === PROJECT_TYPE.SINGLE_FILE;
 
-    if (!isBallerinaWorkspace && !isBallerinaProject && !isSingleFile) {
+    if (!isBallerinaWorkspace && !isBallerinaProject && !isMultiProjectWorkspace && !isSingleFile) {
         return;
     }
+
+    // Make evalset view visible — this runs only after we've confirmed a valid Ballerina project context
+    commands.executeCommand('setContext', 'hasEvalsetSupport', true);
 
     // Create and register Evalset TreeView
     const evalsetTreeDataProvider = new EvalsetTreeDataProvider();
@@ -123,7 +150,7 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
     discoverTestFunctionsInProject(ballerinaExtInstance, testController);
 
     // Register the test controller and file watcher with the extension context
-    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand, saveEvalThreadCommand, createEvalsetCommand, createThreadCommand, deleteEvalsetCommand, deleteThreadCommand);
+    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand, saveEvalThreadCommand, createEvalsetCommand, createThreadCommand, deleteEvalsetCommand, deleteThreadCommand, openEvalHistoryCommand);
 
     activateEditBiTest(ballerinaExtInstance);
 }
