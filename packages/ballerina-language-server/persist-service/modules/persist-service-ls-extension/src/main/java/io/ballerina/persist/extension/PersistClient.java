@@ -20,21 +20,31 @@ package io.ballerina.persist.extension;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.CaptureBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NewExpressionNode;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
 import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.RecordTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.persist.BalException;
@@ -68,10 +78,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createIdentifierToken;
 import static io.ballerina.compiler.syntax.tree.AbstractNodeFactory.createNodeList;
@@ -182,53 +194,169 @@ public class PersistClient {
     }
 
     /**
+     * Introspects the database and returns a list of {@link DatabaseIntrospectionResponse.TableInfo} entries,
+     * each annotated with {@code selected} and {@code existing} flags derived from the persist model file.
+     *
+     * @param modelFilePath Relative path to the model file (e.g. {@code persist/testdb/model.bal}),
+     *                      or {@code null} / empty when no model file exists yet
+     * @return List of table info entries for every table found in the database
+     * @throws PersistClientException if an error occurs during introspection
+     */
+    public List<DatabaseIntrospectionResponse.TableInfo> introspectDatabase(String modelFilePath)
+            throws PersistClientException, WorkspaceDocumentException, EventSyncException {
+        String[] dbTables = introspectDatabaseTables();
+        Set<String> modelTableNames = extractModelTableNames(modelFilePath);
+
+        List<DatabaseIntrospectionResponse.TableInfo> tableInfos = new ArrayList<>();
+        for (String table : dbTables) {
+            boolean inModel = modelTableNames.contains(table);
+            tableInfos.add(new DatabaseIntrospectionResponse.TableInfo(table, inModel, inModel));
+        }
+        return tableInfos;
+    }
+
+    /**
+     * Parses the persist model file at {@code projectPath/modelFilePath} and returns
+     * the set of table names that already have a corresponding record type definition.
+     * <p>
+     * For each {@code public type Foo record {| ... |}} definition:
+     * <ol>
+     *   <li>If a {@code @sql:Name {value: "tableName"}} annotation is present, its
+     *       {@code value} field is used as the table name.</li>
+     *   <li>Otherwise, the record type name itself is used.</li>
+     * </ol>
+     *
+     * @param modelFilePath Relative path to the model file (e.g. {@code persist/testdb/model.bal})
+     * @return Set of table names found in the model; empty when the file is absent or unreadable
+     */
+    private Set<String> extractModelTableNames(String modelFilePath) throws WorkspaceDocumentException,
+            EventSyncException {
+        if (modelFilePath == null || modelFilePath.isEmpty()) {
+            return Set.of();
+        }
+        Path fullPath = this.projectPath.resolve(modelFilePath);
+        this.workspaceManager.loadProject(fullPath);
+        Optional<Document> document = workspaceManager.document(fullPath);
+        if (document.isEmpty()) {
+            return Set.of();
+        }
+        ModulePartNode rootNode = document.get().syntaxTree().rootNode();
+
+        Set<String> tableNames = new HashSet<>();
+        for (ModuleMemberDeclarationNode member : rootNode.members()) {
+            if (!(member instanceof TypeDefinitionNode typeDef)) {
+                continue;
+            }
+            if (!(typeDef.typeDescriptor() instanceof RecordTypeDescriptorNode)) {
+                continue;
+            }
+            String sqlName = extractSqlAnnotationName(typeDef);
+            tableNames.add(sqlName != null ? sqlName : typeDef.typeName().text());
+        }
+        return tableNames;
+    }
+
+    /**
+     * Scans the metadata annotations of a type definition for a {@code @sql:Name}
+     * annotation and returns its {@code value} field text when found.
+     *
+     * @param typeDef The type definition node to inspect
+     * @return The annotation {@code value} string, or {@code null} when not present
+     */
+    private String extractSqlAnnotationName(TypeDefinitionNode typeDef) {
+        Optional<MetadataNode> metadataOpt = typeDef.metadata();
+        if (metadataOpt.isEmpty()) {
+            return null;
+        }
+        for (AnnotationNode annotation : metadataOpt.get().annotations()) {
+            Node annotRef = annotation.annotReference();
+            if (!(annotRef instanceof QualifiedNameReferenceNode qualRef)) {
+                continue;
+            }
+            if (!"sql".equals(qualRef.modulePrefix().text())
+                    || !"Name".equals(qualRef.identifier().text())) {
+                continue;
+            }
+            Optional<MappingConstructorExpressionNode> annotValueOpt = annotation.annotValue();
+            if (annotValueOpt.isEmpty()) {
+                continue;
+            }
+            for (MappingFieldNode field : annotValueOpt.get().fields()) {
+                if (!(field instanceof SpecificFieldNode specificField)) {
+                    continue;
+                }
+                if (!"value".equals(specificField.fieldName().toSourceCode().trim())) {
+                    continue;
+                }
+                Optional<ExpressionNode> valueExprOpt = specificField.valueExpr();
+                if (valueExprOpt.isPresent()
+                        && valueExprOpt.get() instanceof BasicLiteralNode literal) {
+                    return stripQuotes(literal.literalToken().text());
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String stripQuotes(String value) {
+        if (value != null && value.length() >= 2
+                && value.charAt(0) == '"' && value.charAt(value.length() - 1) == '"') {
+            return value.substring(1, value.length() - 1);
+        }
+        return value;
+    }
+
+    /**
      * Generates Ballerina persist client with model file and generated source
      * files.
      *
      * @param selectedTables The tables to generate entities for
-     * @param module         The target module name for the generated files
-     * @param name          The name of the database connector variable
+     * @param targetModule         The target module name for the generated files
+     * @param modelPath      The path to the model file relative to the project root
      * @return JsonElement containing the PersistClientResponse with text edits map
      * @throws PersistClientException if an error occurs during generation
      */
-    public JsonElement generateClient(String[] selectedTables, String module, String name)
+    public JsonElement generateClient(String[] selectedTables, String targetModule, String modelPath)
             throws PersistClientException {
         validateConnectionDetails();
-
-        if (name == null || name.isEmpty()) {
-            throw new PersistClientException("Connector variable name cannot be null or empty");
-        }
-
-        if (module == null || module.isEmpty()) {
-            module = name;
-        }
-
         if (selectedTables == null || selectedTables.length == 0) {
             throw new PersistClientException("Selected tables cannot be null or empty");
         }
 
-        Path persistModelPath = this.projectPath.resolve(PERSIST_DIR)
-                .resolve(name)
-                .resolve(MODEL_FILE_NAME);
+        boolean isConnectorUpdate = modelPath != null && !modelPath.isEmpty();
+        Path relvativeModelPath = isConnectorUpdate ? Path.of(modelPath)
+                : Path.of(PERSIST_DIR).resolve(getModelBalFileName());
+        Path persistModelPath = this.projectPath.resolve(relvativeModelPath);
 
         try {
             Project project = this.workspaceManager.loadProject(projectPath);
             String packageName = project.currentPackage().packageName().value();
+            String module = resolvePersistModuleName(targetModule, packageName);
             Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
-            boolean isModuleExists = addTextEditForBallerinaToml(packageName, module, name, textEditsMap);
             Module entityModule = getInitialEntityModule(selectedTables);
             SyntaxTree dataModels = new DbModelGenSyntaxTree().getDataModels(entityModule);
-            addTextEditForPersistModelFile(dataModels, textEditsMap, persistModelPath);
+            addTextEditForPersistModelFile(dataModels, textEditsMap, persistModelPath, isConnectorUpdate);
             // Need to reload since the current initial entity module does not have enums
             // and other details
             entityModule = getEntities(module, dataModels);
-            addTextEditsForClientModuleSources(module, textEditsMap, entityModule);
-            addTextEditForConfigurations(textEditsMap);
-            addTextEditForConnectionClient(packageName, module, textEditsMap);
+            addTextEditsForGeneratedModule(module, textEditsMap, entityModule, isConnectorUpdate);
+            boolean isModuleExists = false;
+            if (!isConnectorUpdate) {
+                addTextEditForConfigurations(textEditsMap);
+                addTextEditForConnectionClient(packageName, module, textEditsMap);
+                isModuleExists = addTextEditForBallerinaToml(packageName, module, textEditsMap);
+            }
             return gson.toJsonTree(new PersistClientResponse(isModuleExists, textEditsMap));
         } catch (BalException | IOException | FormatterException | WorkspaceDocumentException | EventSyncException e) {
             throw new PersistClientException("Error introspecting database: " + e.getMessage(), e);
         }
+    }
+
+    private String resolvePersistModuleName(String targetModule, String packageName) {
+        if (targetModule == null || targetModule.isEmpty()) {
+            return generateModuleNameFromDatabase();
+        }
+        return targetModule.replace(packageName + ".", "");
     }
 
     private void addTextEditForConfigurations(Map<Path, List<TextEdit>> textEditsMap) {
@@ -386,33 +514,57 @@ public class PersistClient {
         return modulePartNode;
     }
 
-    private void addTextEditsForClientModuleSources(String module, Map<Path, List<TextEdit>> textEditsMap,
-                                                    Module entityModule)
-            throws PersistClientException, FormatterException, BalException {
+    private void addTextEditsForGeneratedModule(String module, Map<Path, List<TextEdit>> textEditsMap,
+                                                Module entityModule, boolean isConnectorUpdate)
+            throws FormatterException, BalException,
+            WorkspaceDocumentException, EventSyncException {
         DbSyntaxTree dbSyntaxTree = new DbSyntaxTree();
         Path outputPath = projectPath.resolve("generated").resolve(module);
 
         // If the module directory already exists, throw an error
-        if (Files.exists(outputPath)) {
-            throw new PersistClientException("A database connector with the same name already exists: " + outputPath);
+        Document typesDocument = null;
+        Document clientDocument = null;
+        if (isConnectorUpdate) {
+            this.workspaceManager.loadProject(outputPath);
+            typesDocument = this.workspaceManager.document(outputPath.resolve("persist_types.bal"))
+                    .orElse(null);
+            clientDocument = this.workspaceManager.document(outputPath.resolve("persist_client.bal"))
+                    .orElse(null);
         }
 
         SyntaxTree dataTypesFile = dbSyntaxTree.getDataTypesSyntax(entityModule);
         List<TextEdit> dataTypesTextEdits = new ArrayList<>();
-        dataTypesTextEdits.add(new TextEdit(START_RANGE, Formatter.format(dataTypesFile.toSourceCode())));
+        dataTypesTextEdits.add(new TextEdit(getTextEditRange(typesDocument),
+                Formatter.format(dataTypesFile.toSourceCode())));
         textEditsMap.put(outputPath.resolve("persist_types.bal"), dataTypesTextEdits);
 
         SyntaxTree clientFile = dbSyntaxTree.getClientSyntax(entityModule, datastore, true, true);
         List<TextEdit> clientTextEdits = new ArrayList<>();
-        clientTextEdits.add(new TextEdit(START_RANGE, Formatter.format(clientFile.toSourceCode())));
+        clientTextEdits.add(new TextEdit(getTextEditRange(clientDocument),
+                Formatter.format(clientFile.toSourceCode())));
         textEditsMap.put(outputPath.resolve("persist_client.bal"), clientTextEdits);
     }
 
-    private static void addTextEditForPersistModelFile(SyntaxTree dataModels, Map<Path, List<TextEdit>> textEditsMap,
-                                                       Path persistModelPath) throws FormatterException {
+    private void addTextEditForPersistModelFile(SyntaxTree dataModels, Map<Path, List<TextEdit>> textEditsMap,
+                                                Path persistModelPath, boolean isConnectionUpdate)
+            throws FormatterException, WorkspaceDocumentException, EventSyncException {
+        Document document = null;
+        if (isConnectionUpdate) {
+            this.workspaceManager.loadProject(persistModelPath);
+            Optional<Document> docOpt = this.workspaceManager.document(persistModelPath);
+            document = docOpt.orElse(null);
+        }
         List<TextEdit> persistModelTextEdits = new ArrayList<>();
-        persistModelTextEdits.add(new TextEdit(START_RANGE, Formatter.format(dataModels.toSourceCode())));
+        persistModelTextEdits.add(new TextEdit(getTextEditRange(document),
+                Formatter.format(dataModels.toSourceCode())));
         textEditsMap.put(persistModelPath, persistModelTextEdits);
+    }
+
+    private Range getTextEditRange(Document document) {
+        if (document == null) {
+            return START_RANGE;
+        }
+        return CommonUtils.toRange(document.syntaxTree().rootNode().lineRange());
     }
 
     private Module getInitialEntityModule(String[] selectedTables) throws BalException, PersistClientException {
@@ -431,14 +583,19 @@ public class PersistClient {
         return entityModule;
     }
 
-    private boolean addTextEditForBallerinaToml(String packageName, String module, String name,
-                                                Map<Path, List<TextEdit>> textEditsMap) throws IOException {
+    private String generateModuleNameFromDatabase() {
+        String sanitizedDatabaseName = database.replaceAll("[^a-zA-Z0-9]", "");
+        return sanitizedDatabaseName + "." + name;
+    }
+
+    private boolean addTextEditForBallerinaToml(String packageName, String module, Map<Path,
+            List<TextEdit>> textEditsMap) throws IOException {
         Path tomlPath = this.projectPath.resolve(BALLERINA_TOML);
         DocumentNode rootNode = parseTomlFile(tomlPath);
         String moduleFullName = packageName + "." + module;
 
         TomlAnalysisResult analysisResult = analyzeTomlStructure(rootNode, moduleFullName);
-        String tomlEntry = buildTomlEntries(moduleFullName, name, analysisResult);
+        String tomlEntry = buildTomlEntries(moduleFullName, analysisResult);
         addTomlTextEdit(tomlPath, rootNode, analysisResult.toolPersistLineRange(), tomlEntry, textEditsMap);
 
         return analysisResult.moduleExists();
@@ -500,10 +657,10 @@ public class PersistClient {
         return false;
     }
 
-    private String buildTomlEntries(String module, String name, TomlAnalysisResult analysisResult) {
+    private String buildTomlEntries(String module, TomlAnalysisResult analysisResult) {
         StringBuilder tomlEntry = new StringBuilder();
 
-        tomlEntry.append(getBuildOptionEntry(module, name));
+        tomlEntry.append(getBuildOptionEntry(module));
 
         if (!analysisResult.hasPersistDependency()) {
             tomlEntry.append(getPersistMinimumVersionRequirementEntry());
@@ -532,15 +689,23 @@ public class PersistClient {
     ) {
     }
 
-    private String getBuildOptionEntry(String module, String name) {
+    private String getBuildOptionEntry(String module) {
         String moduleWithQuotes = "\"" + module + "\"";
         return LS + "[[tool.persist]]" + LS +
                 "id" + " = " + moduleWithQuotes + LS +
                 "targetModule" + " = " + moduleWithQuotes + LS +
-                "filePath" + " = \"" + PERSIST_DIR + "/"  + name + "/" + MODEL_FILE_NAME + "\"" + LS +
+                "filePath" + " = \"" + getModelFilePath() + "\"" + LS +
                 "options.datastore" + " = \"" + datastore + "\"" + LS +
                 "options.eagerLoading" + " = true" + LS +
                 "options.withInitParams" + " = true" + LS;
+    }
+
+    private String getModelFilePath() {
+        return PERSIST_DIR + "/" + getModelBalFileName();
+    }
+
+    private String getModelBalFileName() {
+        return name + "_" + MODEL_FILE_NAME;
     }
 
     private String getPersistMinimumVersionRequirementEntry() {

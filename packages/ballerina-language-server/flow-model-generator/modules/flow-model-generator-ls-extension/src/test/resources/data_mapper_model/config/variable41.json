@@ -97,6 +97,7 @@
         "typeName": "redis:Options",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

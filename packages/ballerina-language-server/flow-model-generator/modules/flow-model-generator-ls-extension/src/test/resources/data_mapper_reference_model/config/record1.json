@@ -120,6 +120,7 @@
         "typeName": "FinalNote",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

@@ -146,6 +146,7 @@
         "typeName": "Bar",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

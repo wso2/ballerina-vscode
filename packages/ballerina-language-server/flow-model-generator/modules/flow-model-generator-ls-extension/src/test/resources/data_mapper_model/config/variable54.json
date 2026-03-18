@@ -106,6 +106,7 @@
         "typeName": "Person",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

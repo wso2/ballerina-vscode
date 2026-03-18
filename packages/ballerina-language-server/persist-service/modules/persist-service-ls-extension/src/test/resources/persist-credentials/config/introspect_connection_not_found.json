@@ -1,0 +1,7 @@
+{
+  "description": "Introspect credentials for a connection name that does not exist in the project",
+  "testProjectFolder": "sample-project-with-persist",
+  "connection": "nonexistent",
+  "expectError": true,
+  "expectedErrorMessage": "connection not found"
+}

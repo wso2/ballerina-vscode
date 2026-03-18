@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core;
 
+import com.google.gson.Gson;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
@@ -42,6 +43,7 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.api.values.ConstantValue;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.AssignmentStatementNode;
 import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
 import io.ballerina.compiler.syntax.tree.BlockStatementNode;
@@ -80,6 +82,7 @@ import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MatchClauseNode;
 import io.ballerina.compiler.syntax.tree.MatchGuardNode;
 import io.ballerina.compiler.syntax.tree.MatchStatementNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.MethodCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
@@ -193,6 +196,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -1449,7 +1453,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .template(template)
                 .selected(true)
                 .stepOut();
-        builder.handleRestArguments(builder, values);
+        builder.handleRestArguments(builder, values, diagnosticHandler);
     }
 
     private void buildPropertyTypeForIncludedRecordRest(Property.Builder<?> builder, ParameterData paramData,
@@ -1461,7 +1465,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .template(template)
                 .selected(true)
                 .stepOut();
-        builder.handleIncludedRecordRestArgs(builder, values);
+        builder.handleIncludedRecordRestArgs(builder, values, diagnosticHandler);
     }
 
     private void buildPropertyType(Property.Builder<?> builder, ParameterData paramData, Node value) {
@@ -1503,7 +1507,8 @@ public class CodeAnalyzer extends NodeVisitor {
                     builder.type(Property.ValueType.RAW_TEMPLATE);
                 }
             } else {
-                builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder);
+                builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder,
+                        diagnosticHandler);
             }
         }
     }
@@ -1614,6 +1619,10 @@ public class CodeAnalyzer extends NodeVisitor {
                 McpToolKitBuilder.setToolKitNameProperty(nodeBuilder, name);
                 String permittedTools = getPermittedToolsFromClass(classSymbol);
                 McpToolKitBuilder.setPermittedToolsProperty(nodeBuilder, permittedTools);
+                String toolScopes = getToolScopesFromClass(classSymbol);
+                if (toolScopes != null) {
+                    McpToolKitBuilder.setToolScopesProperty(nodeBuilder, toolScopes);
+                }
             }
         }
 
@@ -1910,7 +1919,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     .value(CommonUtils.getVariableName(assignmentStatementNode.varRef()))
                     .editable()
                     .stepOut()
-                    .addProperty(Property.VARIABLE_KEY);
+                    .addProperty(Property.VARIABLE_KEY, assignmentStatementNode.varRef());
         } else if (nodeBuilder instanceof AgentBuilder
                 || nodeBuilder instanceof ModelProviderBuilder
                 || nodeBuilder instanceof EmbeddingProviderBuilder
@@ -2188,7 +2197,8 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.codedata().inferredReturnType(functionData.returnError() ? returnType : null);
             Module module = workspaceManager.module(filePath)
                     .orElse(project.currentPackage().getDefaultModule());
-            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType);
+            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType,
+                    callNode);
             AgentCallBuilder.postProcessTdProperty(nodeBuilder, key);
         });
     }
@@ -2914,6 +2924,189 @@ public class CodeAnalyzer extends NodeVisitor {
             }
         }
         return "()";
+    }
+
+    /**
+     * Extracts tool scopes from {@code @ai:AgentTool} annotations on the MCP toolkit class methods. Builds a reverse
+     * mapping from method names to original tool names using the {@code permittedTools} map, then extracts scopes from
+     * each method's annotation.
+     *
+     * @param classSymbol The class symbol representing the MCP toolkit class
+     * @return A JSON string mapping tool names to their scopes, or null if no scopes are found
+     */
+    private String getToolScopesFromClass(ClassSymbol classSymbol) {
+        Optional<Location> optLocation = classSymbol.getLocation();
+        if (optLocation.isEmpty()) {
+            return null;
+        }
+
+        Document document = CommonUtils.getDocument(project, optLocation.get());
+        if (document == null) {
+            return null;
+        }
+
+        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol, document.syntaxTree());
+        if (optNode.isEmpty() || !(optNode.get() instanceof ClassDefinitionNode classNode)) {
+            return null;
+        }
+
+        // Build reverse mapping: methodName -> originalToolName from the permittedTools map in init
+        Map<String, String> methodToToolName = buildMethodToToolNameMapping(classNode);
+
+        // Extract scopes from @ai:AgentTool annotations on each method
+        Map<String, List<String>> toolScopes = new TreeMap<>();
+        Set<String> predefinedMethods = Set.of("init", "getTools");
+
+        for (Node member : classNode.members()) {
+            if (member.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                continue;
+            }
+
+            FunctionDefinitionNode methodNode = (FunctionDefinitionNode) member;
+            String methodName = methodNode.functionName().text();
+            if (predefinedMethods.contains(methodName)) {
+                continue;
+            }
+
+            List<String> scopes = extractScopesFromAnnotation(methodNode);
+            if (!scopes.isEmpty()) {
+                // Map back to original tool name if we have a mapping, otherwise use method name
+                String toolName = methodToToolName.getOrDefault(methodName, methodName);
+                toolScopes.put(toolName, scopes);
+            }
+        }
+
+        if (toolScopes.isEmpty()) {
+            return null;
+        }
+
+        return new Gson().toJson(toolScopes);
+    }
+
+    /**
+     * Builds a mapping from method names to original tool names by parsing the permittedTools map in the init method.
+     */
+    private Map<String, String> buildMethodToToolNameMapping(ClassDefinitionNode classNode) {
+        Map<String, String> mapping = new HashMap<>();
+        for (Node member : classNode.members()) {
+            if (member.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                continue;
+            }
+            FunctionDefinitionNode methodNode = (FunctionDefinitionNode) member;
+            if (!methodNode.functionName().text().equals("init")) {
+                continue;
+            }
+            FunctionBodyNode bodyNode = methodNode.functionBody();
+            if (!(bodyNode instanceof FunctionBodyBlockNode blockNode)) {
+                continue;
+            }
+            for (StatementNode statement : blockNode.statements()) {
+                if (statement.kind() != SyntaxKind.LOCAL_VAR_DECL) {
+                    continue;
+                }
+                VariableDeclarationNode varDecl = (VariableDeclarationNode) statement;
+                String variableName = varDecl.typedBindingPattern().bindingPattern().toSourceCode().trim();
+                if (!variableName.equals("permittedTools")) {
+                    continue;
+                }
+                Optional<ExpressionNode> optInitializer = varDecl.initializer();
+                if (optInitializer.isEmpty() ||
+                        optInitializer.get().kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+                    continue;
+                }
+                MappingConstructorExpressionNode mappingExpr =
+                        (MappingConstructorExpressionNode) optInitializer.get();
+                for (MappingFieldNode field : mappingExpr.fields()) {
+                    if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                        SpecificFieldNode specificField = (SpecificFieldNode) field;
+                        String toolName = specificField.fieldName().toSourceCode().trim();
+                        if (toolName.startsWith("\"") && toolName.endsWith("\"")) {
+                            toolName = toolName.substring(1, toolName.length() - 1);
+                        }
+                        // Value is like "self.methodName" - extract method name
+                        if (specificField.valueExpr().isPresent()) {
+                            String valueSource = specificField.valueExpr().get().toSourceCode().trim();
+                            if (valueSource.startsWith("self.")) {
+                                String methodName = valueSource.substring(5);
+                                mapping.put(methodName, toolName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return mapping;
+    }
+
+    /**
+     * Extracts OAuth scopes from an {@code @ai:AgentTool} annotation on a function definition.
+     */
+    private List<String> extractScopesFromAnnotation(FunctionDefinitionNode methodNode) {
+        Optional<MetadataNode> optMetadata = methodNode.metadata();
+        if (optMetadata.isEmpty()) {
+            return List.of();
+        }
+
+        for (AnnotationNode annotation : optMetadata.get().annotations()) {
+            String annotRef = annotation.annotReference().toSourceCode().trim();
+            if (!annotRef.equals("ai:AgentTool")) {
+                continue;
+            }
+
+            // Check if annotation has a value (mapping constructor)
+            Optional<MappingConstructorExpressionNode> optAnnotValue = annotation.annotValue();
+            if (optAnnotValue.isEmpty()) {
+                continue;
+            }
+
+            // Look for agentIdConfig field
+            for (MappingFieldNode field : optAnnotValue.get().fields()) {
+                if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
+                    continue;
+                }
+                SpecificFieldNode specificField = (SpecificFieldNode) field;
+                String fieldName = specificField.fieldName().toSourceCode().trim();
+                if (!fieldName.equals("agentIdConfig") || specificField.valueExpr().isEmpty()) {
+                    continue;
+                }
+
+                ExpressionNode agentIdConfigExpr = specificField.valueExpr().get();
+                if (agentIdConfigExpr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+                    continue;
+                }
+
+                // Look for scopes field inside agentIdConfig
+                MappingConstructorExpressionNode agentIdConfigMapping =
+                        (MappingConstructorExpressionNode) agentIdConfigExpr;
+                for (MappingFieldNode innerField : agentIdConfigMapping.fields()) {
+                    if (innerField.kind() != SyntaxKind.SPECIFIC_FIELD) {
+                        continue;
+                    }
+                    SpecificFieldNode scopesField = (SpecificFieldNode) innerField;
+                    String innerFieldName = scopesField.fieldName().toSourceCode().trim();
+                    if (!innerFieldName.equals("scopes") || scopesField.valueExpr().isEmpty()) {
+                        continue;
+                    }
+
+                    ExpressionNode scopesExpr = scopesField.valueExpr().get();
+                    if (scopesExpr.kind() != SyntaxKind.LIST_CONSTRUCTOR) {
+                        continue;
+                    }
+
+                    ListConstructorExpressionNode listNode = (ListConstructorExpressionNode) scopesExpr;
+                    List<String> scopes = new ArrayList<>();
+                    for (Node item : listNode.expressions()) {
+                        String scopeValue = item.toSourceCode().trim();
+                        if (scopeValue.startsWith("\"") && scopeValue.endsWith("\"")) {
+                            scopeValue = scopeValue.substring(1, scopeValue.length() - 1);
+                        }
+                        scopes.add(scopeValue);
+                    }
+                    return scopes;
+                }
+            }
+        }
+        return List.of();
     }
 
     // Check whether a type symbol is subType of `RawTemplate`
