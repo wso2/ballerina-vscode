@@ -78,7 +78,7 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
 
                     if (content) {
                         const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
-                        await vscode.commands.executeCommand('http-book.importHurlString', content, { ...options, savePath });
+                        await vscode.commands.executeCommand('http-book.importHurlString', content, { ...options, savePath, viewColumn: 'beside' });
                     }
                 } catch (error) {
                     handleError(error, "Starting Ballerina service");
