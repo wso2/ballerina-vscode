@@ -84,6 +84,12 @@ const FixButton = styled(Button)`
     gap: 4px;
 `;
 
+const FixButtonContent = styled.span`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+`;
+
 export interface DiagnosticsPopUpProps {
     node: FlowNode;
 }
@@ -256,8 +262,10 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
                         <Tooltip content={disabledFixTooltip}>
                             <span>
                                 <FixButton appearance="primary" disabled={!canFix} onClick={handleOnFix}>
-                                    <Icon name="bi-ai-agent" sx={{ width: 14, height: 14, fontSize: 14 }} />
-                                    Fix with AI
+                                    <FixButtonContent>
+                                        <Icon name="bi-ai-agent" sx={{ width: 14, height: 14, fontSize: 14 }} />
+                                        <span>Fix with AI</span>
+                                    </FixButtonContent>
                                 </FixButton>
                             </span>
                         </Tooltip>
