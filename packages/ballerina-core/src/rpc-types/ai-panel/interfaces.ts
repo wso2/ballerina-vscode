@@ -492,8 +492,8 @@ export interface CheckpointInfo {
  * Optional params default to current workspace and 'default' thread
  */
 export interface AbortAIGenerationRequest {
-    /** Workspace identifier (defaults to current workspace) */
-    workspaceId?: string;
+    /** Project root path (defaults to current workspace/project root) */
+    projectRootPath?: string;
     /** Thread identifier (defaults to 'default') */
     threadId?: string;
 }
@@ -501,4 +501,8 @@ export interface AbortAIGenerationRequest {
 export interface UsageResponse {
     remainingUsagePercentage: number;
     resetsIn: number; // in seconds
+}
+
+export interface OpenFileDiffRequest {
+    relativePath: string;
 }
