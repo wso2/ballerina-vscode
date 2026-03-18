@@ -133,6 +133,12 @@ export abstract class AICommandExecutor<TParams = any> {
         } finally {
             // Stage 6: Always clear active execution on completion (success or error)
             chatStateStorage.clearActiveExecution(projectRootPath, threadId);
+
+            // Remove generation if LLM never responded — no model messages means nothing useful to persist
+            const gen = chatStateStorage.getGeneration(projectRootPath, threadId, this.config.generationId);
+            if (gen && gen.modelMessages.length === 0) {
+                chatStateStorage.removeGeneration(projectRootPath, threadId, this.config.generationId);
+            }
         }
     }
 
