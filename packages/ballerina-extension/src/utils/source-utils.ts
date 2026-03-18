@@ -140,11 +140,12 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
             // so the final subscriber only sees the notification from the formatted edit
             const handler = ArtifactNotificationHandler.getInstance();
             const rawEditNotification = new Promise<void>((resolve) => {
+                let timeoutId: ReturnType<typeof setTimeout>;
                 const unsub = handler.subscribe(
                     ArtifactsUpdated.method, updateSourceCodeRequest.artifactData,
-                    () => { unsub(); resolve(); }
+                    () => { clearTimeout(timeoutId); unsub(); resolve(); }
                 );
-                setTimeout(() => { unsub(); resolve(); }, 10000);
+                timeoutId = setTimeout(() => { unsub(); resolve(); }, 10000);
             });
 
             // Apply all changes at once
