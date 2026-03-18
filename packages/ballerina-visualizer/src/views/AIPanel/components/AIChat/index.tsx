@@ -1405,7 +1405,7 @@ const AIChat: React.FC = () => {
                                                         key={`agent-stream-${i}`}
                                                         stream={segment.stream ?? []}
                                                         isLoading={isLoading && isLatestAssistantMessage}
-                                                        rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
+                                                        rpcClient={rpcClient}
                                                     />
                                                 );
                                             }
