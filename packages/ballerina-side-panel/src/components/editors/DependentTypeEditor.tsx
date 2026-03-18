@@ -97,7 +97,7 @@ function areAllSelected(members: Member[], referencedTypes: Type[], visited: Set
         const newVisited = new Set(visited);
         if (m.refs?.length) newVisited.add(m.refs[0]);
 
-        const children = resolveChildren(m, referencedTypes, newVisited);
+        const children = resolveChildren(m, referencedTypes, visited);
         if (children.length && !areAllSelected(children, referencedTypes, newVisited)) {
             return false;
         }
@@ -193,7 +193,7 @@ function hasAnySelection(members: Member[], referencedTypes: Type[], visited: Se
         const newVisited = new Set(visited);
         if (m.refs?.length) newVisited.add(m.refs[0]);
 
-        const children = resolveChildren(m, referencedTypes, newVisited);
+        const children = resolveChildren(m, referencedTypes, visited);
         if (children.length && hasAnySelection(children, referencedTypes, newVisited)) {
             return true;
         }
