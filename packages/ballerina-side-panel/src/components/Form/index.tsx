@@ -22,6 +22,7 @@ import ReactMarkdown from "react-markdown";
 import {
     Button,
     Codicon,
+    ErrorBanner,
     LinkButton,
     ThemeColors,
     SidePanelBody,
@@ -391,6 +392,7 @@ export interface FormProps {
         removeLastPopup: () => void;
         closePopup: (id: string) => void;
     }
+    formDiagnostics?: { message: string; severity: "ERROR" | "WARNING" | "INFO" }[];
     preserveOrder?: boolean;
     handleSelectedTypeChange?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
@@ -434,6 +436,7 @@ export const Form = forwardRef((props: FormProps) => {
         recordTypeFields,
         nestedForm,
         popupManager,
+        formDiagnostics,
         compact = false,
         isInferredReturnType,
         concertRequired = true,
@@ -1006,6 +1009,9 @@ export const Form = forwardRef((props: FormProps) => {
             )}
             {!preserveOrder && !compact && (
                 <FormDescription formFields={formFields} selectedNode={selectedNode} />
+            )}
+            {formDiagnostics && formDiagnostics.length > 0 && (
+                <ErrorBanner errorMsg={formDiagnostics.map((diagnostic) => diagnostic.message).join("\n")} />
             )}
 
             {/*
