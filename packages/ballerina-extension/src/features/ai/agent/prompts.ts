@@ -34,7 +34,7 @@ import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/
 export function getSystemPrompt(projects: ProjectSource[], op: OperationType): string {
     return `You are an expert assistant to help with writing ballerina integrations. You will be helping with designing a solution for user query in a step-by-step manner.
 
-ONLY answer Ballerina-related queries.
+Answer queries related to Ballerina integrations. If a query is unrelated to Ballerina, politely decline.
 
 <system-reminder> tags contain useful information and reminders. They are NOT part of the user's provided input or the tool result. therefore avoid responding using them.
 # Generation Modes
@@ -214,6 +214,9 @@ When running tests:
 2. Use ${TEST_RUNNER_TOOL_NAME} to run the test suite.
 3. Only if there are failures or errors, briefly mention what failed and fix them, then re-run.
 
+# Web Tools
+You have access to web_search and web_fetch tools. Always prefer domain-specific tools first. Use web tools only when no suitable domain-specific tool can answer the query, or when the user provides a URL or asks for live/external information.
+
 ${getNPSuffix(projects, op)}
 `;
 }
@@ -224,6 +227,14 @@ ${getNPSuffix(projects, op)}
  * @param tempProjectPath Path to temp project
  * @param projects Project source information
  */
+function getSystemContextBlock(): string {
+    const now = new Date();
+    return `<system-reminder>
+System context:
+- Current date and time: ${now.toUTCString()}
+</system-reminder>`;
+}
+
 export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath: string, projects: ProjectSource[]) {
     const content = [];
 
@@ -266,9 +277,25 @@ ${params.usecase}
         type: 'text' as const,
         text: getGenerationType(params.isPlanMode)
     });
+
+    if (params.webSearchEnabled) {
+        content.push({
+            type: 'text' as const,
+            text: getWebToolsHint()
+        });
+    }
+
+    content.push({
+        type: 'text' as const,
+        text: getSystemContextBlock()
+    });
+
     return content;
 }
 
+export function getWebToolsHint(): string {
+    return `<system-reminder>The user has enabled web tools. Use web_search for live or up-to-date information. Use web_fetch when the user provides a URL. Invoke these tools proactively when the query suggests current data or external content is needed.</system-reminder>`;
+}
 
 function getGenerationType(isPlanMode:boolean):string {
     if (isPlanMode) {

@@ -49,6 +49,9 @@ import {
     UIChatMessage,
     UpdateChatMessageRequest,
     UsageResponse,
+    WebToolApprovalRequest,
+    approveWebTool,
+    declineWebTool,
     abortAIGeneration,
     acceptChanges,
     addFilesToProject,
@@ -294,5 +297,13 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     openFileDiff(params: OpenFileDiffRequest): void {
         return this._messenger.sendNotification(openFileDiff, HOST_EXTENSION, params);
+    }
+
+    approveWebTool(params: WebToolApprovalRequest): Promise<void> {
+        return this._messenger.sendRequest(approveWebTool, HOST_EXTENSION, params);
+    }
+
+    declineWebTool(params: WebToolApprovalRequest): Promise<void> {
+        return this._messenger.sendRequest(declineWebTool, HOST_EXTENSION, params);
     }
 }

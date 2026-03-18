@@ -304,6 +304,7 @@ export interface GenerateAgentCodeRequest {
     threadId?: string; //TODO: Make this required once we support threads in UI
     isPlanMode: boolean;
     codeContext?: CodeContext;
+    webSearchEnabled?: boolean;
 }
 
 export type LibraryMode = "CORE" | "HEALTHCARE" | "ALL";
@@ -456,6 +457,10 @@ export interface ConfigurationProvideRequest {
 export interface ConfigurationCancelRequest {
     requestId: string;
     comment?: string;
+}
+
+export interface WebToolApprovalRequest {
+    requestId: string;
 }
 
 export type ErrorCode = {

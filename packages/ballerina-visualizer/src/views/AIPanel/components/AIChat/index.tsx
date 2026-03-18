@@ -35,6 +35,7 @@ import {
     FileChanges,
     CodeContext,
     ApprovalOverlayState,
+    WebToolToggle,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -73,7 +74,7 @@ import { CodeSegment } from "../CodeSegment";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
 import Footer from "./Footer";
 import { AgentMode } from "../AIChatInput/ModeToggle";
-import ApprovalFooter from "./Footer/ApprovalFooter";
+import CommonApprovalFooter from "./Footer/CommonApprovalFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
 import WelcomeMessage from "./Welcome";
@@ -173,12 +174,19 @@ const AIChat: React.FC = () => {
 
     const [showSettings, setShowSettings] = useState(false);
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
+    const [isWebToolsEnabled, setIsWebToolsEnabled] = useState(false);
+    const userWebSearchPreferenceRef = useRef(false);
     const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Edit);
 
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
 
     const [approvalRequest, setApprovalRequest] = useState<TaskApprovalRequest | null>(null);
     const [approvalOverlay, setApprovalOverlay] = useState<ApprovalOverlayState>({ show: false });
+    const [webToolApprovalRequest, setWebToolApprovalRequest] = useState<{
+        requestId: string;
+        toolName: "web_search" | "web_fetch";
+        content: string;
+    } | null>(null);
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
@@ -362,6 +370,12 @@ const AIChat: React.FC = () => {
         rpcClient.onApprovalOverlayState(handleApprovalOverlay);
     }, [rpcClient]);
 
+    useEffect(() => {
+        rpcClient.onWebToolToggle((payload: WebToolToggle) => {
+            setIsWebToolsEnabled(payload.active ? true : userWebSearchPreferenceRef.current);
+        });
+    }, [rpcClient]);
+
     /**
      * Effect: Load initial chat history from aiChatMachine context
      */
@@ -535,6 +549,13 @@ const AIChat: React.FC = () => {
                 message: response.message,
             });
 
+        } else if (type === "web_tool_approval_request") {
+            setWebToolApprovalRequest({
+                requestId: response.requestId,
+                toolName: response.toolName,
+                content: response.content,
+            });
+
         } else if (type === "intermediary_state") {
             const state = response.state;
             if ("serviceName" in state && "documentation" in state) {
@@ -638,12 +659,16 @@ const AIChat: React.FC = () => {
 
         } else if (type === "stop") {
             console.log("Received stop signal");
+            setIsWebToolsEnabled(userWebSearchPreferenceRef.current);
+            setWebToolApprovalRequest(null);
             setIsCodeLoading(false);
             setIsLoading(false);
             fetchUsage();
 
         } else if (type === "abort") {
             console.log("Received abort signal");
+            setIsWebToolsEnabled(userWebSearchPreferenceRef.current);
+            setWebToolApprovalRequest(null);
             const abortItem: StreamItem = { kind: "text", text: "*[Request interrupted by user]*" };
             setMessages(prevMessages => {
                 const msgs = [...prevMessages];
@@ -659,8 +684,12 @@ const AIChat: React.FC = () => {
 
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
-            const assistantIndex = getLatestAssistantMessageIndex(messages);
-            const contentToSave = assistantIndex >= 0 ? messages[assistantIndex]?.content : messages[messages.length - 1]?.content;
+            let contentToSave: string | undefined;
+            setMessages(prevMessages => {
+                const assistantIndex = getLatestAssistantMessageIndex(prevMessages);
+                contentToSave = assistantIndex >= 0 ? prevMessages[assistantIndex]?.content : undefined;
+                return prevMessages;
+            });
             await rpcClient.getAiPanelRpcClient().updateChatMessage({
                 messageId: response.messageId,
                 content: contentToSave || "",
@@ -1104,7 +1133,7 @@ const AIChat: React.FC = () => {
         const currentCodeContext = codeContextRef.current;
         console.log("Submitting agent prompt:", { useCase, agentMode, codeContext: currentCodeContext, operationType, fileAttatchments });
         rpcClient.getAiPanelRpcClient().generateAgent({
-            usecase: useCase, isPlanMode: agentMode === AgentMode.Plan, codeContext: currentCodeContext, operationType, fileAttachmentContents: fileAttatchments
+            usecase: useCase, isPlanMode: agentMode === AgentMode.Plan, codeContext: currentCodeContext, operationType, fileAttachmentContents: fileAttatchments, webSearchEnabled: isWebToolsEnabled
         })
     }
 
@@ -1129,6 +1158,12 @@ const AIChat: React.FC = () => {
     const handleToggleAutoApprove = () => {
         const newValue = !isAutoApproveEnabled;
         setIsAutoApproveEnabled(newValue);
+    };
+
+    const handleToggleWebSearch = () => {
+        const next = !isWebToolsEnabled;
+        userWebSearchPreferenceRef.current = next;
+        setIsWebToolsEnabled(next);
     };
 
     const handleChangeAgentMode = (mode: AgentMode) => {
@@ -1306,6 +1341,18 @@ const AIChat: React.FC = () => {
         }
 
         setApprovalRequest(null);
+    };
+
+    const handleWebToolAllow = async () => {
+        if (!webToolApprovalRequest) return;
+        await rpcClient.getAiPanelRpcClient().approveWebTool({ requestId: webToolApprovalRequest.requestId });
+        setWebToolApprovalRequest(null);
+    };
+
+    const handleWebToolDeny = async () => {
+        if (!webToolApprovalRequest) return;
+        await rpcClient.getAiPanelRpcClient().declineWebTool({ requestId: webToolApprovalRequest.requestId });
+        setWebToolApprovalRequest(null);
     };
 
     async function processLLMDiagnostics() {
@@ -1676,12 +1723,19 @@ const AIChat: React.FC = () => {
                         })}
                         <div ref={messagesEndRef} />
                     </main>
-                    {approvalRequest ? (
-                        <ApprovalFooter
-                            approvalType={approvalRequest.approvalType}
+                    {webToolApprovalRequest ? (
+                        <CommonApprovalFooter
+                            type="web_tool"
+                            toolName={webToolApprovalRequest.toolName}
+                            content={webToolApprovalRequest.content}
+                            onAllow={handleWebToolAllow}
+                            onDeny={handleWebToolDeny}
+                        />
+                    ) : approvalRequest ? (
+                        <CommonApprovalFooter
+                            type={approvalRequest.approvalType}
                             onApprove={handleApprovalApprove}
                             onReject={handleApprovalReject}
-                            isSubmitting={false}
                         />
                     ) : (
                         <Footer
@@ -1707,6 +1761,8 @@ const AIChat: React.FC = () => {
                             onChangeAgentMode={handleChangeAgentMode}
                             isAutoApproveEnabled={isAutoApproveEnabled}
                             onDisableAutoApprove={handleToggleAutoApprove}
+                            isWebToolsEnabled={isWebToolsEnabled}
+                            onToggleWebSearch={handleToggleWebSearch}
                             disabled={isUsageExceeded}
                         />
                     )}
