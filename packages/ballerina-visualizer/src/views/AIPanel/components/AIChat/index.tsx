@@ -660,6 +660,7 @@ const AIChat: React.FC = () => {
         } else if (type === "stop") {
             console.log("Received stop signal");
             setIsWebToolsEnabled(userWebSearchPreferenceRef.current);
+            setWebToolApprovalRequest(null);
             setIsCodeLoading(false);
             setIsLoading(false);
             fetchUsage();
@@ -667,6 +668,7 @@ const AIChat: React.FC = () => {
         } else if (type === "abort") {
             console.log("Received abort signal");
             setIsWebToolsEnabled(userWebSearchPreferenceRef.current);
+            setWebToolApprovalRequest(null);
             const abortItem: StreamItem = { kind: "text", text: "*[Request interrupted by user]*" };
             setMessages(prevMessages => {
                 const msgs = [...prevMessages];

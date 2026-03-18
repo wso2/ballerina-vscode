@@ -33,7 +33,7 @@ approvalManager.registerNotificationHandler(WEB_TOOL_NOTIFICATION_TYPE, (active)
 });
 
 function sanitizeDomainList(domains?: string[]): string[] | undefined {
-    if (!domains || domains.length === 0) return undefined;
+    if (!domains || domains.length === 0) { return undefined; }
     const sanitized = Array.from(new Set(domains.map(d => d.trim()).filter(d => d.length > 0)));
     return sanitized.length > 0 ? sanitized : undefined;
 }
@@ -41,7 +41,7 @@ function sanitizeDomainList(domains?: string[]): string[] | undefined {
 function getProviderToolFactory(candidateNames: string[]): ((args: Record<string, unknown>) => Tool<unknown, unknown>) | null {
     for (const name of candidateNames) {
         const factory = (anthropic as any)?.tools?.[name];
-        if (typeof factory === 'function') return factory;
+        if (typeof factory === 'function') { return factory; }
     }
     return null;
 }
@@ -76,7 +76,7 @@ async function requestApprovalIfNeeded(
     webSearchEnabled: boolean,
     eventHandler: CopilotEventHandler,
 ): Promise<boolean> {
-    if (webSearchEnabled) return true;
+    if (webSearchEnabled) { return true; }
     const requestId = `web-${uuidv4()}`;
     const { approved } = await approvalManager.requestWebToolApproval(requestId, toolName, displayContent, eventHandler);
     return approved;
@@ -130,6 +130,7 @@ async function executeWebSearch(
 
         const searchFactory = getProviderToolFactory(['webSearch_20250305']);
         if (!searchFactory) {
+            eventHandler({ type: "tool_result", toolName: WEB_SEARCH_TOOL_NAME, toolOutput: { query: input.query }, toolCallId, failed: true });
             return 'Web search tool is unavailable in this environment.';
         }
 
@@ -157,6 +158,7 @@ async function executeWebSearch(
         return content;
     } catch (error: any) {
         console.error('[WebTools] search | error:', error?.message || error);
+        eventHandler({ type: "tool_result", toolName: WEB_SEARCH_TOOL_NAME, toolOutput: { query: input.query }, toolCallId, failed: true });
         const errorMessage = error?.message || String(error);
         if (errorMessage.includes('responses API is unavailable')) {
             return 'Web search failed: Anthropic responses API is unavailable in this environment.';
@@ -210,6 +212,7 @@ async function executeWebFetch(
 
         const fetchFactory = getProviderToolFactory(['webFetch_20250910', 'webFetch_20250305']);
         if (!fetchFactory) {
+            eventHandler({ type: "tool_result", toolName: WEB_FETCH_TOOL_NAME, toolOutput: { url: input.url }, toolCallId, failed: true });
             return 'Web fetch tool is unavailable in this environment.';
         }
 
@@ -239,6 +242,7 @@ async function executeWebFetch(
         return content || 'Web fetch completed.';
     } catch (error: any) {
         console.error('[WebTools] fetch | error:', error?.message || error);
+        eventHandler({ type: "tool_result", toolName: WEB_FETCH_TOOL_NAME, toolOutput: { url: input.url }, toolCallId, failed: true });
         const errorMessage = error?.message || String(error);
         if (errorMessage.includes('responses API is unavailable')) {
             return 'Web fetch failed: Anthropic responses API is unavailable in this environment.';

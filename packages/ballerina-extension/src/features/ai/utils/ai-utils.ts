@@ -242,12 +242,13 @@ export function sendToolCallNotification(toolName: string, toolInput?: any, tool
     sendAIPanelNotification(msg);
 }
 
-export function sendToolResultNotification(toolName: string, toolOutput?: any, toolCallId?: string): void {
+export function sendToolResultNotification(toolName: string, toolOutput?: any, toolCallId?: string, failed?: boolean): void {
     const msg: ToolResult = {
         type: "tool_result",
-        toolName: toolName,
-        toolOutput: toolOutput,
-        toolCallId: toolCallId,
+        toolName,
+        toolOutput,
+        toolCallId,
+        failed,
     };
     sendAIPanelNotification(msg);
 }
