@@ -1,0 +1,41 @@
+/*
+ *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
+ *
+ *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
+package org.ballerinalang.langserver.workspace.compilerengine;
+
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.projects.ModuleId;
+
+/**
+ * Sealed interface for syntax tree access in the dual-snapshot pattern (ADR-042).
+ *
+ * <p>Provides per-module syntax tree lookup for LSP features that operate on
+ * parsed but not necessarily fully-compiled code.
+ *
+ * @since 1.7.0
+ */
+public sealed interface SyntaxSnapshot permits StableSnapshot {
+
+    /**
+     * Returns the syntax tree for the given module.
+     *
+     * @param moduleId the module identifier
+     * @return the syntax tree, or {@code null} if not available
+     */
+    SyntaxTree syntaxTree(ModuleId moduleId);
+}
