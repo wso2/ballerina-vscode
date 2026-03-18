@@ -168,7 +168,7 @@ public class ModelGenerator {
 
         // Analyze the code block to find the flow nodes
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, dataMappings,
-                naturalFunctions, textDocument, ModuleInfo.from(document.module().descriptor()), true,
+                naturalFunctions, textDocument, ModuleInfo.from(document.module().descriptor()), false,
                 workspaceManager, filePath);
         canvasNode.accept(codeAnalyzer);
 
