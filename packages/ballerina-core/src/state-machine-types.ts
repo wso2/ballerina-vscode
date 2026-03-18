@@ -707,8 +707,8 @@ export interface ChatThread {
  * One per workspace, contains multiple threads
  */
 export interface WorkspaceChatState {
-    /** Workspace/project identifier (hash of workspace path) */
-    workspaceId: string;
+    /** Root path for chat storage (workspace root or package root) */
+    projectRootPath: string;
     /** Map of thread ID to thread */
     threads: Map<string, ChatThread>;
     /** Currently active thread ID */

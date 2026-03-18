@@ -873,14 +873,13 @@ export function WorkspaceOverview() {
                         <ContentPanel isEmpty={isEmptyProject}>
                             <SectionHeader>
                                 <SectionTitle>Integrations & Libraries</SectionTitle>
-                                {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
-                                {/* {!isEmptyProject && (
+                                {!isEmptyProject && (
                                     <SectionActions>
                                         <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "6px 12px" }}>
                                             <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
                                         </Button>
                                     </SectionActions>
-                                )} */}
+                                )}
                             </SectionHeader>
                             {isEmptyProject ? (
                                 <EmptyStateContainer>
@@ -897,10 +896,9 @@ export function WorkspaceOverview() {
                                         <Button appearance="secondary" onClick={handleAddResource}>
                                             <Codicon name="add" sx={{ marginRight: 8 }} /> Add Integration or Library
                                         </Button>
-                                        {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
-                                        {/* <Button appearance="primary" onClick={handleGenerate}>
+                                        <Button appearance="primary" onClick={handleGenerate}>
                                             <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
-                                        </Button> */}
+                                        </Button>
                                     </ButtonContainer>
                                 </EmptyStateContainer>
                             ) : (
