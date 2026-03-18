@@ -24,6 +24,7 @@ import * as vscode from 'vscode';
 import { BallerinaExtension } from "src/core";
 import Handlebars from "handlebars";
 import { clientManager, findRunningBallerinaProcesses, handleError, HTTPYAC_CONFIG_TEMPLATE, TRYIT_TEMPLATE, waitForBallerinaService } from "./utils";
+import { buildHurlCellsFromOASSpec } from "./hurl-builder";
 import { BIDesignModelResponse, EVENT_TYPE, MACHINE_VIEW, OpenAPISpec, ProjectInfo } from "@wso2/ballerina-core";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
 import { startDebugging } from "../editor-support/activator";
@@ -67,7 +68,12 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
 
         // Command: start Ballerina service (no old Try It UI), then open WSO2 HttpBook notebook
         const startServiceDisposable = commands.registerCommand('ballerina.startService',
-            async (content?: string | object[], options?: { savable?: boolean }, serviceMetadata?: ServiceMetadata, filePath?: string) => {
+            async (
+                content?: string | object[] | { oasSpec: any; baseUrl: string; serviceName: string; resourceMetadata?: { methodValue: string; pathValue: string } },
+                options?: { savable?: boolean },
+                serviceMetadata?: ServiceMetadata,
+                filePath?: string
+            ) => {
                 try {
                     const projectAndServices = await getProjectPathAndServices(serviceMetadata, filePath);
                     if (!projectAndServices) { return; }
@@ -78,7 +84,11 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
 
                     if (content) {
                         const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
-                        await vscode.commands.executeCommand('http-book.importHurlString', content, { ...options, savePath, viewColumn: 'beside' });
+                        if (isOasDescriptor(content)) {
+                            await openHurlNotebook(content, savePath, options);
+                        } else {
+                            await vscode.commands.executeCommand('http-book.importHurlString', content, { ...options, savePath, viewColumn: 'beside' });
+                        }
                     }
                 } catch (error) {
                     handleError(error, "Starting Ballerina service");
@@ -187,8 +197,11 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             const selectedPort: number = await getServicePort(projectPath, selectedService, openapiSpec);
             selectedService.port = selectedPort;
 
-            const tryitFileUri = await generateTryItFileContent(targetDir, openapiSpec, selectedService, resourceMetadata);
-            await openInSplitView(tryitFileUri, 'http');
+            const basePath = selectedService.basePath === '/' ? '' : selectedService.basePath;
+            const baseUrl = `http://localhost:${selectedPort}${basePath}`;
+            const serviceName = selectedService.name || selectedService.basePath;
+            const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
+            await openHurlNotebook({ oasSpec: openapiSpec, baseUrl, serviceName, resourceMetadata }, savePath, { savable: true });
         } else if (selectedService.type === ServiceType.GRAPHQL) {
             const selectedPort: number = await getServicePort(projectPath, selectedService);
             const port = selectedPort;
@@ -217,6 +230,30 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
     } catch (error) {
         handleError(error, "Opening Try It view");
     }
+}
+
+// ---------------------------------------------------------------------------
+// Hurl notebook helpers — shared by ballerina.startService and openTryItView
+// ---------------------------------------------------------------------------
+
+interface OasDescriptor {
+    oasSpec: any;
+    baseUrl: string;
+    serviceName: string;
+    resourceMetadata?: { methodValue: string; pathValue: string };
+}
+
+function isOasDescriptor(v: any): v is OasDescriptor {
+    return v !== null && typeof v === 'object' && !Array.isArray(v) && 'oasSpec' in v && 'baseUrl' in v;
+}
+
+async function openHurlNotebook(
+    descriptor: OasDescriptor,
+    savePath: string,
+    options?: { savable?: boolean }
+): Promise<void> {
+    const cells = buildHurlCellsFromOASSpec(descriptor.oasSpec, descriptor.baseUrl, descriptor.serviceName, descriptor.resourceMetadata);
+    await vscode.commands.executeCommand('http-book.importHurlString', cells, { ...options, savePath, viewColumn: 'active' });
 }
 
 // Generic utility function for opening files in split view

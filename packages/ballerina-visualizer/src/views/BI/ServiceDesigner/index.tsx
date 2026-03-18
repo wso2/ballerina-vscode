@@ -22,14 +22,13 @@ import {
     EVENT_TYPE,
     FunctionModel,
     LineRange,
-    CodeData,
     MACHINE_VIEW,
     ProjectStructureArtifactResponse,
     ComponentInfo,
     ServiceModel,
     Protocol
 } from "@wso2/ballerina-core";
-import { buildBaseUrl, buildHurlString, buildMarkdownDoc } from "./buildHurlString";
+import { buildBaseUrl } from "./buildHurlString";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { NodePosition } from "@wso2/syntax-tree";
@@ -728,64 +727,25 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         const listener = serviceModel.properties?.listener?.value?.trim();
 
         const baseUrl = buildBaseUrl(listener, basePath);
-
-        const httpResources = resources
-            .filter(r => r.type === DIRECTORY_MAP.RESOURCE)
-            .sort((a, b) => (a.position?.startLine ?? 0) - (b.position?.startLine ?? 0));
-        if (httpResources.length === 0) { return; }
-
-        const cells: { kind: "markdown" | "hurl"; content: string }[] = [];
-
         const serviceName = basePath?.replace(/^\//, "") || serviceModel.name || "Service";
-        cells.push({ kind: "markdown", content: `### Try Service: '${serviceName}' (${baseUrl})` });
 
-        // Fetch OAI spec once for schema docs + sample values; fall back gracefully if unavailable
+        const firstPath = resources.find(r => r.type === DIRECTORY_MAP.RESOURCE && r.path)?.path;
+
         let oasSpec: any | undefined;
         try {
-            const firstPath = httpResources.find(r => r.path)?.path;
             const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
                 documentFilePath: firstPath,
                 basePath
             });
             oasSpec = oasResult.spec ?? undefined;
         } catch {
-            // spec unavailable — cells will fall back to minimal placeholders
+            // spec unavailable — extension will fall back to minimal placeholders
         }
 
-        try {
-            const resourceCells = await Promise.all(httpResources.map(async (resource) => {
-                if (!resource.position || !resource.path) { return []; }
-                try {
-                    const codeData: CodeData = {
-                        lineRange: {
-                            fileName: resource.path,
-                            startLine: { line: resource.position.startLine, offset: resource.position.startColumn },
-                            endLine: { line: resource.position.endLine, offset: resource.position.endColumn },
-                        }
-                    };
-                    const result = await rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({
-                        filePath: resource.path,
-                        codedata: codeData
-                    });
-                    return [
-                        { kind: "markdown" as const, content: buildMarkdownDoc(result.function) },
-                        { kind: "hurl" as const, content: buildHurlString(result.function, baseUrl, oasSpec) }
-                    ];
-                } catch {
-                    const method = resource.icon?.split("-")[0]?.toUpperCase() ?? "GET";
-                    return [{ kind: "hurl" as const, content: `${method} ${baseUrl}${resource.name}` }];
-                }
-            }));
-            cells.push(...resourceCells.flat());
-        } catch (error) {
-            console.error("Error generating try-it cells: ", error);
-        }
-
-        if (cells.length === 0) { return; }
-
-        // Start the Ballerina service (checks if running, prompts user if not), then open notebook
+        // Delegate cell-building to the extension so both Service Try It and Code Lens Try It
+        // share the same buildHurlCellsFromOASSpec logic via ballerina.startService
         rpcClient.getCommonRpcClient().executeCommand({
-            commands: ["ballerina.startService", cells, { savable: true }, { basePath, listener }]
+            commands: ["ballerina.startService", { oasSpec, baseUrl, serviceName }, { savable: true }, { basePath, listener }]
         });
     }
 
