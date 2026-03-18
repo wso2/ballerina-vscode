@@ -19,89 +19,32 @@
 package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
-import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Snapshot of an in-progress compilation (ADR-042).
- *
- * <p>Provides immediate access to syntax trees while semantic analysis completes
- * asynchronously. This enables LSP features to work with parsed code immediately
- * while waiting for type information.
- *
- * <p>Used by correctness-critical LSP features (hover, go-to-definition, find references,
- * diagnostics) where consistency beats latency.
- *
- * @param syntaxTrees    syntax trees keyed by module ID (available immediately)
- * @param semanticFuture  future that will yield the semantic model for a given module
- * @param compilationFuture future that will yield the full package compilation
- * @param contentVersion the content version that produced this snapshot
+ * In-progress snapshot contract for the current compilation cycle.
  * @since 1.7.0
  */
-public record InProgressSnapshot(Map<ModuleId, SyntaxTree> syntaxTrees,
-                                 CompletableFuture<SemanticModel> semanticFuture,
-                                 CompletableFuture<PackageCompilation> compilationFuture,
-                                 ContentVersion contentVersion) implements SyntaxSnapshot {
+public interface InProgressSnapshot extends SnapshotView {
 
     /**
-     * Validates all fields are non-null and creates defensive copy of syntaxTrees.
-     */
-    public InProgressSnapshot {
-        Objects.requireNonNull(syntaxTrees, "syntaxTrees must not be null");
-        Objects.requireNonNull(semanticFuture, "semanticFuture must not be null");
-        Objects.requireNonNull(compilationFuture, "compilationFuture must not be null");
-        Objects.requireNonNull(contentVersion, "contentVersion must not be null");
-        syntaxTrees = Map.copyOf(syntaxTrees);
-    }
-
-    /**
-     * Returns the syntax tree for the given module (immediate, non-blocking).
+     * Returns a future for the semantic model of the given module.
      *
      * @param moduleId the module identifier
-     * @return the syntax tree, or {@code null} if not available for this module
+     * @param checker the cancellation checker for the request
+     * @return a future for the module semantic model
      */
-    @Override
-    public SyntaxTree syntaxTree(ModuleId moduleId) {
-        Objects.requireNonNull(moduleId, "moduleId must not be null");
-        return syntaxTrees.get(moduleId);
-    }
+    CompletableFuture<SemanticModel> semanticModel(ModuleId moduleId, CancelChecker checker);
 
     /**
-     * Returns a future that will yield the semantic model when compilation completes.
+     * Returns a future for the in-progress package compilation.
      *
-     * @return the semantic model future
+     * @param checker the cancellation checker for the request
+     * @return a future for the package compilation
      */
-    public CompletableFuture<SemanticModel> semanticModel() {
-        return semanticFuture;
-    }
-
-    /**
-     * Returns a future that will yield the package compilation when complete.
-     *
-     * @return the compilation future
-     */
-    public CompletableFuture<PackageCompilation> compilation() {
-        return compilationFuture;
-    }
-
-    /**
-     * Cancels the underlying compilation futures.
-     *
-     * <p>If compilation has already completed, this has no effect.
-     * Any threads waiting on the futures will receive a
-     * {@link java.util.concurrent.CancellationException}.
-     *
-     * @return {@code true} if either future was cancelled (was not already completed)
-     */
-    public boolean cancel() {
-        boolean semanticCancelled = semanticFuture.cancel(true);
-        boolean compilationCancelled = compilationFuture.cancel(true);
-        return semanticCancelled || compilationCancelled;
-    }
+    CompletableFuture<PackageCompilation> compilation(CancelChecker checker);
 }

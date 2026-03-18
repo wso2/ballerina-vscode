@@ -19,23 +19,28 @@
 package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.projects.ModuleId;
+import io.ballerina.projects.DocumentId;
+import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 
 /**
- * Sealed interface for syntax tree access in the dual-snapshot pattern (ADR-042).
- *
- * <p>Provides per-module syntax tree lookup for LSP features that operate on
- * parsed but not necessarily fully-compiled code.
+ * Shared syntax-level snapshot contract for the dual-snapshot access pattern.
  *
  * @since 1.7.0
  */
-public sealed interface SyntaxSnapshot permits StableSnapshot, InProgressSnapshot {
+public interface SnapshotView {
 
     /**
-     * Returns the syntax tree for the given module.
+     * Returns the syntax tree for the given document.
      *
-     * @param moduleId the module identifier
-     * @return the syntax tree, or {@code null} if not available
+     * @param docId the document identifier
+     * @return the syntax tree for the given document
      */
-    SyntaxTree syntaxTree(ModuleId moduleId);
+    SyntaxTree syntaxTree(DocumentId docId);
+
+    /**
+     * Returns the content version represented by this snapshot.
+     *
+     * @return the snapshot content version
+     */
+    ContentVersion contentVersion();
 }
