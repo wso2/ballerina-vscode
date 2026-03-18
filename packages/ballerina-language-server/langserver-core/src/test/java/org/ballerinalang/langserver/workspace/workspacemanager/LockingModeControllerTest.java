@@ -272,7 +272,7 @@ public class LockingModeControllerTest {
 
         // Publish CE-E6 (recovery exhausted)
         eventBus.publish(new DomainEvent(Instant.now(), "compiler-engine",
-                EventKind.COMPILER_RECOVERY_ATTEMPT_EXHAUSTED, "test-root"));
+                EventKind.CE_RESOLUTION_EXHAUSTED, "test-root"));
 
         Thread.sleep(100);
         Assert.assertEquals(controller.getMode(), LockingMode.HARD,

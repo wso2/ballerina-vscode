@@ -332,10 +332,10 @@ public final class DocumentServiceImpl implements DocumentService {
             updateConfigFile(filePath, changeType, null);
             if (!isConfigFile(filePath) && changeType == FileChangeType.Changed) {
                 virtualFileSystem.refreshFromDisk(fileUri(filePath));
-                publish(EventKind.DOCUMENT_CHANGED, sourceRoot.toString(), filePath.toString());
+                publish(EventKind.WM_DOCUMENT_CHANGED, sourceRoot.toString(), filePath.toString());
             }
         } finally {
-            publish(EventKind.DOCUMENT_FILE_WATCHER_EVENTS_PROCESSED, sourceRoot.toString(), filePath.toString());
+            publish(EventKind.WM_FILE_WATCHED_CHANGED, sourceRoot.toString(), filePath.toString());
         }
     }
 
@@ -408,7 +408,7 @@ public final class DocumentServiceImpl implements DocumentService {
 
         for (DocumentUri sandboxUri : sandboxUris) {
             sandboxRegistry.remove(sandboxUri);
-            publish(EventKind.DOCUMENT_SANDBOX_INVALIDATED, sourceRoot.toString(), sandboxUri.toString());
+            publish(EventKind.WM_FILE_WATCHED_CHANGED, sourceRoot.toString(), sandboxUri.toString());
         }
     }
 

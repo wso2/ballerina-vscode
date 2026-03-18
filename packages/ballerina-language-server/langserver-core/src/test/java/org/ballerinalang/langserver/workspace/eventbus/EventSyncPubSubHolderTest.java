@@ -46,13 +46,14 @@ public class EventSyncPubSubHolderTest {
                 "WORKSPACE_PROJECT_HEALTH_STATE_CHANGED", "WORKSPACE_PROJECT_KIND_TRANSITIONED",
                 "WORKSPACE_PROJECT_TIER_CHANGED", "WORKSPACE_BATCH_PROJECTS_REGISTERED",
                 "WORKSPACE_LOCKING_MODE_CHANGED",
+                "WM_DOCUMENT_OPENED", "WM_DOCUMENT_CHANGED", "WM_DOCUMENT_CLOSED", "WM_FILE_WATCHED_CHANGED",
                 "COMPILER_SNAPSHOT_PUBLISHED", "COMPILER_COMPILATION_FAILED",
                 "COMPILER_COMPILATION_CANCELLED", "COMPILER_RESOLUTION_COMPLETED",
-                "COMPILER_DIAGNOSTICS_READY", "COMPILER_RECOVERY_ATTEMPT_EXHAUSTED",
-                "DOCUMENT_OPENED", "DOCUMENT_CHANGED", "DOCUMENT_CLOSED",
-                "DOCUMENT_CONFIG_FILE_CHANGED", "DOCUMENT_FILE_WATCHER_EVENTS_PROCESSED",
-                "DOCUMENT_SANDBOX_INVALIDATED", "EXECUTION_PROCESS_STARTED",
-                "EXECUTION_PROCESS_OUTPUT", "EXECUTION_PROCESS_TERMINATED", "CACHE_INVALIDATION_REQUESTED"
+                "CE_E5A_RESOLUTION_DIAGNOSTICS_READY", "CE_E5B_COMPILATION_DIAGNOSTICS_READY",
+                "CE_RESOLUTION_EXHAUSTED", "CE_RESOLUTION_RECOVERED",
+                "EXECUTION_PROCESS_STARTED", "EXECUTION_PROCESS_OUTPUT",
+                "EXECUTION_PROCESS_TERMINATED", "CACHE_INVALIDATION_REQUESTED",
+                "RM_E1_HEAP_PRESSURE_DETECTED"
         ));
     }
 
@@ -127,14 +128,14 @@ public class EventSyncPubSubHolderTest {
         CountDownLatch latch = new CountDownLatch(1);
         List<DomainEvent> delivered = new CopyOnWriteArrayList<>();
 
-        holder.subscribe("coalesce-sub", SubscriberTier.COALESCEABLE, Set.of(EventKind.DOCUMENT_CHANGED), event -> {
+        holder.subscribe("coalesce-sub", SubscriberTier.COALESCEABLE, Set.of(EventKind.WM_DOCUMENT_CHANGED), event -> {
             delivered.add(event);
             latch.countDown();
         });
 
-        DomainEvent first = new DomainEvent(Instant.now(), "file:///workspace/main.bal", EventKind.DOCUMENT_CHANGED);
-        DomainEvent second = new DomainEvent(Instant.now(), "file:///workspace/main.bal", EventKind.DOCUMENT_CHANGED);
-        DomainEvent third = new DomainEvent(Instant.now(), "file:///workspace/main.bal", EventKind.DOCUMENT_CHANGED);
+        DomainEvent first = new DomainEvent(Instant.now(), "file:///workspace/main.bal", EventKind.WM_DOCUMENT_CHANGED);
+        DomainEvent second = new DomainEvent(Instant.now(), "file:///workspace/main.bal", EventKind.WM_DOCUMENT_CHANGED);
+        DomainEvent third = new DomainEvent(Instant.now(), "file:///workspace/main.bal", EventKind.WM_DOCUMENT_CHANGED);
         holder.publish(first);
         holder.publish(second);
         holder.publish(third);

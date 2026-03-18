@@ -90,8 +90,8 @@ public class DocumentServiceImplTest {
         List<EventKind> received = new CopyOnWriteArrayList<>();
         CountDownLatch latch = new CountDownLatch(3);
 
-        subscribe("doc-lifecycle", Set.of(EventKind.DOCUMENT_OPENED, EventKind.DOCUMENT_CHANGED,
-                EventKind.DOCUMENT_CLOSED), event -> {
+        subscribe("doc-lifecycle", Set.of(EventKind.WM_DOCUMENT_OPENED, EventKind.WM_DOCUMENT_CHANGED,
+                EventKind.WM_DOCUMENT_CLOSED), event -> {
             received.add(event.eventKind());
             latch.countDown();
         });
@@ -101,9 +101,9 @@ public class DocumentServiceImplTest {
         service.didClose(file, closeParams(file));
 
         Assert.assertTrue(latch.await(2, TimeUnit.SECONDS));
-        Assert.assertTrue(received.contains(EventKind.DOCUMENT_OPENED));
-        Assert.assertTrue(received.contains(EventKind.DOCUMENT_CHANGED));
-        Assert.assertTrue(received.contains(EventKind.DOCUMENT_CLOSED));
+        Assert.assertTrue(received.contains(EventKind.WM_DOCUMENT_OPENED));
+        Assert.assertTrue(received.contains(EventKind.WM_DOCUMENT_CHANGED));
+        Assert.assertTrue(received.contains(EventKind.WM_DOCUMENT_CLOSED));
     }
 
     /**
@@ -116,12 +116,12 @@ public class DocumentServiceImplTest {
         CountDownLatch watcherProcessed = new CountDownLatch(1);
 
         subscribe("self-write-suppression",
-                Set.of(EventKind.DOCUMENT_CONFIG_FILE_CHANGED, EventKind.DOCUMENT_FILE_WATCHER_EVENTS_PROCESSED),
+                Set.of(EventKind.WM_FILE_WATCHED_CHANGED, EventKind.WM_FILE_WATCHED_CHANGED),
                 event -> {
-                    if (event.eventKind() == EventKind.DOCUMENT_CONFIG_FILE_CHANGED) {
+                    if (event.eventKind() == EventKind.WM_FILE_WATCHED_CHANGED) {
                         configChangedCount.incrementAndGet();
                     }
-                    if (event.eventKind() == EventKind.DOCUMENT_FILE_WATCHER_EVENTS_PROCESSED) {
+                    if (event.eventKind() == EventKind.WM_FILE_WATCHED_CHANGED) {
                         watcherProcessed.countDown();
                     }
                 });
@@ -144,7 +144,7 @@ public class DocumentServiceImplTest {
         List<EventKind> received = new CopyOnWriteArrayList<>();
 
         subscribe("watcher-config",
-                Set.of(EventKind.DOCUMENT_CONFIG_FILE_CHANGED, EventKind.DOCUMENT_FILE_WATCHER_EVENTS_PROCESSED),
+                Set.of(EventKind.WM_FILE_WATCHED_CHANGED, EventKind.WM_FILE_WATCHED_CHANGED),
                 event -> {
                     received.add(event.eventKind());
                     latch.countDown();
@@ -155,8 +155,8 @@ public class DocumentServiceImplTest {
         )));
 
         Assert.assertTrue(latch.await(2, TimeUnit.SECONDS));
-        Assert.assertTrue(received.contains(EventKind.DOCUMENT_CONFIG_FILE_CHANGED));
-        Assert.assertTrue(received.contains(EventKind.DOCUMENT_FILE_WATCHER_EVENTS_PROCESSED));
+        Assert.assertTrue(received.contains(EventKind.WM_FILE_WATCHED_CHANGED));
+        Assert.assertTrue(received.contains(EventKind.WM_FILE_WATCHED_CHANGED));
     }
 
     /**
@@ -168,7 +168,7 @@ public class DocumentServiceImplTest {
         String sandboxUri = "expr:///project/source/sandbox";
         CountDownLatch latch = new CountDownLatch(1);
 
-        subscribe("snapshot-subscription", Set.of(EventKind.DOCUMENT_SANDBOX_INVALIDATED), event -> latch.countDown());
+        subscribe("snapshot-subscription", Set.of(EventKind.WM_FILE_WATCHED_CHANGED), event -> latch.countDown());
 
         service.didOpen(parent.resolve("ignored.bal"),
                 openParams(sandboxUri, "return 1;", "ballerina", 1));
@@ -186,7 +186,7 @@ public class DocumentServiceImplTest {
         String sandboxUri = "ai:///project-evict/source/sandbox";
         AtomicInteger invalidationCount = new AtomicInteger();
 
-        subscribe("eviction-subscription", Set.of(EventKind.DOCUMENT_SANDBOX_INVALIDATED), event -> {
+        subscribe("eviction-subscription", Set.of(EventKind.WM_FILE_WATCHED_CHANGED), event -> {
             invalidationCount.incrementAndGet();
         });
 

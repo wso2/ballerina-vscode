@@ -168,25 +168,25 @@ public class WorkspaceTraceLogger implements AutoCloseable {
                  WORKSPACE_PROJECT_HEALTH_STATE_CHANGED,
                  WORKSPACE_PROJECT_KIND_TRANSITIONED,
                  COMPILER_COMPILATION_FAILED,
-                 COMPILER_RECOVERY_ATTEMPT_EXHAUSTED,
+                 CE_RESOLUTION_EXHAUSTED,
                  EXECUTION_PROCESS_STARTED,
                  EXECUTION_PROCESS_TERMINATED -> "INFO";
-            case DOCUMENT_OPENED,
-                 DOCUMENT_CLOSED,
-                 DOCUMENT_CHANGED,
-                 DOCUMENT_CONFIG_FILE_CHANGED,
+            case WM_DOCUMENT_OPENED,
+                 WM_DOCUMENT_CLOSED,
+                 WM_DOCUMENT_CHANGED,
+                 WM_FILE_WATCHED_CHANGED,
                  COMPILER_SNAPSHOT_PUBLISHED,
                  COMPILER_COMPILATION_CANCELLED -> "DEBUG";
             case COMPILER_RESOLUTION_COMPLETED,
-                 COMPILER_DIAGNOSTICS_READY,
-                 DOCUMENT_FILE_WATCHER_EVENTS_PROCESSED,
-                 DOCUMENT_SANDBOX_INVALIDATED,
+                 CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
+                 CE_E5B_COMPILATION_DIAGNOSTICS_READY,
+                 CE_RESOLUTION_RECOVERED,
                  WORKSPACE_PROJECT_TIER_CHANGED,
                  WORKSPACE_BATCH_PROJECTS_REGISTERED,
                  WORKSPACE_LOCKING_MODE_CHANGED,
                  EXECUTION_PROCESS_OUTPUT,
                  CACHE_INVALIDATION_REQUESTED,
-                 RESOURCE_MONITOR_HEAP_PRESSURE_DETECTED -> "TRACE";
+                 RM_E1_HEAP_PRESSURE_DETECTED -> "TRACE";
         };
     }
 

@@ -215,7 +215,7 @@ final class DeliveryChannel {
     }
 
     private boolean shouldSampleOut(DomainEvent event) {
-        if (event.eventKind() != EventKind.COMPILER_DIAGNOSTICS_READY
+        if (event.eventKind() != EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY
                 && event.eventKind() != EventKind.EXECUTION_PROCESS_OUTPUT) {
             return false;
         }

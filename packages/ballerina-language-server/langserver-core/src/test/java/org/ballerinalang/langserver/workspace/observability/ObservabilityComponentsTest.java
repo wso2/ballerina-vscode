@@ -385,7 +385,7 @@ public class ObservabilityComponentsTest {
 
         // Publish many events
         for (int i = 0; i < 500; i++) {
-            eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.DOCUMENT_OPENED));
+            eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED));
         }
 
         // Wait for delivery
@@ -417,7 +417,7 @@ public class ObservabilityComponentsTest {
 
         // Publish events
         eventBus.publish(new DomainEvent(Instant.now(), "workspace-1", EventKind.WORKSPACE_PROJECT_REGISTERED));
-        eventBus.publish(new DomainEvent(Instant.now(), "workspace-1", EventKind.DOCUMENT_OPENED));
+        eventBus.publish(new DomainEvent(Instant.now(), "workspace-1", EventKind.WM_DOCUMENT_OPENED));
         eventBus.publish(new DomainEvent(Instant.now(), "workspace-1", EventKind.COMPILER_SNAPSHOT_PUBLISHED));
 
         // Wait for async processing
@@ -425,7 +425,7 @@ public class ObservabilityComponentsTest {
 
         // Verify events were logged
         Assert.assertTrue(loggedEvents.contains("WORKSPACE_PROJECT_REGISTERED"));
-        Assert.assertTrue(loggedEvents.contains("DOCUMENT_OPENED"));
+        Assert.assertTrue(loggedEvents.contains("WM_DOCUMENT_OPENED"));
         Assert.assertTrue(loggedEvents.contains("COMPILER_SNAPSHOT_PUBLISHED"));
 
         eventBus.close();

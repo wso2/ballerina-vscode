@@ -143,9 +143,9 @@ public class ProjectServiceTest {
         // Verify event bus has subscriptions for document and compiler events
         List<DomainEvent> capturedEvents = new CopyOnWriteArrayList<>();
         eventBus.subscribe("test-doc-opened", SubscriberTier.CRITICAL,
-                Set.of(EventKind.DOCUMENT_OPENED), capturedEvents::add);
+                Set.of(EventKind.WM_DOCUMENT_OPENED), capturedEvents::add);
 
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.DOCUMENT_OPENED));
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED));
         // Wait for async event delivery
         Thread.sleep(200);
         Assert.assertEquals(capturedEvents.size(), 1, "Event should be published");
@@ -421,7 +421,7 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
         publishedEvents.clear();
 
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.DOCUMENT_OPENED,
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED,
                 projectPath.toString()));
 
         // Allow async processing
@@ -439,7 +439,7 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
         publishedEvents.clear();
 
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.DOCUMENT_OPENED,
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED,
                 projectPath.toString()));
 
         // Allow async processing
@@ -455,7 +455,7 @@ public class ProjectServiceTest {
         Path unknownPath = tempDir.resolve("unknown").toAbsolutePath().normalize();
         publishedEvents.clear();
 
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.DOCUMENT_OPENED,
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED,
                 unknownPath.toString()));
 
         Assert.assertTrue(publishedEvents.isEmpty(), "No event should be published for unknown path");
@@ -471,14 +471,14 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
 
         // Open document
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.DOCUMENT_OPENED,
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED,
                 projectPath.toString()));
         Thread.sleep(100);
 
         publishedEvents.clear();
 
         // Close document
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.DOCUMENT_CLOSED,
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_CLOSED,
                 projectPath.toString()));
         Thread.sleep(100);
 
@@ -494,14 +494,14 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
 
         // Open document
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.DOCUMENT_OPENED,
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED,
                 projectPath.toString()));
         Thread.sleep(100);
 
         publishedEvents.clear();
 
         // Close document
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.DOCUMENT_CLOSED,
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_CLOSED,
                 projectPath.toString()));
         Thread.sleep(100);
 
@@ -520,7 +520,7 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
 
         publishedEvents.clear();
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.COMPILER_COMPILATION_FAILED,
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
                 projectPath.toString()));
         Thread.sleep(100);
 
@@ -575,7 +575,7 @@ public class ProjectServiceTest {
         proj.transitionTo(ProjectHealthState.RECOVERING);
 
         publishedEvents.clear();
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.COMPILER_DIAGNOSTICS_READY,
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
                 projectPath.toString()));
         Thread.sleep(100);
 
@@ -593,7 +593,7 @@ public class ProjectServiceTest {
         Assert.assertEquals(proj.healthState(), ProjectHealthState.HEALTHY);
 
         publishedEvents.clear();
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.COMPILER_DIAGNOSTICS_READY,
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
                 projectPath.toString()));
         Thread.sleep(100);
 

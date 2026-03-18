@@ -132,7 +132,7 @@ public class WiringConfigurationTest {
         Thread.sleep(500); // wait for initial compilation
 
         // Then: simulate document change (DS-E2)
-        publishEvent(EventKind.DOCUMENT_CHANGED, testRoot);
+        publishEvent(EventKind.WM_DOCUMENT_CHANGED, testRoot);
 
         Assert.assertTrue(snapshotPublished.await(5, TimeUnit.SECONDS),
                 "Chain 1: DS-E2 should trigger CE compilation and CE-E1 (SnapshotPublished)");
@@ -149,12 +149,12 @@ public class WiringConfigurationTest {
         CountDownLatch dsE2Received = new CountDownLatch(1);
 
         eventBus.subscribe("chain2-ds-e5", SubscriberTier.BEST_EFFORT,
-                Set.of(EventKind.DOCUMENT_FILE_WATCHER_EVENTS_PROCESSED), event -> {
+                Set.of(EventKind.WM_FILE_WATCHED_CHANGED), event -> {
                     observedEvents.add(event.eventKind());
                     dsE5Received.countDown();
                 });
         eventBus.subscribe("chain2-ds-e2", SubscriberTier.COALESCEABLE,
-                Set.of(EventKind.DOCUMENT_CHANGED), event -> {
+                Set.of(EventKind.WM_DOCUMENT_CHANGED), event -> {
                     observedEvents.add(event.eventKind());
                     dsE2Received.countDown();
                 });
@@ -310,14 +310,14 @@ public class WiringConfigurationTest {
         // Publish events from all 4 bounded contexts
         publishEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, "workspace-manager");
         publishEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED, "compiler-engine");
-        publishEvent(EventKind.DOCUMENT_OPENED, "documentstore");
+        publishEvent(EventKind.WM_DOCUMENT_OPENED, "documentstore");
         publishEvent(EventKind.EXECUTION_PROCESS_STARTED, "executionmanager");
 
         Assert.assertTrue(allContexts.await(3, TimeUnit.SECONDS),
                 "Events from all 4 bounded contexts should be received");
         Assert.assertTrue(loggedEvents.contains(EventKind.WORKSPACE_PROJECT_REGISTERED));
         Assert.assertTrue(loggedEvents.contains(EventKind.COMPILER_SNAPSHOT_PUBLISHED));
-        Assert.assertTrue(loggedEvents.contains(EventKind.DOCUMENT_OPENED));
+        Assert.assertTrue(loggedEvents.contains(EventKind.WM_DOCUMENT_OPENED));
         Assert.assertTrue(loggedEvents.contains(EventKind.EXECUTION_PROCESS_STARTED));
     }
 
@@ -377,7 +377,7 @@ public class WiringConfigurationTest {
 
     private void publishConfigEvent(SourceRoot root, String reactivityTier) {
         eventBus.publish(new DomainEvent(Instant.now(), root.path().toString(),
-                EventKind.DOCUMENT_CONFIG_FILE_CHANGED, reactivityTier));
+                EventKind.WM_FILE_WATCHED_CHANGED, reactivityTier));
     }
 
     private static void deleteRecursive(Path path) {

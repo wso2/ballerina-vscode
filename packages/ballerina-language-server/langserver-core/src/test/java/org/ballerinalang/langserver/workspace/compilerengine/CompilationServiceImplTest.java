@@ -350,7 +350,7 @@ public class CompilationServiceImplTest {
 
         // Subscribe to CE-E6 event
         eventBus.subscribe("test-sub", SubscriberTier.CRITICAL,
-                Set.of(EventKind.COMPILER_RECOVERY_ATTEMPT_EXHAUSTED), event -> {
+                Set.of(EventKind.CE_RESOLUTION_EXHAUSTED), event -> {
                     receivedEvents.add(event.eventKind());
                     recoveryExhausted.countDown();
                 });
@@ -358,7 +358,7 @@ public class CompilationServiceImplTest {
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(recoveryExhausted.await(3, TimeUnit.SECONDS),
                 "Persistent failure should emit CE-E6");
-        Assert.assertTrue(receivedEvents.contains(EventKind.COMPILER_RECOVERY_ATTEMPT_EXHAUSTED));
+        Assert.assertTrue(receivedEvents.contains(EventKind.CE_RESOLUTION_EXHAUSTED));
     }
 
     @Test
@@ -369,7 +369,7 @@ public class CompilationServiceImplTest {
         }, 50);
 
         eventBus.subscribe("test-sub", SubscriberTier.CRITICAL,
-                Set.of(EventKind.COMPILER_RECOVERY_ATTEMPT_EXHAUSTED), event -> {
+                Set.of(EventKind.CE_RESOLUTION_EXHAUSTED), event -> {
                     recoveryExhausted.countDown();
                 });
 
@@ -436,12 +436,12 @@ public class CompilationServiceImplTest {
 
     private void publishDSE2(SourceRoot sr) {
         eventBus.publish(new DomainEvent(Instant.now(), sr.path().toString(),
-                EventKind.DOCUMENT_CHANGED));
+                EventKind.WM_DOCUMENT_CHANGED));
     }
 
     private void publishDSE4WithScope(SourceRoot sr, String scope) {
         eventBus.publish(new DomainEvent(Instant.now(), sr.path().toString(),
-                EventKind.DOCUMENT_CONFIG_FILE_CHANGED, scope));
+                EventKind.WM_FILE_WATCHED_CHANGED, scope));
     }
 
 }
