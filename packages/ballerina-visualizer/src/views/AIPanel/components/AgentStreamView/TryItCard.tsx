@@ -451,7 +451,6 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
                             title="Edit in VS Code"
                             onClick={async () => {
                                 try {
-                                    console.log("Invoking edit command with Hurl script:", hurlScript);
                                     await rpcClient?.getCommonRpcClient?.()?.executeCommand?.({
                                         commands: [
                                             HURL_IMPORT_VSCODE_COMMAND,
