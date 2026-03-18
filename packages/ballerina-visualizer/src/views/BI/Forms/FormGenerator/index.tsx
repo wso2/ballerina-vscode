@@ -237,6 +237,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     const { rpcClient } = useRpcContext();
     const [baseFields, setBaseFields] = useState<FormField[]>([]);
+    const [formDiagnostics, setFormDiagnostics] = useState<DiagnosticMessage[]>([]);
     const formImportsRef = useRef<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
@@ -437,6 +438,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const initForm = (node: FlowNode) => {
+        setFormDiagnostics(nodeFormTemplate?.diagnostics?.diagnostics ?? node.diagnostics?.diagnostics ?? []);
         const formProperties = getFormProperties(node);
         let enrichedNodeProperties;
         if (nodeFormTemplate) {
@@ -488,6 +490,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const setDiagnosticsToFields = (data: FormValues, nodeWithDiagnostics: FlowNode) => {
+        setFormDiagnostics(nodeWithDiagnostics?.diagnostics?.diagnostics ?? []);
         const updatedFields = fields.map((field) => {
             const updatedField = { ...field };
 
@@ -1706,6 +1709,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 <Form
                     ref={ref}
                     formFields={fields}
+                    formDiagnostics={formDiagnostics}
                     projectPath={projectPath}
                     selectedNode={node.codedata.node}
                     openRecordEditor={handleOpenTypeEditor}
