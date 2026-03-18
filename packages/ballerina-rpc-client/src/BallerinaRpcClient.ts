@@ -63,6 +63,7 @@ import {
     reviewModeClosed,
     approvalOverlayState,
     ApprovalOverlayState,
+    onIdentifierUpdated,
     traceAnimationChanged,
     TraceAnimationEvent
 } from "@wso2/ballerina-core";
@@ -102,6 +103,7 @@ export class BallerinaRpcClient {
     private _icpManager: ICPServiceRpcClient;
     private _agentChat: AgentChatRpcClient;
     private _platformExt: PlatformExtRpcClient;
+    private _identifierUpdatedCallbacks = new Set<(response: ProjectStructureArtifactResponse[]) => void>();
 
     constructor() {
         this.messenger = new Messenger(vscode);
@@ -125,6 +127,9 @@ export class BallerinaRpcClient {
         this._icpManager = new ICPServiceRpcClient(this.messenger);
         this._agentChat = new AgentChatRpcClient(this.messenger);
         this._platformExt = new PlatformExtRpcClient(this.messenger);
+        this.messenger.onNotification(onIdentifierUpdated, (response: ProjectStructureArtifactResponse[]) => {
+            this._identifierUpdatedCallbacks.forEach((callback) => callback(response));
+        });
     }
 
     getAIAgentRpcClient(): AiAgentRpcClient {
@@ -225,6 +230,13 @@ export class BallerinaRpcClient {
 
     onProjectContentUpdated(callback: (state: boolean) => void) {
         this.messenger.onNotification(projectContentUpdated, callback);
+    }
+
+    onIdentifierUpdated(callback: (response: ProjectStructureArtifactResponse[]) => void) {
+        this._identifierUpdatedCallbacks.add(callback);
+        return () => {
+            this._identifierUpdatedCallbacks.delete(callback);
+        };
     }
 
     // <----- This is used to register given artifact updated callback notification ----->

@@ -174,6 +174,19 @@ export function FunctionForm(props: FunctionFormProps) {
 
     const fileName = filePath.split(/[\\/]/).pop();
     const formType = useRef("Function");
+    const isMountedRef = useRef(true);
+    const functionNodeRef = useRef<FunctionNode>();
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        functionNodeRef.current = functionNode;
+    }, [functionNode]);
 
     useEffect(() => {
         let nodeKind: NodeKind;
@@ -290,6 +303,45 @@ export function FunctionForm(props: FunctionFormProps) {
 
         setFunctionFields(fields);
     }, [functionNode]);
+
+    useEffect(() => {
+        const subscription = rpcClient.onIdentifierUpdated(async (response) => {
+            if (!isMountedRef.current || !response?.length) return;
+            console.log("Identifier Updated: ", response);
+
+            const artifact = response.length > 1
+                ? response.find(res => res.name === functionName || res.context === functionName)
+                : response[0];
+            if (!artifact?.name) return;
+
+            const changedFunctionNode = await rpcClient
+                .getBIDiagramRpcClient()
+                .getFunctionNode({
+                    functionName: artifact.name,
+                    fileName,
+                    projectPath
+                });
+            if (!isMountedRef.current) return;
+
+            const flowNode = changedFunctionNode.functionDefinition;
+            const currentFunctionNode = functionNodeRef.current;
+            if (!currentFunctionNode?.codedata?.lineRange || !flowNode?.codedata?.lineRange) return;
+
+            setFunctionNode({
+                ...currentFunctionNode,
+                codedata: {
+                    ...currentFunctionNode.codedata,
+                    lineRange: {
+                        ...flowNode.codedata.lineRange
+                    }
+                }
+            });
+        });
+
+        return () => {
+            subscription?.();
+        };
+    }, [rpcClient, functionName, fileName, projectPath]);
 
     const getFunctionNode = async (kind: NodeKind) => {
         setIsLoading(true);
