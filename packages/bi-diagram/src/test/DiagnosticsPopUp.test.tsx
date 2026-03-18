@@ -160,10 +160,12 @@ describe("DiagnosticsPopUp", () => {
 
         fireEvent.click(diagnosticsIcon!.parentElement!);
 
-        const fixButton = screen.getByRole("button", { name: /fix/i });
-        expect(fixButton).toBeEnabled();
+        const fixButtonLabel = screen.getByText("Fix with AI");
+        const fixButton = fixButtonLabel.closest("vscode-button");
+        expect(fixButton).toBeTruthy();
+        expect(fixButton).not.toHaveAttribute("disabled");
 
-        fireEvent.click(fixButton);
+        fireEvent.click(fixButton!);
 
         expect(onAddNodePrompt).toHaveBeenCalledTimes(1);
         const [node, target, prompt, launchOptions] = onAddNodePrompt.mock.calls[0];
@@ -206,9 +208,10 @@ describe("DiagnosticsPopUp", () => {
 
         fireEvent.click(diagnosticsIcon!.parentElement!);
 
-        const fixButton = screen.getByRole("button", { name: /fix/i });
-        expect(fixButton).toBeDisabled();
-        fireEvent.click(fixButton);
+        const fixButtonLabel = screen.getByText("Fix with AI");
+        const fixButton = fixButtonLabel.closest("vscode-button");
+        expect(fixButton).toBeTruthy();
+        fireEvent.click(fixButton!);
         expect(onAddNodePrompt).not.toHaveBeenCalled();
     });
 });
