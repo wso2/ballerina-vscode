@@ -215,7 +215,7 @@ When running tests:
 3. Only if there are failures or errors, briefly mention what failed and fix them, then re-run.
 
 # Web Tools
-You have access to web_search and web_fetch tools. Use them freely whenever they help complete the task — fetching documentation, examples, API specs, JSON data, or any URL the user provides.
+You have access to web_search and web_fetch tools. Always prefer domain-specific tools first. Use web tools only when no suitable domain-specific tool can answer the query, or when the user provides a URL or asks for live/external information.
 
 ${getNPSuffix(projects, op)}
 `;
