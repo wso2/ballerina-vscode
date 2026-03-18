@@ -41,7 +41,7 @@ export interface UpdateSourceCodeRequest {
     skipUpdateViewOnTomlUpdate?: boolean; // This is used to skip updating the view on toml updates in certain scenarios.
 }
 
-export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, isChangeFromHelperPane?: boolean, skipFormatting?: boolean): Promise<ProjectStructureArtifactResponse[]> {
+export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, isChangeFromHelperPane?: boolean): Promise<ProjectStructureArtifactResponse[]> {
     const skipUndoRedoStack = updateSourceCodeRequest.artifactData?.artifactType === "CONFIGURABLE";
     try {
         let tomlFilesUpdated = false;
@@ -136,8 +136,22 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     );
                 }
             }
+            // Set up a listener to consume the LS notification triggered by the raw edit,
+            // so the final subscriber only sees the notification from the formatted edit
+            const handler = ArtifactNotificationHandler.getInstance();
+            const rawEditNotification = new Promise<void>((resolve) => {
+                let timeoutId: ReturnType<typeof setTimeout>;
+                const unsub = handler.subscribe(
+                    ArtifactsUpdated.method, updateSourceCodeRequest.artifactData,
+                    () => { clearTimeout(timeoutId); unsub(); resolve(); }
+                );
+                timeoutId = setTimeout(() => { unsub(); resolve(); }, 10000);
+            });
+
             // Apply all changes at once
             await workspace.applyEdit(workspaceEdit);
+
+            await rawEditNotification;
 
             // <-------- Format the document after applying all changes using the native formatting API-------->
             const formattedWorkspaceEdit = new vscode.WorkspaceEdit();
@@ -170,10 +184,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 undoRedoManager?.commitBatchOperation(updateSourceCodeRequest.description ? updateSourceCodeRequest.description : (updateSourceCodeRequest.artifactData ? `Change in ${updateSourceCodeRequest.artifactData?.artifactType} ${updateSourceCodeRequest.artifactData?.identifier}` : "Update Source Code"));
             }
 
-            if (!skipFormatting) { //TODO: Remove the skipFormatting flag once LS APIs are updated to give already formatted text edits
-                // Apply all formatted changes at once
-                await workspace.applyEdit(formattedWorkspaceEdit);
-            }
+            await workspace.applyEdit(formattedWorkspaceEdit);
 
             // Handle missing dependencies after all changes are applied
             if (updateSourceCodeRequest.resolveMissingDependencies) {
