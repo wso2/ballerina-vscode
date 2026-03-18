@@ -32,11 +32,11 @@ import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.workspacemanager.HeapEstimate;
 import org.ballerinalang.langserver.workspace.workspacemanager.MemoryBudget;
-import org.ballerinalang.langserver.workspace.workspacemanager.PathToRootCache;
 import org.ballerinalang.langserver.workspace.workspacemanager.Project;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
+import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -93,7 +93,7 @@ public class WiringConfigurationTest {
                 .snapshotStore(new SnapshotStore(10))
                 .compilationAction(task -> mockSnapshot)
                 .projectRegistry(new ProjectRegistry(MemoryBudget.ofMb(256)))
-                .pathToRootCache(new PathToRootCache())
+                .uriResolver(new UriResolver())
                 .projectLoader((root, kind) -> mock(io.ballerina.projects.Project.class))
                 .gracePeriod(GracePeriod.ofMillis(1000))
                 .maxActiveProcesses(5)

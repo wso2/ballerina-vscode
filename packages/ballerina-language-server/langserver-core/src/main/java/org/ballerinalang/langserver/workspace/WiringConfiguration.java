@@ -31,12 +31,12 @@ import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.execution.ExecutionServiceImpl;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.observability.WorkspaceTraceLogger;
-import org.ballerinalang.langserver.workspace.workspacemanager.PathToRootCache;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectLoader;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
+import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
 
 import java.net.URI;
 import java.nio.file.Path;
@@ -82,7 +82,7 @@ public final class WiringConfiguration implements AutoCloseable {
         // 2. ProjectService (subscribes to DS-E1, DS-E3, CE-E2, CE-E5;
         //    internally creates LockingModeController which subscribes to CE-E6, CE-E4)
         this.projectService = new ProjectServiceImpl(
-                builder.projectRegistry, builder.pathToRootCache, eventBus, builder.projectLoader);
+                builder.projectRegistry, builder.uriResolver, eventBus, builder.projectLoader);
 
         // 3. CompilationService (subscribes to WM-E1, WM-E2, WM-E4, DS-E2, DS-E4)
         this.compilationService = new CompilationServiceImpl(
@@ -277,7 +277,7 @@ public final class WiringConfiguration implements AutoCloseable {
         private SnapshotStore snapshotStore;
         private CompilationPipeline.CompilationAction compilationAction;
         private ProjectRegistry projectRegistry;
-        private PathToRootCache pathToRootCache;
+        private UriResolver uriResolver;
         private ProjectLoader projectLoader;
         private GracePeriod gracePeriod;
         private int maxActiveProcesses = 5;
@@ -312,8 +312,8 @@ public final class WiringConfiguration implements AutoCloseable {
             return this;
         }
 
-        public Builder pathToRootCache(PathToRootCache pathToRootCache) {
-            this.pathToRootCache = pathToRootCache;
+        public Builder uriResolver(UriResolver uriResolver) {
+            this.uriResolver = uriResolver;
             return this;
         }
 
@@ -339,7 +339,7 @@ public final class WiringConfiguration implements AutoCloseable {
             Objects.requireNonNull(snapshotStore, "snapshotStore must not be null");
             Objects.requireNonNull(compilationAction, "compilationAction must not be null");
             Objects.requireNonNull(projectRegistry, "projectRegistry must not be null");
-            Objects.requireNonNull(pathToRootCache, "pathToRootCache must not be null");
+            Objects.requireNonNull(uriResolver, "uriResolver must not be null");
             Objects.requireNonNull(projectLoader, "projectLoader must not be null");
             Objects.requireNonNull(gracePeriod, "gracePeriod must not be null");
             return new WiringConfiguration(this);

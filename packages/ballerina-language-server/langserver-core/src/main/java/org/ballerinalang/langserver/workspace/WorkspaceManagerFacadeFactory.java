@@ -37,9 +37,9 @@ import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.lspgateway.ClientSession;
 import org.ballerinalang.langserver.workspace.lspgateway.WorkspaceManagerFacadeImpl;
 import org.ballerinalang.langserver.workspace.workspacemanager.MemoryBudget;
-import org.ballerinalang.langserver.workspace.workspacemanager.PathToRootCache;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
+import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
 import org.eclipse.lsp4j.ClientCapabilities;
 
 import java.nio.file.Path;
@@ -74,7 +74,7 @@ public final class WorkspaceManagerFacadeFactory {
         VirtualFileSystem vfs = new VirtualFileSystem();
         SnapshotStore snapshotStore = new SnapshotStore(100);
         ProjectRegistry projectRegistry = new ProjectRegistry(MemoryBudget.ofMb(512));
-        PathToRootCache pathToRootCache = new PathToRootCache();
+        UriResolver uriResolver = new UriResolver();
         GracePeriod gracePeriod = GracePeriod.ofMillis(2000);
 
         // Holder to break the circular reference: compilationAction -> projectService
@@ -122,7 +122,7 @@ public final class WorkspaceManagerFacadeFactory {
                 .snapshotStore(snapshotStore)
                 .compilationAction(compilationAction)
                 .projectRegistry(projectRegistry)
-                .pathToRootCache(pathToRootCache)
+                .uriResolver(uriResolver)
                 .projectLoader((root, kind) ->
                         BallerinaCompilerApi.getInstance().loadProject(root.path(), buildOptions))
                 .gracePeriod(gracePeriod)

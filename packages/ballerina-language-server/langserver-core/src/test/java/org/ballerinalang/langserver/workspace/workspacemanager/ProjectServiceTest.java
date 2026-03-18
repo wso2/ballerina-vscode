@@ -19,6 +19,7 @@
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
 import io.ballerina.projects.Project;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
@@ -30,6 +31,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -52,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 public class ProjectServiceTest {
 
     private ProjectRegistry registry;
-    private PathToRootCache pathToRootCache;
+    private UriResolver uriResolver;
     private EventSyncPubSubHolder eventBus;
     private ProjectServiceImpl service;
     private Path tempDir;
@@ -66,7 +68,7 @@ public class ProjectServiceTest {
         Files.write(tempDir.resolve("Ballerina.toml"), new byte[0]);
 
         registry = new ProjectRegistry(MemoryBudget.ofMb(1024)); // 1GB budget
-        pathToRootCache = new PathToRootCache();
+        uriResolver = new UriResolver();
         eventBus = new EventSyncPubSubHolder();
         publishedEvents = new CopyOnWriteArrayList<>();
         cancelChecker = () -> {}; // Non-cancelling checker for tests
@@ -79,7 +81,7 @@ public class ProjectServiceTest {
                 publishedEvents::add);
 
         ProjectLoader loader = (root, kind) -> mockBallerinaProject(root, kind);
-        service = new ProjectServiceImpl(registry, pathToRootCache, eventBus, loader);
+        service = new ProjectServiceImpl(registry, uriResolver, eventBus, loader);
     }
 
     @AfterMethod
@@ -94,20 +96,17 @@ public class ProjectServiceTest {
     // =========================================================================
 
     @Test(groups = "wiring")
-    public void wiring_pathToRootCacheIsRegisteredAsListener() {
-        // PathToRootCache should be registered during construction
-        SourceRoot root = new SourceRoot(tempDir.toAbsolutePath().normalize());
-        org.ballerinalang.langserver.workspace.workspacemanager.Project project =
-                new org.ballerinalang.langserver.workspace.workspacemanager.Project(
-                        root, org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind.SINGLE_FILE,
-                        HeapEstimate.ofMb(64));
+    public void wiring_uriResolverIsUsedForResolution() throws Exception {
+        // After loadOrCreate, the URI should be resolvable via UriResolver
+        Path projectPath = tempDir.toAbsolutePath().normalize();
+        service.loadOrCreate(projectPath, cancelChecker);
 
-        // Register a project
-        registry.register(root, project);
-
-        // PathToRootCache should have invalidated its entry for this root
-        Optional<SourceRoot> cached = pathToRootCache.get(root.path());
-        Assert.assertTrue(cached.isEmpty(), "PathToRootCache should have invalidated the entry");
+        // The project path should be registered in UriResolver
+        DocumentUri docUri = new DocumentUri.FileUri(projectPath.toUri());
+        Optional<ResolvedEntry> resolved = uriResolver.resolve(docUri);
+        Assert.assertTrue(resolved.isPresent(), "Path should be resolvable via UriResolver");
+        Assert.assertTrue(resolved.get() instanceof ResolvedEntry.ProjectEntry,
+                "Resolved entry should be a ProjectEntry");
     }
 
     @Test(groups = "wiring")
@@ -224,13 +223,14 @@ public class ProjectServiceTest {
     }
 
     @Test(groups = "load-or-create")
-    public void loadOrCreate_cachesPathInPathToRootCache() throws Exception {
+    public void loadOrCreate_cachesPathInUriResolver() throws Exception {
         Path projectPath = tempDir.toAbsolutePath().normalize();
 
         service.loadOrCreate(projectPath, cancelChecker);
 
-        Optional<SourceRoot> cached = pathToRootCache.get(projectPath);
-        Assert.assertTrue(cached.isPresent(), "Path should be cached in PathToRootCache");
+        DocumentUri docUri = new DocumentUri.FileUri(projectPath.toUri());
+        Optional<ResolvedEntry> resolved = uriResolver.resolve(docUri);
+        Assert.assertTrue(resolved.isPresent(), "Path should be resolvable via UriResolver");
     }
 
     @Test(groups = "load-or-create")
@@ -368,41 +368,47 @@ public class ProjectServiceTest {
     }
 
     // =========================================================================
-    // PathToRootCache Invalidation Tests
+    // UriResolver Eviction Tests
     // =========================================================================
 
     @Test(groups = "cache-invalidation")
-    public void cacheInvalidation_projectAddedInvalidatesEntry() {
-        SourceRoot root = new SourceRoot(tempDir.toAbsolutePath().normalize());
-        pathToRootCache.put(root.path(), root);
+    public void cacheInvalidation_projectRemovedEvictsFromUriResolver() throws Exception {
+        Path projectPath = tempDir.toAbsolutePath().normalize();
+        service.loadOrCreate(projectPath, cancelChecker);
+        
+        // Verify project is registered in UriResolver
+        DocumentUri docUri = new DocumentUri.FileUri(projectPath.toUri());
+        Assert.assertTrue(uriResolver.resolve(docUri).isPresent(), 
+                "Project should be registered in UriResolver");
 
-        org.ballerinalang.langserver.workspace.workspacemanager.Project project =
-                new org.ballerinalang.langserver.workspace.workspacemanager.Project(
-                        root, org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind.SINGLE_FILE,
-                        HeapEstimate.ofMb(64));
+        // Remove the project
+        SourceRoot root = new SourceRoot(projectPath);
+        registry.remove(root);
 
-        registry.register(root, project);
-
-        Optional<SourceRoot> cached = pathToRootCache.get(root.path());
-        Assert.assertTrue(cached.isEmpty(), "PathToRootCache should invalidate on PROJECT_ADDED");
+        // Verify subtree was evicted from UriResolver
+        Assert.assertTrue(uriResolver.resolve(docUri).isEmpty(), 
+                "Project subtree should be evicted from UriResolver after removal");
     }
 
     @Test(groups = "cache-invalidation")
-    public void cacheInvalidation_projectRemovedInvalidatesEntry() {
-        SourceRoot root = new SourceRoot(tempDir.toAbsolutePath().normalize());
-        pathToRootCache.put(root.path(), root);
+    public void cacheInvalidation_subtreeEvictionRemovesAllChildPaths() throws Exception {
+        Path projectPath = tempDir.toAbsolutePath().normalize();
+        service.loadOrCreate(projectPath, cancelChecker);
+        
+        // Verify project is registered
+        DocumentUri projectUri = new DocumentUri.FileUri(projectPath.toUri());
+        Assert.assertTrue(uriResolver.resolve(projectUri).isPresent(), 
+                "Project should be registered in UriResolver");
 
-        org.ballerinalang.langserver.workspace.workspacemanager.Project project =
-                new org.ballerinalang.langserver.workspace.workspacemanager.Project(
-                        root, org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind.SINGLE_FILE,
-                        HeapEstimate.ofMb(64));
-        registry.register(root, project);
-        pathToRootCache.put(root.path(), root); // Re-cache after register
-
+        // Remove the project (triggers subtree eviction)
+        SourceRoot root = new SourceRoot(projectPath);
         registry.remove(root);
 
-        Optional<SourceRoot> cached = pathToRootCache.get(root.path());
-        Assert.assertTrue(cached.isEmpty(), "PathToRootCache should invalidate on PROJECT_REMOVED");
+        // Verify all paths under the project are also evicted
+        Path childPath = projectPath.resolve("modules/test.bal");
+        DocumentUri childUri = new DocumentUri.FileUri(childPath.toUri());
+        Assert.assertTrue(uriResolver.resolve(childUri).isEmpty(), 
+                "Child paths should be evicted when project subtree is removed");
     }
 
     // =========================================================================
