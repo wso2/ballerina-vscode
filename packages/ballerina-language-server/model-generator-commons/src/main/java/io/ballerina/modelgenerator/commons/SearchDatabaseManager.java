@@ -30,6 +30,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Logger;
 
 /**
@@ -150,7 +151,7 @@ public class SearchDatabaseManager {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, sanitizedQuery.isEmpty() ? "*" : sanitizedQuery + "*");
-            stmt.setString(2, "%" + sanitizedQuery.toLowerCase() + "%");
+            stmt.setString(2, "%" + sanitizedQuery.toLowerCase(Locale.ROOT) + "%");
             stmt.setInt(3, limit);
             stmt.setInt(4, offset);
 
