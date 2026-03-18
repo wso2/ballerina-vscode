@@ -321,12 +321,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             }
 
             const nodeKind = params.flowNode.codedata.node;
-            const skipFormatting = nodeKind === 'DATA_MAPPER_CREATION' || nodeKind === 'FUNCTION_CREATION';
             const artifactData = params.artifactData || this.getArtifactDataFromNodeKind(nodeKind);
             const artifacts = await updateSourceCode(
                 { textEdits: model.textEdits, artifactData, description: this.getSourceDescription(params) },
-                params.isHelperPaneChange,
-                skipFormatting
+                params.isHelperPaneChange
             );
             return { artifacts };
         } catch (error) {
