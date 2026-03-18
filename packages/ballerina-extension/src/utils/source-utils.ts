@@ -137,13 +137,20 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 }
             }
             // Set up a listener to consume the LS notification triggered by the raw edit,
-            // so the final subscriber only sees the notification from the formatted edit
+            // so the final subscriber only sees the notification from the formatted edit.
+            // Capture IDs of newly added artifacts so we can re-apply isNew on the formatted edit notification.
             const handler = ArtifactNotificationHandler.getInstance();
+            let newArtifactIds: Set<string> | undefined;
             const rawEditNotification = new Promise<void>((resolve) => {
                 let timeoutId: ReturnType<typeof setTimeout>;
                 const unsub = handler.subscribe(
                     ArtifactsUpdated.method, updateSourceCodeRequest.artifactData,
-                    () => { clearTimeout(timeoutId); unsub(); resolve(); }
+                    (payload) => {
+                        newArtifactIds = new Set(
+                            payload.data.filter(a => a.isNew).map(a => a.id)
+                        );
+                        clearTimeout(timeoutId); unsub(); resolve();
+                    }
                 );
                 timeoutId = setTimeout(() => { unsub(); resolve(); }, 10000);
             });
@@ -207,6 +214,13 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, updateSourceCodeRequest.artifactData, async (payload) => {
                     if ((payload.data && payload.data.length > 0) || updateSourceCodeRequest.skipPayloadCheck) {
                         console.log("Received notification:", payload);
+                        if (newArtifactIds?.size) {
+                            payload.data.forEach(entry => {
+                                if (newArtifactIds.has(entry.id)) {
+                                    entry.isNew = true;
+                                }
+                            });
+                        }
                         clearTimeout(timeoutId);
                         resolve(payload.data);
                         StateMachine.setReadyMode();
