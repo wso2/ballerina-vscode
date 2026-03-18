@@ -197,9 +197,9 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 generationId: this.config.generationId,
                 threadId: 'default',
                 runningServices: runningServicesManager,
+                webSearchEnabled: params.webSearchEnabled ?? false,
             });
 
-            // Stream LLM response
             const { fullStream, response, usage } = streamText({
                 model: await getAnthropicClient(ANTHROPIC_SONNET_4),
                 maxOutputTokens: 8192,
@@ -248,31 +248,32 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                     console.log("[AgentExecutor] Aborted by user.");
 
                     // Get partial messages from SDK
-                    let messagesToSave: any[] = [];
+                    let partialLLMMessages: any[] = [];
                     try {
                         const partialResponse = await response;
-                        messagesToSave = partialResponse.messages || [];
+                        partialLLMMessages = partialResponse.messages || [];
                     } catch (e) {
                         console.warn("[AgentExecutor] Could not retrieve partial response messages:", e);
                     }
 
-                    // Add abort notification message
-                    messagesToSave.push({
-                        role: "user",
-                        content: `<abort_notification>
-Generation stopped by user. The last in-progress task was not saved. Files have been reverted to the previous completed task state. Please redo the last task if needed.
-</abort_notification>`,
-                    });
-
-                    // Update generation with user message + partial messages
+                    // Only save if LLM actually responded — user message without LLM response is meaningless
                     const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
                     const threadId = 'default';
-                    chatStateStorage.updateGeneration(projectRootPath, threadId, this.config.generationId, {
-                        modelMessages: [
-                            { role: "user", content: streamContext.userMessageContent },
-                            ...messagesToSave,
-                        ],
-                    });
+                    if (partialLLMMessages.length > 0) {
+                        chatStateStorage.updateGeneration(projectRootPath, threadId, this.config.generationId, {
+                            modelMessages: [
+                                { role: "user", content: streamContext.userMessageContent },
+                                ...partialLLMMessages,
+                                {
+                                    role: "user",
+                                    content: `<abort_notification>
+Generation stopped by user. The last in-progress task was not saved. Files have been reverted to the previous completed task state. Please redo the last task if needed.
+</abort_notification>`,
+                                },
+                            ],
+                        });
+                        updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
+                    }
 
                     // Clear review state
                     const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
@@ -411,6 +412,25 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 'generation.duration_ms': (errorTime - context.generationStartTime).toString(),
             }
         );
+
+        // Save partial LLM messages to storage and emit save_chat (mirrors abort path)
+        let messagesToSave: any[] = [];
+        try {
+            const partialResponse = await context.response;
+            messagesToSave = partialResponse.messages || [];
+        } catch (e) {
+            console.warn("[AgentExecutor] Could not retrieve partial response messages on error:", e);
+        }
+
+        if (messagesToSave.length > 0) {
+            chatStateStorage.updateGeneration(projectRootPath, threadId, context.messageId, {
+                modelMessages: [
+                    { role: "user", content: context.userMessageContent },
+                    ...messagesToSave,
+                ],
+            });
+            updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
+        }
 
         context.eventHandler({
             type: "error",
