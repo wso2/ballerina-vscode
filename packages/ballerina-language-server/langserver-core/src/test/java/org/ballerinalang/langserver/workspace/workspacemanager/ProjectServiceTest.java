@@ -19,6 +19,8 @@
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
 import io.ballerina.projects.Project;
+import io.ballerina.projects.BuildOptions;
+import io.ballerina.projects.environment.PackageLockingMode;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
@@ -185,27 +187,36 @@ public class ProjectServiceTest {
 
     @Test(groups = "locking-mode")
     public void lockingMode_defaultIsSOFT() {
-        Assert.assertEquals(service.getLockingMode(), LockingMode.SOFT,
-                "Default locking mode should be SOFT");
+        Project project = Mockito.mock(Project.class);
+        BuildOptions buildOptions = Mockito.mock(BuildOptions.class);
+        Mockito.when(project.buildOptions()).thenReturn(buildOptions);
+        Mockito.when(buildOptions.lockingMode()).thenReturn(PackageLockingMode.SOFT);
+
+        Assert.assertEquals(service.getLockingMode(project), LockingMode.SOFT,
+                "Default locking mode should be read from project options");
     }
 
     @Test(groups = "locking-mode")
-    public void lockingMode_setAndGet() {
-        service.setLockingMode(LockingMode.HARD, LockingModeAuthority.EXTERNAL_ENTITY);
-        Assert.assertEquals(service.getLockingMode(), LockingMode.HARD,
-                "Locking mode should be HARD after setting");
+    public void lockingMode_readsFromProjectCompilationOptions() {
+        Project project = Mockito.mock(Project.class);
+        BuildOptions buildOptions = Mockito.mock(BuildOptions.class);
+        Mockito.when(project.buildOptions()).thenReturn(buildOptions);
+        Mockito.when(buildOptions.lockingMode()).thenReturn(PackageLockingMode.HARD);
+
+        Assert.assertEquals(service.getLockingMode(project), LockingMode.HARD,
+                "Locking mode should come from project build options");
     }
 
     @Test(groups = "locking-mode")
-    public void lockingMode_setNullModeThrowsNPE() {
+    public void lockingMode_nullProjectThrowsNPE() {
         Assert.assertThrows(NullPointerException.class,
-                () -> service.setLockingMode(null, LockingModeAuthority.EXTERNAL_ENTITY));
+                () -> service.getLockingMode(null));
     }
 
     @Test(groups = "locking-mode")
-    public void lockingMode_setNullAuthorityThrowsNPE() {
-        Assert.assertThrows(NullPointerException.class,
-                () -> service.setLockingMode(LockingMode.HARD, null));
+    public void lockingMode_projectServiceImplDoesNotDeclareControllerField() {
+        Assert.assertThrows(NoSuchFieldException.class,
+                () -> ProjectServiceImpl.class.getDeclaredField("lockingModeController"));
     }
 
     // =========================================================================

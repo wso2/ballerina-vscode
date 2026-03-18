@@ -101,7 +101,7 @@ public class WorkspaceContextContractsTest {
     @Test
     public void projectService_matchesContractSignatures() throws ReflectiveOperationException {
         Assert.assertTrue(ProjectService.class.isInterface());
-        Assert.assertEquals(ProjectService.class.getMethods().length, 9);
+        Assert.assertEquals(ProjectService.class.getMethods().length, 8);
 
         Method loadOrCreate = ProjectService.class.getMethod("loadOrCreate", Path.class, CancelChecker.class);
         Assert.assertEquals(loadOrCreate.getReturnType(), Project.class);
@@ -112,11 +112,7 @@ public class WorkspaceContextContractsTest {
         Method module = ProjectService.class.getMethod("module", Path.class, CancelChecker.class);
         Assert.assertEquals(module.getReturnType(), Module.class);
 
-        Method setLockingMode = ProjectService.class.getMethod("setLockingMode", LockingMode.class,
-                LockingModeAuthority.class);
-        Assert.assertEquals(setLockingMode.getReturnType(), Void.TYPE);
-
-        Method getLockingMode = ProjectService.class.getMethod("getLockingMode");
+        Method getLockingMode = ProjectService.class.getMethod("getLockingMode", Project.class);
         Assert.assertEquals(getLockingMode.getReturnType(), LockingMode.class);
 
         Method registerWorkspace = ProjectService.class.getMethod("registerWorkspace", java.util.List.class);

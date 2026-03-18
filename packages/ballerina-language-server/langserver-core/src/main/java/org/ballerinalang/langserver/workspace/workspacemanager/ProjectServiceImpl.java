@@ -61,7 +61,6 @@ import java.util.concurrent.ExecutionException;
  *   <li>Register self as ProjectRegistry listener for eviction/batch events</li>
  *   <li>Subscribe to incoming domain events</li>
  *   <li>Subscribe to RM-E1 heap pressure events</li>
- *   <li>Initialize locking mode to SOFT</li>
  * </ol>
  * </p>
  *
@@ -76,7 +75,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     private final EventSyncPubSubHolder eventBus;
     private final ProjectLoader loader;
     private final ConcurrentHashMap<SourceRoot, Project> ballerinaProjects;
-    private final LockingModeController lockingModeController;
+
     /**
      * Constructs a project service with full wiring of dependencies.
      *
@@ -85,7 +84,6 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      *   <li>Wire self as registry listener</li>
      *   <li>Subscribe to domain events</li>
      *   <li>Subscribe to RM-E1 heap pressure events</li>
-     *   <li>Initialize locking mode</li>
      * </ol>
      * </p>
      *
@@ -107,7 +105,6 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         this.eventBus = eventBus;
         this.loader = loader;
         this.ballerinaProjects = new ConcurrentHashMap<>();
-        this.lockingModeController = new LockingModeController(eventBus);
 
         // 1. Wire self as registry listener for eviction and batch events
         registry.addListener(this);
@@ -124,7 +121,6 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         eventBus.subscribe("rm-heap-pressure", SubscriberTier.CRITICAL,
                 Set.of(EventKind.RM_E1_HEAP_PRESSURE_DETECTED), this::onHeapPressureDetected);
 
-        // 4. Default locking mode is already initialized above
     }
 
     // =========================================================================
@@ -188,16 +184,9 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     @Override
-    public void setLockingMode(LockingMode mode, LockingModeAuthority authority) {
-        Objects.requireNonNull(mode, "mode must not be null");
-        Objects.requireNonNull(authority, "authority must not be null");
-
-        lockingModeController.setMode(mode, authority, "external-set");
-    }
-
-    @Override
-    public LockingMode getLockingMode() {
-        return lockingModeController.getMode();
+    public LockingMode getLockingMode(Project project) {
+        Objects.requireNonNull(project, "project must not be null");
+        return LockingMode.valueOf(project.buildOptions().lockingMode().name());
     }
 
     @Override
@@ -371,15 +360,6 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             project.transitionKind(target);
             publishWm(EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED, root);
         });
-    }
-
-    /**
-     * Returns the locking mode controller for package-internal access.
-     *
-     * @return the locking mode controller
-     */
-    LockingModeController lockingModeController() {
-        return lockingModeController;
     }
 
     /**

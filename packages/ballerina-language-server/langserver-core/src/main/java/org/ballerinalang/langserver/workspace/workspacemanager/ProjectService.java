@@ -58,19 +58,12 @@ public interface ProjectService {
     Module module(Path path, CancelChecker cancelChecker);
 
     /**
-     * Sets the runtime locking mode.
-     *
-     * @param mode locking mode
-     * @param authority source authority
-     */
-    void setLockingMode(LockingMode mode, LockingModeAuthority authority);
-
-    /**
      * Returns the current locking mode.
      *
+     * @param project project providing compilation options
      * @return current locking mode
      */
-    LockingMode getLockingMode();
+    LockingMode getLockingMode(Project project);
 
     /**
      * Batch-registers all Ballerina projects found under the given workspace folder paths (WM-C2).
