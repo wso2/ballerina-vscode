@@ -359,6 +359,8 @@ export function DependentTypeEditor(props: DependentTypeEditorProps) {
             validate: () => {
                 // Only validate if field is required
                 if (!field.optional && rootType?.members) {
+                    const hasSelectableFields = rootType.members.some(m => m.kind === "FIELD");
+                    if (!hasSelectableFields) return true; // nothing to select, pass validation
                     const hasSelection = hasAnySelection(rootType.members, referencedTypes);
                     return hasSelection || "At least one field must be selected";
                 }
