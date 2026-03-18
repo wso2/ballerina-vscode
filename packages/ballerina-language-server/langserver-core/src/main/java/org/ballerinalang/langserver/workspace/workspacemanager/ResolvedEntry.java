@@ -18,20 +18,37 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
-import io.ballerina.projects.DocumentId;
+import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.TomlDocument;
 
 /**
- * Back-references to the resolved Ballerina compiler objects for a given URI.
+ * Discriminated union of resolved Ballerina compiler objects for a given URI.
  *
- * <p>{@code documentId} may be {@code null} for entries that represent only a project
- * or module boundary (e.g., a {@code Ballerina.toml} config entry).</p>
+ * <p>Each variant carries exactly the object that the URI resolves to — no nulls,
+ * no mixed concerns. Use pattern matching to handle each case at the call site.</p>
  *
- * @param project    the Ballerina project containing the resolved document
- * @param module     the module within the project
- * @param documentId the document identifier, or {@code null} for config-file entries
  * @since 1.7.0
  */
-public record ResolvedEntry(Project project, Module module, DocumentId documentId) {
+public sealed interface ResolvedEntry
+        permits ResolvedEntry.ProjectEntry,
+                ResolvedEntry.ModuleEntry,
+                ResolvedEntry.DocumentEntry,
+                ResolvedEntry.ConfigEntry {
+
+    /** A URI that resolves to a Ballerina project root. */
+    record ProjectEntry(Project project) implements ResolvedEntry {}
+
+    /** A URI that resolves to a Ballerina module. */
+    record ModuleEntry(Module module) implements ResolvedEntry {}
+
+    /** A URI that resolves to a Ballerina source document. */
+    record DocumentEntry(Document document) implements ResolvedEntry {}
+
+    /**
+     * A URI that resolves to a TOML config file
+     * (e.g. {@code Ballerina.toml}, {@code Dependencies.toml}).
+     */
+    record ConfigEntry(TomlDocument config) implements ResolvedEntry {}
 }
