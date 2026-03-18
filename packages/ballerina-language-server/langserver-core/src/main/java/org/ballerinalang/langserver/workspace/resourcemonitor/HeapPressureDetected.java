@@ -39,6 +39,9 @@ public record HeapPressureDetected(
         long maxBytes,
 
         /** Heap usage ratio (usedBytes / maxBytes). */
-        double ratio
+        double ratio,
+
+        /** Direction of the pressure transition (RISING or FALLING). */
+        PressureDirection direction
 ) {
 }

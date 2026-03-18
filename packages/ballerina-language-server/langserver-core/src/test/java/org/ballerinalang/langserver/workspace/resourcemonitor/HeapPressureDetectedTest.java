@@ -21,8 +21,6 @@ package org.ballerinalang.langserver.workspace.resourcemonitor;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.time.Instant;
-
 /**
  * Tests for HeapPressureDetected event record.
  *
@@ -36,13 +34,15 @@ public class HeapPressureDetectedTest {
                 HeapPressureLevel.WARNING,
                 700_000_000L,
                 1_000_000_000L,
-                0.70
+                0.70,
+                PressureDirection.RISING
         );
 
         Assert.assertEquals(event.level(), HeapPressureLevel.WARNING);
         Assert.assertEquals(event.usedBytes(), 700_000_000L);
         Assert.assertEquals(event.maxBytes(), 1_000_000_000L);
         Assert.assertEquals(event.ratio(), 0.70, 0.001);
+        Assert.assertEquals(event.direction(), PressureDirection.RISING);
     }
 
     @Test
@@ -52,7 +52,8 @@ public class HeapPressureDetectedTest {
                 HeapPressureLevel.CRITICAL,
                 850_000_000L,
                 1_000_000_000L,
-                0.85
+                0.85,
+                PressureDirection.RISING
         );
 
         Assert.assertEquals(event.ratio(), 0.85, 0.001);
@@ -64,7 +65,8 @@ public class HeapPressureDetectedTest {
                 HeapPressureLevel.EMERGENCY,
                 950_000_000L,
                 1_000_000_000L,
-                0.95
+                0.95,
+                PressureDirection.RISING
         );
 
         Assert.assertEquals(event.level(), HeapPressureLevel.EMERGENCY);
@@ -77,7 +79,8 @@ public class HeapPressureDetectedTest {
                 HeapPressureLevel.NORMAL,
                 300_000_000L,
                 1_000_000_000L,
-                0.30
+                0.30,
+                PressureDirection.FALLING
         );
 
         Assert.assertEquals(event.level(), HeapPressureLevel.NORMAL);
@@ -90,14 +93,16 @@ public class HeapPressureDetectedTest {
                 HeapPressureLevel.WARNING,
                 700_000_000L,
                 1_000_000_000L,
-                0.70
+                0.70,
+                PressureDirection.RISING
         );
 
         HeapPressureDetected event2 = new HeapPressureDetected(
                 HeapPressureLevel.CRITICAL,
                 800_000_000L,
                 1_000_000_000L,
-                0.80
+                0.80,
+                PressureDirection.RISING
         );
 
         // Verify original is unchanged
@@ -111,7 +116,8 @@ public class HeapPressureDetectedTest {
                 HeapPressureLevel.WARNING,
                 700_000_000L,
                 1_000_000_000L,
-                0.70
+                0.70,
+                PressureDirection.RISING
         );
 
         String str = event.toString();
@@ -119,5 +125,19 @@ public class HeapPressureDetectedTest {
         Assert.assertTrue(str.contains("700000000"));
         Assert.assertTrue(str.contains("1000000000"));
         Assert.assertTrue(str.contains("0.7"));
+        Assert.assertTrue(str.contains("RISING"));
+    }
+
+    @Test
+    public void record_fallingDirection() {
+        HeapPressureDetected event = new HeapPressureDetected(
+                HeapPressureLevel.NORMAL,
+                550_000_000L,
+                1_000_000_000L,
+                0.55,
+                PressureDirection.FALLING
+        );
+
+        Assert.assertEquals(event.direction(), PressureDirection.FALLING);
     }
 }
