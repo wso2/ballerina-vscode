@@ -34,6 +34,12 @@ export const flip = keyframes`
     100% { transform: scaleX(1); }
 `;
 
+// Progress spinner: thick arc rotating
+export const spin = keyframes`
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+`;
+
 // ── Pipeline container ────────────────────────────────────────────────────────
 
 export const PipelineContainer = styled.div`
@@ -52,7 +58,8 @@ export const EntryBlock = styled.div`
 `;
 
 // Left rail: fixed-width column that holds the dot and the vertical line.
-export const EntryRail = styled.div<{ isLast: boolean }>`
+// showLine: true when expanded (line fills items area) or when there is a next entry (stub connecting to next dot)
+export const EntryRail = styled.div<{ showLine: boolean }>`
     position: relative;
     display: flex;
     flex-direction: column;
@@ -62,10 +69,10 @@ export const EntryRail = styled.div<{ isLast: boolean }>`
 
     /* Vertical connector line — runs from the dot center to the bottom of the rail */
     &::before {
-        content: '';
+        content: ${(props: { showLine: boolean }) => props.showLine ? "''" : "none"};
         position: absolute;
         top: 12px;
-        bottom: ${(props: { isLast: boolean }) => props.isLast ? '6px' : '0'};
+        bottom: 0;
         left: 50%;
         transform: translateX(-50%);
         width: 1.5px;
@@ -206,6 +213,27 @@ export const ToolIcon = styled.span<{ loading?: boolean; failed?: boolean }>`
     ${(props: { loading?: boolean; failed?: boolean }) => props.loading ? `animation: ${flip} 1.4s ease-in-out infinite;` : ""}
 `;
 
+// Spinning sync icon — blue, rotating
+export const ProgressSpinner = styled.span`
+    font-size: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    color: var(--vscode-charts-blue);
+    animation: ${spin} 1s linear infinite;
+`;
+
+// Done icon — green pass-filled
+export const ProgressDone = styled.span`
+    font-size: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    color: var(--vscode-charts-green, #388a34);
+    opacity: 0.85;
+`;
+
+
 export const ItemLabel = styled.span<{ loading: boolean; failed?: boolean }>`
     font-size: 13px;
     color: ${(props: { loading: boolean; failed?: boolean }) =>
@@ -269,22 +297,31 @@ export const InlineCardActions = styled.div`
     margin: 4px 0 2px 0;
 `;
 
-export const InlineButton = styled.button<{ variant?: "primary" | "secondary" }>`
+export const InlineButton = styled.button<{ variant?: "primary" | "secondary" | "danger" }>`
     padding: 3px 10px;
     font-size: 12px;
     font-weight: 500;
     border-radius: 3px;
-    border: none;
     cursor: pointer;
     font-family: var(--vscode-font-family);
     background-color: ${(props: { variant?: string }) =>
         props.variant === "primary"
             ? "var(--vscode-button-background)"
-            : "var(--vscode-button-secondaryBackground)"};
+            : props.variant === "danger"
+            ? "var(--vscode-inputValidation-errorBackground, transparent)"
+            : "var(--vscode-button-secondaryBackground, transparent)"};
     color: ${(props: { variant?: string }) =>
         props.variant === "primary"
             ? "var(--vscode-button-foreground)"
-            : "var(--vscode-button-secondaryForeground)"};
+            : props.variant === "danger"
+            ? "var(--vscode-errorForeground)"
+            : "var(--vscode-button-secondaryForeground, var(--vscode-foreground))"};
+    border: 1px solid ${(props: { variant?: string }) =>
+        props.variant === "primary"
+            ? "transparent"
+            : props.variant === "danger"
+            ? "var(--vscode-errorForeground)"
+            : "var(--vscode-button-border, var(--vscode-panel-border))"};
     &:hover:not(:disabled) {
         opacity: 0.85;
     }

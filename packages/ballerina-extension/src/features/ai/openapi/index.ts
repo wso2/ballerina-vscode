@@ -20,8 +20,7 @@ import { getAnthropicClient, ANTHROPIC_HAIKU, getProviderCacheControl } from "..
 import { getErrorMessage, populateHistory } from "../utils/ai-utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../utils/events";
 import { chatStateStorage } from "../../../views/ai-panel/chatStateStorage";
-import { StateMachine } from "../../../stateMachine";
-import { createExecutorConfig } from "../agent/index";
+import { createExecutorConfig, resolveProjectRootPath } from "../agent/index";
 
 // Core OpenAPI generation function that emits events
 export async function generateOpenAPISpecCore(
@@ -86,12 +85,12 @@ export async function generateOpenAPISpec(params: GenerateOpenAPIRequest): Promi
         cleanupStrategy: 'immediate'
     });
 
-    const workspaceId = StateMachine.context().projectPath;
+    const projectRootPath = resolveProjectRootPath();
     const threadId = 'default';
 
     try {
         // Register execution for abort support
-        chatStateStorage.setActiveExecution(workspaceId, threadId, {
+        chatStateStorage.setActiveExecution(projectRootPath, threadId, {
             generationId: config.generationId,
             abortController: config.abortController
         });
@@ -107,7 +106,7 @@ export async function generateOpenAPISpec(params: GenerateOpenAPIRequest): Promi
         }
     } finally {
         // Clear active execution
-        chatStateStorage.clearActiveExecution(workspaceId, threadId);
+        chatStateStorage.clearActiveExecution(projectRootPath, threadId);
     }
 }
 

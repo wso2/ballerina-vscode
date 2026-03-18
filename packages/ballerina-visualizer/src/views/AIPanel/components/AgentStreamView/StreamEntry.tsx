@@ -21,6 +21,7 @@ import MarkdownRenderer from "../MarkdownRenderer";
 import TodoSection from "../TodoSection";
 import ConfigCard from "./ConfigCard";
 import ConnectorCard from "./ConnectorCard";
+import CommandOutputCard from "./CommandOutputCard";
 import TryItCard from "./TryItCard";
 import {
     DoneCircle,
@@ -37,12 +38,16 @@ import {
     ItemsArea,
     ItemsInner,
     NodeLabel,
+    ProgressDone,
+    ProgressSpinner,
     SonarCenter,
     SonarRing,
     SonarWrapper,
     ToolIcon,
 } from "./styles";
 import { StreamEntry, StreamItem } from "./types";
+
+const COMMAND_OUTPUT_TOOLS = new Set(["runBallerinaPackage", "runTests", "getServiceLogs", "stopBallerinaService"]);
 
 // ── Tool display helpers ───────────────────────────────────────────────────────
 
@@ -122,7 +127,7 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any): { 
 
 // ── Item renderer — order-preserving, used by both floating and named entries ─
 
-function renderItem(item: StreamItem, idx: number, rpcClient?: any): React.ReactNode {
+function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamActive: boolean, rpcClient?: any): React.ReactNode {
     switch (item.kind) {
         case "text": {
             const trimmed = item.text.trim();
@@ -136,6 +141,9 @@ function renderItem(item: StreamItem, idx: number, rpcClient?: any): React.React
         case "tool_call": {
             if (item.toolName === "hurlRunnerTool") {
                 return <TryItCard key={idx} input={item.toolInput} rpcClient={rpcClient} />;
+            }
+            if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
+                return <CommandOutputCard key={idx} toolName={item.toolName} toolInput={item.toolInput} />;
             }
             const { prefix, fileName } = getToolCallDisplay(item.toolName, item.toolInput);
             return (
@@ -152,6 +160,9 @@ function renderItem(item: StreamItem, idx: number, rpcClient?: any): React.React
         case "tool_result": {
             if (item.toolName === "hurlRunnerTool") {
                 return <TryItCard key={idx} output={item.toolOutput} rpcClient={rpcClient} />;
+            }
+            if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
+                return <CommandOutputCard key={idx} toolName={item.toolName} toolOutput={item.toolOutput} isResult={true} />;
             }
             const { prefix, fileName } = getToolResultDisplay(item.toolName, item.toolOutput);
             return (
@@ -180,6 +191,26 @@ function renderItem(item: StreamItem, idx: number, rpcClient?: any): React.React
             return <ConfigCard key={idx} data={item.data} rpcClient={rpcClient} />;
         case "connector":
             return <ConnectorCard key={idx} data={item.data} rpcClient={rpcClient} />;
+        case "component":
+            if (item.componentType === "progress") {
+                if (item.data.status === "end") return null;
+                const isCompleted = items.slice(idx + 1).some(
+                    i => i.kind === "component" && i.componentType === "progress" &&
+                         i.data.status === "end" && i.data.text === item.data.text
+                );
+                // If stream stopped before this progress item got its "end", treat as done
+                const isSpinning = !isCompleted && streamActive;
+                return (
+                    <ItemRow key={idx}>
+                        {isSpinning
+                            ? <ProgressSpinner><span className="codicon codicon-sync" /></ProgressSpinner>
+                            : <ProgressDone><span className="codicon codicon-pass-filled" /></ProgressDone>
+                        }
+                        <ItemLabel loading={isSpinning}>{item.data.text}</ItemLabel>
+                    </ItemRow>
+                );
+            }
+            return null;
         default:
             return null;
     }
@@ -204,6 +235,7 @@ interface StreamEntryComponentProps {
     onToggle: () => void;
     innerRef?: (el: HTMLDivElement | null) => void;
     rpcClient?: any;
+    hasNextNamedEntry?: boolean;
 }
 
 const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
@@ -214,6 +246,7 @@ const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
     onToggle,
     innerRef,
     rpcClient,
+    hasNextNamedEntry = false,
 }) => {
     const hasItems = entry.items.length > 0;
 
@@ -222,7 +255,7 @@ const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
         if (!hasItems) return null;
         return (
             <EntryBlock style={{ flexDirection: "column" }}>
-                {entry.items.map((item, idx) => renderItem(item, idx, rpcClient))}
+                {entry.items.map((item, idx) => renderItem(item, idx, entry.items, isLast && isLoading, rpcClient))}
             </EntryBlock>
         );
     }
@@ -232,7 +265,7 @@ const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
 
     return (
         <EntryBlock style={{ marginLeft: "-7px" }}>
-            <EntryRail isLast={isLast}>
+            <EntryRail showLine={expanded || hasNextNamedEntry}>
                 <DotWrapper>
                     {nodeStatus === "active" ? (
                         <SonarWrapper>
@@ -253,7 +286,7 @@ const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
                 {hasItems && (
                     <ItemsArea expanded={expanded}>
                         <ItemsInner ref={innerRef}>
-                            {entry.items.map((item, idx) => renderItem(item, idx, rpcClient))}
+                            {entry.items.map((item, idx) => renderItem(item, idx, entry.items, isLast && isLoading, rpcClient))}
                         </ItemsInner>
                     </ItemsArea>
                 )}

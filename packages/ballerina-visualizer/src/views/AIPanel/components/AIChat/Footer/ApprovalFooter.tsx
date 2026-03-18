@@ -20,6 +20,35 @@ import React, { useState, useEffect } from "react";
 import styled from "@emotion/styled";
 import { FooterContainer } from "./index";
 
+// Matches the InputContainer styling — same border, radius, padding, height — so the
+// two elements look like a unified stacked group.
+const ApproveButton = styled.button`
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 36px;
+    box-sizing: border-box;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--vscode-font-family);
+    text-align: left;
+    border-radius: 4px;
+    border: 1px solid var(--vscode-input-border);
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+        background-color: var(--vscode-button-hoverBackground);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+`;
+
 const ApprovalContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -31,54 +60,7 @@ const PromptText = styled.div`
     font-weight: 500;
     color: var(--vscode-editor-foreground);
     margin-bottom: 4px;
-`;
-
-const ButtonsColumn = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-`;
-
-const Button = styled.button<{ variant?: "primary" | "secondary" }>`
-    padding: 8px 14px;
-    font-size: 12px;
-    font-weight: 500;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: var(--vscode-editor-font-family);
-    white-space: nowrap;
-    width: 100%;
-    text-align: left;
-
-    ${(props: { variant?: "primary" | "secondary" }) =>
-        props.variant === "primary"
-            ? `
-        background-color: var(--vscode-button-background);
-        color: var(--vscode-button-foreground);
-
-        &:hover {
-            background-color: var(--vscode-button-hoverBackground);
-        }
-    `
-            : `
-        background-color: var(--vscode-button-secondaryBackground);
-        color: var(--vscode-button-secondaryForeground);
-
-        &:hover {
-            background-color: var(--vscode-button-secondaryHoverBackground);
-        }
-    `}
-
-    &:active {
-        opacity: 0.8;
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
+    padding-left: 2px;
 `;
 
 const InputContainer = styled.div`
@@ -90,7 +72,6 @@ const InputContainer = styled.div`
     border: 1px solid var(--vscode-input-border);
     border-radius: 4px;
     padding: 8px 14px;
-    transition: border-color 0.2s ease;
     height: 36px;
     box-sizing: border-box;
 
@@ -104,7 +85,7 @@ const Input = styled.input`
     background: transparent;
     border: none;
     color: var(--vscode-input-foreground);
-    font-family: var(--vscode-editor-font-family);
+    font-family: var(--vscode-font-family);
     font-size: 12px;
     outline: none;
     padding: 0;
@@ -124,7 +105,6 @@ const SendButton = styled.button`
     align-items: center;
     justify-content: center;
     border-radius: 3px;
-    transition: background-color 0.2s ease;
 
     &:hover:not(:disabled) {
         background-color: var(--vscode-toolbar-hoverBackground);
@@ -154,15 +134,10 @@ const ApprovalFooter: React.FC<ApprovalFooterProps> = ({
     const [comment, setComment] = useState("");
 
     useEffect(() => {
-        // Reset comment when approval type changes
         setComment("");
     }, [approvalType]);
 
-    const handleApproveWithAutoApprove = () => {
-        onApprove(true);
-    };
-
-    const handleApproveManually = () => {
+    const handleApprove = () => {
         onApprove(false);
     };
 
@@ -183,59 +158,39 @@ const ApprovalFooter: React.FC<ApprovalFooterProps> = ({
         }
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setComment(e.target.value);
-    };
-
     const promptText = approvalType === "plan"
         ? "Does this plan look right?"
         : "Ready to continue?";
 
-    const primaryButtonText = approvalType === "plan"
-        ? "Start building"
-        : "Approve";
-
-    const secondaryButtonText = approvalType === "plan" ? "Approve" : "Continue";
-
-    const placeholderText = "What should be different?";
+    const approveButtonText = approvalType === "plan" ? "Start building" : "Approve";
 
     return (
         <FooterContainer>
             <ApprovalContainer>
                 <PromptText>{promptText}</PromptText>
-                <ButtonsColumn>
-                    {/* <Button
-                        variant="primary"
-                        onClick={handleApproveWithAutoApprove}
+                <ApproveButton
+                    onClick={handleApprove}
+                    disabled={isSubmitting}
+                >
+                    {approveButtonText}
+                </ApproveButton>
+                <InputContainer>
+                    <Input
+                        type="text"
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="What should be different?"
                         disabled={isSubmitting}
+                    />
+                    <SendButton
+                        onClick={handleRejectSubmit}
+                        disabled={!comment.trim() || isSubmitting}
+                        title="Request Revision"
                     >
-                        {primaryButtonText}
-                    </Button> */}
-                    <Button
-                        variant="secondary"
-                        onClick={handleApproveManually}
-                        disabled={isSubmitting}
-                    >
-                        {primaryButtonText}
-                    </Button>
-                    <InputContainer>
-                        <Input
-                            type="text"
-                            value={comment}
-                            onChange={handleInputChange}
-                            onKeyDown={handleKeyDown}
-                            placeholder={placeholderText}
-                            disabled={isSubmitting}
-                        />
-                        <SendButton
-                            onClick={handleRejectSubmit}
-                            disabled={!comment.trim() || isSubmitting}
-                            title="Request Revision"
-                        >
-                            <span className="codicon codicon-send"></span>
-                        </SendButton>
-                    </InputContainer>
-                </ButtonsColumn>
+                        <span className="codicon codicon-send"></span>
+                    </SendButton>
+                </InputContainer>
             </ApprovalContainer>
         </FooterContainer>
     );

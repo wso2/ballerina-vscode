@@ -30,8 +30,7 @@
         "onUri"
     ],
     "extensionDependencies": [
-        "anweber.httpbook",
-        "WSO2.wso2-platform"
+        "anweber.httpbook"
     ],
     "contributes": {
         "languages": [
@@ -688,7 +687,7 @@
             },
             {
                 "command": "BI.project-explorer.add",
-                "title": "Add Project",
+                "title": "Add Integration or Library",
                 "icon": "$(add)",
                 "group": "navigation",
                 "category": "BI",
@@ -757,6 +756,14 @@
                 "enablement": "isSupportedProject"
             },
             {
+                "command": "ballerina.toggleAgentFilter",
+                "title": "Filter Agent Traces",
+                "category": "Ballerina",
+                "icon": "$(bi-ai-agent)",
+                "hidden": true,
+                "enablement": "isSupportedProject"
+            },
+            {
                 "command": "ballerina.createNewEvalset",
                 "title": "Create New Evalset",
                 "category": "Ballerina",
@@ -779,6 +786,12 @@
                 "title": "Delete Thread",
                 "category": "Ballerina",
                 "icon": "$(trash)"
+            },
+            {
+                "command": "ballerina.openEvaluationHistory",
+                "title": "Evaluation History",
+                "category": "Ballerina",
+                "icon": "$(history)"
             }
         ],
         "views": {
@@ -786,7 +799,7 @@
                 {
                     "id": "ballerina-evalsets",
                     "name": "Evalsets",
-                    "when": "isBIProject || isBallerinaProject"
+                    "when": "hasEvalsetSupport"
                 }
             ],
             "ballerina-traceView": [
@@ -816,7 +829,12 @@
             {
                 "view": "ballerina-traceView",
                 "contents": "No traces collected yet. Run your Ballerina program to see traces here.",
-                "when": "ballerina.tracingEnabled && ballerina.tracesEmpty"
+                "when": "ballerina.tracingEnabled && ballerina.tracesEmpty && !ballerina.agentFilterEnabled"
+            },
+            {
+                "view": "ballerina-traceView",
+                "contents": "No agent traces found. None of the collected traces contain agent spans.\n[Show All Traces](command:ballerina.toggleAgentFilter)",
+                "when": "ballerina.tracingEnabled && ballerina.agentFilterEmpty"
             },
             {
                 "view": "testing",
@@ -867,6 +885,11 @@
                     "command": "BI.test.delete.function",
                     "group": "inline",
                     "when": "testId not in testGroups"
+                },
+                {
+                    "command": "ballerina.openEvaluationHistory",
+                    "group": "inline",
+                    "when": "testId in testGroups && testId =~ /evaluations/"
                 }
             ],
             "view/title": [
@@ -883,13 +906,19 @@
                 {
                     "command": "ballerina.disableTracing",
                     "when": "view == ballerina-traceView && ballerina.tracingEnabled",
-                    "group": "navigation",
+                    "group": "navigation@3",
                     "title": "Disable Tracing"
+                },
+                {
+                    "command": "ballerina.toggleAgentFilter",
+                    "when": "view == ballerina-traceView && ballerina.tracingEnabled && !ballerina.tracesEmpty",
+                    "group": "navigation@1",
+                    "title": "Filter Agent Traces"
                 },
                 {
                     "command": "ballerina.clearTraces",
                     "when": "view == ballerina-traceView && ballerina.tracingEnabled && !ballerina.tracesEmpty",
-                    "group": "navigation",
+                    "group": "navigation@2",
                     "title": "Clear Traces"
                 },
                 {
@@ -1098,6 +1127,13 @@
             }
         ],
         "icons": {
+            "bi-ai-agent": {
+                "description": "ai-agent",
+                "default": {
+                    "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
+                    "fontCharacter": "\\f112"
+                }
+            },
             "ballerina-new-module": {
                 "description": "new-module",
                 "default": {
@@ -1264,6 +1300,34 @@
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f1bf"
+                }
+            },
+            "distro-file-submodule": {
+                "description": "file-submodule",
+                "default": {
+                    "fontPath": "./resources/codicons/codicon.ttf",
+                    "fontCharacter": "\\eaec"
+                }
+            },
+            "distro-new-file": {
+                "description": "new-file",
+                "default": {
+                    "fontPath": "./resources/codicons/codicon.ttf",
+                    "fontCharacter": "\\ea7f"
+                }
+            },
+            "distro-new-folder": {
+                "description": "new-folder",
+                "default": {
+                    "fontPath": "./resources/codicons/codicon.ttf",
+                    "fontCharacter": "\\ea80"
+                }
+            },
+            "distro-refresh": {
+                "description": "refresh",
+                "default": {
+                    "fontPath": "./resources/codicons/codicon.ttf",
+                    "fontCharacter": "\\eb37"
                 }
             }
         },

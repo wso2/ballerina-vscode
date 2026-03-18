@@ -28,11 +28,12 @@ import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Por
 import { TreeBody, TreeContainer, TreeHeader } from '../commons/Tree/Tree';
 import { ObjectOutputFieldWidget } from '../ObjectOutput/ObjectOutputFieldWidget';
 import { useIONodesStyles } from '../../../styles';
-import { useDMCollapsedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
+import { useDMCollapsedFieldsStore, useDMExpressionBarStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { OutputSearchHighlight } from '../commons/Search';
 import { CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX } from '../../utils/constants';
 import { FieldActionButton } from '../commons/FieldActionButton';
 import { PayloadWidget } from '../commons/PayloadWidget';
+import { DiagnosticTooltip } from '../../Diagnostic/DiagnosticTooltip';
 
 export interface ConvertibleOutputWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -78,7 +79,10 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
     const fields = outputType.fields?.filter(t => t !== null);
     const hasFields = fields?.length > 0;
 
+    const exprBarFocusedPort = useDMExpressionBarStore(state => state.focusedPort);
+
     const portIn = getPort(`${id}.IN`);
+    const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
 
     const typeKind = outputType.kind;
     const isUnknownType = typeKind === TypeKind.Unknown;
@@ -136,7 +140,7 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
         <>
             <TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick}>
                 <TreeHeader
-                    isSelected={portState !== PortState.Unselected}
+                    isSelected={portState !== PortState.Unselected || isExprBarFocused}
                     id={"recordfield-" + id}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
@@ -181,6 +185,26 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
                             />
                         )}
                     </span>
+                    {context.model.hasInvalidOutput && outputType.category !== InputCategory.ConvertedVariable && (
+                        <DiagnosticTooltip
+                            placement="right"
+                            diagnostic="Output has invalid fields"
+                            actionText="Fix by removing invalid fields"
+                            onClick={context.resolveOutput}
+                        >
+                            <Button
+                                appearance="icon"
+                                data-testid={`array-widget-field-${portIn?.getName()}`}
+                                data-field-action
+                            >
+                                <Icon
+                                    name="error-icon"
+                                    sx={{ height: "14px", width: "14px" }}
+                                    iconSx={{ fontSize: "14px", color: "var(--vscode-errorForeground)" }}
+                                />
+                            </Button>
+                        </DiagnosticTooltip>
+                    )}
                 </TreeHeader>
                 {expanded && hasFields && (
                     <TreeBody>

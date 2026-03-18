@@ -22,9 +22,8 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PlatformExtRpcClient } from "@wso2/ballerina-rpc-client/lib/rpc-clients/platform-ext/platform-ext-client";
 import {
     ConnectionListItem,
-    ICmdParamsBase,
     ICreateDirCtxCmdParams,
-    CommandIds as PlatformExtCommandIds,
+    WICommandIds,
 } from "@wso2/wso2-platform-core";
 import React, { useContext, FC, ReactNode, useEffect, useState } from "react";
 
@@ -34,6 +33,7 @@ const defaultPlatformExtContext: {
     platformRpcClient?: PlatformExtRpcClient;
     onLinkDevantProject: () => void;
     loginToDevant: () => void;
+    handleLinkWorkspace: () => Promise<void>
     importConnection: {
         connection?: ConnectionListItem;
         setConnection: (item?: ConnectionListItem) => void;
@@ -42,6 +42,7 @@ const defaultPlatformExtContext: {
     platformExtState: { components: [], isLoggedIn: false, userInfo: null },
     onLinkDevantProject: () => {},
     loginToDevant: () => {},
+    handleLinkWorkspace: async () => {},
     devantConsoleUrl: "",
     importConnection: { setConnection: () => {} },
 };
@@ -76,12 +77,22 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
 
     const loginToDevant = () => {
         rpcClient.getCommonRpcClient().executeCommand({
-            commands: [
-                PlatformExtCommandIds.SignIn,
-                { extName: "Devant" } as ICmdParamsBase,
-            ],
+            commands: [WICommandIds.SignIn],
         })
     }
+
+    const handleLinkWorkspace = async () => {
+        const visualizerLocation = await rpcClient.getVisualizerLocation();
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: [
+                WICommandIds.CreateDirectoryContext,
+                {
+                    skipComponentExistCheck: true,
+                    fsPath: visualizerLocation?.workspacePath || visualizerLocation?.projectPath || "",
+                } as ICreateDirCtxCmdParams,
+            ],
+        });
+    };
 
     const onLinkDevantProject = () => {
         if (!platformExtState?.isLoggedIn && platformExtState?.hasPossibleComponent) {
@@ -110,17 +121,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                     if (resp === "Deploy Now") {
                         platformRpcClient.deployIntegrationInDevant();
                     } else if (resp === "Associate Project") {
-                        const visualizerLocation = await rpcClient.getVisualizerLocation();
-                        rpcClient.getCommonRpcClient().executeCommand({
-                            commands: [
-                                PlatformExtCommandIds.CreateDirectoryContext,
-                                {
-                                    extName: "Devant",
-                                    skipComponentExistCheck: true,
-                                    fsPath: visualizerLocation.workspacePath || visualizerLocation?.projectPath,
-                                } as ICreateDirCtxCmdParams,
-                            ],
-                        });
+                        handleLinkWorkspace();
                     }
                 });
         }
@@ -137,6 +138,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                     devantConns: platformExtState?.isLoggedIn ? platformExtState.devantConns : {},
                 },
                 loginToDevant,
+                handleLinkWorkspace,
                 devantConsoleUrl,
                 platformRpcClient,
                 onLinkDevantProject,

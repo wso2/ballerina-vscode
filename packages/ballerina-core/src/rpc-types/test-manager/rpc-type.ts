@@ -21,11 +21,11 @@ import { SourceUpdateResponse } from "../service-designer/interfaces";
 
 const _preFix = "test-manager";
 export const getTestFunction: RequestType<GetTestFunctionRequest, GetTestFunctionResponse> =
-{ method: `${_preFix}/getTestFunction` };
+    { method: `${_preFix}/getTestFunction` };
 export const addTestFunction: RequestType<AddOrUpdateTestFunctionRequest, SourceUpdateResponse> =
-{ method: `${_preFix}/addTestFunction` };
+    { method: `${_preFix}/addTestFunction` };
 export const updateTestFunction: RequestType<AddOrUpdateTestFunctionRequest, SourceUpdateResponse> =
-{ method: `${_preFix}/updateTestFunction` };
+    { method: `${_preFix}/updateTestFunction` };
 
 export interface EvalsetItem {
     id: string;
@@ -44,4 +44,143 @@ export interface GetEvalsetsResponse {
 }
 
 export const getEvalsets: RequestType<GetEvalsetsRequest, GetEvalsetsResponse> =
-{ method: `${_preFix}/getEvalsets` };
+    { method: `${_preFix}/getEvalsets` };
+
+// ── Evaluation History types ──────────────────────────────────────────────────
+
+export interface EvaluationOutcomeResult {
+    id: string;
+    passed: boolean;
+    errorMessage?: string;
+}
+
+export interface EvaluationRun {
+    id: number;
+    passRate: number;
+    outcomes: EvaluationOutcomeResult[];
+}
+
+export interface EvaluationRunDataPoint {
+    date: string; // ISO string
+    passRate: number;
+    targetPassRate: number;
+    status: "PASSED" | "FAILURE";
+    evaluationRuns: EvaluationRun[];
+    jsonReportPath?: string;
+    failureMessage?: string;
+    gitState?: GitState;
+}
+
+export interface EvaluationTestHistory {
+    testName: string;
+    runs: EvaluationRunDataPoint[];
+    projectName: string;
+}
+
+export interface EvaluationHistoryData {
+    tests: EvaluationTestHistory[];
+    totalRunFiles: number;
+    projectNames: string[];
+}
+
+export interface GetEvaluationHistoryRequest {
+    projectPath: string;
+}
+
+export interface GetEvaluationHistoryResponse {
+    data: EvaluationHistoryData;
+}
+
+export interface OpenEvaluationReportRequest {
+    reportPath: string;
+}
+
+export const getEvaluationHistory: RequestType<GetEvaluationHistoryRequest, GetEvaluationHistoryResponse> =
+    { method: `${_preFix}/getEvaluationHistory` };
+
+export const openEvaluationReport: RequestType<OpenEvaluationReportRequest, void> =
+    { method: `${_preFix}/openEvaluationReport` };
+
+// ── Individual Evaluation Report types ──────────────────────────────────────
+
+export interface EvaluationReportTestResult {
+    name: string;
+    status: "PASSED" | "FAILURE" | "SKIPPED";
+    failureMessage?: string;
+    isEvaluation: boolean;
+    evaluationSummary?: {
+        evaluationRuns: EvaluationRun[];
+        targetPassRate: number;
+        observedPassRate: number;
+    };
+}
+
+export interface EvaluationReportModuleStatus {
+    name: string;
+    totalTests: number;
+    passed: number;
+    failed: number;
+    skipped: number;
+    tests: EvaluationReportTestResult[];
+}
+
+export interface EvaluationReportData {
+    projectName: string;
+    totalTests: number;
+    passed: number;
+    failed: number;
+    skipped: number;
+    moduleStatus: EvaluationReportModuleStatus[];
+    gitState?: GitState;
+}
+
+export interface GetEvaluationReportRequest {
+    reportPath: string;
+}
+
+export interface GetEvaluationReportResponse {
+    data: EvaluationReportData;
+}
+
+export const getEvaluationReport: RequestType<GetEvaluationReportRequest, GetEvaluationReportResponse> =
+    { method: `${_preFix}/getEvaluationReport` };
+
+// ── Git State types ──────────────────────────────────────────────────────────
+
+export interface GitState {
+    commitSha: string | null;
+    isDirty: boolean;
+    branch: string | null;
+}
+
+export interface GitDiffRequest {
+    projectPath: string;
+    fromSha: string;
+    toSha: string;
+}
+
+export interface GitDiffResponse {
+    diffStat: string;
+    diffFull: string;
+}
+
+export const getGitDiff: RequestType<GitDiffRequest, GitDiffResponse> =
+    { method: `${_preFix}/getGitDiff` };
+
+// ── Restore Git Snapshot types ───────────────────────────────────────────────
+
+export interface RestoreGitSnapshotRequest {
+    projectPath: string;
+    sha: string;
+    isDirty: boolean;
+}
+
+export interface RestoreGitSnapshotResponse {
+    success: boolean;
+    error?: string;
+    safetyStashSha?: string;
+}
+
+export const restoreGitSnapshot: RequestType<RestoreGitSnapshotRequest, RestoreGitSnapshotResponse> =
+    { method: `${_preFix}/restoreGitSnapshot` };
+

@@ -285,9 +285,12 @@ import {
     WSDLApiClientGenerationResponse,
     CopilotSearchLibrariesBySearchRequest,
     CopilotSearchLibrariesBySearchResponse,
+    ResolveOutputRequest,
     CreateConvertedVariableRequest,
     IntrospectCredentialsRequest,
-    IntrospectCredentialsResponse
+    IntrospectCredentialsResponse,
+    GetSimpleTypeOfExpressionResponse,
+    GetSimpleTypeOfExpressionRequest
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -384,6 +387,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_DELETE_SUB_MAPPING = 'dataMapper/deleteSubMapping',
     DATA_MAPPER_MAP_WITH_CUSTOM_FN = 'dataMapper/customFunction',
     DATA_MAPPER_MAP_WITH_TRANSFORM_FN = 'dataMapper/transformationFunction',
+    DATA_MAPPER_RESOLVE_OUTPUT = 'dataMapper/resolveOutput',
     DATA_MAPPER_CODEDATA = 'dataMapper/nodePosition',
     DATA_MAPPER_SUB_MAPPING_CODEDATA = 'dataMapper/subMapping',
     DATA_MAPPER_PROPERTY = 'dataMapper/targetFieldPosition',
@@ -414,6 +418,7 @@ enum EXTENDED_APIS {
     BI_TRIGGER_UPDATE_FUNCTION = 'triggerDesignService/updateTriggerFunction',
     BI_GET_TYPES = 'typesManager/getTypes',
     BI_GET_TYPE = 'typesManager/getType',
+    BI_GET_SIMPLE_TYPE_OF_EXPRESSION = 'typesManager/getTypeOfExpression',
     BI_UPDATE_TYPE = 'typesManager/updateType',
     BI_UPDATE_TYPES = 'typesManager/updateTypes',
     BI_GET_GRAPHQL_TYPE = 'typesManager/getGraphqlType',
@@ -873,6 +878,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_MAP_WITH_TRANSFORM_FN, params);
     }
 
+    async resolveOutput(params: ResolveOutputRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_RESOLVE_OUTPUT, params);
+    }
+    
     async getDataMapperCodedata(params: GetDataMapperCodedataRequest): Promise<GetDataMapperCodedataResponse> {
         return this.sendRequest<GetDataMapperCodedataResponse>(EXTENDED_APIS.DATA_MAPPER_CODEDATA, params);
     }
@@ -1344,6 +1353,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getType(params: GetTypeRequest): Promise<GetTypeResponse> {
         return this.sendRequest<GetTypeResponse>(EXTENDED_APIS.BI_GET_TYPE, params);
+    }
+
+    async getSimpleTypeOfExpression(params: GetSimpleTypeOfExpressionRequest): Promise<GetSimpleTypeOfExpressionResponse> {
+        return this.sendRequest<GetSimpleTypeOfExpressionResponse>(EXTENDED_APIS.BI_GET_SIMPLE_TYPE_OF_EXPRESSION, params);
     }
 
     async updateType(params: UpdateTypeRequest): Promise<UpdateTypeResponse> {

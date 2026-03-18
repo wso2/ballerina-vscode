@@ -152,12 +152,20 @@ export const Inputs = (props: InputsPageProps) => {
             );
         }
 
-        // If we're navigating inside an object, show all fields and variables
-        return filteredCompletions.filter(
+        // If we're navigating inside an object, show fields and variables
+        const fieldItems = filteredCompletions.filter(
             (completion) =>
                 (completion.kind === "field" || completion.kind === "variable") &&
                 completion.label !== "self"
         );
+
+        // If there are no fields/variables (e.g. a primitive type), fall back to toString()
+        if (fieldItems.length === 0) {
+            const toStringItem = filteredCompletions.find(c => c.label === "toString()");
+            return toStringItem ? [toStringItem] : [];
+        }
+
+        return fieldItems;
     }, [filteredCompletions, isAtRoot]);
 
     const filteredDropDownItems = useMemo(() => {

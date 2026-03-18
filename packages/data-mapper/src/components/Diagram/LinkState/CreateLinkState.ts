@@ -53,8 +53,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 					const isValueConfig = (actionEvent.event.target as Element)
 						.closest('div[id^="value-config"]');
 
-					const { focusedPort, focusedFilter } = useDMExpressionBarStore.getState();
-					const isExprBarFocused = focusedPort || focusedFilter;
+					const { focusedPort, allowInputs } = useDMExpressionBarStore.getState();
 
 					if (element === null) {
 						this.clearState();
@@ -114,10 +113,37 @@ export class CreateLinkState extends State<DiagramEngine> {
 						this.temporaryLink = undefined;
 					}
 
-					if (isExprBarFocused && element instanceof InputOutputPortModel && element.attributes.portType === "OUT") {
-						element.fireEvent({}, "addToExpression");
-						this.clearState();
-						this.eject();
+					if (focusedPort && element instanceof InputOutputPortModel && element.attributes.portType === "OUT") {
+						if (allowInputs) {
+							element.fireEvent({}, "addToExpression");
+							this.clearState();
+							this.eject();
+						} else {
+							if (element.canLinkToPort(focusedPort)) {
+								element.fireEvent({}, "mappingStartedFrom");
+								
+								const link = element.createLinkModel();
+								link.setSourcePort(element);
+								link.addLabel(new ExpressionLabelModel({
+									link: link as DataMapperLinkModel,
+									value: undefined,
+									context: (element.getNode() as DataMapperNodeModel).context
+								}));
+								this.link = link;
+
+								focusedPort.fireEvent({}, "mappingFinishedTo");
+
+								this.link.setTargetPort(focusedPort);
+								const connectingMappingType = getMappingType(element, focusedPort);
+								if (isPendingMappingRequired(connectingMappingType)) {
+									(this.link as DataMapperLinkModel).pendingMappingType = connectingMappingType;
+									this.temporaryLink = this.link;
+								}
+								this.engine.getModel().addAll(this.link);
+								
+								this.eject();
+							}
+						}
 					} else if (element instanceof InputOutputPortModel && !this.sourcePort && !isHeaderPort(element)) {
 						if (element.attributes.portType === "OUT") {
 							this.sourcePort = element;
@@ -149,7 +175,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 
 									const connectingMappingType = getMappingType(this.sourcePort, element);
 									if (isPendingMappingRequired(connectingMappingType)) {
-										(this.link as any).pendingMappingType = connectingMappingType;
+										(this.link as DataMapperLinkModel).pendingMappingType = connectingMappingType;
 										this.temporaryLink = this.link;
 									}
 
