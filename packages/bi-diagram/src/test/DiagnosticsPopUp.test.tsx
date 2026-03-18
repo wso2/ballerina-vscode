@@ -178,6 +178,21 @@ describe("DiagnosticsPopUp", () => {
         });
     });
 
+    it("renders diagnostic rows with icons instead of severity text prefixes", () => {
+        const contextValue = createContextValue();
+
+        const { container } = renderPopup(contextValue);
+        const diagnosticsIcon = container.querySelector(".fw-error-outline-rounded");
+        expect(diagnosticsIcon).toBeTruthy();
+
+        fireEvent.click(diagnosticsIcon!.parentElement!);
+
+        expect(screen.getByText("node level diagnostic")).toBeInTheDocument();
+        expect(screen.getByText("property level diagnostic")).toBeInTheDocument();
+        expect(screen.queryByText("[ERROR] node level diagnostic")).not.toBeInTheDocument();
+        expect(screen.queryByText("[WARNING] property level diagnostic")).not.toBeInTheDocument();
+    });
+
     it("keeps fix disabled when user is unauthenticated", () => {
         const onAddNodePrompt = jest.fn();
         const contextValue = createContextValue({
