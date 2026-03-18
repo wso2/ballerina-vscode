@@ -18,7 +18,7 @@
 
 import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Icon, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
+import { Button, Icon, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
 import { DiagnosticMessage, FlowNode, LineRange, NodeProperties, Property } from "@wso2/ballerina-core";
 import { NODE_WIDTH } from "../../resources/constants";
 import { useDiagramContext } from "../DiagramContext";
@@ -78,16 +78,10 @@ const Footer = styled.div`
     margin-top: 8px;
 `;
 
-const FixButton = styled.button<{ disabled?: boolean }>`
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    border-radius: 4px;
-    color: ${(props: { disabled?: boolean }) => (props.disabled ? ThemeColors.OUTLINE_VARIANT : ThemeColors.PRIMARY)};
-    background: ${(props: { disabled?: boolean }) => (props.disabled ? ThemeColors.SURFACE_DIM : ThemeColors.SURFACE_BRIGHT)};
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 1;
-    padding: 4px 8px;
-    cursor: ${(props: { disabled?: boolean }) => (props.disabled ? "not-allowed" : "pointer")};
+const FixButton = styled(Button)`
+    display: flex;
+    align-items: center;
+    gap: 4px;
 `;
 
 export interface DiagnosticsPopUpProps {
@@ -261,8 +255,9 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
                     <Footer>
                         <Tooltip content={disabledFixTooltip}>
                             <span>
-                                <FixButton disabled={!canFix} onClick={handleOnFix}>
-                                    Fix with BI Copilot
+                                <FixButton appearance="primary" disabled={!canFix} onClick={handleOnFix}>
+                                    <Icon name="bi-ai-agent" sx={{ width: 14, height: 14, fontSize: 14 }} />
+                                    Fix with AI
                                 </FixButton>
                             </span>
                         </Tooltip>
