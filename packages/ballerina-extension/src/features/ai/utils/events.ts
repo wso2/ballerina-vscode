@@ -80,7 +80,7 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 sendToolCallNotification(event.toolName, event.toolInput, event.toolCallId);
                 break;
             case "tool_result":
-                sendToolResultNotification(event.toolName, event.toolOutput, event.toolCallId);
+                sendToolResultNotification(event.toolName, event.toolOutput, event.toolCallId, event.failed);
                 break;
             case "task_approval_request":
                 console.log("[Event Handler] Task approval request received:", event);

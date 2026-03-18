@@ -429,6 +429,7 @@ export interface ToolResult {
     toolName: string;
     toolOutput?: any;
     toolCallId?: string;
+    failed?: boolean;
 }
 
 export interface EvalsToolResult {

@@ -52,7 +52,7 @@ const WebSearchToggle: React.FC<WebSearchToggleProps> = ({ isActive, onToggle })
     <ToggleButton
         isActive={isActive}
         onClick={onToggle}
-        title={isActive ? "Web Search enabled — click to disable" : "Enable Web Search"}
+        title={isActive ? "Web access allowed — click to revoke" : "Allow web access"}
     >
         <span className="codicon codicon-globe" style={{ fontSize: 14 }} />
     </ToggleButton>
