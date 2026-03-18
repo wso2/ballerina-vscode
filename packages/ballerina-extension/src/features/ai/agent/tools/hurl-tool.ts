@@ -21,14 +21,41 @@ import { CopilotEventHandler } from '../../utils/events';
 
 export const HURL_TOOL_NAME = "hurlRunnerTool";
 const HURL_LM_TOOL_NAME = "run-hurl-test";
+const TOOL_DESCRIPTION = `The hurl script to execute. Hurl is a command-line tool and DSL for running HTTP requests defined in a simple text format. The script can contain one or more HTTP requests, along with optional assertions to validate the responses. You can capture values from previous requests and use them in subsequent requests. The tool will execute the script and return the results of each request, including response details and assertion outcomes.
 
+When defining a request body in Hurl, you must follow strict syntax rules. For simple bodies (e.g., JSON), you can write them directly after a blank line. However, for complex or multi-line raw bodies (such as multipart/form-data, raw HTTP payloads, or content containing special characters), you MUST wrap the entire body inside triple backticks (\`\`\`).
+
+This ensures the Hurl parser treats the content as a literal body instead of interpreting lines as new requests or syntax elements. Failing to do this will result in parsing errors (e.g., "invalid HTTP method").
+
+Example (standard JSON body):
+POST http://example.com/api
+Content-Type: application/json
+
+{
+  "name": "test"
+}
+
+Example (raw multipart body using triple backticks):
+POST http://example.com/upload
+Content-Type: multipart/form-data; boundary=----Boundary123
+
+\`\`\`
+------Boundary123
+Content-Disposition: form-data; name="file"; filename="test.txt"
+Content-Type: text/plain
+
+hello world
+------Boundary123--
+\`\`\`
+
+Use triple backticks whenever the body spans multiple structured lines or includes boundary markers, binary-like content, or custom formatting.`;
 function prepareHurlScript(input: HURLInput): string {
 	// Attaching the test scenario as a comment at the top of the Hurl script
 	return "# @collectionName "+input.testScenario+"\n"+input.hurlScript;
 }
 
 export const HURLInputSchema = z.object({
-    hurlScript: z.string().describe("The hurl script to execute. Hurl is a command-line tool and DSL for running HTTP requests defined in a simple text format. The script can contain one or more HTTP requests, along with optional assertions to validate the responses. You can capture values from previous requests and use them in subsequent requests. The tool will execute the script and return the results of each request, including response details and assertion outcomes. You can use #@name comments above requests to give them identifiable names.\n\nExample Hurl script:\n\n#@name login\nPOST http://localhost:8090/login\nContent-Type: application/json\n\n{\n  \"username\": \"DEFAULT\",\n  \"password\": \"1234\"\n}\n\nHTTP 200\n[Asserts]\njsonpath \"$.token\" exists\n\n[Captures]\ntoken: jsonpath \"$.token\"\n\n\n#@name getCity\nGET http://localhost:8090/city/London\nAuthorization: Bearer {{token}}\n\nHTTP 200\n[Asserts]\njsonpath \"$.city\" == \"London\"\njsonpath \"$.weather\" exists\njsonpath \"$.current_time\" exists\n"),
+    hurlScript: z.string().describe(TOOL_DESCRIPTION),
     testScenario: z.string().max(30).describe("A short description of the test scenario being executed. This is used for logging and reporting purposes to provide context about the Hurl script execution.")
 });
 
