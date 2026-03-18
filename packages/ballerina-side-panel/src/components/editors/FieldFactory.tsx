@@ -60,6 +60,8 @@ export const FieldFactory = (props: FieldFactoryProps) => {
     const formContext = useFormContext();
     const { expressionEditor } = formContext;
 
+    const form = formContext?.form;
+
     const updatePropertyForCurrentMode = useCallback(
         (property: ExpressionProperty, expression?: string): ExpressionProperty => {
             const newTypes = property.types.map(type => ({
@@ -188,12 +190,12 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         setInputMode(mode);
         updateFieldTypesSelection(mode);
 
-        if (!formContext?.form) {
+        if (!form) {
             props.handleFormValidation?.();
             return;
         }
 
-        const currentValues = formContext.form.getValues();
+        const currentValues = form.getValues();
         const currentFieldValue = currentValues[props.field.key];
         if (typeof currentFieldValue === 'string' && currentFieldValue !== '') {
             try {
@@ -207,7 +209,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         } else {
             props.handleFormValidation?.();
         }
-    }, [props.handleFormValidation, formContext.form, props.field.key]);
+    }, [props.handleFormValidation, form, props.field.key]);
 
     const editorElements = useMemo(() => {
         if (!renderingEditors) return null;
