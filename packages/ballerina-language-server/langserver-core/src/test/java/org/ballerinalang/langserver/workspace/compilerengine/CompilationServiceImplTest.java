@@ -168,11 +168,10 @@ public class CompilationServiceImplTest {
     // ---- Document Events ----
 
     @Test
-    public void dse2_documentChanged_requestsCompilation() throws InterruptedException {
+    public void wmDocumentOpened_requestsCompilation() throws InterruptedException {
         CountDownLatch firstCompiled = new CountDownLatch(1);
         CountDownLatch secondCompiled = new CountDownLatch(1);
         AtomicInteger compileCount = new AtomicInteger(0);
-        // Use pre-created mockSnapshot
         service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
             int count = compileCount.incrementAndGet();
             if (count == 1) {
@@ -186,17 +185,16 @@ public class CompilationServiceImplTest {
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
 
-        publishDSE2(TEST_ROOT);
+        publishWmDocumentOpened(TEST_ROOT);
         Assert.assertTrue(secondCompiled.await(3, TimeUnit.SECONDS),
-                "DS-E2 should request compilation");
+                "WM_DOCUMENT_OPENED should request compilation");
     }
 
     @Test
-    public void dse4_configFileChanged_dependencyGraph_requestsCompilation() throws InterruptedException {
+    public void wmDocumentChanged_requestsCompilation() throws InterruptedException {
         CountDownLatch firstCompiled = new CountDownLatch(1);
         CountDownLatch secondCompiled = new CountDownLatch(1);
         AtomicInteger compileCount = new AtomicInteger(0);
-        // Use pre-created mockSnapshot
         service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
             int count = compileCount.incrementAndGet();
             if (count == 1) {
@@ -210,15 +208,37 @@ public class CompilationServiceImplTest {
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
 
-        publishDSE4WithScope(TEST_ROOT, "DEPENDENCY_GRAPH");
+        publishWmDocumentChanged(TEST_ROOT);
         Assert.assertTrue(secondCompiled.await(3, TimeUnit.SECONDS),
-                "DS-E4 with DEPENDENCY_GRAPH scope should request compilation");
+                "WM_DOCUMENT_CHANGED should request compilation");
     }
 
     @Test
-    public void dse4_configFileChanged_configuration_doesNotRequest() throws InterruptedException {
+    public void wmFileWatchedChanged_dependencyGraph_requestsCompilation() throws InterruptedException {
         CountDownLatch firstCompiled = new CountDownLatch(1);
-        // Use pre-created mockSnapshot
+        CountDownLatch secondCompiled = new CountDownLatch(1);
+        AtomicInteger compileCount = new AtomicInteger(0);
+        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+            int count = compileCount.incrementAndGet();
+            if (count == 1) {
+                firstCompiled.countDown();
+            } else if (count == 2) {
+                secondCompiled.countDown();
+            }
+            return mockSnapshot;
+        }, 50);
+
+        publishWmE1(TEST_ROOT);
+        Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
+
+        publishWmFileWatchedChanged(TEST_ROOT, "DEPENDENCY_GRAPH");
+        Assert.assertTrue(secondCompiled.await(3, TimeUnit.SECONDS),
+                "WM_FILE_WATCHED_CHANGED with DEPENDENCY_GRAPH scope should request compilation");
+    }
+
+    @Test
+    public void wmFileWatchedChanged_configuration_doesNotRequest() throws InterruptedException {
+        CountDownLatch firstCompiled = new CountDownLatch(1);
         service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
             firstCompiled.countDown();
             return mockSnapshot;
@@ -227,7 +247,7 @@ public class CompilationServiceImplTest {
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
 
-        publishDSE4WithScope(TEST_ROOT, "CONFIGURATION");
+        publishWmFileWatchedChanged(TEST_ROOT, "CONFIGURATION");
         Thread.sleep(300);
 
         // Verify no second compilation triggered
@@ -434,14 +454,20 @@ public class CompilationServiceImplTest {
                 EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED));
     }
 
-    private void publishDSE2(SourceRoot sr) {
+    private void publishWmDocumentOpened(SourceRoot sr) {
         eventBus.publish(new DomainEvent(Instant.now(), sr.path().toString(),
-                EventKind.WM_DOCUMENT_CHANGED));
+                EventKind.WM_DOCUMENT_OPENED, sr.path().resolve("main.bal").toString()));
     }
 
-    private void publishDSE4WithScope(SourceRoot sr, String scope) {
+    private void publishWmDocumentChanged(SourceRoot sr) {
         eventBus.publish(new DomainEvent(Instant.now(), sr.path().toString(),
-                EventKind.WM_FILE_WATCHED_CHANGED, scope));
+                EventKind.WM_DOCUMENT_CHANGED, sr.path().resolve("main.bal").toString()));
+    }
+
+    private void publishWmFileWatchedChanged(SourceRoot sr, String scope) {
+        eventBus.publish(new DomainEvent(Instant.now(), sr.path().toString(),
+                EventKind.WM_FILE_WATCHED_CHANGED,
+                sr.path().resolve("Dependencies.toml") + "|" + scope + "|Changed"));
     }
 
 }

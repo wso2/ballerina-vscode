@@ -150,7 +150,8 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                 this::handleWorkspaceEvent);
 
         eventBus.subscribe("ce-document-events", SubscriberTier.COALESCEABLE,
-                Set.of(EventKind.WM_DOCUMENT_CHANGED,
+                Set.of(EventKind.WM_DOCUMENT_OPENED,
+                       EventKind.WM_DOCUMENT_CHANGED,
                        EventKind.WM_FILE_WATCHED_CHANGED),
                 this::handleDocumentEvent);
     }
@@ -177,12 +178,17 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
     private void handleDocumentEvent(DomainEvent event) {
         switch (event.eventKind()) {
+            case WM_DOCUMENT_OPENED -> handleDocumentOpened(event);
             case WM_DOCUMENT_CHANGED -> handleDocumentChanged(event);
-            case WM_FILE_WATCHED_CHANGED -> handleConfigFileChanged(event);
+            case WM_FILE_WATCHED_CHANGED -> handleFileWatchedChanged(event);
             default -> {
                 // No-op for unexpected event kinds
             }
         }
+    }
+
+    private void handleDocumentOpened(DomainEvent event) {
+        handleDocumentChanged(event);
     }
 
     private void handleDocumentChanged(DomainEvent event) {
@@ -194,10 +200,9 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
     }
 
-    private void handleConfigFileChanged(DomainEvent event) {
+    private void handleFileWatchedChanged(DomainEvent event) {
         SourceRoot sourceRoot = reconstructSourceRoot(event);
-        String scope = event.coalesceScope();
-        if ("DEPENDENCY_GRAPH".equals(scope)) {
+        if (isDependencyGraphChange(event.coalesceScope())) {
             CompilationPipeline pipeline = pipelines.get(sourceRoot);
             if (pipeline != null) {
                 ContentVersion nextVersion = new ContentVersion(versionCounter.getAndIncrement());
@@ -243,7 +248,11 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     private SourceRoot reconstructSourceRoot(DomainEvent event) {
-        return new SourceRoot(Path.of(event.coalesceScope()).normalize());
+        return new SourceRoot(Path.of(event.sourceContext()).normalize());
+    }
+
+    private boolean isDependencyGraphChange(String scope) {
+        return "DEPENDENCY_GRAPH".equals(scope) || scope.contains("|DEPENDENCY_GRAPH|");
     }
 
     // ---- Inner Class: CircuitBreakerAction ----
