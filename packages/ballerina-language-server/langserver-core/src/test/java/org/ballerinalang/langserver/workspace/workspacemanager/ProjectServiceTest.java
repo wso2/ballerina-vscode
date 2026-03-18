@@ -24,6 +24,7 @@ import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -110,7 +111,7 @@ public class ProjectServiceTest {
     }
 
     @Test(groups = "wiring")
-    public void wiring_heapPressureListenerCallsEvictBackgroundProjects() {
+    public void wiring_heapPressureEventEvictsBackgroundProjects() throws Exception {
         SourceRoot root1 = new SourceRoot(tempDir.toAbsolutePath().normalize());
         SourceRoot root2 = new SourceRoot(tempDir.resolve("subdir").toAbsolutePath().normalize());
 
@@ -130,12 +131,39 @@ public class ProjectServiceTest {
         // Make project1 active (has open documents)
         project1.openDocumentCount().increment();
 
-        // Simulate heap pressure
-        service.simulateHeapPressure();
+        // Publish RM-E1 heap pressure through the event bus
+        eventBus.publish(new DomainEvent(Instant.now(), "heap-monitor",
+                EventKind.RM_E1_HEAP_PRESSURE_DETECTED, HeapPressureLevel.WARNING.name()));
+
+        Thread.sleep(200);
 
         // project2 should be evicted (background), project1 should remain (active)
         Assert.assertTrue(registry.get(root1).isPresent(), "Active project should not be evicted");
         Assert.assertTrue(registry.get(root2).isEmpty(), "Background project should be evicted");
+    }
+
+    @Test(groups = "wiring")
+    public void wiring_emergencyHeapPressureAlsoEvictsBackgroundProjects() throws Exception {
+        SourceRoot root = new SourceRoot(tempDir.resolve("subdir").toAbsolutePath().normalize());
+
+        org.ballerinalang.langserver.workspace.workspacemanager.Project project =
+                new org.ballerinalang.langserver.workspace.workspacemanager.Project(
+                        root, org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind.SINGLE_FILE,
+                        HeapEstimate.ofMb(64));
+
+        registry.register(root, project);
+
+        eventBus.publish(new DomainEvent(Instant.now(), EventKind.RM_E1_HEAP_PRESSURE_DETECTED.eventId(),
+                EventKind.RM_E1_HEAP_PRESSURE_DETECTED, HeapPressureLevel.EMERGENCY.name()));
+
+        Thread.sleep(200);
+        Assert.assertTrue(registry.get(root).isEmpty(), "Emergency pressure should evict background projects");
+    }
+
+    @Test(groups = "wiring")
+    public void wiring_noDirectHeapPressureListenerField() {
+        Assert.assertThrows(NoSuchFieldException.class,
+                () -> ProjectServiceImpl.class.getDeclaredField("heapListener"));
     }
 
     @Test(groups = "wiring")
@@ -520,7 +548,7 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
 
         publishedEvents.clear();
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.COMPILER_COMPILATION_FAILED,
                 projectPath.toString()));
         Thread.sleep(100);
 
@@ -575,7 +603,7 @@ public class ProjectServiceTest {
         proj.transitionTo(ProjectHealthState.RECOVERING);
 
         publishedEvents.clear();
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY,
                 projectPath.toString()));
         Thread.sleep(100);
 
@@ -593,7 +621,7 @@ public class ProjectServiceTest {
         Assert.assertEquals(proj.healthState(), ProjectHealthState.HEALTHY);
 
         publishedEvents.clear();
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY,
                 projectPath.toString()));
         Thread.sleep(100);
 

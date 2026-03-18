@@ -27,6 +27,7 @@ import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import java.net.URI;
@@ -50,7 +51,7 @@ import java.util.concurrent.ExecutionException;
  *   <li>Project lifecycle via {@link ProjectRegistry}</li>
  *   <li>Ballerina project caching via internal {@link ConcurrentHashMap}</li>
  *   <li>URI resolution via {@link UriResolver} (lock-free trie cache per ADR-048)</li>
- *   <li>Heap pressure monitoring via {@link HeapPressureListener}</li>
+ *   <li>Heap pressure monitoring via {@link HeapPressureLevel} event subscriptions</li>
  *   <li>Domain event publishing and subscription via {@link EventSyncPubSubHolder}</li>
  * </ul>
  * </p>
@@ -58,8 +59,8 @@ import java.util.concurrent.ExecutionException;
  * <p>Wiring order is critical (ADR-009):
  * <ol>
  *   <li>Register self as ProjectRegistry listener for eviction/batch events</li>
- *   <li>Create and start HeapPressureListener</li>
  *   <li>Subscribe to incoming domain events</li>
+ *   <li>Subscribe to RM-E1 heap pressure events</li>
  *   <li>Initialize locking mode to SOFT</li>
  * </ol>
  * </p>
@@ -76,16 +77,14 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     private final ProjectLoader loader;
     private final ConcurrentHashMap<SourceRoot, Project> ballerinaProjects;
     private final LockingModeController lockingModeController;
-    private final HeapPressureListener heapListener;
-
-/**
+    /**
      * Constructs a project service with full wiring of dependencies.
      *
      * <p>Critical wiring order per ADR-009:
      * <ol>
      *   <li>Wire self as registry listener</li>
-     *   <li>Create and start HeapPressureListener</li>
      *   <li>Subscribe to domain events</li>
+     *   <li>Subscribe to RM-E1 heap pressure events</li>
      *   <li>Initialize locking mode</li>
      * </ol>
      * </p>
@@ -113,11 +112,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         // 1. Wire self as registry listener for eviction and batch events
         registry.addListener(this);
 
-        // 2. Create and start HeapPressureListener
-        this.heapListener = new HeapPressureListener(0.75, registry::evictBackgroundProjects);
-        heapListener.start();
-
-        // 3. Subscribe to incoming domain events
+        // 2. Subscribe to incoming domain events
         eventBus.subscribe("wm-document-opened", SubscriberTier.CRITICAL,
                 Set.of(EventKind.WM_DOCUMENT_OPENED), this::onDocumentOpened);
         eventBus.subscribe("wm-document-closed", SubscriberTier.CRITICAL,
@@ -126,6 +121,8 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
                 Set.of(EventKind.COMPILER_COMPILATION_FAILED), this::onCompilationFailed);
         eventBus.subscribe("wm-diagnostics-ready", SubscriberTier.CRITICAL,
                 Set.of(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY), this::onDiagnosticsReady);
+        eventBus.subscribe("rm-heap-pressure", SubscriberTier.CRITICAL,
+                Set.of(EventKind.RM_E1_HEAP_PRESSURE_DETECTED), this::onHeapPressureDetected);
 
         // 4. Default locking mode is already initialized above
     }
@@ -347,6 +344,14 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         });
     }
 
+    private void onHeapPressureDetected(DomainEvent event) {
+        HeapPressureLevel level = parseHeapPressureLevel(event.coalesceScope());
+        switch (level) {
+            case WARNING, CRITICAL, EMERGENCY -> registry.evictBackgroundProjects();
+            case NORMAL -> { }
+        }
+    }
+
     // =========================================================================
     // Service Methods (not in interface but used by tests/clients)
     // =========================================================================
@@ -456,14 +461,14 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * Test-only hook: simulates heap pressure by invoking the eviction callback.
      */
     public void simulateHeapPressure() {
-        heapListener.simulateThresholdExceeded();
+        eventBus.publish(new DomainEvent(Instant.now(), "heap-monitor",
+                EventKind.RM_E1_HEAP_PRESSURE_DETECTED, HeapPressureLevel.WARNING.name()));
     }
 
     /**
      * Shuts down the service and releases resources.
      */
     public void shutdown() {
-        heapListener.stop();
         registry.shutdown();
     }
 
@@ -533,6 +538,18 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             return Path.of(pathStr);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid path: " + pathStr, e);
+        }
+    }
+
+    private HeapPressureLevel parseHeapPressureLevel(String rawLevel) {
+        if (rawLevel == null || rawLevel.isBlank()) {
+            return HeapPressureLevel.WARNING;
+        }
+
+        try {
+            return HeapPressureLevel.valueOf(rawLevel);
+        } catch (IllegalArgumentException ignored) {
+            return HeapPressureLevel.WARNING;
         }
     }
 
