@@ -175,7 +175,7 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
     const getDiagnosticColor = (severity: DiagnosticMessage["severity"]) => {
         switch (severity) {
             case "WARNING":
-                return ThemeColors.WARNING;
+                return "var(--vscode-inputValidation-warningForeground)";
             case "INFO":
                 return ThemeColors.PRIMARY;
             case "ERROR":
