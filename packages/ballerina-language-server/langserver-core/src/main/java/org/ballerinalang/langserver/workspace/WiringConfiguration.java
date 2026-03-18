@@ -109,19 +109,19 @@ public final class WiringConfiguration implements AutoCloseable {
         // When Ballerina.toml is created/deleted, the project kind must transition
         // (SINGLE_FILE ↔ BUILD), triggering CE pipeline teardown/create.
         eventBus.subscribe("wiring-config-structural-bridge", SubscriberTier.CRITICAL,
-                Set.of(EventKind.DOCUMENT_CONFIG_FILE_CHANGED), this::onStructuralConfigChange);
+                Set.of(EventKind.WM_FILE_WATCHED_CHANGED), this::onStructuralConfigChange);
 
         // Bridge: DS-E2 (document changed) → apply VFS content to the cached project.
         // This keeps the in-memory Project up-to-date so the synchronous syntaxTree()
         // fallback in WorkspaceManagerFacadeImpl returns the latest editor content.
         eventBus.subscribe("wiring-doc-changed-bridge", SubscriberTier.CRITICAL,
-                Set.of(EventKind.DOCUMENT_CHANGED), this::onDocumentChanged);
+                Set.of(EventKind.WM_DOCUMENT_CHANGED), this::onDocumentChanged);
 
         // Bridge: DS-E1 (document opened) → apply VFS content to the cached project.
         // Ensures that after didOpen(), the synchronous compilation path uses the editor
         // content instead of stale disk content.
         eventBus.subscribe("wiring-doc-opened-bridge", SubscriberTier.CRITICAL,
-                Set.of(EventKind.DOCUMENT_OPENED), this::onDocumentOpened);
+                Set.of(EventKind.WM_DOCUMENT_OPENED), this::onDocumentOpened);
     }
 
     /**

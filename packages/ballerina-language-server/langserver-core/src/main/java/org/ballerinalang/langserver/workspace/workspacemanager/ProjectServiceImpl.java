@@ -119,13 +119,13 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
 
         // 3. Subscribe to incoming domain events
         eventBus.subscribe("wm-document-opened", SubscriberTier.CRITICAL,
-                Set.of(EventKind.DOCUMENT_OPENED), this::onDocumentOpened);
+                Set.of(EventKind.WM_DOCUMENT_OPENED), this::onDocumentOpened);
         eventBus.subscribe("wm-document-closed", SubscriberTier.CRITICAL,
-                Set.of(EventKind.DOCUMENT_CLOSED), this::onDocumentClosed);
+                Set.of(EventKind.WM_DOCUMENT_CLOSED), this::onDocumentClosed);
         eventBus.subscribe("wm-compilation-failed", SubscriberTier.CRITICAL,
                 Set.of(EventKind.COMPILER_COMPILATION_FAILED), this::onCompilationFailed);
         eventBus.subscribe("wm-diagnostics-ready", SubscriberTier.CRITICAL,
-                Set.of(EventKind.COMPILER_DIAGNOSTICS_READY), this::onDiagnosticsReady);
+                Set.of(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY), this::onDiagnosticsReady);
 
         // 4. Default locking mode is already initialized above
     }

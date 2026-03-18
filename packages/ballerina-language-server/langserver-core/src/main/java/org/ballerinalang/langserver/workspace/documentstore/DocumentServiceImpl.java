@@ -176,7 +176,7 @@ public final class DocumentServiceImpl implements DocumentService {
 
         virtualFileSystem.openDocument(uri, content);
         trackByRoot(trackedDocumentsByRoot, sourceRoot, uri);
-        publish(EventKind.DOCUMENT_OPENED, sourceRoot.toString(), uri.toString());
+        publish(EventKind.WM_DOCUMENT_OPENED, sourceRoot.toString(), uri.toString());
     }
 
     /**
@@ -206,7 +206,7 @@ public final class DocumentServiceImpl implements DocumentService {
             applyContentChange(uri, changeEvent);
         }
 
-        publish(EventKind.DOCUMENT_CHANGED, sourceRoot.toString(), uri.toString());
+        publish(EventKind.WM_DOCUMENT_CHANGED, sourceRoot.toString(), uri.toString());
         updateConfigFile(commandPath, FileChangeType.Changed, virtualFileSystem.content(uri));
     }
 
@@ -233,7 +233,7 @@ public final class DocumentServiceImpl implements DocumentService {
 
         virtualFileSystem.closeDocument(uri);
         untrackByRoot(trackedDocumentsByRoot, sourceRoot, uri);
-        publish(EventKind.DOCUMENT_CLOSED, sourceRoot.toString(), uri.toString());
+        publish(EventKind.WM_DOCUMENT_CLOSED, sourceRoot.toString(), uri.toString());
     }
 
     /**
@@ -366,7 +366,7 @@ public final class DocumentServiceImpl implements DocumentService {
 
         ReactivityTier tier = configurationFile.classify(changeType);
         Path sourceRoot = resolveSourceRoot(normalized);
-        publish(EventKind.DOCUMENT_CONFIG_FILE_CHANGED, sourceRoot.toString(),
+        publish(EventKind.WM_FILE_WATCHED_CHANGED, sourceRoot.toString(),
                 normalized + "|" + tier.name() + "|" + changeType.name());
     }
 

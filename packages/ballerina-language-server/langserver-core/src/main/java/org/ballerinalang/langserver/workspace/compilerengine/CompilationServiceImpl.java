@@ -150,8 +150,8 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                 this::handleWorkspaceEvent);
 
         eventBus.subscribe("ce-document-events", SubscriberTier.COALESCEABLE,
-                Set.of(EventKind.DOCUMENT_CHANGED,
-                       EventKind.DOCUMENT_CONFIG_FILE_CHANGED),
+                Set.of(EventKind.WM_DOCUMENT_CHANGED,
+                       EventKind.WM_FILE_WATCHED_CHANGED),
                 this::handleDocumentEvent);
     }
 
@@ -177,8 +177,8 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
     private void handleDocumentEvent(DomainEvent event) {
         switch (event.eventKind()) {
-            case DOCUMENT_CHANGED -> handleDocumentChanged(event);
-            case DOCUMENT_CONFIG_FILE_CHANGED -> handleConfigFileChanged(event);
+            case WM_DOCUMENT_CHANGED -> handleDocumentChanged(event);
+            case WM_FILE_WATCHED_CHANGED -> handleConfigFileChanged(event);
             default -> {
                 // No-op for unexpected event kinds
             }
@@ -322,7 +322,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         private void emitRecoveryExhausted() {
             try {
                 DomainEvent event = new DomainEvent(Instant.now(), sourceRoot.path().toString(),
-                        EventKind.COMPILER_RECOVERY_ATTEMPT_EXHAUSTED);
+                        EventKind.CE_RESOLUTION_EXHAUSTED);
                 eventBus.publish(event);
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to emit CE-E6 for " + sourceRoot, e);

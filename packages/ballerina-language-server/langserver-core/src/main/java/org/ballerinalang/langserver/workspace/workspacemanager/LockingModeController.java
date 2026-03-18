@@ -80,7 +80,7 @@ public final class LockingModeController {
 
         // Subscribe to compiler events for automatic escalation/revert
         eventBus.subscribe("lmc-recovery-exhausted", SubscriberTier.CRITICAL,
-                Set.of(EventKind.COMPILER_RECOVERY_ATTEMPT_EXHAUSTED), this::onRecoveryExhausted);
+                Set.of(EventKind.CE_RESOLUTION_EXHAUSTED), this::onRecoveryExhausted);
         eventBus.subscribe("lmc-resolution-completed", SubscriberTier.CRITICAL,
                 Set.of(EventKind.COMPILER_RESOLUTION_COMPLETED), this::onResolutionCompleted);
     }
