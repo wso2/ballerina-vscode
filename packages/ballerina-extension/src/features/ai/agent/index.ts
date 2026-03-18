@@ -34,6 +34,17 @@ import { getHashedProjectId } from "../../telemetry/common/project-id";
 // ==================================
 
 /**
+ * Resolves the project root path for chat storage and telemetry.
+ * - Multi-package workspace: returns workspacePath (workspace root)
+ * - Single package: returns projectPath (package root)
+ * - Workspace view (no active package): returns workspacePath
+ */
+export function resolveProjectRootPath(): string {
+    const ctx = StateMachine.context();
+    return ctx.workspacePath || ctx.projectPath || '';
+}
+
+/**
  * Factory function to create unified executor configuration
  * Eliminates repetitive config creation in RPC methods
  */
@@ -46,7 +57,6 @@ export function createExecutorConfig<TParams>(
         existingTempPath?: string;  //TODO: Maybe lazyily get this? not sure if needed here.
     }
 ): AICommandConfig<TParams> {
-    const ctx = StateMachine.context();
     return {
         executionContext: createExecutionContextFromStateMachine(),
         eventHandler: createWebviewEventHandler(options.command),
@@ -54,7 +64,7 @@ export function createExecutorConfig<TParams>(
         abortController: new AbortController(),
         params,
         chatStorage: options.chatStorageEnabled ? {
-            workspaceId: ctx.projectPath,
+            projectRootPath: resolveProjectRootPath(),
             threadId: 'default',
             enabled: true,
         } : undefined,
@@ -72,9 +82,9 @@ export function createExecutorConfig<TParams>(
 export async function generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {
     try {
         // Check for pending review to reuse temp project path
-        const workspaceId = StateMachine.context().projectPath;
+        const projectRootPath = resolveProjectRootPath();
         const threadId = params.threadId || 'default';
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
 
         // Create config using factory function
         const config = createExecutorConfig(params, {
@@ -85,9 +95,9 @@ export async function generateAgent(params: GenerateAgentCodeRequest): Promise<b
         });
 
         // Get project metrics, project ID, and chat history for telemetry
-        const projectMetrics = await getProjectMetrics(workspaceId);
-        const projectId = await getHashedProjectId(workspaceId);
-        const chatHistory = chatStateStorage.getChatHistoryForLLM(workspaceId, threadId);
+        const projectMetrics = await getProjectMetrics(projectRootPath);
+        const projectId = await getHashedProjectId(projectRootPath);
+        const chatHistory = chatStateStorage.getChatHistoryForLLM(projectRootPath, threadId);
 
         // Send telemetry event for query submission
         sendTelemetryEvent(
