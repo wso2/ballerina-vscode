@@ -230,24 +230,26 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
                 </ToggleSegment>
             </VersionToggle>
 
+            {/* Action buttons hidden temporarily — accept/revert is handled from the ReviewBar in the AI panel
             <ActionButtons>
                 <Button
                     appearance="secondary"
                     onClick={handleReject}
-                    tooltip="Discard All Changes"
+                    tooltip="Revert All Changes"
                     disabled={isProcessing}
                 >
-                    Discard
+                    Revert
                 </Button>
                 <Button
                     appearance="primary"
                     onClick={handleAccept}
-                    tooltip="Keep All Changes"
+                    tooltip="Accept All Changes"
                     disabled={isProcessing}
                 >
-                    Keep
+                    Accept
                 </Button>
             </ActionButtons>
+            */}
         </NavigationContainer>
     );
 }
