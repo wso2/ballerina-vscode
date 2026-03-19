@@ -42,6 +42,7 @@ export function createBallerinaRunTool(
     runningServices: RunningServicesManager,
     eventHandler: CopilotEventHandler,
     modifiedFiles: string[],
+    allModifiedFiles: Set<string>,
     ctx: ExecutionContext
 ) {
     return tool({
@@ -68,7 +69,7 @@ export function createBallerinaRunTool(
                 toolInput: { command: "bal run", runType: input.runType },
             });
 
-            await integrateAndClearModifiedFiles(tempProjectPath, modifiedFiles, ctx);
+            await integrateAndClearModifiedFiles(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
 
             const result = await executeRun(input, tempProjectPath, runningServices);
 

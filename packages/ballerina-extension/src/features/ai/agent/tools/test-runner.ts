@@ -39,6 +39,7 @@ export function createTestRunnerTool(
     tempProjectPath: string,
     eventHandler: CopilotEventHandler,
     modifiedFiles: string[],
+    allModifiedFiles: Set<string>,
     ctx: ExecutionContext
 ) {
     return tool({
@@ -66,7 +67,7 @@ export function createTestRunnerTool(
                 toolInput: { command: "bal test" },
             });
 
-            await integrateAndClearModifiedFiles(tempProjectPath, modifiedFiles, ctx);
+            await integrateAndClearModifiedFiles(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
 
             const result = await runBallerinaTests(tempProjectPath);
             const status = result.exitCode === 0 ? "completed" : "error";
