@@ -27,6 +27,8 @@ import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
+import org.eclipse.lsp4j.FileChangeType;
+import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -60,6 +62,7 @@ public class ProjectServiceTest {
     private UriResolver uriResolver;
     private EventSyncPubSubHolder eventBus;
     private ProjectServiceImpl service;
+    private ChangeBuffer changeBuffer;
     private Path tempDir;
     private CancelChecker cancelChecker;
     private List<DomainEvent> publishedEvents;
@@ -80,11 +83,13 @@ public class ProjectServiceTest {
         eventBus.subscribe("test-event-logger", SubscriberTier.CRITICAL,
                 Set.of(EventKind.WORKSPACE_PROJECT_REGISTERED, EventKind.WORKSPACE_PROJECT_EVICTED,
                         EventKind.WORKSPACE_PROJECT_HEALTH_STATE_CHANGED, EventKind.WORKSPACE_PROJECT_TIER_CHANGED,
-                        EventKind.WORKSPACE_BATCH_PROJECTS_REGISTERED, EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED),
+                        EventKind.WORKSPACE_BATCH_PROJECTS_REGISTERED, EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED,
+                        EventKind.WM_FILE_WATCHED_CHANGED),
                 publishedEvents::add);
 
         ProjectLoader loader = (root, kind) -> mockBallerinaProject(root, kind);
-        service = new ProjectServiceImpl(registry, uriResolver, eventBus, loader, new ChangeBuffer());
+        changeBuffer = new ChangeBuffer();
+        service = new ProjectServiceImpl(registry, uriResolver, eventBus, loader, changeBuffer);
     }
 
     @AfterMethod
@@ -641,6 +646,93 @@ public class ProjectServiceTest {
                 .filter(e -> e.eventKind() == EventKind.WORKSPACE_PROJECT_HEALTH_STATE_CHANGED)
                 .count();
         Assert.assertEquals(eventCount, 0, "No health state change should occur if not in RECOVERING");
+    }
+
+    // =========================================================================
+    // Watched File Change Tests
+    // =========================================================================
+
+    @Test(groups = "watched-files")
+    public void watchedFiles_cloudTomlBufferedThroughEditorLayer() throws Exception {
+        Path cloudToml = tempDir.resolve("Cloud.toml");
+        Files.writeString(cloudToml, "[cloud]\nname = \"demo\"\n");
+        FileEvent event = new FileEvent(cloudToml.toUri().toString(), FileChangeType.Changed);
+
+        publishedEvents.clear();
+        service.didChangeWatchedFiles(List.of(event));
+        Thread.sleep(100);
+
+        DocumentUri uri = new DocumentUri.FileUri(cloudToml.toUri());
+        List<BufferedChange> bufferedChanges = changeBuffer.drain(uri, ChangeLayer.EDITOR);
+        Assert.assertEquals(bufferedChanges.size(), 1, "Cloud.toml should be buffered in the EDITOR layer");
+        Assert.assertEquals(bufferedChanges.get(0).change().getText(), FileChangeType.Changed.name(),
+                "Watcher change type should be preserved in buffered TOML changes");
+        Assert.assertTrue(publishedEvents.stream().anyMatch(e -> e.eventKind() == EventKind.WM_FILE_WATCHED_CHANGED),
+                "WM_FILE_WATCHED_CHANGED event should be published for buffered TOML changes");
+    }
+
+    @Test(groups = "watched-files")
+    public void watchedFiles_dependenciesTomlSelfWriteSuppressed() throws Exception {
+        Path dependenciesToml = tempDir.resolve("Dependencies.toml");
+        Files.writeString(dependenciesToml, "[[dependency]]\norg = \"wso2\"\n");
+        FileEvent event = new FileEvent(dependenciesToml.toUri().toString(), FileChangeType.Changed);
+
+        publishedEvents.clear();
+        service.registerDependenciesTomlSelfWrite(dependenciesToml);
+        service.didChangeWatchedFiles(List.of(event));
+        Thread.sleep(100);
+
+        DocumentUri uri = new DocumentUri.FileUri(dependenciesToml.toUri());
+        Assert.assertFalse(changeBuffer.hasChanges(uri), "Suppressed Dependencies.toml writes should not be buffered");
+        Assert.assertTrue(publishedEvents.isEmpty(), "Suppressed Dependencies.toml writes should produce no events");
+    }
+
+    @Test(groups = "watched-files")
+    public void watchedFiles_ballerinaTomlCreationTransitionsProjectKind() throws Exception {
+        Path singleFileDir = Files.createTempDirectory("test-single-file-watched-create");
+        service.loadOrCreate(singleFileDir, cancelChecker);
+
+        Path ballerinaToml = singleFileDir.resolve("Ballerina.toml");
+        Files.writeString(ballerinaToml, "[package]\norg = \"test\"\nname = \"demo\"\n");
+        FileEvent event = new FileEvent(ballerinaToml.toUri().toString(), FileChangeType.Created);
+
+        publishedEvents.clear();
+        service.didChangeWatchedFiles(List.of(event));
+        Thread.sleep(200);
+
+        SourceRoot root = new SourceRoot(singleFileDir.toAbsolutePath().normalize());
+        Assert.assertEquals(registry.get(root).orElseThrow().kind(), ProjectKind.BUILD,
+                "Ballerina.toml creation should transition the project to BUILD");
+        Assert.assertTrue(publishedEvents.stream()
+                        .anyMatch(e -> e.eventKind() == EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED),
+                "Ballerina.toml creation should publish a kind transition event");
+        DocumentUri uri = new DocumentUri.FileUri(ballerinaToml.toUri());
+        Assert.assertEquals(changeBuffer.drain(uri, ChangeLayer.EDITOR).size(), 1,
+                "Ballerina.toml creation should still buffer the TOML change");
+    }
+
+    @Test(groups = "watched-files")
+    public void watchedFiles_ballerinaTomlDeletionTransitionsProjectKind() throws Exception {
+        Path projectPath = tempDir.toAbsolutePath().normalize();
+        service.loadOrCreate(projectPath, cancelChecker);
+
+        Path ballerinaToml = projectPath.resolve("Ballerina.toml");
+        Files.deleteIfExists(ballerinaToml);
+        FileEvent event = new FileEvent(ballerinaToml.toUri().toString(), FileChangeType.Deleted);
+
+        publishedEvents.clear();
+        service.didChangeWatchedFiles(List.of(event));
+        Thread.sleep(200);
+
+        SourceRoot root = new SourceRoot(projectPath);
+        Assert.assertEquals(registry.get(root).orElseThrow().kind(), ProjectKind.SINGLE_FILE,
+                "Ballerina.toml deletion should transition the project to SINGLE_FILE");
+        Assert.assertTrue(publishedEvents.stream()
+                        .anyMatch(e -> e.eventKind() == EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED),
+                "Ballerina.toml deletion should publish a kind transition event");
+        DocumentUri uri = new DocumentUri.FileUri(ballerinaToml.toUri());
+        Assert.assertEquals(changeBuffer.drain(uri, ChangeLayer.EDITOR).size(), 1,
+                "Ballerina.toml deletion should still buffer the TOML change");
     }
 
     // =========================================================================

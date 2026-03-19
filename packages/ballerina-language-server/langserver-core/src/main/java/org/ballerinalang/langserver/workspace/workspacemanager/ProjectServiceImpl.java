@@ -29,6 +29,7 @@ import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
+import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
@@ -73,6 +74,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class ProjectServiceImpl implements ProjectService, CacheInvalidationListener {
 
     private static final int DEFAULT_HEAP_MB = 64;
+    private static final String BALLERINA_TOML = "Ballerina.toml";
+    private static final String DEPENDENCIES_TOML = "Dependencies.toml";
+    private static final Set<String> BUFFERED_TOML_FILES = Set.of(BALLERINA_TOML, DEPENDENCIES_TOML, "Cloud.toml");
 
     private final ProjectRegistry registry;
     private final UriResolver uriResolver;
@@ -82,6 +86,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     private final ConcurrentHashMap<SourceRoot, Project> ballerinaProjects;
     /** Per-URI monotonically increasing version counter for EDITOR-layer buffered changes. */
     private final ConcurrentHashMap<DocumentUri, AtomicInteger> versionCounters;
+    private final ConcurrentHashMap<Path, AtomicInteger> dependenciesSelfWriteTokens;
 
     /**
      * Constructs a project service with full wiring of dependencies.
@@ -117,6 +122,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         this.changeBuffer = changeBuffer;
         this.ballerinaProjects = new ConcurrentHashMap<>();
         this.versionCounters = new ConcurrentHashMap<>();
+        this.dependenciesSelfWriteTokens = new ConcurrentHashMap<>();
 
         // 1. Wire self as registry listener for eviction and batch events
         registry.addListener(this);
@@ -497,12 +503,43 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             try {
                 URI uri = URI.create(event.getUri());
                 DocumentUri docUri = new DocumentUri.FileUri(uri);
-                changeBuffer.routeWatcherEvent(docUri, event);
+                Path filePath = Path.of(uri).toAbsolutePath().normalize();
+                if (isBufferedTomlFile(filePath)) {
+                    if (isDependenciesToml(filePath) && consumeDependenciesTomlSelfWrite(filePath)) {
+                        continue;
+                    }
+                    appendWatchedTomlChange(docUri, event.getType());
+                    transitionProjectKindIfNeeded(filePath, event.getType());
+                } else {
+                    changeBuffer.routeWatcherEvent(docUri, event);
+                }
                 publishDoc(EventKind.WM_FILE_WATCHED_CHANGED, docUri);
             } catch (Exception ignored) {
                 // Malformed or non-file URI — skip this event
             }
         }
+    }
+
+    /**
+     * Registers a self-write token for {@code Dependencies.toml} watcher suppression.
+     *
+     * @param dependenciesTomlPath dependencies file path
+     */
+    public void registerDependenciesTomlSelfWrite(Path dependenciesTomlPath) {
+        Objects.requireNonNull(dependenciesTomlPath, "dependenciesTomlPath must not be null");
+
+        Path normalized = dependenciesTomlPath.toAbsolutePath().normalize();
+        if (!isDependenciesToml(normalized)) {
+            return;
+        }
+
+        dependenciesSelfWriteTokens.compute(normalized, (path, counter) -> {
+            if (counter == null) {
+                return new AtomicInteger(1);
+            }
+            counter.incrementAndGet();
+            return counter;
+        });
     }
 
     /**
@@ -599,6 +636,69 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         } catch (IllegalArgumentException ignored) {
             return HeapPressureLevel.WARNING;
         }
+    }
+
+    private void appendWatchedTomlChange(DocumentUri uri, FileChangeType changeType) {
+        AtomicInteger counter = versionCounters.computeIfAbsent(uri, key -> new AtomicInteger(0));
+        int version = counter.incrementAndGet();
+        TextDocumentContentChangeEvent change = new TextDocumentContentChangeEvent(changeType.name());
+        changeBuffer.append(uri, new BufferedChange(change, ChangeLayer.EDITOR, new ContentVersion(version)));
+    }
+
+    private void transitionProjectKindIfNeeded(Path filePath, FileChangeType changeType) {
+        if (!isBallerinaToml(filePath)
+                || (changeType != FileChangeType.Created && changeType != FileChangeType.Deleted)) {
+            return;
+        }
+
+        Path rootPath = filePath.getParent();
+        if (rootPath == null) {
+            return;
+        }
+
+        ProjectKind targetKind = changeType == FileChangeType.Created ? ProjectKind.BUILD : ProjectKind.SINGLE_FILE;
+        try {
+            transitionKind(new SourceRoot(rootPath.toAbsolutePath().normalize()), targetKind);
+        } catch (IllegalStateException ignored) {
+            // Ignore duplicate or otherwise invalid transitions from watcher replays.
+        }
+    }
+
+    private boolean consumeDependenciesTomlSelfWrite(Path dependenciesTomlPath) {
+        AtomicInteger counter = dependenciesSelfWriteTokens.get(dependenciesTomlPath);
+        if (counter == null) {
+            return false;
+        }
+
+        while (true) {
+            int current = counter.get();
+            if (current <= 0) {
+                dependenciesSelfWriteTokens.remove(dependenciesTomlPath, counter);
+                return false;
+            }
+            if (!counter.compareAndSet(current, current - 1)) {
+                continue;
+            }
+            if (current == 1) {
+                dependenciesSelfWriteTokens.remove(dependenciesTomlPath, counter);
+            }
+            return true;
+        }
+    }
+
+    private boolean isBufferedTomlFile(Path path) {
+        Path fileName = path.getFileName();
+        return fileName != null && BUFFERED_TOML_FILES.contains(fileName.toString());
+    }
+
+    private boolean isBallerinaToml(Path path) {
+        Path fileName = path.getFileName();
+        return fileName != null && BALLERINA_TOML.equals(fileName.toString());
+    }
+
+    private boolean isDependenciesToml(Path path) {
+        Path fileName = path.getFileName();
+        return fileName != null && DEPENDENCIES_TOML.equals(fileName.toString());
     }
 
     /**
