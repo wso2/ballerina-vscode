@@ -43,6 +43,7 @@ import org.ballerinalang.langserver.commons.command.CommandArgument;
 import org.ballerinalang.langserver.commons.command.LSCommandExecutorException;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.contexts.LanguageServerContextImpl;
 import org.ballerinalang.langserver.extensions.ballerina.document.ExecutorPositionsUtil;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
@@ -1015,9 +1016,8 @@ public class TestWorkspaceManager {
         Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
         Path packageAFile = workspaceProjectsPath.resolve("simple-workspace")
                 .resolve("package-b").resolve("main.bal").toAbsolutePath();
-        BallerinaWorkspaceManagerProxy workspaceManagerProxy =
-                new BallerinaWorkspaceManagerProxyImpl(new LanguageServerContextImpl());
-        workspaceManagerProxy.get().loadProject(packageAFile);
+        WorkspaceManager workspaceManagerProxy = WorkspaceManagerFacadeFactory.create(new LanguageServerContextImpl());
+        workspaceManagerProxy.loadProject(packageAFile);
         byte[] encodedContent = Files.readAllBytes(packageAFile);
 
         // 2. Open same file with expr:// scheme
@@ -1027,10 +1027,10 @@ public class TestWorkspaceManager {
         exprDocumentItem.setUri(exprUri);
         exprDocumentItem.setText(new String(encodedContent));
         exprParams.setTextDocument(exprDocumentItem);
-        workspaceManagerProxy.didOpen(exprParams);
+        workspaceManagerProxy.didOpen(packageAFile, exprParams);
 
         // 3. Get diagnostics and verify no errors
-        Project project = workspaceManagerProxy.get(exprUri).loadProject(packageAFile);
+        Project project = workspaceManagerProxy.loadProject(packageAFile);
         PackageCompilation compilation = project.currentPackage().getCompilation();
         Collection<Diagnostic> diagnostics = compilation.diagnosticResult().diagnostics();
         Assert.assertTrue(diagnostics.isEmpty(),

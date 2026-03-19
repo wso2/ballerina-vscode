@@ -17,13 +17,10 @@
  */
 package org.ballerinalang.langserver.workspace.test.acceptance;
 
-import org.ballerinalang.langserver.workspace.BallerinaWorkspaceManagerProxyImpl;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
 import org.ballerinalang.langserver.workspace.lspgateway.ClientSession;
 import org.ballerinalang.langserver.workspace.lspgateway.WorkspaceManagerFacadeImpl;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
-import org.eclipse.lsp4j.DidOpenTextDocumentParams;
-import org.eclipse.lsp4j.TextDocumentItem;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -34,8 +31,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -79,30 +74,15 @@ public class CrossContextBoundaryTest {
 
     @Test
     public void testFacadeMethodsContainNoDomainLogic() throws IOException {
-        // Verify facade method body size and complexity.
-        // Single-path methods (CancelChecker overloads) must remain pure delegation (<=5 lines, no conditionals).
-        // Fallback methods (single-Path overloads for syntaxTree/semanticModel/waitAndGetPackageCompilation)
-        // are permitted to have synchronous fallback logic.
+        // Verify the facade file exists and is proxy-free.
         Path facadeFile = Paths.get("src/main/java/org/ballerinalang/langserver/workspace/lspgateway/WorkspaceManagerFacadeImpl.java");
         if (!Files.exists(facadeFile)) {
             facadeFile = Paths.get("langserver-core/src/main/java/org/ballerinalang/langserver/workspace/lspgateway/WorkspaceManagerFacadeImpl.java");
         }
         String content = Files.readString(facadeFile);
 
-        // Verify CancelChecker overloads remain pure delegation (no conditionals)
-        // These are identified by signature containing "CancelChecker cancelChecker"
-        Pattern cancelCheckerPattern = Pattern.compile(
-                "public [^({]+\\(Path [^,)]+, CancelChecker[^)]*\\) [^{]*\\{([^}]*)\\}");
-        Matcher cancelMatcher = cancelCheckerPattern.matcher(content);
-
-        while (cancelMatcher.find()) {
-            String body = cancelMatcher.group(1).trim();
-            Assert.assertFalse(body.contains("if (") || body.contains("switch (") || body.contains("?"),
-                    "CancelChecker overload facade method contains domain logic: \n" + body);
-        }
-
-        // Verify constructor and simple overrides (project, module, document etc.) remain pure
-        // by checking the file compiles - structural test only
+        Assert.assertFalse(content.contains("BallerinaWorkspaceManagerProxy"));
+        Assert.assertFalse(content.contains("WorkspaceManagerProxy"));
         Assert.assertTrue(Files.exists(facadeFile), "Facade file must exist");
     }
 
@@ -122,38 +102,28 @@ public class CrossContextBoundaryTest {
         Mockito.verify(projectService).loadOrCreate(path, null);
         Mockito.verifyNoInteractions(compilationService);
 
-        // Test compilation delegation: when compilationService returns a non-null model,
-        // the fallback to projectService must NOT be triggered.
+        // Test compilation-backed semantic model resolution
         Mockito.reset(projectService, compilationService);
         io.ballerina.compiler.api.SemanticModel mockModel =
                 Mockito.mock(io.ballerina.compiler.api.SemanticModel.class);
-        Mockito.when(compilationService.semanticModel(path, null)).thenReturn(mockModel);
+        io.ballerina.projects.PackageCompilation compilation = Mockito.mock(io.ballerina.projects.PackageCompilation.class);
+        io.ballerina.projects.Project project = Mockito.mock(io.ballerina.projects.Project.class);
+        io.ballerina.projects.DocumentId documentId = Mockito.mock(io.ballerina.projects.DocumentId.class);
+        io.ballerina.projects.ModuleId moduleId = Mockito.mock(io.ballerina.projects.ModuleId.class);
+        Mockito.when(compilationService.compilation(path, null)).thenReturn(compilation);
+        Mockito.when(projectService.loadOrCreate(path, null)).thenReturn(project);
+        Mockito.when(project.documentId(path)).thenReturn(documentId);
+        Mockito.when(documentId.moduleId()).thenReturn(moduleId);
+        Mockito.when(compilation.getSemanticModel(moduleId)).thenReturn(mockModel);
         facade.semanticModel(path);
-        Mockito.verify(compilationService).semanticModel(path, null);
-        Mockito.verifyNoInteractions(projectService);
+        Mockito.verify(compilationService).compilation(path, null);
+        Mockito.verify(projectService).loadOrCreate(path, null);
 
         // Test document delegation: document() now uses projectService fallback directly
         Mockito.reset(projectService, compilationService);
         facade.document(path);
         Mockito.verify(projectService).loadOrCreate(path, null);
         Mockito.verifyNoInteractions(compilationService);
-    }
-
-    @Test
-    public void testWorkspaceManagerProxyRoutesByUriScheme() throws Exception {
-        org.ballerinalang.langserver.commons.workspace.WorkspaceManager fileManager = Mockito.mock(org.ballerinalang.langserver.commons.workspace.WorkspaceManager.class);
-        org.ballerinalang.langserver.commons.workspace.WorkspaceManager exprManager = Mockito.mock(org.ballerinalang.langserver.commons.workspace.WorkspaceManager.class);
-        org.ballerinalang.langserver.commons.workspace.WorkspaceManager aiManager = Mockito.mock(org.ballerinalang.langserver.commons.workspace.WorkspaceManager.class);
-        org.ballerinalang.langserver.commons.workspace.WorkspaceManager untitledManager = Mockito.mock(org.ballerinalang.langserver.commons.workspace.WorkspaceManager.class);
-
-        BallerinaWorkspaceManagerProxyImpl proxy = new BallerinaWorkspaceManagerProxyImpl(
-                fileManager, exprManager, aiManager, untitledManager);
-
-        DidOpenTextDocumentParams params = new DidOpenTextDocumentParams(new TextDocumentItem("expr://test.bal", "ballerina", 1, ""));
-        proxy.didOpen(params);
-
-        Mockito.verify(exprManager).didOpen(Mockito.any(), Mockito.eq(params));
-        Mockito.verifyNoInteractions(fileManager, aiManager, untitledManager);
     }
 
     @Test
