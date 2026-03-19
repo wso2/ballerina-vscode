@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 public class SearchDatabaseManager {
 
     private static final String INDEX_FILE_NAME = "search-index.sqlite";
+    private static final String LIKE_MATCH_RANK = "100000000.0";
     private static final Logger LOGGER = Logger.getLogger(SearchDatabaseManager.class.getName());
     private final String dbPath;
 
@@ -164,7 +165,7 @@ public class SearchDatabaseManager {
                             p.package_name,
                             p.org AS package_org,
                             p.version AS package_version,
-                            100000000.0 AS rank
+                            %s AS rank
                         FROM Function AS f
                         JOIN Package AS p ON f.package_id = p.id
                         WHERE f.name LIKE ? COLLATE NOCASE
@@ -173,7 +174,7 @@ public class SearchDatabaseManager {
                     ORDER BY rank, function_name
                     LIMIT ?
                     OFFSET ?;
-                    """;
+                    """.formatted(LIKE_MATCH_RANK);
         }
 
         try (Connection conn = DriverManager.getConnection(dbPath);
