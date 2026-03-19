@@ -776,17 +776,17 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
             <ToggleOption
                 active={viewMode === "diagram"}
                 disabled={!hasDiagramView}
-                title={hasDiagramView ? "Diagram View" : "No diagram changes available"}
+                title={hasDiagramView ? "Diagram" : "No diagram changes available"}
                 onClick={() => hasDiagramView && setViewMode("diagram")}
             >
-                Diagram View
+                Diagram
             </ToggleOption>
             <ToggleOption
                 active={viewMode === "code"}
-                title="Code View"
+                title="Code"
                 onClick={() => setViewMode("code")}
             >
-                Code View
+                Code
             </ToggleOption>
         </ToggleGroup>
     );
@@ -828,7 +828,7 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
                         className={`codicon ${isExpanded ? "codicon-chevron-down" : "codicon-chevron-right"}`}
                         style={{ fontSize: "11px" }}
                     />
-                    {status === "accepted" ? "Changes accepted" : "Changes discarded"}
+                    {status === "accepted" ? "Changes accepted" : "Changes reverted"}
                 </TitleRow>
                 {isExpanded && (
                     packageGroups && packageGroups.length > 0
@@ -844,7 +844,7 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     return (
         <Container>
             <TitleBarRow>
-                <Title>Changes ready to review</Title>
+                <Title>Review changes</Title>
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     {isActive && !isReviewModeOpen && hasDiagramView && (
                         <ReviewIconButton
@@ -869,13 +869,13 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
             }
             {isActive && (
                 <ActionRow>
-                    <ActionButton $variant="discard" onClick={handleDiscard} disabled={isProcessing} title="Discard changes">
+                    <ActionButton $variant="discard" onClick={handleDiscard} disabled={isProcessing} title="Revert changes">
                         <span className="codicon codicon-discard" style={{ fontSize: "11px" }} />
-                        Discard
+                        Revert
                     </ActionButton>
                     <ActionButton $variant="accept" onClick={handleAccept} disabled={isProcessing} title="Accept changes">
                         <span className="codicon codicon-check" style={{ fontSize: "11px" }} />
-                        Keep
+                        Accept
                     </ActionButton>
                 </ActionRow>
             )}
