@@ -119,6 +119,14 @@ const renderPrompt = (item: AIPanelPrompt, index: number, aiChatInputRef: React.
     );
 };
 
+const DisclaimerText = styled.p`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    text-align: center;
+    margin: 8px 0 0;
+    opacity: 0.7;
+`;
+
 type FooterProps = {
     aiChatInputRef: React.RefObject<AIChatInputRef>;
     tagOptions: TagOptions;
@@ -210,6 +218,11 @@ const Footer: React.FC<FooterProps> = ({
                 onToggleWebSearch={onToggleWebSearch}
                 disabled={disabled}
             />
+            {!showSuggestedCommands && (
+                <DisclaimerText>
+                    AI-generated output may contain mistakes. Review before adding to your integration.
+                </DisclaimerText>
+            )}
         </FooterContainer>
     );
 };

@@ -48,16 +48,6 @@ const Content = styled.div`
     align-self: center;
 `;
 
-const VideoThumbnail = styled.div`
-    position: relative;
-    width: 80%;
-    aspect-ratio: 24 / 5;
-    margin: 42px auto 0;
-    border-radius: 4px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: background 0.2s;
-`;
 
 const GuideChip = styled.div`
     margin: 42px auto 0;
@@ -123,8 +113,8 @@ const WelcomeMessage: React.FC<WelcomeMessageProps> = ({ isOnboarding = false })
                         marginTop: "16px",
                     }}
                 >
-                    BI Copilot is powered by AI. It can make mistakes. Review generated code before adding it to your
-                    integration.
+                    Build integrations faster with AI. Describe your requirements in plain language and get working
+                    implementations instantly.
                 </Typography>
                 <Typography
                     variant="body1"
