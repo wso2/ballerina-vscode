@@ -26,7 +26,6 @@ import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.util.ProjectConstants;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
-import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 
 import java.net.URI;
@@ -148,11 +147,11 @@ public class ChangeApplier {
     }
 
     /**
-     * Applies changes clustered by module using the optimal modify API strategy:
+     * Applies changes clustered by module using the appropriate strategy:
      * <ul>
-     *   <li>Single document in a single module: {@code document.modify()}</li>
-     *   <li>Multiple documents in the same module: {@code module.modify()} (TODO: batch)</li>
-     *   <li>Multiple modules: {@code package.modify()} (TODO: batch)</li>
+     *   <li>Single document in a single module: {@link SingleDocumentStrategy}</li>
+     *   <li>Multiple documents in the same module: {@link MultiDocumentStrategy}</li>
+     *   <li>Multiple modules: {@link MultiModuleStrategy}</li>
      * </ul>
      *
      * @param pkg             the current package (reserved for future batched package.modify())
@@ -160,113 +159,29 @@ public class ChangeApplier {
      */
     private void applyClusteredChanges(Package pkg,
             Map<Module, Map<Document, List<TextDocumentContentChangeEvent>>> changesByModule) {
-        if (changesByModule.size() == 1) {
-            Module module = changesByModule.keySet().iterator().next();
-            Map<Document, List<TextDocumentContentChangeEvent>> docChanges = changesByModule.get(module);
+        ChangeApplicationStrategy strategy = selectStrategy(changesByModule);
+        strategy.apply(changesByModule);
+    }
 
+    /**
+     * Selects the appropriate strategy based on the structure of changes.
+     *
+     * @param changesByModule the changes organized by module and document
+     * @return the strategy to use for applying these changes
+     */
+    private ChangeApplicationStrategy selectStrategy(
+            Map<Module, Map<Document, List<TextDocumentContentChangeEvent>>> changesByModule) {
+        if (changesByModule.size() == 1) {
+            Map<Document, List<TextDocumentContentChangeEvent>> docChanges =
+                    changesByModule.values().iterator().next();
             if (docChanges.size() == 1) {
-                // Strategy 1: single document — document.modify()
-                Document doc = docChanges.keySet().iterator().next();
-                applyViaDocumentModify(doc, docChanges.get(doc));
+                return new SingleDocumentStrategy();
             } else {
-                // Strategy 2: multiple docs same module — ideally module.modify() (TODO: batch when API is public)
-                applyViaModuleModify(docChanges);
+                return new MultiDocumentStrategy();
             }
         } else {
-            // Strategy 3: multiple modules — ideally package.modify() (TODO: batch when API is public)
-            applyViaPackageModify(changesByModule);
+            return new MultiModuleStrategy();
         }
-    }
-
-    /**
-     * Applies changes to a single document via {@code document.modify()}.
-     */
-    private void applyViaDocumentModify(Document doc, List<TextDocumentContentChangeEvent> changes) {
-        String content = computeContent(doc, changes);
-        doc.modify()
-                .withContent(content)
-                .apply();
-    }
-
-    /**
-     * Applies changes to multiple documents in the same module.
-     * Calls {@code document.modify()} per document.
-     *
-     * TODO: Batch into a single {@code module.modify()} once DocumentContext is part of the public compiler API.
-     */
-    private void applyViaModuleModify(Map<Document, List<TextDocumentContentChangeEvent>> docChanges) {
-        for (Map.Entry<Document, List<TextDocumentContentChangeEvent>> entry : docChanges.entrySet()) {
-            applyViaDocumentModify(entry.getKey(), entry.getValue());
-        }
-    }
-
-    /**
-     * Applies changes across multiple modules.
-     * Calls {@code document.modify()} per document.
-     *
-     * TODO: Batch into a single {@code package.modify()} once ModuleContext is part of the public compiler API.
-     */
-    private void applyViaPackageModify(
-            Map<Module, Map<Document, List<TextDocumentContentChangeEvent>>> changesByModule) {
-        for (Map<Document, List<TextDocumentContentChangeEvent>> docChanges : changesByModule.values()) {
-            applyViaModuleModify(docChanges);
-        }
-    }
-
-    /**
-     * Computes the final content for a document by applying a sequence of LSP content changes in order.
-     * Handles both full-document replacements ({@code range == null}) and range-based incremental edits.
-     *
-     * @param doc     the document providing the base content
-     * @param changes the ordered list of content change events
-     * @return the resulting content string
-     */
-    private String computeContent(Document doc, List<TextDocumentContentChangeEvent> changes) {
-        String content = doc.textDocument().toString();
-        for (TextDocumentContentChangeEvent change : changes) {
-            if (change.getRange() == null) {
-                content = change.getText();
-            } else {
-                content = applyRangeEdit(content, change.getRange(), change.getText());
-            }
-        }
-        return content;
-    }
-
-    /**
-     * Applies a range-based text replacement to the content string.
-     * Converts LSP line/character positions (0-based, UTF-16 code units) to string offsets.
-     *
-     * @param content     the current content
-     * @param range       the LSP range to replace
-     * @param replacement the replacement text
-     * @return the content with the specified range replaced
-     */
-    private String applyRangeEdit(String content, Range range, String replacement) {
-        String[] lines = content.split("\n", -1);
-        int startOffset = lineCharToOffset(lines, range.getStart().getLine(), range.getStart().getCharacter());
-        int endOffset = lineCharToOffset(lines, range.getEnd().getLine(), range.getEnd().getCharacter());
-        return content.substring(0, startOffset) + replacement + content.substring(endOffset);
-    }
-
-    /**
-     * Converts a line/character position to a linear string offset.
-     * Line numbers and character offsets are 0-based (LSP convention).
-     *
-     * @param lines     the content split into lines (without the newline characters)
-     * @param line      0-based line number
-     * @param character 0-based character offset within the line
-     * @return the offset from the start of the content string
-     */
-    private int lineCharToOffset(String[] lines, int line, int character) {
-        int offset = 0;
-        for (int i = 0; i < line && i < lines.length; i++) {
-            offset += lines[i].length() + 1; // +1 for the '\n'
-        }
-        if (line < lines.length) {
-            offset += Math.min(character, lines[line].length());
-        }
-        return offset;
     }
 
     /**
