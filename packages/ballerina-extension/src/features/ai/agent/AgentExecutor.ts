@@ -27,6 +27,7 @@ import { getSystemPrompt, getUserPrompt } from './prompts';
 import { GenerationType } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
 import { getProjectSource, cleanupTempProject } from '../utils/project/temp-project';
+import { integrateCodeToWorkspace } from './utils';
 import { getWorkspaceTomlValues } from '../../../utils';
 import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
@@ -198,6 +199,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 threadId: 'default',
                 runningServices: runningServicesManager,
                 webSearchEnabled: params.webSearchEnabled ?? false,
+                ctx: this.config.executionContext,
             });
 
             const { fullStream, response, usage } = streamText({
@@ -487,6 +489,29 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         // Update chat state storage
         await this.updateChatState(context, assistantMessages, tempProjectPath);
 
+        // Integrate generated code into workspace immediately so user sees changes during review
+        const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, 'default');
+        if (pendingReview && pendingReview.reviewState.modifiedFiles.length > 0) {
+            const integrationCtx = { ...context.ctx };
+            // In workspace mode, resolve project path from modified files if not set
+            if (!integrationCtx.projectPath && integrationCtx.workspacePath && pendingReview.reviewState.modifiedFiles.length > 0) {
+                const firstBalFile = pendingReview.reviewState.modifiedFiles.find(f => f.endsWith('.bal'));
+                if (firstBalFile) {
+                    const packageName = firstBalFile.split('/')[0];
+                    if (packageName) {
+                        integrationCtx.projectPath = path.join(integrationCtx.workspacePath, packageName);
+                        StateMachine.context().projectPath = integrationCtx.projectPath;
+                    }
+                }
+            }
+            await integrateCodeToWorkspace(
+                pendingReview.reviewState.tempProjectPath!,
+                new Set(pendingReview.reviewState.modifiedFiles),
+                integrationCtx
+            );
+        }
+
         // Emit UI events
         await this.emitReviewActions(context);
     }
@@ -605,7 +630,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             const hasSemanticResults = loadDesignDiagrams || semanticDiffs.length > 0;
             const isBI = StateMachine.context().isBI;
             const autoOpen = !!(isBI && hasSemanticResults);
-            approvalViewManager.openReviewMode(reviewData, autoOpen);
+            approvalViewManager.openReviewMode(reviewData, false);
 
             context.eventHandler({
                 type: "chat_component",
