@@ -736,10 +736,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async openFileDiff(params: OpenFileDiffRequest): Promise<void> {
         AiPanelRpcManager.registerDiffContentProvider();
 
-        // Resolve roots on the host — never trust webview-supplied absolute paths
         const context = StateMachine.context();
-        // Use workspace root when available; modifiedFiles are relative to the workspace root in workspace mode
-        const originalRoot = context.workspacePath || context.projectPath;
         const workspaceId = context.workspacePath || context.projectPath;
         const threadId = 'default';
         const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
@@ -750,24 +747,18 @@ export class AiPanelRpcManager implements AIPanelAPI {
             return;
         }
 
-        const originalFilePath = path.resolve(originalRoot, params.relativePath);
         const modifiedFilePath = path.resolve(tempProjectPath, params.relativePath);
 
-        // Reject paths that escape the project roots
-        if (!originalFilePath.startsWith(originalRoot + path.sep) || !modifiedFilePath.startsWith(tempProjectPath + path.sep)) {
-            console.error("[openFileDiff] Path escapes project root, rejecting");
+        if (!modifiedFilePath.startsWith(tempProjectPath + path.sep)) {
+            console.error("[openFileDiff] Path escapes temp project root, rejecting");
             return;
         }
 
         // Clear previous diff entries to prevent unbounded memory growth
         AiPanelRpcManager.diffContentMap.clear();
 
-        let originalContent = '';
-        try {
-            originalContent = fs.readFileSync(originalFilePath, 'utf8');
-        } catch {
-            // File doesn't exist (new file) — left side will be empty
-        }
+        // Read original content from checkpoint snapshot — workspace already has generated code
+        const originalContent = pendingReview?.checkpoint?.workspaceSnapshot[params.relativePath] ?? '';
 
         let modifiedContent = '';
         try {
