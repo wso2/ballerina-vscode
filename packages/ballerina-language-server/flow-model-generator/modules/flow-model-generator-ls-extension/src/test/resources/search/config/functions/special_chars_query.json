@@ -1,0 +1,197 @@
+{
+  "description": "Search functions with special-character-only query that sanitizes to empty",
+  "kind": "FUNCTION",
+  "source": "empty.bal",
+  "position": {
+    "startLine": {
+      "line": 1,
+      "offset": 1
+    },
+    "endLine": {
+      "line": 1,
+      "offset": 1
+    }
+  },
+  "queryMap": {
+    "q": "@#$%",
+    "limit": "5",
+    "offset": "0"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Agent Tools",
+        "description": "Functions used as agent tools",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Imported Functions",
+        "description": "Functions imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Function",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "lang.string",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "'join",
+                "description": "Joins zero or more strings together with a separator.\n\n```ballerina\nstring:'join(\" \", \"Ballerina\", \"is\", \"a\", \"programming\", \"language\") ⇒ Ballerina is a programming language\nstring[] array = [\"John\", \"23\", \"USA\", \"Computer Science\", \"Swimmer\"];\nstring:'join(\",\", ...array) ⇒ John,23,USA,Computer Science,Swimmer\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.string_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.string",
+                "packageName": "lang.string",
+                "symbol": "'join",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "lang.array",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "'map",
+                "description": "Applies a function to each member of an array and returns an array of the results.\n\n```ballerina\nint[] numbers = [0, 1, 2];\nnumbers.map(n => n * 2) ⇒ [0,2,4]\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.array_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.array",
+                "packageName": "lang.array",
+                "symbol": "'map",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "lang.stream",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "'map",
+                "description": "Applies a function to each member of a stream and returns a stream of the results.\n\n```ballerina\nstream<float> ms = [14.5f, 45.5f, 6.8f, 4f].toStream();\nstream<float> cms = ms.map(m => m * 100.0);\ncms.next() ⇒ {\"value\":1450.0}\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.stream_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.stream",
+                "packageName": "lang.stream",
+                "symbol": "'map",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "lang.map",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "'map",
+                "description": "Applies a function each member of a map and returns a map of the result.\n\nThe resulting map will have the same keys as the argument map.\n\n```ballerina\nmap<int> marks = {\"Carl\": 85, \"Bob\": 50, \"Max\": 60};\nmarks.map(m => m > 50) ⇒ {\"Carl\":true,\"Bob\":false,\"Max\":true}\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.map_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.map",
+                "packageName": "lang.map",
+                "symbol": "'map",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "lang.table",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "'map",
+                "description": "Applies a function to each member of a table and returns a table of the result.\n\n```ballerina\ntable<record {|int id; int math; int physics;|}> students = table [\n    {id: 1, math: 78, physics: 70},\n    {id: 2, math: 83, physics: 80}\n];\nstudents.map(student => {id: student.id, avg: (student.math + student.physics) / 2}) ⇒ [{\"id\":1,\"avg\":74},{\"id\":2,\"avg\":81}]\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.table_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.table",
+                "packageName": "lang.table",
+                "symbol": "'map",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
