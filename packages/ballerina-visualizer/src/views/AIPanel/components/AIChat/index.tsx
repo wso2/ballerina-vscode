@@ -179,6 +179,7 @@ const AIChat: React.FC = () => {
     const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Edit);
 
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
+    const [hasActiveReview, setHasActiveReview] = useState(false);
 
     const [approvalRequest, setApprovalRequest] = useState<TaskApprovalRequest | null>(null);
     const [approvalOverlay, setApprovalOverlay] = useState<ApprovalOverlayState>({ show: false });
@@ -653,6 +654,9 @@ const AIChat: React.FC = () => {
                 msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
+            if (componentType === "review") {
+                setHasActiveReview(true);
+            }
 
         } else if (type === "messages") {
             messagesRef.current = response.messages;
@@ -823,6 +827,10 @@ const AIChat: React.FC = () => {
 
         if (content.input.length === 0) {
             return;
+        }
+        if (hasActiveReview) {
+            rpcClient.getAiPanelRpcClient().acceptChanges().catch((e: unknown) => console.warn("[AIChat] auto-accept failed:", e));
+            setHasActiveReview(false);
         }
         rpcClient.getAiPanelRpcClient().clearInitialPrompt();
         setMessages((prevMessages) => prevMessages.filter((message) => message.type !== "label"));
@@ -1187,7 +1195,7 @@ const AIChat: React.FC = () => {
     }, [otherMessages.length]);
 
 
-    const updateReviewStatus = (message: { role: string; content: string; type: string }, newStatus: "accepted" | "discarded") => {
+    const updateReviewStatus = (message: { role: string; content: string; type: string }, newStatus: "discarded") => {
         setMessages(prevMessages => {
             const msgs = [...prevMessages];
             const idx = msgs.findIndex(m => m === message);
@@ -1437,12 +1445,7 @@ const AIChat: React.FC = () => {
                             // Note: Cannot use useMemo here as it's inside map() callback
                             // The stateless regex implementation in splitContent() ensures no corruption during streaming
                             const segmentedContent = splitContent(message.content);
-                            const hasReviewActions = segmentedContent.some(segment =>
-                                segment.type === SegmentType.AgentStream &&
-                                (segment.stream ?? []).flatMap((e: StreamEntry) => e.items).some(
-                                    (item: StreamItem) => item.kind === "component" && (item as any).componentType === "review" && (item as any).data.status === "pending"
-                                )
-                            );
+                            const hasReviewActions = isLatestAssistantMessage && hasActiveReview;
                             return (
                                 <ChatMessage key={index}>
                                     {/* Checkpoint separator before user messages */}
@@ -1500,10 +1503,13 @@ const AIChat: React.FC = () => {
                                                                 loadDesignDiagrams={(reviewItem as any).data.loadDesignDiagrams}
                                                                 isWorkspace={(reviewItem as any).data.isWorkspace}
                                                                 diffPackageMap={(reviewItem as any).data.diffPackageMap}
-                                                                status={(reviewItem as any).data.status ?? "pending"}
+                                                                isDiscarded={(reviewItem as any).data.status === "discarded"}
                                                                 rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
-                                                                isActive={isLatestAssistantMessage && !isLoading}
-                                                                onStatusChange={(newStatus) => updateReviewStatus(message, newStatus)}
+                                                                isActive={isLatestAssistantMessage && !isLoading && hasActiveReview}
+                                                                onDiscarded={() => {
+                                                                    updateReviewStatus(message, "discarded");
+                                                                    setHasActiveReview(false);
+                                                                }}
                                                             />
                                                         )}
                                                         {buttonItems.map((item: StreamItem, ci: number) => {
