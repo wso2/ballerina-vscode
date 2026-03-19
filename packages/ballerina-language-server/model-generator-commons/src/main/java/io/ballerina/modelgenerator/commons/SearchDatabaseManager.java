@@ -106,53 +106,89 @@ public class SearchDatabaseManager {
     public List<SearchResult> searchFunctions(String q, int limit, int offset) {
         List<SearchResult> results = new ArrayList<>();
         String sanitizedQuery = sanitizeQuery(q);
-        String sql = """
-                SELECT id, function_name, function_description, package_id,
-                       module_name, package_name, package_org, package_version,
-                       MIN(rank) AS rank
-                FROM (
-                    SELECT
-                        f.id,
-                        f.name AS function_name,
-                        f.description AS function_description,
-                        f.package_id,
-                        p.name AS module_name,
-                        p.package_name,
-                        p.org AS package_org,
-                        p.version AS package_version,
-                        fts.rank
-                    FROM FunctionFTS AS fts
-                    JOIN Function AS f ON fts.rowid = f.id
-                    JOIN Package AS p ON f.package_id = p.id
-                    WHERE fts.FunctionFTS MATCH ?
-                    UNION ALL
-                    SELECT
-                        f.id,
-                        f.name AS function_name,
-                        f.description AS function_description,
-                        f.package_id,
-                        p.name AS module_name,
-                        p.package_name,
-                        p.org AS package_org,
-                        p.version AS package_version,
-                        1.0 AS rank
-                    FROM Function AS f
-                    JOIN Package AS p ON f.package_id = p.id
-                    WHERE f.name LIKE ? COLLATE NOCASE
-                )
-                GROUP BY id
-                ORDER BY rank, function_name
-                LIMIT ?
-                OFFSET ?;
-                """;
+        String sql;
+        if (sanitizedQuery.isEmpty()) {
+            // When the sanitized query is empty, only perform an FTS search to avoid a full-table LIKE scan.
+            sql = """
+                    SELECT id, function_name, function_description, package_id,
+                           module_name, package_name, package_org, package_version,
+                           MIN(rank) AS rank
+                    FROM (
+                        SELECT
+                            f.id,
+                            f.name AS function_name,
+                            f.description AS function_description,
+                            f.package_id,
+                            p.name AS module_name,
+                            p.package_name,
+                            p.org AS package_org,
+                            p.version AS package_version,
+                            fts.rank
+                        FROM FunctionFTS AS fts
+                        JOIN Function AS f ON fts.rowid = f.id
+                        JOIN Package AS p ON f.package_id = p.id
+                        WHERE fts.FunctionFTS MATCH ?
+                    )
+                    GROUP BY id
+                    ORDER BY rank, function_name
+                    LIMIT ?
+                    OFFSET ?;
+                    """;
+        } else {
+            sql = """
+                    SELECT id, function_name, function_description, package_id,
+                           module_name, package_name, package_org, package_version,
+                           MIN(rank) AS rank
+                    FROM (
+                        SELECT
+                            f.id,
+                            f.name AS function_name,
+                            f.description AS function_description,
+                            f.package_id,
+                            p.name AS module_name,
+                            p.package_name,
+                            p.org AS package_org,
+                            p.version AS package_version,
+                            fts.rank
+                        FROM FunctionFTS AS fts
+                        JOIN Function AS f ON fts.rowid = f.id
+                        JOIN Package AS p ON f.package_id = p.id
+                        WHERE fts.FunctionFTS MATCH ?
+                        UNION ALL
+                        SELECT
+                            f.id,
+                            f.name AS function_name,
+                            f.description AS function_description,
+                            f.package_id,
+                            p.name AS module_name,
+                            p.package_name,
+                            p.org AS package_org,
+                            p.version AS package_version,
+                            1.0 AS rank
+                        FROM Function AS f
+                        JOIN Package AS p ON f.package_id = p.id
+                        WHERE f.name LIKE ? COLLATE NOCASE
+                    )
+                    GROUP BY id
+                    ORDER BY rank, function_name
+                    LIMIT ?
+                    OFFSET ?;
+                    """;
+        }
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, sanitizedQuery.isEmpty() ? "*" : sanitizedQuery + "*");
-            stmt.setString(2, "%" + sanitizedQuery + "%");
-            stmt.setInt(3, limit);
-            stmt.setInt(4, offset);
+            if (sanitizedQuery.isEmpty()) {
+                stmt.setString(1, "*");
+                stmt.setInt(2, limit);
+                stmt.setInt(3, offset);
+            } else {
+                stmt.setString(1, sanitizedQuery + "*");
+                stmt.setString(2, "%" + sanitizedQuery + "%");
+                stmt.setInt(3, limit);
+                stmt.setInt(4, offset);
+            }
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
