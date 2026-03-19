@@ -101,7 +101,7 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
                             }
                             await openHurlNotebook(descriptor, savePath, options);
                         } else {
-                            await vscode.commands.executeCommand('http-book.importHurlString', content, { ...options, savePath, viewColumn: 'beside' });
+                            await vscode.commands.executeCommand('HTTPClient.importHurlString', content, { ...options, savePath, viewColumn: 'beside' });
                         }
                     }
                 } catch (error) {
@@ -267,7 +267,7 @@ async function openHurlNotebook(
     options?: { savable?: boolean }
 ): Promise<void> {
     const cells = buildHurlCellsFromOASSpec(descriptor.oasSpec, descriptor.baseUrl, descriptor.serviceName, descriptor.resourceMetadata);
-    await vscode.commands.executeCommand('http-book.importHurlString', cells, { ...options, savePath, viewColumn: 'active' });
+    await vscode.commands.executeCommand('HTTPClient.importHurlString', cells, { ...options, savePath, viewColumn: 'active' });
 }
 
 // Generic utility function for opening files in split view
