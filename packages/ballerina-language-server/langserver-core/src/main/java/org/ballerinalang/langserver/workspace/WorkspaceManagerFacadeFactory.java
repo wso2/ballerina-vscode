@@ -73,7 +73,7 @@ public final class WorkspaceManagerFacadeFactory {
      * Creates a new {@link WorkspaceManagerFacadeImpl} backed by a {@link WiringConfiguration}.
      *
      * @param serverContext the language server context
-     * @return a fully-wired workspace manager
+     * @return a fully-wired workspace manager facade
      */
     public static WorkspaceManager create(LanguageServerContext serverContext) {
         BuildOptions buildOptions = BuildOptions.builder()

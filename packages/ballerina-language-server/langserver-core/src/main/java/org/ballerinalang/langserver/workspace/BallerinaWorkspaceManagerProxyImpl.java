@@ -35,8 +35,10 @@ import java.util.Objects;
  * Routes requests to the appropriate WorkspaceManager based on DocumentUri scheme.
  * Preserves DocumentUri at proxy boundary, strips scheme before facade dispatch.
  *
+ * @deprecated As of 1.7.0, use the unified workspace manager facade instead.
  * @since 1.7.0
  */
+@Deprecated(since = "1.7.0", forRemoval = true)
 public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceManagerProxy {
 
     private final WorkspaceManager fileWorkspaceManager;
