@@ -25,6 +25,7 @@ import org.ballerinalang.langserver.workspace.compilerengine.CancellationToken;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
+import org.ballerinalang.langserver.workspace.compilerengine.InProgressSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.MaterializedStableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
@@ -207,6 +208,56 @@ public class CancellationModelTest {
         Awaitility.await().atMost(3, TimeUnit.SECONDS)
                 .untilAsserted(() -> Assert.assertEquals(snapshotStore.getStable(TEST_ROOT).contentVersion(),
                         new ContentVersion(2), "Cancellation guard must prevent stale snapshots from being published"));
+    }
+
+    /**
+     * Verifies a superseded compilation does not cancel the replacement in-progress snapshot.
+     */
+    @Test
+    public void supersededCompilation_keepsReplacementInProgressSnapshotVisibleUntilPublish() throws Exception {
+        DualSnapshotStore snapshotStore = new DualSnapshotStore();
+        StableSnapshot previousSnapshot = createSnapshot(new ContentVersion(0));
+        StableSnapshot replacementSnapshot = createSnapshot(new ContentVersion(2));
+        CountDownLatch firstStarted = new CountDownLatch(1);
+        CountDownLatch replacementStarted = new CountDownLatch(1);
+        CountDownLatch releaseReplacement = new CountDownLatch(1);
+        snapshotStore.publishStable(TEST_ROOT, previousSnapshot);
+
+        pipeline = createPipeline(snapshotStore, task -> {
+            if (task.contentVersion().value() == 1) {
+                firstStarted.countDown();
+                try {
+                    new CountDownLatch(1).await(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new CancellationException("interrupted");
+                }
+                throw new AssertionError("Superseded compilation should be interrupted");
+            }
+            replacementStarted.countDown();
+            releaseReplacement.await(5, TimeUnit.SECONDS);
+            return replacementSnapshot;
+        });
+
+        pipeline.requestCompilation(new ContentVersion(1));
+        Assert.assertTrue(firstStarted.await(3, TimeUnit.SECONDS), "Initial compilation did not start");
+
+        pipeline.requestCompilation(new ContentVersion(2));
+        Assert.assertTrue(replacementStarted.await(3, TimeUnit.SECONDS), "Replacement compilation did not start");
+
+        Assert.assertSame(snapshotStore.getStable(TEST_ROOT), previousSnapshot,
+                "Consumers calling getStable() during replacement compilation must still see the last published snapshot");
+        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(TEST_ROOT);
+        Assert.assertNotNull(inProgressSnapshot,
+                "Replacement compilation must remain visible through getInProgress() until it publishes");
+        Assert.assertFalse(inProgressSnapshot.compilation(() -> {
+        }).isDone(), "Replacement in-progress compilation future must stay pending while compilation is running");
+
+        releaseReplacement.countDown();
+
+        Awaitility.await().atMost(3, TimeUnit.SECONDS)
+                .untilAsserted(() -> Assert.assertEquals(snapshotStore.getStable(TEST_ROOT).contentVersion(),
+                        new ContentVersion(2), "Replacement compilation must publish the new stable snapshot"));
     }
 
     /**

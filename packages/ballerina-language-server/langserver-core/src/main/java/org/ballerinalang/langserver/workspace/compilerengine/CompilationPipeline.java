@@ -181,6 +181,7 @@ public class CompilationPipeline implements AutoCloseable {
         if (inflight != null) {
             inflight.cancel();
         }
+        snapshotStore.cancelInProgress(sourceRoot);
         debounceScheduler.shutdownNow();
         compilationWorker.shutdownNow();
     }
@@ -207,13 +208,13 @@ public class CompilationPipeline implements AutoCloseable {
 
         CancellationToken token = new CancellationToken();
         CompileTask task = new CompileTask(sourceRoot, contentVersion, token);
-        snapshotStore.startCompilation(sourceRoot);
+        InProgressSnapshot inProgressSnapshot = snapshotStore.startCompilation(sourceRoot);
         inflightTask.set(task);
 
-        compilationWorker.submit(() -> executeCompilation(task));
+        compilationWorker.submit(() -> executeCompilation(task, inProgressSnapshot));
     }
 
-    private void executeCompilation(CompileTask task) {
+    private void executeCompilation(CompileTask task, InProgressSnapshot inProgressSnapshot) {
         activeWorkerThread.set(Thread.currentThread());
         boolean published = false;
         try {
@@ -259,7 +260,7 @@ public class CompilationPipeline implements AutoCloseable {
             LOG.log(Level.WARNING, "Compilation failed for " + sourceRoot, e);
             emitEvent(EventKind.COMPILER_COMPILATION_FAILED);
         } finally {
-            if (!published) {
+            if (!published && snapshotStore.getInProgress(sourceRoot) == inProgressSnapshot) {
                 snapshotStore.cancelInProgress(sourceRoot);
             }
             activeWorkerThread.compareAndSet(Thread.currentThread(), null);
