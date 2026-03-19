@@ -66,7 +66,7 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
             }
         });
 
-        // Command: start Ballerina service (no old Try It UI), then open WSO2 HttpBook notebook
+        // Command: start Ballerina service (no old Try It UI), then open WSO2 HTTP Client notebook
         const startServiceDisposable = commands.registerCommand('ballerina.startService',
             async (
                 content?: string | object[] | { oasSpec: any; baseUrl: string; serviceName: string; resourceMetadata?: { methodValue: string; pathValue: string } },
