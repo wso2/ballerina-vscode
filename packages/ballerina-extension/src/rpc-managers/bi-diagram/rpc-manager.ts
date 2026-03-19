@@ -190,7 +190,8 @@ import {
     createEmptyBIWorkspace,
     deleteProjectFromWorkspace,
     openInVSCode
-, validateProjectPath } from "../../utils/bi";
+    , validateProjectPath
+} from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
@@ -205,6 +206,7 @@ import { registerFormOpen, registerFormClose } from "./form-state";
 import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
 import { getRepoRoot } from "../platform-ext/platform-utils";
 import { WI_EXTENSION_ID } from "../../utils";
+import { notifyOnIdentifierUpdated } from "../../RPCLayer";
 
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
@@ -221,7 +223,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         const rawPath = this.toRawPath(tempFilePath);
         const context = StateMachine.context();
         const originalRoot = context.workspacePath || context.projectPath;
-        const workspaceId = context.projectPath;
+        const workspaceId = context.workspacePath || context.projectPath;
         const threadId = 'default';
         const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
         if (pendingReview?.reviewState?.tempProjectPath && originalRoot) {
@@ -321,12 +323,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             }
 
             const nodeKind = params.flowNode.codedata.node;
-            const skipFormatting = nodeKind === 'DATA_MAPPER_CREATION' || nodeKind === 'FUNCTION_CREATION';
             const artifactData = params.artifactData || this.getArtifactDataFromNodeKind(nodeKind);
             const artifacts = await updateSourceCode(
                 { textEdits: model.textEdits, artifactData, description: this.getSourceDescription(params) },
-                params.isHelperPaneChange,
-                skipFormatting
+                params.isHelperPaneChange
             );
             return { artifacts };
         } catch (error) {
@@ -1156,8 +1156,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
 
         const deploymentParams: ICreateNewIntegrationCmdParams = {
-            buildPackLang:"ballerina",
-            integrations:[{ fsPath: StateMachine.context().projectPath, supportedIntegrationTypes: [integrationType] }],
+            buildPackLang: "ballerina",
+            integrations: [{ fsPath: StateMachine.context().projectPath, supportedIntegrationTypes: [integrationType] }],
             workspaceDir: StateMachine.context().workspacePath || StateMachine.context().projectPath,
         };
         await commands.executeCommand(WICommandIds.CreateNewComponent, deploymentParams);
@@ -1171,7 +1171,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             window.showWarningMessage("No deployable projects found in the workspace.");
             return { isCompleted: true };
         }
-        const deploymentParams: ICreateNewIntegrationCmdIntegrations[]= [];
+        const deploymentParams: ICreateNewIntegrationCmdIntegrations[] = [];
 
         // If there is only one project in the workspace and it has multiple integration types,
         // ask the user to pick the type similar to the single project deploy flow.
@@ -1184,7 +1184,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 return { isCompleted: true };
             }
 
-            deploymentParams.push({fsPath: projectPath, supportedIntegrationTypes: [integrationType] });
+            deploymentParams.push({ fsPath: projectPath, supportedIntegrationTypes: [integrationType] });
         } else {
             for (const projectScope of projectScopes) {
                 const { projectPath, integrationTypes } = projectScope;
@@ -1193,7 +1193,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     continue;
                 }
 
-                deploymentParams.push({fsPath: projectPath, supportedIntegrationTypes: integrationTypes });
+                deploymentParams.push({ fsPath: projectPath, supportedIntegrationTypes: integrationTypes });
             }
         }
 
@@ -1906,7 +1906,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         try {
             const workspaceEdit = await StateMachine.langClient().rename(request);
             if (workspaceEdit && 'changes' in workspaceEdit && workspaceEdit.changes) {
-                await updateSourceCode({ textEdits: workspaceEdit.changes, description: 'Rename for ' + params.newName, isRenameOperation: true });
+                const response = await updateSourceCode({ textEdits: workspaceEdit.changes, description: 'Rename for ' + params.newName, isRenameOperation: true });
+                if (response && response.length > 0) {
+                    // Find the artifact that is renamed or send all
+                    const artifact = response.find(res => res.name === params.newName || res.context === params.newName);
+                    if (artifact) {
+                        notifyOnIdentifierUpdated([artifact]);
+                    } else {
+                        notifyOnIdentifierUpdated(response);
+                    }
+                }
             }
         } catch (error) {
             console.error('Error in renameIdentifier:', error);

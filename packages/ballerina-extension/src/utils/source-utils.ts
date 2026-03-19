@@ -41,7 +41,7 @@ export interface UpdateSourceCodeRequest {
     skipUpdateViewOnTomlUpdate?: boolean; // This is used to skip updating the view on toml updates in certain scenarios.
 }
 
-export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, isChangeFromHelperPane?: boolean, skipFormatting?: boolean): Promise<ProjectStructureArtifactResponse[]> {
+export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, isChangeFromHelperPane?: boolean): Promise<ProjectStructureArtifactResponse[]> {
     const skipUndoRedoStack = updateSourceCodeRequest.artifactData?.artifactType === "CONFIGURABLE";
     try {
         let tomlFilesUpdated = false;
@@ -136,8 +136,29 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     );
                 }
             }
+            // Set up a listener to consume the LS notification triggered by the raw edit,
+            // so the final subscriber only sees the notification from the formatted edit.
+            // Capture IDs of newly added artifacts so we can re-apply isNew on the formatted edit notification.
+            const handler = ArtifactNotificationHandler.getInstance();
+            let newArtifactIds: Set<string> | undefined;
+            const rawEditNotification = new Promise<void>((resolve) => {
+                let timeoutId: ReturnType<typeof setTimeout>;
+                const unsub = handler.subscribe(
+                    ArtifactsUpdated.method, updateSourceCodeRequest.artifactData,
+                    (payload) => {
+                        newArtifactIds = new Set(
+                            payload.data.filter(a => a.isNew).map(a => a.id)
+                        );
+                        clearTimeout(timeoutId); unsub(); resolve();
+                    }
+                );
+                timeoutId = setTimeout(() => { unsub(); resolve(); }, 10000);
+            });
+
             // Apply all changes at once
             await workspace.applyEdit(workspaceEdit);
+
+            await rawEditNotification;
 
             // <-------- Format the document after applying all changes using the native formatting API-------->
             const formattedWorkspaceEdit = new vscode.WorkspaceEdit();
@@ -170,10 +191,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 undoRedoManager?.commitBatchOperation(updateSourceCodeRequest.description ? updateSourceCodeRequest.description : (updateSourceCodeRequest.artifactData ? `Change in ${updateSourceCodeRequest.artifactData?.artifactType} ${updateSourceCodeRequest.artifactData?.identifier}` : "Update Source Code"));
             }
 
-            if (!skipFormatting) { //TODO: Remove the skipFormatting flag once LS APIs are updated to give already formatted text edits
-                // Apply all formatted changes at once
-                await workspace.applyEdit(formattedWorkspaceEdit);
-            }
+            await workspace.applyEdit(formattedWorkspaceEdit);
 
             // Handle missing dependencies after all changes are applied
             if (updateSourceCodeRequest.resolveMissingDependencies) {
@@ -196,6 +214,13 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, updateSourceCodeRequest.artifactData, async (payload) => {
                     if ((payload.data && payload.data.length > 0) || updateSourceCodeRequest.skipPayloadCheck) {
                         console.log("Received notification:", payload);
+                        if (newArtifactIds?.size) {
+                            payload.data.forEach(entry => {
+                                if (newArtifactIds.has(entry.id)) {
+                                    entry.isNew = true;
+                                }
+                            });
+                        }
                         clearTimeout(timeoutId);
                         resolve(payload.data);
                         StateMachine.setReadyMode();

@@ -46,6 +46,7 @@ import {
     AbortAIGenerationRequest,
     UsageResponse,
     OpenFileDiffRequest,
+    WebToolApprovalRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -110,4 +111,6 @@ export interface AIPanelAPI {
     getActiveTempDir: () => Promise<string>;
     getUsage: () => Promise<UsageResponse | undefined>;
     openFileDiff: (params: OpenFileDiffRequest) => void;
+    approveWebTool: (params: WebToolApprovalRequest) => Promise<void>;
+    declineWebTool: (params: WebToolApprovalRequest) => Promise<void>;
 }

@@ -25,6 +25,7 @@ import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } fro
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
 import { ModeSwitcherProvider } from "./ModeSwitcherContext";
+import { getEditorConfiguration } from "./ExpressionField";
 
 const Container = styled.div`
     width: 100%;
@@ -58,6 +59,8 @@ export const FieldFactory = (props: FieldFactoryProps) => {
 
     const formContext = useFormContext();
     const { expressionEditor } = formContext;
+
+    const form = formContext?.form;
 
     const updatePropertyForCurrentMode = useCallback(
         (property: ExpressionProperty, expression?: string): ExpressionProperty => {
@@ -186,8 +189,27 @@ export const FieldFactory = (props: FieldFactoryProps) => {
     const handleModeChange = useCallback((mode: InputMode) => {
         setInputMode(mode);
         updateFieldTypesSelection(mode);
-        props.handleFormValidation?.();
-    }, [props.handleFormValidation]);
+
+        if (!form) {
+            props.handleFormValidation?.();
+            return;
+        }
+
+        const currentValues = form.getValues();
+        const currentFieldValue = currentValues[props.field.key];
+        if (typeof currentFieldValue === 'string' && currentFieldValue !== '') {
+            try {
+                const config = getEditorConfiguration(mode);
+                const convertedValue = config.deserializeValue(currentFieldValue);
+                props.handleFormValidation?.({ ...currentValues, [props.field.key]: convertedValue });
+            } catch (error) {
+                console.error("Error converting field value on mode change", error);
+                props.handleFormValidation?.(currentValues);
+            }
+        } else {
+            props.handleFormValidation?.();
+        }
+    }, [props.handleFormValidation, form, props.field.key]);
 
     const editorElements = useMemo(() => {
         if (!renderingEditors) return null;

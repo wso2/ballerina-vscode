@@ -72,13 +72,15 @@ function resolveChildren(member: Member, referencedTypes: Type[], visited: Set<s
 function toggleSelection(member: Member, selected: boolean, referencedTypes: Type[], visited: Set<string> = new Set()): void {
     member.selected = selected;
 
-    // Track this member's ref to prevent cycles
+    // Track this member's ref to prevent cycles when recursing into children
     const newVisited = new Set(visited);
     if (member.refs?.length) {
         newVisited.add(member.refs[0]);
     }
 
-    const children = resolveChildren(member, referencedTypes, newVisited);
+    // Pass `visited` (not newVisited) so we can resolve children - the current ref must not
+    // be in visited yet, otherwise resolveChildren returns [] due to circular guard
+    const children = resolveChildren(member, referencedTypes, visited);
     for (const child of children) {
         toggleSelection(child, selected, referencedTypes, newVisited);
     }
@@ -95,7 +97,7 @@ function areAllSelected(members: Member[], referencedTypes: Type[], visited: Set
         const newVisited = new Set(visited);
         if (m.refs?.length) newVisited.add(m.refs[0]);
 
-        const children = resolveChildren(m, referencedTypes, newVisited);
+        const children = resolveChildren(m, referencedTypes, visited);
         if (children.length && !areAllSelected(children, referencedTypes, newVisited)) {
             return false;
         }
@@ -132,7 +134,7 @@ function propagateSelectionUpwards(members: Member[], referencedTypes: Type[], v
             }
         }
 
-        const children = resolveChildren(member, referencedTypes, newVisited);
+        const children = resolveChildren(member, referencedTypes, visited);
         if (children.length > 0) {
             // First, recursively propagate for children
             propagateSelectionUpwards(children, referencedTypes, newVisited);
@@ -178,6 +180,25 @@ function hasPartialSelection(member: Member, referencedTypes: Type[], visited: S
 
     // Partial if some (but not all) children are selected
     return anySelected && !allSelected;
+}
+
+/**
+ * Checks if at least one field is selected in the entire tree.
+ */
+function hasAnySelection(members: Member[], referencedTypes: Type[], visited: Set<string> = new Set()): boolean {
+    for (const m of members) {
+        if (m.kind !== "FIELD") continue;
+        if (m.selected) return true;
+
+        const newVisited = new Set(visited);
+        if (m.refs?.length) newVisited.add(m.refs[0]);
+
+        const children = resolveChildren(m, referencedTypes, visited);
+        if (children.length && hasAnySelection(children, referencedTypes, newVisited)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // ─── Styled Components ──────────────────────────────────────────
@@ -334,7 +355,18 @@ export function DependentTypeEditor(props: DependentTypeEditorProps) {
 
     // Register field and sync initial value
     useEffect(() => {
-        register(field.key);
+        register(field.key, {
+            validate: () => {
+                // Only validate if field is required
+                if (!field.optional && rootType?.members) {
+                    const hasSelectableFields = rootType.members.some(m => m.kind === "FIELD");
+                    if (!hasSelectableFields) return true; // nothing to select, pass validation
+                    const hasSelection = hasAnySelection(rootType.members, referencedTypes);
+                    return hasSelection || "At least one field must be selected";
+                }
+                return true;
+            }
+        });
         syncToForm();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [field.key, register]);
@@ -349,8 +381,8 @@ export function DependentTypeEditor(props: DependentTypeEditorProps) {
             return t;
         });
         // field.types = updatedTypes;
-        setValue(field.key, updatedTypes);
-    }, [data, field, setValue]);
+        setValue(field.key, updatedTypes, { shouldValidate: true });
+    }, [data, field, setValue, rootType, referencedTypes]);
 
     // Force re-render by incrementing a dummy state
     const [, forceUpdate] = useState(0);

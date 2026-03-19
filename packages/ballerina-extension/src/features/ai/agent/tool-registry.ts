@@ -47,6 +47,7 @@ import { createBallerinaRunTool, BALLERINA_RUN_TOOL_NAME } from './tools/balleri
 import { createBallerinaGetLogsTool, BALLERINA_GET_LOGS_TOOL_NAME } from './tools/ballerina-get-logs';
 import { createBallerinaStopTool, BALLERINA_STOP_TOOL_NAME } from './tools/ballerina-stop';
 import { RunningServicesManager } from './tools/running-service-manager';
+import { createWebSearchTool, WEB_SEARCH_TOOL_NAME, createWebFetchTool, WEB_FETCH_TOOL_NAME } from './tools/web-tools';
 
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
@@ -54,20 +55,21 @@ export interface ToolRegistryOptions {
     modifiedFiles: string[];
     projects: ProjectSource[];
     generationType: GenerationType;
-    workspaceId: string;
+    projectRootPath: string;
     generationId: string;
     threadId?: string;
     runningServices: RunningServicesManager;
+    webSearchEnabled: boolean;
 }
 
 export function createToolRegistry(opts: ToolRegistryOptions) {
-    const { eventHandler, tempProjectPath, modifiedFiles, projects, generationType, workspaceId, generationId, threadId } = opts;
+    const { eventHandler, tempProjectPath, modifiedFiles, projects, generationType, projectRootPath, generationId, threadId, webSearchEnabled } = opts;
     return {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(
             eventHandler,
             tempProjectPath,
             modifiedFiles,
-            workspaceId,
+            projectRootPath,
             generationId,
             threadId || 'default'
         ),
@@ -91,7 +93,7 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
             eventHandler,
             {
                 tempPath: tempProjectPath,
-                workspacePath: workspaceId
+                workspacePath: projectRootPath
             },
             modifiedFiles
         ),
@@ -113,5 +115,7 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         [BALLERINA_RUN_TOOL_NAME]: createBallerinaRunTool(tempProjectPath, opts.runningServices, eventHandler),
         [BALLERINA_GET_LOGS_TOOL_NAME]: createBallerinaGetLogsTool(opts.runningServices, eventHandler),
         [BALLERINA_STOP_TOOL_NAME]: createBallerinaStopTool(opts.runningServices, eventHandler),
+        [WEB_SEARCH_TOOL_NAME]: createWebSearchTool(eventHandler, webSearchEnabled),
+        [WEB_FETCH_TOOL_NAME]: createWebFetchTool(eventHandler, webSearchEnabled),
     };
 }

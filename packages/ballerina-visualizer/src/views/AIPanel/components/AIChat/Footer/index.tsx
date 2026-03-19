@@ -134,6 +134,8 @@ type FooterProps = {
     onChangeAgentMode?: (mode: AgentMode) => void;
     isAutoApproveEnabled?: boolean;
     onDisableAutoApprove?: () => void;
+    isWebToolsEnabled?: boolean;
+    onToggleWebSearch?: () => void;
     disabled?: boolean;
 };
 
@@ -152,6 +154,8 @@ const Footer: React.FC<FooterProps> = ({
     onChangeAgentMode,
     isAutoApproveEnabled,
     onDisableAutoApprove,
+    isWebToolsEnabled,
+    onToggleWebSearch,
     disabled,
 }) => {
     const [generatingText, setGeneratingText] = useState("Generating.");
@@ -202,6 +206,8 @@ const Footer: React.FC<FooterProps> = ({
                 onChangeAgentMode={onChangeAgentMode}
                 isAutoApproveEnabled={isAutoApproveEnabled}
                 onDisableAutoApprove={onDisableAutoApprove}
+                isWebToolsEnabled={isWebToolsEnabled}
+                onToggleWebSearch={onToggleWebSearch}
                 disabled={disabled}
             />
         </FooterContainer>
