@@ -60,14 +60,14 @@ export function createTestRunnerTool(
         execute: async (_input: Record<string, never>, context?: { toolCallId?: string }): Promise<TestRunResult> => {
             const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
 
+            await integrateAndClearModifiedFiles(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
+
             eventHandler({
                 type: "tool_call",
                 toolName: TEST_RUNNER_TOOL_NAME,
                 toolCallId,
                 toolInput: { command: "bal test" },
             });
-
-            await integrateAndClearModifiedFiles(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
 
             const result = await runBallerinaTests(tempProjectPath);
             const status = result.exitCode === 0 ? "completed" : "error";
