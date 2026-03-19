@@ -25,8 +25,9 @@ import org.ballerinalang.langserver.workspace.compilerengine.CancellationToken;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
-import org.ballerinalang.langserver.workspace.compilerengine.ProjectSnapshot;
-import org.ballerinalang.langserver.workspace.compilerengine.SnapshotStore;
+import org.ballerinalang.langserver.workspace.compilerengine.MaterializedStableSnapshot;
+import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
+import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
@@ -81,12 +82,12 @@ public class CancellationModelTest {
     public void supersedingDidChange_interruptsInProgressCompilationThread() throws Exception {
         CountDownLatch firstStarted = new CountDownLatch(1);
         CountDownLatch interrupted = new CountDownLatch(1);
-        Map<Integer, ProjectSnapshot> snapshots = Map.of(
+        Map<Integer, StableSnapshot> snapshots = Map.of(
                 1, createSnapshot(new ContentVersion(1)),
                 2, createSnapshot(new ContentVersion(2))
         );
 
-        pipeline = createPipeline(new SnapshotStore(4), task -> {
+        pipeline = createPipeline(new DualSnapshotStore(), task -> {
             if (task.contentVersion().value() == 1) {
                 firstStarted.countDown();
                 try {
@@ -114,9 +115,9 @@ public class CancellationModelTest {
      */
     @Test
     public void interruptedCompilation_discardsPartialResultWithoutPublishingSnapshot() throws Exception {
-        SnapshotStore snapshotStore = new SnapshotStore(4);
+        DualSnapshotStore snapshotStore = new DualSnapshotStore();
         CountDownLatch firstStarted = new CountDownLatch(1);
-        Map<Integer, ProjectSnapshot> snapshots = Map.of(
+        Map<Integer, StableSnapshot> snapshots = Map.of(
                 1, createSnapshot(new ContentVersion(1)),
                 2, createSnapshot(new ContentVersion(2))
         );
@@ -139,8 +140,8 @@ public class CancellationModelTest {
         pipeline.requestCompilation(new ContentVersion(2));
 
         Awaitility.await().atMost(3, TimeUnit.SECONDS)
-                .until(() -> snapshotStore.get(TEST_ROOT).isPresent());
-        Assert.assertEquals(snapshotStore.get(TEST_ROOT).orElseThrow().contentVersion(), new ContentVersion(2),
+                .until(() -> snapshotStore.getStable(TEST_ROOT) != null);
+        Assert.assertEquals(snapshotStore.getStable(TEST_ROOT).contentVersion(), new ContentVersion(2),
                 "Interrupted compilation must never publish a partial snapshot");
     }
 
@@ -152,7 +153,7 @@ public class CancellationModelTest {
         CountDownLatch firstStarted = new CountDownLatch(1);
         CountDownLatch releaseCancelledTask = new CountDownLatch(1);
         CountDownLatch cancellationEvent = new CountDownLatch(1);
-        Map<Integer, ProjectSnapshot> snapshots = Map.of(
+        Map<Integer, StableSnapshot> snapshots = Map.of(
                 1, createSnapshot(new ContentVersion(1)),
                 2, createSnapshot(new ContentVersion(2))
         );
@@ -160,7 +161,7 @@ public class CancellationModelTest {
         eventBus = new EventSyncPubSubHolder();
         eventBus.subscribe("cancelled-task-listener", SubscriberTier.CRITICAL,
                 Set.of(EventKind.COMPILER_COMPILATION_CANCELLED), event -> cancellationEvent.countDown());
-        pipeline = new CompilationPipeline(TEST_ROOT, new SnapshotStore(4), eventBus, task -> {
+        pipeline = new CompilationPipeline(TEST_ROOT, new DualSnapshotStore(), eventBus, task -> {
             if (task.contentVersion().value() == 1) {
                 firstStarted.countDown();
                 releaseCancelledTask.await(5, TimeUnit.SECONDS);
@@ -182,10 +183,10 @@ public class CancellationModelTest {
      */
     @Test
     public void cancelledTask_publicationGuardPreventsStaleSnapshotOverwrite() throws Exception {
-        SnapshotStore snapshotStore = new SnapshotStore(4);
+        DualSnapshotStore snapshotStore = new DualSnapshotStore();
         CountDownLatch firstStarted = new CountDownLatch(1);
         CountDownLatch releaseCancelledTask = new CountDownLatch(1);
-        Map<Integer, ProjectSnapshot> snapshots = Map.of(
+        Map<Integer, StableSnapshot> snapshots = Map.of(
                 1, createSnapshot(new ContentVersion(1)),
                 2, createSnapshot(new ContentVersion(2))
         );
@@ -204,7 +205,7 @@ public class CancellationModelTest {
         releaseCancelledTask.countDown();
 
         Awaitility.await().atMost(3, TimeUnit.SECONDS)
-                .untilAsserted(() -> Assert.assertEquals(snapshotStore.get(TEST_ROOT).orElseThrow().contentVersion(),
+                .untilAsserted(() -> Assert.assertEquals(snapshotStore.getStable(TEST_ROOT).contentVersion(),
                         new ContentVersion(2), "Cancellation guard must prevent stale snapshots from being published"));
     }
 
@@ -231,7 +232,7 @@ public class CancellationModelTest {
         AtomicInteger maxConcurrentCompilations = new AtomicInteger();
         CountDownLatch firstStarted = new CountDownLatch(1);
         CountDownLatch releaseFirst = new CountDownLatch(1);
-        Map<Integer, ProjectSnapshot> snapshots = Map.of(
+        Map<Integer, StableSnapshot> snapshots = Map.of(
                 1, createSnapshot(new ContentVersion(1)),
                 2, createSnapshot(new ContentVersion(2)),
                 3, createSnapshot(new ContentVersion(3)),
@@ -239,7 +240,7 @@ public class CancellationModelTest {
                 5, createSnapshot(new ContentVersion(5))
         );
 
-        pipeline = createPipeline(new SnapshotStore(4), task -> {
+        pipeline = createPipeline(new DualSnapshotStore(), task -> {
             int activeNow = activeCompilations.incrementAndGet();
             maxConcurrentCompilations.updateAndGet(previous -> Math.max(previous, activeNow));
             try {
@@ -280,18 +281,14 @@ public class CancellationModelTest {
         };
     }
 
-    private CompilationPipeline createPipeline(SnapshotStore snapshotStore,
+    private CompilationPipeline createPipeline(DualSnapshotStore snapshotStore,
                                                CompilationPipeline.CompilationAction action) {
         eventBus = new EventSyncPubSubHolder();
         return new CompilationPipeline(TEST_ROOT, snapshotStore, eventBus, action);
     }
 
-    private static ProjectSnapshot createSnapshot(ContentVersion version) {
-        return new ProjectSnapshot(
-                Mockito.mock(PackageCompilation.class),
-                Mockito.mock(SemanticModel.class),
-                Mockito.mock(SyntaxTree.class),
-                version
-        );
+    private static StableSnapshot createSnapshot(ContentVersion version) {
+        return new MaterializedStableSnapshot(Map.of(), Map.of(), Map.of(),
+                Mockito.mock(PackageCompilation.class), version);
     }
 }

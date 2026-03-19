@@ -35,6 +35,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
@@ -198,7 +199,7 @@ public class CompilationPipelineTest {
         CountDownLatch done = new CountDownLatch(1);
         List<ContentVersion> compiledVersions = Collections.synchronizedList(new ArrayList<>());
         // Pre-create snapshot on test thread to avoid Mockito issues on worker thread
-        ProjectSnapshot snapshot = createMockSnapshot(new ContentVersion(5));
+        StableSnapshot snapshot = createMockSnapshot(new ContentVersion(5));
 
         pipeline = createPipeline(task -> {
             compileCount.incrementAndGet();
@@ -221,7 +222,7 @@ public class CompilationPipelineTest {
     @Test
     public void pipeline_lifoReplacementCancelsPreviousTask() throws InterruptedException {
         CountDownLatch firstStarted = new CountDownLatch(1);
-        ProjectSnapshot snap2 = createMockSnapshot(new ContentVersion(2));
+        StableSnapshot snap2 = createMockSnapshot(new ContentVersion(2));
         CountDownLatch firstCancelled = new CountDownLatch(1);
         CountDownLatch allDone = new CountDownLatch(1);
 
@@ -257,9 +258,9 @@ public class CompilationPipelineTest {
 
     @Test
     public void pipeline_publishesSnapshotOnSuccess() throws InterruptedException {
-        SnapshotStore store = new SnapshotStore(10);
+        DualSnapshotStore store = new DualSnapshotStore();
         CountDownLatch done = new CountDownLatch(1);
-        ProjectSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
+        StableSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
 
         pipeline = createPipeline(store, task -> {
             done.countDown();
@@ -269,14 +270,14 @@ public class CompilationPipelineTest {
         pipeline.requestCompilation(new ContentVersion(1));
         Assert.assertTrue(done.await(3, TimeUnit.SECONDS));
         Thread.sleep(200);
-        Assert.assertTrue(store.get(testSourceRoot()).isPresent());
+        Assert.assertNotNull(store.getStable(testSourceRoot()));
     }
 
     @Test
     public void pipeline_emitsCEE1OnSuccessfulPublish() throws InterruptedException {
         CountDownLatch eventReceived = new CountDownLatch(1);
         List<EventKind> receivedKinds = Collections.synchronizedList(new ArrayList<>());
-        ProjectSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
+        StableSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
 
         eventBus = new EventSyncPubSubHolder();
         eventBus.subscribe("test-sub", SubscriberTier.CRITICAL,
@@ -336,12 +337,12 @@ public class CompilationPipelineTest {
 
     @Test
     public void pipeline_staleVersionNotPublished() throws InterruptedException {
-        SnapshotStore store = new SnapshotStore(10);
+        DualSnapshotStore store = new DualSnapshotStore();
         CountDownLatch v1Started = new CountDownLatch(1);
         CountDownLatch v2Requested = new CountDownLatch(1);
         CountDownLatch v1Done = new CountDownLatch(1);
-        ProjectSnapshot snap1 = createMockSnapshot(new ContentVersion(1));
-        ProjectSnapshot snap2 = createMockSnapshot(new ContentVersion(2));
+        StableSnapshot snap1 = createMockSnapshot(new ContentVersion(1));
+        StableSnapshot snap2 = createMockSnapshot(new ContentVersion(2));
 
         pipeline = createPipeline(store, task -> {
             if (task.contentVersion().equals(new ContentVersion(1))) {
@@ -363,9 +364,9 @@ public class CompilationPipelineTest {
         Assert.assertTrue(v1Done.await(3, TimeUnit.SECONDS));
         Thread.sleep(500);
 
-        var snap = store.get(testSourceRoot());
-        if (snap.isPresent()) {
-            Assert.assertNotEquals(snap.get().contentVersion(), new ContentVersion(1),
+        StableSnapshot snap = store.getStable(testSourceRoot());
+        if (snap != null) {
+            Assert.assertNotEquals(snap.contentVersion(), new ContentVersion(1),
                     "Stale version 1 should not be published");
         }
     }
@@ -374,7 +375,7 @@ public class CompilationPipelineTest {
     public void pipeline_closeStopsAllWork() throws InterruptedException {
         CountDownLatch started = new CountDownLatch(1);
         CountDownLatch proceed = new CountDownLatch(1);
-        ProjectSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
+        StableSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
 
         pipeline = createPipeline(task -> {
             started.countDown();
@@ -397,7 +398,7 @@ public class CompilationPipelineTest {
 
     @Test
     public void pipeline_closeIsIdempotent() {
-        ProjectSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
+        StableSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
         pipeline = createPipeline(task -> snapshot);
         pipeline.close();
         pipeline.close(); // should not throw
@@ -407,7 +408,7 @@ public class CompilationPipelineTest {
     public void pipeline_isCompilingReflectsState() throws InterruptedException {
         CountDownLatch started = new CountDownLatch(1);
         CountDownLatch proceed = new CountDownLatch(1);
-        ProjectSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
+        StableSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
 
         pipeline = createPipeline(task -> {
             started.countDown();
@@ -430,7 +431,7 @@ public class CompilationPipelineTest {
     public void pipeline_rejectsNullSourceRoot() {
         EventSyncPubSubHolder bus = new EventSyncPubSubHolder();
         try {
-            new CompilationPipeline(null, new SnapshotStore(10), bus,
+            new CompilationPipeline(null, new DualSnapshotStore(), bus,
                     task -> createMockSnapshot(task.contentVersion()));
         } finally {
             bus.close();
@@ -439,7 +440,7 @@ public class CompilationPipelineTest {
 
     @Test(expectedExceptions = NullPointerException.class)
     public void pipeline_rejectsNullContentVersion() {
-        ProjectSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
+        StableSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
         pipeline = createPipeline(task -> snapshot);
         pipeline.requestCompilation(null);
     }
@@ -448,7 +449,7 @@ public class CompilationPipelineTest {
     public void pipeline_interruptsActiveWorkerOnSupersedingRequest() throws InterruptedException {
         CountDownLatch firstStarted = new CountDownLatch(1);
         CountDownLatch interrupted = new CountDownLatch(1);
-        ProjectSnapshot snap2 = createMockSnapshot(new ContentVersion(2));
+        StableSnapshot snap2 = createMockSnapshot(new ContentVersion(2));
 
         pipeline = createPipeline(task -> {
             if (task.contentVersion().equals(new ContentVersion(1))) {
@@ -486,7 +487,7 @@ public class CompilationPipelineTest {
                     cancellationEvent.countDown();
                 });
 
-        pipeline = new CompilationPipeline(testSourceRoot(), new SnapshotStore(10), eventBus, task -> {
+        pipeline = new CompilationPipeline(testSourceRoot(), new DualSnapshotStore(), eventBus, task -> {
             if (task.contentVersion().equals(new ContentVersion(1))) {
                 firstStarted.countDown();
                 releaseCancelledTask.await(5, TimeUnit.SECONDS);
@@ -516,7 +517,7 @@ public class CompilationPipelineTest {
                     eventReceived.countDown();
                 });
 
-        pipeline = new CompilationPipeline(testSourceRoot(), new SnapshotStore(10), eventBus, task -> {
+        pipeline = new CompilationPipeline(testSourceRoot(), new DualSnapshotStore(), eventBus, task -> {
             throw new InterruptedException("Thread interrupted during compilation");
         });
 
@@ -531,7 +532,7 @@ public class CompilationPipelineTest {
         CountDownLatch diagnosticsReady = new CountDownLatch(1);
         CountDownLatch resolutionCalled = new CountDownLatch(1);
         AtomicInteger compileCount = new AtomicInteger(0);
-        ProjectSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
+        StableSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
 
         eventBus = new EventSyncPubSubHolder();
         eventBus.subscribe("test-ce-e5b", SubscriberTier.CRITICAL,
@@ -545,7 +546,7 @@ public class CompilationPipelineTest {
             }
 
             @Override
-            public ProjectSnapshot compile(CompileTask task) {
+            public StableSnapshot compile(CompileTask task) {
                 compileCount.incrementAndGet();
                 return snapshot;
             }
@@ -579,7 +580,7 @@ public class CompilationPipelineTest {
             }
 
             @Override
-            public ProjectSnapshot compile(CompileTask task) {
+            public StableSnapshot compile(CompileTask task) {
                 compileCount.incrementAndGet();
                 return createMockSnapshot(task.contentVersion());
             }
@@ -599,7 +600,7 @@ public class CompilationPipelineTest {
         CountDownLatch diagnosticsReady = new CountDownLatch(1);
         AtomicInteger compileCount = new AtomicInteger(0);
         AtomicInteger recoveryCalls = new AtomicInteger(0);
-        ProjectSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
+        StableSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
 
         eventBus = new EventSyncPubSubHolder();
         eventBus.subscribe("test-recovered", SubscriberTier.CRITICAL,
@@ -614,7 +615,7 @@ public class CompilationPipelineTest {
             }
 
             @Override
-            public ProjectSnapshot compile(CompileTask task) {
+            public StableSnapshot compile(CompileTask task) {
                 if (compileCount.getAndIncrement() == 0) {
                     throw new RuntimeException("failed to load the module foo.bir");
                 }
@@ -661,7 +662,7 @@ public class CompilationPipelineTest {
             }
 
             @Override
-            public ProjectSnapshot compile(CompileTask task) {
+            public StableSnapshot compile(CompileTask task) {
                 throw new RuntimeException("failed to load the module bar.bir");
             }
 
@@ -697,10 +698,10 @@ public class CompilationPipelineTest {
 
     private CompilationPipeline createPipeline(CompilationPipeline.CompilationAction action) {
         eventBus = new EventSyncPubSubHolder();
-        return new CompilationPipeline(testSourceRoot(), new SnapshotStore(10), eventBus, action);
+        return new CompilationPipeline(testSourceRoot(), new DualSnapshotStore(), eventBus, action);
     }
 
-    private CompilationPipeline createPipeline(SnapshotStore store,
+    private CompilationPipeline createPipeline(DualSnapshotStore store,
                                                CompilationPipeline.CompilationAction action) {
         eventBus = new EventSyncPubSubHolder();
         return new CompilationPipeline(testSourceRoot(), store, eventBus, action);
@@ -709,15 +710,11 @@ public class CompilationPipelineTest {
     private CompilationPipeline createPipeline(EventSyncPubSubHolder bus,
                                                CompilationPipeline.CompilationAction action) {
         this.eventBus = bus;
-        return new CompilationPipeline(testSourceRoot(), new SnapshotStore(10), bus, action);
+        return new CompilationPipeline(testSourceRoot(), new DualSnapshotStore(), bus, action);
     }
 
-    private static ProjectSnapshot createMockSnapshot(ContentVersion version) {
-        return new ProjectSnapshot(
-                mock(PackageCompilation.class),
-                mock(SemanticModel.class),
-                mock(SyntaxTree.class),
-                version
-        );
+    private static StableSnapshot createMockSnapshot(ContentVersion version) {
+        return new MaterializedStableSnapshot(Map.of(), Map.of(), Map.of(),
+                mock(PackageCompilation.class), version);
     }
 }

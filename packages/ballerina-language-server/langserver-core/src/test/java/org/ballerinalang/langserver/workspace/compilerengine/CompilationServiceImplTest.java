@@ -20,6 +20,8 @@ package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.projects.DocumentId;
+import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
@@ -37,12 +39,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for CompilationServiceImpl covering event routing, circuit breaker, and LSP query methods.
@@ -53,22 +57,18 @@ public class CompilationServiceImplTest {
 
     private CompilationServiceImpl service;
     private EventSyncPubSubHolder eventBus;
-    private SnapshotStore snapshotStore;
-    private ProjectSnapshot mockSnapshot;
+    private DualSnapshotStore snapshotStore;
+    private StableSnapshot mockSnapshot;
     private static final SourceRoot TEST_ROOT = new SourceRoot(
             Path.of("/tmp/test-project").toAbsolutePath().normalize());
 
     @BeforeMethod
     public void setUp() {
         eventBus = new EventSyncPubSubHolder();
-        snapshotStore = new SnapshotStore(10);
+        snapshotStore = new DualSnapshotStore();
         // Pre-create mock snapshot to avoid Mockito initialization issues across tests
-        mockSnapshot = new ProjectSnapshot(
-                mock(PackageCompilation.class),
-                mock(SemanticModel.class),
-                mock(SyntaxTree.class),
-                new ContentVersion(1)
-        );
+        mockSnapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
+                mock(PackageCompilation.class), new ContentVersion(1));
     }
 
     @AfterMethod
@@ -88,7 +88,7 @@ public class CompilationServiceImplTest {
     // ---- Constructor & Null Checks ----
 
     @Test(expectedExceptions = NullPointerException.class)
-    public void service_constructor_rejectsNullSnapshotStore() {
+    public void service_constructor_rejectsNullDualSnapshotStore() {
         new CompilationServiceImpl(null, eventBus, task -> mockSnapshot);
     }
 
@@ -131,13 +131,13 @@ public class CompilationServiceImplTest {
         Thread.sleep(200);
 
         // Verify pipeline exists
-        Assert.assertTrue(snapshotStore.get(TEST_ROOT).isPresent(), "Snapshot should exist");
+        Assert.assertNotNull(snapshotStore.getStable(TEST_ROOT), "Snapshot should exist");
 
         publishWmE2(TEST_ROOT);
         Thread.sleep(200);
 
         // Verify pipeline is evicted
-        Assert.assertFalse(snapshotStore.get(TEST_ROOT).isPresent(),
+        Assert.assertNull(snapshotStore.getStable(TEST_ROOT),
                 "WM-E2 should evict pipeline and snapshot");
     }
 
@@ -260,8 +260,8 @@ public class CompilationServiceImplTest {
     public void service_syntaxTree_returnsTreeWhenSnapshotExists() throws InterruptedException {
         CountDownLatch compiled = new CountDownLatch(1);
         SyntaxTree mockTree = mock(SyntaxTree.class);
-        ProjectSnapshot snapshot = new ProjectSnapshot(mock(PackageCompilation.class),
-                mock(SemanticModel.class), mockTree, new ContentVersion(1));
+        StableSnapshot snapshot = createStableSnapshot(mockTree, mock(SemanticModel.class),
+                mock(PackageCompilation.class), new ContentVersion(1));
         service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
             compiled.countDown();
             return snapshot;
@@ -288,8 +288,8 @@ public class CompilationServiceImplTest {
     public void service_semanticModel_returnsModelWhenSnapshotExists() throws InterruptedException {
         CountDownLatch compiled = new CountDownLatch(1);
         SemanticModel mockModel = mock(SemanticModel.class);
-        ProjectSnapshot snapshot = new ProjectSnapshot(mock(PackageCompilation.class),
-                mockModel, mock(SyntaxTree.class), new ContentVersion(1));
+        StableSnapshot snapshot = createStableSnapshot(mock(SyntaxTree.class), mockModel,
+                mock(PackageCompilation.class), new ContentVersion(1));
         service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
             compiled.countDown();
             return snapshot;
@@ -316,8 +316,8 @@ public class CompilationServiceImplTest {
     public void service_compilation_returnsCompilationWhenSnapshotExists() throws InterruptedException {
         CountDownLatch compiled = new CountDownLatch(1);
         PackageCompilation mockCompilation = mock(PackageCompilation.class);
-        ProjectSnapshot snapshot = new ProjectSnapshot(mockCompilation,
-                mock(SemanticModel.class), mock(SyntaxTree.class), new ContentVersion(1));
+        StableSnapshot snapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
+                mockCompilation, new ContentVersion(1));
         service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
             compiled.countDown();
             return snapshot;
@@ -468,6 +468,16 @@ public class CompilationServiceImplTest {
         eventBus.publish(new DomainEvent(Instant.now(), sr.path().toString(),
                 EventKind.WM_FILE_WATCHED_CHANGED,
                 sr.path().resolve("Dependencies.toml") + "|" + scope + "|Changed"));
+    }
+
+    private StableSnapshot createStableSnapshot(SyntaxTree syntaxTree, SemanticModel semanticModel,
+                                                PackageCompilation compilation, ContentVersion version) {
+        DocumentId documentId = mock(DocumentId.class);
+        ModuleId moduleId = mock(ModuleId.class);
+        when(documentId.moduleId()).thenReturn(moduleId);
+        return new MaterializedStableSnapshot(Map.of(documentId, syntaxTree),
+                Map.of(TEST_ROOT.path().resolve("main.bal").normalize(), documentId),
+                Map.of(moduleId, semanticModel), compilation, version);
     }
 
 }

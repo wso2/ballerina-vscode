@@ -56,7 +56,7 @@ public class CompilationPipeline implements AutoCloseable {
             return new ResolutionResult(task.sourceRoot(), java.util.List.of(), true);
         }
 
-        ProjectSnapshot compile(CompileTask task) throws Exception;
+        StableSnapshot compile(CompileTask task) throws Exception;
 
         default LockingMode currentLockingMode(CompileTask task) {
             return LockingMode.LOCKED;
@@ -85,7 +85,7 @@ public class CompilationPipeline implements AutoCloseable {
     }
 
     private final SourceRoot sourceRoot;
-    private final SnapshotStore snapshotStore;
+    private final DualSnapshotStore snapshotStore;
     private final EventSyncPubSubHolder eventBus;
     private final CompilationAction compilationAction;
     private final ScheduledExecutorService debounceScheduler;
@@ -104,8 +104,8 @@ public class CompilationPipeline implements AutoCloseable {
      * @param eventBus          event bus for domain event emission
      * @param compilationAction the actual compilation strategy
      */
-    public CompilationPipeline(SourceRoot sourceRoot, SnapshotStore snapshotStore,
-                               EventSyncPubSubHolder eventBus, CompilationAction compilationAction) {
+    public CompilationPipeline(SourceRoot sourceRoot, DualSnapshotStore snapshotStore,
+                                EventSyncPubSubHolder eventBus, CompilationAction compilationAction) {
         this.sourceRoot = Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
         this.snapshotStore = Objects.requireNonNull(snapshotStore, "snapshotStore must not be null");
         this.eventBus = Objects.requireNonNull(eventBus, "eventBus must not be null");
@@ -206,6 +206,7 @@ public class CompilationPipeline implements AutoCloseable {
 
         CancellationToken token = new CancellationToken();
         CompileTask task = new CompileTask(sourceRoot, contentVersion, token);
+        snapshotStore.startCompilation(sourceRoot);
         inflightTask.set(task);
 
         compilationWorker.submit(() -> executeCompilation(task));
@@ -213,6 +214,7 @@ public class CompilationPipeline implements AutoCloseable {
 
     private void executeCompilation(CompileTask task) {
         activeWorkerThread.set(Thread.currentThread());
+        boolean published = false;
         try {
             ResolutionResult resolutionResult = compilationAction.resolve(task);
             if (!resolutionResult.success()) {
@@ -220,7 +222,7 @@ public class CompilationPipeline implements AutoCloseable {
                 return;
             }
 
-            ProjectSnapshot snapshot = compilationAction.compile(task);
+            StableSnapshot snapshot = compilationAction.compile(task);
 
             // Publication guard: discard result if cancelled (ADR-018 Mandate 8)
             if (task.isCancelled()) {
@@ -239,7 +241,8 @@ public class CompilationPipeline implements AutoCloseable {
             }
 
             emitEvent(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY);
-            snapshotStore.publish(sourceRoot, snapshot);
+            snapshotStore.publishStable(sourceRoot, snapshot);
+            published = true;
             emitEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED);
         } catch (CancellationException e) {
             LOG.fine(() -> "Compilation cancelled for " + sourceRoot);
@@ -255,6 +258,9 @@ public class CompilationPipeline implements AutoCloseable {
             LOG.log(Level.WARNING, "Compilation failed for " + sourceRoot, e);
             emitEvent(EventKind.COMPILER_COMPILATION_FAILED);
         } finally {
+            if (!published) {
+                snapshotStore.cancelInProgress(sourceRoot);
+            }
             activeWorkerThread.compareAndSet(Thread.currentThread(), null);
             inflightTask.compareAndSet(task, null);
             // Clear interrupt flag so the worker thread can pick up the next task

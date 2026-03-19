@@ -37,10 +37,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -59,7 +61,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
     private static final Logger LOG = Logger.getLogger(CompilationServiceImpl.class.getName());
 
-    private final SnapshotStore snapshotStore;
+    private final DualSnapshotStore snapshotStore;
     private final EventSyncPubSubHolder eventBus;
     private final CompilationPipeline.CompilationAction baseAction;
     private final long retryDelayMs;
@@ -76,8 +78,8 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      * @param eventBus event bus for publishing/subscribing to domain events
      * @param baseAction the underlying compilation action to wrap with circuit breaker
      */
-    public CompilationServiceImpl(SnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
-                                 CompilationPipeline.CompilationAction baseAction) {
+    public CompilationServiceImpl(DualSnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
+                                  CompilationPipeline.CompilationAction baseAction) {
         this(snapshotStore, eventBus, baseAction, 500L);
     }
 
@@ -89,8 +91,8 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      * @param baseAction the underlying compilation action to wrap with circuit breaker
      * @param retryDelayMs delay in milliseconds before retrying a transient failure
      */
-    public CompilationServiceImpl(SnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
-                                 CompilationPipeline.CompilationAction baseAction, long retryDelayMs) {
+    public CompilationServiceImpl(DualSnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
+                                  CompilationPipeline.CompilationAction baseAction, long retryDelayMs) {
         this.snapshotStore = Objects.requireNonNull(snapshotStore, "snapshotStore must not be null");
         this.eventBus = Objects.requireNonNull(eventBus, "eventBus must not be null");
         this.baseAction = Objects.requireNonNull(baseAction, "baseAction must not be null");
@@ -110,23 +112,49 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
     @Override
     public SyntaxTree syntaxTree(Path path, CancelChecker cancelChecker) {
-        return findSnapshot(path)
-                .map(snapshot -> snapshot.syntaxTree(path.normalize()))
-                .orElse(null);
+        Optional<SourceRoot> sourceRoot = findSourceRoot(path);
+        if (sourceRoot.isEmpty()) {
+            return null;
+        }
+        MaterializedStableSnapshot stableSnapshot = materialized(snapshotStore.getStable(sourceRoot.get()));
+        if (stableSnapshot != null) {
+            return stableSnapshot.syntaxTree(path);
+        }
+        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(sourceRoot.get());
+        if (inProgressSnapshot instanceof DualSnapshotStore.StoreInProgressSnapshot storeInProgress) {
+            return materialized(storeInProgress.fallbackStableSnapshot()) == null ? null
+                    : materialized(storeInProgress.fallbackStableSnapshot()).syntaxTree(path);
+        }
+        return null;
     }
 
     @Override
     public SemanticModel semanticModel(Path path, CancelChecker cancelChecker) {
-        return findSnapshot(path)
-                .map(ProjectSnapshot::semanticModel)
-                .orElse(null);
+        Optional<SourceRoot> sourceRoot = findSourceRoot(path);
+        if (sourceRoot.isEmpty()) {
+            return null;
+        }
+        MaterializedStableSnapshot stableSnapshot = materialized(snapshotStore.getStable(sourceRoot.get()));
+        if (stableSnapshot != null) {
+            return stableSnapshot.semanticModel(path);
+        }
+        StableSnapshot awaited = awaitInProgress(sourceRoot.get(), cancelChecker);
+        MaterializedStableSnapshot materializedSnapshot = materialized(awaited);
+        return materializedSnapshot == null ? null : materializedSnapshot.semanticModel(path);
     }
 
     @Override
     public PackageCompilation compilation(Path path, CancelChecker cancelChecker) {
-        return findSnapshot(path)
-                .map(ProjectSnapshot::compilation)
-                .orElse(null);
+        Optional<SourceRoot> sourceRoot = findSourceRoot(path);
+        if (sourceRoot.isEmpty()) {
+            return null;
+        }
+        StableSnapshot stableSnapshot = snapshotStore.getStable(sourceRoot.get());
+        if (stableSnapshot != null) {
+            return stableSnapshot.compilation();
+        }
+        StableSnapshot awaited = awaitInProgress(sourceRoot.get(), cancelChecker);
+        return awaited == null ? null : awaited.compilation();
     }
 
     @Override
@@ -241,11 +269,39 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
     }
 
-    private Optional<ProjectSnapshot> findSnapshot(Path path) {
+    private Optional<SourceRoot> findSourceRoot(Path path) {
         return pipelines.keySet().stream()
                 .filter(sr -> path.startsWith(sr.path()))
-                .findFirst()
-                .flatMap(snapshotStore::get);
+                .findFirst();
+    }
+
+    private StableSnapshot awaitInProgress(SourceRoot sourceRoot, CancelChecker cancelChecker) {
+        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(sourceRoot);
+        if (!(inProgressSnapshot instanceof DualSnapshotStore.StoreInProgressSnapshot storeInProgress)) {
+            return null;
+        }
+        try {
+            while (true) {
+                if (cancelChecker != null) {
+                    cancelChecker.checkCanceled();
+                }
+                return storeInProgress.publishedStableSnapshot().get(50, TimeUnit.MILLISECONDS);
+            }
+        } catch (TimeoutException e) {
+            return awaitInProgress(sourceRoot, cancelChecker);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        } catch (ExecutionException e) {
+            return null;
+        }
+    }
+
+    private MaterializedStableSnapshot materialized(StableSnapshot snapshot) {
+        if (snapshot instanceof MaterializedStableSnapshot materializedSnapshot) {
+            return materializedSnapshot;
+        }
+        return null;
     }
 
     private SourceRoot reconstructSourceRoot(DomainEvent event) {
@@ -284,13 +340,13 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
 
         @Override
-        public ProjectSnapshot compile(CompileTask task) throws Exception {
+        public StableSnapshot compile(CompileTask task) throws Exception {
             if (circuitOpen.get()) {
                 throw new IllegalStateException("Circuit breaker is open for " + sourceRoot);
             }
 
             try {
-                ProjectSnapshot result = baseAction.compile(task);
+                StableSnapshot result = baseAction.compile(task);
                 retryCount.set(0);
                 return result;
             } catch (Throwable e) {

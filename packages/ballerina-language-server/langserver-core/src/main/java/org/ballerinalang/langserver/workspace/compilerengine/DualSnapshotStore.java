@@ -111,6 +111,19 @@ public class DualSnapshotStore {
         }
     }
 
+    /**
+     * Removes all snapshot state for the given source root.
+     *
+     * @param sourceRoot the source root identity
+     */
+    public void remove(SourceRoot sourceRoot) {
+        Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
+        SnapshotPair snapshotPair = snapshots.remove(sourceRoot);
+        if (snapshotPair != null) {
+            snapshotPair.cancelInProgress();
+        }
+    }
+
     static final class StoreInProgressSnapshot implements InProgressSnapshot {
 
         private final StableSnapshot fallbackStableSnapshot;
@@ -171,6 +184,14 @@ public class DualSnapshotStore {
         void complete(StableSnapshot stableSnapshot) {
             publishedStableSnapshot.complete(stableSnapshot);
             compilationFuture.complete(stableSnapshot.compilation());
+        }
+
+        StableSnapshot fallbackStableSnapshot() {
+            return fallbackStableSnapshot;
+        }
+
+        CompletableFuture<StableSnapshot> publishedStableSnapshot() {
+            return publishedStableSnapshot;
         }
 
         void cancel() {

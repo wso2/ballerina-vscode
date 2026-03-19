@@ -25,8 +25,9 @@ import org.ballerinalang.langserver.workspace.compilerengine.CancellationToken;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
-import org.ballerinalang.langserver.workspace.compilerengine.ProjectSnapshot;
-import org.ballerinalang.langserver.workspace.compilerengine.SnapshotStore;
+import org.ballerinalang.langserver.workspace.compilerengine.MaterializedStableSnapshot;
+import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
+import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.lspgateway.TwoTierReadinessController;
@@ -85,9 +86,9 @@ public class AsyncCompilationPipelineTest {
         CountDownLatch compiled = new CountDownLatch(1);
         AtomicReference<String> compilationThreadName = new AtomicReference<>();
         String requestThreadName = "lsp-request-1";
-        ProjectSnapshot snapshot = createSnapshot(new ContentVersion(1));
+        StableSnapshot snapshot = createSnapshot(new ContentVersion(1));
 
-        pipeline = createPipeline(new SnapshotStore(4), task -> {
+        pipeline = createPipeline(new DualSnapshotStore(), task -> {
             compilationThreadName.set(Thread.currentThread().getName());
             compiled.countDown();
             return snapshot;
@@ -112,9 +113,9 @@ public class AsyncCompilationPipelineTest {
         CountDownLatch releaseFirst = new CountDownLatch(1);
         CountDownLatch latestExecuted = new CountDownLatch(1);
         List<Integer> executedVersions = new CopyOnWriteArrayList<>();
-        ProjectSnapshot latestSnapshot = createSnapshot(new ContentVersion(3));
+        StableSnapshot latestSnapshot = createSnapshot(new ContentVersion(3));
 
-        pipeline = createPipeline(new SnapshotStore(4), task -> {
+        pipeline = createPipeline(new DualSnapshotStore(), task -> {
             int version = task.contentVersion().value();
             if (version == 1) {
                 firstStarted.countDown();
@@ -143,16 +144,16 @@ public class AsyncCompilationPipelineTest {
      * Verifies successful compilation publishes an immutable snapshot to the snapshot store.
      */
     @Test
-    public void successfulCompilation_publishesSnapshotToSnapshotStore() {
-        SnapshotStore snapshotStore = new SnapshotStore(4);
-        ProjectSnapshot expectedSnapshot = createSnapshot(new ContentVersion(42));
+    public void successfulCompilation_publishesSnapshotToDualSnapshotStore() {
+        DualSnapshotStore snapshotStore = new DualSnapshotStore();
+        StableSnapshot expectedSnapshot = createSnapshot(new ContentVersion(42));
 
         pipeline = createPipeline(snapshotStore, task -> expectedSnapshot);
         pipeline.requestCompilation(new ContentVersion(42));
 
         Awaitility.await().atMost(3, TimeUnit.SECONDS)
-                .until(() -> snapshotStore.get(TEST_ROOT).isPresent());
-        Assert.assertSame(snapshotStore.get(TEST_ROOT).orElseThrow(), expectedSnapshot,
+                .until(() -> snapshotStore.getStable(TEST_ROOT) != null);
+        Assert.assertSame(snapshotStore.getStable(TEST_ROOT), expectedSnapshot,
                 "Successful compilation must publish the completed snapshot atomically");
     }
 
@@ -161,11 +162,11 @@ public class AsyncCompilationPipelineTest {
      */
     @Test
     public void staleCompilationResult_isDiscardedInFavorOfLatestVersion() throws Exception {
-        SnapshotStore snapshotStore = new SnapshotStore(4);
+        DualSnapshotStore snapshotStore = new DualSnapshotStore();
         CountDownLatch oldVersionStarted = new CountDownLatch(1);
         CountDownLatch releaseOldVersion = new CountDownLatch(1);
         CountDownLatch latestPublished = new CountDownLatch(1);
-        Map<Integer, ProjectSnapshot> snapshots = Map.of(
+        Map<Integer, StableSnapshot> snapshots = Map.of(
                 10, createSnapshot(new ContentVersion(10)),
                 11, createSnapshot(new ContentVersion(11))
         );
@@ -188,7 +189,7 @@ public class AsyncCompilationPipelineTest {
 
         Assert.assertTrue(latestPublished.await(3, TimeUnit.SECONDS), "Latest compilation never completed");
         Awaitility.await().atMost(3, TimeUnit.SECONDS)
-                .untilAsserted(() -> Assert.assertEquals(snapshotStore.get(TEST_ROOT).orElseThrow().contentVersion(),
+                .untilAsserted(() -> Assert.assertEquals(snapshotStore.getStable(TEST_ROOT).contentVersion(),
                         new ContentVersion(11), "Only the latest content version may remain published"));
     }
 
@@ -214,9 +215,9 @@ public class AsyncCompilationPipelineTest {
     @Test
     public void rapidTypingWithinDebounceWindow_coalescesToSingleCompilation() {
         AtomicInteger compileCount = new AtomicInteger();
-        ProjectSnapshot latestSnapshot = createSnapshot(new ContentVersion(10));
+        StableSnapshot latestSnapshot = createSnapshot(new ContentVersion(10));
 
-        pipeline = createPipeline(new SnapshotStore(4), task -> {
+        pipeline = createPipeline(new DualSnapshotStore(), task -> {
             compileCount.incrementAndGet();
             return latestSnapshot;
         });
@@ -249,18 +250,14 @@ public class AsyncCompilationPipelineTest {
                 () -> task.advancePhase(CompilationPhase.POST_PARSE));
     }
 
-    private CompilationPipeline createPipeline(SnapshotStore snapshotStore,
+    private CompilationPipeline createPipeline(DualSnapshotStore snapshotStore,
                                                CompilationPipeline.CompilationAction action) {
         eventBus = new EventSyncPubSubHolder();
         return new CompilationPipeline(TEST_ROOT, snapshotStore, eventBus, action);
     }
 
-    private static ProjectSnapshot createSnapshot(ContentVersion version) {
-        return new ProjectSnapshot(
-                Mockito.mock(PackageCompilation.class),
-                Mockito.mock(SemanticModel.class),
-                Mockito.mock(SyntaxTree.class),
-                version
-        );
+    private static StableSnapshot createSnapshot(ContentVersion version) {
+        return new MaterializedStableSnapshot(Map.of(), Map.of(), Map.of(),
+                Mockito.mock(PackageCompilation.class), version);
     }
 }

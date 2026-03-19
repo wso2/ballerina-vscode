@@ -20,7 +20,7 @@ package org.ballerinalang.langserver.workspace;
 
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationServiceImpl;
-import org.ballerinalang.langserver.workspace.compilerengine.SnapshotStore;
+import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentServiceImpl;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.documentstore.VirtualFileSystem;
@@ -65,7 +65,7 @@ public final class WiringConfiguration implements AutoCloseable {
     private final CompilationServiceImpl compilationService;
     private final ExecutionServiceImpl executionService;
     private final WorkspaceTraceLogger traceLogger;
-    private final SnapshotStore snapshotStore;
+    private final DualSnapshotStore snapshotStore;
     private final ProjectRegistry projectRegistry;
 
     private WiringConfiguration(Builder builder) {
@@ -250,7 +250,7 @@ public final class WiringConfiguration implements AutoCloseable {
         return traceLogger;
     }
 
-    public SnapshotStore snapshotStore() {
+    public DualSnapshotStore snapshotStore() {
         return snapshotStore;
     }
 
@@ -274,7 +274,7 @@ public final class WiringConfiguration implements AutoCloseable {
         private EventSyncPubSubHolder eventBus;
         private VirtualFileSystem virtualFileSystem;
         private Function<Path, Path> projectRootResolver;
-        private SnapshotStore snapshotStore;
+        private DualSnapshotStore snapshotStore;
         private CompilationPipeline.CompilationAction compilationAction;
         private ProjectRegistry projectRegistry;
         private UriResolver uriResolver;
@@ -297,7 +297,7 @@ public final class WiringConfiguration implements AutoCloseable {
             return this;
         }
 
-        public Builder snapshotStore(SnapshotStore snapshotStore) {
+        public Builder snapshotStore(DualSnapshotStore snapshotStore) {
             this.snapshotStore = snapshotStore;
             return this;
         }

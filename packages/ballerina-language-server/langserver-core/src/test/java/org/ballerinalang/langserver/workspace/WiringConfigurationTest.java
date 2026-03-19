@@ -21,8 +21,9 @@ package org.ballerinalang.langserver.workspace;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.PackageCompilation;
-import org.ballerinalang.langserver.workspace.compilerengine.ProjectSnapshot;
-import org.ballerinalang.langserver.workspace.compilerengine.SnapshotStore;
+import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
+import org.ballerinalang.langserver.workspace.compilerengine.MaterializedStableSnapshot;
+import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.documentstore.VirtualFileSystem;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
@@ -48,6 +49,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -79,18 +81,14 @@ public class WiringConfigurationTest {
         eventBus = new EventSyncPubSubHolder();
 
         // Create test-observable mock compilation action
-        ProjectSnapshot mockSnapshot = new ProjectSnapshot(
-                mock(PackageCompilation.class),
-                mock(SemanticModel.class),
-                mock(SyntaxTree.class),
-                new ContentVersion(1)
-        );
+        StableSnapshot mockSnapshot = new MaterializedStableSnapshot(Map.of(), Map.of(), Map.of(),
+                mock(PackageCompilation.class), new ContentVersion(1));
 
         wiring = WiringConfiguration.builder()
                 .eventBus(eventBus)
                 .virtualFileSystem(new VirtualFileSystem())
                 .projectRootResolver(path -> tempDir)
-                .snapshotStore(new SnapshotStore(10))
+                .snapshotStore(new DualSnapshotStore())
                 .compilationAction(task -> mockSnapshot)
                 .projectRegistry(new ProjectRegistry(MemoryBudget.ofMb(256)))
                 .uriResolver(new UriResolver())
@@ -235,7 +233,7 @@ public class WiringConfigurationTest {
         Thread.sleep(500);
 
         // Verify CE pipeline exists (snapshot published)
-        Assert.assertTrue(wiring.snapshotStore().get(testRoot).isPresent(),
+        Assert.assertNotNull(wiring.snapshotStore().getStable(testRoot),
                 "Pipeline should exist with a snapshot before eviction");
 
         // Simulate heap pressure → WM-E2
@@ -248,7 +246,7 @@ public class WiringConfigurationTest {
         Thread.sleep(500);
 
         // CE should have cleaned up the pipeline
-        Assert.assertFalse(wiring.snapshotStore().get(testRoot).isPresent(),
+        Assert.assertNull(wiring.snapshotStore().getStable(testRoot),
                 "Chain 4: WM-E2 should cause CE to evict pipeline and clear snapshot");
     }
 

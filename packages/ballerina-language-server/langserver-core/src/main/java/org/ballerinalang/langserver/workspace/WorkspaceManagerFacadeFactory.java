@@ -24,6 +24,7 @@ import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.CompilationOptions;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
+import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.environment.PackageLockingMode;
@@ -34,10 +35,11 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
 import org.ballerinalang.langserver.workspace.compilerengine.FailureType;
-import org.ballerinalang.langserver.workspace.compilerengine.ProjectSnapshot;
+import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
+import org.ballerinalang.langserver.workspace.compilerengine.MaterializedStableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.RecoveryLadder;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult;
-import org.ballerinalang.langserver.workspace.compilerengine.SnapshotStore;
+import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.VirtualFileSystem;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
@@ -81,7 +83,7 @@ public final class WorkspaceManagerFacadeFactory {
 
         EventSyncPubSubHolder eventBus = new EventSyncPubSubHolder();
         VirtualFileSystem vfs = new VirtualFileSystem();
-        SnapshotStore snapshotStore = new SnapshotStore(100);
+        DualSnapshotStore snapshotStore = new DualSnapshotStore();
         ProjectRegistry projectRegistry = new ProjectRegistry(MemoryBudget.ofMb(512));
         UriResolver uriResolver = new UriResolver();
         GracePeriod gracePeriod = GracePeriod.ofMillis(2000);
@@ -107,7 +109,7 @@ public final class WorkspaceManagerFacadeFactory {
             }
 
             @Override
-            public ProjectSnapshot compile(CompileTask task) {
+            public StableSnapshot compile(CompileTask task) {
                 return snapshot(projectService().loadOrCreate(task.sourceRoot().path(), null), task.contentVersion());
             }
 
@@ -144,27 +146,31 @@ public final class WorkspaceManagerFacadeFactory {
                 return ps;
             }
 
-            private ProjectSnapshot snapshot(Project project, org.ballerinalang.langserver.workspace.documentstore.ContentVersion version) {
+            private StableSnapshot snapshot(Project project,
+                                            org.ballerinalang.langserver.workspace.documentstore.ContentVersion version) {
                 PackageCompilation compilation = project.currentPackage().getCompilation();
-                Module module = project.currentPackage().getDefaultModule();
-                SemanticModel semanticModel = compilation.getSemanticModel(module.moduleId());
-                SyntaxTree syntaxTree = null;
-                for (DocumentId docId : module.documentIds()) {
-                    syntaxTree = module.document(docId).syntaxTree();
-                    break;
-                }
-                Map<Path, SyntaxTree> syntaxTrees = new HashMap<>();
+                Map<DocumentId, SyntaxTree> syntaxTrees = new HashMap<>();
+                Map<Path, DocumentId> pathToDocumentIds = new HashMap<>();
+                Map<ModuleId, SemanticModel> semanticModels = new HashMap<>();
                 project.currentPackage().moduleIds().forEach(moduleId -> {
                     Module packageModule = project.currentPackage().module(moduleId);
+                    semanticModels.put(moduleId, compilation.getSemanticModel(moduleId));
                     packageModule.documentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
-                            syntaxTrees.put(path.normalize(), packageModule.document(docId).syntaxTree())));
+                            {
+                                syntaxTrees.put(docId, packageModule.document(docId).syntaxTree());
+                                pathToDocumentIds.put(path.normalize(), docId);
+                            }));
                     packageModule.testDocumentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
-                            syntaxTrees.put(path.normalize(), packageModule.document(docId).syntaxTree())));
+                            {
+                                syntaxTrees.put(docId, packageModule.document(docId).syntaxTree());
+                                pathToDocumentIds.put(path.normalize(), docId);
+                            }));
                 });
-                if (syntaxTree == null || syntaxTrees.isEmpty()) {
+                if (syntaxTrees.isEmpty() || semanticModels.isEmpty()) {
                     throw new RuntimeException("No source documents in project: " + project.sourceRoot());
                 }
-                return new ProjectSnapshot(compilation, semanticModel, syntaxTree, syntaxTrees, version);
+                return new MaterializedStableSnapshot(syntaxTrees, pathToDocumentIds, semanticModels,
+                        compilation, version);
             }
 
             private CompilationOptions compilationOptions(LockingMode lockingMode) {
