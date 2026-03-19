@@ -89,7 +89,8 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
                             let descriptor = content;
                             try {
                                 const matchingService = services.find(s =>
-                                    s.basePath === serviceMetadata?.basePath
+                                    s.basePath === serviceMetadata?.basePath &&
+                                    (!serviceMetadata?.listener || compareListeners(s.listener, serviceMetadata.listener))
                                 ) ?? services[0];
                                 if (matchingService) {
                                     const actualPort = await getServicePort(projectPath, matchingService, content.oasSpec);
@@ -101,7 +102,7 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
                             }
                             await openHurlNotebook(descriptor, savePath, options);
                         } else {
-                            await vscode.commands.executeCommand('HTTPClient.importHurlString', content, { ...options, savePath, viewColumn: 'beside' });
+                            await vscode.commands.executeCommand('HTTPClient.importHurlString', content, { ...options, savePath, viewColumn: 'active' });
                         }
                     }
                 } catch (error) {
@@ -267,7 +268,7 @@ async function openHurlNotebook(
     options?: { savable?: boolean }
 ): Promise<void> {
     const cells = buildHurlCellsFromOASSpec(descriptor.oasSpec, descriptor.baseUrl, descriptor.serviceName, descriptor.resourceMetadata);
-    await vscode.commands.executeCommand('HTTPClient.importHurlString', cells, { ...options, savePath, viewColumn: 'active' });
+    await vscode.commands.executeCommand('HTTPClient.importHurlString', cells, { ...options, savePath, viewColumn: 'beside' });
 }
 
 // Generic utility function for opening files in split view

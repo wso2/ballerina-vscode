@@ -30,7 +30,7 @@
         "onUri"
     ],
     "extensionDependencies": [
-        "WSO2.wso2-platform",
+        "wso2.wso2-platform",
         "wso2.hurl-client"
     ],
     "contributes": {

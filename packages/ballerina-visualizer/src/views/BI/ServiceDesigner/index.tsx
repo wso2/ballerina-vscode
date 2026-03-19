@@ -724,7 +724,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     const handleServiceTryIt = async () => {
         const basePath = serviceModel.properties?.basePath?.value?.trim();
-        const listener = serviceModel.properties?.listener?.value?.trim();
+        const listenerProperty = serviceModel.properties?.listener;
+        const listener = (listenerProperty?.value ?? listenerProperty?.values?.[0] ?? '').trim();
 
         const baseUrl = buildBaseUrl(listener, basePath);
         const serviceName = basePath?.replace(/^\//, "") || serviceModel.name || "Service";
