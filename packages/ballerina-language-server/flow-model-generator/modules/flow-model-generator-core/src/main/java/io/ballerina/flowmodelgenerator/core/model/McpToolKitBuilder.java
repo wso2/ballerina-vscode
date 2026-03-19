@@ -298,6 +298,8 @@ public class McpToolKitBuilder extends NodeBuilder {
                 // Use default agents.bal location
                 sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.MCP_PACKAGE);
                 sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.AI_PACKAGE);
+                sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.LOG_PACKAGE);
+                sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.HTTP_PACKAGE);
 
                 sourceBuilder.token().source(sourceCode).skipFormatting().stepOut().textEdit();
             }
@@ -340,19 +342,25 @@ public class McpToolKitBuilder extends NodeBuilder {
                                                   Map<String, List<String>> toolScopesMap) {
         String initBody;
         String toolFunctions;
-        boolean hasAnyScopes = !toolScopesMap.isEmpty();
 
         if (permittedTools.equals("()") || permittedTools.isBlank()) {
             // Generate init body using self.callTool as function reference
-            String getToolConfigsArgs = "self.mcpClient, info, self.callTool";
-            if (hasAnyScopes) {
-                getToolConfigsArgs += ", config?.auth";
-            }
             initBody = "        do {" + NEW_LINE +
-                    "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);" + NEW_LINE +
-                    "            self.tools = check ai:getPermittedMcpToolConfigs(" + getToolConfigsArgs +
-                    ").cloneReadOnly();" + NEW_LINE +
+                    "            ai:StreamableHttpClientTransportConfig{auth, ...configs} = config;" + NEW_LINE +
+                    "            mcp:StreamableHttpClientTransportConfig mcpConfig = {...configs};" + NEW_LINE +
+                    "            ai:AgentIdAuthConfig? agentIdAuth = ();" + NEW_LINE +
+                    "            if auth is http:ClientAuthConfig {" + NEW_LINE +
+                    "                mcpConfig.auth = auth;" + NEW_LINE +
+                    "                auth = ();" + NEW_LINE +
+                    "            } else {" + NEW_LINE +
+                    "                agentIdAuth = auth;" + NEW_LINE +
+                    "            }" + NEW_LINE +
+                    "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, mcpConfig);" +
+                    NEW_LINE +
+                    "            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info, " +
+                    "self.callTool, agentIdAuth).cloneReadOnly();" + NEW_LINE +
                     "        } on fail error e {" + NEW_LINE +
+                    "            log:printError(\"Error initializing MCP toolkit\", e);" + NEW_LINE +
                     "            return error ai:Error(\"Failed to initialize MCP toolkit\", e);" + NEW_LINE +
                     "        }";
 
@@ -366,18 +374,25 @@ public class McpToolKitBuilder extends NodeBuilder {
                     .map(e -> "                " + e.getKey() + " : self." + e.getValue())
                     .collect(Collectors.joining("," + System.lineSeparator()));
 
-            String getToolConfigsArgs = "self.mcpClient, info, permittedTools";
-            if (hasAnyScopes) {
-                getToolConfigsArgs += ", config?.auth";
-            }
             initBody = "        final map<ai:FunctionTool> permittedTools = {" + NEW_LINE +
                     permittedToolsMappingConstructorExp + NEW_LINE +
                     "        };" + NEW_LINE + NEW_LINE +
                     "        do {" + NEW_LINE +
-                    "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);" + NEW_LINE +
-                    "            self.tools = check ai:getPermittedMcpToolConfigs(" + getToolConfigsArgs +
-                    ").cloneReadOnly();" + NEW_LINE +
+                    "            ai:StreamableHttpClientTransportConfig{auth, ...configs} = config;" + NEW_LINE +
+                    "            mcp:StreamableHttpClientTransportConfig mcpConfig = {...configs};" + NEW_LINE +
+                    "            ai:AgentIdAuthConfig? agentIdAuth = ();" + NEW_LINE +
+                    "            if auth is http:ClientAuthConfig {" + NEW_LINE +
+                    "                mcpConfig.auth = auth;" + NEW_LINE +
+                    "                auth = ();" + NEW_LINE +
+                    "            } else {" + NEW_LINE +
+                    "                agentIdAuth = auth;" + NEW_LINE +
+                    "            }" + NEW_LINE +
+                    "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, mcpConfig);" +
+                    NEW_LINE +
+                    "            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info, " +
+                    "permittedTools, agentIdAuth).cloneReadOnly();" + NEW_LINE +
                     "        } on fail error e {" + NEW_LINE +
+                    "            log:printError(\"Error initializing MCP toolkit\", e);" + NEW_LINE +
                     "            return error ai:Error(\"Failed to initialize MCP toolkit\", e);" + NEW_LINE +
                     "        }";
 
@@ -401,7 +416,7 @@ public class McpToolKitBuilder extends NodeBuilder {
                 "    private final readonly & ai:ToolConfig[] tools;" + NEW_LINE + NEW_LINE +
                 "    public isolated function init(string serverUrl," +
                 " mcp:Implementation info = {name: \"MCP\", version: \"1.0.0\"}," + NEW_LINE +
-                "            *mcp:StreamableHttpClientTransportConfig config) returns ai:Error? {" + NEW_LINE +
+                "            *ai:StreamableHttpClientTransportConfig config) returns ai:Error? {" + NEW_LINE +
                 initBody +
                 NEW_LINE + "    }" + NEW_LINE + NEW_LINE +
                 "    public isolated function getTools() returns ai:ToolConfig[] => self.tools;" + NEW_LINE +
@@ -419,7 +434,7 @@ public class McpToolKitBuilder extends NodeBuilder {
                     .map(s -> "\"" + s + "\"")
                     .collect(Collectors.joining(", "));
             sb.append("    @ai:AgentTool {").append(NEW_LINE)
-                    .append("        agentIdConfig: {").append(NEW_LINE)
+                    .append("        auth: {").append(NEW_LINE)
                     .append("            scopes: [").append(scopesList).append("]").append(NEW_LINE)
                     .append("        }").append(NEW_LINE)
                     .append("    }").append(NEW_LINE);

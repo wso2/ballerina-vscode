@@ -3038,6 +3038,7 @@ public class CodeAnalyzer extends NodeVisitor {
         return mapping;
     }
 
+    // TODO: Clean this up, and move to AiUtils
     /**
      * Extracts OAuth scopes from an {@code @ai:AgentTool} annotation on a function definition.
      */
@@ -3059,26 +3060,26 @@ public class CodeAnalyzer extends NodeVisitor {
                 continue;
             }
 
-            // Look for agentIdConfig field
+            // Look for auth field
             for (MappingFieldNode field : optAnnotValue.get().fields()) {
                 if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
                     continue;
                 }
                 SpecificFieldNode specificField = (SpecificFieldNode) field;
                 String fieldName = specificField.fieldName().toSourceCode().trim();
-                if (!fieldName.equals("agentIdConfig") || specificField.valueExpr().isEmpty()) {
+                if (!fieldName.equals("auth") || specificField.valueExpr().isEmpty()) {
                     continue;
                 }
 
-                ExpressionNode agentIdConfigExpr = specificField.valueExpr().get();
-                if (agentIdConfigExpr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+                ExpressionNode authExpr = specificField.valueExpr().get();
+                if (authExpr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
                     continue;
                 }
 
-                // Look for scopes field inside agentIdConfig
-                MappingConstructorExpressionNode agentIdConfigMapping =
-                        (MappingConstructorExpressionNode) agentIdConfigExpr;
-                for (MappingFieldNode innerField : agentIdConfigMapping.fields()) {
+                // Look for scopes field inside auth
+                MappingConstructorExpressionNode authMapping =
+                        (MappingConstructorExpressionNode) authExpr;
+                for (MappingFieldNode innerField : authMapping.fields()) {
                     if (innerField.kind() != SyntaxKind.SPECIFIC_FIELD) {
                         continue;
                     }
