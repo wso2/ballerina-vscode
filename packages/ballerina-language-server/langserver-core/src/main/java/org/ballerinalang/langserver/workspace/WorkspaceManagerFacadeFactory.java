@@ -21,21 +21,29 @@ package org.ballerinalang.langserver.workspace;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.BuildOptions;
+import io.ballerina.projects.CompilationOptions;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.Project;
+import io.ballerina.projects.environment.PackageLockingMode;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
+import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
+import org.ballerinalang.langserver.workspace.compilerengine.FailureType;
 import org.ballerinalang.langserver.workspace.compilerengine.ProjectSnapshot;
+import org.ballerinalang.langserver.workspace.compilerengine.RecoveryLadder;
+import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult;
 import org.ballerinalang.langserver.workspace.compilerengine.SnapshotStore;
 import org.ballerinalang.langserver.workspace.documentstore.VirtualFileSystem;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.lspgateway.ClientSession;
 import org.ballerinalang.langserver.workspace.lspgateway.WorkspaceManagerFacadeImpl;
+import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.ballerinalang.langserver.workspace.workspacemanager.MemoryBudget;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
@@ -45,6 +53,7 @@ import org.eclipse.lsp4j.ClientCapabilities;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -80,33 +89,103 @@ public final class WorkspaceManagerFacadeFactory {
         // Holder to break the circular reference: compilationAction -> projectService
         ProjectServiceImpl[] projectServiceHolder = {null};
 
-        CompilationPipeline.CompilationAction compilationAction = task -> {
-            ProjectServiceImpl ps = projectServiceHolder[0];
-            if (ps == null) {
-                throw new IllegalStateException("ProjectService not yet initialized");
+        CompilationPipeline.CompilationAction compilationAction = new CompilationPipeline.CompilationAction() {
+            @Override
+            public ResolutionResult resolve(CompileTask task) {
+                ProjectServiceImpl ps = projectService();
+                LockingMode lockingMode = currentLockingMode(task);
+                try {
+                    Project project = ps.loadOrCreate(task.sourceRoot().path(), null);
+                    project.currentPackage().getResolution(compilationOptions(lockingMode));
+                    return new ResolutionResult(task.sourceRoot(), List.of(), true);
+                } catch (RuntimeException e) {
+                    String message = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+                    return new ResolutionResult(task.sourceRoot(), List.of(
+                            new ResolutionResult.ResolutionDiagnostic(ResolutionResult.Severity.ERROR,
+                                    message, task.sourceRoot().path().toString())), false);
+                }
             }
-            io.ballerina.projects.Project project =
-                    ps.loadOrCreate(task.sourceRoot().path(), null);
-            PackageCompilation compilation = project.currentPackage().getCompilation();
-            Module module = project.currentPackage().getDefaultModule();
-            SemanticModel semanticModel = compilation.getSemanticModel(module.moduleId());
-            SyntaxTree syntaxTree = null;
-            for (DocumentId docId : module.documentIds()) {
-                syntaxTree = module.document(docId).syntaxTree();
-                break;
+
+            @Override
+            public ProjectSnapshot compile(CompileTask task) {
+                return snapshot(projectService().loadOrCreate(task.sourceRoot().path(), null), task.contentVersion());
             }
-            Map<Path, SyntaxTree> syntaxTrees = new HashMap<>();
-            project.currentPackage().moduleIds().forEach(moduleId -> {
-                Module packageModule = project.currentPackage().module(moduleId);
-                packageModule.documentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
-                        syntaxTrees.put(path.normalize(), packageModule.document(docId).syntaxTree())));
-                packageModule.testDocumentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
-                        syntaxTrees.put(path.normalize(), packageModule.document(docId).syntaxTree())));
-            });
-            if (syntaxTree == null || syntaxTrees.isEmpty()) {
-                throw new RuntimeException("No source documents in project: " + task.sourceRoot());
+
+            @Override
+            public LockingMode currentLockingMode(CompileTask task) {
+                ProjectServiceImpl ps = projectService();
+                Project project = ps.loadOrCreate(task.sourceRoot().path(), null);
+                return ps.getLockingMode(project);
             }
-            return new ProjectSnapshot(compilation, semanticModel, syntaxTree, syntaxTrees, task.contentVersion());
+
+            @Override
+            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
+                LockingMode recoveryMode = nextMorePermissiveMode(initialMode);
+                while (recoveryMode != initialMode) {
+                    try {
+                        Project transientProject = BallerinaCompilerApi.getInstance()
+                                .loadProject(task.sourceRoot().path(), buildOptions(recoveryMode));
+                        transientProject.currentPackage().getResolution(compilationOptions(recoveryMode));
+                        transientProject.currentPackage().getCompilation();
+                        return CompilationPipeline.RecoveryResult.success();
+                    } catch (RuntimeException ignored) {
+                        initialMode = recoveryMode;
+                        recoveryMode = nextMorePermissiveMode(recoveryMode);
+                    }
+                }
+                return CompilationPipeline.RecoveryResult.exhausted();
+            }
+
+            private ProjectServiceImpl projectService() {
+                ProjectServiceImpl ps = projectServiceHolder[0];
+                if (ps == null) {
+                    throw new IllegalStateException("ProjectService not yet initialized");
+                }
+                return ps;
+            }
+
+            private ProjectSnapshot snapshot(Project project, org.ballerinalang.langserver.workspace.documentstore.ContentVersion version) {
+                PackageCompilation compilation = project.currentPackage().getCompilation();
+                Module module = project.currentPackage().getDefaultModule();
+                SemanticModel semanticModel = compilation.getSemanticModel(module.moduleId());
+                SyntaxTree syntaxTree = null;
+                for (DocumentId docId : module.documentIds()) {
+                    syntaxTree = module.document(docId).syntaxTree();
+                    break;
+                }
+                Map<Path, SyntaxTree> syntaxTrees = new HashMap<>();
+                project.currentPackage().moduleIds().forEach(moduleId -> {
+                    Module packageModule = project.currentPackage().module(moduleId);
+                    packageModule.documentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
+                            syntaxTrees.put(path.normalize(), packageModule.document(docId).syntaxTree())));
+                    packageModule.testDocumentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
+                            syntaxTrees.put(path.normalize(), packageModule.document(docId).syntaxTree())));
+                });
+                if (syntaxTree == null || syntaxTrees.isEmpty()) {
+                    throw new RuntimeException("No source documents in project: " + project.sourceRoot());
+                }
+                return new ProjectSnapshot(compilation, semanticModel, syntaxTree, syntaxTrees, version);
+            }
+
+            private CompilationOptions compilationOptions(LockingMode lockingMode) {
+                return CompilationOptions.builder()
+                        .setOffline(CommonUtil.COMPILE_OFFLINE)
+                        .setSticky(false)
+                        .setLockingMode(PackageLockingMode.valueOf(lockingMode.name()))
+                        .build();
+            }
+
+            private BuildOptions buildOptions(LockingMode lockingMode) {
+                return BuildOptions.builder()
+                        .setOffline(CommonUtil.COMPILE_OFFLINE)
+                        .setSticky(false)
+                        .setLockingMode(PackageLockingMode.valueOf(lockingMode.name()))
+                        .build();
+            }
+
+            private LockingMode nextMorePermissiveMode(LockingMode mode) {
+                return RecoveryLadder.nextMode(mode, FailureType.RESOLUTION_SUCCEEDED);
+            }
         };
 
         WiringConfiguration config = WiringConfiguration.builder()

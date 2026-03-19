@@ -26,6 +26,7 @@ import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
@@ -278,6 +279,11 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
 
         @Override
+        public ResolutionResult resolve(CompileTask task) throws Exception {
+            return baseAction.resolve(task);
+        }
+
+        @Override
         public ProjectSnapshot compile(CompileTask task) throws Exception {
             if (circuitOpen.get()) {
                 throw new IllegalStateException("Circuit breaker is open for " + sourceRoot);
@@ -296,6 +302,17 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                     throw new RuntimeException(e);
                 }
             }
+        }
+
+        @Override
+        public LockingMode currentLockingMode(CompileTask task) {
+            return baseAction.currentLockingMode(task);
+        }
+
+        @Override
+        public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode,
+                                                          Throwable cause) throws Exception {
+            return baseAction.recover(task, initialMode, cause);
         }
 
         boolean isOpen() {

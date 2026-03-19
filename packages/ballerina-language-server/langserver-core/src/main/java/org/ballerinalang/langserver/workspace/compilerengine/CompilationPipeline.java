@@ -22,6 +22,7 @@ import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 
 import java.time.Instant;
@@ -50,9 +51,37 @@ public class CompilationPipeline implements AutoCloseable {
     /**
      * Strategy for performing the actual compilation work.
      */
-    @FunctionalInterface
     public interface CompilationAction {
+        default ResolutionResult resolve(CompileTask task) throws Exception {
+            return new ResolutionResult(task.sourceRoot(), java.util.List.of(), true);
+        }
+
         ProjectSnapshot compile(CompileTask task) throws Exception;
+
+        default LockingMode currentLockingMode(CompileTask task) {
+            return LockingMode.LOCKED;
+        }
+
+        default RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) throws Exception {
+            return RecoveryResult.exhausted();
+        }
+    }
+
+    /**
+     * Recovery outcome for a qualifying compilation failure.
+     *
+     * @param recovered whether transient recovery succeeded
+     * @since 1.7.0
+     */
+    public record RecoveryResult(boolean recovered) {
+
+        public static RecoveryResult success() {
+            return new RecoveryResult(true);
+        }
+
+        public static RecoveryResult exhausted() {
+            return new RecoveryResult(false);
+        }
     }
 
     private final SourceRoot sourceRoot;
@@ -185,6 +214,12 @@ public class CompilationPipeline implements AutoCloseable {
     private void executeCompilation(CompileTask task) {
         activeWorkerThread.set(Thread.currentThread());
         try {
+            ResolutionResult resolutionResult = compilationAction.resolve(task);
+            if (!resolutionResult.success()) {
+                emitEvent(EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY);
+                return;
+            }
+
             ProjectSnapshot snapshot = compilationAction.compile(task);
 
             // Publication guard: discard result if cancelled (ADR-018 Mandate 8)
@@ -203,6 +238,7 @@ public class CompilationPipeline implements AutoCloseable {
                 return;
             }
 
+            emitEvent(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY);
             snapshotStore.publish(sourceRoot, snapshot);
             emitEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED);
         } catch (CancellationException e) {
@@ -212,6 +248,10 @@ public class CompilationPipeline implements AutoCloseable {
             LOG.fine(() -> "Compilation interrupted for " + sourceRoot);
             emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
         } catch (Exception e) {
+            if (isBirCompilationFailure(e)) {
+                scheduleRecovery(task, e);
+                return;
+            }
             LOG.log(Level.WARNING, "Compilation failed for " + sourceRoot, e);
             emitEvent(EventKind.COMPILER_COMPILATION_FAILED);
         } finally {
@@ -221,6 +261,26 @@ public class CompilationPipeline implements AutoCloseable {
             Thread.interrupted();
             // If a newer version is pending, submit it immediately (skip debounce)
             scheduleLatestIfPending(task.contentVersion());
+        }
+    }
+
+    private void scheduleRecovery(CompileTask task, Throwable cause) {
+        compilationWorker.submit(() -> executeRecovery(task, cause));
+    }
+
+    private void executeRecovery(CompileTask task, Throwable cause) {
+        try {
+            RecoveryResult recoveryResult = compilationAction.recover(task, compilationAction.currentLockingMode(task), cause);
+            if (recoveryResult.recovered()) {
+                emitEvent(EventKind.CE_RESOLUTION_RECOVERED);
+                requestCompilation(latestRequestedVersion.updateAndGet(version ->
+                        version != null ? version : task.contentVersion()));
+            } else {
+                emitEvent(EventKind.CE_RESOLUTION_EXHAUSTED);
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Recovery failed for " + sourceRoot, e);
+            emitEvent(EventKind.CE_RESOLUTION_EXHAUSTED);
         }
     }
 
@@ -240,7 +300,6 @@ public class CompilationPipeline implements AutoCloseable {
     }
 
     private void emitEvent(EventKind kind) {
-        System.err.println("[CP] Emitting event: " + kind + " for " + sourceRoot.path());
         try {
             DomainEvent event = new DomainEvent(Instant.now(), "compilation-pipeline", kind,
                     sourceRoot.path().toString());
@@ -248,5 +307,16 @@ public class CompilationPipeline implements AutoCloseable {
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to emit event " + kind + " for " + sourceRoot, e);
         }
+    }
+
+    private boolean isBirCompilationFailure(Throwable error) {
+        String message = error.getMessage();
+        if (message == null) {
+            return false;
+        }
+        String normalized = message.toLowerCase();
+        return normalized.startsWith("failed to load the module")
+                || normalized.contains(".bir")
+                || normalized.contains(" bir ");
     }
 }
