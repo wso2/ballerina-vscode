@@ -114,19 +114,15 @@ export async function integrateCodeToWorkspace(
     }
 }
 
-/**
- * Integrates any unintegrated modified files into the workspace, then clears the
- * modifiedFiles array in-place. Used by run/test tools so the workspace stays in
- * sync with what is being executed. Subsequent calls within the same generation
- * are no-ops unless new files have been written since the last call.
- */
 export async function integrateAndClearModifiedFiles(
     tempProjectPath: string,
     modifiedFiles: string[],
+    allModifiedFiles: Set<string>,
     ctx: ExecutionContext
 ): Promise<void> {
     const filesToIntegrate = new Set(modifiedFiles);
     await integrateCodeToWorkspace(tempProjectPath, filesToIntegrate, ctx);
+    modifiedFiles.forEach(f => allModifiedFiles.add(f));
     modifiedFiles.splice(0);
 }
 

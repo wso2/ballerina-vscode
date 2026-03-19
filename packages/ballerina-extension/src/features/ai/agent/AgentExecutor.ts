@@ -140,6 +140,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
         const tempProjectPath = this.config.executionContext.tempProjectPath!;
         const params = this.config.params; // Access params from config
         const modifiedFiles: string[] = [];
+        const allModifiedFiles: Set<string> = new Set();
         const generationStartTime = Date.now();
         const projectId = await getHashedProjectId(this.config.executionContext.workspacePath || this.config.executionContext.projectPath);
 
@@ -192,6 +193,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 eventHandler: this.config.eventHandler,
                 tempProjectPath,
                 modifiedFiles,
+                allModifiedFiles,
                 projects,
                 generationType: GenerationType.CODE_GENERATION,
                 projectRootPath: this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '',
@@ -219,6 +221,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const streamContext: StreamContext = {
                 eventHandler: this.config.eventHandler,
                 modifiedFiles,
+                allModifiedFiles,
                 projects,
                 shouldCleanup: false, // Review mode - don't cleanup immediately
                 messageId: this.config.generationId,
@@ -530,14 +533,13 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
         // Check if we're updating an existing review context
         const existingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
-        let accumulatedModifiedFiles = context.modifiedFiles;
+        const currentModified = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
+        let accumulatedModifiedFiles = currentModified;
 
         if (existingReview && existingReview.reviewState.tempProjectPath === tempProjectPath) {
-            // Accumulate modified files from previous prompts
             const existingFiles = new Set(existingReview.reviewState.modifiedFiles || []);
-            const newFiles = new Set(context.modifiedFiles);
-            accumulatedModifiedFiles = Array.from(new Set([...existingFiles, ...newFiles]));
-            console.log(`[AgentExecutor] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingReview.reviewState.modifiedFiles?.length || 0} existing + ${context.modifiedFiles.length} new)`);
+            accumulatedModifiedFiles = Array.from(new Set([...existingFiles, ...currentModified]));
+            console.log(`[AgentExecutor] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingReview.reviewState.modifiedFiles?.length || 0} existing + ${currentModified.length} new)`);
         }
 
         // Update chat state storage with user message + assistant messages
@@ -582,19 +584,21 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
         const threadId = 'default';
         const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        const currentModified = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
         const accumulatedModifiedFiles = pendingReview
-            ? Array.from(new Set([...pendingReview.reviewState.modifiedFiles, ...context.modifiedFiles]))
-            : context.modifiedFiles;
+            ? Array.from(new Set([...pendingReview.reviewState.modifiedFiles, ...currentModified]))
+            : currentModified;
 
-        // Emit review component only if there are modified files
         if (accumulatedModifiedFiles.length > 0) {
             const semanticDiffs: SemanticDiff[] = [];
             let loadDesignDiagrams = false;
             let affectedPackages: string[] = [];
-            const diffPackageMap: string[] = []; // parallel array: diffPackageMap[i] = package name for semanticDiffs[i]
+            const diffPackageMap: string[] = [];
             const langClient = StateMachine.context().langClient;
             const tempDir = context.ctx.tempProjectPath!;
-            affectedPackages = await determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, tempDir);
+            affectedPackages = pendingReview?.reviewState.affectedPackagePaths?.length
+                ? pendingReview.reviewState.affectedPackagePaths
+                : await determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, tempDir);
             const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
             for (const pkg of affectedPackages) {
                 // Skip workspace root — it only contains Ballerina.toml, not a real package
