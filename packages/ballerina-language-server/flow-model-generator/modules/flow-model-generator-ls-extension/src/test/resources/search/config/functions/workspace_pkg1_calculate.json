@@ -127,22 +127,6 @@
           "items": [
             {
               "metadata": {
-                "label": "dotProduct",
-                "description": "Calculates the dot product of two float vectors.\n\n```ballerina\nfloat[] v1 = [1.0, 2.0, 3.0];\nfloat[] v2 = [4.0, 5.0, 6.0];\ndotProduct(v1, v2) ⇒ 32.0\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_math.vector_1.2.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "math.vector",
-                "packageName": "math.vector",
-                "symbol": "dotProduct",
-                "version": "1.2.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
                 "label": "cosineSimilarity",
                 "description": "Calculates the cosine similarity between two float vectors.\n\n```ballerina\nfloat[] v1 = [1.0, 2.0, 3.0];\nfloat[] v2 = [4.0, 5.0, 6.0];\ncosineSimilarity(v1, v2) ⇒ 0.9746318461970762\n```\n",
                 "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_math.vector_1.2.0.png"
@@ -153,6 +137,22 @@
                 "module": "math.vector",
                 "packageName": "math.vector",
                 "symbol": "cosineSimilarity",
+                "version": "1.2.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "dotProduct",
+                "description": "Calculates the dot product of two float vectors.\n\n```ballerina\nfloat[] v1 = [1.0, 2.0, 3.0];\nfloat[] v2 = [4.0, 5.0, 6.0];\ndotProduct(v1, v2) ⇒ 32.0\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_math.vector_1.2.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "math.vector",
+                "packageName": "math.vector",
+                "symbol": "dotProduct",
                 "version": "1.2.0"
               },
               "enabled": true
