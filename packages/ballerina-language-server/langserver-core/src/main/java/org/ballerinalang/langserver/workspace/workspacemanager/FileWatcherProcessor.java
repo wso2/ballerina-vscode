@@ -18,8 +18,6 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
-import org.ballerinalang.langserver.workspace.documentstore.VirtualFileSystem;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 
@@ -71,7 +69,6 @@ public final class FileWatcherProcessor {
 
     private static final int MAX_PENDING_EVENTS = 4096;
 
-    private final VirtualFileSystem virtualFileSystem;
     private final Function<Path, Path> projectRootResolver;
     private final WatchEventHandler watchEventHandler;
     private final long debounceMillis;
@@ -85,26 +82,22 @@ public final class FileWatcherProcessor {
     /**
      * Creates a file watcher processor with a 150ms debounce window.
      *
-     * @param virtualFileSystem virtual file system for overlay checks
      * @param projectRootResolver function resolving project root from a file path
      * @param watchEventHandler per-event handler
      */
-    public FileWatcherProcessor(VirtualFileSystem virtualFileSystem, Function<Path, Path> projectRootResolver,
-                                WatchEventHandler watchEventHandler) {
-        this(virtualFileSystem, projectRootResolver, watchEventHandler, DEFAULT_DEBOUNCE_MILLIS);
+    public FileWatcherProcessor(Function<Path, Path> projectRootResolver, WatchEventHandler watchEventHandler) {
+        this(projectRootResolver, watchEventHandler, DEFAULT_DEBOUNCE_MILLIS);
     }
 
     /**
      * Creates a file watcher processor with a custom debounce window.
      *
-     * @param virtualFileSystem virtual file system for overlay checks
      * @param projectRootResolver function resolving project root from a file path
      * @param watchEventHandler per-event handler
      * @param debounceMillis debounce window in milliseconds
      */
-    public FileWatcherProcessor(VirtualFileSystem virtualFileSystem, Function<Path, Path> projectRootResolver,
-                                WatchEventHandler watchEventHandler, long debounceMillis) {
-        this.virtualFileSystem = Objects.requireNonNull(virtualFileSystem, "virtualFileSystem must not be null");
+    public FileWatcherProcessor(Function<Path, Path> projectRootResolver, WatchEventHandler watchEventHandler,
+                                long debounceMillis) {
         this.projectRootResolver = Objects.requireNonNull(projectRootResolver, "projectRootResolver must not be null");
         this.watchEventHandler = Objects.requireNonNull(watchEventHandler, "watchEventHandler must not be null");
         if (debounceMillis <= 0) {
@@ -184,10 +177,8 @@ public final class FileWatcherProcessor {
 
         for (ResolvedEvent resolvedEvent : resolvedEvents) {
             try {
-                if (isOverlaid(resolvedEvent.filePath())) {
-                    continue;
-                }
-                watchEventHandler.handle(resolvedEvent.projectRoot(), resolvedEvent.filePath(), resolvedEvent.changeType());
+                watchEventHandler.handle(resolvedEvent.projectRoot(), resolvedEvent.filePath(),
+                        resolvedEvent.changeType());
             } catch (RuntimeException ignored) {
                 // Per-event fault tolerance: one bad event must not abort the batch.
             }
@@ -221,11 +212,6 @@ public final class FileWatcherProcessor {
             resolvedEvents.addAll(eventList);
         }
         return resolvedEvents;
-    }
-
-    private boolean isOverlaid(Path filePath) {
-        DocumentUri fileUri = new DocumentUri.FileUri(filePath.toUri());
-        return virtualFileSystem.isOverlaid(fileUri);
     }
 
     private Path extractFilePath(FileEvent event) {

@@ -20,16 +20,13 @@ package org.ballerinalang.langserver.workspace;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.RunContext;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentService;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentState;
-import org.ballerinalang.langserver.workspace.documentstore.ReactivityTier;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionMode;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
@@ -43,11 +40,6 @@ import org.ballerinalang.langserver.workspace.workspacemanager.ProjectHealthStat
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
-import org.eclipse.lsp4j.DidChangeTextDocumentParams;
-import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
-import org.eclipse.lsp4j.DidCloseTextDocumentParams;
-import org.eclipse.lsp4j.DidOpenTextDocumentParams;
-import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -88,7 +80,6 @@ public class WorkspaceContextContractsTest {
         assertEnumValues(CompilationPhase.class, "PRE_PARSE", "POST_PARSE", "POST_TYPE_CHECK", "POST_DIAGNOSTICS");
         assertEnumValues(ProcessState.class, "STARTING", "RUNNING", "TERMINATING", "TERMINATED");
         assertEnumValues(ExecutionMode.class, "RUN", "DEBUG");
-        assertEnumValues(ReactivityTier.class, "STRUCTURAL", "DEPENDENCY_GRAPH", "CONFIGURATION");
         assertEnumValues(DocumentState.class, "OPEN", "CLOSED");
         assertEnumValues(SubscriberTier.class, "CRITICAL", "COALESCEABLE", "BEST_EFFORT");
     }
@@ -137,43 +128,6 @@ public class WorkspaceContextContractsTest {
 
         Method compilation = CompilationService.class.getMethod("compilation", Path.class, CancelChecker.class);
         Assert.assertEquals(compilation.getReturnType(), PackageCompilation.class);
-    }
-
-    /**
-     * Verifies DocumentService matches the contract signatures.
-     *
-     * @throws ReflectiveOperationException when a method is missing
-     */
-    @Test
-    public void documentService_matchesContractSignatures() throws ReflectiveOperationException {
-        Assert.assertTrue(DocumentService.class.isInterface());
-        Assert.assertEquals(DocumentService.class.getMethods().length, 10);
-
-        Method document = DocumentService.class.getMethod("document", Path.class, CancelChecker.class);
-        Assert.assertEquals(document.getReturnType(), Document.class);
-
-        Method relativePath = DocumentService.class.getMethod("relativePath", Path.class, CancelChecker.class);
-        Assert.assertEquals(relativePath.getReturnType(), String.class);
-
-        Method uriScheme = DocumentService.class.getMethod("uriScheme");
-        Assert.assertEquals(uriScheme.getReturnType(), String.class);
-
-        Method didOpen = DocumentService.class.getMethod("didOpen", Path.class, DidOpenTextDocumentParams.class);
-        Assert.assertEquals(didOpen.getReturnType(), Void.TYPE);
-
-        Method didChange = DocumentService.class.getMethod("didChange", Path.class, DidChangeTextDocumentParams.class);
-        Assert.assertEquals(didChange.getReturnType(), Void.TYPE);
-
-        Method didClose = DocumentService.class.getMethod("didClose", Path.class, DidCloseTextDocumentParams.class);
-        Assert.assertEquals(didClose.getReturnType(), Void.TYPE);
-
-        Method didChangeWatchedSingle = DocumentService.class.getMethod("didChangeWatched", Path.class,
-                FileEvent.class);
-        Assert.assertEquals(didChangeWatchedSingle.getReturnType(), Void.TYPE);
-
-        Method didChangeWatchedBatch = DocumentService.class.getMethod("didChangeWatched",
-                DidChangeWatchedFilesParams.class);
-        Assert.assertEquals(didChangeWatchedBatch.getReturnType(), Void.TYPE);
     }
 
     /**

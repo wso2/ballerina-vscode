@@ -70,7 +70,6 @@ public class ThreadSafetyTest {
         // RED: this test should fail — verify no HashSet/HashMap in multi-threaded contexts
         String[] classesToCheck = {
                 "org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry",
-                "org.ballerinalang.langserver.workspace.documentstore.VirtualFileSystem",
                 "org.ballerinalang.langserver.workspace.execution.ProcessRegistry"
         };
 

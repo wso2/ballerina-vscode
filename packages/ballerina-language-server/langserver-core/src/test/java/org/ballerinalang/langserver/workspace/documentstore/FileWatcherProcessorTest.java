@@ -27,7 +27,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -43,12 +42,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class FileWatcherProcessorTest {
 
-    private VirtualFileSystem virtualFileSystem;
     private Path tempDir;
 
     @BeforeMethod
     public void setUp() throws IOException {
-        this.virtualFileSystem = new VirtualFileSystem();
         this.tempDir = Files.createTempDirectory("watcher-processor-test");
     }
 
@@ -72,7 +69,6 @@ public class FileWatcherProcessorTest {
         CountDownLatch latch = new CountDownLatch(3);
         AtomicInteger handled = new AtomicInteger();
         FileWatcherProcessor processor = new FileWatcherProcessor(
-                virtualFileSystem,
                 path -> path.getParent(),
                 (projectRoot, filePath, changeType) -> {
                     handled.incrementAndGet();
@@ -98,32 +94,6 @@ public class FileWatcherProcessorTest {
     }
 
     /**
-     * Verifies overlaid files are skipped because editor buffer is authoritative.
-     */
-    @Test
-    public void submit_overlaidFile_skipsProcessing() throws Exception {
-        AtomicInteger handled = new AtomicInteger();
-        FileWatcherProcessor processor = new FileWatcherProcessor(
-                virtualFileSystem,
-                path -> path.getParent(),
-                (projectRoot, filePath, changeType) -> handled.incrementAndGet()
-        );
-
-        try {
-            Path file = createFile("projectB/main.bal");
-            DocumentUri uri = new DocumentUri.FileUri(file.toUri());
-            virtualFileSystem.openDocument(uri, "open editor content");
-
-            processor.submit(new FileEvent(file.toUri().toString(), FileChangeType.Changed));
-            waitForBatchCount(processor, 1, 3000);
-
-            Assert.assertEquals(handled.get(), 0);
-        } finally {
-            processor.shutdown();
-        }
-    }
-
-    /**
      * Verifies one failing event does not abort processing of remaining events.
      */
     @Test
@@ -133,7 +103,6 @@ public class FileWatcherProcessorTest {
         Path second = createFile("projectC/second.bal");
 
         FileWatcherProcessor processor = new FileWatcherProcessor(
-                virtualFileSystem,
                 path -> path.getParent(),
                 (projectRoot, filePath, changeType) -> {
                     if (filePath.equals(first)) {
@@ -164,7 +133,6 @@ public class FileWatcherProcessorTest {
         List<String> ordering = new ArrayList<>();
 
         FileWatcherProcessor processor = new FileWatcherProcessor(
-                virtualFileSystem,
                 path -> {
                     ordering.add("resolve:" + path.getFileName());
                     return path.getParent();
