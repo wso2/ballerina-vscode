@@ -84,7 +84,7 @@ public class ProjectServiceTest {
                 publishedEvents::add);
 
         ProjectLoader loader = (root, kind) -> mockBallerinaProject(root, kind);
-        service = new ProjectServiceImpl(registry, uriResolver, eventBus, loader);
+        service = new ProjectServiceImpl(registry, uriResolver, eventBus, loader, new ChangeBuffer());
     }
 
     @AfterMethod

@@ -20,10 +20,14 @@ package org.ballerinalang.langserver.workspace.workspacemanager;
 
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.eclipse.lsp4j.FileEvent;
+import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Project context service contract.
@@ -96,4 +100,48 @@ public interface ProjectService {
      * @param filePath a file path within the project to evict
      */
     void evictProject(Path filePath);
+
+    /**
+     * Signals that a document has been opened in the editor (WM-E8).
+     *
+     * <p>Creates an EDITOR-layer entry in the {@link ChangeBuffer} for the given URI (which
+     * is the open/closed signal per ADR-047 §6) and publishes a
+     * {@code WM_DOCUMENT_OPENED} event.
+     *
+     * @param uri     the document URI; must not be null
+     * @param content the initial full-text content; must not be null
+     */
+    void didOpen(DocumentUri uri, String content);
+
+    /**
+     * Signals that the content of an open document has changed (WM-E9).
+     *
+     * <p>Appends each change to the EDITOR layer of the {@link ChangeBuffer} for the
+     * given URI and publishes a {@code WM_DOCUMENT_CHANGED} event.
+     *
+     * @param uri     the document URI; must not be null
+     * @param changes ordered list of LSP content-change events; must not be null or empty
+     */
+    void didChange(DocumentUri uri, List<TextDocumentContentChangeEvent> changes);
+
+    /**
+     * Signals that a document has been closed in the editor (WM-E10).
+     *
+     * <p>Clears all EDITOR-layer buffered changes for the URI (removing the open marker
+     * per ADR-047 §6) and publishes a {@code WM_DOCUMENT_CLOSED} event.
+     *
+     * @param uri the document URI; must not be null
+     */
+    void didClose(DocumentUri uri);
+
+    /**
+     * Signals that one or more watched files have changed on the file system (WM-E11).
+     *
+     * <p>Routes each {@link FileEvent} to the {@link ChangeBuffer} (deferred if the
+     * document is open, immediate if closed) and publishes a
+     * {@code WM_FILE_WATCHED_CHANGED} event for each affected URI.
+     *
+     * @param events the list of file-watcher events; must not be null
+     */
+    void didChangeWatchedFiles(List<FileEvent> events);
 }

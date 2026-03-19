@@ -31,6 +31,7 @@ import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.execution.ExecutionServiceImpl;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.observability.WorkspaceTraceLogger;
+import org.ballerinalang.langserver.workspace.workspacemanager.ChangeBuffer;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectLoader;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry;
@@ -82,7 +83,8 @@ public final class WiringConfiguration implements AutoCloseable {
         // 2. ProjectService (subscribes to DS-E1, DS-E3, CE-E2, CE-E5;
         //    internally creates LockingModeController which subscribes to CE-E6, CE-E4)
         this.projectService = new ProjectServiceImpl(
-                builder.projectRegistry, builder.uriResolver, eventBus, builder.projectLoader);
+                builder.projectRegistry, builder.uriResolver, eventBus, builder.projectLoader,
+                new ChangeBuffer());
 
         // 3. CompilationService (subscribes to WM-E1, WM-E2, WM-E4, DS-E2, DS-E4)
         this.compilationService = new CompilationServiceImpl(

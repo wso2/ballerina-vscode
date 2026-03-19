@@ -22,12 +22,15 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
+import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
+import org.eclipse.lsp4j.FileEvent;
+import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import java.net.URI;
@@ -42,6 +45,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Service layer implementation managing workspace projects.
@@ -74,7 +78,10 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     private final UriResolver uriResolver;
     private final EventSyncPubSubHolder eventBus;
     private final ProjectLoader loader;
+    private final ChangeBuffer changeBuffer;
     private final ConcurrentHashMap<SourceRoot, Project> ballerinaProjects;
+    /** Per-URI monotonically increasing version counter for EDITOR-layer buffered changes. */
+    private final ConcurrentHashMap<DocumentUri, AtomicInteger> versionCounters;
 
     /**
      * Constructs a project service with full wiring of dependencies.
@@ -91,20 +98,25 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * @param uriResolver URI resolver for lock-free path resolution; must not be null
      * @param eventBus event bus; must not be null
      * @param loader Ballerina project loader; must not be null
+     * @param changeBuffer per-URI, per-layer change buffer; must not be null
      * @throws NullPointerException if any argument is null
      */
     public ProjectServiceImpl(ProjectRegistry registry, UriResolver uriResolver,
-                              EventSyncPubSubHolder eventBus, ProjectLoader loader) {
+                              EventSyncPubSubHolder eventBus, ProjectLoader loader,
+                              ChangeBuffer changeBuffer) {
         Objects.requireNonNull(registry, "registry must not be null");
         Objects.requireNonNull(uriResolver, "uriResolver must not be null");
         Objects.requireNonNull(eventBus, "eventBus must not be null");
         Objects.requireNonNull(loader, "loader must not be null");
+        Objects.requireNonNull(changeBuffer, "changeBuffer must not be null");
 
         this.registry = registry;
         this.uriResolver = uriResolver;
         this.eventBus = eventBus;
         this.loader = loader;
+        this.changeBuffer = changeBuffer;
         this.ballerinaProjects = new ConcurrentHashMap<>();
+        this.versionCounters = new ConcurrentHashMap<>();
 
         // 1. Wire self as registry listener for eviction and batch events
         registry.addListener(this);
@@ -437,6 +449,62 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         }
     }
 
+    // =========================================================================
+    // Document Lifecycle Methods (T-044: absorb DocumentService into ProjectService)
+    // =========================================================================
+
+    @Override
+    public void didOpen(DocumentUri uri, String content) {
+        Objects.requireNonNull(uri, "uri must not be null");
+        Objects.requireNonNull(content, "content must not be null");
+
+        TextDocumentContentChangeEvent fullText = new TextDocumentContentChangeEvent(content);
+        int version = versionCounters.computeIfAbsent(uri, k -> new AtomicInteger(0)).incrementAndGet();
+        changeBuffer.append(uri, new BufferedChange(fullText, ChangeLayer.EDITOR, new ContentVersion(version)));
+
+        publishDoc(EventKind.WM_DOCUMENT_OPENED, uri);
+    }
+
+    @Override
+    public void didChange(DocumentUri uri, List<TextDocumentContentChangeEvent> changes) {
+        Objects.requireNonNull(uri, "uri must not be null");
+        Objects.requireNonNull(changes, "changes must not be null");
+
+        AtomicInteger counter = versionCounters.computeIfAbsent(uri, k -> new AtomicInteger(0));
+        for (TextDocumentContentChangeEvent change : changes) {
+            int version = counter.incrementAndGet();
+            changeBuffer.append(uri, new BufferedChange(change, ChangeLayer.EDITOR, new ContentVersion(version)));
+        }
+
+        publishDoc(EventKind.WM_DOCUMENT_CHANGED, uri);
+    }
+
+    @Override
+    public void didClose(DocumentUri uri) {
+        Objects.requireNonNull(uri, "uri must not be null");
+
+        changeBuffer.clear(uri);
+        versionCounters.remove(uri);
+
+        publishDoc(EventKind.WM_DOCUMENT_CLOSED, uri);
+    }
+
+    @Override
+    public void didChangeWatchedFiles(List<FileEvent> events) {
+        Objects.requireNonNull(events, "events must not be null");
+
+        for (FileEvent event : events) {
+            try {
+                URI uri = URI.create(event.getUri());
+                DocumentUri docUri = new DocumentUri.FileUri(uri);
+                changeBuffer.routeWatcherEvent(docUri, event);
+                publishDoc(EventKind.WM_FILE_WATCHED_CHANGED, docUri);
+            } catch (Exception ignored) {
+                // Malformed or non-file URI — skip this event
+            }
+        }
+    }
+
     /**
      * Test-only hook: simulates heap pressure by invoking the eviction callback.
      */
@@ -542,6 +610,18 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     private void publishWm(EventKind kind, SourceRoot root) {
         eventBus.publish(new DomainEvent(Instant.now(), "workspace-manager", kind,
                 root.path().toString()));
+    }
+
+    /**
+     * Publishes a workspace-manager document event with the document URI as the coalesce scope.
+     * The URI string is used so consumers can reconstruct the path via {@link URI} or {@link Path#of(URI)}.
+     *
+     * @param kind event kind
+     * @param uri  document URI
+     */
+    private void publishDoc(EventKind kind, DocumentUri uri) {
+        eventBus.publish(new DomainEvent(Instant.now(), "workspace-manager", kind,
+                uri.uri().toString()));
     }
 
     /**
