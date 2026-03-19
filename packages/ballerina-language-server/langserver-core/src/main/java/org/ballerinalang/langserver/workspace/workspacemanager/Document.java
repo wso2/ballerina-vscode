@@ -16,7 +16,13 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.documentstore;
+package org.ballerinalang.langserver.workspace.workspacemanager;
+
+import org.ballerinalang.langserver.workspace.documentstore.DocumentState;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.documentstore.FileId;
+import org.ballerinalang.langserver.workspace.documentstore.TextRange;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;

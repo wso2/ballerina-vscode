@@ -16,8 +16,10 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.documentstore;
+package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.documentstore.VirtualFileSystem;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 

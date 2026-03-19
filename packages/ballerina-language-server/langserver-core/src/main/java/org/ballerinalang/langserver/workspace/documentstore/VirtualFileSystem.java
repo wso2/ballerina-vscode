@@ -18,6 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.documentstore;
 
+import org.ballerinalang.langserver.workspace.workspacemanager.Document;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;

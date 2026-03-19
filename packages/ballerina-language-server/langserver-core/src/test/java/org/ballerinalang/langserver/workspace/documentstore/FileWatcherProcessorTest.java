@@ -18,6 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.documentstore;
 
+import org.ballerinalang.langserver.workspace.workspacemanager.FileWatcherProcessor;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.testng.Assert;

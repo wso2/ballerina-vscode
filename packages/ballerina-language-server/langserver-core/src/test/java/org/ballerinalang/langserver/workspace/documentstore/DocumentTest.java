@@ -18,6 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.documentstore;
 
+import org.ballerinalang.langserver.workspace.workspacemanager.Document;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

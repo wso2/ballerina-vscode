@@ -23,6 +23,7 @@ import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.workspacemanager.FileWatcherProcessor;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
