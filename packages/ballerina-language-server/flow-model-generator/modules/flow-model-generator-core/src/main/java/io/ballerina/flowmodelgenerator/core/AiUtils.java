@@ -164,7 +164,8 @@ public class AiUtils {
                 new Module("ballerinax", "ai.ollama", "1.2.0"),
                 new Module("ballerinax", "ai.mistral", "1.2.0"),
                 new Module("ballerinax", "ai.deepseek", "1.1.0"),
-                new Module("ballerinax", "ai.anthropic", "1.2.0")
+                new Module("ballerinax", "ai.anthropic", "1.2.0"),
+                new Module("ballerinax", "ai.openrouter", "1.0.0")
         ));
     }
 
