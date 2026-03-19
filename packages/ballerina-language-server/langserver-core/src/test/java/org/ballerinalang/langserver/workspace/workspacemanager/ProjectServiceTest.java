@@ -168,7 +168,7 @@ public class ProjectServiceTest {
     }
 
     @Test(groups = "wiring")
-    public void wiring_noDirectHeapPressureListenerField() {
+    public void wiring_noDirectHeapPressureField() {
         Assert.assertThrows(NoSuchFieldException.class,
                 () -> ProjectServiceImpl.class.getDeclaredField("heapListener"));
     }

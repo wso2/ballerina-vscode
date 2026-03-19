@@ -149,7 +149,7 @@ public class WiringConfigurationTest {
                     observedEvents.add(event.eventKind());
                     wmE4Received.countDown();
                 });
-        // WM-E7 (locking mode changed) is also published when LockingModeController reacts
+        // WM-E7 (locking mode changed) may also be observed during workspace reactions
         eventBus.subscribe("chain3-wm-e7", SubscriberTier.BEST_EFFORT,
                 Set.of(EventKind.WORKSPACE_LOCKING_MODE_CHANGED), event -> {
                     observedEvents.add(event.eventKind());

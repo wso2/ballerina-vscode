@@ -142,7 +142,7 @@ public final class ProjectRegistry {
 
     /**
      * Evicts all BACKGROUND-tier projects (those with no open documents).
-     * Called by {@link HeapPressureListener} when the old-gen heap threshold is exceeded.
+     * Used by heap pressure handling when old-generation pressure becomes critical.
      */
     public void evictBackgroundProjects() {
         cache.asMap().forEach((root, project) -> {

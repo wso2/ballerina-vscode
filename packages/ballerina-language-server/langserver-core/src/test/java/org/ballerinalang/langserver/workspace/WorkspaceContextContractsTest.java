@@ -35,7 +35,6 @@ import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessState;
 import org.ballerinalang.langserver.workspace.workspacemanager.EvictionReason;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
-import org.ballerinalang.langserver.workspace.workspacemanager.LockingModeAuthority;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectHealthState;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
@@ -68,7 +67,6 @@ public class WorkspaceContextContractsTest {
         assertEnumValues(ProjectHealthState.class, "HEALTHY", "COMPILATION_CRASHED", "PROJECT_CRASHED",
                 "CANCELLED", "RECOVERING", "CIRCUIT_OPEN");
         assertEnumValues(LockingMode.class, "SOFT", "MEDIUM", "HARD", "LOCKED");
-        assertEnumValues(LockingModeAuthority.class, "EXTERNAL_ENTITY", "CONFIG", "EVENT_DRIVEN");
         assertEnumValues(EvictionReason.class, "LRU", "HEAP_PRESSURE", "EXPLICIT");
     }
 
@@ -92,7 +90,7 @@ public class WorkspaceContextContractsTest {
     @Test
     public void projectService_matchesContractSignatures() throws ReflectiveOperationException {
         Assert.assertTrue(ProjectService.class.isInterface());
-        Assert.assertEquals(ProjectService.class.getMethods().length, 8);
+        Assert.assertEquals(ProjectService.class.getMethods().length, 12);
 
         Method loadOrCreate = ProjectService.class.getMethod("loadOrCreate", Path.class, CancelChecker.class);
         Assert.assertEquals(loadOrCreate.getReturnType(), Project.class);

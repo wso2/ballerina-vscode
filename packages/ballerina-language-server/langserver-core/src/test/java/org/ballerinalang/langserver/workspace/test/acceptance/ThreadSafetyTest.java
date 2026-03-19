@@ -30,6 +30,9 @@ import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.workspacemanager.BufferedChange;
 import org.ballerinalang.langserver.workspace.workspacemanager.ChangeBuffer;
 import org.ballerinalang.langserver.workspace.workspacemanager.ChangeLayer;
+import org.ballerinalang.langserver.workspace.workspacemanager.HeapEstimate;
+import org.ballerinalang.langserver.workspace.workspacemanager.Project;
+import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ResolvedEntry;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
@@ -39,18 +42,22 @@ import org.testng.annotations.Test;
 
 import java.net.URI;
 import java.nio.file.Paths;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.mockito.Mockito.mock;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Acceptance tests for thread safety and concurrency constraints in the v2.0 concurrency model.
@@ -98,7 +105,6 @@ public class ThreadSafetyTest {
             });
         }
 
-        // Writer registers another entry concurrently while readers are active
         DocumentUri uri2 = new DocumentUri.FileUri(URI.create("file:///tmp/proj/util.bal"));
         ResolvedEntry entry2 = new ResolvedEntry.DocumentEntry(mock(io.ballerina.projects.Document.class));
         startGate.countDown();
@@ -108,6 +114,61 @@ public class ThreadSafetyTest {
 
         Assert.assertEquals(successCount.get(), readerCount,
                 "All 100 readers must resolve the registered entry without blocking");
+    }
+
+    @Test
+    public void testProjectLockIsReadWrite() throws Exception {
+        checkFieldType("org.ballerinalang.langserver.workspace.workspacemanager.ProjectLock", "lock",
+                ReentrantReadWriteLock.class);
+    }
+
+    @Test
+    public void testNoRawCollectionsInMultiThreadedFields() throws Exception {
+        String[] classesToCheck = {
+                "org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry",
+                "org.ballerinalang.langserver.workspace.execution.ProcessRegistry"
+        };
+
+        for (String className : classesToCheck) {
+            Class<?> clazz = Class.forName(className);
+            for (Field field : clazz.getDeclaredFields()) {
+                if (!Modifier.isStatic(field.getModifiers())) {
+                    String typeName = field.getType().getName();
+                    Assert.assertFalse(typeName.equals("java.util.HashMap")
+                                    || typeName.equals("java.util.HashSet")
+                                    || typeName.equals("java.util.LinkedHashMap"),
+                            "Field " + field.getName() + " in " + className
+                                    + " uses non-thread-safe collection: " + typeName);
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testConcurrentReadsDoNotBlockEachOther() {
+        Project project = new Project(new SourceRoot(Paths.get("/tmp/test")),
+                ProjectKind.BUILD, HeapEstimate.ofMb(10));
+        Lock readLock = project.projectLock().readLock();
+
+        int threadCount = 10;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        for (int i = 0; i < threadCount; i++) {
+            futures.add(CompletableFuture.runAsync(() -> {
+                boolean acquired = readLock.tryLock();
+                Assert.assertTrue(acquired, "Read lock should be acquired concurrently");
+                if (acquired) {
+                    readLock.unlock();
+                }
+            }, executor));
+        }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        executor.shutdown();
+
+        Assert.assertEquals(futures.size(), threadCount,
+                "All concurrent readers must complete without blocking each other");
     }
 
     /**
@@ -392,5 +453,14 @@ public class ThreadSafetyTest {
                 return null;
             }
         };
+    }
+
+    private static void checkFieldType(String className, String fieldName, Class<?> expectedType)
+            throws Exception {
+        Class<?> clazz = Class.forName(className);
+        Field field = clazz.getDeclaredField(fieldName);
+        Assert.assertEquals(field.getType(), expectedType,
+                "Expected field '" + fieldName + "' in " + className + " to use "
+                        + expectedType.getName());
     }
 }

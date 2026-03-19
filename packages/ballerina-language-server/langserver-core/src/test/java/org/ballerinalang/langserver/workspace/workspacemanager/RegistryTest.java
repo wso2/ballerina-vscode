@@ -31,11 +31,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Tests for {@link ProjectRegistry}, {@link SharedDependencyCache},
- * {@link HeapPressureListener}, {@link MemoryBudget}, and {@link CacheInvalidationEvent}.
+ * Tests for {@link ProjectRegistry}, {@link PathToRootCache},
+ * {@link SharedDependencyCache}, {@link MemoryBudget}, and
+ * {@link CacheInvalidationEvent}.
  *
  * @since 1.7.0
  */
@@ -402,48 +402,4 @@ public class RegistryTest {
                 "totalWeightMb must be 0 or 1 after balanced concurrent retain/release, was: " + finalWeight);
     }
 
-    // =========================================================================
-    // HeapPressureListener
-    // =========================================================================
-
-    @Test
-    public void heapPressureListener_findOldGenPool_findsByCapability() {
-        // The method must find a pool by capability, not by name.
-        // On any standard JVM there should be at least one heap pool.
-        Optional<java.lang.management.MemoryPoolMXBean> pool = HeapPressureListener.findOldGenPool();
-        // We don't Assert.assertTrue because some minimal JVMs may not have one.
-        // Just verify it doesn't throw.
-        pool.ifPresent(p -> {
-            Assert.assertEquals(p.getType(), java.lang.management.MemoryType.HEAP);
-            Assert.assertTrue(p.isCollectionUsageThresholdSupported());
-        });
-    }
-
-    @Test
-    public void heapPressureListener_simulateThresholdExceeded_invokesCallback() {
-        AtomicInteger callCount = new AtomicInteger(0);
-        HeapPressureListener listener = new HeapPressureListener(0.75, callCount::incrementAndGet);
-
-        listener.simulateThresholdExceeded();
-
-        Assert.assertEquals(callCount.get(), 1);
-    }
-
-    @Test(expectedExceptions = NullPointerException.class)
-    public void heapPressureListener_nullCallback_throws() {
-        new HeapPressureListener(0.75, null);
-    }
-
-    @Test
-    public void heapPressureListener_stop_withoutStart_noError() {
-        HeapPressureListener listener = new HeapPressureListener(0.75, () -> {});
-        listener.stop(); // must not throw
-    }
-
-    @Test
-    public void heapPressureListener_start_stop_noError() {
-        HeapPressureListener listener = new HeapPressureListener(0.75, () -> {});
-        listener.start();
-        listener.stop(); // must not throw
-    }
 }
