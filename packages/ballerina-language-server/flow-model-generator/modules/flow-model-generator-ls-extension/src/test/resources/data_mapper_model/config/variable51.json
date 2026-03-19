@@ -363,6 +363,7 @@
         "typeName": "simpleTypeArr",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

@@ -214,6 +214,7 @@
         "typeName": "User",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

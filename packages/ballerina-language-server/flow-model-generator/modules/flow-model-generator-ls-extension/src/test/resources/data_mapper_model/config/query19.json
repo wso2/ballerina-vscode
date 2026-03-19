@@ -162,6 +162,7 @@
         "typeName": "RecType",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

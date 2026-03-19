@@ -267,6 +267,7 @@
         "typeName": "DeptPerson",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

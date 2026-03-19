@@ -97,6 +97,7 @@
         "typeName": "MyRecord",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }
