@@ -21,7 +21,24 @@ import { CopilotEventHandler } from '../../utils/events';
 
 export const HURL_TOOL_NAME = "hurlRunnerTool";
 const HURL_LM_TOOL_NAME = "run-hurl-test";
-const TOOL_DESCRIPTION = `The hurl script to execute. Hurl is a command-line tool and DSL for running HTTP requests defined in a simple text format. The script can contain one or more HTTP requests, along with optional assertions to validate the responses. You can capture values from previous requests and use them in subsequent requests. The tool will execute the script and return the results of each request, including response details and assertion outcomes.
+const TOOL_DESCRIPTION = `The hurl script to execute. Hurl is a command-line tool and DSL for running HTTP requests defined in a simple text format. The script can contain one or more HTTP requests, along with optional assertions to validate the responses. You can capture values from previous requests and use them in subsequent requests. 
+
+Example Hurl script:
+GET http://api.example.com/users
+HTTP 200
+
+[Captures]
+userId: jsonpath("$.id")
+
+POST http://api.example.com/posts
+Content-Type: application/json
+
+{
+    "userId": "{{userId}}",
+    "title": "New Post",
+    "content": "This post belongs to the user captured from the previous request"
+}
+HTTP 201
 
 When defining a request body in Hurl, you must follow strict syntax rules. For simple bodies (e.g., JSON), you can write them directly after a blank line. However, for complex or multi-line raw bodies (such as multipart/form-data, raw HTTP payloads, or content containing special characters), you MUST wrap the entire body inside triple backticks (\`\`\`).
 
@@ -48,7 +65,12 @@ hello world
 ------Boundary123--
 \`\`\`
 
-Use triple backticks whenever the body spans multiple structured lines or includes boundary markers, binary-like content, or custom formatting.`;
+Use triple backticks whenever the body spans multiple structured lines or includes boundary markers, binary-like content, or custom formatting.
+
+Avoid using unnecessary newlines in the hurl script, as they can lead to parsing issues.
+
+When you plan to execute many requests, prefer defining all requests within a single tool call. The tool will execute the script and return the results of each request, including response details and assertion outcomes.
+`;
 function prepareHurlScript(input: HURLInput): string {
 	// Attaching the test scenario as a comment at the top of the Hurl script
 	return "# @collectionName "+input.testScenario+"\n"+input.hurlScript;
