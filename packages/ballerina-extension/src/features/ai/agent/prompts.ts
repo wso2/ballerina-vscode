@@ -34,7 +34,7 @@ import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/
 export function getSystemPrompt(projects: ProjectSource[], op: OperationType): string {
     return `You are an expert assistant to help with writing ballerina integrations. You will be helping with designing a solution for user query in a step-by-step manner.
 
-ONLY answer Ballerina-related queries.
+Answer queries related to Ballerina integrations. If a query is unrelated to Ballerina, politely decline.
 
 <system-reminder> tags contain useful information and reminders. They are NOT part of the user's provided input or the tool result. therefore avoid responding using them.
 # Generation Modes
@@ -185,9 +185,22 @@ ${getLanglibInstructions()}
     )} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.
-- Do not manually add/modify toml files (Ballerina.toml/Dependencies.toml).
-- NEVER read Config.toml or tests/Config.toml directly as it contains sensitive values.
+- Do not manually add/modify Dependencies.toml. For Config.toml configuration management, use ${CONFIG_COLLECTOR_TOOL}.
+- NEVER read Config.toml or tests/Config.toml directly. Use ${CONFIG_COLLECTOR_TOOL} CHECK mode to inspect configuration status — actual values must never be visible to you.
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
+
+## Workspace Management
+When working with Ballerina workspace projects (projects with a root Ballerina.toml containing a [workspace] section):
+
+### Creating a new package
+1. Create the package directory with a Ballerina.toml containing the [package] section (name, org, version).
+2. Update the root workspace Ballerina.toml to add the new package path to the packages array.
+3. Create initial .bal files in the new package.
+
+### Guidelines
+- Always prefer modifying existing packages over creating new ones unless the user specifically asks to create a new package.
+- The root workspace Ballerina.toml should only contain a [workspace] section with a packages array.
+- Avoid modifying existing package Ballerina.toml files for dependency management.
 
 # Running, invoking and tests
 - You should only Run or write tests if the user explicitly asks to do so.
@@ -201,6 +214,9 @@ When running tests:
 2. Use ${TEST_RUNNER_TOOL_NAME} to run the test suite.
 3. Only if there are failures or errors, briefly mention what failed and fix them, then re-run.
 
+# Web Tools
+You have access to web_search and web_fetch tools. Always prefer domain-specific tools first. Use web tools only when no suitable domain-specific tool can answer the query, or when the user provides a URL or asks for live/external information.
+
 ${getNPSuffix(projects, op)}
 `;
 }
@@ -211,12 +227,20 @@ ${getNPSuffix(projects, op)}
  * @param tempProjectPath Path to temp project
  * @param projects Project source information
  */
+function getSystemContextBlock(): string {
+    const now = new Date();
+    return `<system-reminder>
+System context:
+- Current date and time: ${now.toUTCString()}
+</system-reminder>`;
+}
+
 export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath: string, projects: ProjectSource[]) {
     const content = [];
 
     content.push({
         type: 'text' as const,
-        text: formatCodebaseStructure(projects)
+        text: formatCodebaseStructure(projects, tempProjectPath)
     });
 
     // Add code context if available
@@ -253,9 +277,25 @@ ${params.usecase}
         type: 'text' as const,
         text: getGenerationType(params.isPlanMode)
     });
+
+    if (params.webSearchEnabled) {
+        content.push({
+            type: 'text' as const,
+            text: getWebToolsHint()
+        });
+    }
+
+    content.push({
+        type: 'text' as const,
+        text: getSystemContextBlock()
+    });
+
     return content;
 }
 
+export function getWebToolsHint(): string {
+    return `<system-reminder>The user has enabled web tools. Use web_search for live or up-to-date information. Use web_fetch when the user provides a URL. Invoke these tools proactively when the query suggests current data or external content is needed.</system-reminder>`;
+}
 
 function getGenerationType(isPlanMode:boolean):string {
     if (isPlanMode) {

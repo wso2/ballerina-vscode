@@ -157,9 +157,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         originalModel,
     } = useDraftNodeManager(model);
 
+    const isMountedRef = useRef(true);
     const selectedNodeRef = useRef<FlowNode>();
     const parentNodeRef = useRef<FlowNode>();
     const nodeTemplateRef = useRef<FlowNode>();
+    const hasRenameOperation = useRef<boolean>(false);
     const topNodeRef = useRef<FlowNode | Branch>();
     const targetRef = useRef<LineRange>();
     const suggestedText = useRef<string>();
@@ -199,6 +201,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     }
 
     useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    useEffect(() => {
         debouncedGetFlowModelForBreakpoints();
     }, [breakpointState]);
 
@@ -222,7 +231,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 // Skip if the parent is a data mapper popup
                 return;
             }
-                setSearchText("");
+            setSearchText("");
             if (parent.artifactType === DIRECTORY_MAP.AGENT_TOOL) {
                 // Agent tool creation is handled by AIAgentSidePanel — skip to avoid interfering
                 return;
@@ -266,6 +275,20 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .catch(() => {
                 setIsUserAuthenticated(false);
             });
+
+    }, [rpcClient]);
+
+    useEffect(() => {
+        const unsubscribe = rpcClient.onIdentifierUpdated((renames) => {
+            if (!isMountedRef.current) return;
+            if (renames?.length > 0) {
+                hasRenameOperation.current = true;
+            }
+        });
+
+        return () => {
+            unsubscribe?.();
+        };
     }, [rpcClient]);
 
     const updateConnectionWithNewItem = (recentIdentifier: string) => {
@@ -965,7 +988,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
             if (response.categories) {
 
-                if(searchKind==="ALL"){                // Convert search API results
+                if (searchKind === "ALL") {                // Convert search API results
                     const searchCategories = convertFunctionCategoriesToSidePanelCategories(
                         response.categories as Category[],
                         functionType
@@ -1138,7 +1161,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         };
                     }
                     return null; // Filter out this subcategory
-                } 
+                }
                 return null;
             }).filter(item => item !== null);
         };
@@ -1520,6 +1543,18 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             debouncedGetFlowModel();
             return;
         }
+
+        // The form holds a stale copy of the node, so its lineRange may be outdated
+        // after source-modifying operations like renames. Patch it from selectedNodeRef
+        // which is kept up-to-date by handleRenameComplete and getFlowModel.
+        if (hasRenameOperation.current) {
+            const selectedLineRange = selectedNodeRef.current?.codedata?.lineRange;
+            if (selectedLineRange && updatedNode.codedata) {
+                updatedNode.codedata.lineRange = selectedLineRange;
+            }
+            hasRenameOperation.current = false;
+        }
+
         setShowProgressIndicator(true);
         // TODO: Uncomment this when the draft added with AI agent is implemented
         // savingDraft(); 

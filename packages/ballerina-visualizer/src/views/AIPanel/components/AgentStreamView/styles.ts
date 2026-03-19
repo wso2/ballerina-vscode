@@ -247,9 +247,7 @@ export const ItemLabel = styled.span<{ loading: boolean; failed?: boolean }>`
     text-overflow: ellipsis;
 `;
 
-export const FileNameChip = styled.span`
-    font-weight: 600;
-    color: var(--vscode-editor-foreground);
+export const ItemDetail = styled.span`
     margin-left: 3px;
     font-size: 12px;
 `;
@@ -301,7 +299,7 @@ export const InlineButton = styled.button<{ variant?: "primary" | "secondary" | 
     padding: 3px 10px;
     font-size: 12px;
     font-weight: 500;
-    border-radius: 3px;
+    border-radius: 4px;
     cursor: pointer;
     font-family: var(--vscode-font-family);
     background-color: ${(props: { variant?: string }) =>
@@ -327,6 +325,36 @@ export const InlineButton = styled.button<{ variant?: "primary" | "secondary" | 
     }
     &:disabled {
         opacity: 0.45;
+        cursor: not-allowed;
+    }
+`;
+
+export const ActionButton = styled.button<{ variant?: "primary" | "secondary" }>`
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 36px;
+    box-sizing: border-box;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--vscode-font-family);
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid ${(props: { variant?: string }) =>
+        props.variant === "secondary" ? "var(--vscode-input-border)" : "transparent"};
+    background-color: ${(props: { variant?: string }) =>
+        props.variant === "secondary" ? "transparent" : "var(--vscode-button-background)"};
+    color: ${(props: { variant?: string }) =>
+        props.variant === "secondary" ? "var(--vscode-foreground)" : "var(--vscode-button-foreground)"};
+    &:hover:not(:disabled) {
+        background-color: ${(props: { variant?: string }) =>
+            props.variant === "secondary"
+                ? "var(--vscode-toolbar-hoverBackground)"
+                : "var(--vscode-button-hoverBackground)"};
+    }
+    &:disabled {
+        opacity: 0.5;
         cursor: not-allowed;
     }
 `;

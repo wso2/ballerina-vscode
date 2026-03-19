@@ -29,6 +29,7 @@ import { Input } from "./utils/inputUtils";
 import SuggestionsList from "./SuggestionsList";
 import ModeToggle, { AgentMode } from "./ModeToggle";
 import AutoApproveChip from "./AutoApproveChip";
+import WebSearchToggle from "./WebSearchToggle";
 import { CommandTemplates } from "../../commandTemplates/data/commandTemplates.const";
 import { Tag } from "../../commandTemplates/models/tag.model";
 import { getFirstOccurringPlaceholder, matchCommandTemplate } from "./utils/utils";
@@ -132,12 +133,15 @@ interface AIChatInputProps {
     onChangeAgentMode?: (mode: AgentMode) => void;
     isAutoApproveEnabled?: boolean;
     onDisableAutoApprove?: () => void;
+    isWebToolsEnabled?: boolean;
+    onToggleWebSearch?: () => void;
     disabled?: boolean;
 }
 
 const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
     ({ initialCommandTemplate, tagOptions, attachmentOptions, placeholder, onSend, onStop, isLoading,
-       agentMode = AgentMode.Edit, onChangeAgentMode, isAutoApproveEnabled = false, onDisableAutoApprove, disabled }, ref) => {
+       agentMode = AgentMode.Edit, onChangeAgentMode, isAutoApproveEnabled = false, onDisableAutoApprove,
+       isWebToolsEnabled = false, onToggleWebSearch, disabled }, ref) => {
         const [inputValue, setInputValue] = useState<{
             text: string;
             [key: string]: any;
@@ -571,6 +575,9 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                 )}
                                 {isAutoApproveEnabled && onDisableAutoApprove && (
                                     <AutoApproveChip onToggle={onDisableAutoApprove} />
+                                )}
+                                {onToggleWebSearch && (
+                                    <WebSearchToggle isActive={isWebToolsEnabled} onToggle={onToggleWebSearch} />
                                 )}
                                 <ActionButton
                                     title="Chat with Command"
