@@ -21,7 +21,6 @@ import io.ballerina.projects.PackageCompilation;
 import org.awaitility.Awaitility;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.InProgressSnapshot;
-import org.ballerinalang.langserver.workspace.compilerengine.MaterializedStableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
@@ -457,7 +456,7 @@ public class DualSnapshotAcceptanceTest {
     // ========================================================================
 
     private static StableSnapshot createSnapshot(ContentVersion version) {
-        return new MaterializedStableSnapshot(Map.of(), Map.of(), Map.of(),
+        return new StableSnapshot(Map.of(), Map.of(), Map.of(),
                 Mockito.mock(PackageCompilation.class), version);
     }
 }

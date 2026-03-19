@@ -25,7 +25,6 @@ import org.ballerinalang.langserver.workspace.compilerengine.CancellationToken;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
-import org.ballerinalang.langserver.workspace.compilerengine.MaterializedStableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
@@ -257,7 +256,7 @@ public class AsyncCompilationPipelineTest {
     }
 
     private static StableSnapshot createSnapshot(ContentVersion version) {
-        return new MaterializedStableSnapshot(Map.of(), Map.of(), Map.of(),
+        return new StableSnapshot(Map.of(), Map.of(), Map.of(),
                 Mockito.mock(PackageCompilation.class), version);
     }
 }

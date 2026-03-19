@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -286,67 +287,10 @@ public class CompilationServiceImplTest {
     // ---- LSP Query Methods ----
 
     @Test
-    public void service_syntaxTree_returnsTreeWhenSnapshotExists() throws InterruptedException {
+    public void service_stableSnapshot_returnsSnapshotWhenSnapshotExists() throws InterruptedException {
         CountDownLatch compiled = new CountDownLatch(1);
-        SyntaxTree mockTree = mock(SyntaxTree.class);
-        StableSnapshot snapshot = createStableSnapshot(mockTree, mock(SemanticModel.class),
-                mock(PackageCompilation.class), new ContentVersion(1));
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
-            compiled.countDown();
-            return snapshot;
-        }, 50);
-
-        publishWmE1(TEST_ROOT);
-        Assert.assertTrue(compiled.await(3, TimeUnit.SECONDS));
-
-        SyntaxTree tree = service.syntaxTree(TEST_ROOT.path().resolve("main.bal"), null);
-        Assert.assertNotNull(tree);
-        Assert.assertSame(tree, mockTree);
-    }
-
-    @Test
-    public void service_syntaxTree_returnsNull_whenNoSnapshot() {
-        // Use pre-created mockSnapshot
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> mockSnapshot, 50);
-
-        SyntaxTree tree = service.syntaxTree(TEST_ROOT.path().resolve("main.bal"), null);
-        Assert.assertNull(tree, "Should return null when no snapshot exists");
-    }
-
-    @Test
-    public void service_semanticModel_returnsModelWhenSnapshotExists() throws InterruptedException {
-        CountDownLatch compiled = new CountDownLatch(1);
-        SemanticModel mockModel = mock(SemanticModel.class);
-        StableSnapshot snapshot = createStableSnapshot(mock(SyntaxTree.class), mockModel,
-                mock(PackageCompilation.class), new ContentVersion(1));
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
-            compiled.countDown();
-            return snapshot;
-        }, 50);
-
-        publishWmE1(TEST_ROOT);
-        Assert.assertTrue(compiled.await(3, TimeUnit.SECONDS));
-
-        SemanticModel model = service.semanticModel(TEST_ROOT.path().resolve("main.bal"), null);
-        Assert.assertNotNull(model);
-        Assert.assertSame(model, mockModel);
-    }
-
-    @Test
-    public void service_semanticModel_returnsNull_whenNoSnapshot() {
-        // Use pre-created mockSnapshot
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> mockSnapshot, 50);
-
-        SemanticModel model = service.semanticModel(TEST_ROOT.path().resolve("main.bal"), null);
-        Assert.assertNull(model, "Should return null when no snapshot exists");
-    }
-
-    @Test
-    public void service_compilation_returnsCompilationWhenSnapshotExists() throws InterruptedException {
-        CountDownLatch compiled = new CountDownLatch(1);
-        PackageCompilation mockCompilation = mock(PackageCompilation.class);
         StableSnapshot snapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
-                mockCompilation, new ContentVersion(1));
+                mock(PackageCompilation.class), new ContentVersion(1));
         service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
             compiled.countDown();
             return snapshot;
@@ -355,18 +299,45 @@ public class CompilationServiceImplTest {
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(compiled.await(3, TimeUnit.SECONDS));
 
-        PackageCompilation compilation = service.compilation(TEST_ROOT.path().resolve("main.bal"), null);
-        Assert.assertNotNull(compilation);
-        Assert.assertSame(compilation, mockCompilation);
+        StableSnapshot stableSnapshot = service.stableSnapshot(TEST_ROOT.path().resolve("main.bal"), null);
+        Assert.assertNotNull(stableSnapshot);
+        Assert.assertSame(stableSnapshot, snapshot);
     }
 
     @Test
-    public void service_compilation_returnsNull_whenNoSnapshot() {
+    public void service_stableSnapshot_returnsNull_whenNoSnapshot() {
         // Use pre-created mockSnapshot
         service = new CompilationServiceImpl(snapshotStore, eventBus, task -> mockSnapshot, 50);
 
-        PackageCompilation compilation = service.compilation(TEST_ROOT.path().resolve("main.bal"), null);
-        Assert.assertNull(compilation, "Should return null when no snapshot exists");
+        StableSnapshot snapshot = service.stableSnapshot(TEST_ROOT.path().resolve("main.bal"), null);
+        Assert.assertNull(snapshot, "Should return null when no snapshot exists");
+    }
+
+    @Test
+    public void service_stableSnapshot_blocksUntilNextSnapshotIsPublished() throws Exception {
+        CountDownLatch compileStarted = new CountDownLatch(1);
+        CountDownLatch allowCompileToFinish = new CountDownLatch(1);
+        StableSnapshot snapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
+                mock(PackageCompilation.class), new ContentVersion(2));
+        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+            compileStarted.countDown();
+            Assert.assertTrue(allowCompileToFinish.await(3, TimeUnit.SECONDS),
+                    "Test should release compile action");
+            return snapshot;
+        }, 50);
+
+        publishWmE1(TEST_ROOT);
+        Assert.assertTrue(compileStarted.await(3, TimeUnit.SECONDS), "Compilation should start");
+
+        CompletableFuture<StableSnapshot> future = CompletableFuture.supplyAsync(
+                () -> service.stableSnapshot(TEST_ROOT.path().resolve("main.bal"), null));
+        Thread.sleep(150);
+        Assert.assertFalse(future.isDone(), "stableSnapshot should wait while compilation is in progress");
+
+        allowCompileToFinish.countDown();
+
+        Assert.assertSame(future.get(3, TimeUnit.SECONDS), snapshot,
+                "stableSnapshot should return the newly published stable snapshot");
     }
 
     // ---- Circuit Breaker Tests ----
@@ -504,7 +475,7 @@ public class CompilationServiceImplTest {
         DocumentId documentId = mock(DocumentId.class);
         ModuleId moduleId = mock(ModuleId.class);
         when(documentId.moduleId()).thenReturn(moduleId);
-        return new MaterializedStableSnapshot(Map.of(documentId, syntaxTree),
+        return new StableSnapshot(Map.of(documentId, syntaxTree),
                 Map.of(TEST_ROOT.path().resolve("main.bal").normalize(), documentId),
                 Map.of(moduleId, semanticModel), compilation, version);
     }

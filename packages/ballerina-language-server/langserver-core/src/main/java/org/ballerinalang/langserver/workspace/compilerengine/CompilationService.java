@@ -18,9 +18,6 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
-import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.projects.PackageCompilation;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import java.nio.file.Path;
@@ -33,29 +30,11 @@ import java.nio.file.Path;
 public interface CompilationService {
 
     /**
-     * Returns syntax tree for a path.
+     * Returns the stable snapshot for a path.
      *
      * @param path source path
      * @param cancelChecker cancel checker
-     * @return syntax tree
+     * @return stable snapshot
      */
-    SyntaxTree syntaxTree(Path path, CancelChecker cancelChecker);
-
-    /**
-     * Returns semantic model for a path.
-     *
-     * @param path source path
-     * @param cancelChecker cancel checker
-     * @return semantic model
-     */
-    SemanticModel semanticModel(Path path, CancelChecker cancelChecker);
-
-    /**
-     * Returns package compilation for a path.
-     *
-     * @param path source path
-     * @param cancelChecker cancel checker
-     * @return package compilation
-     */
-    PackageCompilation compilation(Path path, CancelChecker cancelChecker);
+    StableSnapshot stableSnapshot(Path path, CancelChecker cancelChecker);
 }

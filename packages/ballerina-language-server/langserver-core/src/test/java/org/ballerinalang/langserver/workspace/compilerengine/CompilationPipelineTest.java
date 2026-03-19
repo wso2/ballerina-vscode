@@ -714,7 +714,7 @@ public class CompilationPipelineTest {
     }
 
     private static StableSnapshot createMockSnapshot(ContentVersion version) {
-        return new MaterializedStableSnapshot(Map.of(), Map.of(), Map.of(),
+        return new StableSnapshot(Map.of(), Map.of(), Map.of(),
                 mock(PackageCompilation.class), version);
     }
 }

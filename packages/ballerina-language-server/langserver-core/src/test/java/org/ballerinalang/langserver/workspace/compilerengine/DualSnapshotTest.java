@@ -28,11 +28,14 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Modifier;
+import java.nio.file.Path;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for the ADR-042 dual-snapshot contracts.
@@ -53,6 +56,8 @@ public class DualSnapshotTest {
     @Test
     public void stableSnapshot_extendsSnapshotView() {
         Assert.assertTrue(SnapshotView.class.isAssignableFrom(StableSnapshot.class));
+        Assert.assertFalse(StableSnapshot.class.isInterface());
+        Assert.assertTrue(Modifier.isFinal(StableSnapshot.class.getModifiers()));
     }
 
     @Test
@@ -87,12 +92,16 @@ public class DualSnapshotTest {
         SemanticModel semanticModel = mock(SemanticModel.class);
         PackageCompilation compilation = mock(PackageCompilation.class);
         ContentVersion contentVersion = new ContentVersion(1);
+        Path filePath = Path.of("/tmp/project/main.bal").toAbsolutePath().normalize();
+        when(documentId.moduleId()).thenReturn(moduleId);
 
-        StableSnapshot snapshot = new TestStableSnapshot(Map.of(documentId, syntaxTree), contentVersion,
-                Map.of(moduleId, semanticModel), compilation);
+        StableSnapshot snapshot = new StableSnapshot(Map.of(documentId, syntaxTree),
+                Map.of(filePath, documentId), Map.of(moduleId, semanticModel), compilation, contentVersion);
 
         Assert.assertSame(snapshot.syntaxTree(documentId), syntaxTree);
+        Assert.assertSame(snapshot.syntaxTree(filePath), syntaxTree);
         Assert.assertSame(snapshot.semanticModel(moduleId), semanticModel);
+        Assert.assertSame(snapshot.semanticModel(filePath), semanticModel);
         Assert.assertSame(snapshot.compilation(), compilation);
         Assert.assertEquals(snapshot.contentVersion(), contentVersion);
     }
@@ -117,22 +126,6 @@ public class DualSnapshotTest {
         Assert.assertSame(snapshot.semanticModel(moduleId, cancelChecker).get(), semanticModel);
         Assert.assertSame(snapshot.compilation(cancelChecker).get(), compilation);
         Assert.assertEquals(snapshot.contentVersion(), contentVersion);
-    }
-
-    private record TestStableSnapshot(Map<DocumentId, SyntaxTree> syntaxTrees,
-                                      ContentVersion contentVersion,
-                                      Map<ModuleId, SemanticModel> semanticModels,
-                                      PackageCompilation compilation) implements StableSnapshot {
-
-        @Override
-        public SyntaxTree syntaxTree(DocumentId docId) {
-            return syntaxTrees.get(docId);
-        }
-
-        @Override
-        public SemanticModel semanticModel(ModuleId moduleId) {
-            return semanticModels.get(moduleId);
-        }
     }
 
     private record TestInProgressSnapshot(Map<DocumentId, SyntaxTree> syntaxTrees,

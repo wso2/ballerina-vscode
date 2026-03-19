@@ -22,7 +22,6 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.PackageCompilation;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
-import org.ballerinalang.langserver.workspace.compilerengine.MaterializedStableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
@@ -80,7 +79,7 @@ public class WiringConfigurationTest {
         eventBus = new EventSyncPubSubHolder();
 
         // Create test-observable mock compilation action
-        StableSnapshot mockSnapshot = new MaterializedStableSnapshot(Map.of(), Map.of(), Map.of(),
+        StableSnapshot mockSnapshot = new StableSnapshot(Map.of(), Map.of(), Map.of(),
                 mock(PackageCompilation.class), new ContentVersion(1));
 
         wiring = WiringConfiguration.builder()

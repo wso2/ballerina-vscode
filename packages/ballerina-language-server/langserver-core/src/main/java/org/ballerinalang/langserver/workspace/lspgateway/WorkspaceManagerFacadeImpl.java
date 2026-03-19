@@ -32,6 +32,7 @@ import org.ballerinalang.langserver.commons.workspace.RunResult;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
+import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
@@ -165,7 +166,8 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<SyntaxTree> syntaxTree(Path filePath) {
-        SyntaxTree tree = compilationService.syntaxTree(filePath, null);
+        StableSnapshot snapshot = compilationService.stableSnapshot(filePath, null);
+        SyntaxTree tree = snapshot == null ? null : snapshot.syntaxTree(filePath);
         if (tree != null) {
             return Optional.of(tree);
         }
@@ -180,20 +182,18 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<SyntaxTree> syntaxTree(Path filePath, CancelChecker cancelChecker) {
-        return Optional.ofNullable(compilationService.syntaxTree(filePath, cancelChecker))
+        return Optional.ofNullable(compilationService.stableSnapshot(filePath, cancelChecker))
+                .map(snapshot -> snapshot.syntaxTree(filePath))
                 .or(() -> syntaxTree(filePath));
     }
 
     @Override
     public Optional<SemanticModel> semanticModel(Path filePath) {
-        PackageCompilation cached = compilationService.compilation(filePath, null);
-        if (cached != null) {
-            try {
-                Project project = projectService.loadOrCreate(filePath, null);
-                DocumentId docId = project.documentId(filePath);
-                return Optional.of(cached.getSemanticModel(docId.moduleId()));
-            } catch (Exception e) {
-                // fall through to sync fallback
+        StableSnapshot snapshot = compilationService.stableSnapshot(filePath, null);
+        if (snapshot != null) {
+            SemanticModel cached = snapshot.semanticModel(filePath);
+            if (cached != null) {
+                return Optional.of(cached);
             }
         }
         try {
@@ -208,14 +208,11 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<SemanticModel> semanticModel(Path filePath, CancelChecker cancelChecker) {
-        PackageCompilation cached = compilationService.compilation(filePath, cancelChecker);
-        if (cached != null) {
-            try {
-                Project project = projectService.loadOrCreate(filePath, cancelChecker);
-                DocumentId docId = project.documentId(filePath);
-                return Optional.of(cached.getSemanticModel(docId.moduleId()));
-            } catch (Exception e) {
-                // fall through to sync fallback
+        StableSnapshot snapshot = compilationService.stableSnapshot(filePath, cancelChecker);
+        if (snapshot != null) {
+            SemanticModel cached = snapshot.semanticModel(filePath);
+            if (cached != null) {
+                return Optional.of(cached);
             }
         }
         try {
@@ -230,7 +227,8 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<PackageCompilation> waitAndGetPackageCompilation(Path filePath) {
-        PackageCompilation compilation = compilationService.compilation(filePath, null);
+        StableSnapshot snapshot = compilationService.stableSnapshot(filePath, null);
+        PackageCompilation compilation = snapshot == null ? null : snapshot.compilation();
         if (compilation != null) {
             return Optional.of(compilation);
         }
@@ -244,7 +242,8 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<PackageCompilation> waitAndGetPackageCompilation(Path filePath, CancelChecker cancelChecker) {
-        PackageCompilation compilation = compilationService.compilation(filePath, cancelChecker);
+        StableSnapshot snapshot = compilationService.stableSnapshot(filePath, cancelChecker);
+        PackageCompilation compilation = snapshot == null ? null : snapshot.compilation();
         if (compilation != null) {
             return Optional.of(compilation);
         }

@@ -18,9 +18,6 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
-import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
-import io.ballerina.projects.PackageCompilation;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
@@ -34,9 +31,9 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
-import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -54,8 +51,8 @@ import java.util.logging.Logger;
 /**
  * Service entry point for the compilation engine, managing per-project pipelines and circuit breaker.
  *
- * <p>Handles 3 LSP query methods (syntaxTree, semanticModel, compilation) and manages the lifecycle
- * of per-project CompilationPipeline instances in response to workspace and document events.
+ * <p>Handles stable snapshot queries and manages the lifecycle of per-project
+ * CompilationPipeline instances in response to workspace and document events.
  * Implements a circuit breaker pattern per ADR-033 to prevent recovery loops on transient failures.
  *
  * @since 1.7.0
@@ -111,12 +108,12 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      * @param retryDelayMs delay in milliseconds before retrying a transient failure
      * @param heapPressureThrottleMs delay in milliseconds to defer document-triggered recompilation after RM-E1
      */
-    public CompilationServiceImpl(@Nonnull DualSnapshotStore snapshotStore, @Nonnull EventSyncPubSubHolder eventBus,
-                                  @Nonnull CompilationPipeline.CompilationAction baseAction, long retryDelayMs,
+    public CompilationServiceImpl(DualSnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
+                                  CompilationPipeline.CompilationAction baseAction, long retryDelayMs,
                                   long heapPressureThrottleMs) {
-        this.snapshotStore = snapshotStore;
-        this.eventBus = eventBus;
-        this.baseAction = baseAction;
+        this.snapshotStore = Objects.requireNonNull(snapshotStore, "snapshotStore");
+        this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
+        this.baseAction = Objects.requireNonNull(baseAction, "baseAction");
         this.retryDelayMs = retryDelayMs;
         this.heapPressureThrottleMs = heapPressureThrottleMs;
         this.pipelines = new ConcurrentHashMap<>();
@@ -135,50 +132,16 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     @Override
-    public SyntaxTree syntaxTree(Path path, CancelChecker cancelChecker) {
-        Optional<SourceRoot> sourceRoot = findSourceRoot(path);
-        if (sourceRoot.isEmpty()) {
-            return null;
-        }
-        MaterializedStableSnapshot stableSnapshot = materialized(snapshotStore.getStable(sourceRoot.get()));
-        if (stableSnapshot != null) {
-            return stableSnapshot.syntaxTree(path);
-        }
-        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(sourceRoot.get());
-        if (inProgressSnapshot instanceof DualSnapshotStore.StoreInProgressSnapshot storeInProgress) {
-            return materialized(storeInProgress.fallbackStableSnapshot()) == null ? null
-                    : materialized(storeInProgress.fallbackStableSnapshot()).syntaxTree(path);
-        }
-        return null;
-    }
-
-    @Override
-    public SemanticModel semanticModel(Path path, CancelChecker cancelChecker) {
-        Optional<SourceRoot> sourceRoot = findSourceRoot(path);
-        if (sourceRoot.isEmpty()) {
-            return null;
-        }
-        MaterializedStableSnapshot stableSnapshot = materialized(snapshotStore.getStable(sourceRoot.get()));
-        if (stableSnapshot != null) {
-            return stableSnapshot.semanticModel(path);
-        }
-        StableSnapshot awaited = awaitInProgress(sourceRoot.get(), cancelChecker);
-        MaterializedStableSnapshot materializedSnapshot = materialized(awaited);
-        return materializedSnapshot == null ? null : materializedSnapshot.semanticModel(path);
-    }
-
-    @Override
-    public PackageCompilation compilation(Path path, CancelChecker cancelChecker) {
+    public StableSnapshot stableSnapshot(Path path, CancelChecker cancelChecker) {
         Optional<SourceRoot> sourceRoot = findSourceRoot(path);
         if (sourceRoot.isEmpty()) {
             return null;
         }
         StableSnapshot stableSnapshot = snapshotStore.getStable(sourceRoot.get());
         if (stableSnapshot != null) {
-            return stableSnapshot.compilation();
+            return stableSnapshot;
         }
-        StableSnapshot awaited = awaitInProgress(sourceRoot.get(), cancelChecker);
-        return awaited == null ? null : awaited.compilation();
+        return awaitInProgress(sourceRoot.get(), cancelChecker);
     }
 
     @Override
@@ -366,28 +329,21 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         if (!(inProgressSnapshot instanceof DualSnapshotStore.StoreInProgressSnapshot storeInProgress)) {
             return null;
         }
-        try {
-            while (true) {
-                if (cancelChecker != null) {
-                    cancelChecker.checkCanceled();
-                }
-                return storeInProgress.publishedStableSnapshot().get(50, TimeUnit.MILLISECONDS);
+        while (true) {
+            if (cancelChecker != null) {
+                cancelChecker.checkCanceled();
             }
-        } catch (TimeoutException e) {
-            return awaitInProgress(sourceRoot, cancelChecker);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return null;
-        } catch (ExecutionException e) {
-            return null;
+            try {
+                return storeInProgress.publishedStableSnapshot().get(50, TimeUnit.MILLISECONDS);
+            } catch (TimeoutException e) {
+                // Keep waiting until the next stable snapshot is published.
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return null;
+            } catch (ExecutionException e) {
+                return null;
+            }
         }
-    }
-
-    private MaterializedStableSnapshot materialized(StableSnapshot snapshot) {
-        if (snapshot instanceof MaterializedStableSnapshot materializedSnapshot) {
-            return materializedSnapshot;
-        }
-        return null;
     }
 
     private SourceRoot reconstructSourceRoot(DomainEvent event) {

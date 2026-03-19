@@ -20,6 +20,8 @@ package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.projects.DocumentId;
+import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult.ResolutionDiagnostic;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult.Severity;
@@ -29,6 +31,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +45,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for Compiler Engine value objects and stores.
@@ -70,55 +74,35 @@ public class CompilerEngineVOTest {
         Assert.assertNotNull(FailureClass.FATAL.description());
     }
 
-    // ---- ProjectSnapshot ----
+    // ---- StableSnapshot ----
 
     @Test
-    public void snapshot_isImmutable() {
+    public void stableSnapshot_isFinalAndRetainsMappedValues() {
         PackageCompilation compilation = mock(PackageCompilation.class);
         SemanticModel semanticModel = mock(SemanticModel.class);
         SyntaxTree syntaxTree = mock(SyntaxTree.class);
         ContentVersion version = new ContentVersion(1);
+        Path filePath = Path.of("/tmp/project/main.bal").toAbsolutePath().normalize();
+        DocumentId documentId = mock(DocumentId.class);
+        ModuleId moduleId = mock(ModuleId.class);
+        when(documentId.moduleId()).thenReturn(moduleId);
 
-        ProjectSnapshot snapshot = new ProjectSnapshot(compilation, semanticModel, syntaxTree, version);
+        StableSnapshot snapshot = new StableSnapshot(Map.of(documentId, syntaxTree),
+                Map.of(filePath, documentId), Map.of(moduleId, semanticModel), compilation, version);
 
+        Assert.assertFalse(StableSnapshot.class.isInterface());
+        Assert.assertTrue(Modifier.isFinal(StableSnapshot.class.getModifiers()));
+        Assert.assertSame(snapshot.syntaxTree(documentId), syntaxTree);
+        Assert.assertSame(snapshot.syntaxTree(filePath), syntaxTree);
+        Assert.assertSame(snapshot.semanticModel(moduleId), semanticModel);
+        Assert.assertSame(snapshot.semanticModel(filePath), semanticModel);
         Assert.assertSame(snapshot.compilation(), compilation);
-        Assert.assertSame(snapshot.semanticModel(), semanticModel);
-        Assert.assertSame(snapshot.syntaxTree(), syntaxTree);
         Assert.assertEquals(snapshot.contentVersion(), version);
     }
 
     @Test(expectedExceptions = NullPointerException.class)
-    public void snapshot_rejectsNullCompilation() {
-        new ProjectSnapshot(null, mock(SemanticModel.class), mock(SyntaxTree.class), new ContentVersion(1));
-    }
-
-    @Test(expectedExceptions = NullPointerException.class)
-    public void snapshot_rejectsNullSemanticModel() {
-        new ProjectSnapshot(mock(PackageCompilation.class), null, mock(SyntaxTree.class), new ContentVersion(1));
-    }
-
-    @Test(expectedExceptions = NullPointerException.class)
-    public void snapshot_rejectsNullSyntaxTree() {
-        new ProjectSnapshot(mock(PackageCompilation.class), mock(SemanticModel.class), null, new ContentVersion(1));
-    }
-
-    @Test(expectedExceptions = NullPointerException.class)
-    public void snapshot_rejectsNullContentVersion() {
-        new ProjectSnapshot(mock(PackageCompilation.class), mock(SemanticModel.class), mock(SyntaxTree.class), null);
-    }
-
-    @Test
-    public void snapshot_equalityByValue() {
-        PackageCompilation compilation = mock(PackageCompilation.class);
-        SemanticModel semanticModel = mock(SemanticModel.class);
-        SyntaxTree syntaxTree = mock(SyntaxTree.class);
-        ContentVersion version = new ContentVersion(1);
-
-        ProjectSnapshot s1 = new ProjectSnapshot(compilation, semanticModel, syntaxTree, version);
-        ProjectSnapshot s2 = new ProjectSnapshot(compilation, semanticModel, syntaxTree, version);
-
-        Assert.assertEquals(s1, s2);
-        Assert.assertEquals(s1.hashCode(), s2.hashCode());
+    public void stableSnapshot_rejectsNullCompilation() {
+        new StableSnapshot(Map.of(), Map.of(), Map.of(), null, new ContentVersion(1));
     }
 
     // ---- DualSnapshotStore ----
@@ -385,30 +369,12 @@ public class CompilerEngineVOTest {
 
     // ---- Helper ----
 
-    private ProjectSnapshot createMockSnapshot() {
-        return new ProjectSnapshot(
-                mock(PackageCompilation.class),
-                mock(SemanticModel.class),
-                mock(SyntaxTree.class),
-                new ContentVersion(1)
-        );
-    }
-
     private StableSnapshot createStableSnapshot(ContentVersion contentVersion) {
-        return new TestStableSnapshot(contentVersion, mock(PackageCompilation.class));
-    }
-
-    private record TestStableSnapshot(ContentVersion contentVersion,
-                                      PackageCompilation compilation) implements StableSnapshot {
-
-        @Override
-        public SyntaxTree syntaxTree(io.ballerina.projects.DocumentId docId) {
-            return mock(SyntaxTree.class);
-        }
-
-        @Override
-        public SemanticModel semanticModel(io.ballerina.projects.ModuleId moduleId) {
-            return mock(SemanticModel.class);
-        }
+        DocumentId documentId = mock(DocumentId.class);
+        ModuleId moduleId = mock(ModuleId.class);
+        when(documentId.moduleId()).thenReturn(moduleId);
+        return new StableSnapshot(Map.of(documentId, mock(SyntaxTree.class)),
+                Map.of(Path.of("/tmp/project/main.bal").toAbsolutePath().normalize(), documentId),
+                Map.of(moduleId, mock(SemanticModel.class)), mock(PackageCompilation.class), contentVersion);
     }
 }

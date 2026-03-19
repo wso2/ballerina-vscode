@@ -18,14 +18,12 @@
 
 package org.ballerinalang.langserver.workspace;
 
-import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.Module;
-import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.RunContext;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
+import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentState;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionMode;
@@ -116,16 +114,10 @@ public class WorkspaceContextContractsTest {
     @Test
     public void compilationService_matchesContractSignatures() throws ReflectiveOperationException {
         Assert.assertTrue(CompilationService.class.isInterface());
-        Assert.assertEquals(CompilationService.class.getMethods().length, 3);
+        Assert.assertEquals(CompilationService.class.getMethods().length, 1);
 
-        Method syntaxTree = CompilationService.class.getMethod("syntaxTree", Path.class, CancelChecker.class);
-        Assert.assertEquals(syntaxTree.getReturnType(), SyntaxTree.class);
-
-        Method semanticModel = CompilationService.class.getMethod("semanticModel", Path.class, CancelChecker.class);
-        Assert.assertEquals(semanticModel.getReturnType(), SemanticModel.class);
-
-        Method compilation = CompilationService.class.getMethod("compilation", Path.class, CancelChecker.class);
-        Assert.assertEquals(compilation.getReturnType(), PackageCompilation.class);
+        Method stableSnapshot = CompilationService.class.getMethod("stableSnapshot", Path.class, CancelChecker.class);
+        Assert.assertEquals(stableSnapshot.getReturnType(), StableSnapshot.class);
     }
 
     /**

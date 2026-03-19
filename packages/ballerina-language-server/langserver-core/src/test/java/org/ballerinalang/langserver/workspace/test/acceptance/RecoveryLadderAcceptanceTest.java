@@ -26,7 +26,6 @@ import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.FailureType;
-import org.ballerinalang.langserver.workspace.compilerengine.MaterializedStableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.RecoveryLadder;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
@@ -638,7 +637,7 @@ public class RecoveryLadderAcceptanceTest {
     }
 
     private static StableSnapshot createSnapshot(ContentVersion version) {
-        return new MaterializedStableSnapshot(
+        return new StableSnapshot(
                 Map.of(),
                 Map.of(),
                 Map.of(),

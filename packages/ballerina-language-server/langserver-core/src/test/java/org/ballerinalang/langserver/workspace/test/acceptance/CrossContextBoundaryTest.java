@@ -21,7 +21,6 @@ import io.ballerina.projects.PackageCompilation;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationServiceImpl;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
-import org.ballerinalang.langserver.workspace.compilerengine.MaterializedStableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
@@ -240,7 +239,7 @@ public class CrossContextBoundaryTest {
     }
 
     private CompilationPipeline.CompilationAction countingAction(AtomicInteger compileCount, CountDownLatch latch) {
-        StableSnapshot snapshot = new MaterializedStableSnapshot(Map.of(), Map.of(), Map.of(),
+        StableSnapshot snapshot = new StableSnapshot(Map.of(), Map.of(), Map.of(),
                 mock(PackageCompilation.class), new ContentVersion(1));
         return task -> {
             if (compileCount.incrementAndGet() >= 2) {

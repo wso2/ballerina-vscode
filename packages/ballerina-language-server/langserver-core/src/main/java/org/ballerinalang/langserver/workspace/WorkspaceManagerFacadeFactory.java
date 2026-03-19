@@ -36,7 +36,6 @@ import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline
 import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
 import org.ballerinalang.langserver.workspace.compilerengine.FailureType;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
-import org.ballerinalang.langserver.workspace.compilerengine.MaterializedStableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.RecoveryLadder;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
@@ -166,7 +165,7 @@ public final class WorkspaceManagerFacadeFactory {
                 if (syntaxTrees.isEmpty() || semanticModels.isEmpty()) {
                     throw new RuntimeException("No source documents in project: " + project.sourceRoot());
                 }
-                return new MaterializedStableSnapshot(syntaxTrees, pathToDocumentIds, semanticModels,
+                return new StableSnapshot(syntaxTrees, pathToDocumentIds, semanticModels,
                         compilation, version);
             }
 

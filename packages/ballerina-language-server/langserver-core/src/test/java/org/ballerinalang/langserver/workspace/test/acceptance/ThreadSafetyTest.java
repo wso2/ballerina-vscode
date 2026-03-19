@@ -432,27 +432,8 @@ public class ThreadSafetyTest {
     // -------------------------------------------------------------------------
 
     private static StableSnapshot stubSnapshot(ContentVersion version) {
-        return new StableSnapshot() {
-            @Override
-            public SyntaxTree syntaxTree(DocumentId docId) {
-                return null;
-            }
-
-            @Override
-            public ContentVersion contentVersion() {
-                return version;
-            }
-
-            @Override
-            public SemanticModel semanticModel(ModuleId moduleId) {
-                return null;
-            }
-
-            @Override
-            public PackageCompilation compilation() {
-                return null;
-            }
-        };
+        return new StableSnapshot(java.util.Map.<DocumentId, SyntaxTree>of(), java.util.Map.of(),
+                java.util.Map.<ModuleId, SemanticModel>of(), mock(PackageCompilation.class), version);
     }
 
     private static void checkFieldType(String className, String fieldName, Class<?> expectedType)
