@@ -59,6 +59,7 @@ public class CompilationPipeline implements AutoCloseable {
         StableSnapshot compile(CompileTask task) throws Exception;
 
         default LockingMode currentLockingMode(CompileTask task) {
+            // Tests and lightweight callers can omit locking-mode wiring; production overrides this.
             return LockingMode.LOCKED;
         }
 

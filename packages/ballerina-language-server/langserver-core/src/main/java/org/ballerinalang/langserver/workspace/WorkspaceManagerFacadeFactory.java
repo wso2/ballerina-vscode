@@ -78,7 +78,6 @@ public final class WorkspaceManagerFacadeFactory {
     public static WorkspaceManager create(LanguageServerContext serverContext) {
         BuildOptions buildOptions = BuildOptions.builder()
                 .setOffline(CommonUtil.COMPILE_OFFLINE)
-                .setSticky(false)
                 .build();
 
         EventSyncPubSubHolder eventBus = new EventSyncPubSubHolder();
@@ -176,7 +175,6 @@ public final class WorkspaceManagerFacadeFactory {
             private CompilationOptions compilationOptions(LockingMode lockingMode) {
                 return CompilationOptions.builder()
                         .setOffline(CommonUtil.COMPILE_OFFLINE)
-                        .setSticky(false)
                         .setLockingMode(PackageLockingMode.valueOf(lockingMode.name()))
                         .build();
             }
@@ -184,7 +182,6 @@ public final class WorkspaceManagerFacadeFactory {
             private BuildOptions buildOptions(LockingMode lockingMode) {
                 return BuildOptions.builder()
                         .setOffline(CommonUtil.COMPILE_OFFLINE)
-                        .setSticky(false)
                         .setLockingMode(PackageLockingMode.valueOf(lockingMode.name()))
                         .build();
             }
