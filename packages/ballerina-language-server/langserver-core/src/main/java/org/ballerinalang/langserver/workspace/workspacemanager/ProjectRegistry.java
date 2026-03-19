@@ -48,7 +48,7 @@ import java.util.concurrent.locks.Lock;
  *   <li>{@code BATCH_UPDATE} — on {@link #putAll}</li>
  *   <li>{@code PROJECT_REMOVED} — on {@link #remove}</li>
  * </ul>
- * T-009 wires {@link PathToRootCache} as a listener; do not wire caches here.</p>
+ * Listeners are external integrations; do not wire cache implementations here.</p>
  *
  * @since 1.7.0
  */

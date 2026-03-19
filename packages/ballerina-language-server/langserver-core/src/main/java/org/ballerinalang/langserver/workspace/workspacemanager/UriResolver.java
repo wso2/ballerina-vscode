@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * structure without any locking. A single maintainer thread updates the root via
  * {@link AtomicReference#set(Object)} after constructing a new immutable snapshot.</p>
  *
- * <p>Replaces {@code PathToRootCache} per ADR-048.</p>
+ * <p>Implements the ADR-048 trie-based URI resolution design.</p>
  *
  * @since 1.7.0
  */

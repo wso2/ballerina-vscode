@@ -20,7 +20,7 @@ package org.ballerinalang.langserver.workspace.workspacemanager;
 
 /**
  * Listener notified when a cache invalidation event is raised by {@link ProjectRegistry}.
- * Implementations must be safe to call from multiple threads (T-009 wires PathToRootCache).
+ * Implementations must be safe to call from multiple threads.
  *
  * @since 1.7.0
  */

@@ -33,7 +33,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -122,90 +121,6 @@ public class CompilerEngineVOTest {
         Assert.assertEquals(s1.hashCode(), s2.hashCode());
     }
 
-    // ---- SnapshotStore ----
-
-    @Test
-    public void store_getReturnsEmptyWhenNoSnapshot() {
-        SnapshotStore store = new SnapshotStore(10);
-        SourceRoot root = new SourceRoot(Path.of("/tmp/project").toAbsolutePath().normalize());
-
-        Assert.assertEquals(store.get(root), Optional.empty());
-    }
-
-    @Test
-    public void store_publishAndGetReturnsSnapshot() {
-        SnapshotStore store = new SnapshotStore(10);
-        SourceRoot root = new SourceRoot(Path.of("/tmp/project").toAbsolutePath().normalize());
-        ProjectSnapshot snapshot = createMockSnapshot();
-
-        Assert.assertTrue(store.publish(root, snapshot));
-        Optional<ProjectSnapshot> result = store.get(root);
-        Assert.assertTrue(result.isPresent());
-        Assert.assertSame(result.get(), snapshot);
-    }
-
-    @Test
-    public void store_publishReplacesExistingSnapshot() {
-        SnapshotStore store = new SnapshotStore(10);
-        SourceRoot root = new SourceRoot(Path.of("/tmp/project").toAbsolutePath().normalize());
-        ProjectSnapshot first = createMockSnapshot();
-        ProjectSnapshot second = createMockSnapshot();
-
-        store.publish(root, first);
-        store.publish(root, second);
-
-        Assert.assertSame(store.get(root).orElseThrow(), second);
-    }
-
-    @Test
-    public void store_getLockFreeFromMultipleThreads() throws InterruptedException {
-        SnapshotStore store = new SnapshotStore(10);
-        SourceRoot root = new SourceRoot(Path.of("/tmp/project").toAbsolutePath().normalize());
-        ProjectSnapshot snapshot = createMockSnapshot();
-        store.publish(root, snapshot);
-
-        int threadCount = 8;
-        CountDownLatch latch = new CountDownLatch(threadCount);
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-
-        for (int i = 0; i < threadCount; i++) {
-            executor.submit(() -> {
-                try {
-                    Optional<ProjectSnapshot> result = store.get(root);
-                    Assert.assertTrue(result.isPresent());
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-
-        Assert.assertTrue(latch.await(5, TimeUnit.SECONDS), "Concurrent reads timed out");
-        executor.shutdown();
-    }
-
-    @Test
-    public void store_removeDeletesSnapshot() {
-        SnapshotStore store = new SnapshotStore(10);
-        SourceRoot root = new SourceRoot(Path.of("/tmp/project").toAbsolutePath().normalize());
-        store.publish(root, createMockSnapshot());
-
-        store.remove(root);
-
-        Assert.assertEquals(store.get(root), Optional.empty());
-    }
-
-    @Test
-    public void store_rejectsBeyondCapacity() {
-        SnapshotStore store = new SnapshotStore(2);
-        SourceRoot root1 = new SourceRoot(Path.of("/tmp/p1").toAbsolutePath().normalize());
-        SourceRoot root2 = new SourceRoot(Path.of("/tmp/p2").toAbsolutePath().normalize());
-        SourceRoot root3 = new SourceRoot(Path.of("/tmp/p3").toAbsolutePath().normalize());
-
-        Assert.assertTrue(store.publish(root1, createMockSnapshot()));
-        Assert.assertTrue(store.publish(root2, createMockSnapshot()));
-        Assert.assertFalse(store.publish(root3, createMockSnapshot()));
-    }
-
     // ---- DualSnapshotStore ----
 
     @Test
@@ -213,7 +128,6 @@ public class CompilerEngineVOTest {
         DualSnapshotStore store = new DualSnapshotStore();
         SourceRoot root = new SourceRoot(Path.of("/tmp/project-dual").toAbsolutePath().normalize());
 
-        // RED: this test should fail - DualSnapshotStore is not yet implemented
         InProgressSnapshot inProgressSnapshot = store.startCompilation(root);
 
         Assert.assertSame(store.getInProgress(root), inProgressSnapshot);

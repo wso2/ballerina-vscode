@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Tests for {@link ProjectRegistry}, {@link PathToRootCache}, {@link SharedDependencyCache},
+ * Tests for {@link ProjectRegistry}, {@link SharedDependencyCache},
  * {@link HeapPressureListener}, {@link MemoryBudget}, and {@link CacheInvalidationEvent}.
  *
  * @since 1.7.0
@@ -290,86 +290,6 @@ public class RegistryTest {
                 CacheInvalidationEvent.InvalidationType.PROJECT_REMOVED);
         Assert.assertEquals(events.get(0).affectedRoot(), root);
         registry.shutdown();
-    }
-
-    // =========================================================================
-    // PathToRootCache
-    // =========================================================================
-
-    @Test
-    public void pathToRootCache_put_get_returnsSourceRoot() {
-        PathToRootCache cache = new PathToRootCache();
-        SourceRoot sr = root("/workspace/proj");
-        Path file = sr.path().resolve("src/main.bal");
-
-        cache.put(file, sr);
-
-        Optional<SourceRoot> result = cache.get(file);
-        Assert.assertTrue(result.isPresent());
-        Assert.assertEquals(result.get(), sr);
-    }
-
-    @Test
-    public void pathToRootCache_get_absent_returnsEmpty() {
-        PathToRootCache cache = new PathToRootCache();
-        Assert.assertFalse(cache.get(Path.of("/nonexistent/file.bal")).isPresent());
-    }
-
-    @Test
-    public void pathToRootCache_invalidation_projectAdded_removesAffectedEntry() {
-        PathToRootCache cache = new PathToRootCache();
-        SourceRoot sr = root("/workspace/alpha");
-        cache.put(sr.path(), sr);
-
-        cache.onCacheInvalidation(new CacheInvalidationEvent(
-                sr, CacheInvalidationEvent.InvalidationType.PROJECT_ADDED));
-
-        Assert.assertFalse(cache.get(sr.path()).isPresent(),
-                "Entry keyed by source root path must be invalidated on PROJECT_ADDED");
-    }
-
-    @Test
-    public void pathToRootCache_invalidation_projectRemoved_removesAffectedEntry() {
-        PathToRootCache cache = new PathToRootCache();
-        SourceRoot sr = root("/workspace/beta");
-        cache.put(sr.path(), sr);
-
-        cache.onCacheInvalidation(new CacheInvalidationEvent(
-                sr, CacheInvalidationEvent.InvalidationType.PROJECT_REMOVED));
-
-        Assert.assertFalse(cache.get(sr.path()).isPresent(),
-                "Entry must be invalidated on PROJECT_REMOVED");
-    }
-
-    @Test
-    public void pathToRootCache_invalidation_batchUpdate_clearsAll() {
-        PathToRootCache cache = new PathToRootCache();
-        SourceRoot sr1 = root("/workspace/c1");
-        SourceRoot sr2 = root("/workspace/c2");
-        cache.put(sr1.path(), sr1);
-        cache.put(sr2.path(), sr2);
-
-        cache.onCacheInvalidation(new CacheInvalidationEvent(
-                null, CacheInvalidationEvent.InvalidationType.BATCH_UPDATE));
-
-        Assert.assertFalse(cache.get(sr1.path()).isPresent());
-        Assert.assertFalse(cache.get(sr2.path()).isPresent());
-    }
-
-    @Test
-    public void pathToRootCache_otherEntryNotInvalidated_on_projectAdded() {
-        PathToRootCache cache = new PathToRootCache();
-        SourceRoot srA = root("/workspace/da");
-        SourceRoot srB = root("/workspace/db");
-        cache.put(srA.path(), srA);
-        cache.put(srB.path(), srB);
-
-        cache.onCacheInvalidation(new CacheInvalidationEvent(
-                srA, CacheInvalidationEvent.InvalidationType.PROJECT_ADDED));
-
-        // srB's entry should still be present
-        Assert.assertTrue(cache.get(srB.path()).isPresent(),
-                "Unaffected entry must remain after single-project invalidation");
     }
 
     // =========================================================================
