@@ -1,0 +1,260 @@
+{
+  "source": "function3.bal",
+  "description": "Test diagnostics with simple flow node",
+  "flowNode": {
+    "id": "31",
+    "metadata": {
+      "label": "processNames",
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/pasindufernando_null_0.1.0.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "symbol": "processNames",
+      "version": "0.1.0",
+      "isNew": true,
+      "lineRange": {
+        "startLine": {
+          "line": 3,
+          "offset": 16
+        },
+        "endLine": {
+          "line": 3,
+          "offset": 16
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "names": {
+        "metadata": {
+          "label": "Names"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "string[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string[]",
+            "selected": true
+          }
+        ],
+        "placeholder": "[]",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "names"
+        },
+        "modified": false,
+        "value": "[4, string `hello`, 3]"
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "id": "35269",
+    "metadata": {
+      "label": "processNames",
+      "description": ""
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "$anon",
+      "module": ".",
+      "packageName": ".",
+      "symbol": "processNames",
+      "version": "0.0.0",
+      "lineRange": {
+        "fileName": "function3.bal",
+        "startLine": {
+          "line": 3,
+          "offset": 16
+        },
+        "endLine": {
+          "line": 3,
+          "offset": 53
+        }
+      },
+      "sourceCode": "processNames([4, string `hello`, 3]);"
+    },
+    "returning": false,
+    "properties": {
+      "view": {
+        "metadata": {
+          "label": "View",
+          "description": "Function definition location"
+        },
+        "types": [
+          {
+            "fieldType": "VIEW",
+            "selected": true
+          }
+        ],
+        "value": {
+          "fileName": "function3.bal",
+          "startLine": {
+            "line": 0,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 1,
+            "offset": 1
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "names": {
+        "metadata": {
+          "label": "Names"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "string[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string[]",
+            "selected": false
+          }
+        ],
+        "value": [
+          {
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": true
+              }
+            ],
+            "value": "4",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "diagnostics": {
+              "hasDiagnostics": true,
+              "diagnostics": [
+                {
+                  "severity": "ERROR",
+                  "message": "incompatible types: expected 'string', found 'int'"
+                }
+              ]
+            }
+          },
+          {
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": true
+              }
+            ],
+            "value": "string `hello`",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          {
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": true
+              }
+            ],
+            "value": "3",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "diagnostics": {
+              "hasDiagnostics": true,
+              "diagnostics": [
+                {
+                  "severity": "ERROR",
+                  "message": "incompatible types: expected 'string', found 'int'"
+                }
+              ]
+            }
+          }
+        ],
+        "placeholder": "[]",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "names"
+        }
+      }
+    },
+    "diagnostics": {
+      "hasDiagnostics": true
+    },
+    "flags": 0
+  }
+}
