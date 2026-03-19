@@ -446,9 +446,14 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
 
     const { rpcClient } = useRpcContext();
 
+    // Derive a stable string key so loadRecordConfig only fires when the actual
+    // type or file changes — not when the parent passes a new typeValue object reference
+    // on every re-render (which would reset the form mid-edit).
+    const typeKey = `${fileName}::${String(typeValue?.value)}`;
+
     useEffect(() => {
         loadRecordConfig();
-    }, [fileName, typeValue, configValue]);
+    }, [typeKey]);
 
     const loadRecordConfig = async () => {
         setIsLoading(true);
