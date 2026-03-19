@@ -32,7 +32,7 @@ import org.ballerinalang.langserver.commons.workspace.RunResult;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentService;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 /**
  * Pure facade implementation that delegates all WorkspaceManager methods to bounded context services.
  * No domain logic, no conditionals, max 5 lines per method.
+ * All URI schemes are handled directly without proxy routing (ADR-040).
  *
  * @since 1.7.0
  */
@@ -63,7 +64,6 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     private final ProjectService projectService;
     private final CompilationService compilationService;
-    private final DocumentService documentService;
     private final ExecutionService executionService;
     private final ClientSession clientSession;
 
@@ -72,31 +72,38 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
      *
      * @param projectService project service
      * @param compilationService compilation service
-     * @param documentService document service
      * @param executionService execution service
      * @param clientSession client session
      */
     public WorkspaceManagerFacadeImpl(
             ProjectService projectService,
             CompilationService compilationService,
-            DocumentService documentService,
             ExecutionService executionService,
             ClientSession clientSession) {
         this.projectService = projectService;
         this.compilationService = compilationService;
-        this.documentService = documentService;
         this.executionService = executionService;
         this.clientSession = clientSession;
     }
 
     @Override
     public Optional<String> relativePath(Path path) {
-        return Optional.ofNullable(documentService.relativePath(path, null));
+        try {
+            Path root = projectService.loadOrCreate(path, null).sourceRoot();
+            return Optional.of(root.relativize(path).toString());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     @Override
     public Optional<String> relativePath(Path path, CancelChecker cancelChecker) {
-        return Optional.ofNullable(documentService.relativePath(path, cancelChecker));
+        try {
+            Path root = projectService.loadOrCreate(path, cancelChecker).sourceRoot();
+            return Optional.of(root.relativize(path).toString());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -136,10 +143,6 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<Document> document(Path filePath) {
-        Document document = documentService.document(filePath, null);
-        if (document != null) {
-            return Optional.of(document);
-        }
         try {
             Project project = projectService.loadOrCreate(filePath, null);
             DocumentId docId = project.documentId(filePath);
@@ -151,10 +154,6 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<Document> document(Path filePath, CancelChecker cancelChecker) {
-        Document document = documentService.document(filePath, cancelChecker);
-        if (document != null) {
-            return Optional.of(document);
-        }
         try {
             Project project = projectService.loadOrCreate(filePath, cancelChecker);
             DocumentId docId = project.documentId(filePath);
@@ -171,10 +170,6 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
             return Optional.of(tree);
         }
         try {
-            String vfsContent = documentService.openFileContent(filePath);
-            if (vfsContent != null) {
-                projectService.applyDocumentContent(filePath, vfsContent);
-            }
             Project project = projectService.loadOrCreate(filePath, null);
             DocumentId docId = project.documentId(filePath);
             return Optional.of(project.currentPackage().module(docId.moduleId()).document(docId).syntaxTree());
@@ -191,9 +186,6 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<SemanticModel> semanticModel(Path filePath) {
-        // Use the cached compilation (module-neutral) and resolve the correct module's SM.
-        // compilationService.semanticModel() only stores the default-module SM and returns
-        // the wrong SM for files in sub-modules, so we use compilation() instead.
         PackageCompilation cached = compilationService.compilation(filePath, null);
         if (cached != null) {
             try {
@@ -266,45 +258,42 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public void didOpen(Path filePath, DidOpenTextDocumentParams params) throws WorkspaceDocumentException {
-        documentService.didOpen(filePath, params);
-        // Apply VFS content synchronously so subsequent compilation uses editor content
-        String vfsContent = documentService.openFileContent(filePath);
-        if (vfsContent != null) {
-            projectService.applyDocumentContent(filePath, vfsContent);
-        }
+        String uriString = params.getTextDocument().getUri();
+        String content = params.getTextDocument().getText();
+        projectService.didOpen(toDocumentUri(uriString), content);
     }
 
     @Override
     public void didChange(Path filePath, DidChangeTextDocumentParams params) throws WorkspaceDocumentException {
-        documentService.didChange(filePath, params);
+        String uriString = params.getTextDocument().getUri();
+        projectService.didChange(toDocumentUri(uriString), params.getContentChanges());
     }
 
     @Override
     public void didClose(Path filePath, DidCloseTextDocumentParams params) {
-        documentService.didClose(filePath, params);
+        String uriString = params.getTextDocument().getUri();
+        projectService.didClose(toDocumentUri(uriString));
     }
 
     @Override
     public void didChangeWatched(Path filePath, FileEvent fileEvent) throws WorkspaceDocumentException {
-        documentService.didChangeWatched(filePath, fileEvent);
+        projectService.didChangeWatchedFiles(List.of(fileEvent));
     }
 
     @Override
     public List<Path> didChangeWatched(DidChangeWatchedFilesParams params) throws WorkspaceDocumentException {
-        documentService.didChangeWatched(params);
-        if (params != null && params.getChanges() != null) {
-            for (FileEvent event : params.getChanges()) {
-                try {
-                    Path filePath = Path.of(URI.create(event.getUri()));
-                    if (event.getType() == FileChangeType.Deleted) {
-                        documentService.closeDeletedDocument(filePath);
-                        projectService.removeDocumentFromProject(filePath);
-                    } else if (event.getType() == FileChangeType.Changed
-                            && documentService.openFileContent(filePath) == null) {
-                        projectService.evictProject(filePath);
-                    }
-                } catch (Exception ignored) {
+        List<FileEvent> events = params != null && params.getChanges() != null
+                ? params.getChanges() : List.of();
+        projectService.didChangeWatchedFiles(events);
+        for (FileEvent event : events) {
+            try {
+                Path filePath = Path.of(URI.create(event.getUri()));
+                if (event.getType() == FileChangeType.Deleted) {
+                    projectService.removeDocumentFromProject(filePath);
+                } else if (event.getType() == FileChangeType.Changed) {
+                    projectService.evictProject(filePath);
                 }
+            } catch (Exception ignored) {
             }
         }
         return List.of();
@@ -312,7 +301,7 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public String uriScheme() {
-        return documentService.uriScheme();
+        return "file";
     }
 
     @Override
@@ -333,5 +322,22 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
         Map<Path, Project> projectMap = projects.stream()
                 .collect(Collectors.toMap(Project::sourceRoot, p -> p));
         return CompletableFuture.completedFuture(projectMap);
+    }
+
+    /**
+     * Converts a URI string to a typed {@link DocumentUri} based on its scheme.
+     *
+     * @param uriString the URI string from LSP params
+     * @return the corresponding DocumentUri subtype
+     */
+    private DocumentUri toDocumentUri(String uriString) {
+        URI uri = URI.create(uriString);
+        return switch (uri.getScheme()) {
+            case "file" -> new DocumentUri.FileUri(uri);
+            case "expr" -> new DocumentUri.ExprUri(uri);
+            case "ai" -> new DocumentUri.AiUri(uri);
+            case "untitled" -> new DocumentUri.UntitledUri(uri);
+            default -> throw new IllegalArgumentException("Unknown URI scheme: " + uri.getScheme());
+        };
     }
 }

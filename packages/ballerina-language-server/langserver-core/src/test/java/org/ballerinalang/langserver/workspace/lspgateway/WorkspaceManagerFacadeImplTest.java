@@ -21,13 +21,16 @@ package org.ballerinalang.langserver.workspace.lspgateway;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
+import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.RunContext;
 import org.ballerinalang.langserver.commons.workspace.RunResult;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentService;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
@@ -35,8 +38,10 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
+import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.TextDocumentItem;
+import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -44,6 +49,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -61,7 +67,6 @@ public class WorkspaceManagerFacadeImplTest {
 
     private ProjectService mockProjectService;
     private CompilationService mockCompilationService;
-    private DocumentService mockDocumentService;
     private ExecutionService mockExecutionService;
     private ClientSession mockClientSession;
     private WorkspaceManagerFacadeImpl facade;
@@ -71,46 +76,58 @@ public class WorkspaceManagerFacadeImplTest {
     public void setUp() {
         mockProjectService = Mockito.mock(ProjectService.class);
         mockCompilationService = Mockito.mock(CompilationService.class);
-        mockDocumentService = Mockito.mock(DocumentService.class);
         mockExecutionService = Mockito.mock(ExecutionService.class);
         mockClientSession = Mockito.mock(ClientSession.class);
-        
+
         facade = new WorkspaceManagerFacadeImpl(
                 mockProjectService,
                 mockCompilationService,
-                mockDocumentService,
                 mockExecutionService,
                 mockClientSession
         );
-        
+
         testPath = Paths.get("/test/project/main.bal").toAbsolutePath().normalize();
     }
 
     @Test
-    public void testRelativePath_DelegatesToDocumentService() {
-        String expectedPath = "main.bal";
-        Mockito.when(mockDocumentService.relativePath(Mockito.eq(testPath), Mockito.any()))
-                .thenReturn(expectedPath);
+    public void testRelativePath_DelegatesToProjectService() {
+        Path expectedRoot = Paths.get("/test/project").toAbsolutePath().normalize();
+        Project mockProject = Mockito.mock(Project.class);
+        Mockito.when(mockProject.sourceRoot()).thenReturn(expectedRoot);
+        Mockito.when(mockProjectService.loadOrCreate(Mockito.eq(testPath), Mockito.isNull()))
+                .thenReturn(mockProject);
 
         Optional<String> result = facade.relativePath(testPath);
 
         Assert.assertTrue(result.isPresent());
-        Assert.assertEquals(result.get(), expectedPath);
-        Mockito.verify(mockDocumentService).relativePath(Mockito.eq(testPath), Mockito.isNull());
+        Assert.assertEquals(result.get(), "main.bal");
+        Mockito.verify(mockProjectService).loadOrCreate(Mockito.eq(testPath), Mockito.isNull());
     }
 
     @Test
-    public void testRelativePathWithCancelChecker_DelegatesToDocumentService() {
+    public void testRelativePath_ReturnsEmpty_WhenProjectNotFound() {
+        Mockito.when(mockProjectService.loadOrCreate(Mockito.any(), Mockito.any()))
+                .thenThrow(new RuntimeException("not found"));
+
+        Optional<String> result = facade.relativePath(testPath);
+
+        Assert.assertFalse(result.isPresent());
+    }
+
+    @Test
+    public void testRelativePathWithCancelChecker_DelegatesToProjectService() {
         CancelChecker cancelChecker = Mockito.mock(CancelChecker.class);
-        String expectedPath = "main.bal";
-        Mockito.when(mockDocumentService.relativePath(Mockito.eq(testPath), Mockito.eq(cancelChecker)))
-                .thenReturn(expectedPath);
+        Path expectedRoot = Paths.get("/test/project").toAbsolutePath().normalize();
+        Project mockProject = Mockito.mock(Project.class);
+        Mockito.when(mockProject.sourceRoot()).thenReturn(expectedRoot);
+        Mockito.when(mockProjectService.loadOrCreate(testPath, cancelChecker))
+                .thenReturn(mockProject);
 
         Optional<String> result = facade.relativePath(testPath, cancelChecker);
 
         Assert.assertTrue(result.isPresent());
-        Assert.assertEquals(result.get(), expectedPath);
-        Mockito.verify(mockDocumentService).relativePath(testPath, cancelChecker);
+        Assert.assertEquals(result.get(), "main.bal");
+        Mockito.verify(mockProjectService).loadOrCreate(testPath, cancelChecker);
     }
 
     @Test
@@ -195,30 +212,62 @@ public class WorkspaceManagerFacadeImplTest {
     }
 
     @Test
-    public void testDocument_DelegatesToDocumentService() {
+    public void testDocument_DelegatesToProjectService() {
+        Project mockProject = Mockito.mock(Project.class);
+        DocumentId mockDocId = Mockito.mock(DocumentId.class);
+        ModuleId mockModuleId = Mockito.mock(ModuleId.class);
+        Package mockPackage = Mockito.mock(Package.class);
+        Module mockModule = Mockito.mock(Module.class);
         Document mockDocument = Mockito.mock(Document.class);
-        Mockito.when(mockDocumentService.document(Mockito.eq(testPath), Mockito.any()))
-                .thenReturn(mockDocument);
+
+        Mockito.when(mockDocId.moduleId()).thenReturn(mockModuleId);
+        Mockito.when(mockProject.documentId(testPath)).thenReturn(mockDocId);
+        Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
+        Mockito.when(mockPackage.module(mockModuleId)).thenReturn(mockModule);
+        Mockito.when(mockModule.document(mockDocId)).thenReturn(mockDocument);
+        Mockito.when(mockProjectService.loadOrCreate(Mockito.eq(testPath), Mockito.isNull()))
+                .thenReturn(mockProject);
 
         Optional<Document> result = facade.document(testPath);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockDocument);
-        Mockito.verify(mockDocumentService).document(Mockito.eq(testPath), Mockito.isNull());
+        Mockito.verify(mockProjectService).loadOrCreate(Mockito.eq(testPath), Mockito.isNull());
     }
 
     @Test
-    public void testDocumentWithCancelChecker_DelegatesToDocumentService() {
+    public void testDocument_ReturnsEmpty_WhenProjectFails() {
+        Mockito.when(mockProjectService.loadOrCreate(Mockito.any(), Mockito.any()))
+                .thenThrow(new RuntimeException("not found"));
+
+        Optional<Document> result = facade.document(testPath);
+
+        Assert.assertFalse(result.isPresent());
+    }
+
+    @Test
+    public void testDocumentWithCancelChecker_DelegatesToProjectService() {
         CancelChecker cancelChecker = Mockito.mock(CancelChecker.class);
+        Project mockProject = Mockito.mock(Project.class);
+        DocumentId mockDocId = Mockito.mock(DocumentId.class);
+        ModuleId mockModuleId = Mockito.mock(ModuleId.class);
+        Package mockPackage = Mockito.mock(Package.class);
+        Module mockModule = Mockito.mock(Module.class);
         Document mockDocument = Mockito.mock(Document.class);
-        Mockito.when(mockDocumentService.document(testPath, cancelChecker))
-                .thenReturn(mockDocument);
+
+        Mockito.when(mockDocId.moduleId()).thenReturn(mockModuleId);
+        Mockito.when(mockProject.documentId(testPath)).thenReturn(mockDocId);
+        Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
+        Mockito.when(mockPackage.module(mockModuleId)).thenReturn(mockModule);
+        Mockito.when(mockModule.document(mockDocId)).thenReturn(mockDocument);
+        Mockito.when(mockProjectService.loadOrCreate(testPath, cancelChecker))
+                .thenReturn(mockProject);
 
         Optional<Document> result = facade.document(testPath, cancelChecker);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockDocument);
-        Mockito.verify(mockDocumentService).document(testPath, cancelChecker);
+        Mockito.verify(mockProjectService).loadOrCreate(testPath, cancelChecker);
     }
 
     @Test
@@ -250,29 +299,49 @@ public class WorkspaceManagerFacadeImplTest {
 
     @Test
     public void testSemanticModel_DelegatesToCompilationService() {
+        PackageCompilation mockCompilation = Mockito.mock(PackageCompilation.class);
         SemanticModel mockModel = Mockito.mock(SemanticModel.class);
-        Mockito.when(mockCompilationService.semanticModel(Mockito.eq(testPath), Mockito.any()))
-                .thenReturn(mockModel);
+        Project mockProject = Mockito.mock(Project.class);
+        DocumentId mockDocId = Mockito.mock(DocumentId.class);
+        ModuleId mockModuleId = Mockito.mock(ModuleId.class);
+
+        Mockito.when(mockCompilationService.compilation(Mockito.eq(testPath), Mockito.isNull()))
+                .thenReturn(mockCompilation);
+        Mockito.when(mockProjectService.loadOrCreate(Mockito.eq(testPath), Mockito.isNull()))
+                .thenReturn(mockProject);
+        Mockito.when(mockProject.documentId(testPath)).thenReturn(mockDocId);
+        Mockito.when(mockDocId.moduleId()).thenReturn(mockModuleId);
+        Mockito.when(mockCompilation.getSemanticModel(mockModuleId)).thenReturn(mockModel);
 
         Optional<SemanticModel> result = facade.semanticModel(testPath);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockModel);
-        Mockito.verify(mockCompilationService).semanticModel(Mockito.eq(testPath), Mockito.isNull());
+        Mockito.verify(mockCompilationService).compilation(Mockito.eq(testPath), Mockito.isNull());
     }
 
     @Test
     public void testSemanticModelWithCancelChecker_DelegatesToCompilationService() {
         CancelChecker cancelChecker = Mockito.mock(CancelChecker.class);
+        PackageCompilation mockCompilation = Mockito.mock(PackageCompilation.class);
         SemanticModel mockModel = Mockito.mock(SemanticModel.class);
-        Mockito.when(mockCompilationService.semanticModel(testPath, cancelChecker))
-                .thenReturn(mockModel);
+        Project mockProject = Mockito.mock(Project.class);
+        DocumentId mockDocId = Mockito.mock(DocumentId.class);
+        ModuleId mockModuleId = Mockito.mock(ModuleId.class);
+
+        Mockito.when(mockCompilationService.compilation(testPath, cancelChecker))
+                .thenReturn(mockCompilation);
+        Mockito.when(mockProjectService.loadOrCreate(testPath, cancelChecker))
+                .thenReturn(mockProject);
+        Mockito.when(mockProject.documentId(testPath)).thenReturn(mockDocId);
+        Mockito.when(mockDocId.moduleId()).thenReturn(mockModuleId);
+        Mockito.when(mockCompilation.getSemanticModel(mockModuleId)).thenReturn(mockModel);
 
         Optional<SemanticModel> result = facade.semanticModel(testPath, cancelChecker);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockModel);
-        Mockito.verify(mockCompilationService).semanticModel(testPath, cancelChecker);
+        Mockito.verify(mockCompilationService).compilation(testPath, cancelChecker);
     }
 
     @Test
@@ -303,64 +372,96 @@ public class WorkspaceManagerFacadeImplTest {
     }
 
     @Test
-    public void testDidOpen_DelegatesToDocumentService() throws Exception {
+    public void testDidOpen_FileUri_DelegatesToProjectService() throws Exception {
+        String uriString = "file:///test/project/main.bal";
         DidOpenTextDocumentParams params = new DidOpenTextDocumentParams();
-        params.setTextDocument(new TextDocumentItem("file:///test.bal", "ballerina", 1, ""));
+        params.setTextDocument(new TextDocumentItem(uriString, "ballerina", 1, "import ballerina/io;"));
 
         facade.didOpen(testPath, params);
 
-        Mockito.verify(mockDocumentService).didOpen(testPath, params);
+        Mockito.verify(mockProjectService).didOpen(
+                Mockito.eq(new DocumentUri.FileUri(URI.create(uriString))),
+                Mockito.eq("import ballerina/io;"));
     }
 
     @Test
-    public void testDidChange_DelegatesToDocumentService() throws Exception {
+    public void testDidChange_FileUri_DelegatesToProjectService() throws Exception {
+        String uriString = "file:///test/project/main.bal";
         DidChangeTextDocumentParams params = new DidChangeTextDocumentParams();
-        params.setTextDocument(new org.eclipse.lsp4j.VersionedTextDocumentIdentifier("file:///test.bal", 2));
+        params.setTextDocument(new org.eclipse.lsp4j.VersionedTextDocumentIdentifier(uriString, 2));
+        TextDocumentContentChangeEvent change = new TextDocumentContentChangeEvent("new content");
+        params.setContentChanges(List.of(change));
 
         facade.didChange(testPath, params);
 
-        Mockito.verify(mockDocumentService).didChange(testPath, params);
+        Mockito.verify(mockProjectService).didChange(
+                Mockito.eq(new DocumentUri.FileUri(URI.create(uriString))),
+                Mockito.eq(List.of(change)));
     }
 
     @Test
-    public void testDidClose_DelegatesToDocumentService() {
+    public void testDidClose_FileUri_DelegatesToProjectService() {
+        String uriString = "file:///test/project/main.bal";
         DidCloseTextDocumentParams params = new DidCloseTextDocumentParams();
-        params.setTextDocument(new org.eclipse.lsp4j.TextDocumentIdentifier("file:///test.bal"));
+        params.setTextDocument(new org.eclipse.lsp4j.TextDocumentIdentifier(uriString));
 
         facade.didClose(testPath, params);
 
-        Mockito.verify(mockDocumentService).didClose(testPath, params);
+        Mockito.verify(mockProjectService).didClose(
+                Mockito.eq(new DocumentUri.FileUri(URI.create(uriString))));
     }
 
     @Test
-    public void testDidChangeWatched_SingleEvent_DelegatesToDocumentService() throws Exception {
-        FileEvent event = new FileEvent();
+    public void testDidOpen_ExprUri_DelegatesToProjectService() throws Exception {
+        String uriString = "expr:///test/expr.bal";
+        DidOpenTextDocumentParams params = new DidOpenTextDocumentParams();
+        params.setTextDocument(new TextDocumentItem(uriString, "ballerina", 1, "1 + 2"));
+
+        facade.didOpen(testPath, params);
+
+        Mockito.verify(mockProjectService).didOpen(
+                Mockito.eq(new DocumentUri.ExprUri(URI.create(uriString))),
+                Mockito.eq("1 + 2"));
+    }
+
+    @Test
+    public void testDidChangeWatched_SingleEvent_DelegatesToProjectService() throws Exception {
+        FileEvent event = new FileEvent("file:///test/project/main.bal", FileChangeType.Changed);
 
         facade.didChangeWatched(testPath, event);
 
-        Mockito.verify(mockDocumentService).didChangeWatched(testPath, event);
+        Mockito.verify(mockProjectService).didChangeWatchedFiles(List.of(event));
     }
 
     @Test
-    public void testDidChangeWatched_BatchEvent_DelegatesToDocumentService() throws Exception {
+    public void testDidChangeWatched_BatchEvent_DelegatesToProjectService() throws Exception {
         DidChangeWatchedFilesParams params = new DidChangeWatchedFilesParams();
         params.setChanges(Collections.emptyList());
 
         List<Path> result = facade.didChangeWatched(params);
 
         Assert.assertNotNull(result);
-        Mockito.verify(mockDocumentService).didChangeWatched(params);
+        Mockito.verify(mockProjectService).didChangeWatchedFiles(Collections.emptyList());
     }
 
     @Test
-    public void testUriScheme_DelegatesToDocumentService() {
-        String expectedScheme = "file";
-        Mockito.when(mockDocumentService.uriScheme()).thenReturn(expectedScheme);
+    public void testDidChangeWatched_DeletedFile_RemovesFromProject() throws Exception {
+        String uriString = "file:///test/project/main.bal";
+        FileEvent event = new FileEvent(uriString, FileChangeType.Deleted);
+        DidChangeWatchedFilesParams params = new DidChangeWatchedFilesParams();
+        params.setChanges(List.of(event));
 
+        facade.didChangeWatched(params);
+
+        Mockito.verify(mockProjectService).didChangeWatchedFiles(List.of(event));
+        Mockito.verify(mockProjectService).removeDocumentFromProject(Mockito.any(Path.class));
+    }
+
+    @Test
+    public void testUriScheme_ReturnsPrimaryScheme() {
         String result = facade.uriScheme();
 
-        Assert.assertEquals(result, expectedScheme);
-        Mockito.verify(mockDocumentService).uriScheme();
+        Assert.assertEquals(result, "file");
     }
 
     @Test

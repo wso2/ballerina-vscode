@@ -19,7 +19,6 @@ package org.ballerinalang.langserver.workspace.test.acceptance;
 
 import org.ballerinalang.langserver.workspace.BallerinaWorkspaceManagerProxyImpl;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentService;
 import org.ballerinalang.langserver.workspace.lspgateway.ClientSession;
 import org.ballerinalang.langserver.workspace.lspgateway.WorkspaceManagerFacadeImpl;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
@@ -111,34 +110,33 @@ public class CrossContextBoundaryTest {
     public void testFacadeDelegatesToCorrectServices() {
         ProjectService projectService = Mockito.mock(ProjectService.class);
         CompilationService compilationService = Mockito.mock(CompilationService.class);
-        DocumentService documentService = Mockito.mock(DocumentService.class);
         ClientSession clientSession = Mockito.mock(ClientSession.class);
 
         WorkspaceManagerFacadeImpl facade = new WorkspaceManagerFacadeImpl(
-                projectService, compilationService, documentService, Mockito.mock(org.ballerinalang.langserver.workspace.executionmanager.ExecutionService.class), clientSession);
+                projectService, compilationService, Mockito.mock(org.ballerinalang.langserver.workspace.executionmanager.ExecutionService.class), clientSession);
 
         Path path = Paths.get("test.bal");
 
         // Test project delegation
         facade.project(path);
         Mockito.verify(projectService).loadOrCreate(path, null);
-        Mockito.verifyNoInteractions(compilationService, documentService);
+        Mockito.verifyNoInteractions(compilationService);
 
         // Test compilation delegation: when compilationService returns a non-null model,
         // the fallback to projectService must NOT be triggered.
-        Mockito.reset(projectService, compilationService, documentService);
+        Mockito.reset(projectService, compilationService);
         io.ballerina.compiler.api.SemanticModel mockModel =
                 Mockito.mock(io.ballerina.compiler.api.SemanticModel.class);
         Mockito.when(compilationService.semanticModel(path, null)).thenReturn(mockModel);
         facade.semanticModel(path);
         Mockito.verify(compilationService).semanticModel(path, null);
-        Mockito.verifyNoInteractions(projectService, documentService);
+        Mockito.verifyNoInteractions(projectService);
 
-        // Test document delegation
-        Mockito.reset(projectService, compilationService, documentService);
+        // Test document delegation: document() now uses projectService fallback directly
+        Mockito.reset(projectService, compilationService);
         facade.document(path);
-        Mockito.verify(documentService).document(path, null);
-        Mockito.verifyNoInteractions(projectService, compilationService);
+        Mockito.verify(projectService).loadOrCreate(path, null);
+        Mockito.verifyNoInteractions(compilationService);
     }
 
     @Test

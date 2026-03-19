@@ -220,7 +220,6 @@ public final class WorkspaceManagerFacadeFactory {
         return new WorkspaceManagerFacadeImpl(
                 config.projectService(),
                 config.compilationService(),
-                config.documentService(),
                 config.executionService(),
                 session);
     }
