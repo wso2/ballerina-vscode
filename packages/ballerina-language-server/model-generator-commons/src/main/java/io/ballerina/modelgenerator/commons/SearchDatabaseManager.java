@@ -165,7 +165,7 @@ public class SearchDatabaseManager {
                             p.package_name,
                             p.org AS package_org,
                             p.version AS package_version,
-                            %s AS rank
+                            %LIKE_MATCH_RANK AS rank
                         FROM Function AS f
                         JOIN Package AS p ON f.package_id = p.id
                         WHERE f.name LIKE ? COLLATE NOCASE
@@ -173,8 +173,7 @@ public class SearchDatabaseManager {
                     GROUP BY id
                     ORDER BY rank, function_name
                     LIMIT ?
-                    OFFSET ?;
-                    """.formatted(LIKE_MATCH_RANK);
+                    OFFSET ?;""".replace("%LIKE_MATCH_RANK", LIKE_MATCH_RANK);
         }
 
         try (Connection conn = DriverManager.getConnection(dbPath);
