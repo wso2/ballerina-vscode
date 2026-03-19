@@ -533,13 +533,13 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
         // Check if we're updating an existing review context
         const existingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
-        const currentModified = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
-        let accumulatedModifiedFiles = currentModified;
+        const generationModifiedFiles = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
+        let accumulatedModifiedFiles = generationModifiedFiles;
 
         if (existingReview && existingReview.reviewState.tempProjectPath === tempProjectPath) {
             const existingFiles = new Set(existingReview.reviewState.modifiedFiles || []);
-            accumulatedModifiedFiles = Array.from(new Set([...existingFiles, ...currentModified]));
-            console.log(`[AgentExecutor] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingReview.reviewState.modifiedFiles?.length || 0} existing + ${currentModified.length} new)`);
+            accumulatedModifiedFiles = Array.from(new Set([...existingFiles, ...generationModifiedFiles]));
+            console.log(`[AgentExecutor] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingReview.reviewState.modifiedFiles?.length || 0} existing + ${generationModifiedFiles.length} new)`);
         }
 
         // Update chat state storage with user message + assistant messages
@@ -584,10 +584,10 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
         const threadId = 'default';
         const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
-        const currentModified = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
+        const generationModifiedFiles = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
         const accumulatedModifiedFiles = pendingReview
-            ? Array.from(new Set([...pendingReview.reviewState.modifiedFiles, ...currentModified]))
-            : currentModified;
+            ? Array.from(new Set([...pendingReview.reviewState.modifiedFiles, ...generationModifiedFiles]))
+            : generationModifiedFiles;
 
         if (accumulatedModifiedFiles.length > 0) {
             const semanticDiffs: SemanticDiff[] = [];
