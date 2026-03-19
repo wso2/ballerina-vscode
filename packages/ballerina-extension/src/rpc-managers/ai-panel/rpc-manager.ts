@@ -74,8 +74,7 @@ import {
 } from "./constants";
 import { addToIntegration, searchDocumentation } from "./utils";
 
-import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent, resolveProjectRootPath } from '../../features/ai/agent/index';
-import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
+import { createExecutorConfig, generateAgent, resolveProjectRootPath } from '../../features/ai/agent/index';
 import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
 import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
@@ -420,7 +419,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async acceptChanges(): Promise<void> {
         try {
             // Get project root path and thread ID
-            const ctx = createExecutionContextFromStateMachine();
             const projectRootPath = resolveProjectRootPath();
             const threadId = 'default';
 
@@ -438,29 +436,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             // Get LATEST generation for integration
             const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
             console.log(`[Review Actions] Accepting generation ${latestReview.id} with ${latestReview.reviewState.modifiedFiles.length} modified file(s)`);
-
-            // In workspace mode, if no active project is set, resolve it from the modified files
-            // so that artifact notifications can find the correct project in the structure.
-            if (!ctx.projectPath && ctx.workspacePath && latestReview.reviewState.modifiedFiles.length > 0) {
-                const firstBalFile = latestReview.reviewState.modifiedFiles.find(f => f.endsWith('.bal'));
-                if (firstBalFile) {
-                    const packageName = firstBalFile.split('/')[0];
-                    if (packageName) {
-                        StateMachine.context().projectPath = path.join(ctx.workspacePath, packageName);
-                    }
-                }
-            }
-
-            // Integrate LATEST generation's code to workspace
-            if (latestReview.reviewState.modifiedFiles.length > 0) {
-                const modifiedFilesSet = new Set(latestReview.reviewState.modifiedFiles);
-                await integrateCodeToWorkspace(
-                    latestReview.reviewState.tempProjectPath!,
-                    modifiedFilesSet,
-                    ctx
-                );
-                console.log(`[Review Actions] Integrated ${latestReview.reviewState.modifiedFiles.length} file(s) to workspace`);
-            }
 
             // Cleanup ALL under_review temp projects (prevents memory leak)
             if (!process.env.AI_TEST_ENV) {
@@ -514,6 +489,15 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
 
             console.log(`[Review Actions] Declining ${underReviewGenerations.length} generation(s)`);
+
+            // Restore workspace to pre-generation state using checkpoint
+            const earliestReview = underReviewGenerations[0];
+            const checkpoint = earliestReview.checkpoint;
+            if (checkpoint) {
+                await restoreWorkspaceSnapshot(checkpoint);
+            } else {
+                console.warn("[Review Actions] No checkpoint found for generation — workspace changes will not be reverted");
+            }
 
             // Cleanup ALL under_review temp projects (prevents memory leak)
             if (!process.env.AI_TEST_ENV) {
