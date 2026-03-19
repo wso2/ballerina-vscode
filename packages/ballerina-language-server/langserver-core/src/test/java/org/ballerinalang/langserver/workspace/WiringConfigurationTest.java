@@ -25,7 +25,6 @@ import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.MaterializedStableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.documentstore.VirtualFileSystem;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
@@ -86,8 +85,6 @@ public class WiringConfigurationTest {
 
         wiring = WiringConfiguration.builder()
                 .eventBus(eventBus)
-                .virtualFileSystem(new VirtualFileSystem())
-                .projectRootResolver(path -> tempDir)
                 .snapshotStore(new DualSnapshotStore())
                 .compilationAction(task -> mockSnapshot)
                 .projectRegistry(new ProjectRegistry(MemoryBudget.ofMb(256)))
@@ -95,6 +92,7 @@ public class WiringConfigurationTest {
                 .projectLoader((root, kind) -> mock(io.ballerina.projects.Project.class))
                 .gracePeriod(GracePeriod.ofMillis(1000))
                 .maxActiveProcesses(5)
+                .heapPressurePollIntervalMs(60000L)
                 .build();
 
         observedEvents.clear();
@@ -135,41 +133,6 @@ public class WiringConfigurationTest {
         Assert.assertTrue(snapshotPublished.await(5, TimeUnit.SECONDS),
                 "Chain 1: DS-E2 should trigger CE compilation and CE-E1 (SnapshotPublished)");
         Assert.assertTrue(observedEvents.contains(EventKind.COMPILER_SNAPSHOT_PUBLISHED));
-    }
-
-    // =========================================================================
-    // Chain 2: file watcher → DS-E5 → DS-E2
-    // =========================================================================
-
-    @Test
-    public void chain2_fileWatcherEvent_firesDS_E5andDS_E2() throws InterruptedException, IOException {
-        CountDownLatch dsE5Received = new CountDownLatch(1);
-        CountDownLatch dsE2Received = new CountDownLatch(1);
-
-        eventBus.subscribe("chain2-ds-e5", SubscriberTier.BEST_EFFORT,
-                Set.of(EventKind.WM_FILE_WATCHED_CHANGED), event -> {
-                    observedEvents.add(event.eventKind());
-                    dsE5Received.countDown();
-                });
-        eventBus.subscribe("chain2-ds-e2", SubscriberTier.COALESCEABLE,
-                Set.of(EventKind.WM_DOCUMENT_CHANGED), event -> {
-                    observedEvents.add(event.eventKind());
-                    dsE2Received.countDown();
-                });
-
-        // Create a test file to trigger watcher
-        Path testFile = tempDir.resolve("main.bal");
-        Files.writeString(testFile, "import ballerina/io;");
-
-        // Trigger file watcher through DocumentService
-        wiring.documentService().didChangeWatched(null,
-                new org.eclipse.lsp4j.FileEvent(testFile.toUri().toString(),
-                        org.eclipse.lsp4j.FileChangeType.Changed));
-
-        Assert.assertTrue(dsE5Received.await(5, TimeUnit.SECONDS),
-                "Chain 2: file watcher should fire DS-E5 (FileWatcherEventsProcessed)");
-        Assert.assertTrue(dsE2Received.await(5, TimeUnit.SECONDS),
-                "Chain 2: file watcher should fire DS-E2 (DocumentChanged) for non-config file");
     }
 
     // =========================================================================
@@ -290,7 +253,9 @@ public class WiringConfigurationTest {
     @Test
     public void traceLogger_receivesEventsFromAllContexts() throws InterruptedException {
         List<EventKind> loggedEvents = new CopyOnWriteArrayList<>();
-        CountDownLatch allContexts = new CountDownLatch(4); // WM, CE, DS, EM
+        // DocumentStore is now merged into workspace-manager, so we have 3 bounded contexts:
+        // WM (incl. doc ops), CE, EM
+        CountDownLatch allContexts = new CountDownLatch(3);
         List<String> contextsParsed = new CopyOnWriteArrayList<>();
 
         // The trace logger is already wired in WiringConfiguration.
@@ -305,17 +270,15 @@ public class WiringConfigurationTest {
                     }
                 });
 
-        // Publish events from all 4 bounded contexts
+        // Publish events from all 3 bounded contexts (DS merged into WM per ADR-046)
         publishEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, "workspace-manager");
         publishEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED, "compiler-engine");
-        publishEvent(EventKind.WM_DOCUMENT_OPENED, "documentstore");
         publishEvent(EventKind.EXECUTION_PROCESS_STARTED, "executionmanager");
 
         Assert.assertTrue(allContexts.await(3, TimeUnit.SECONDS),
-                "Events from all 4 bounded contexts should be received");
+                "Events from all 3 bounded contexts should be received");
         Assert.assertTrue(loggedEvents.contains(EventKind.WORKSPACE_PROJECT_REGISTERED));
         Assert.assertTrue(loggedEvents.contains(EventKind.COMPILER_SNAPSHOT_PUBLISHED));
-        Assert.assertTrue(loggedEvents.contains(EventKind.WM_DOCUMENT_OPENED));
         Assert.assertTrue(loggedEvents.contains(EventKind.EXECUTION_PROCESS_STARTED));
     }
 
@@ -325,11 +288,22 @@ public class WiringConfigurationTest {
 
     @Test
     public void wiring_constructionOrder_allServicesWired() {
-        Assert.assertNotNull(wiring.documentService(), "DocumentService should be wired");
+        Assert.assertNotNull(wiring.changeBuffer(), "ChangeBuffer should be wired");
+        Assert.assertNotNull(wiring.changeApplier(), "ChangeApplier should be wired");
+        Assert.assertNotNull(wiring.heapPressureMonitor(), "HeapPressureMonitor should be wired");
         Assert.assertNotNull(wiring.projectService(), "ProjectService should be wired");
         Assert.assertNotNull(wiring.compilationService(), "CompilationService should be wired");
         Assert.assertNotNull(wiring.executionService(), "ExecutionService should be wired");
         Assert.assertNotNull(wiring.traceLogger(), "WorkspaceTraceLogger should be wired");
+    }
+
+    @Test
+    public void heapPressureMonitor_lifecycle_startedOnConstructionStoppedOnClose() throws Exception {
+        Assert.assertFalse(wiring.heapPressureMonitor().isStopped(),
+                "HeapPressureMonitor should be running after construction");
+        wiring.close();
+        Assert.assertTrue(wiring.heapPressureMonitor().isStopped(),
+                "HeapPressureMonitor should be stopped after close()");
     }
 
     @Test

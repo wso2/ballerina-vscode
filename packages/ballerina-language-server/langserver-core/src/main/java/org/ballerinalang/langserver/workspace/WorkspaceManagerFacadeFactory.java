@@ -40,7 +40,6 @@ import org.ballerinalang.langserver.workspace.compilerengine.MaterializedStableS
 import org.ballerinalang.langserver.workspace.compilerengine.RecoveryLadder;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
-import org.ballerinalang.langserver.workspace.documentstore.VirtualFileSystem;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.lspgateway.ClientSession;
@@ -81,7 +80,6 @@ public final class WorkspaceManagerFacadeFactory {
                 .build();
 
         EventSyncPubSubHolder eventBus = new EventSyncPubSubHolder();
-        VirtualFileSystem vfs = new VirtualFileSystem();
         DualSnapshotStore snapshotStore = new DualSnapshotStore();
         ProjectRegistry projectRegistry = new ProjectRegistry(MemoryBudget.ofMb(512));
         UriResolver uriResolver = new UriResolver();
@@ -193,14 +191,6 @@ public final class WorkspaceManagerFacadeFactory {
 
         WiringConfiguration config = WiringConfiguration.builder()
                 .eventBus(eventBus)
-                .virtualFileSystem(vfs)
-                .projectRootResolver(path -> {
-                    try {
-                        return io.ballerina.projects.util.ProjectPaths.packageRoot(path);
-                    } catch (Exception e) {
-                        return path;
-                    }
-                })
                 .snapshotStore(snapshotStore)
                 .compilationAction(compilationAction)
                 .projectRegistry(projectRegistry)
