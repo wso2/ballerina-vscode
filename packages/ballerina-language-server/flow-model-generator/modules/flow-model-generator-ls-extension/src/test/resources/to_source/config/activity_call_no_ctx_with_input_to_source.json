@@ -1,6 +1,6 @@
 {
   "source": "workflow_function/functions.bal",
-  "description": "Generate activity call where there is no existing context param",
+  "description": "Generate activity call where there is no existing context param but the input param is present",
   "diagram": {
     "id": "1",
     "metadata": {
@@ -15,11 +15,11 @@
       "lineRange": {
         "fileName": "functions.bal",
         "startLine": {
-          "line": 41,
+          "line": 36,
           "offset": 0
         },
         "endLine": {
-          "line": 41,
+          "line": 36,
           "offset": 0
         }
       },
@@ -83,11 +83,11 @@
       {
         "range": {
           "start": {
-            "line": 41,
+            "line": 36,
             "character": 0
           },
           "end": {
-            "line": 41,
+            "line": 36,
             "character": 0
           }
         },
@@ -96,15 +96,15 @@
       {
         "range": {
           "start": {
-            "line": 40,
-            "character": 29
+            "line": 35,
+            "character": 24
           },
           "end": {
-            "line": 40,
-            "character": 29
+            "line": 35,
+            "character": 24
           }
         },
-        "newText": "workflow:Context ctx"
+        "newText": "workflow:Context ctx, "
       }
     ]
   }

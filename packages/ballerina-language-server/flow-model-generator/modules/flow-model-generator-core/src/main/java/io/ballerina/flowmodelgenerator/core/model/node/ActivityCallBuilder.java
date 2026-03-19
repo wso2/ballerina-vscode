@@ -299,8 +299,8 @@ public class ActivityCallBuilder extends CallBuilder {
                 .name(CONTEXT_CLASS_NAME)
                 .whiteSpace()
                 .name(DEFAULT_CTX_PARAM_NAME);
-        if (functionSignature.parameters().isEmpty()) {
-            sourceBuilder.token().keyword(SyntaxKind.COLON_TOKEN);
+        if (!functionSignature.parameters().isEmpty()) {
+            sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN);
         }
         sourceBuilder.token().skipFormatting().stepOut().textEdit(null, sourceBuilder.filePath, insertRange);
     }
