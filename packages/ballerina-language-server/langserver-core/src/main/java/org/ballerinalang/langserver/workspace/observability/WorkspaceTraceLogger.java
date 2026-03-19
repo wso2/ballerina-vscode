@@ -27,12 +27,13 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
 
 /**
  * Subscribes to all domain events and emits structured trace logs.
@@ -79,8 +80,9 @@ public class WorkspaceTraceLogger implements AutoCloseable {
      * @param eventBus the event bus to subscribe to
      * @param logConsumer consumer for structured log entries (level, fields)
      */
-    public WorkspaceTraceLogger(EventSyncPubSubHolder eventBus, BiConsumer<String, Map<String, String>> logConsumer) {
-        this.eventBus = Objects.requireNonNull(eventBus, "eventBus must not be null");
+    public WorkspaceTraceLogger(@Nonnull EventSyncPubSubHolder eventBus,
+                                BiConsumer<String, Map<String, String>> logConsumer) {
+        this.eventBus = eventBus;
         this.logLevel = new AtomicReference<>(LogLevel.INFO);
         this.eventConsumer = null;
         // Wrap the consumer to respect log levels
@@ -100,9 +102,9 @@ public class WorkspaceTraceLogger implements AutoCloseable {
      * @param initialLevel the initial log level
      * @param eventConsumer custom event consumer (null for default console logging)
      */
-    public WorkspaceTraceLogger(EventSyncPubSubHolder eventBus, LogLevel initialLevel, 
+    public WorkspaceTraceLogger(@Nonnull EventSyncPubSubHolder eventBus, @Nonnull LogLevel initialLevel,
                                 Consumer<DomainEvent> eventConsumer) {
-        this.eventBus = Objects.requireNonNull(eventBus, "eventBus must not be null");
+        this.eventBus = eventBus;
         this.logLevel = new AtomicReference<>(initialLevel != null ? initialLevel : LogLevel.INFO);
         this.eventConsumer = eventConsumer;
         

@@ -18,17 +18,16 @@
 
 package org.ballerinalang.langserver.workspace.executionmanager;
 
-import java.util.Objects;
+import javax.annotation.Nonnull;
 
 /**
  * Wraps execution process identifier.
  *
  * @since 1.7.0
  */
-public record ProcessId(String value) {
+public record ProcessId(@Nonnull String value) {
 
     public ProcessId {
-        Objects.requireNonNull(value, "value must not be null");
         if (value.isBlank()) {
             throw new IllegalArgumentException("value must not be blank");
         }

@@ -34,8 +34,9 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+
+import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -110,12 +111,12 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      * @param retryDelayMs delay in milliseconds before retrying a transient failure
      * @param heapPressureThrottleMs delay in milliseconds to defer document-triggered recompilation after RM-E1
      */
-    public CompilationServiceImpl(DualSnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
-                                  CompilationPipeline.CompilationAction baseAction, long retryDelayMs,
+    public CompilationServiceImpl(@Nonnull DualSnapshotStore snapshotStore, @Nonnull EventSyncPubSubHolder eventBus,
+                                  @Nonnull CompilationPipeline.CompilationAction baseAction, long retryDelayMs,
                                   long heapPressureThrottleMs) {
-        this.snapshotStore = Objects.requireNonNull(snapshotStore, "snapshotStore must not be null");
-        this.eventBus = Objects.requireNonNull(eventBus, "eventBus must not be null");
-        this.baseAction = Objects.requireNonNull(baseAction, "baseAction must not be null");
+        this.snapshotStore = snapshotStore;
+        this.eventBus = eventBus;
+        this.baseAction = baseAction;
         this.retryDelayMs = retryDelayMs;
         this.heapPressureThrottleMs = heapPressureThrottleMs;
         this.pipelines = new ConcurrentHashMap<>();

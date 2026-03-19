@@ -18,6 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
+import javax.annotation.Nonnull;
+
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.PackageCompilation;
@@ -25,7 +27,6 @@ import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Immutable snapshot of a compiled project, per ADR-006.
@@ -40,21 +41,16 @@ import java.util.Objects;
  * @param contentVersion the content version that produced this snapshot
  * @since 1.7.0
  */
-public record ProjectSnapshot(PackageCompilation compilation,
-                               SemanticModel semanticModel,
-                               SyntaxTree syntaxTree,
-                               Map<Path, SyntaxTree> syntaxTrees,
-                               ContentVersion contentVersion) {
+public record ProjectSnapshot(@Nonnull PackageCompilation compilation,
+                                @Nonnull SemanticModel semanticModel,
+                                @Nonnull SyntaxTree syntaxTree,
+                                @Nonnull Map<Path, SyntaxTree> syntaxTrees,
+                                @Nonnull ContentVersion contentVersion) {
 
     /**
      * Validates all fields are non-null.
      */
     public ProjectSnapshot {
-        Objects.requireNonNull(compilation, "compilation must not be null");
-        Objects.requireNonNull(semanticModel, "semanticModel must not be null");
-        Objects.requireNonNull(syntaxTree, "syntaxTree must not be null");
-        Objects.requireNonNull(syntaxTrees, "syntaxTrees must not be null");
-        Objects.requireNonNull(contentVersion, "contentVersion must not be null");
         syntaxTrees = Map.copyOf(syntaxTrees);
     }
 
@@ -79,8 +75,7 @@ public record ProjectSnapshot(PackageCompilation compilation,
      * @param filePath normalized or non-normalized document path
      * @return cached syntax tree, or {@code null} when not available
      */
-    public SyntaxTree syntaxTree(Path filePath) {
-        Objects.requireNonNull(filePath, "filePath must not be null");
+    public SyntaxTree syntaxTree(@Nonnull Path filePath) {
         return syntaxTrees.getOrDefault(filePath.normalize(), syntaxTree);
     }
 }

@@ -19,7 +19,7 @@
 package org.ballerinalang.langserver.workspace.documentstore;
 
 import java.net.URI;
-import java.util.Objects;
+import javax.annotation.Nonnull;
 
 /**
  * Represents document identity using supported URI schemes.
@@ -36,8 +36,7 @@ public sealed interface DocumentUri permits DocumentUri.FileUri, DocumentUri.Exp
      */
     URI uri();
 
-    private static URI validateScheme(URI uri, String scheme) {
-        Objects.requireNonNull(uri, "uri must not be null");
+    private static URI validateScheme(@Nonnull URI uri, String scheme) {
         if (!scheme.equals(uri.getScheme())) {
             throw new IllegalArgumentException("Expected URI scheme '" + scheme + "' but found '"
                     + uri.getScheme() + "'");

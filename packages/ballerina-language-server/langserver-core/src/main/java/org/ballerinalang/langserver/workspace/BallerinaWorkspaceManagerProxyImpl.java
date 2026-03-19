@@ -28,7 +28,8 @@ import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.Objects;
+
+import javax.annotation.Nonnull;
 
 /**
  * Scheme-based routing proxy for workspace managers.
@@ -56,14 +57,14 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
      * @param untitledWorkspaceManager manager for untitled: URIs
      */
     public BallerinaWorkspaceManagerProxyImpl(
-            WorkspaceManager fileWorkspaceManager,
-            WorkspaceManager exprWorkspaceManager,
-            WorkspaceManager aiWorkspaceManager,
-            WorkspaceManager untitledWorkspaceManager) {
-        this.fileWorkspaceManager = Objects.requireNonNull(fileWorkspaceManager, "fileWorkspaceManager must not be null");
-        this.exprWorkspaceManager = Objects.requireNonNull(exprWorkspaceManager, "exprWorkspaceManager must not be null");
-        this.aiWorkspaceManager = Objects.requireNonNull(aiWorkspaceManager, "aiWorkspaceManager must not be null");
-        this.untitledWorkspaceManager = Objects.requireNonNull(untitledWorkspaceManager, "untitledWorkspaceManager must not be null");
+            @Nonnull WorkspaceManager fileWorkspaceManager,
+            @Nonnull WorkspaceManager exprWorkspaceManager,
+            @Nonnull WorkspaceManager aiWorkspaceManager,
+            @Nonnull WorkspaceManager untitledWorkspaceManager) {
+        this.fileWorkspaceManager = fileWorkspaceManager;
+        this.exprWorkspaceManager = exprWorkspaceManager;
+        this.aiWorkspaceManager = aiWorkspaceManager;
+        this.untitledWorkspaceManager = untitledWorkspaceManager;
     }
 
     /**
@@ -73,7 +74,6 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
      * @param serverContext the language server context
      */
     public BallerinaWorkspaceManagerProxyImpl(LanguageServerContext serverContext) {
-        Objects.requireNonNull(serverContext, "serverContext must not be null");
         this.fileWorkspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
         this.exprWorkspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
         this.aiWorkspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
@@ -101,10 +101,7 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
     }
 
     @Override
-    public void didOpen(DidOpenTextDocumentParams params) throws WorkspaceDocumentException {
-        Objects.requireNonNull(params, "params must not be null");
-        Objects.requireNonNull(params.getTextDocument(), "textDocument must not be null");
-
+    public void didOpen(@Nonnull DidOpenTextDocumentParams params) throws WorkspaceDocumentException {
         String uri = params.getTextDocument().getUri();
         WorkspaceManager manager = get(uri);
 
@@ -113,10 +110,7 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
     }
 
     @Override
-    public void didChange(DidChangeTextDocumentParams params) throws WorkspaceDocumentException {
-        Objects.requireNonNull(params, "params must not be null");
-        Objects.requireNonNull(params.getTextDocument(), "textDocument must not be null");
-
+    public void didChange(@Nonnull DidChangeTextDocumentParams params) throws WorkspaceDocumentException {
         String uri = params.getTextDocument().getUri();
         WorkspaceManager manager = get(uri);
 
@@ -125,10 +119,7 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
     }
 
     @Override
-    public void didClose(DidCloseTextDocumentParams params) {
-        Objects.requireNonNull(params, "params must not be null");
-        Objects.requireNonNull(params.getTextDocument(), "textDocument must not be null");
-
+    public void didClose(@Nonnull DidCloseTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
         WorkspaceManager manager = get(uri);
 

@@ -24,6 +24,8 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.Nonnull;
+
 /**
  * Aggregate root representing a single Ballerina project in the workspace.
  * Tracks the project's kind, health state, memory footprint, and active/background tier.
@@ -93,10 +95,8 @@ public final class Project {
      * @param heapEstimate  initial heap-usage estimate
      * @throws NullPointerException if any argument is null
      */
-    public Project(SourceRoot sourceRoot, ProjectKind kind, HeapEstimate heapEstimate) {
-        this.sourceRoot = Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
-        Objects.requireNonNull(kind, "kind must not be null");
-        Objects.requireNonNull(heapEstimate, "heapEstimate must not be null");
+    public Project(@Nonnull SourceRoot sourceRoot, @Nonnull ProjectKind kind, @Nonnull HeapEstimate heapEstimate) {
+        this.sourceRoot = sourceRoot;
         this.kind = new AtomicReference<>(kind);
         this.healthState = new AtomicReference<>(new HealthState(ProjectHealthState.HEALTHY, false));
         this.heapEstimate = heapEstimate;
@@ -120,8 +120,7 @@ public final class Project {
      * @return event payload describing the transition
      * @throws IllegalStateException if the transition is not valid from the current state
      */
-    public HealthTransitionEvent transitionTo(ProjectHealthState target) {
-        Objects.requireNonNull(target, "target must not be null");
+    public HealthTransitionEvent transitionTo(@Nonnull ProjectHealthState target) {
         fsmLock.lock();
         try {
             HealthState current = healthState.get();
@@ -177,8 +176,7 @@ public final class Project {
      * @return event payload describing the kind transition
      * @throws IllegalStateException if the kind transition is not allowed
      */
-    public KindTransitionEvent transitionKind(ProjectKind target) {
-        Objects.requireNonNull(target, "target must not be null");
+    public KindTransitionEvent transitionKind(@Nonnull ProjectKind target) {
         fsmLock.lock();
         try {
             ProjectKind from = kind.get();

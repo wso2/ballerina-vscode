@@ -18,7 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
-import java.util.Objects;
+import javax.annotation.Nonnull;
+
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -55,8 +56,7 @@ public final class SharedDependencyCache {
      *
      * @param budget maximum total weight in MB; must not be null
      */
-    public SharedDependencyCache(MemoryBudget budget) {
-        Objects.requireNonNull(budget, "budget must not be null");
+    public SharedDependencyCache(@Nonnull MemoryBudget budget) {
         this.budgetMb = budget.toMb();
     }
 
@@ -71,8 +71,7 @@ public final class SharedDependencyCache {
      * @return {@code true} if the entry is now retained; {@code false} if the budget
      *         would be exceeded and no entry was created
      */
-    public boolean retain(String key, Object value, int weightMb) {
-        Objects.requireNonNull(key, "key must not be null");
+    public boolean retain(@Nonnull String key, Object value, int weightMb) {
         boolean[] success = {false};
         store.compute(key, (k, existing) -> {
             if (existing != null) {
@@ -97,8 +96,7 @@ public final class SharedDependencyCache {
      * @param key cache key; must not be null
      * @return value wrapped in Optional, or empty
      */
-    public Optional<Object> get(String key) {
-        Objects.requireNonNull(key, "key must not be null");
+    public Optional<Object> get(@Nonnull String key) {
         Entry entry = store.get(key);
         return entry == null ? Optional.empty() : Optional.of(entry.value());
     }
@@ -110,8 +108,7 @@ public final class SharedDependencyCache {
      *
      * @param key cache key; must not be null
      */
-    public void release(String key) {
-        Objects.requireNonNull(key, "key must not be null");
+    public void release(@Nonnull String key) {
         store.computeIfPresent(key, (k, entry) -> {
             int remaining = entry.refCount().decrementAndGet();
             if (remaining <= 0) {

@@ -18,10 +18,11 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
+import javax.annotation.Nonnull;
+
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Captures pre-compilation resolution diagnostics per ADR-008.
@@ -31,16 +32,14 @@ import java.util.Objects;
  * @param success     {@code true} when no ERROR-level diagnostics are present
  * @since 1.7.0
  */
-public record ResolutionResult(SourceRoot sourceRoot,
-                                List<ResolutionDiagnostic> diagnostics,
+public record ResolutionResult(@Nonnull SourceRoot sourceRoot,
+                                @Nonnull List<ResolutionDiagnostic> diagnostics,
                                 boolean success) {
 
     /**
      * Validates fields and creates a defensive copy of diagnostics.
      */
     public ResolutionResult {
-        Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
-        Objects.requireNonNull(diagnostics, "diagnostics must not be null");
         diagnostics = List.copyOf(diagnostics);
     }
 
@@ -52,15 +51,13 @@ public record ResolutionResult(SourceRoot sourceRoot,
      * @param modulePath the module path where the issue was found
      * @since 1.7.0
      */
-    public record ResolutionDiagnostic(Severity severity, String message, String modulePath) {
+    public record ResolutionDiagnostic(@Nonnull Severity severity, @Nonnull String message,
+                                       @Nonnull String modulePath) {
 
         /**
          * Validates all fields are non-null.
          */
         public ResolutionDiagnostic {
-            Objects.requireNonNull(severity, "severity must not be null");
-            Objects.requireNonNull(message, "message must not be null");
-            Objects.requireNonNull(modulePath, "modulePath must not be null");
         }
     }
 

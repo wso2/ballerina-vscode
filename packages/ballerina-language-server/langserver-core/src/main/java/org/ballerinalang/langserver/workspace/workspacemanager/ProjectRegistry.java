@@ -24,6 +24,8 @@ import com.google.common.cache.CacheStats;
 import com.google.common.cache.RemovalListeners;
 import com.google.common.cache.RemovalNotification;
 
+import javax.annotation.Nonnull;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -64,8 +66,7 @@ public final class ProjectRegistry {
      *
      * @param budget maximum total heap weight in MB; must not be null
      */
-    public ProjectRegistry(MemoryBudget budget) {
-        Objects.requireNonNull(budget, "budget must not be null");
+    public ProjectRegistry(@Nonnull MemoryBudget budget) {
         this.evictionExecutor = Executors.newSingleThreadExecutor(
                 r -> new Thread(r, "project-registry-eviction"));
         this.cache = buildCache(budget);
@@ -98,10 +99,8 @@ public final class ProjectRegistry {
      * @return existing or newly created project
      * @throws ExecutionException if the factory throws
      */
-    public Project computeIfAbsent(SourceRoot root, java.util.concurrent.Callable<Project> factory)
+    public Project computeIfAbsent(@Nonnull SourceRoot root, @Nonnull java.util.concurrent.Callable<Project> factory)
             throws ExecutionException {
-        Objects.requireNonNull(root, "root must not be null");
-        Objects.requireNonNull(factory, "factory must not be null");
         return cache.get(root, factory);
     }
 
@@ -111,9 +110,7 @@ public final class ProjectRegistry {
      * @param root    project identity; must not be null
      * @param project the project to store; must not be null
      */
-    public void register(SourceRoot root, Project project) {
-        Objects.requireNonNull(root, "root must not be null");
-        Objects.requireNonNull(project, "project must not be null");
+    public void register(@Nonnull SourceRoot root, @Nonnull Project project) {
         cache.put(root, project);
         fireEvent(new CacheInvalidationEvent(root, CacheInvalidationEvent.InvalidationType.PROJECT_ADDED));
     }
@@ -123,8 +120,7 @@ public final class ProjectRegistry {
      *
      * @param projects map of source roots to projects; must not be null
      */
-    public void putAll(Map<SourceRoot, Project> projects) {
-        Objects.requireNonNull(projects, "projects must not be null");
+    public void putAll(@Nonnull Map<SourceRoot, Project> projects) {
         cache.putAll(projects);
         fireEvent(new CacheInvalidationEvent(null, CacheInvalidationEvent.InvalidationType.BATCH_UPDATE));
     }
@@ -134,8 +130,7 @@ public final class ProjectRegistry {
      *
      * @param root project identity; must not be null
      */
-    public void remove(SourceRoot root) {
-        Objects.requireNonNull(root, "root must not be null");
+    public void remove(@Nonnull SourceRoot root) {
         cache.invalidate(root);
         fireEvent(new CacheInvalidationEvent(root, CacheInvalidationEvent.InvalidationType.PROJECT_REMOVED));
     }
@@ -162,8 +157,7 @@ public final class ProjectRegistry {
      * @param root project identity; must not be null
      * @return project wrapped in Optional, or empty
      */
-    public Optional<Project> get(SourceRoot root) {
-        Objects.requireNonNull(root, "root must not be null");
+    public Optional<Project> get(@Nonnull SourceRoot root) {
         return Optional.ofNullable(cache.getIfPresent(root));
     }
 
@@ -195,8 +189,7 @@ public final class ProjectRegistry {
      *
      * @param listener the listener to add; must not be null
      */
-    public void addListener(CacheInvalidationListener listener) {
-        Objects.requireNonNull(listener, "listener must not be null");
+    public void addListener(@Nonnull CacheInvalidationListener listener) {
         listeners.add(listener);
     }
 

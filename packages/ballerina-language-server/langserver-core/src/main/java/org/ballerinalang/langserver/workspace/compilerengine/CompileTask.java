@@ -18,11 +18,12 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
+import javax.annotation.Nonnull;
+
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 
 import java.time.Instant;
-import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -48,10 +49,11 @@ public final class CompileTask {
      * @param contentVersion    the content version triggering this compilation
      * @param cancellationToken cooperative cancellation flag
      */
-    public CompileTask(SourceRoot sourceRoot, ContentVersion contentVersion, CancellationToken cancellationToken) {
-        this.sourceRoot = Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
-        this.contentVersion = Objects.requireNonNull(contentVersion, "contentVersion must not be null");
-        this.cancellationToken = Objects.requireNonNull(cancellationToken, "cancellationToken must not be null");
+    public CompileTask(@Nonnull SourceRoot sourceRoot, @Nonnull ContentVersion contentVersion,
+                       @Nonnull CancellationToken cancellationToken) {
+        this.sourceRoot = sourceRoot;
+        this.contentVersion = contentVersion;
+        this.cancellationToken = cancellationToken;
         this.createdAt = Instant.now();
         this.currentPhase = new AtomicReference<>(CompilationPhase.PRE_PARSE);
     }

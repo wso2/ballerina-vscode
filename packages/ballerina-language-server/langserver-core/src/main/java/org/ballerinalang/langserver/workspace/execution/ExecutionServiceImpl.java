@@ -34,9 +34,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -82,24 +83,21 @@ public final class ExecutionServiceImpl implements ExecutionService {
      * @param maxActiveProcesses maximum number of concurrent active processes
      * @param virtualThreadUsageTracker consumer to track virtual thread usage (for testing)
      */
-    ExecutionServiceImpl(EventSyncPubSubHolder eventBus,
-                         GracePeriod defaultGracePeriod,
+    ExecutionServiceImpl(@Nonnull EventSyncPubSubHolder eventBus,
+                         @Nonnull GracePeriod defaultGracePeriod,
                          int maxActiveProcesses,
-                         Consumer<Boolean> virtualThreadUsageTracker) {
-        this.eventBus = Objects.requireNonNull(eventBus, "eventBus must not be null");
-        this.defaultGracePeriod = Objects.requireNonNull(defaultGracePeriod, "defaultGracePeriod must not be null");
+                         @Nonnull Consumer<Boolean> virtualThreadUsageTracker) {
+        this.eventBus = eventBus;
+        this.defaultGracePeriod = defaultGracePeriod;
         this.processRegistry = new ProcessRegistry(maxActiveProcesses);
         this.virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
-        this.virtualThreadUsageTracker = Objects.requireNonNull(virtualThreadUsageTracker,
-                "virtualThreadUsageTracker must not be null");
+        this.virtualThreadUsageTracker = virtualThreadUsageTracker;
 
         subscribeToDomainEvents();
     }
 
     @Override
-    public ProcessId run(RunContext context) {
-        Objects.requireNonNull(context, "context must not be null");
-
+    public ProcessId run(@Nonnull RunContext context) {
         Path sourcePath = context.balSourcePath();
         if (sourcePath == null) {
             throw new IllegalArgumentException("balSourcePath must not be null");
@@ -138,8 +136,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
     }
 
     @Override
-    public void stop(org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot sourceRoot) {
-        Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
+    public void stop(@Nonnull org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot sourceRoot) {
         processRegistry.cleanup(
                 new SourceRoot(sourceRoot.path()),
                 ExecutionProcess.TerminationReason.USER_REQUESTED);
@@ -151,8 +148,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
      * @param processId the process ID to stop
      * @throws NullPointerException if processId is null
      */
-    public void stopExecution(ProcessId processId) {
-        Objects.requireNonNull(processId, "processId must not be null");
+    public void stopExecution(@Nonnull ProcessId processId) {
         Optional<ExecutionProcess> process = processRegistry.find(processId);
         process.ifPresent(p -> {
             p.terminate(ExecutionProcess.TerminationReason.USER_REQUESTED);
@@ -167,8 +163,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
      * @param processId the process ID to query
      * @return the current process state, or null if not found
      */
-    public ExecutionProcess.ProcessState queryExecutionStatus(ProcessId processId) {
-        Objects.requireNonNull(processId, "processId must not be null");
+    public ExecutionProcess.ProcessState queryExecutionStatus(@Nonnull ProcessId processId) {
         return processRegistry.find(processId)
                 .map(ExecutionProcess::state)
                 .orElse(null);

@@ -21,7 +21,7 @@ package org.ballerinalang.langserver.workspace.workspacemanager;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 
-import java.util.Objects;
+import javax.annotation.Nonnull;
 
 /**
  * Immutable wrapper for a text document change event with layer and version metadata.
@@ -33,9 +33,9 @@ import java.util.Objects;
  * @since 1.7.0
  */
 public record BufferedChange(
-        TextDocumentContentChangeEvent change,
-        ChangeLayer layer,
-        ContentVersion version
+        @Nonnull TextDocumentContentChangeEvent change,
+        @Nonnull ChangeLayer layer,
+        @Nonnull ContentVersion version
 ) {
     /**
      * Creates a new buffered change.
@@ -45,8 +45,5 @@ public record BufferedChange(
      * @param version the content version
      */
     public BufferedChange {
-        Objects.requireNonNull(change, "change must not be null");
-        Objects.requireNonNull(layer, "layer must not be null");
-        Objects.requireNonNull(version, "version must not be null");
     }
 }

@@ -19,7 +19,7 @@
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
 import java.nio.file.Path;
-import java.util.Objects;
+import javax.annotation.Nonnull;
 
 /**
  * Identifies a project source root using an absolute, normalized path.
@@ -35,8 +35,7 @@ public final class SourceRoot {
      *
      * @param path absolute and normalized source-root path
      */
-    public SourceRoot(Path path) {
-        Objects.requireNonNull(path, "path must not be null");
+    public SourceRoot(@Nonnull Path path) {
         if (!path.isAbsolute()) {
             throw new IllegalArgumentException("path must be absolute");
         }

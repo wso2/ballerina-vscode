@@ -18,11 +18,12 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import javax.annotation.Nonnull;
+
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -52,8 +53,7 @@ public final class UriResolver {
      * @param uri the document URI to resolve
      * @return the resolved entry, or empty if not cached
      */
-    public Optional<ResolvedEntry> resolve(DocumentUri uri) {
-        Objects.requireNonNull(uri, "uri must not be null");
+    public Optional<ResolvedEntry> resolve(@Nonnull DocumentUri uri) {
         return root.get().lookup(toSegments(uri.uri()));
     }
 
@@ -66,9 +66,7 @@ public final class UriResolver {
      * @param uri   the document URI
      * @param entry the resolved back-references to store
      */
-    public void register(DocumentUri uri, ResolvedEntry entry) {
-        Objects.requireNonNull(uri, "uri must not be null");
-        Objects.requireNonNull(entry, "entry must not be null");
+    public void register(@Nonnull DocumentUri uri, @Nonnull ResolvedEntry entry) {
         root.set(root.get().insert(toSegments(uri.uri()), entry));
     }
 
@@ -80,8 +78,7 @@ public final class UriResolver {
      *
      * @param uri the document URI to remove
      */
-    public void unregister(DocumentUri uri) {
-        Objects.requireNonNull(uri, "uri must not be null");
+    public void unregister(@Nonnull DocumentUri uri) {
         root.set(root.get().remove(toSegments(uri.uri())));
     }
 
@@ -93,8 +90,7 @@ public final class UriResolver {
      *
      * @param sourceRoot the source root whose subtree should be evicted
      */
-    public void evictSubtree(SourceRoot sourceRoot) {
-        Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
+    public void evictSubtree(@Nonnull SourceRoot sourceRoot) {
         root.set(root.get().removeSubtree(toSegments(sourceRoot.path())));
     }
 

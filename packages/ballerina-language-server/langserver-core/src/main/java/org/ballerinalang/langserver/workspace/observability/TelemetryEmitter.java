@@ -18,8 +18,9 @@
 
 package org.ballerinalang.langserver.workspace.observability;
 
+import javax.annotation.Nonnull;
+
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -46,8 +47,8 @@ public class TelemetryEmitter {
      * @param metricRegistry the registry to record metrics to
      * @throws NullPointerException if metricRegistry is null
      */
-    public TelemetryEmitter(MetricRegistry metricRegistry) {
-        this.metricRegistry = Objects.requireNonNull(metricRegistry, "metricRegistry must not be null");
+    public TelemetryEmitter(@Nonnull MetricRegistry metricRegistry) {
+        this.metricRegistry = metricRegistry;
         this.emittedCounters = new ConcurrentHashMap<>();
     }
 

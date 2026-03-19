@@ -18,7 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
-import java.util.Objects;
+import javax.annotation.Nonnull;
 
 /**
  * Immutable heap-usage estimate for a project, measured in megabytes.
@@ -63,8 +63,7 @@ public final class HeapEstimate implements Comparable<HeapEstimate> {
      * @param other the estimate to add
      * @return combined estimate
      */
-    public HeapEstimate add(HeapEstimate other) {
-        Objects.requireNonNull(other, "other must not be null");
+    public HeapEstimate add(@Nonnull HeapEstimate other) {
         return new HeapEstimate(this.valueMb + other.valueMb);
     }
 

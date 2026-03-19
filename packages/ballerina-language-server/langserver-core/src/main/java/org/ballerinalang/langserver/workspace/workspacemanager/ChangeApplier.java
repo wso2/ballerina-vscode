@@ -18,6 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import javax.annotation.Nonnull;
+
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
@@ -35,7 +37,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -60,10 +61,11 @@ public class ChangeApplier {
      * @param strategy     the strategy used to compute new document content from buffered events
      * @throws NullPointerException if any argument is null
      */
-    public ChangeApplier(ChangeBuffer changeBuffer, UriResolver uriResolver, ContentChangeStrategy strategy) {
-        this.changeBuffer = Objects.requireNonNull(changeBuffer, "changeBuffer must not be null");
-        this.uriResolver = Objects.requireNonNull(uriResolver, "uriResolver must not be null");
-        this.strategy = Objects.requireNonNull(strategy, "strategy must not be null");
+    public ChangeApplier(@Nonnull ChangeBuffer changeBuffer, @Nonnull UriResolver uriResolver,
+                         @Nonnull ContentChangeStrategy strategy) {
+        this.changeBuffer = changeBuffer;
+        this.uriResolver = uriResolver;
+        this.strategy = strategy;
     }
 
     /**
@@ -88,8 +90,7 @@ public class ChangeApplier {
      *
      * TODO: Error recovery — currently assumes modify API succeeds. Future: catch and recover from apply failures.
      */
-    public boolean apply(Project project) {
-        Objects.requireNonNull(project, "project must not be null");
+    public boolean apply(@Nonnull Project project) {
 
         boolean anyChangesApplied = false;
         for (ChangeLayer layer : ChangeLayer.values()) {

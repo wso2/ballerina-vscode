@@ -18,8 +18,9 @@
 
 package org.ballerinalang.langserver.workspace.eventbus;
 
+import javax.annotation.Nonnull;
+
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -51,13 +52,9 @@ public class EventSyncPubSubHolder implements AutoCloseable {
      * @param subscribedKinds event kinds accepted by the subscriber
      * @param consumer event consumer callback
      */
-    public void subscribe(String subscriberId, SubscriberTier subscriberTier, Set<EventKind> subscribedKinds,
-                          Consumer<DomainEvent> consumer) {
+    public void subscribe(@Nonnull String subscriberId, @Nonnull SubscriberTier subscriberTier,
+                          @Nonnull Set<EventKind> subscribedKinds, @Nonnull Consumer<DomainEvent> consumer) {
         ensureOpen();
-        Objects.requireNonNull(subscriberId, "subscriberId must not be null");
-        Objects.requireNonNull(subscriberTier, "subscriberTier must not be null");
-        Objects.requireNonNull(subscribedKinds, "subscribedKinds must not be null");
-        Objects.requireNonNull(consumer, "consumer must not be null");
 
         if (subscriberId.isBlank()) {
             throw new IllegalArgumentException("subscriberId must not be blank");
@@ -79,9 +76,8 @@ public class EventSyncPubSubHolder implements AutoCloseable {
      *
      * @param event domain event to publish
      */
-    public void publish(DomainEvent event) {
+    public void publish(@Nonnull DomainEvent event) {
         ensureOpen();
-        Objects.requireNonNull(event, "event must not be null");
 
         for (DeliveryChannel channel : deliveryChannels.values()) {
             if (channel.accepts(event.eventKind())) {

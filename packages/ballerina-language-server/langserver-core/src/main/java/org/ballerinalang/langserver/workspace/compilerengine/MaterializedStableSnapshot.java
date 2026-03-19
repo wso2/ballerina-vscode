@@ -18,6 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
+import javax.annotation.Nonnull;
+
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.DocumentId;
@@ -27,7 +29,6 @@ import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Materialized stable snapshot used by the active compiler-engine implementation.
@@ -51,18 +52,16 @@ public final class MaterializedStableSnapshot implements StableSnapshot {
      * @param compilation package compilation for the snapshot
      * @param contentVersion content version represented by the snapshot
      */
-    public MaterializedStableSnapshot(Map<DocumentId, SyntaxTree> syntaxTrees,
-                                      Map<Path, DocumentId> pathToDocumentIds,
-                                      Map<ModuleId, SemanticModel> semanticModels,
-                                      PackageCompilation compilation,
-                                      ContentVersion contentVersion) {
-        this.syntaxTrees = Map.copyOf(Objects.requireNonNull(syntaxTrees, "syntaxTrees must not be null"));
-        this.pathToDocumentIds = Map.copyOf(Objects.requireNonNull(pathToDocumentIds,
-                "pathToDocumentIds must not be null"));
-        this.semanticModels = Map.copyOf(Objects.requireNonNull(semanticModels,
-                "semanticModels must not be null"));
-        this.compilation = Objects.requireNonNull(compilation, "compilation must not be null");
-        this.contentVersion = Objects.requireNonNull(contentVersion, "contentVersion must not be null");
+    public MaterializedStableSnapshot(@Nonnull Map<DocumentId, SyntaxTree> syntaxTrees,
+                                      @Nonnull Map<Path, DocumentId> pathToDocumentIds,
+                                      @Nonnull Map<ModuleId, SemanticModel> semanticModels,
+                                      @Nonnull PackageCompilation compilation,
+                                      @Nonnull ContentVersion contentVersion) {
+        this.syntaxTrees = Map.copyOf(syntaxTrees);
+        this.pathToDocumentIds = Map.copyOf(pathToDocumentIds);
+        this.semanticModels = Map.copyOf(semanticModels);
+        this.compilation = compilation;
+        this.contentVersion = contentVersion;
     }
 
     @Override
@@ -95,7 +94,7 @@ public final class MaterializedStableSnapshot implements StableSnapshot {
         return documentId == null ? null : semanticModels.get(documentId.moduleId());
     }
 
-    private static Path normalize(Path filePath) {
-        return Objects.requireNonNull(filePath, "filePath must not be null").toAbsolutePath().normalize();
+    private static Path normalize(@Nonnull Path filePath) {
+        return filePath.toAbsolutePath().normalize();
     }
 }

@@ -24,6 +24,8 @@ import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.documentstore.FileId;
 import org.ballerinalang.langserver.workspace.documentstore.TextRange;
 
+import javax.annotation.Nonnull;
+
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
@@ -54,10 +56,9 @@ public final class Document {
      * @param fileId  opaque file identifier
      * @param content initial content
      */
-    public Document(DocumentUri uri, FileId fileId, String content) {
-        this.uri = Objects.requireNonNull(uri, "uri must not be null");
-        this.fileId = Objects.requireNonNull(fileId, "fileId must not be null");
-        Objects.requireNonNull(content, "content must not be null");
+    public Document(@Nonnull DocumentUri uri, @Nonnull FileId fileId, @Nonnull String content) {
+        this.uri = uri;
+        this.fileId = fileId;
         this.contentState = new AtomicReference<>(
                 new ContentState(content, new ContentVersion(0), DocumentState.CLOSED));
     }
@@ -114,8 +115,7 @@ public final class Document {
      * @param newContent new content to set
      * @throws IllegalStateException if document is CLOSED
      */
-    public void updateContent(String newContent) {
-        Objects.requireNonNull(newContent, "newContent must not be null");
+    public void updateContent(@Nonnull String newContent) {
         updateLock.lock();
         try {
             ContentState current = contentState.get();
@@ -137,8 +137,7 @@ public final class Document {
      * @param newText   text to insert
      * @throws IllegalStateException if document is CLOSED
      */
-    public void applyEdit(TextRange range, String newText) {
-        Objects.requireNonNull(newText, "newText must not be null");
+    public void applyEdit(TextRange range, @Nonnull String newText) {
         updateLock.lock();
         try {
             ContentState current = contentState.get();
@@ -159,8 +158,7 @@ public final class Document {
      *
      * @param capturedContent content to capture when opening
      */
-    public void open(String capturedContent) {
-        Objects.requireNonNull(capturedContent, "capturedContent must not be null");
+    public void open(@Nonnull String capturedContent) {
         updateLock.lock();
         try {
             ContentState current = contentState.get();
@@ -193,8 +191,7 @@ public final class Document {
      *
      * @param diskContent the content from disk after potential flush
      */
-    public void close(String diskContent) {
-        Objects.requireNonNull(diskContent, "diskContent must not be null");
+    public void close(@Nonnull String diskContent) {
         updateLock.lock();
         try {
             ContentState current = contentState.get();

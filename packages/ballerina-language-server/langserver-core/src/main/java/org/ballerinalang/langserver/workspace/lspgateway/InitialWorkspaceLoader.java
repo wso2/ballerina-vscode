@@ -31,8 +31,9 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutorService;
@@ -104,14 +105,14 @@ public final class InitialWorkspaceLoader {
      * @param iwlExecutor executor service for IWL background tasks; must not be null
      * @throws NullPointerException if any argument is null
      */
-    InitialWorkspaceLoader(ProjectService projectService,
-                          EventSyncPubSubHolder eventBus,
-                          ProgressTracker progressTracker,
-                          ExecutorService iwlExecutor) {
-        this.projectService = Objects.requireNonNull(projectService, "projectService must not be null");
-        this.eventBus = Objects.requireNonNull(eventBus, "eventBus must not be null");
-        this.progressTracker = Objects.requireNonNull(progressTracker, "progressTracker must not be null");
-        this.iwlExecutor = Objects.requireNonNull(iwlExecutor, "iwlExecutor must not be null");
+    InitialWorkspaceLoader(@Nonnull ProjectService projectService,
+                          @Nonnull EventSyncPubSubHolder eventBus,
+                          @Nonnull ProgressTracker progressTracker,
+                          @Nonnull ExecutorService iwlExecutor) {
+        this.projectService = projectService;
+        this.eventBus = eventBus;
+        this.progressTracker = progressTracker;
+        this.iwlExecutor = iwlExecutor;
         this.readinessController = new TwoTierReadinessController();
         this.started = new AtomicBoolean(false);
         this.progressEndSent = new AtomicBoolean(false);
@@ -139,9 +140,7 @@ public final class InitialWorkspaceLoader {
      * @param session client session with workspace folder URIs; must not be null
      * @throws NullPointerException if session is null
      */
-    public void startIwl(ClientSession session) {
-        Objects.requireNonNull(session, "session must not be null");
-
+    public void startIwl(@Nonnull ClientSession session) {
         // Guard: ensure IWL runs only once
         if (!started.compareAndSet(false, true)) {
             return;

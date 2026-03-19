@@ -18,7 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.documentstore;
 
-import java.util.Objects;
+import javax.annotation.Nonnull;
 
 /**
  * Opaque identifier for a tracked document.
@@ -39,8 +39,7 @@ public final class FileId {
      * @param rawValue raw identifier value
      * @return file identifier
      */
-    public static FileId from(String rawValue) {
-        Objects.requireNonNull(rawValue, "rawValue must not be null");
+    public static FileId from(@Nonnull String rawValue) {
         if (rawValue.isBlank()) {
             throw new IllegalArgumentException("rawValue must not be blank");
         }

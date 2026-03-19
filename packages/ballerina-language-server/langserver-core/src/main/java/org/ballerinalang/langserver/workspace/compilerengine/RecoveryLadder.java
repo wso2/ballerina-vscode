@@ -18,9 +18,9 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
-import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
+import javax.annotation.Nonnull;
 
-import java.util.Objects;
+import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 
 /**
  * Stateless strategy for traversing the dependency locking recovery ladder.
@@ -40,9 +40,7 @@ public final class RecoveryLadder {
      * @return next locking mode after applying the recovery ladder rule
      * @throws NullPointerException if currentMode or failureType is null
      */
-    public static LockingMode nextMode(LockingMode currentMode, FailureType failureType) {
-        Objects.requireNonNull(currentMode, "currentMode must not be null");
-        Objects.requireNonNull(failureType, "failureType must not be null");
+    public static LockingMode nextMode(@Nonnull LockingMode currentMode, @Nonnull FailureType failureType) {
 
         return switch (failureType) {
             case RESOLUTION_FAILED -> escalate(currentMode);

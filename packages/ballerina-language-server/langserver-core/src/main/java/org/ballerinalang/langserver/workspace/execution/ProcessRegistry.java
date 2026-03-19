@@ -21,6 +21,8 @@ package org.ballerinalang.langserver.workspace.execution;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 
+import javax.annotation.Nonnull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -60,9 +62,7 @@ public final class ProcessRegistry {
      * @throws IllegalStateException if max active processes exceeded
      * @throws NullPointerException if process is null
      */
-    public void register(ExecutionProcess process) {
-        Objects.requireNonNull(process, "process must not be null");
-
+    public void register(@Nonnull ExecutionProcess process) {
         if (activeCount.get() >= maxActiveProcesses) {
             throw new IllegalStateException(
                     "Maximum active process count exceeded: " + maxActiveProcesses);
@@ -79,8 +79,7 @@ public final class ProcessRegistry {
      * @return optional containing the process if found
      * @throws NullPointerException if processId is null
      */
-    public Optional<ExecutionProcess> find(ProcessId processId) {
-        Objects.requireNonNull(processId, "processId must not be null");
+    public Optional<ExecutionProcess> find(@Nonnull ProcessId processId) {
         return Optional.ofNullable(processes.get(processId));
     }
 
@@ -91,8 +90,7 @@ public final class ProcessRegistry {
      * @return true if a process was removed
      * @throws NullPointerException if processId is null
      */
-    public boolean remove(ProcessId processId) {
-        Objects.requireNonNull(processId, "processId must not be null");
+    public boolean remove(@Nonnull ProcessId processId) {
         ExecutionProcess removed = processes.remove(processId);
         if (removed != null) {
             activeCount.decrementAndGet();
@@ -109,10 +107,8 @@ public final class ProcessRegistry {
      * @return list of process IDs that were terminated
      * @throws NullPointerException if sourceRoot or reason is null
      */
-    public List<ProcessId> cleanup(SourceRoot sourceRoot, ExecutionProcess.TerminationReason reason) {
-        Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
-        Objects.requireNonNull(reason, "reason must not be null");
-
+    public List<ProcessId> cleanup(@Nonnull SourceRoot sourceRoot,
+                                   @Nonnull ExecutionProcess.TerminationReason reason) {
         List<ProcessId> removed = new ArrayList<>();
 
         processes.entrySet().removeIf(entry -> {

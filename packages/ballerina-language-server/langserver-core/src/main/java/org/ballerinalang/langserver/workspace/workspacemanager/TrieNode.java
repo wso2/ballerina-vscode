@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import javax.annotation.Nonnull;
 
 /**
  * Immutable persistent trie node keyed by path segments.
@@ -60,7 +61,7 @@ public final class TrieNode<V> {
      * @param newValue value to store at the target path
      * @return new trie root containing the inserted value
      */
-    public TrieNode<V> insert(String[] pathSegments, V newValue) {
+    public TrieNode<V> insert(@Nonnull String[] pathSegments, V newValue) {
         validatePathSegments(pathSegments);
         return insert(pathSegments, 0, newValue);
     }
@@ -71,7 +72,7 @@ public final class TrieNode<V> {
      * @param pathSegments path segments from root to leaf
      * @return optional containing the stored value when present
      */
-    public Optional<V> lookup(String[] pathSegments) {
+    public Optional<V> lookup(@Nonnull String[] pathSegments) {
         validatePathSegments(pathSegments);
         TrieNode<V> node = this;
         for (String segment : pathSegments) {
@@ -89,7 +90,7 @@ public final class TrieNode<V> {
      * @param pathSegments path segments from root to leaf
      * @return new trie root without the removed value
      */
-    public TrieNode<V> remove(String[] pathSegments) {
+    public TrieNode<V> remove(@Nonnull String[] pathSegments) {
         validatePathSegments(pathSegments);
         return remove(pathSegments, 0);
     }
@@ -100,7 +101,7 @@ public final class TrieNode<V> {
      * @param prefixSegments prefix identifying the subtree root
      * @return new trie root without the removed subtree
      */
-    public TrieNode<V> removeSubtree(String[] prefixSegments) {
+    public TrieNode<V> removeSubtree(@Nonnull String[] prefixSegments) {
         validatePathSegments(prefixSegments);
         return removeSubtree(prefixSegments, 0);
     }
@@ -207,8 +208,7 @@ public final class TrieNode<V> {
                 candidateValue, candidateHasValue);
     }
 
-    private static void validatePathSegments(String[] pathSegments) {
-        Objects.requireNonNull(pathSegments, "pathSegments must not be null");
+    private static void validatePathSegments(@Nonnull String[] pathSegments) {
         for (String segment : pathSegments) {
             if (segment == null) {
                 throw new NullPointerException("pathSegments must not contain null segments");

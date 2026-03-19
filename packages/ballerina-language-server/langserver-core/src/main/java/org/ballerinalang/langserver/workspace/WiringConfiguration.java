@@ -41,8 +41,9 @@ import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
 
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -212,13 +213,13 @@ public final class WiringConfiguration implements AutoCloseable {
      */
     public static final class Builder {
 
-        private EventSyncPubSubHolder eventBus;
-        private DualSnapshotStore snapshotStore;
-        private CompilationPipeline.CompilationAction compilationAction;
-        private ProjectRegistry projectRegistry;
-        private UriResolver uriResolver;
-        private ProjectLoader projectLoader;
-        private GracePeriod gracePeriod;
+        private @Nonnull EventSyncPubSubHolder eventBus;
+        private @Nonnull DualSnapshotStore snapshotStore;
+        private @Nonnull CompilationPipeline.CompilationAction compilationAction;
+        private @Nonnull ProjectRegistry projectRegistry;
+        private @Nonnull UriResolver uriResolver;
+        private @Nonnull ProjectLoader projectLoader;
+        private @Nonnull GracePeriod gracePeriod;
         private int maxActiveProcesses = 5;
         private long heapPressurePollIntervalMs = 5000L;
 
@@ -268,13 +269,6 @@ public final class WiringConfiguration implements AutoCloseable {
         }
 
         public WiringConfiguration build() {
-            Objects.requireNonNull(eventBus, "eventBus must not be null");
-            Objects.requireNonNull(snapshotStore, "snapshotStore must not be null");
-            Objects.requireNonNull(compilationAction, "compilationAction must not be null");
-            Objects.requireNonNull(projectRegistry, "projectRegistry must not be null");
-            Objects.requireNonNull(uriResolver, "uriResolver must not be null");
-            Objects.requireNonNull(projectLoader, "projectLoader must not be null");
-            Objects.requireNonNull(gracePeriod, "gracePeriod must not be null");
             return new WiringConfiguration(this);
         }
     }

@@ -18,13 +18,14 @@
 
 package org.ballerinalang.langserver.workspace.resourcemonitor;
 
+import javax.annotation.Nonnull;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -81,11 +82,11 @@ public class HeapPressureMonitor {
      * @param eventPublisher      callback invoked on pressure level transitions
      * @param pollIntervalMs      polling interval in milliseconds
      */
-    public HeapPressureMonitor(Supplier<MemoryUsage> memoryUsageSupplier,
-                               Consumer<HeapPressureDetected> eventPublisher,
+    public HeapPressureMonitor(@Nonnull Supplier<MemoryUsage> memoryUsageSupplier,
+                               @Nonnull Consumer<HeapPressureDetected> eventPublisher,
                                long pollIntervalMs) {
-        this.memoryUsageSupplier = Objects.requireNonNull(memoryUsageSupplier, "memoryUsageSupplier must not be null");
-        this.eventPublisher = Objects.requireNonNull(eventPublisher, "eventPublisher must not be null");
+        this.memoryUsageSupplier = memoryUsageSupplier;
+        this.eventPublisher = eventPublisher;
         if (pollIntervalMs <= 0) {
             throw new IllegalArgumentException("pollIntervalMs must be positive");
         }

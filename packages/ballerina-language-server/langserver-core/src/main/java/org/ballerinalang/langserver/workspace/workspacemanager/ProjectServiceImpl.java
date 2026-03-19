@@ -42,8 +42,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+
+import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -108,15 +109,9 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * @param changeBuffer per-URI, per-layer change buffer; must not be null
      * @throws NullPointerException if any argument is null
      */
-    public ProjectServiceImpl(ProjectRegistry registry, UriResolver uriResolver,
-                              EventSyncPubSubHolder eventBus, ProjectLoader loader,
-                              ChangeBuffer changeBuffer) {
-        Objects.requireNonNull(registry, "registry must not be null");
-        Objects.requireNonNull(uriResolver, "uriResolver must not be null");
-        Objects.requireNonNull(eventBus, "eventBus must not be null");
-        Objects.requireNonNull(loader, "loader must not be null");
-        Objects.requireNonNull(changeBuffer, "changeBuffer must not be null");
-
+    public ProjectServiceImpl(@Nonnull ProjectRegistry registry, @Nonnull UriResolver uriResolver,
+                              @Nonnull EventSyncPubSubHolder eventBus, @Nonnull ProjectLoader loader,
+                              @Nonnull ChangeBuffer changeBuffer) {
         this.registry = registry;
         this.uriResolver = uriResolver;
         this.eventBus = eventBus;
@@ -155,9 +150,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     // =========================================================================
 
     @Override
-    public Project loadOrCreate(Path path, CancelChecker cancelChecker) {
-        Objects.requireNonNull(path, "path must not be null");
-
+    public Project loadOrCreate(@Nonnull Path path, CancelChecker cancelChecker) {
         Path normalized = path.toAbsolutePath().normalize();
 
         // Fast path: check if already cached in UriResolver
@@ -198,9 +191,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     @Override
-    public io.ballerina.projects.Module module(Path path, CancelChecker cancelChecker) {
-        Objects.requireNonNull(path, "path must not be null");
-
+    public io.ballerina.projects.Module module(@Nonnull Path path, CancelChecker cancelChecker) {
         Project project = loadOrCreate(path, cancelChecker);
         try {
             io.ballerina.projects.DocumentId documentId = project.documentId(path);
@@ -211,15 +202,12 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     @Override
-    public LockingMode getLockingMode(Project project) {
-        Objects.requireNonNull(project, "project must not be null");
+    public LockingMode getLockingMode(@Nonnull Project project) {
         return LockingMode.valueOf(project.buildOptions().lockingMode().name());
     }
 
     @Override
-    public void registerWorkspace(List<Path> workspaceFolders) {
-        Objects.requireNonNull(workspaceFolders, "workspaceFolders must not be null");
-
+    public void registerWorkspace(@Nonnull List<Path> workspaceFolders) {
         if (workspaceFolders.isEmpty()) {
             return; // No-op for empty list
         }
@@ -271,9 +259,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     // =========================================================================
 
     @Override
-    public void onCacheInvalidation(CacheInvalidationEvent event) {
-        Objects.requireNonNull(event, "event must not be null");
-
+    public void onCacheInvalidation(@Nonnull CacheInvalidationEvent event) {
         switch (event.type()) {
             case PROJECT_REMOVED -> {
                 if (event.affectedRoot() != null) {
@@ -385,9 +371,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         }
     }
 
-    boolean hasObservedCompilerSignal(SourceRoot root, EventKind signal) {
-        Objects.requireNonNull(root, "root must not be null");
-        Objects.requireNonNull(signal, "signal must not be null");
+    boolean hasObservedCompilerSignal(@Nonnull SourceRoot root, @Nonnull EventKind signal) {
         return observedCompilerSignals.getOrDefault(root, Collections.emptySet()).contains(signal);
     }
 
@@ -402,10 +386,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * @param target the target project kind; must not be null
      * @throws IllegalStateException if the kind transition is invalid
      */
-    public void transitionKind(SourceRoot root, ProjectKind target) {
-        Objects.requireNonNull(root, "root must not be null");
-        Objects.requireNonNull(target, "target must not be null");
-
+    public void transitionKind(@Nonnull SourceRoot root, @Nonnull ProjectKind target) {
         registry.get(root).ifPresent(project -> {
             project.transitionKind(target);
             publishWm(EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED, root);
@@ -492,10 +473,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     // =========================================================================
 
     @Override
-    public void didOpen(DocumentUri uri, String content) {
-        Objects.requireNonNull(uri, "uri must not be null");
-        Objects.requireNonNull(content, "content must not be null");
-
+    public void didOpen(@Nonnull DocumentUri uri, @Nonnull String content) {
         TextDocumentContentChangeEvent fullText = new TextDocumentContentChangeEvent(content);
         int version = versionCounters.computeIfAbsent(uri, k -> new AtomicInteger(0)).incrementAndGet();
         changeBuffer.append(uri, new BufferedChange(fullText, ChangeLayer.EDITOR, new ContentVersion(version)));
@@ -504,10 +482,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     @Override
-    public void didChange(DocumentUri uri, List<TextDocumentContentChangeEvent> changes) {
-        Objects.requireNonNull(uri, "uri must not be null");
-        Objects.requireNonNull(changes, "changes must not be null");
-
+    public void didChange(@Nonnull DocumentUri uri, @Nonnull List<TextDocumentContentChangeEvent> changes) {
         AtomicInteger counter = versionCounters.computeIfAbsent(uri, k -> new AtomicInteger(0));
         for (TextDocumentContentChangeEvent change : changes) {
             int version = counter.incrementAndGet();
@@ -518,9 +493,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     @Override
-    public void didClose(DocumentUri uri) {
-        Objects.requireNonNull(uri, "uri must not be null");
-
+    public void didClose(@Nonnull DocumentUri uri) {
         changeBuffer.clear(uri);
         versionCounters.remove(uri);
 
@@ -528,9 +501,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     @Override
-    public void didChangeWatchedFiles(List<FileEvent> events) {
-        Objects.requireNonNull(events, "events must not be null");
-
+    public void didChangeWatchedFiles(@Nonnull List<FileEvent> events) {
         for (FileEvent event : events) {
             try {
                 URI uri = URI.create(event.getUri());
@@ -557,9 +528,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      *
      * @param dependenciesTomlPath dependencies file path
      */
-    public void registerDependenciesTomlSelfWrite(Path dependenciesTomlPath) {
-        Objects.requireNonNull(dependenciesTomlPath, "dependenciesTomlPath must not be null");
-
+    public void registerDependenciesTomlSelfWrite(@Nonnull Path dependenciesTomlPath) {
         Path normalized = dependenciesTomlPath.toAbsolutePath().normalize();
         if (!isDependenciesToml(normalized)) {
             return;

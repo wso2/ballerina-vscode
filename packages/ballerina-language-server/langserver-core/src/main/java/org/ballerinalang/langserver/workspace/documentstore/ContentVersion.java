@@ -18,7 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.documentstore;
 
-import java.util.Objects;
+import javax.annotation.Nonnull;
 
 /**
  * Monotonically increasing content stamp for document updates.
@@ -69,8 +69,7 @@ public final class ContentVersion implements Comparable<ContentVersion> {
      * @return a negative integer, zero, or a positive integer
      */
     @Override
-    public int compareTo(ContentVersion other) {
-        Objects.requireNonNull(other, "other must not be null");
+    public int compareTo(@Nonnull ContentVersion other) {
         return Integer.compare(this.value, other.value);
     }
 

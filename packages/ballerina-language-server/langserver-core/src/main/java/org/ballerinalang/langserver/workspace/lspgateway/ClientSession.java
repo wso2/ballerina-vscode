@@ -18,12 +18,13 @@
 
 package org.ballerinalang.langserver.workspace.lspgateway;
 
+import javax.annotation.Nonnull;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.eclipse.lsp4j.ClientCapabilities;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Immutable session record for a connected LSP client.
@@ -36,9 +37,9 @@ import java.util.Objects;
  * @since 1.7.0
  */
 public record ClientSession(
-        ClientCapabilities clientCapabilities,
-        List<String> workspaceFolderUris,
-        String sessionId
+        @Nonnull ClientCapabilities clientCapabilities,
+        @Nonnull List<String> workspaceFolderUris,
+        @Nonnull String sessionId
 ) {
     /**
      * Compact constructor with validation.
@@ -47,8 +48,6 @@ public record ClientSession(
      * @throws IllegalArgumentException if sessionId is blank
      */
     public ClientSession {
-        Objects.requireNonNull(clientCapabilities, "clientCapabilities must not be null");
-        Objects.requireNonNull(workspaceFolderUris, "workspaceFolderUris must not be null");
         requireNonBlank(sessionId, "sessionId must not be blank");
 
         // Defensive copy of workspace folder URIs

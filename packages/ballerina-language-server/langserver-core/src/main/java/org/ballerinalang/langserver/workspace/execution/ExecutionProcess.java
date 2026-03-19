@@ -21,6 +21,8 @@ package org.ballerinalang.langserver.workspace.execution;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 
+import javax.annotation.Nonnull;
+
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
@@ -138,22 +140,22 @@ public final class ExecutionProcess {
      * @param terminationHook optional hook called during termination (for testing)
      * @param forcedKillHook optional hook called during forced kill (for testing)
      */
-    ExecutionProcess(ProcessId processId,
-                     SourceRoot sourceRoot,
-                     ExecutionMode executionMode,
-                     Path executablePath,
-                     GracePeriod gracePeriod,
-                     Process underlyingProcess,
-                     Consumer<StreamSource> outputConsumer,
+    ExecutionProcess(@Nonnull ProcessId processId,
+                     @Nonnull SourceRoot sourceRoot,
+                     @Nonnull ExecutionMode executionMode,
+                     @Nonnull Path executablePath,
+                     @Nonnull GracePeriod gracePeriod,
+                     @Nonnull Process underlyingProcess,
+                     @Nonnull Consumer<StreamSource> outputConsumer,
                      Consumer<ExecutionProcess> terminationHook,
                      Consumer<ExecutionProcess> forcedKillHook) {
-        this.processId = Objects.requireNonNull(processId, "processId must not be null");
-        this.sourceRoot = Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
-        this.executionMode = Objects.requireNonNull(executionMode, "executionMode must not be null");
-        this.executablePath = Objects.requireNonNull(executablePath, "executablePath must not be null");
-        this.gracePeriod = Objects.requireNonNull(gracePeriod, "gracePeriod must not be null");
-        this.underlyingProcess = Objects.requireNonNull(underlyingProcess, "underlyingProcess must not be null");
-        this.outputConsumer = Objects.requireNonNull(outputConsumer, "outputConsumer must not be null");
+        this.processId = processId;
+        this.sourceRoot = sourceRoot;
+        this.executionMode = executionMode;
+        this.executablePath = executablePath;
+        this.gracePeriod = gracePeriod;
+        this.underlyingProcess = underlyingProcess;
+        this.outputConsumer = outputConsumer;
         this.terminationHook = terminationHook;
         this.forcedKillHook = forcedKillHook;
         this.state = new AtomicReference<>(ProcessState.STARTING);
@@ -177,8 +179,7 @@ public final class ExecutionProcess {
      * @param reason reason for termination
      * @throws IllegalStateException if current state does not allow termination
      */
-    public void terminate(TerminationReason reason) {
-        Objects.requireNonNull(reason, "reason must not be null");
+    public void terminate(@Nonnull TerminationReason reason) {
         fsmLock.lock();
         try {
             ProcessState current = state.get();

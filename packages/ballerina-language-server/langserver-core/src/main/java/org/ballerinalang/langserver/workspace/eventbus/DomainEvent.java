@@ -19,7 +19,7 @@
 package org.ballerinalang.langserver.workspace.eventbus;
 
 import java.time.Instant;
-import java.util.Objects;
+import javax.annotation.Nonnull;
 
 /**
  * Base immutable domain event value routed through the event bus.
@@ -30,7 +30,8 @@ import java.util.Objects;
  * @param coalesceScope optional per-event coalesce scope, defaults to source context
  * @since 1.7.0
  */
-public record DomainEvent(Instant timestamp, String sourceContext, EventKind eventKind, String coalesceScope) {
+public record DomainEvent(@Nonnull Instant timestamp, String sourceContext, @Nonnull EventKind eventKind,
+        String coalesceScope) {
 
     /**
      * Creates a domain event where coalescing is scoped by {@code sourceContext}.
@@ -39,13 +40,11 @@ public record DomainEvent(Instant timestamp, String sourceContext, EventKind eve
      * @param sourceContext source context identifier
      * @param eventKind domain event kind
      */
-    public DomainEvent(Instant timestamp, String sourceContext, EventKind eventKind) {
+    public DomainEvent(@Nonnull Instant timestamp, String sourceContext, @Nonnull EventKind eventKind) {
         this(timestamp, sourceContext, eventKind, sourceContext);
     }
 
     public DomainEvent {
-        Objects.requireNonNull(timestamp, "timestamp must not be null");
-        Objects.requireNonNull(eventKind, "eventKind must not be null");
         requireText(sourceContext, "sourceContext must not be blank");
         requireText(coalesceScope, "coalesceScope must not be blank");
     }

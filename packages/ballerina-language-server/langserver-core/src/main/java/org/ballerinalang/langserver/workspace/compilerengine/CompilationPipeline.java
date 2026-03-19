@@ -25,6 +25,8 @@ import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 
+import javax.annotation.Nonnull;
+
 import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
@@ -105,12 +107,12 @@ public class CompilationPipeline implements AutoCloseable {
      * @param eventBus          event bus for domain event emission
      * @param compilationAction the actual compilation strategy
      */
-    public CompilationPipeline(SourceRoot sourceRoot, DualSnapshotStore snapshotStore,
-                                EventSyncPubSubHolder eventBus, CompilationAction compilationAction) {
-        this.sourceRoot = Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
-        this.snapshotStore = Objects.requireNonNull(snapshotStore, "snapshotStore must not be null");
-        this.eventBus = Objects.requireNonNull(eventBus, "eventBus must not be null");
-        this.compilationAction = Objects.requireNonNull(compilationAction, "compilationAction must not be null");
+    public CompilationPipeline(@Nonnull SourceRoot sourceRoot, @Nonnull DualSnapshotStore snapshotStore,
+                                @Nonnull EventSyncPubSubHolder eventBus, @Nonnull CompilationAction compilationAction) {
+        this.sourceRoot = sourceRoot;
+        this.snapshotStore = snapshotStore;
+        this.eventBus = eventBus;
+        this.compilationAction = compilationAction;
 
         String dirName = sourceRoot.path().getFileName().toString();
         this.debounceScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -135,8 +137,7 @@ public class CompilationPipeline implements AutoCloseable {
      *
      * @param contentVersion the version to compile
      */
-    public void requestCompilation(ContentVersion contentVersion) {
-        Objects.requireNonNull(contentVersion, "contentVersion must not be null");
+    public void requestCompilation(@Nonnull ContentVersion contentVersion) {
         if (closed.get()) {
             return;
         }

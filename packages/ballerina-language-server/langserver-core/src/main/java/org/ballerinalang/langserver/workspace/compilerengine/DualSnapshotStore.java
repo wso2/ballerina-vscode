@@ -31,6 +31,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.Nonnull;
+
 /**
  * Thread-safe per-source-root store for stable and in-progress snapshots.
  *
@@ -55,8 +57,7 @@ public class DualSnapshotStore {
      * @param sourceRoot the source root identity
      * @return the latest stable snapshot, or {@code null} when none has been published
      */
-    public StableSnapshot getStable(SourceRoot sourceRoot) {
-        Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
+    public StableSnapshot getStable(@Nonnull SourceRoot sourceRoot) {
         SnapshotPair snapshotPair = snapshots.get(sourceRoot);
         return snapshotPair == null ? null : snapshotPair.stableSnapshot();
     }
@@ -67,8 +68,7 @@ public class DualSnapshotStore {
      * @param sourceRoot the source root identity
      * @return the active in-progress snapshot, or {@code null} when none is running
      */
-    public InProgressSnapshot getInProgress(SourceRoot sourceRoot) {
-        Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
+    public InProgressSnapshot getInProgress(@Nonnull SourceRoot sourceRoot) {
         SnapshotPair snapshotPair = snapshots.get(sourceRoot);
         return snapshotPair == null ? null : snapshotPair.inProgressSnapshot();
     }
@@ -79,8 +79,7 @@ public class DualSnapshotStore {
      * @param sourceRoot the source root identity
      * @return the newly created in-progress snapshot
      */
-    public InProgressSnapshot startCompilation(SourceRoot sourceRoot) {
-        Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
+    public InProgressSnapshot startCompilation(@Nonnull SourceRoot sourceRoot) {
         SnapshotPair snapshotPair = snapshots.computeIfAbsent(sourceRoot, ignored -> new SnapshotPair());
         return snapshotPair.startCompilation();
     }
@@ -91,9 +90,7 @@ public class DualSnapshotStore {
      * @param sourceRoot the source root identity
      * @param stableSnapshot the stable snapshot to publish
      */
-    public void publishStable(SourceRoot sourceRoot, StableSnapshot stableSnapshot) {
-        Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
-        Objects.requireNonNull(stableSnapshot, "stableSnapshot must not be null");
+    public void publishStable(@Nonnull SourceRoot sourceRoot, @Nonnull StableSnapshot stableSnapshot) {
         SnapshotPair snapshotPair = snapshots.computeIfAbsent(sourceRoot, ignored -> new SnapshotPair());
         snapshotPair.publishStable(stableSnapshot);
     }
@@ -103,8 +100,7 @@ public class DualSnapshotStore {
      *
      * @param sourceRoot the source root identity
      */
-    public void cancelInProgress(SourceRoot sourceRoot) {
-        Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
+    public void cancelInProgress(@Nonnull SourceRoot sourceRoot) {
         SnapshotPair snapshotPair = snapshots.get(sourceRoot);
         if (snapshotPair != null) {
             snapshotPair.cancelInProgress();
@@ -116,8 +112,7 @@ public class DualSnapshotStore {
      *
      * @param sourceRoot the source root identity
      */
-    public void remove(SourceRoot sourceRoot) {
-        Objects.requireNonNull(sourceRoot, "sourceRoot must not be null");
+    public void remove(@Nonnull SourceRoot sourceRoot) {
         SnapshotPair snapshotPair = snapshots.remove(sourceRoot);
         if (snapshotPair != null) {
             snapshotPair.cancelInProgress();
@@ -140,8 +135,7 @@ public class DualSnapshotStore {
         }
 
         @Override
-        public SyntaxTree syntaxTree(DocumentId docId) {
-            Objects.requireNonNull(docId, "docId must not be null");
+        public SyntaxTree syntaxTree(@Nonnull DocumentId docId) {
             if (fallbackStableSnapshot == null) {
                 return null;
             }
@@ -154,9 +148,7 @@ public class DualSnapshotStore {
         }
 
         @Override
-        public CompletableFuture<SemanticModel> semanticModel(ModuleId moduleId, CancelChecker checker) {
-            Objects.requireNonNull(moduleId, "moduleId must not be null");
-            Objects.requireNonNull(checker, "checker must not be null");
+        public CompletableFuture<SemanticModel> semanticModel(@Nonnull ModuleId moduleId, @Nonnull CancelChecker checker) {
             checker.checkCanceled();
             CompletableFuture<SemanticModel> semanticFuture = new CompletableFuture<>();
             publishedStableSnapshot.whenComplete((snapshot, error) -> {
@@ -175,8 +167,7 @@ public class DualSnapshotStore {
         }
 
         @Override
-        public CompletableFuture<PackageCompilation> compilation(CancelChecker checker) {
-            Objects.requireNonNull(checker, "checker must not be null");
+        public CompletableFuture<PackageCompilation> compilation(@Nonnull CancelChecker checker) {
             checker.checkCanceled();
             return compilationFuture;
         }

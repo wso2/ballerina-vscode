@@ -18,18 +18,18 @@
 
 package org.ballerinalang.langserver.workspace.execution;
 
+import javax.annotation.Nonnull;
+
 import java.time.Duration;
-import java.util.Objects;
 
 /**
  * Wraps process termination grace-period duration.
  *
  * @since 1.7.0
  */
-public record GracePeriod(Duration duration) {
+public record GracePeriod(@Nonnull Duration duration) {
 
     public GracePeriod {
-        Objects.requireNonNull(duration, "duration must not be null");
     }
 
     /**

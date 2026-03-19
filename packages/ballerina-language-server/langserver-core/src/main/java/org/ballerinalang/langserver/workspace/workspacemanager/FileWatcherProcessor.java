@@ -28,7 +28,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+
+import javax.annotation.Nonnull;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -96,10 +97,11 @@ public final class FileWatcherProcessor {
      * @param watchEventHandler per-event handler
      * @param debounceMillis debounce window in milliseconds
      */
-    public FileWatcherProcessor(Function<Path, Path> projectRootResolver, WatchEventHandler watchEventHandler,
+    public FileWatcherProcessor(@Nonnull Function<Path, Path> projectRootResolver,
+                                @Nonnull WatchEventHandler watchEventHandler,
                                 long debounceMillis) {
-        this.projectRootResolver = Objects.requireNonNull(projectRootResolver, "projectRootResolver must not be null");
-        this.watchEventHandler = Objects.requireNonNull(watchEventHandler, "watchEventHandler must not be null");
+        this.projectRootResolver = projectRootResolver;
+        this.watchEventHandler = watchEventHandler;
         if (debounceMillis <= 0) {
             throw new IllegalArgumentException("debounceMillis must be positive");
         }
@@ -112,8 +114,7 @@ public final class FileWatcherProcessor {
      *
      * @param event file event
      */
-    public void submit(FileEvent event) {
-        Objects.requireNonNull(event, "event must not be null");
+    public void submit(@Nonnull FileEvent event) {
         queueLock.lock();
         try {
             if (pendingEvents.size() >= MAX_PENDING_EVENTS) {
