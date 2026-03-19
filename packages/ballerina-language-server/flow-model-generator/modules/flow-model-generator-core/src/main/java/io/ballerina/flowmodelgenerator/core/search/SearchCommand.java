@@ -55,6 +55,8 @@ public abstract class SearchCommand {
     final DefaultViewHolder defaultViewHolder;
 
     protected static final String DATA_MAPPER_FILE_NAME = "data_mappings.bal";
+    protected static final String CURRENT_INTEGRATION_INDICATOR = " (Current Integration)";
+
     private static final Gson GSON = new Gson();
     private static final int DEFAULT_LIMIT = 20;
     private static final int DEFAULT_OFFSET = 0;

@@ -164,7 +164,7 @@ public class SearchDatabaseManager {
                             p.package_name,
                             p.org AS package_org,
                             p.version AS package_version,
-                            1.0 AS rank
+                            100000000.0 AS rank
                         FROM Function AS f
                         JOIN Package AS p ON f.package_id = p.id
                         WHERE f.name LIKE ? COLLATE NOCASE
