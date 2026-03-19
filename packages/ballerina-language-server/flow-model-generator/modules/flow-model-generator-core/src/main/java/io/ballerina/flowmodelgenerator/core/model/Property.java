@@ -32,6 +32,7 @@ import io.ballerina.compiler.syntax.tree.BindingPatternNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FieldBindingPatternFullNode;
 import io.ballerina.compiler.syntax.tree.ListBindingPatternNode;
+import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
@@ -786,12 +787,17 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         private void handleListValue(TypeSymbol typeSymbol, ModuleInfo moduleInfo, Builder<?> builder,
                                     Node value, SemanticModel semanticModel,
                                     DiagnosticHandler diagnosticHandler) {
-            Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
-            if (paramType.isEmpty() || !(value instanceof ListBindingPatternNode bindingPatternNode)) {
+            // Determine list elements based on node type
+            Iterable<? extends Node> elements;
+            if (value instanceof ListBindingPatternNode bindingPatternNode) {
+                elements = bindingPatternNode.bindingPatterns();
+            } else if (value instanceof ListConstructorExpressionNode listCtrExprNode) {
+                elements = listCtrExprNode.expressions();
+            } else {
                 return;
             }
 
-            TypeSymbol actualParamType = paramType.get();
+            Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
 
             // Collect candidate array type symbols
             List<TypeSymbol> candidateArrayTypes = new ArrayList<>();
@@ -803,13 +809,20 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 candidateArrayTypes.add(typeSymbol);
             }
 
-            // Find the matching type symbol that is a subtype of the parameter type
-            TypeSymbol matchingType = candidateArrayTypes.stream()
-                    .filter(candidate -> candidate.subtypeOf(actualParamType))
-                    .findFirst()
-                    .orElse(null);
-
-            if (matchingType == null) {
+            // Find the matching type symbol that is a subtype of the parameter type.
+            // When the inferred type is unavailable or a compilation error, skip the subtype check
+            // and use the declared type directly.
+            if (paramType.isPresent()
+                    && paramType.get().typeKind() != TypeDescKind.COMPILATION_ERROR) {
+                TypeSymbol actualParamType = paramType.get();
+                TypeSymbol matchingType = candidateArrayTypes.stream()
+                        .filter(candidate -> candidate.subtypeOf(actualParamType))
+                        .findFirst()
+                        .orElse(null);
+                if (matchingType == null) {
+                    return;
+                }
+            } else if (candidateArrayTypes.isEmpty()) {
                 return;
             }
 
@@ -828,21 +841,19 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                             return;
                         }
 
-                        // Build value list from binding pattern nodes
+                        // Build value list from list elements
                         List<Property> valueList = new ArrayList<>();
-                        SeparatedNodeList<BindingPatternNode> bindingPatterns = bindingPatternNode.bindingPatterns();
-
-                        for (BindingPatternNode bindingNode : bindingPatterns) {
-                            String bindingValue = bindingNode.toSourceCode().trim();
+                        for (Node elementNode : elements) {
+                            String elementValue = elementNode.toSourceCode().trim();
 
                             Builder<Object> templateBuilder = createPropertyBuilderFrom(template);
                             templateBuilder.types.stream()
                                     .filter(pt -> pt.fieldType() == ValueType.EXPRESSION)
                                     .findFirst()
                                     .ifPresent(pt -> pt.selected(true));
-                            templateBuilder.value(bindingValue);
+                            templateBuilder.value(elementValue);
                             if (diagnosticHandler != null) {
-                                diagnosticHandler.handle(templateBuilder, bindingNode.lineRange(), true);
+                                diagnosticHandler.handle(templateBuilder, elementNode.lineRange(), true);
                             }
 
                             valueList.add(templateBuilder.build());
