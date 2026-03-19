@@ -26,12 +26,12 @@ import { useDiagramContext } from "../../DiagramContext";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { nodeHasError } from "../../../utils/node";
-import { WaitEventNodeModel } from "./WaitEventNodeModel";
+import { WaitDataNodeModel } from "./WaitDataNodeModel";
 import {
-    WAIT_EVENT_ARROW_WIDTH,
-    WAIT_EVENT_CIRCLE_SIZE,
-    WAIT_EVENT_DETAILS_GAP,
-    WAIT_EVENT_DETAILS_WIDTH,
+    WAIT_DATA_ARROW_WIDTH,
+    WAIT_DATA_CIRCLE_SIZE,
+    WAIT_DATA_DETAILS_GAP,
+    WAIT_DATA_DETAILS_WIDTH,
 } from "../../../resources/constants";
 
 const EXTERNAL_DOT_RADIUS = 4;
@@ -74,8 +74,8 @@ export namespace NodeStyles {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: ${WAIT_EVENT_CIRCLE_SIZE}px;
-        height: ${WAIT_EVENT_CIRCLE_SIZE}px;
+        width: ${WAIT_DATA_CIRCLE_SIZE}px;
+        height: ${WAIT_DATA_CIRCLE_SIZE}px;
         border-radius: 50%;
         border: 2px solid
             ${(props: NodeStyleProp) =>
@@ -96,9 +96,9 @@ export namespace NodeStyles {
         align-items: center;
         justify-content: space-between;
         gap: 8px;
-        width: ${WAIT_EVENT_DETAILS_WIDTH}px;
-        height: ${WAIT_EVENT_CIRCLE_SIZE}px;
-        margin-left: ${WAIT_EVENT_DETAILS_GAP}px;
+        width: ${WAIT_DATA_DETAILS_WIDTH}px;
+        height: ${WAIT_DATA_CIRCLE_SIZE}px;
+        margin-left: ${WAIT_DATA_DETAILS_GAP}px;
         min-width: 0;
     `;
 
@@ -139,13 +139,13 @@ export namespace NodeStyles {
     `;
 }
 
-interface WaitEventNodeWidgetProps {
-    model: WaitEventNodeModel;
+interface WaitDataNodeWidgetProps {
+    model: WaitDataNodeModel;
     engine: DiagramEngine;
     onClick?: (node: FlowNode) => void;
 }
 
-export function WaitEventNodeWidget(props: WaitEventNodeWidgetProps) {
+export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
     const { model, engine, onClick } = props;
     const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly, selectedNodeId } =
         useDiagramContext();
@@ -159,16 +159,16 @@ export function WaitEventNodeWidget(props: WaitEventNodeWidgetProps) {
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
     const hasError = nodeHasError(model.node);
-    const nodeTitle = model.node.metadata.label || "Wait Event";
+    const nodeTitle = model.node.metadata.label || "Wait Data";
     const nodeSubtitle =
         (model.node.properties?.variable?.value as string) ||
         (model.node.properties?.type?.value as string) ||
         "";
 
     // Compute layout positions for the external arrow SVG
-    const circleRadius = WAIT_EVENT_CIRCLE_SIZE / 2;
-    const svgWidth = model.node.viewState?.lw ? model.node.viewState.lw - circleRadius : WAIT_EVENT_ARROW_WIDTH;
-    const svgHeight = WAIT_EVENT_CIRCLE_SIZE;
+    const circleRadius = WAIT_DATA_CIRCLE_SIZE / 2;
+    const svgWidth = model.node.viewState?.lw ? model.node.viewState.lw - circleRadius : WAIT_DATA_ARROW_WIDTH;
+    const svgHeight = WAIT_DATA_CIRCLE_SIZE;
     const svgMidY = svgHeight / 2;
     const dotCx = EXTERNAL_DOT_RADIUS + EXTERNAL_DOT_STROKE;
     const lineX1 = dotCx + EXTERNAL_DOT_RADIUS + 4;

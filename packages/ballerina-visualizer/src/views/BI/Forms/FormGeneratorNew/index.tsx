@@ -210,12 +210,6 @@ export function FormGeneratorNew(props: FormProps) {
             ...prevState,
             field: editingField,
         }));
-        const isWorkflowInputType = getPrimaryInputType(editingField?.types)?.fieldType === "WORKFLOW_INPUT_TYPE";
-        if (isWorkflowInputType) {
-            setIsTypeEditorOpen(open);
-            setEditingTypeName(typeName || "");
-            return;
-        }
         setIsTypeEditorOpen(open);
         if (typeName) {
             setEditingTypeName(typeName);
@@ -773,9 +767,7 @@ export function FormGeneratorNew(props: FormProps) {
         const typeHelperContext = isGraphqlEditor ?
             (fieldKey === 'returnType' ? TypeHelperContext.GRAPHQL_FIELD_TYPE
                 : TypeHelperContext.GRAPHQL_INPUT_TYPE)
-            : (getPrimaryInputType(formField?.types)?.fieldType === "WORKFLOW_INPUT_TYPE"
-                ? TypeHelperContext.WORKFLOW_INPUT_TYPE
-                : TypeHelperContext.HTTP_STATUS_CODE);
+            : TypeHelperContext.HTTP_STATUS_CODE;
 
         return getTypeHelper({
             fieldKey: fieldKey,

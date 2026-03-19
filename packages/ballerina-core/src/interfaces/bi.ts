@@ -159,7 +159,6 @@ export type FormFieldInputType = "TEXT" |
     "RECORD_FIELD_SELECTOR" |
     "SQL_QUERY" |
     "CLAUSE_EXPRESSION" |
-    "WORKFLOW_INPUT_TYPE" |
     "SLIDER" |
     "HEADER_SET" |
     "DROPDOWN_CHOICE" |
@@ -571,16 +570,16 @@ export type NodeKind =
     | "RETURN"
     | "RETRY"
     | "ROLLBACK"
-    | "SEND_EVENT"
+    | "SEND_DATA"
     | "START"
     | "STOP"
     | "TRANSACTION"
     | "UPDATE_DATA"
     | "WAIT"
-    | "WAIT_EVENT"
+    | "WAIT_DATA"
     | "WHILE"
     | "WORKFLOW"
-    | "WORKFLOW_START"
+    | "WORKFLOW_RUN"
     | "WORKER"
     | "VARIABLE";
 

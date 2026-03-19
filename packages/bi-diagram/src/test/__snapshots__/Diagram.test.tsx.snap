@@ -8685,7 +8685,7 @@ exports[`BI Diagram - Snapshot Tests renders all nodes flow correctly: all-nodes
                   <div
                     class="css-29"
                   >
-                    Wait
+                    wait : worker1
                   </div>
                   <div
                     class="css-30"

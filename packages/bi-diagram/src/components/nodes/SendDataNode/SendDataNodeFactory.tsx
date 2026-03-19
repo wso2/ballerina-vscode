@@ -20,19 +20,19 @@ import React from "react";
 import { AbstractReactFactory, GenerateModelEvent, GenerateWidgetEvent } from "@projectstorm/react-canvas-core";
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import { NodeTypes } from "../../../resources/constants";
-import { WaitEventNodeModel } from "./WaitEventNodeModel";
-import { WaitEventNodeWidget } from "./WaitEventNodeWidget";
+import { SendDataNodeModel } from "./SendDataNodeModel";
+import { SendDataNodeWidget } from "./SendDataNodeWidget";
 
-export class WaitEventNodeFactory extends AbstractReactFactory<WaitEventNodeModel, DiagramEngine> {
+export class SendDataNodeFactory extends AbstractReactFactory<SendDataNodeModel, DiagramEngine> {
     constructor() {
-        super(NodeTypes.WAIT_EVENT_NODE);
+        super(NodeTypes.SEND_DATA_NODE);
     }
 
-    generateModel(event: GenerateModelEvent): WaitEventNodeModel {
-        return new WaitEventNodeModel(event.initialConfig);
+    generateModel(event: GenerateModelEvent): SendDataNodeModel {
+        return new SendDataNodeModel(event.initialConfig);
     }
 
-    generateReactWidget(event: GenerateWidgetEvent<WaitEventNodeModel>) {
-        return <WaitEventNodeWidget engine={this.engine} model={event.model} />;
+    generateReactWidget(event: GenerateWidgetEvent<SendDataNodeModel>) {
+        return <SendDataNodeWidget engine={this.engine} model={event.model} />;
     }
 }

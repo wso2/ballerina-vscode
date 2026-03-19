@@ -45,8 +45,8 @@ import {
     BISearchNodesResponse,
     BISearchRequest,
     BISearchResponse,
-    WorkflowEventsRequest,
-    WorkflowEventsResponse,
+    WorkflowDataRequest,
+    WorkflowDataResponse,
     BISourceCodeRequest,
     BreakpointRequest,
     BuildMode,
@@ -200,7 +200,7 @@ import {
     renameIdentifier,
     runProject,
     search,
-    getAllEvents,
+    getAllData,
     searchNodes,
     updateClassField,
     updateConfigVariablesV2,
@@ -507,8 +507,8 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(search, HOST_EXTENSION, params);
     }
 
-    getAllEvents(params: WorkflowEventsRequest): Promise<WorkflowEventsResponse> {
-        return this._messenger.sendRequest(getAllEvents, HOST_EXTENSION, params);
+    getAllData(params: WorkflowDataRequest): Promise<WorkflowDataResponse> {
+        return this._messenger.sendRequest(getAllData, HOST_EXTENSION, params);
     }
 
     searchNodes(params: BISearchNodesRequest): Promise<BISearchNodesResponse> {

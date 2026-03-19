@@ -20,19 +20,19 @@ import React from "react";
 import { AbstractReactFactory, GenerateModelEvent, GenerateWidgetEvent } from "@projectstorm/react-canvas-core";
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import { NodeTypes } from "../../../resources/constants";
-import { SendEventNodeModel } from "./SendEventNodeModel";
-import { SendEventNodeWidget } from "./SendEventNodeWidget";
+import { WorkflowRunNodeModel } from "./WorkflowRunNodeModel";
+import { WorkflowRunNodeWidget } from "./WorkflowRunNodeWidget";
 
-export class SendEventNodeFactory extends AbstractReactFactory<SendEventNodeModel, DiagramEngine> {
+export class WorkflowRunNodeFactory extends AbstractReactFactory<WorkflowRunNodeModel, DiagramEngine> {
     constructor() {
-        super(NodeTypes.SEND_EVENT_NODE);
+        super(NodeTypes.WORKFLOW_RUN_NODE);
     }
 
-    generateModel(event: GenerateModelEvent): SendEventNodeModel {
-        return new SendEventNodeModel(event.initialConfig);
+    generateModel(event: GenerateModelEvent): WorkflowRunNodeModel {
+        return new WorkflowRunNodeModel(event.initialConfig);
     }
 
-    generateReactWidget(event: GenerateWidgetEvent<SendEventNodeModel>) {
-        return <SendEventNodeWidget engine={this.engine} model={event.model} />;
+    generateReactWidget(event: GenerateWidgetEvent<WorkflowRunNodeModel>) {
+        return <WorkflowRunNodeWidget engine={this.engine} model={event.model} />;
     }
 }

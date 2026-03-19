@@ -48,8 +48,8 @@ import {
     BISearchNodesResponse,
     BISearchRequest,
     BISearchResponse,
-    WorkflowEventsRequest,
-    WorkflowEventsResponse,
+    WorkflowDataRequest,
+    WorkflowDataResponse,
     BISourceCodeRequest,
     BISourceCodeResponse,
     BISuggestedFlowModelRequest,
@@ -1937,14 +1937,14 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
-    async getAllEvents(params: WorkflowEventsRequest): Promise<WorkflowEventsResponse> {
+    async getAllData(params: WorkflowDataRequest): Promise<WorkflowDataResponse> {
         return new Promise((resolve, reject) => {
-            console.log(">>> requesting workflowManager/getAllEvents from ls", params);
-            StateMachine.langClient().getAllEvents(params).then((res) => {
-                console.log(">>> workflowManager/getAllEvents response from ls", res);
+            console.log(">>> requesting workflowManager/getAllData from ls", params);
+            StateMachine.langClient().getAllData(params).then((res) => {
+                console.log(">>> workflowManager/getAllData response from ls", res);
                 resolve(res);
             }).catch((error) => {
-                console.log(">>> error fetching workflow events", error);
+                console.log(">>> error fetching workflow data", error);
                 reject(error);
             });
         });

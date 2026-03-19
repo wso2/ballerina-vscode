@@ -36,11 +36,11 @@ import {
     NODE_WIDTH,
     PROMPT_NODE_HEIGHT,
     PROMPT_NODE_WIDTH,
-    WAIT_EVENT_CORE_HEIGHT,
-    WAIT_EVENT_CORE_WIDTH,
-    WAIT_EVENT_ARROW_WIDTH,
-    WAIT_EVENT_DETAILS_GAP,
-    WAIT_EVENT_DETAILS_WIDTH,
+    WAIT_DATA_CORE_HEIGHT,
+    WAIT_DATA_CORE_WIDTH,
+    WAIT_DATA_ARROW_WIDTH,
+    WAIT_DATA_DETAILS_GAP,
+    WAIT_DATA_DETAILS_WIDTH,
     WHILE_NODE_WIDTH,
 } from "../resources/constants";
 import { reverseCustomNodeId } from "../utils/node";
@@ -105,12 +105,12 @@ export class SizingVisitor implements BaseVisitor {
         this.setNodeSize(node, containerLeftWidth, containerRightWidth, containerHeight);
     }
 
-    private createWaitEventNode(node: FlowNode): void {
-        const halfCircle = WAIT_EVENT_CORE_WIDTH / 2;
-        const leftWidth = halfCircle + WAIT_EVENT_ARROW_WIDTH;
+    private createWaitDataNode(node: FlowNode): void {
+        const halfCircle = WAIT_DATA_CORE_WIDTH / 2;
+        const leftWidth = halfCircle + WAIT_DATA_ARROW_WIDTH;
         const containerLeftWidth = leftWidth;
-        const containerRightWidth = halfCircle + WAIT_EVENT_DETAILS_GAP + WAIT_EVENT_DETAILS_WIDTH;
-        const containerHeight = WAIT_EVENT_CORE_HEIGHT;
+        const containerRightWidth = halfCircle + WAIT_DATA_DETAILS_GAP + WAIT_DATA_DETAILS_WIDTH;
+        const containerHeight = WAIT_DATA_CORE_HEIGHT;
         this.setNodeSize(
             node,
             leftWidth,
@@ -267,7 +267,7 @@ export class SizingVisitor implements BaseVisitor {
         this.createApiCallNode(node);
     }
 
-    endVisitWorkflowStart(node: FlowNode, parent?: FlowNode): void {
+    endVisitWorkflowRun(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         this.createBaseNode(node);
     }
@@ -277,7 +277,7 @@ export class SizingVisitor implements BaseVisitor {
         this.createBaseNode(node);
     }
 
-    endVisitSendEvent(node: FlowNode, parent?: FlowNode): void {
+    endVisitSendData(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         this.createApiCallNode(node);
     }
@@ -491,9 +491,9 @@ export class SizingVisitor implements BaseVisitor {
         this.createBlockNode(node);
     }
 
-    endVisitWaitEvent(node: FlowNode, parent?: FlowNode): void {
+    endVisitWaitData(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
-        this.createWaitEventNode(node);
+        this.createWaitDataNode(node);
     }
 
     endVisitNpFunction(node: FlowNode, parent?: FlowNode): void {

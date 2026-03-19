@@ -16,11 +16,34 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useState } from "react";
+import styled from "@emotion/styled";
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
+import { ThemeColors } from "@wso2/ui-toolkit";
 import { BaseNodeWidget } from "../BaseNode";
 import { CallActivityNodeModel } from "./CallActivityNodeModel";
 import { FlowNode } from "../../../utils/types";
+import { NODE_BORDER_WIDTH, NODE_WIDTH } from "../../../resources/constants";
+import { useDiagramContext } from "../../DiagramContext";
+import { nodeHasError } from "../../../utils/node";
+
+namespace CallActivityStyles {
+    export const Wrapper = styled.div`
+        position: relative;
+        width: ${NODE_WIDTH}px;
+    `;
+
+    export const Stripe = styled.div<{ side: "left" | "right"; color: string }>`
+        position: absolute;
+        top: 3px;
+        bottom: 3px;
+        width: ${NODE_BORDER_WIDTH}px;
+        background-color: ${({ color }) => color};
+        pointer-events: none;
+        z-index: 1;
+        ${({ side }) => (side === "left" ? "left: 8px;" : "right: 8px;")}
+    `;
+}
 
 interface CallActivityNodeWidgetProps {
     model: CallActivityNodeModel;
@@ -29,5 +52,26 @@ interface CallActivityNodeWidgetProps {
 }
 
 export function CallActivityNodeWidget(props: CallActivityNodeWidgetProps) {
-    return <BaseNodeWidget {...props} />;
+    const { model } = props;
+    const { selectedNodeId, readOnly } = useDiagramContext();
+    const [isHovered, setIsHovered] = useState(false);
+    const isSelected = selectedNodeId === model.node.id;
+    const isDisabled = model.node.suggested;
+    const hasError = nodeHasError(model.node);
+
+    const stripeColor = hasError
+        ? ThemeColors.ERROR
+        : isSelected && !isDisabled
+            ? ThemeColors.SECONDARY
+            : isHovered && !isDisabled && !readOnly
+                ? ThemeColors.SECONDARY
+                : ThemeColors.OUTLINE_VARIANT;
+
+    return (
+        <CallActivityStyles.Wrapper onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+            <BaseNodeWidget {...props} />
+            <CallActivityStyles.Stripe side="left" color={stripeColor} />
+            <CallActivityStyles.Stripe side="right" color={stripeColor} />
+        </CallActivityStyles.Wrapper>
+    );
 }

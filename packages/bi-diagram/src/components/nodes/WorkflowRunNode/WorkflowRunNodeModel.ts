@@ -16,5 +16,13 @@
  * under the License.
  */
 
-export * from "./SendEventNodeFactory";
-export * from "./SendEventNodeModel";
+import { FlowNode } from "../../../utils/types";
+import { NodeTypes } from "../../../resources/constants";
+import { BaseNodeModel } from "../BaseNode";
+
+export class WorkflowRunNodeModel extends BaseNodeModel {
+    constructor(node: FlowNode) {
+        super(node);
+        this.getOptions().type = NodeTypes.WORKFLOW_RUN_NODE;
+    }
+}

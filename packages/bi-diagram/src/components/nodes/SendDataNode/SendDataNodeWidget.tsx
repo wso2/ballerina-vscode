@@ -19,7 +19,7 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import { Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
-import { SendEventNodeModel } from "./SendEventNodeModel";
+import { SendDataNodeModel } from "./SendDataNodeModel";
 import { FlowNode } from "../../../utils/types";
 import { MoreVertIcon } from "../../../resources";
 import NodeIcon from "../../NodeIcon";
@@ -34,17 +34,17 @@ import {
     NODE_HEIGHT,
 } from "../../../resources/constants";
 
-// External dot dimensions (matching WaitEventNode's input dot)
+// External dot dimensions (matching WaitDataNode's input dot)
 const DOT_RADIUS = 5;
 const DOT_STROKE = 2.5;
 
-interface SendEventNodeWidgetProps {
-    model: SendEventNodeModel;
+interface SendDataNodeWidgetProps {
+    model: SendDataNodeModel;
     engine: DiagramEngine;
     onClick?: (node: FlowNode) => void;
 }
 
-export function SendEventNodeWidget(props: SendEventNodeWidgetProps) {
+export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
     const { model, engine, onClick } = props;
     const { onNodeSelect, onConnectionSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly, selectedNodeId } =
         useDiagramContext();
@@ -258,7 +258,7 @@ export function SendEventNodeWidget(props: SendEventNodeWidgetProps) {
                     strokeDasharray="5 3"
                     markerEnd={`url(#${model.node.id}-send-arrow)`}
                 />
-                {/* Small open circle (matching WaitEvent input dot) */}
+                {/* Small open circle (matching WaitData input dot) */}
                 <circle
                     cx={dotCx}
                     cy={lineY}

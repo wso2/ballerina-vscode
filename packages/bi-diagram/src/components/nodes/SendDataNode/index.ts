@@ -16,13 +16,5 @@
  * under the License.
  */
 
-import { FlowNode } from "../../../utils/types";
-import { NodeTypes } from "../../../resources/constants";
-import { BaseNodeModel } from "../BaseNode";
-
-export class WaitEventNodeModel extends BaseNodeModel {
-    constructor(node: FlowNode) {
-        super(node);
-        this.getOptions().type = NodeTypes.WAIT_EVENT_NODE;
-    }
-}
+export * from "./SendDataNodeFactory";
+export * from "./SendDataNodeModel";
