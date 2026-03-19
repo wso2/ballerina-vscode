@@ -25,6 +25,7 @@ import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
+import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -66,6 +67,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -114,11 +116,14 @@ public class AvailableNodesGenerator {
         this.filePath = filePath;
     }
 
-    public JsonArray getAvailableNodes(boolean disableBallerinaAiNodes, LinePosition position) {
+    public JsonArray getAvailableNodes(boolean disableBallerinaAiNodes, LinePosition position,
+                                       Map<String, String> queryMap) {
+        boolean checkAgentToolCompatibility = queryMap != null
+                && "true".equals(queryMap.get("checkAgentToolCompatibility"));
         List<Category> connections = new ArrayList<>();
         List<Symbol> symbols = semanticModel.visibleSymbols(document, position);
         for (Symbol symbol : symbols) {
-            Optional<Category> connection = getConnection(symbol);
+            Optional<Category> connection = getConnection(symbol, checkAgentToolCompatibility);
             if (connection.isEmpty()) {
                 continue;
             }
@@ -145,7 +150,7 @@ public class AvailableNodesGenerator {
     }
 
     public JsonArray getAvailableNodes(LinePosition position) {
-        return getAvailableNodes(true, position);
+        return getAvailableNodes(true, position, null);
     }
 
     public JsonArray getAvailableAgents(LinePosition position) {
@@ -442,12 +447,17 @@ public class AvailableNodesGenerator {
         return typeSymbol.isEmpty() || typeSymbol.get().subtypeOf(semanticModel.types().NIL);
     }
 
-    private Optional<Category> getConnection(Symbol symbol) {
+    private Optional<Category> getConnection(Symbol symbol, boolean checkAgentToolCompatibility) {
         return getCategory(symbol, classSymbol -> classSymbol.qualifiers().contains(Qualifier.CLIENT) &&
-                !isAiModelProvider(classSymbol) && !isAiEmbeddingProvider(classSymbol));
+                !isAiModelProvider(classSymbol) && !isAiEmbeddingProvider(classSymbol), checkAgentToolCompatibility);
     }
 
     private Optional<Category> getCategory(Symbol symbol, Predicate<ClassSymbol> condition) {
+        return getCategory(symbol, condition, false);
+    }
+
+    private Optional<Category> getCategory(Symbol symbol, Predicate<ClassSymbol> condition,
+                                           boolean checkAgentToolCompatibility) {
         try {
             TypeReferenceTypeSymbol typeDescriptorSymbol;
             if (symbol instanceof VariableSymbol variableSymbol) {
@@ -483,6 +493,23 @@ public class AvailableNodesGenerator {
             // Obtain methods of the classes
             List<FunctionData> methodFunctionsData = functionDataBuilder.buildChildNodes();
 
+            // Compute tool compatibility for each method using the semantic model (only when requested)
+            if (checkAgentToolCompatibility) {
+                Map<String, MethodSymbol> classMethodSymbols = classSymbol.methods();
+                for (FunctionData methodFunction : methodFunctionsData) {
+                    MethodSymbol methodSymbol = classMethodSymbols.get(methodFunction.name());
+                    if (methodSymbol != null) {
+                        try {
+                            AiUtils.AgentToolCompatibility toolCompat = AiUtils.checkAgentToolCompatibility(
+                                    methodSymbol.qualifiers(), methodSymbol.typeDescriptor(), semanticModel);
+                            methodFunction.setAgentToolCompatible(toolCompat.compatible());
+                        } catch (Throwable ignored) {
+                            // Default to false on failure
+                        }
+                    }
+                }
+            }
+
             List<Item> methods = new ArrayList<>();
             for (FunctionData methodFunction : methodFunctionsData) {
                 String org = methodFunction.org();
@@ -515,7 +542,7 @@ public class AvailableNodesGenerator {
                     }
                 }
 
-                Item node = nodeBuilder
+                nodeBuilder
                         .metadata()
                         .label(label)
                         .icon(CommonUtils.generateIcon(org, packageName, version))
@@ -529,7 +556,12 @@ public class AvailableNodesGenerator {
                         .symbol(methodFunction.name())
                         .version(version)
                         .parentSymbol(parentSymbolName)
-                        .resourcePath(methodFunction.resourcePath())
+                        .resourcePath(methodFunction.resourcePath());
+                if (checkAgentToolCompatibility) {
+                    nodeBuilder.codedata()
+                            .addData("agentToolCompatible", methodFunction.agentToolCompatible());
+                }
+                Item node = nodeBuilder.codedata()
                         .stepOut()
                         .buildAvailableNode();
                 methods.add(node);

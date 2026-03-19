@@ -1,0 +1,177 @@
+{
+  "description": "Get diff related to resource function variations",
+  "projectPath": "resource_function_cases",
+  "output": {
+    "loadDesignDiagrams": true,
+    "semanticDiffs": [
+      {
+        "changeType": "DELETION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 17,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 19,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "put",
+          "servicePath": "/api",
+          "resourcePath": "items/[string id]"
+        }
+      },
+      {
+        "changeType": "DELETION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 29,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 31,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "get",
+          "servicePath": "/api",
+          "resourcePath": "items/[string id]/reviews/[string reviewId]"
+        }
+      },
+      {
+        "changeType": "DELETION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 25,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 27,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "head",
+          "servicePath": "/api",
+          "resourcePath": "items"
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 32,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 34,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "patch",
+          "servicePath": "/api",
+          "resourcePath": "items/[string id]"
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 10,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 13,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "get",
+          "servicePath": "/api",
+          "resourcePath": "items/[string id]"
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 28,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 30,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "get",
+          "servicePath": "/api",
+          "resourcePath": "items/[string id]/reviews/[string reviewId]/comments"
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 23,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 26,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "get",
+          "servicePath": "/api",
+          "resourcePath": "items/[string id]/reviews"
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 5,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 8,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "get",
+          "servicePath": "/api",
+          "resourcePath": "."
+        }
+      }
+    ]
+  }
+}

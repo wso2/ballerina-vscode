@@ -1,0 +1,910 @@
+{
+  "description": "Test tool compatibility check with queryMap",
+  "position": {
+    "line": 8,
+    "offset": 0
+  },
+  "source": "connector.bal",
+  "categories": [
+    {
+      "metadata": {
+        "label": "Connections",
+        "description": "The connections used in the flow"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "moduleClient"
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "get",
+                "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "get",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": true
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "post",
+                "description": "Create a new resource or submit data to a resource for processing.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "post",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": true
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "put",
+                "description": "Create a new resource or replace a representation of a specified resource.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "put",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": true
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "delete",
+                "description": "Remove a specified resource from an HTTP endpoint.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "delete",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": true
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "patch",
+                "description": "Partially update an existing resource in an HTTP endpoint.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "patch",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": true
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "head",
+                "description": "Get the metadata of a resource in the form of headers without the body. Often used for testing the resource existence or finding recent modifications.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "head",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": true
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "options",
+                "description": "Get the communication options for a specified resource.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "options",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": true
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "execute",
+                "description": "Send a request using any HTTP method. Can be used to invoke the endpoint with a custom or less common HTTP method.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "execute",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": true
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "forward",
+                "description": "Forward an incoming request to another endpoint using the same HTTP method. Can be used in proxy or gateway scenarios.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "forward",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": false
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "submit",
+                "description": "Send an asynchronous HTTP request that does not wait for the response immediately. Can be used for non-blocking operations.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "submit",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": false
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getResponse",
+                "description": "Get the response from a previously submitted asynchronous request. Can be used after calling `submit()` action to retrieve the actual response.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "getResponse",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": false
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "hasPromise",
+                "description": "Check if the server has sent a push promise for additional resources. Should be used with HTTP/2 server push functionality.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "hasPromise",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": false
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getNextPromise",
+                "description": "Get the next server push promise that contains information about additional resources the server wants to send.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "getNextPromise",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": false
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getPromisedResponse",
+                "description": "Get the actual response data from a server push promise. Can be used to receive resources that the server proactively sends.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "getPromisedResponse",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": false
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "rejectPromise",
+                "description": "Reject a server push promise to decline receiving the additional resource.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "REMOTE_ACTION_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "rejectPromise",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": false
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getCookieStore",
+                "description": "Get the cookie storage associated with this HTTP client. Can be used to access stored cookies for session management.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "METHOD_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "getCookieStore",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": false
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "circuitBreakerForceClose",
+                "description": "Force the circuit breaker to allow all requests through, ignoring current error rates. Can be used to manually\nrestore service after fixing issues.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "METHOD_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "circuitBreakerForceClose",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": true
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "circuitBreakerForceOpen",
+                "description": "Force the circuit breaker to block all requests until the reset time expires. Can be used to manually stop\nrequests during maintenance or known issues.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "METHOD_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "circuitBreakerForceOpen",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": true
+                }
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "getCircuitBreakerCurrentState",
+                "description": "Check the current state of the circuit breaker. Can be used to monitor the health status of your HTTP connections.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
+              },
+              "codedata": {
+                "node": "METHOD_CALL",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "getCircuitBreakerCurrentState",
+                "version": "2.16.0",
+                "parentSymbol": "moduleClient",
+                "resourcePath": "",
+                "data": {
+                  "agentToolCompatible": true
+                }
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "AI",
+        "description": "AI components available in the flow"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Direct LLM",
+            "description": "AI components that connect directly with a large language model"
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Model Provider",
+                "description": "Model providers available within the integration for connecting to an LLM"
+              },
+              "codedata": {
+                "node": "MODEL_PROVIDERS"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Call Natural Function",
+                "description": "Call a natural programming function",
+                "icon": "https://gist.github.com/user-attachments/assets/903c5c16-7d67-4af8-8113-ce7c59ccdaab"
+              },
+              "codedata": {
+                "node": "NP_FUNCTION"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "RAG",
+            "description": "AI components specific to Retrieval-Augmented Generation workflows"
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Knowledge Base",
+                "description": "Knowledge bases available in the integration"
+              },
+              "codedata": {
+                "node": "KNOWLEDGE_BASES",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "object": "VectorKnowledgeBase",
+                "symbol": "init"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Data Loader",
+                "description": "Data loaders available in the integration"
+              },
+              "codedata": {
+                "node": "DATA_LOADERS"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Recursive Document Chunker"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "chunkDocumentRecursively"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Chunker",
+                "description": "Chunkers available in the integration"
+              },
+              "codedata": {
+                "node": "CHUNKERS"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Augment Query"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "augmentUserQuery"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Vector Store",
+                "description": "Vector stores available in the integration"
+              },
+              "codedata": {
+                "node": "VECTOR_STORES"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "Embedding Provider",
+                "description": "Embedding providers available in the integration for connecting to an embedding model"
+              },
+              "codedata": {
+                "node": "EMBEDDING_PROVIDERS"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "Agent",
+            "description": "Represents an AI Agent within a workflow"
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Agent",
+                "description": "Create or reuse an Agent."
+              },
+              "codedata": {
+                "node": "AGENTS"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Statement",
+        "description": "Fundamental executable units in a program"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Declare Variable"
+          },
+          "codedata": {
+            "node": "VARIABLE"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Update Variable",
+            "description": "Update the value of an existing variable"
+          },
+          "codedata": {
+            "node": "ASSIGN"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Call Function",
+            "description": "Both project and utility functions"
+          },
+          "codedata": {
+            "node": "FUNCTION"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Map Data"
+          },
+          "codedata": {
+            "node": "DATA_MAPPER_CALL"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Control",
+        "description": "Control nodes"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "If",
+            "description": "Add conditional branch to the integration flow."
+          },
+          "codedata": {
+            "node": "IF"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Match",
+            "description": "Switches the data flow based on the value of an expression."
+          },
+          "codedata": {
+            "node": "MATCH"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "While",
+            "description": "Loop over a block of code."
+          },
+          "codedata": {
+            "node": "WHILE"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Foreach",
+            "description": "Iterate over a block of code."
+          },
+          "codedata": {
+            "node": "FOREACH"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Return"
+          },
+          "codedata": {
+            "node": "RETURN"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Stop",
+            "description": "Stop the flow"
+          },
+          "codedata": {
+            "node": "STOP"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Error Handling",
+        "description": "Handle errors that occur during execution"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "ErrorHandler",
+            "description": "Catch and handle errors"
+          },
+          "codedata": {
+            "node": "ERROR_HANDLER"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Fail",
+            "description": "Fail the execution"
+          },
+          "codedata": {
+            "node": "FAIL"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Panic",
+            "description": "Panic and stop the execution"
+          },
+          "codedata": {
+            "node": "PANIC"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Concurrency",
+        "description": "Concurrency nodes"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Fork",
+            "description": "Create parallel workers"
+          },
+          "codedata": {
+            "node": "FORK"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Parallel Flow",
+            "description": "Create parallel flows"
+          },
+          "codedata": {
+            "node": "PARALLEL_FLOW"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Wait",
+            "description": "Wait for a set of futures to complete"
+          },
+          "codedata": {
+            "node": "WAIT"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Lock",
+            "description": "Allow to access mutable states safely"
+          },
+          "codedata": {
+            "node": "LOCK"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Start",
+            "description": "Execute a function or a method invocation in a new strand"
+          },
+          "codedata": {
+            "node": "START"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Transaction",
+            "description": "Handle transaction."
+          },
+          "codedata": {
+            "node": "TRANSACTION"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Commit",
+            "description": "Commit transaction"
+          },
+          "codedata": {
+            "node": "COMMIT"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Rollback",
+            "description": "Rollback the transaction"
+          },
+          "codedata": {
+            "node": "ROLLBACK"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Retry Block",
+            "description": "Retry block."
+          },
+          "codedata": {
+            "node": "RETRY"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Logging"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Log Info",
+            "description": "Prints info logs.\n```ballerina\nlog:printInfo(\"info message\", id = 845315)\n```\n\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.10.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "log",
+            "packageName": "log",
+            "symbol": "printInfo",
+            "version": "2.10.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Log Error",
+            "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.10.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "log",
+            "packageName": "log",
+            "symbol": "printError",
+            "version": "2.10.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Log Warn",
+            "description": "Prints warn logs.\n```ballerina\nlog:printWarn(\"warn message\", id = 845315)\n```\n\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.10.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "log",
+            "packageName": "log",
+            "symbol": "printWarn",
+            "version": "2.10.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Log Debug",
+            "description": "Prints debug logs.\n```ballerina\nlog:printDebug(\"debug message\", id = 845315)\n```\n\n",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.10.0.png"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "log",
+            "packageName": "log",
+            "symbol": "printDebug",
+            "version": "2.10.0"
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ],
+  "queryMap": {
+    "checkAgentToolCompatibility": "true"
+  }
+}

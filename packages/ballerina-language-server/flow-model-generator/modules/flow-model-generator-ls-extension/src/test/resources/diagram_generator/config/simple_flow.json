@@ -111,7 +111,7 @@
                 "metadata": {
                   "label": "get",
                   "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
                 },
                 "codedata": {
                   "node": "REMOTE_ACTION_CALL",
@@ -120,7 +120,7 @@
                   "packageName": "http",
                   "object": "Client",
                   "symbol": "get",
-                  "version": "2.15.4",
+                  "version": "2.16.0",
                   "lineRange": {
                     "fileName": "simple_flow.bal",
                     "startLine": {
@@ -414,7 +414,7 @@
                 "metadata": {
                   "label": "get",
                   "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
                 },
                 "codedata": {
                   "node": "REMOTE_ACTION_CALL",
@@ -423,7 +423,7 @@
                   "packageName": "http",
                   "object": "Client",
                   "symbol": "get",
-                  "version": "2.15.4",
+                  "version": "2.16.0",
                   "lineRange": {
                     "fileName": "simple_flow.bal",
                     "startLine": {
@@ -702,7 +702,7 @@
         "metadata": {
           "label": "HTTP",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -806,7 +806,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientHttp1Settings",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -843,7 +843,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientHttp2Settings",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -936,7 +936,7 @@
                 "typeMembers": [
                   {
                     "type": "FollowRedirects",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -973,7 +973,7 @@
                 "typeMembers": [
                   {
                     "type": "PoolConfiguration",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1010,7 +1010,7 @@
                 "typeMembers": [
                   {
                     "type": "CacheConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1088,49 +1088,49 @@
                 "typeMembers": [
                   {
                     "type": "CredentialsConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "BearerTokenConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "JwtIssuerConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2ClientCredentialsGrantConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2PasswordGrantConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2RefreshTokenGrantConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2JwtBearerGrantConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1167,7 +1167,7 @@
                 "typeMembers": [
                   {
                     "type": "CircuitBreakerConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1204,7 +1204,7 @@
                 "typeMembers": [
                   {
                     "type": "RetryConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1241,7 +1241,7 @@
                 "typeMembers": [
                   {
                     "type": "CookieConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1278,7 +1278,7 @@
                 "typeMembers": [
                   {
                     "type": "ResponseLimitConfigs",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1315,7 +1315,7 @@
                 "typeMembers": [
                   {
                     "type": "ProxyConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1380,7 +1380,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientSocketConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1445,7 +1445,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientSecureSocket",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1561,7 +1561,7 @@
         "metadata": {
           "label": "HTTP",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -1665,7 +1665,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientHttp1Settings",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1702,7 +1702,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientHttp2Settings",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1795,7 +1795,7 @@
                 "typeMembers": [
                   {
                     "type": "FollowRedirects",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1832,7 +1832,7 @@
                 "typeMembers": [
                   {
                     "type": "PoolConfiguration",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1869,7 +1869,7 @@
                 "typeMembers": [
                   {
                     "type": "CacheConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1947,49 +1947,49 @@
                 "typeMembers": [
                   {
                     "type": "CredentialsConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "BearerTokenConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "JwtIssuerConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2ClientCredentialsGrantConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2PasswordGrantConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2RefreshTokenGrantConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2JwtBearerGrantConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -2026,7 +2026,7 @@
                 "typeMembers": [
                   {
                     "type": "CircuitBreakerConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -2063,7 +2063,7 @@
                 "typeMembers": [
                   {
                     "type": "RetryConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -2100,7 +2100,7 @@
                 "typeMembers": [
                   {
                     "type": "CookieConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -2137,7 +2137,7 @@
                 "typeMembers": [
                   {
                     "type": "ResponseLimitConfigs",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -2174,7 +2174,7 @@
                 "typeMembers": [
                   {
                     "type": "ProxyConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -2239,7 +2239,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientSocketConfig",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -2304,7 +2304,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientSecureSocket",
-                    "packageInfo": "ballerina:http:2.15.4",
+                    "packageInfo": "ballerina:http:2.16.0",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false

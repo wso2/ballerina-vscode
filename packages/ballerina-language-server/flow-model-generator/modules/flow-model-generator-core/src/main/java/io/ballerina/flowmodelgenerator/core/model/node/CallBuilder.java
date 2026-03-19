@@ -25,6 +25,7 @@ import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.flowmodelgenerator.core.AiUtils;
 import io.ballerina.flowmodelgenerator.core.TypeParameterReplacer;
 import io.ballerina.flowmodelgenerator.core.TypesManager;
@@ -159,9 +160,10 @@ public abstract class CallBuilder extends NodeBuilder {
      * @param module         the Ballerina {@link Module} used to create the {@link TypesManager} for type resolution
      * @param targetVarType  the type of the target variable being assigned to, used to pre-select fields
      *                       (may be {@code null} if no target variable is available)
+     * @param callNode       the syntax tree node of the function call, used for error reporting in type resolution
      */
     public static void buildInferredTypeProperty(NodeBuilder nodeBuilder, ParameterData paramData, String value,
-                                                 Module module, TypeSymbol targetVarType) {
+                                                 Module module, TypeSymbol targetVarType, Node callNode) {
         String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramData.name());
         String label = paramData.label();
         // If the inferredType is a record type, add it as the value of the property if the value is not provided
@@ -195,7 +197,7 @@ public abstract class CallBuilder extends NodeBuilder {
             customPropBuilder.type(Property.ValueType.TYPE, paramData.type());
         }
 
-        customPropBuilder.stepOut().addProperty(unescapedParamName);
+        customPropBuilder.stepOut().addProperty(unescapedParamName, callNode);
     }
 
     private static void addRecordFieldSelector(ParameterData paramData, Module module, TypeSymbol targetVarType,
@@ -258,7 +260,7 @@ public abstract class CallBuilder extends NodeBuilder {
      */
     public static void buildInferredTypeProperty(NodeBuilder nodeBuilder, ParameterData paramData, String value,
                                                  Module module) {
-        buildInferredTypeProperty(nodeBuilder, paramData, value, module, null);
+        buildInferredTypeProperty(nodeBuilder, paramData, value, module, null, null);
     }
 
     protected void setParameterProperties(FunctionData function, io.ballerina.projects.Module module) {
@@ -347,7 +349,7 @@ public abstract class CallBuilder extends NodeBuilder {
         properties()
                 .type(functionData.returnType(), false, functionData.importStatements(), hidden,
                         Property.RESULT_TYPE_LABEL)
-                .data(functionData.returnType(), context.getAllVisibleSymbolNames(), label, doc);
+                .data(functionData.returnType(), context.getAllVisibleSymbolNames(), label, doc, false);
     }
 
     protected void setExpressionProperty(Codedata codedata) {

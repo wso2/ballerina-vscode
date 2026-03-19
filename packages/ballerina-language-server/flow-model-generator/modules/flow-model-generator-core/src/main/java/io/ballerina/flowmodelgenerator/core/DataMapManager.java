@@ -113,6 +113,8 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.ModuleDescriptor;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Diagnostic;
+import io.ballerina.tools.diagnostics.DiagnosticProperty;
+import io.ballerina.tools.diagnostics.DiagnosticPropertyKind;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
@@ -133,9 +135,11 @@ import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
+import org.ballerinalang.util.diagnostic.DiagnosticErrorCode;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
+import org.wso2.ballerinalang.compiler.diagnostic.properties.BSymbolicProperty;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -238,6 +242,7 @@ public class DataMapManager {
         MappingPort refOutputPort;
         String name = targetNode.name().trim();
         ConvertedVariables convertedVariables = targetNode.convertedVariables();
+        boolean hasInvalidFields = hasInvalidFields(semanticModel, targetNode.typeSymbol());
         try {
             TypeSymbol targetTypeSymbol = targetNode.typeSymbol();
             TypeSymbol rawtargetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
@@ -421,7 +426,8 @@ public class DataMapManager {
             genMapping(expr, name, mappings, semanticModel, functionDocument, dataMappingDocument, enumPorts);
         }
 
-        return gson.toJsonTree(new Model(inputPorts, refOutputPort, subMappingPorts, mappings, query, references));
+        return gson.toJsonTree(new Model(inputPorts, refOutputPort, subMappingPorts, mappings, query, references,
+                hasInvalidFields));
     }
 
     private boolean isConvertedVariable(ConvertedVariables convertedVariables, String name,
@@ -450,6 +456,44 @@ public class DataMapManager {
 
         return false;
     }
+
+    private boolean hasInvalidFields(SemanticModel semanticModel, TypeSymbol typeSymbol) {
+        if (typeSymbol == null) {
+            return false;
+        }
+
+        TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
+        if (rawType.typeKind() != TypeDescKind.RECORD) {
+            return false;
+        }
+
+        Optional<String> optName = typeSymbol.getName();
+        if (optName.isEmpty()) {
+            return false;
+        }
+
+        for (Diagnostic diagnostic : semanticModel.diagnostics()) {
+            if (!diagnostic.diagnosticInfo().code().equals(
+                    DiagnosticErrorCode.UNDEFINED_STRUCTURE_FIELD_WITH_TYPE.diagnosticId())) {
+                continue;
+            }
+            List<DiagnosticProperty<?>> properties = diagnostic.properties();
+            if (properties.size() != 3) {
+                continue;
+            }
+            DiagnosticProperty<?> property = properties.get(2);
+            if (property.kind() == DiagnosticPropertyKind.SYMBOLIC) {
+                Symbol value = ((BSymbolicProperty) property).value();
+                Optional<String> optValueName = value.getName();
+                if (optValueName.isPresent() && optValueName.get().equals(optName.get())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
 
     private void addIntermediateClauseVariables(QueryExpressionNode queryExpressionNode, List<MappingPort> inputPorts,
                                                 SemanticModel semanticModel, List<Symbol> typeDefSymbols,
@@ -1723,6 +1767,130 @@ public class DataMapManager {
             genDeleteMappingSource(semanticModel, expr, splits, 1, textEdits, targetNode.typeSymbol);
         }
         return gson.toJsonTree(textEditsMap);
+    }
+
+    public JsonElement resolve(SemanticModel semanticModel, Path filePath, JsonElement codeData, String targetField) {
+        Codedata codedata = gson.fromJson(codeData, Codedata.class);
+        NonTerminalNode node = getNode(codedata.lineRange());
+        TargetNode targetNode = getTargetNode(node, targetField, semanticModel);
+
+        Map<Path, List<TextEdit>> textEditsMap = new HashMap<>();
+        List<TextEdit> textEdits = new ArrayList<>();
+        textEditsMap.put(filePath, textEdits);
+
+        if (targetNode != null && targetNode.matchingNode() != null && targetNode.matchingNode().expr() != null) {
+            ExpressionNode expr = targetNode.matchingNode().expr();
+            boolean removeAll = removeInvalidFields(expr, semanticModel, textEdits);
+            if (removeAll) {
+                if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+                    MappingConstructorExpressionNode mappingCtrExpressionNode = (MappingConstructorExpressionNode) expr;
+                    textEdits.add(new TextEdit(CommonUtils.toRange(mappingCtrExpressionNode.lineRange()), "{}"));
+                } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+                    ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
+                    textEdits.add(new TextEdit(CommonUtils.toRange(listCtrExpr.lineRange()), "[]"));
+                } else {
+                    textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), ""));
+                }
+            }
+        }
+
+        return gson.toJsonTree(textEditsMap);
+    }
+
+    private boolean removeInvalidFields(Node expr, SemanticModel semanticModel, List<TextEdit> textExits) {
+        if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+            return removeInvalidFields((MappingConstructorExpressionNode) expr, semanticModel, textExits);
+        } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+            return removeInvalidFields((ListConstructorExpressionNode) expr, semanticModel, textExits);
+        } else {
+            return false;
+        }
+    }
+
+    private boolean removeInvalidFields(MappingConstructorExpressionNode mappingExpr, SemanticModel semanticModel,
+                                        List<TextEdit> textExits) {
+        List<Integer> indexToRemove = new ArrayList<>();
+        SeparatedNodeList<MappingFieldNode> fields = mappingExpr.fields();
+        int fieldsSize = fields.size();
+        for (int i = 0; i < fieldsSize; i++) {
+            MappingFieldNode field = fields.get(i);
+            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
+                continue;
+            }
+            SpecificFieldNode specificField = (SpecificFieldNode) field;
+            List<Diagnostic> diagnostics = semanticModel.diagnostics(specificField.fieldName().lineRange());
+            if (!diagnostics.isEmpty()) {
+                indexToRemove.add(i);
+                continue;
+            }
+
+            Optional<ExpressionNode> optValueExpr = specificField.valueExpr();
+            if (optValueExpr.isEmpty()) {
+                continue;
+            }
+
+            ExpressionNode valueExpr = optValueExpr.get();
+            diagnostics = semanticModel.diagnostics(valueExpr.lineRange());
+            if (diagnostics.isEmpty()) {
+                continue;
+            }
+            boolean allRemoved = removeInvalidFields(valueExpr, semanticModel, textExits);
+            if (allRemoved) {
+                indexToRemove.add(i);
+            }
+        }
+
+        if (indexToRemove.size() == fieldsSize) {
+            return true;
+        } else {
+            for (int i = indexToRemove.size() - 1; i >= 0; i--) {
+                int index = indexToRemove.get(i);
+                MappingFieldNode field = fields.get(index);
+                LinePosition start;
+                LinePosition end;
+                if (index == 0) {
+                    start = field.lineRange().startLine();
+                    end = fields.get(index + 1).lineRange().startLine();
+                } else {
+                    start = fields.get(index - 1).lineRange().endLine();
+                    end = field.lineRange().endLine();
+                }
+                textExits.add(new TextEdit(CommonUtils.toRange(start, end), ""));
+            }
+            return false;
+        }
+    }
+
+    private boolean removeInvalidFields(ListConstructorExpressionNode listCtrExpr, SemanticModel semanticModel,
+                                        List<TextEdit> textExits) {
+        boolean allRemoved = true;
+        List<Integer> removable = new ArrayList<>();
+        SeparatedNodeList<Node> members = listCtrExpr.expressions();
+        for (int i = 0; i < members.size(); i++) {
+            boolean removed = removeInvalidFields(members.get(i), semanticModel, textExits);
+            allRemoved = allRemoved && removed;
+            if (removed) {
+                removable.add(i);
+            }
+        }
+        if (!allRemoved) {
+            for (int i = removable.size() - 1; i >= 0; i--) {
+                int idx = removable.get(i);
+                LinePosition start;
+                LinePosition end;
+                if (idx == 0) {
+                    start = members.get(idx).lineRange().startLine();
+                    end = (members.size() > 1)
+                            ? members.get(idx + 1).lineRange().startLine()
+                            : members.get(idx).lineRange().endLine();
+                } else {
+                    start = members.get(idx - 1).lineRange().endLine();
+                    end = members.get(idx).lineRange().endLine();
+                }
+                textExits.add(new TextEdit(CommonUtils.toRange(start, end), ""));
+            }
+        }
+        return allRemoved;
     }
 
     private ExpressionNode findConvertedVariable(LetExpressionNode letExpr) {
@@ -3195,29 +3363,30 @@ public class DataMapManager {
     }
 
     private record Model(List<MappingPort> inputs, MappingPort output, List<MappingPort> subMappings,
-                         List<Mapping> mappings, Query query, Map<String, MappingPort> refs) {
+                         List<Mapping> mappings, Query query, Map<String, MappingPort> refs, boolean hasInvalidOutput) {
 
         private Model(List<MappingPort> inputs, MappingPort output, List<Mapping> mappings) {
-            this(inputs, output, null, mappings, null, null);
+            this(inputs, output, null, mappings, null, null, false);
         }
 
         private Model(List<MappingPort> inputs, MappingPort output, Query query) {
-            this(inputs, output, null, new ArrayList<>(), query, null);
+            this(inputs, output, null, new ArrayList<>(), query, null, false);
         }
 
         private Model(List<MappingPort> inputs, MappingPort output, List<Mapping> mappings,
                       Query query, Map<String, MappingPort> references) {
-            this(inputs, output, null, mappings, query, references);
+            this(inputs, output, null, mappings, query, references, false);
         }
 
         private Model(List<MappingPort> inputs, MappingPort output, List<MappingPort> subMappings,
-                     List<Mapping> mappings, Query query, Map<String, MappingPort> refs) {
+                     List<Mapping> mappings, Query query, Map<String, MappingPort> refs, boolean hasInvalidOutput) {
             this.inputs = inputs;
             this.output = output;
             this.subMappings = subMappings;
             this.mappings = mappings;
             this.query = query;
             this.refs = refs;
+            this.hasInvalidOutput = hasInvalidOutput;
         }
     }
 

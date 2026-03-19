@@ -116,6 +116,7 @@
         "typeName": "Output",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

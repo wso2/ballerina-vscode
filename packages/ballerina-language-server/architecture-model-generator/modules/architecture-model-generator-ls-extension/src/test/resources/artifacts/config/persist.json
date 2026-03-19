@@ -21,6 +21,7 @@
         "type": "AUTOMATION",
         "name": "automation",
         "scope": "Global",
+        "visibility": "public",
         "children": {}
       }
     }

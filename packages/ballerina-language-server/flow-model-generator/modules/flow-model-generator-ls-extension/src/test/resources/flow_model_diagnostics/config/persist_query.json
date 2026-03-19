@@ -1,0 +1,804 @@
+{
+  "source": "persist/automation.bal",
+  "description": "Test diagnostics with simple flow node",
+  "flowNode": {
+    "id": "39979",
+    "metadata": {
+      "label": "get",
+      "description": "Get rows from users table.\n"
+    },
+    "codedata": {
+      "node": "RESOURCE_ACTION_CALL",
+      "org": "pasindufernando",
+      "module": "ff.testDB",
+      "packageName": "ff",
+      "object": "Client",
+      "symbol": "get",
+      "version": "0.1.0",
+      "lineRange": {
+        "fileName": "automation.bal",
+        "startLine": {
+          "line": 8,
+          "offset": 8
+        },
+        "endLine": {
+          "line": 8,
+          "offset": 51
+        }
+      },
+      "sourceCode": "Person[] var1 = check testDB->/users.get();",
+      "resourcePath": "/users",
+      "inferredReturnType": "targetType[]"
+    },
+    "returning": false,
+    "properties": {
+      "resourcePath": {
+        "metadata": {
+          "label": "Resource Path",
+          "description": "Resource Path"
+        },
+        "types": [
+          {
+            "fieldType": "ACTION_PATH",
+            "selected": false
+          }
+        ],
+        "value": "/users",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "originalName": "/users"
+        },
+        "modified": false
+      },
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use",
+          "data": {
+            "connectorType": "persist"
+          }
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
+        "value": "testDB",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "modified": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "var1",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "automation.bal",
+            "startLine": {
+              "line": 8,
+              "offset": 17
+            },
+            "endLine": {
+              "line": 8,
+              "offset": 21
+            }
+          }
+        },
+        "modified": false
+      },
+      "whereClause": {
+        "metadata": {
+          "label": "Where Clause",
+          "description": "SQL WHERE clause to filter the results (e.g., `column_name = value`)"
+        },
+        "types": [
+          {
+            "fieldType": "SQL_QUERY",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": false
+          }
+        ],
+        "placeholder": "object {}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "whereClause"
+        },
+        "imports": {
+          "sql": "ballerina/sql"
+        },
+        "defaultValue": "object {}",
+        "modified": false,
+        "value": ""
+      },
+      "orderByClause": {
+        "metadata": {
+          "label": "Order By Clause",
+          "description": "SQL ORDER BY clause to sort the results (e.g., `column_name ASC`)"
+        },
+        "types": [
+          {
+            "fieldType": "SQL_QUERY",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": false
+          }
+        ],
+        "placeholder": "object {}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "orderByClause"
+        },
+        "imports": {
+          "sql": "ballerina/sql"
+        },
+        "defaultValue": "object {}",
+        "modified": false,
+        "value": ""
+      },
+      "limitClause": {
+        "metadata": {
+          "label": "Limit Clause",
+          "description": "SQL LIMIT clause to limit the number of results (e.g., `10`)"
+        },
+        "types": [
+          {
+            "fieldType": "SQL_QUERY",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": false
+          }
+        ],
+        "placeholder": "object {}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "limitClause"
+        },
+        "imports": {
+          "sql": "ballerina/sql"
+        },
+        "defaultValue": "object {}",
+        "modified": false,
+        "value": ""
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true,
+        "modified": false
+      },
+      "targetType": {
+        "metadata": {
+          "label": "Target Type",
+          "description": "Defines which fields to retrieve from the results"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "record {|int id?; string name?; string email?; time:Utc? createdAt?;|}",
+            "selected": false
+          }
+        ],
+        "value": "Person",
+        "placeholder": "testDB:UserOptionalized",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "targetType"
+        },
+        "defaultValue": "testDB:UserOptionalized",
+        "modified": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "Person[]",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {},
+        "imports": {
+          "persist": "ballerina/persist"
+        },
+        "modified": false
+      }
+    },
+    "diagnostics": {
+      "hasDiagnostics": true
+    },
+    "flags": 1,
+    "viewState": {
+      "x": -140,
+      "y": 286.6,
+      "lw": 140,
+      "rw": 270,
+      "h": 70,
+      "clw": 140,
+      "crw": 270,
+      "ch": 70
+    }
+  },
+  "output": {
+    "id": "39979",
+    "metadata": {
+      "label": "get",
+      "description": "Get rows from users table.\n"
+    },
+    "codedata": {
+      "node": "RESOURCE_ACTION_CALL",
+      "org": "pasindufernando",
+      "module": "ff.testDB",
+      "packageName": "ff",
+      "object": "Client",
+      "symbol": "get",
+      "version": "0.1.0",
+      "lineRange": {
+        "fileName": "automation.bal",
+        "startLine": {
+          "line": 8,
+          "offset": 8
+        },
+        "endLine": {
+          "line": 8,
+          "offset": 51
+        }
+      },
+      "sourceCode": "Person[] var1 = check testDB->/users.get();",
+      "resourcePath": "/users",
+      "inferredReturnType": "targetType[]"
+    },
+    "returning": false,
+    "properties": {
+      "resourcePath": {
+        "metadata": {
+          "label": "Resource Path",
+          "description": "Resource Path"
+        },
+        "types": [
+          {
+            "fieldType": "ACTION_PATH",
+            "selected": false
+          }
+        ],
+        "value": "/users",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "originalName": "/users"
+        }
+      },
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use",
+          "data": {
+            "connectorType": "persist",
+            "persistModelFile": "/Users/pasindufernando/Desktop/BI/Ballerina-Language-Server/ballerina-language-server/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/flow_model_diagnostics/source/persist/persist/testDB/model.bal"
+          }
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
+        "value": "testDB",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "var1",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "automation.bal",
+            "startLine": {
+              "line": 8,
+              "offset": 17
+            },
+            "endLine": {
+              "line": 8,
+              "offset": 21
+            }
+          }
+        }
+      },
+      "whereClause": {
+        "metadata": {
+          "label": "Where Clause",
+          "description": "SQL WHERE clause to filter the results (e.g., `column_name = value`)"
+        },
+        "types": [
+          {
+            "fieldType": "SQL_QUERY",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": false
+          }
+        ],
+        "placeholder": "object {}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "whereClause"
+        },
+        "imports": {
+          "sql": "ballerina/sql"
+        },
+        "defaultValue": "object {}"
+      },
+      "orderByClause": {
+        "metadata": {
+          "label": "Order By Clause",
+          "description": "SQL ORDER BY clause to sort the results (e.g., `column_name ASC`)"
+        },
+        "types": [
+          {
+            "fieldType": "SQL_QUERY",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": false
+          }
+        ],
+        "placeholder": "object {}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "orderByClause"
+        },
+        "imports": {
+          "sql": "ballerina/sql"
+        },
+        "defaultValue": "object {}"
+      },
+      "limitClause": {
+        "metadata": {
+          "label": "Limit Clause",
+          "description": "SQL LIMIT clause to limit the number of results (e.g., `10`)"
+        },
+        "types": [
+          {
+            "fieldType": "SQL_QUERY",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": false
+          }
+        ],
+        "placeholder": "object {}",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "limitClause"
+        },
+        "imports": {
+          "sql": "ballerina/sql"
+        },
+        "defaultValue": "object {}"
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "targetType": {
+        "metadata": {
+          "label": "Target Type",
+          "description": "Defines which fields to retrieve from the results"
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_FIELD_SELECTOR",
+            "ballerinaType": "record {|int id?; string name?; string email?; time:Utc? createdAt?;|}",
+            "recordSelectorType": {
+              "rootType": {
+                "editable": true,
+                "metadata": {
+                  "label": "testDB:UserOptionalized",
+                  "description": ""
+                },
+                "codedata": {
+                  "node": "RECORD",
+                  "lineRange": {
+                    "fileName": "types.bal",
+                    "startLine": {
+                      "line": 0,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 0,
+                      "offset": 18
+                    }
+                  },
+                  "id": 0,
+                  "isNew": false,
+                  "data": {}
+                },
+                "properties": {
+                  "name": {
+                    "metadata": {
+                      "label": "Type name",
+                      "description": "Unique name to identify the type"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
+                      }
+                    ],
+                    "value": "testDB:UserOptionalized",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "isPublic": {
+                    "metadata": {
+                      "label": "public",
+                      "description": "Make visible across the workspace"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "FLAG",
+                        "selected": true
+                      }
+                    ],
+                    "value": true,
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "description": {
+                    "metadata": {
+                      "label": "Type description",
+                      "description": "Detailed description about the type"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      }
+                    ],
+                    "value": "",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "isArray": {
+                    "metadata": {
+                      "label": "Is array type",
+                      "description": "Is this type an array or list value"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "FLAG",
+                        "selected": true
+                      }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                  },
+                  "arraySize": {
+                    "metadata": {
+                      "label": "Size of the array",
+                      "description": "Array dimensions"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      }
+                    ],
+                    "value": "",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                  }
+                },
+                "members": [
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "int",
+                    "typeName": "int",
+                    "name": "id",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "selected": true
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "typeName": "string",
+                    "name": "name",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "selected": true
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "typeName": "string",
+                    "name": "email",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "selected": false
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": {
+                      "editable": false,
+                      "codedata": {
+                        "node": "UNION"
+                      },
+                      "properties": {
+                        "isArray": {
+                          "metadata": {
+                            "label": "Is array type",
+                            "description": "Is this type an array or list value"
+                          },
+                          "types": [
+                            {
+                              "fieldType": "FLAG",
+                              "selected": true
+                            }
+                          ],
+                          "value": "false",
+                          "optional": true,
+                          "editable": true,
+                          "advanced": true,
+                          "hidden": false
+                        },
+                        "arraySize": {
+                          "metadata": {
+                            "label": "Size of the array",
+                            "description": "Array dimensions"
+                          },
+                          "types": [
+                            {
+                              "fieldType": "TEXT",
+                              "selected": true
+                            }
+                          ],
+                          "value": "",
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        }
+                      },
+                      "members": [
+                        {
+                          "kind": "TYPE",
+                          "refs": [
+                            "ballerina/time:Utc"
+                          ],
+                          "type": "time:Utc",
+                          "typeName": "time:Utc",
+                          "name": "time:Utc",
+                          "optional": false,
+                          "readonly": false,
+                          "isGraphqlId": false,
+                          "imports": {
+                            "time": "ballerina/time:2.8.0"
+                          },
+                          "selected": false
+                        },
+                        {
+                          "kind": "TYPE",
+                          "refs": [],
+                          "type": "()",
+                          "typeName": "()",
+                          "name": "()",
+                          "optional": false,
+                          "readonly": false,
+                          "isGraphqlId": false,
+                          "selected": false
+                        }
+                      ],
+                      "allowAdditionalFields": false
+                    },
+                    "typeName": "time:Utc?",
+                    "name": "createdAt",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "imports": {
+                      "time": "ballerina/time:2.8.0"
+                    },
+                    "selected": false
+                  }
+                ],
+                "includes": [],
+                "annotationAttachments": [],
+                "allowAdditionalFields": false
+              },
+              "referencedTypes": []
+            },
+            "selected": true
+          }
+        ],
+        "value": "Person",
+        "placeholder": "testDB:UserOptionalized",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "diagnostics": {
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "incompatible type for parameter 'targetType' with inferred typedesc value: expected 'typedesc<pasindufernando/ff.testDB:0.1.0:UserOptionalized>', found 'typedesc<pasindufernando/ff:0.1.0:Person>'"
+            }
+          ]
+        },
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "targetType"
+        },
+        "defaultValue": "testDB:UserOptionalized"
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "Person[]",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      }
+    },
+    "diagnostics": {
+      "hasDiagnostics": true
+    },
+    "flags": 1
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "filePath": "source2.bal",
+  "position": {
+    "line": 12,
+    "offset": 79
+  },
+  "expression": "person2",
+  "description": "Get a record type data",
+  "type": {
+    "name": "Person|jsondata:Error",
+    "imports": {
+      "jsondata": "ballerina/data.jsondata"
+    }
+  }
+}

@@ -305,7 +305,8 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                         document.get(), project.currentPackage(), filePath);
                 boolean disableBallerinaAiNodes = AgentsGenerator.getAiModuleOrgName(request.filePath(),
                         workspaceManager).equals(BALLERINAX_ORG_NAME);
-                response.setCategories(generator.getAvailableNodes(disableBallerinaAiNodes, request.position()));
+                response.setCategories(generator.getAvailableNodes(disableBallerinaAiNodes, request.position(),
+                        request.queryMap()));
             } catch (Throwable e) {
                 response.setError(e);
             }

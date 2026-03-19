@@ -498,6 +498,102 @@ public class SearchDatabaseManager {
         return results;
     }
 
+    /**
+     * Unified search across functions and connectors using a single SQL query.
+     * This provides better performance than multiple separate queries.
+     *
+     * @param q      the search query string
+     * @param limit  the maximum number of results to return
+     * @param offset the offset from which to start returning results
+     * @return a list of unified search results with type information
+     * @throws RuntimeException if there is an error executing the search
+     */
+    public List<UnifiedSearchResult> searchAllTypes(String q, int limit, int offset) {
+        List<UnifiedSearchResult> results = new ArrayList<>();
+        String sanitizedQuery = sanitizeQuery(q);
+
+        String sql = """
+                WITH FunctionResults AS (
+                    SELECT 'function' as result_type,
+                           f.name,
+                           f.description,
+                           p.org,
+                           p.name AS module_name,
+                           p.package_name,
+                           p.version,
+                           fts.rank as relevance_score
+                    FROM FunctionFTS fts
+                    JOIN Function f ON fts.rowid = f.id
+                    JOIN Package p ON f.package_id = p.id
+                    WHERE fts.FunctionFTS MATCH ?
+                    ORDER BY fts.rank
+                    LIMIT ?
+                ),
+                ConnectorResults AS (
+                    SELECT 'connector' as result_type,
+                           c.name,
+                           c.description,
+                           p.org,
+                           p.name AS module_name,
+                           p.package_name,
+                           p.version,
+                           fts.rank as relevance_score
+                    FROM ConnectorFTS fts
+                    JOIN Connector c ON fts.rowid = c.id
+                    JOIN Package p ON c.package_id = p.id
+                    WHERE fts.ConnectorFTS MATCH ?
+                    ORDER BY fts.rank
+                    LIMIT ?
+                )
+                SELECT * FROM (
+                    SELECT * FROM FunctionResults
+                    UNION ALL
+                    SELECT * FROM ConnectorResults
+                    ORDER BY relevance_score ASC, result_type, name
+                )
+                LIMIT ? OFFSET ?
+                """;
+
+        try (Connection conn = DriverManager.getConnection(dbPath);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            int paramIndex = 1;
+            String ftsQuery = sanitizedQuery.isEmpty() ? "*" : sanitizedQuery + "*";
+            int functionsLimit = limit / 2;
+            int connectorsLimit = limit - functionsLimit;
+            stmt.setString(paramIndex++, ftsQuery);
+            stmt.setInt(paramIndex++, functionsLimit);
+            stmt.setString(paramIndex++, ftsQuery);
+            stmt.setInt(paramIndex++, connectorsLimit);
+            stmt.setInt(paramIndex++, limit);
+            stmt.setInt(paramIndex, offset);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String resultType = rs.getString("result_type");
+                    String name = rs.getString("name");
+                    String description = rs.getString("description");
+                    String org = rs.getString("org");
+                    String moduleName = rs.getString("module_name");
+                    String packageName = rs.getString("package_name");
+                    String version = rs.getString("version");
+
+                    SearchResult searchResult = SearchResult.from(org, packageName, moduleName, version, name,
+                            description);
+                    results.add(new UnifiedSearchResult(resultType, searchResult));
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.severe("Error searching all types: " + e.getMessage());
+            throw new RuntimeException("Failed to search all types", e);
+        } catch (NumberFormatException e) {
+            LOGGER.severe("Invalid number format in query parameters: " + e.getMessage());
+            throw new RuntimeException("Invalid limit or offset value", e);
+        }
+
+        return results;
+    }
+
     private static String sanitizeQuery(String q) {
         if (q == null || q.trim().isEmpty()) {
             return "";
