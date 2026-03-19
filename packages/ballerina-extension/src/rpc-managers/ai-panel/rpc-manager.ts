@@ -777,6 +777,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
         AiPanelRpcManager.diffContentMap.set(modifiedUri.toString(), modifiedContent);
 
         const title = `${fileName} (Review Diff)`;
-        await vscode.commands.executeCommand('vscode.diff', originalUri, modifiedUri, title);
+        await vscode.commands.executeCommand('vscode.diff', originalUri, modifiedUri, title, {
+            viewColumn: vscode.ViewColumn.One,
+        });
     }
 }
