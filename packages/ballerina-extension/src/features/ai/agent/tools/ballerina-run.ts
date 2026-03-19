@@ -62,14 +62,14 @@ export function createBallerinaRunTool(
         execute: async (input, context?: { toolCallId?: string }) => {
             const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
 
+            await integrateAndClearModifiedFiles(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
+
             eventHandler({
                 type: "tool_call",
                 toolName: BALLERINA_RUN_TOOL_NAME,
                 toolCallId,
                 toolInput: { command: "bal run", runType: input.runType },
             });
-
-            await integrateAndClearModifiedFiles(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
 
             const result = await executeRun(input, tempProjectPath, runningServices);
 
