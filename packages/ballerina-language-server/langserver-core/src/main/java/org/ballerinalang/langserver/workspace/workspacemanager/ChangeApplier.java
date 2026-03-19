@@ -50,17 +50,32 @@ public class ChangeApplier {
 
     private final ChangeBuffer changeBuffer;
     private final UriResolver uriResolver;
+    private final ContentChangeStrategy strategy;
 
     /**
-     * Creates a new ChangeApplier that applies buffered changes via the compiler's modify chain.
+     * Creates a new ChangeApplier with the given content-change strategy.
+     *
+     * @param changeBuffer the per-URI, per-layer change buffer
+     * @param uriResolver  the URI-to-Document resolver
+     * @param strategy     the strategy used to compute new document content from buffered events
+     * @throws NullPointerException if any argument is null
+     */
+    public ChangeApplier(ChangeBuffer changeBuffer, UriResolver uriResolver, ContentChangeStrategy strategy) {
+        this.changeBuffer = Objects.requireNonNull(changeBuffer, "changeBuffer must not be null");
+        this.uriResolver = Objects.requireNonNull(uriResolver, "uriResolver must not be null");
+        this.strategy = Objects.requireNonNull(strategy, "strategy must not be null");
+    }
+
+    /**
+     * Creates a new ChangeApplier defaulting to {@link FullTextChangeStrategy}, which matches the
+     * Ballerina language server's advertised {@code TextDocumentSyncKind.Full} capability.
      *
      * @param changeBuffer the per-URI, per-layer change buffer
      * @param uriResolver  the URI-to-Document resolver
      * @throws NullPointerException if any argument is null
      */
     public ChangeApplier(ChangeBuffer changeBuffer, UriResolver uriResolver) {
-        this.changeBuffer = Objects.requireNonNull(changeBuffer, "changeBuffer must not be null");
-        this.uriResolver = Objects.requireNonNull(uriResolver, "uriResolver must not be null");
+        this(changeBuffer, uriResolver, FullTextChangeStrategy.INSTANCE);
     }
 
     /**
@@ -147,11 +162,11 @@ public class ChangeApplier {
     }
 
     /**
-     * Applies changes clustered by module using the appropriate strategy:
+     * Applies changes clustered by module using the optimal modify API strategy:
      * <ul>
-     *   <li>Single document in a single module: {@link SingleDocumentStrategy}</li>
-     *   <li>Multiple documents in the same module: {@link MultiDocumentStrategy}</li>
-     *   <li>Multiple modules: {@link MultiModuleStrategy}</li>
+     *   <li>Single document in a single module: {@code document.modify()}</li>
+     *   <li>Multiple documents in the same module: {@code module.modify()} (TODO: batch)</li>
+     *   <li>Multiple modules: {@code package.modify()} (TODO: batch)</li>
      * </ul>
      *
      * @param pkg             the current package (reserved for future batched package.modify())
@@ -159,28 +174,56 @@ public class ChangeApplier {
      */
     private void applyClusteredChanges(Package pkg,
             Map<Module, Map<Document, List<TextDocumentContentChangeEvent>>> changesByModule) {
-        ChangeApplicationStrategy strategy = selectStrategy(changesByModule);
-        strategy.apply(changesByModule);
+        if (changesByModule.size() == 1) {
+            Module module = changesByModule.keySet().iterator().next();
+            Map<Document, List<TextDocumentContentChangeEvent>> docChanges = changesByModule.get(module);
+
+            if (docChanges.size() == 1) {
+                // Strategy 1: single document — document.modify()
+                Document doc = docChanges.keySet().iterator().next();
+                applyViaDocumentModify(doc, docChanges.get(doc));
+            } else {
+                // Strategy 2: multiple docs same module — ideally module.modify() (TODO: batch when API is public)
+                applyViaModuleModify(docChanges);
+            }
+        } else {
+            // Strategy 3: multiple modules — ideally package.modify() (TODO: batch when API is public)
+            applyViaPackageModify(changesByModule);
+        }
     }
 
     /**
-     * Selects the appropriate strategy based on the structure of changes.
-     *
-     * @param changesByModule the changes organized by module and document
-     * @return the strategy to use for applying these changes
+     * Applies changes to a single document via {@code document.modify()}.
+     * Delegates content computation to the configured {@link ContentChangeStrategy}.
      */
-    private ChangeApplicationStrategy selectStrategy(
+    private void applyViaDocumentModify(Document doc, List<TextDocumentContentChangeEvent> changes) {
+        doc.modify()
+                .withContent(strategy.computeContent(doc, changes))
+                .apply();
+    }
+
+    /**
+     * Applies changes to multiple documents in the same module.
+     * Calls {@code document.modify()} per document.
+     *
+     * TODO: Batch into a single {@code module.modify()} once DocumentContext is part of the public compiler API.
+     */
+    private void applyViaModuleModify(Map<Document, List<TextDocumentContentChangeEvent>> docChanges) {
+        for (Map.Entry<Document, List<TextDocumentContentChangeEvent>> entry : docChanges.entrySet()) {
+            applyViaDocumentModify(entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * Applies changes across multiple modules.
+     * Calls {@code document.modify()} per document.
+     *
+     * TODO: Batch into a single {@code package.modify()} once ModuleContext is part of the public compiler API.
+     */
+    private void applyViaPackageModify(
             Map<Module, Map<Document, List<TextDocumentContentChangeEvent>>> changesByModule) {
-        if (changesByModule.size() == 1) {
-            Map<Document, List<TextDocumentContentChangeEvent>> docChanges =
-                    changesByModule.values().iterator().next();
-            if (docChanges.size() == 1) {
-                return new SingleDocumentStrategy();
-            } else {
-                return new MultiDocumentStrategy();
-            }
-        } else {
-            return new MultiModuleStrategy();
+        for (Map<Document, List<TextDocumentContentChangeEvent>> docChanges : changesByModule.values()) {
+            applyViaModuleModify(docChanges);
         }
     }
 

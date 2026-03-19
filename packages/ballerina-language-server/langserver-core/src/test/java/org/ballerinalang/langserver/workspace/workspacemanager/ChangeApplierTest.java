@@ -73,9 +73,16 @@ public class ChangeApplierTest {
         mockPackage = mock(Package.class);
     }
 
-    /** Creates a spy of ChangeApplier with pending URIs injected, bypassing real project enumeration. */
+    /** Creates a spy of ChangeApplier (FULL_TEXT strategy) with pending URIs injected. */
     private ChangeApplier spyWithPendingUris(Set<DocumentUri> pendingUris) {
         ChangeApplier spied = spy(new ChangeApplier(changeBuffer, uriResolver));
+        doReturn(pendingUris).when(spied).getPendingUrisForProject(mockProject);
+        return spied;
+    }
+
+    /** Creates a spy of ChangeApplier with a custom strategy and pending URIs injected. */
+    private ChangeApplier spyWithPendingUris(Set<DocumentUri> pendingUris, ContentChangeStrategy strategy) {
+        ChangeApplier spied = spy(new ChangeApplier(changeBuffer, uriResolver, strategy));
         doReturn(pendingUris).when(spied).getPendingUrisForProject(mockProject);
         return spied;
     }
@@ -395,7 +402,7 @@ public class ChangeApplierTest {
         when(mockDocModifier.apply()).thenReturn(mockDoc);
         when(mockProject.currentPackage()).thenReturn(mockPackage);
 
-        spyWithPendingUris(Set.of(uri)).apply(mockProject);
+        spyWithPendingUris(Set.of(uri), IncrementalChangeStrategy.INSTANCE).apply(mockProject);
 
         verify(mockDocModifier).withContent("hello there\nfoo bar\n");
     }
@@ -423,7 +430,7 @@ public class ChangeApplierTest {
         when(mockDocModifier.apply()).thenReturn(mockDoc);
         when(mockProject.currentPackage()).thenReturn(mockPackage);
 
-        spyWithPendingUris(Set.of(uri)).apply(mockProject);
+        spyWithPendingUris(Set.of(uri), IncrementalChangeStrategy.INSTANCE).apply(mockProject);
 
         // "line0\n" = 6 chars, "line1" = 5 chars => end offset = 6+5=11 → content[11..] = "\nline2\n"
         verify(mockDocModifier).withContent("X\nline2\n");

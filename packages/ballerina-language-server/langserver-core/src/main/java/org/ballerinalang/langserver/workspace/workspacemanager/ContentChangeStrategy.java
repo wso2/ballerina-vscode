@@ -19,34 +19,24 @@
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
 import io.ballerina.projects.Document;
-import io.ballerina.projects.Module;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
-import org.eclipse.lsp4j.Range;
 
 import java.util.List;
-import java.util.Map;
 
 /**
- * Strategy for applying text document changes to the compiler's content model.
- * <p>
- * Implementations handle different scenarios:
- * <ul>
- *   <li>Single document in a single module</li>
- *   <li>Multiple documents in the same module</li>
- *   <li>Multiple modules with different documents</li>
- * </ul>
- *
- * The LS supports full-text document sync mode, so all changes are applied
- * via {@code document.modify().withContent(fullText).apply()}.
+ * Strategy for computing the new content of a document given a list of LSP content change events.
+ * Implementations correspond to LSP {@code TextDocumentSyncKind} values.
  *
  * @since 1.7.0
  */
-public interface ChangeApplicationStrategy {
+public interface ContentChangeStrategy {
 
     /**
-     * Applies changes clustered by module to the compiler's content model.
+     * Computes the resulting document content by applying the given change events.
      *
-     * @param changesByModule changes organized by module and document
+     * @param document the compiler document whose content serves as the baseline
+     * @param changes  ordered list of LSP content change events to apply
+     * @return the document content after all changes have been applied
      */
-    void apply(Map<Module, Map<Document, List<TextDocumentContentChangeEvent>>> changesByModule);
+    String computeContent(Document document, List<TextDocumentContentChangeEvent> changes);
 }
