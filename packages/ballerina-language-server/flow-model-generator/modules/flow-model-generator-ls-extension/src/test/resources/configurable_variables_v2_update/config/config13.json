@@ -1,47 +1,32 @@
 {
-  "description": "Add a new config (without default value, config value and documentation) to the default package",
+  "description": "Set config value for a float variable (Ballerina float literal suffix 'f' must be stripped for valid TOML)",
   "project": "config_update_test_project",
   "request": {
     "packageName": "config_tests/config_update_test_project",
     "moduleName": "",
     "configFilePath": "config.bal",
     "configVariable": {
-      "id": "31",
+      "id": "32791",
       "metadata": {
         "label": "Config",
         "description": "Create a configurable variable"
       },
       "codedata": {
         "node": "CONFIG_VARIABLE",
-        "isNew": true,
         "lineRange": {
+          "fileName": "config.bal",
           "startLine": {
-            "line": 0,
+            "line": 6,
             "offset": 0
           },
           "endLine": {
-            "line": 0,
-            "offset": 0
+            "line": 6,
+            "offset": 35
           }
         }
       },
       "returning": false,
       "properties": {
-        "type": {
-          "metadata": {
-            "label": "Variable Type",
-            "description": "Type of the variable"
-          },
-          "valueType": "TYPE",
-          "value": "string",
-          "placeholder": "var",
-          "optional": false,
-          "editable": true,
-          "advanced": false,
-          "hidden": false,
-          "modified": true,
-          "codedata": {}
-        },
         "variable": {
           "metadata": {
             "label": "Variable Name",
@@ -49,12 +34,27 @@
           },
           "valueType": "IDENTIFIER",
           "valueTypeConstraint": "Global",
+          "value": "floatConfig",
           "optional": false,
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": true,
-          "value": "newVariable"
+          "modified": false
+        },
+        "type": {
+          "metadata": {
+            "label": "Variable Type",
+            "description": "Type of the variable"
+          },
+          "valueType": "TYPE",
+          "value": "float",
+          "placeholder": "var",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false,
+          "modified": false,
+          "codedata": {}
         },
         "defaultValue": {
           "metadata": {
@@ -62,12 +62,12 @@
             "description": "Default value of the variable"
           },
           "valueType": "EXPRESSION",
+          "value": "",
           "optional": true,
           "editable": true,
           "advanced": true,
           "hidden": false,
-          "modified": false,
-          "value": ""
+          "modified": false
         },
         "configValue": {
           "metadata": {
@@ -79,8 +79,8 @@
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": false,
-          "value": ""
+          "modified": true,
+          "value": "3.14f"
         },
         "documentation": {
           "metadata": {
@@ -101,19 +101,19 @@
   },
   "response": {
     "textEdits": {
-      "config.bal": [
+      "Config.toml": [
         {
           "range": {
             "start": {
-              "line": 8,
+              "line": 3,
               "character": 0
             },
             "end": {
-              "line": 8,
+              "line": 3,
               "character": 0
             }
           },
-          "newText": "configurable string newVariable = ?;\n"
+          "newText": "floatConfig = 3.14\n"
         }
       ]
     }
