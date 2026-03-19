@@ -43,7 +43,11 @@ export async function generateExamplePayload(context: PayloadContext): Promise<o
         // Extract the JSON object from the response (strip any markdown fences)
         const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/) ?? text.match(/(\{[\s\S]*\})/);
         const jsonText = jsonMatch ? jsonMatch[1].trim() : text.trim();
-        return JSON.parse(jsonText);
+        const parsed = JSON.parse(jsonText);
+        if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            throw new Error('LLM response did not return a valid JSON object');
+        }
+        return parsed;
     } catch (error) {
         console.error("Failed to generate example payload:", error);
         throw new Error(`Failed to generate example payload: ${error}`);

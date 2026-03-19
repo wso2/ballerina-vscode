@@ -504,11 +504,20 @@ export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
             if (!result?.content?.length) { return { spec: null }; }
             let match = result.content[0];
             if (params.basePath) {
-                const normalised = params.basePath.replace(/^\//, '').toLowerCase();
-                const found = result.content.find(c =>
-                    c.spec?.servers?.[0]?.url?.toLowerCase().endsWith(normalised) ||
-                    c.serviceName?.toLowerCase() === normalised
-                );
+                const normalised = params.basePath.replace(/^\/+|\/+$/g, '').toLowerCase();
+                const found = result.content.find(c => {
+                    const serverUrl = c.spec?.servers?.[0]?.url;
+                    let urlPathMatches = false;
+                    if (serverUrl) {
+                        try {
+                            const pathname = new URL(serverUrl).pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+                            urlPathMatches = pathname === normalised;
+                        } catch {
+                            urlPathMatches = serverUrl.toLowerCase().replace(/^\/+|\/+$/g, '') === normalised;
+                        }
+                    }
+                    return urlPathMatches || c.serviceName?.toLowerCase() === normalised;
+                });
                 if (found) { match = found; }
             }
             return { spec: match?.spec ?? null };
