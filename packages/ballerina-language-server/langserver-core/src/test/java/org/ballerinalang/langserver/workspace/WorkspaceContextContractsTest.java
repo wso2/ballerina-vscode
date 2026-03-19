@@ -23,6 +23,7 @@ import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.RunContext;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
+import org.ballerinalang.langserver.workspace.compilerengine.SnapshotView;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentState;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
@@ -114,10 +115,13 @@ public class WorkspaceContextContractsTest {
     @Test
     public void compilationService_matchesContractSignatures() throws ReflectiveOperationException {
         Assert.assertTrue(CompilationService.class.isInterface());
-        Assert.assertEquals(CompilationService.class.getMethods().length, 1);
+        Assert.assertEquals(CompilationService.class.getMethods().length, 2);
 
         Method stableSnapshot = CompilationService.class.getMethod("stableSnapshot", Path.class, CancelChecker.class);
         Assert.assertEquals(stableSnapshot.getReturnType(), StableSnapshot.class);
+
+        Method latestSnapshot = CompilationService.class.getMethod("latestSnapshot", Path.class, CancelChecker.class);
+        Assert.assertEquals(latestSnapshot.getReturnType(), SnapshotView.class);
     }
 
     /**

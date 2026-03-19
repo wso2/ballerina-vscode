@@ -21,6 +21,7 @@ package org.ballerinalang.langserver.workspace.compilerengine;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import java.nio.file.Path;
+import javax.annotation.Nonnull;
 
 /**
  * Compilation context service contract.
@@ -36,5 +37,17 @@ public interface CompilationService {
      * @param cancelChecker cancel checker
      * @return stable snapshot
      */
-    StableSnapshot stableSnapshot(Path path, CancelChecker cancelChecker);
+    StableSnapshot stableSnapshot(@Nonnull Path path, CancelChecker cancelChecker);
+
+    /**
+     * Returns the latest available snapshot view for a path.
+     *
+     * <p>This prefers an active in-progress snapshot when compilation is running,
+     * and otherwise falls back to the last published stable snapshot.
+     *
+     * @param path source path
+     * @param cancelChecker cancel checker
+     * @return latest available snapshot view
+     */
+    SnapshotView latestSnapshot(@Nonnull Path path, CancelChecker cancelChecker);
 }

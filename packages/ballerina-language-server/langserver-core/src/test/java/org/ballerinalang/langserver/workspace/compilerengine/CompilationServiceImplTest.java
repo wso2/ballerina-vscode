@@ -35,6 +35,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import javax.annotation.Nonnull;
+import java.lang.reflect.Constructor;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -87,21 +89,17 @@ public class CompilationServiceImplTest {
         }
     }
 
-    // ---- Constructor & Null Checks ----
+    // ---- Constructor Contracts ----
 
-    @Test(expectedExceptions = NullPointerException.class)
-    public void service_constructor_rejectsNullDualSnapshotStore() {
-        new CompilationServiceImpl(null, eventBus, task -> mockSnapshot);
-    }
+    @Test
+    public void service_constructor_marksReferenceParametersNonnull() throws NoSuchMethodException {
+        Constructor<CompilationServiceImpl> constructor = CompilationServiceImpl.class.getConstructor(
+                DualSnapshotStore.class, EventSyncPubSubHolder.class,
+                CompilationPipeline.CompilationAction.class, long.class, long.class);
 
-    @Test(expectedExceptions = NullPointerException.class)
-    public void service_constructor_rejectsNullEventBus() {
-        new CompilationServiceImpl(snapshotStore, null, task -> mockSnapshot);
-    }
-
-    @Test(expectedExceptions = NullPointerException.class)
-    public void service_constructor_rejectsNullBaseAction() {
-        new CompilationServiceImpl(snapshotStore, eventBus, null);
+        Assert.assertTrue(constructor.getParameters()[0].isAnnotationPresent(Nonnull.class));
+        Assert.assertTrue(constructor.getParameters()[1].isAnnotationPresent(Nonnull.class));
+        Assert.assertTrue(constructor.getParameters()[2].isAnnotationPresent(Nonnull.class));
     }
 
     // ---- Workspace Events ----
@@ -311,6 +309,58 @@ public class CompilationServiceImplTest {
 
         StableSnapshot snapshot = service.stableSnapshot(TEST_ROOT.path().resolve("main.bal"), null);
         Assert.assertNull(snapshot, "Should return null when no snapshot exists");
+    }
+
+    @Test
+    public void service_latestSnapshot_returnsStableSnapshotWhenOnlyStableExists() throws InterruptedException {
+        CountDownLatch compiled = new CountDownLatch(1);
+        StableSnapshot snapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
+                mock(PackageCompilation.class), new ContentVersion(7));
+        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+            compiled.countDown();
+            return snapshot;
+        }, 50);
+
+        publishWmE1(TEST_ROOT);
+        Assert.assertTrue(compiled.await(3, TimeUnit.SECONDS));
+
+        SnapshotView latestSnapshot = service.latestSnapshot(TEST_ROOT.path().resolve("main.bal"), null);
+        Assert.assertSame(latestSnapshot, snapshot);
+    }
+
+    @Test
+    public void service_latestSnapshot_returnsInProgressSnapshotWhenCompilationIsRunning() throws Exception {
+        CountDownLatch firstCompiled = new CountDownLatch(1);
+        CountDownLatch secondCompileStarted = new CountDownLatch(1);
+        CountDownLatch allowSecondCompileToFinish = new CountDownLatch(1);
+        AtomicInteger compileCount = new AtomicInteger(0);
+        StableSnapshot firstSnapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
+                mock(PackageCompilation.class), new ContentVersion(8));
+        StableSnapshot secondSnapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
+                mock(PackageCompilation.class), new ContentVersion(9));
+        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+            int invocation = compileCount.incrementAndGet();
+            if (invocation == 1) {
+                firstCompiled.countDown();
+                return firstSnapshot;
+            }
+            secondCompileStarted.countDown();
+            Assert.assertTrue(allowSecondCompileToFinish.await(3, TimeUnit.SECONDS),
+                    "Test should release second compilation");
+            return secondSnapshot;
+        }, 50);
+
+        publishWmE1(TEST_ROOT);
+        Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial stable snapshot should exist");
+
+        publishWmDocumentChanged(TEST_ROOT);
+        Assert.assertTrue(secondCompileStarted.await(3, TimeUnit.SECONDS), "Second compilation should start");
+
+        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(TEST_ROOT);
+        Assert.assertNotNull(inProgressSnapshot, "In-progress snapshot should be published while compiling");
+        Assert.assertSame(service.latestSnapshot(TEST_ROOT.path().resolve("main.bal"), null), inProgressSnapshot);
+
+        allowSecondCompileToFinish.countDown();
     }
 
     @Test

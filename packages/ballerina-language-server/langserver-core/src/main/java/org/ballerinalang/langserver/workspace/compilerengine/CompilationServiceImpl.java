@@ -31,9 +31,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -47,6 +45,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.annotation.Nonnull;
 
 /**
  * Service entry point for the compilation engine, managing per-project pipelines and circuit breaker.
@@ -108,12 +108,12 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      * @param retryDelayMs delay in milliseconds before retrying a transient failure
      * @param heapPressureThrottleMs delay in milliseconds to defer document-triggered recompilation after RM-E1
      */
-    public CompilationServiceImpl(DualSnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
-                                  CompilationPipeline.CompilationAction baseAction, long retryDelayMs,
+    public CompilationServiceImpl(@Nonnull DualSnapshotStore snapshotStore, @Nonnull EventSyncPubSubHolder eventBus,
+                                  @Nonnull CompilationPipeline.CompilationAction baseAction, long retryDelayMs,
                                   long heapPressureThrottleMs) {
-        this.snapshotStore = Objects.requireNonNull(snapshotStore, "snapshotStore");
-        this.eventBus = Objects.requireNonNull(eventBus, "eventBus");
-        this.baseAction = Objects.requireNonNull(baseAction, "baseAction");
+        this.snapshotStore = snapshotStore;
+        this.eventBus = eventBus;
+        this.baseAction = baseAction;
         this.retryDelayMs = retryDelayMs;
         this.heapPressureThrottleMs = heapPressureThrottleMs;
         this.pipelines = new ConcurrentHashMap<>();
@@ -132,7 +132,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     @Override
-    public StableSnapshot stableSnapshot(Path path, CancelChecker cancelChecker) {
+    public StableSnapshot stableSnapshot(@Nonnull Path path, CancelChecker cancelChecker) {
         Optional<SourceRoot> sourceRoot = findSourceRoot(path);
         if (sourceRoot.isEmpty()) {
             return null;
@@ -142,6 +142,19 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
             return stableSnapshot;
         }
         return awaitInProgress(sourceRoot.get(), cancelChecker);
+    }
+
+    @Override
+    public SnapshotView latestSnapshot(@Nonnull Path path, CancelChecker cancelChecker) {
+        Optional<SourceRoot> sourceRoot = findSourceRoot(path);
+        if (sourceRoot.isEmpty()) {
+            return null;
+        }
+        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(sourceRoot.get());
+        if (inProgressSnapshot != null) {
+            return inProgressSnapshot;
+        }
+        return snapshotStore.getStable(sourceRoot.get());
     }
 
     @Override

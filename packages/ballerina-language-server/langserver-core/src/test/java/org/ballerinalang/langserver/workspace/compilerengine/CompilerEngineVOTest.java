@@ -31,6 +31,8 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import javax.annotation.Nonnull;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -100,9 +102,16 @@ public class CompilerEngineVOTest {
         Assert.assertEquals(snapshot.contentVersion(), version);
     }
 
-    @Test(expectedExceptions = NullPointerException.class)
-    public void stableSnapshot_rejectsNullCompilation() {
-        new StableSnapshot(Map.of(), Map.of(), Map.of(), null, new ContentVersion(1));
+    @Test
+    public void stableSnapshot_constructor_marksRequiredParametersNonnull() throws NoSuchMethodException {
+        Constructor<StableSnapshot> constructor = StableSnapshot.class.getConstructor(Map.class, Map.class, Map.class,
+                PackageCompilation.class, ContentVersion.class);
+
+        Assert.assertTrue(constructor.getParameters()[0].isAnnotationPresent(Nonnull.class));
+        Assert.assertTrue(constructor.getParameters()[1].isAnnotationPresent(Nonnull.class));
+        Assert.assertTrue(constructor.getParameters()[2].isAnnotationPresent(Nonnull.class));
+        Assert.assertTrue(constructor.getParameters()[3].isAnnotationPresent(Nonnull.class));
+        Assert.assertTrue(constructor.getParameters()[4].isAnnotationPresent(Nonnull.class));
     }
 
     // ---- DualSnapshotStore ----

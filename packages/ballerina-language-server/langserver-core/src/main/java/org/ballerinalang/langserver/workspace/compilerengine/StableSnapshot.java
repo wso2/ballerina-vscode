@@ -27,7 +27,8 @@ import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Objects;
+
+import javax.annotation.Nonnull;
 
 /**
  * Stable snapshot for the last successful compilation.
@@ -54,16 +55,16 @@ public final class StableSnapshot implements SnapshotView {
      * @param compilation package compilation for the snapshot
      * @param contentVersion content version represented by the snapshot
      */
-    public StableSnapshot(Map<DocumentId, SyntaxTree> syntaxTrees,
-                          Map<Path, DocumentId> pathToDocumentIds,
-                          Map<ModuleId, SemanticModel> semanticModels,
-                          PackageCompilation compilation,
-                          ContentVersion contentVersion) {
-        this.syntaxTrees = Map.copyOf(Objects.requireNonNull(syntaxTrees, "syntaxTrees"));
-        this.pathToDocumentIds = Map.copyOf(Objects.requireNonNull(pathToDocumentIds, "pathToDocumentIds"));
-        this.semanticModels = Map.copyOf(Objects.requireNonNull(semanticModels, "semanticModels"));
-        this.compilation = Objects.requireNonNull(compilation, "compilation");
-        this.contentVersion = Objects.requireNonNull(contentVersion, "contentVersion");
+    public StableSnapshot(@Nonnull Map<DocumentId, SyntaxTree> syntaxTrees,
+                          @Nonnull Map<Path, DocumentId> pathToDocumentIds,
+                          @Nonnull Map<ModuleId, SemanticModel> semanticModels,
+                          @Nonnull PackageCompilation compilation,
+                          @Nonnull ContentVersion contentVersion) {
+        this.syntaxTrees = Map.copyOf(syntaxTrees);
+        this.pathToDocumentIds = Map.copyOf(pathToDocumentIds);
+        this.semanticModels = Map.copyOf(semanticModels);
+        this.compilation = compilation;
+        this.contentVersion = contentVersion;
     }
 
     @Override
@@ -77,7 +78,7 @@ public final class StableSnapshot implements SnapshotView {
      * @param filePath source file path
      * @return syntax tree, or {@code null} when the file is not present in the snapshot
      */
-    public SyntaxTree syntaxTree(Path filePath) {
+    public SyntaxTree syntaxTree(@Nonnull Path filePath) {
         DocumentId documentId = pathToDocumentIds.get(normalize(filePath));
         return documentId == null ? null : syntaxTrees.get(documentId);
     }
@@ -93,7 +94,7 @@ public final class StableSnapshot implements SnapshotView {
      * @param moduleId the module identifier
      * @return the module semantic model
      */
-    public SemanticModel semanticModel(ModuleId moduleId) {
+    public SemanticModel semanticModel(@Nonnull ModuleId moduleId) {
         return semanticModels.get(moduleId);
     }
 
@@ -103,7 +104,7 @@ public final class StableSnapshot implements SnapshotView {
      * @param filePath source file path
      * @return semantic model, or {@code null} when the file is not present in the snapshot
      */
-    public SemanticModel semanticModel(Path filePath) {
+    public SemanticModel semanticModel(@Nonnull Path filePath) {
         DocumentId documentId = pathToDocumentIds.get(normalize(filePath));
         return documentId == null ? null : semanticModels.get(documentId.moduleId());
     }
@@ -117,7 +118,7 @@ public final class StableSnapshot implements SnapshotView {
         return compilation;
     }
 
-    private static Path normalize(Path filePath) {
-        return Objects.requireNonNull(filePath, "filePath").toAbsolutePath().normalize();
+    private static Path normalize(@Nonnull Path filePath) {
+        return filePath.toAbsolutePath().normalize();
     }
 }
