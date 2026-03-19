@@ -28,6 +28,7 @@ import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -211,6 +212,34 @@ public class CompilationServiceImplTest {
         publishWmDocumentChanged(TEST_ROOT);
         Assert.assertTrue(secondCompiled.await(3, TimeUnit.SECONDS),
                 "WM_DOCUMENT_CHANGED should request compilation");
+    }
+
+    @Test
+    public void rmE1_throttlesDocumentTriggeredCompilationUntilWindowExpires() throws InterruptedException {
+        CountDownLatch firstCompiled = new CountDownLatch(1);
+        CountDownLatch throttledCompilation = new CountDownLatch(1);
+        AtomicInteger compileCount = new AtomicInteger(0);
+        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+            int count = compileCount.incrementAndGet();
+            if (count == 1) {
+                firstCompiled.countDown();
+            } else if (count == 2) {
+                throttledCompilation.countDown();
+            }
+            return mockSnapshot;
+        }, 50L, 300L);
+
+        publishWmE1(TEST_ROOT);
+        Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
+
+        eventBus.publish(new DomainEvent(Instant.now(), "resource-monitor",
+                EventKind.RM_E1_HEAP_PRESSURE_DETECTED, HeapPressureLevel.WARNING.name()));
+        publishWmDocumentChanged(TEST_ROOT);
+
+        Assert.assertFalse(throttledCompilation.await(150, TimeUnit.MILLISECONDS),
+                "RM-E1 should throttle immediate document-triggered recompilation");
+        Assert.assertTrue(throttledCompilation.await(2, TimeUnit.SECONDS),
+                "Compilation should resume after the throttle window");
     }
 
     @Test

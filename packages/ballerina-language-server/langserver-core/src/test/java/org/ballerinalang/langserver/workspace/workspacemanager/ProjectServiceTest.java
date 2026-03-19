@@ -648,6 +648,61 @@ public class ProjectServiceTest {
         Assert.assertEquals(eventCount, 0, "No health state change should occur if not in RECOVERING");
     }
 
+    @Test(groups = "event-subscription-diagnostics-ready")
+    public void resolutionDiagnosticsReady_recordsCompilerSignalForProject() throws Exception {
+        Path projectPath = tempDir.toAbsolutePath().normalize();
+        service.loadOrCreate(projectPath, cancelChecker);
+
+        SourceRoot root = new SourceRoot(projectPath);
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
+                projectPath.toString()));
+        Thread.sleep(100);
+
+        Assert.assertTrue(service.hasObservedCompilerSignal(root, EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY),
+                "ProjectService should record CE-E5a delivery");
+    }
+
+    @Test(groups = "event-subscription-diagnostics-ready")
+    public void resolutionExhausted_recoveringProjectTransitionsToCircuitOpen() throws Exception {
+        Path projectPath = tempDir.toAbsolutePath().normalize();
+        service.loadOrCreate(projectPath, cancelChecker);
+
+        SourceRoot root = new SourceRoot(projectPath);
+        org.ballerinalang.langserver.workspace.workspacemanager.Project project = registry.get(root).orElseThrow();
+        project.transitionTo(ProjectHealthState.PROJECT_CRASHED);
+        project.transitionTo(ProjectHealthState.RECOVERING);
+
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_RESOLUTION_EXHAUSTED,
+                projectPath.toString()));
+        Thread.sleep(100);
+
+        Assert.assertEquals(project.healthState(), ProjectHealthState.CIRCUIT_OPEN,
+                "CE-E6 should move RECOVERING projects to CIRCUIT_OPEN");
+        Assert.assertTrue(service.hasObservedCompilerSignal(root, EventKind.CE_RESOLUTION_EXHAUSTED),
+                "ProjectService should record CE-E6 delivery");
+    }
+
+    @Test(groups = "event-subscription-diagnostics-ready")
+    public void resolutionRecovered_circuitOpenProjectTransitionsToRecovering() throws Exception {
+        Path projectPath = tempDir.toAbsolutePath().normalize();
+        service.loadOrCreate(projectPath, cancelChecker);
+
+        SourceRoot root = new SourceRoot(projectPath);
+        org.ballerinalang.langserver.workspace.workspacemanager.Project project = registry.get(root).orElseThrow();
+        project.transitionTo(ProjectHealthState.PROJECT_CRASHED);
+        project.transitionTo(ProjectHealthState.RECOVERING);
+        project.transitionTo(ProjectHealthState.CIRCUIT_OPEN);
+
+        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_RESOLUTION_RECOVERED,
+                projectPath.toString()));
+        Thread.sleep(100);
+
+        Assert.assertEquals(project.healthState(), ProjectHealthState.RECOVERING,
+                "CE-E7 should move CIRCUIT_OPEN projects back to RECOVERING");
+        Assert.assertTrue(service.hasObservedCompilerSignal(root, EventKind.CE_RESOLUTION_RECOVERED),
+                "ProjectService should record CE-E7 delivery");
+    }
+
     // =========================================================================
     // Watched File Change Tests
     // =========================================================================

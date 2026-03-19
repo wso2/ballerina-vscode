@@ -26,6 +26,7 @@ import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
@@ -45,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -65,10 +67,13 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     private final EventSyncPubSubHolder eventBus;
     private final CompilationPipeline.CompilationAction baseAction;
     private final long retryDelayMs;
+    private final long heapPressureThrottleMs;
     private final ScheduledExecutorService retryScheduler;
     private final Map<SourceRoot, CompilationPipeline> pipelines;
     private final Map<SourceRoot, CircuitBreakerAction> circuitActions;
+    private final Map<SourceRoot, ScheduledFuture<?>> throttledRequests;
     private final AtomicInteger versionCounter;
+    private final AtomicLong throttledUntilNanos;
     private final AtomicBoolean closed;
 
     /**
@@ -80,7 +85,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      */
     public CompilationServiceImpl(DualSnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
                                   CompilationPipeline.CompilationAction baseAction) {
-        this(snapshotStore, eventBus, baseAction, 500L);
+        this(snapshotStore, eventBus, baseAction, 500L, 250L);
     }
 
     /**
@@ -93,13 +98,31 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      */
     public CompilationServiceImpl(DualSnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
                                   CompilationPipeline.CompilationAction baseAction, long retryDelayMs) {
+        this(snapshotStore, eventBus, baseAction, retryDelayMs, 250L);
+    }
+
+    /**
+     * Creates a compilation service with configurable retry delay and RM-E1 throttle window.
+     *
+     * @param snapshotStore snapshot store for publishing compiled snapshots
+     * @param eventBus event bus for publishing/subscribing to domain events
+     * @param baseAction the underlying compilation action to wrap with circuit breaker
+     * @param retryDelayMs delay in milliseconds before retrying a transient failure
+     * @param heapPressureThrottleMs delay in milliseconds to defer document-triggered recompilation after RM-E1
+     */
+    public CompilationServiceImpl(DualSnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
+                                  CompilationPipeline.CompilationAction baseAction, long retryDelayMs,
+                                  long heapPressureThrottleMs) {
         this.snapshotStore = Objects.requireNonNull(snapshotStore, "snapshotStore must not be null");
         this.eventBus = Objects.requireNonNull(eventBus, "eventBus must not be null");
         this.baseAction = Objects.requireNonNull(baseAction, "baseAction must not be null");
         this.retryDelayMs = retryDelayMs;
+        this.heapPressureThrottleMs = heapPressureThrottleMs;
         this.pipelines = new ConcurrentHashMap<>();
         this.circuitActions = new ConcurrentHashMap<>();
+        this.throttledRequests = new ConcurrentHashMap<>();
         this.versionCounter = new AtomicInteger(0);
+        this.throttledUntilNanos = new AtomicLong(0L);
         this.closed = new AtomicBoolean(false);
         this.retryScheduler = Executors.newScheduledThreadPool(1, r -> {
             Thread t = new Thread(r, "ce-retry-scheduler");
@@ -164,8 +187,10 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
         pipelines.values().forEach(CompilationPipeline::close);
         pipelines.keySet().forEach(snapshotStore::remove);
+        throttledRequests.values().forEach(future -> future.cancel(false));
         pipelines.clear();
         circuitActions.clear();
+        throttledRequests.clear();
         retryScheduler.shutdownNow();
     }
 
@@ -183,6 +208,9 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                        EventKind.WM_DOCUMENT_CHANGED,
                        EventKind.WM_FILE_WATCHED_CHANGED),
                 this::handleDocumentEvent);
+
+        eventBus.subscribe("ce-heap-pressure-events", SubscriberTier.CRITICAL,
+                Set.of(EventKind.RM_E1_HEAP_PRESSURE_DETECTED), this::handleHeapPressureEvent);
     }
 
     private void handleWorkspaceEvent(DomainEvent event) {
@@ -222,23 +250,76 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
     private void handleDocumentChanged(DomainEvent event) {
         SourceRoot sourceRoot = reconstructSourceRoot(event);
-        CompilationPipeline pipeline = pipelines.get(sourceRoot);
-        if (pipeline != null) {
-            ContentVersion nextVersion = new ContentVersion(versionCounter.getAndIncrement());
-            pipeline.requestCompilation(nextVersion);
-        }
+        requestCompilationWithThrottle(sourceRoot);
     }
 
     private void handleFileWatchedChanged(DomainEvent event) {
         SourceRoot sourceRoot = reconstructSourceRoot(event);
         if (isDependencyGraphChange(event.coalesceScope())) {
-            CompilationPipeline pipeline = pipelines.get(sourceRoot);
-            if (pipeline != null) {
-                ContentVersion nextVersion = new ContentVersion(versionCounter.getAndIncrement());
-                pipeline.requestCompilation(nextVersion);
-            }
+            requestCompilationWithThrottle(sourceRoot);
         }
         // "CONFIGURATION" scope is ignored
+    }
+
+    private void handleHeapPressureEvent(DomainEvent event) {
+        if (heapPressureThrottleMs <= 0) {
+            return;
+        }
+        HeapPressureLevel level = parseHeapPressureLevel(event.coalesceScope());
+        switch (level) {
+            case WARNING, CRITICAL, EMERGENCY ->
+                    throttledUntilNanos.set(System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(heapPressureThrottleMs));
+            case NORMAL -> throttledUntilNanos.set(0L);
+        }
+    }
+
+    private void requestCompilationWithThrottle(SourceRoot sourceRoot) {
+        CompilationPipeline pipeline = pipelines.get(sourceRoot);
+        if (pipeline == null) {
+            return;
+        }
+
+        long delayNanos = throttledUntilNanos.get() - System.nanoTime();
+        if (delayNanos <= 0) {
+            cancelThrottledRequest(sourceRoot);
+            requestCompilation(pipeline);
+            return;
+        }
+
+        ScheduledFuture<?> existing = throttledRequests.remove(sourceRoot);
+        if (existing != null) {
+            existing.cancel(false);
+        }
+
+        ScheduledFuture<?> scheduled = retryScheduler.schedule(() -> {
+            throttledRequests.remove(sourceRoot);
+            CompilationPipeline activePipeline = pipelines.get(sourceRoot);
+            if (activePipeline != null && !closed.get()) {
+                requestCompilation(activePipeline);
+            }
+        }, TimeUnit.NANOSECONDS.toMillis(delayNanos), TimeUnit.MILLISECONDS);
+        throttledRequests.put(sourceRoot, scheduled);
+    }
+
+    private void requestCompilation(CompilationPipeline pipeline) {
+        ContentVersion nextVersion = new ContentVersion(versionCounter.getAndIncrement());
+        pipeline.requestCompilation(nextVersion);
+    }
+
+    private void cancelThrottledRequest(SourceRoot sourceRoot) {
+        ScheduledFuture<?> pendingRequest = throttledRequests.remove(sourceRoot);
+        if (pendingRequest != null) {
+            pendingRequest.cancel(false);
+        }
+    }
+
+    private HeapPressureLevel parseHeapPressureLevel(String scope) {
+        try {
+            return HeapPressureLevel.valueOf(scope);
+        } catch (IllegalArgumentException ex) {
+            LOG.log(Level.FINE, "Unknown heap pressure level: {0}", scope);
+            return HeapPressureLevel.NORMAL;
+        }
     }
 
     private void createPipelineIfAbsent(SourceRoot sourceRoot) {
@@ -263,6 +344,10 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     private void evictPipeline(SourceRoot sourceRoot) {
         CompilationPipeline pipeline = pipelines.remove(sourceRoot);
         circuitActions.remove(sourceRoot);
+        ScheduledFuture<?> pendingRequest = throttledRequests.remove(sourceRoot);
+        if (pendingRequest != null) {
+            pendingRequest.cancel(false);
+        }
         if (pipeline != null) {
             pipeline.close();
             snapshotStore.remove(sourceRoot);

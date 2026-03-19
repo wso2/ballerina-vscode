@@ -38,6 +38,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +88,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     /** Per-URI monotonically increasing version counter for EDITOR-layer buffered changes. */
     private final ConcurrentHashMap<DocumentUri, AtomicInteger> versionCounters;
     private final ConcurrentHashMap<Path, AtomicInteger> dependenciesSelfWriteTokens;
+    private final ConcurrentHashMap<SourceRoot, Set<EventKind>> observedCompilerSignals;
 
     /**
      * Constructs a project service with full wiring of dependencies.
@@ -123,6 +125,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         this.ballerinaProjects = new ConcurrentHashMap<>();
         this.versionCounters = new ConcurrentHashMap<>();
         this.dependenciesSelfWriteTokens = new ConcurrentHashMap<>();
+        this.observedCompilerSignals = new ConcurrentHashMap<>();
 
         // 1. Wire self as registry listener for eviction and batch events
         registry.addListener(this);
@@ -136,6 +139,12 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
                 Set.of(EventKind.COMPILER_COMPILATION_FAILED), this::onCompilationFailed);
         eventBus.subscribe("wm-diagnostics-ready", SubscriberTier.CRITICAL,
                 Set.of(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY), this::onDiagnosticsReady);
+        eventBus.subscribe("wm-resolution-diagnostics-ready", SubscriberTier.CRITICAL,
+                Set.of(EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY), this::onResolutionDiagnosticsReady);
+        eventBus.subscribe("wm-resolution-recovered", SubscriberTier.CRITICAL,
+                Set.of(EventKind.CE_RESOLUTION_RECOVERED), this::onResolutionRecovered);
+        eventBus.subscribe("wm-resolution-exhausted", SubscriberTier.CRITICAL,
+                Set.of(EventKind.CE_RESOLUTION_EXHAUSTED), this::onResolutionExhausted);
         eventBus.subscribe("rm-heap-pressure", SubscriberTier.CRITICAL,
                 Set.of(EventKind.RM_E1_HEAP_PRESSURE_DETECTED), this::onHeapPressureDetected);
 
@@ -338,8 +347,9 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     private void onDiagnosticsReady(DomainEvent event) {
-        Path root = parsePath(event.coalesceScope());
-        registry.get(new SourceRoot(root)).ifPresent(project -> {
+        SourceRoot root = new SourceRoot(parsePath(event.coalesceScope()));
+        recordCompilerSignal(root, event.eventKind());
+        registry.get(root).ifPresent(project -> {
             if (project.healthState() == ProjectHealthState.RECOVERING) {
                 try {
                     project.transitionTo(ProjectHealthState.HEALTHY);
@@ -351,12 +361,34 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         });
     }
 
+    private void onResolutionDiagnosticsReady(DomainEvent event) {
+        recordCompilerSignal(new SourceRoot(parsePath(event.coalesceScope())), event.eventKind());
+    }
+
+    private void onResolutionRecovered(DomainEvent event) {
+        SourceRoot root = new SourceRoot(parsePath(event.coalesceScope()));
+        recordCompilerSignal(root, event.eventKind());
+        registry.get(root).ifPresent(project -> transitionProject(project, ProjectHealthState.RECOVERING));
+    }
+
+    private void onResolutionExhausted(DomainEvent event) {
+        SourceRoot root = new SourceRoot(parsePath(event.coalesceScope()));
+        recordCompilerSignal(root, event.eventKind());
+        registry.get(root).ifPresent(project -> transitionProject(project, ProjectHealthState.CIRCUIT_OPEN));
+    }
+
     private void onHeapPressureDetected(DomainEvent event) {
         HeapPressureLevel level = parseHeapPressureLevel(event.coalesceScope());
         switch (level) {
             case WARNING, CRITICAL, EMERGENCY -> registry.evictBackgroundProjects();
             case NORMAL -> { }
         }
+    }
+
+    boolean hasObservedCompilerSignal(SourceRoot root, EventKind signal) {
+        Objects.requireNonNull(root, "root must not be null");
+        Objects.requireNonNull(signal, "signal must not be null");
+        return observedCompilerSignals.getOrDefault(root, Collections.emptySet()).contains(signal);
     }
 
     // =========================================================================
@@ -710,6 +742,25 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     private void publishWm(EventKind kind, SourceRoot root) {
         eventBus.publish(new DomainEvent(Instant.now(), "workspace-manager", kind,
                 root.path().toString()));
+    }
+
+    private void recordCompilerSignal(SourceRoot root, EventKind signal) {
+        if (registry.get(root).isEmpty()) {
+            return;
+        }
+        observedCompilerSignals.computeIfAbsent(root, ignored -> ConcurrentHashMap.newKeySet()).add(signal);
+    }
+
+    private void transitionProject(org.ballerinalang.langserver.workspace.workspacemanager.Project project,
+                                   ProjectHealthState target) {
+        try {
+            if (project.healthState() != target) {
+                project.transitionTo(target);
+                publishWm(EventKind.WORKSPACE_PROJECT_HEALTH_STATE_CHANGED, project.sourceRoot());
+            }
+        } catch (IllegalStateException ignored) {
+            // Ignore compiler lifecycle signals that do not map to a valid arc for the current state.
+        }
     }
 
     /**
