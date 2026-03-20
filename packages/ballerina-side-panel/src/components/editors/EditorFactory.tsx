@@ -151,6 +151,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <CustomDropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (fieldInputType.fieldType === "FILE_SELECT" && field.editable) {
         return <FileSelect field={field} />;
+    } else if (fieldInputType.fieldType === "SINGLE_SELECT" && !showWithExpressionEditor && field.editable && field.dynamicFormFields) {
+        return <DropdownChoiceForm field={field} />;
     } else if (fieldInputType.fieldType === "SINGLE_SELECT" && !showWithExpressionEditor && field.editable) {
         return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (!field.items && (fieldInputType.fieldType === "ACTION_TYPE") && field.editable) {

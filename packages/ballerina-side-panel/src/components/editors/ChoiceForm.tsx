@@ -90,14 +90,30 @@ export function ChoiceForm(props: ChoiceFormProps) {
         const formFields: FormField[] = [];
         for (const key in model.properties) {
             const expression = model.properties[key];
+            const fieldType = getPrimaryInputType(expression.types)?.fieldType;
             let items = undefined;
-            if (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT") {
+            if (fieldType === "MULTIPLE_SELECT" || fieldType === "SINGLE_SELECT") {
                 items = expression.items;
             }
+
+            // For SINGLE_SELECT with nested per-option properties, build dynamicFormFields
+            let dynamicFormFields: { [key: string]: FormField[] } | undefined = undefined;
+            if (fieldType === "SINGLE_SELECT" && expression.properties && expression.items) {
+                dynamicFormFields = {};
+                for (const optionKey in expression.properties) {
+                    const optionValue = expression.properties[optionKey];
+                    if (optionValue.properties) {
+                        dynamicFormFields[optionKey] = convertConfig(optionValue);
+                    } else {
+                        dynamicFormFields[optionKey] = [];
+                    }
+                }
+            }
+
             const formField: FormField = {
                 key: key,
                 label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
-                type: getPrimaryInputType(expression.types)?.fieldType,
+                type: fieldType,
                 documentation: expression?.metadata.description || "",
                 types: expression.types,
                 editable: expression.editable,
@@ -109,7 +125,9 @@ export function ChoiceForm(props: ChoiceFormProps) {
                 items,
                 choices: expression.choices,
                 placeholder: expression.placeholder,
-                defaultValue: expression.defaultValue as string
+                defaultValue: expression.defaultValue as string,
+                advanceProps: fieldType === "GROUP_SECTION" ? convertConfig(expression) : undefined,
+                dynamicFormFields,
             }
             formFields.push(formField);
         }
@@ -129,15 +147,14 @@ export function ChoiceForm(props: ChoiceFormProps) {
                         id: index.toString(),
                         value: index + 1,
                         content: choice.metadata.label,
-                        disabled: field.editable === false || (!choice.enabled && (!choice.properties || Object.keys(choice.properties).length === 0))
+                        disabled: field.editable === false || (!choice.editable && !choice.enabled)
                     }))}
                     onChange={(e) => {
                         if (field.editable === false) return;
                         const checkedValue = Number(e.target.value);
                         const realValue = checkedValue - 1;
-                        // Prevent selecting disabled choices (no properties and not enabled)
                         const choice = field.choices[realValue];
-                        if (choice && !choice.enabled && (!choice.properties || Object.keys(choice.properties).length === 0)) {
+                        if (choice && !choice.editable && !choice.enabled) {
                             return;
                         }
                         setSelectedOption(checkedValue);
@@ -150,7 +167,7 @@ export function ChoiceForm(props: ChoiceFormProps) {
             {(() => {
                 const fields = dynamicFields.filter(dfield => (field.advanced || !dfield.advanced));
                 if (fields.length === 0) return null;
-                // Special handling for listener configuration grouping under exisitng or create new listener
+
                 return (
                     <FormSection>
                         {fields.map((dfield, index) => (
