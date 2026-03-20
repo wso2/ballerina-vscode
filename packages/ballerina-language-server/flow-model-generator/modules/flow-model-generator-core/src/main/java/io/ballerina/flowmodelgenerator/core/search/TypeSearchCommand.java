@@ -77,7 +77,6 @@ import java.util.Optional;
  */
 class TypeSearchCommand extends SearchCommand {
 
-    public static final String CURRENT_INTEGRATION_INDICATOR = " (current)";
     private final List<String> moduleNames;
 
     public TypeSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
