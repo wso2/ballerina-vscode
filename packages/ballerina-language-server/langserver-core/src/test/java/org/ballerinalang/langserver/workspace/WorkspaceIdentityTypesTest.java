@@ -21,14 +21,11 @@ package org.ballerinalang.langserver.workspace;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.documentstore.FileId;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 
 /**
@@ -90,32 +87,6 @@ public class WorkspaceIdentityTypesTest {
     }
 
     /**
-     * Verifies absolute normalized paths are accepted for source roots.
-     */
-    @Test
-    public void sourceRoot_withAbsoluteNormalizedPath_acceptsPath() {
-        SourceRoot sourceRoot = new SourceRoot(Path.of("/tmp/workspace/project"));
-        Assert.assertEquals(sourceRoot.path(), Path.of("/tmp/workspace/project"));
-    }
-
-    /**
-     * Verifies relative paths are rejected for source roots.
-     */
-    @Test
-    public void sourceRoot_withRelativePath_throws() {
-        Assert.assertThrows(IllegalArgumentException.class, () -> new SourceRoot(Path.of("workspace/project")));
-    }
-
-    /**
-     * Verifies non-normalized absolute paths are rejected for source roots.
-     */
-    @Test
-    public void sourceRoot_withNonNormalizedAbsolutePath_throws() {
-        Assert.assertThrows(IllegalArgumentException.class,
-                () -> new SourceRoot(Path.of("/tmp/workspace/../workspace/project")));
-    }
-
-    /**
      * Verifies content-version comparison ordering semantics.
      */
     @Test
@@ -162,44 +133,4 @@ public class WorkspaceIdentityTypesTest {
         Assert.assertFalse(hasPublicRawAccessor);
     }
 
-    /**
-     * Verifies each bounded context has a package-info scaffold file.
-     *
-     * @param resourcePath package-info resource path
-     */
-    @Test(dataProvider = "packageInfoResources")
-    public void packageScaffold_containsPackageInfoForEachContext(String resourcePath) {
-        Path packageInfoFile = moduleRoot().resolve("src/main/java").resolve(resourcePath.replace(".class", ".java"));
-        Assert.assertTrue(Files.exists(packageInfoFile), "Missing package-info.java at: " + packageInfoFile);
-    }
-
-    /**
-     * Provides package-info resource paths for each bounded context package.
-     *
-     * @return package-info resource path cases
-     */
-    @DataProvider(name = "packageInfoResources")
-    public Object[][] packageInfoResources() {
-        return new Object[][]{
-                {"org/ballerinalang/langserver/workspace/lspgateway/package-info.class"},
-                {"org/ballerinalang/langserver/workspace/workspacemanager/package-info.class"},
-                {"org/ballerinalang/langserver/workspace/compilerengine/package-info.class"},
-                {"org/ballerinalang/langserver/workspace/documentstore/package-info.class"},
-                {"org/ballerinalang/langserver/workspace/executionmanager/package-info.class"},
-                {"org/ballerinalang/langserver/workspace/observability/package-info.class"},
-                {"org/ballerinalang/langserver/workspace/eventbus/package-info.class"}
-        };
-    }
-
-    private static Path moduleRoot() {
-        Path currentDirectory = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
-        Path modulePathFromRoot = currentDirectory.resolve("langserver-core");
-        if (Files.isDirectory(modulePathFromRoot.resolve("src/main/java"))) {
-            return modulePathFromRoot;
-        }
-        if (Files.isDirectory(currentDirectory.resolve("src/main/java"))) {
-            return currentDirectory;
-        }
-        throw new IllegalStateException("Unable to locate langserver-core module root");
-    }
 }

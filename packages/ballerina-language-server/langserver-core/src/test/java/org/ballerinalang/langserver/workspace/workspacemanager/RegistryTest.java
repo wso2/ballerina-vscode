@@ -18,6 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -45,11 +46,11 @@ public class RegistryTest {
     // Helpers
     // =========================================================================
 
-    private static SourceRoot root(String path) {
-        return new SourceRoot(Path.of(path).toAbsolutePath().normalize());
+    private static DocumentUri root(String path) {
+        return new DocumentUri.FileUri(Path.of(path).toAbsolutePath().normalize().toUri());
     }
 
-    private static Project project(SourceRoot root, int heapMb) {
+    private static Project project(DocumentUri root, int heapMb) {
         return new Project(root, ProjectKind.BUILD, HeapEstimate.ofMb(heapMb));
     }
 
@@ -94,7 +95,7 @@ public class RegistryTest {
 
     @Test
     public void cacheInvalidationEvent_fields_correct() {
-        SourceRoot root = root("/projects/alpha");
+        DocumentUri root = root("/projects/alpha");
         CacheInvalidationEvent event = new CacheInvalidationEvent(
                 root, CacheInvalidationEvent.InvalidationType.PROJECT_ADDED);
         Assert.assertEquals(event.affectedRoot(), root);
@@ -135,7 +136,7 @@ public class RegistryTest {
     @Test
     public void registry_register_get_returnsProject() {
         ProjectRegistry registry = new ProjectRegistry(MemoryBudget.ofMb(2048));
-        SourceRoot root = root("/projects/alpha");
+        DocumentUri root = root("/projects/alpha");
         Project p = project(root, 10);
 
         registry.register(root, p);
@@ -149,7 +150,7 @@ public class RegistryTest {
     @Test
     public void registry_computeIfAbsent_idempotent() throws Exception {
         ProjectRegistry registry = new ProjectRegistry(MemoryBudget.ofMb(2048));
-        SourceRoot root = root("/projects/beta");
+        DocumentUri root = root("/projects/beta");
         Project first = project(root, 10);
 
         Project p1 = registry.computeIfAbsent(root, () -> first);
@@ -161,8 +162,8 @@ public class RegistryTest {
     @Test
     public void registry_putAll_allRetrievable() {
         ProjectRegistry registry = new ProjectRegistry(MemoryBudget.ofMb(2048));
-        SourceRoot rootA = root("/projects/a");
-        SourceRoot rootB = root("/projects/b");
+        DocumentUri rootA = root("/projects/a");
+        DocumentUri rootB = root("/projects/b");
         Project pa = project(rootA, 5);
         Project pb = project(rootB, 5);
 
@@ -177,9 +178,9 @@ public class RegistryTest {
     public void registry_eviction_underWeightLimit() throws Exception {
         // Budget: 100 MB. Add projects totalling > 100 MB → some must be evicted.
         ProjectRegistry registry = new ProjectRegistry(MemoryBudget.ofMb(100));
-        SourceRoot root1 = root("/projects/x1");
-        SourceRoot root2 = root("/projects/x2");
-        SourceRoot root3 = root("/projects/x3");
+        DocumentUri root1 = root("/projects/x1");
+        DocumentUri root2 = root("/projects/x2");
+        DocumentUri root3 = root("/projects/x3");
 
         registry.register(root1, project(root1, 60));
         registry.register(root2, project(root2, 60)); // pushes over 100MB
@@ -198,8 +199,8 @@ public class RegistryTest {
     @Test
     public void registry_evictBackgroundProjects_onlyBackgroundRemoved() {
         ProjectRegistry registry = new ProjectRegistry(MemoryBudget.ofMb(2048));
-        SourceRoot activeRoot = root("/projects/active");
-        SourceRoot bgRoot = root("/projects/background");
+        DocumentUri activeRoot = root("/projects/active");
+        DocumentUri bgRoot = root("/projects/background");
         Project activeP = project(activeRoot, 10);
         Project bgP = project(bgRoot, 10);
         activeP.openDocumentCount().increment(); // ACTIVE tier
@@ -216,7 +217,7 @@ public class RegistryTest {
     @Test
     public void registry_remove_projectNoLongerRetrievable() {
         ProjectRegistry registry = new ProjectRegistry(MemoryBudget.ofMb(2048));
-        SourceRoot root = root("/projects/gamma");
+        DocumentUri root = root("/projects/gamma");
         registry.register(root, project(root, 10));
         registry.remove(root);
         Assert.assertFalse(registry.get(root).isPresent());
@@ -232,7 +233,7 @@ public class RegistryTest {
     @Test(expectedExceptions = NullPointerException.class)
     public void registry_register_nullRoot_throws() {
         ProjectRegistry registry = new ProjectRegistry(MemoryBudget.ofMb(2048));
-        SourceRoot root = root("/projects/z");
+        DocumentUri root = root("/projects/z");
         registry.register(null, project(root, 10));
     }
 
@@ -248,7 +249,7 @@ public class RegistryTest {
         List<CacheInvalidationEvent> events = new ArrayList<>();
         registry.addListener(events::add);
 
-        SourceRoot root = root("/projects/listen1");
+        DocumentUri root = root("/projects/listen1");
         registry.register(root, project(root, 10));
 
         Assert.assertEquals(events.size(), 1);
@@ -264,8 +265,8 @@ public class RegistryTest {
         List<CacheInvalidationEvent> events = new ArrayList<>();
         registry.addListener(events::add);
 
-        SourceRoot r1 = root("/projects/b1");
-        SourceRoot r2 = root("/projects/b2");
+        DocumentUri r1 = root("/projects/b1");
+        DocumentUri r2 = root("/projects/b2");
         registry.putAll(Map.of(r1, project(r1, 5), r2, project(r2, 5)));
 
         Assert.assertEquals(events.size(), 1);
@@ -278,7 +279,7 @@ public class RegistryTest {
     @Test
     public void registry_listener_projectRemoved_fired_on_remove() {
         ProjectRegistry registry = new ProjectRegistry(MemoryBudget.ofMb(2048));
-        SourceRoot root = root("/projects/del1");
+        DocumentUri root = root("/projects/del1");
         registry.register(root, project(root, 10));
 
         List<CacheInvalidationEvent> events = new ArrayList<>();

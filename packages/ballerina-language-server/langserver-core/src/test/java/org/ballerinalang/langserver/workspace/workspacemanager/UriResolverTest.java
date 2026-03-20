@@ -181,7 +181,8 @@ public class UriResolverTest {
      */
     @Test
     public void evictSubtree_removesAllEntriesUnderPrefix() {
-        SourceRoot sourceRoot = new SourceRoot(Path.of("/workspace/project").toAbsolutePath().normalize());
+        DocumentUri sourceRoot = new DocumentUri.FileUri(
+                Path.of("/workspace/project").toAbsolutePath().normalize().toUri());
         DocumentUri doc1 = new DocumentUri.FileUri(URI.create("file:///workspace/project/main.bal"));
         DocumentUri doc2 = new DocumentUri.FileUri(URI.create("file:///workspace/project/modules/auth/auth.bal"));
 
@@ -198,7 +199,8 @@ public class UriResolverTest {
      */
     @Test
     public void evictSubtree_preservesEntriesOutsidePrefix() {
-        SourceRoot sourceRoot = new SourceRoot(Path.of("/workspace/project-a").toAbsolutePath().normalize());
+        DocumentUri sourceRoot = new DocumentUri.FileUri(
+                Path.of("/workspace/project-a").toAbsolutePath().normalize().toUri());
         DocumentUri inScope = new DocumentUri.FileUri(URI.create("file:///workspace/project-a/main.bal"));
         DocumentUri outScope = new DocumentUri.FileUri(URI.create("file:///workspace/project-b/main.bal"));
         ResolvedEntry entry = new ResolvedEntry.DocumentEntry(mockDocument);

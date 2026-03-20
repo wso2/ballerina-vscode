@@ -18,6 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -37,7 +38,7 @@ import java.util.concurrent.locks.Lock;
 public class ProjectTest {
 
     private static final Path ABS_PATH = Path.of("/workspace/myproject").toAbsolutePath().normalize();
-    private static final SourceRoot SOURCE_ROOT = new SourceRoot(ABS_PATH);
+    private static final DocumentUri SOURCE_ROOT = new DocumentUri.FileUri(ABS_PATH.toUri());
 
     // -------------------------------------------------------------------------
     // HeapEstimate tests
@@ -356,7 +357,7 @@ public class ProjectTest {
      * Verifies null sourceRoot throws NullPointerException.
      */
     @Test(expectedExceptions = NullPointerException.class)
-    public void project_constructor_nullSourceRootThrows() {
+    public void project_constructor_nullDocumentUriThrows() {
         new Project(null, ProjectKind.BUILD, HeapEstimate.ofMb(0));
     }
 
@@ -377,10 +378,10 @@ public class ProjectTest {
     }
 
     /**
-     * Verifies equality is based solely on SourceRoot.
+     * Verifies equality is based solely on the project root URI.
      */
     @Test
-    public void project_equals_basedOnSourceRoot() {
+    public void project_equals_basedOnDocumentUri() {
         Project p1 = new Project(SOURCE_ROOT, ProjectKind.BUILD, HeapEstimate.ofMb(100));
         Project p2 = new Project(SOURCE_ROOT, ProjectKind.SINGLE_FILE, HeapEstimate.ofMb(200));
         Assert.assertEquals(p1, p2);
@@ -391,9 +392,9 @@ public class ProjectTest {
      * Verifies projects with different source roots are not equal.
      */
     @Test
-    public void project_equals_differentSourceRootNotEqual() {
+    public void project_equals_differentDocumentUriNotEqual() {
         Path otherPath = Path.of("/workspace/other").toAbsolutePath().normalize();
-        SourceRoot otherRoot = new SourceRoot(otherPath);
+        DocumentUri otherRoot = new DocumentUri.FileUri(otherPath.toUri());
         Project p1 = new Project(SOURCE_ROOT, ProjectKind.BUILD, HeapEstimate.ofMb(100));
         Project p2 = new Project(otherRoot, ProjectKind.BUILD, HeapEstimate.ofMb(100));
         Assert.assertNotEquals(p1, p2);
@@ -676,7 +677,7 @@ public class ProjectTest {
      * Verifies HealthTransitionEvent carries correct sourceRoot.
      */
     @Test
-    public void event_healthTransition_correctSourceRoot() {
+    public void event_healthTransition_correctDocumentUri() {
         Project project = newHealthyProject();
         Project.HealthTransitionEvent evt = project.transitionTo(ProjectHealthState.COMPILATION_CRASHED);
         Assert.assertEquals(evt.sourceRoot(), SOURCE_ROOT);

@@ -119,8 +119,8 @@ public class ProjectServiceTest {
 
     @Test(groups = "wiring")
     public void wiring_heapPressureEventEvictsBackgroundProjects() throws Exception {
-        SourceRoot root1 = new SourceRoot(tempDir.toAbsolutePath().normalize());
-        SourceRoot root2 = new SourceRoot(tempDir.resolve("subdir").toAbsolutePath().normalize());
+        DocumentUri root1 = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
+        DocumentUri root2 = new DocumentUri.FileUri(tempDir.resolve("subdir").toAbsolutePath().normalize().toUri());
 
         // Create two projects
         org.ballerinalang.langserver.workspace.workspacemanager.Project project1 =
@@ -151,7 +151,7 @@ public class ProjectServiceTest {
 
     @Test(groups = "wiring")
     public void wiring_emergencyHeapPressureAlsoEvictsBackgroundProjects() throws Exception {
-        SourceRoot root = new SourceRoot(tempDir.resolve("subdir").toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(tempDir.resolve("subdir").toAbsolutePath().normalize().toUri());
 
         org.ballerinalang.langserver.workspace.workspacemanager.Project project =
                 new org.ballerinalang.langserver.workspace.workspacemanager.Project(
@@ -318,7 +318,7 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
         publishedEvents.clear();
 
-        SourceRoot root = new SourceRoot(projectPath);
+        DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
         registry.remove(root);
 
         // Wait for async event delivery
@@ -334,7 +334,7 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
         Assert.assertEquals(service.allProjects().size(), 1);
 
-        SourceRoot root = new SourceRoot(projectPath);
+        DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
         registry.remove(root);
 
         Assert.assertTrue(service.allProjects().isEmpty(), "Project should be removed");
@@ -346,8 +346,8 @@ public class ProjectServiceTest {
 
     @Test(groups = "put-all")
     public void putAll_publishesBatchEvent() throws Exception {
-        SourceRoot root1 = new SourceRoot(tempDir.toAbsolutePath().normalize());
-        SourceRoot root2 = new SourceRoot(tempDir.resolve("subdir").toAbsolutePath().normalize());
+        DocumentUri root1 = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
+        DocumentUri root2 = new DocumentUri.FileUri(tempDir.resolve("subdir").toAbsolutePath().normalize().toUri());
 
         org.ballerinalang.langserver.workspace.workspacemanager.Project project1 =
                 new org.ballerinalang.langserver.workspace.workspacemanager.Project(
@@ -359,7 +359,7 @@ public class ProjectServiceTest {
                         HeapEstimate.ofMb(64));
 
         publishedEvents.clear();
-        Map<SourceRoot, org.ballerinalang.langserver.workspace.workspacemanager.Project> map = new HashMap<>();
+        Map<DocumentUri, org.ballerinalang.langserver.workspace.workspacemanager.Project> map = new HashMap<>();
         map.put(root1, project1);
         map.put(root2, project2);
         registry.putAll(map);
@@ -426,7 +426,7 @@ public class ProjectServiceTest {
                 "Project should be registered in UriResolver");
 
         // Remove the project
-        SourceRoot root = new SourceRoot(projectPath);
+        DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
         registry.remove(root);
 
         // Verify subtree was evicted from UriResolver
@@ -445,7 +445,7 @@ public class ProjectServiceTest {
                 "Project should be registered in UriResolver");
 
         // Remove the project (triggers subtree eviction)
-        SourceRoot root = new SourceRoot(projectPath);
+        DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
         registry.remove(root);
 
         // Verify all paths under the project are also evicted
@@ -471,7 +471,7 @@ public class ProjectServiceTest {
         // Allow async processing
         Thread.sleep(100);
 
-        SourceRoot root = new SourceRoot(projectPath);
+        DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
         Optional<org.ballerinalang.langserver.workspace.workspacemanager.Project> proj = registry.get(root);
         Assert.assertTrue(proj.isPresent());
         Assert.assertEquals(proj.get().openDocumentCount().count(), 1, "Open document count should be 1");
@@ -526,7 +526,7 @@ public class ProjectServiceTest {
                 projectPath.toString()));
         Thread.sleep(100);
 
-        SourceRoot root = new SourceRoot(projectPath);
+        DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
         Optional<org.ballerinalang.langserver.workspace.workspacemanager.Project> proj = registry.get(root);
         Assert.assertTrue(proj.isPresent());
         Assert.assertEquals(proj.get().openDocumentCount().count(), 0, "Open document count should be 0");
@@ -568,7 +568,7 @@ public class ProjectServiceTest {
                 projectPath.toString()));
         Thread.sleep(100);
 
-        SourceRoot root = new SourceRoot(projectPath);
+        DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
         Optional<org.ballerinalang.langserver.workspace.workspacemanager.Project> proj = registry.get(root);
         Assert.assertTrue(proj.isPresent());
         Assert.assertEquals(proj.get().healthState(), ProjectHealthState.COMPILATION_CRASHED,
@@ -610,7 +610,7 @@ public class ProjectServiceTest {
         Path projectPath = tempDir.toAbsolutePath().normalize();
         service.loadOrCreate(projectPath, cancelChecker);
 
-        SourceRoot root = new SourceRoot(projectPath);
+        DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
         org.ballerinalang.langserver.workspace.workspacemanager.Project proj = registry.get(root).get();
 
         // Transition to RECOVERING
@@ -632,7 +632,7 @@ public class ProjectServiceTest {
         Path projectPath = tempDir.toAbsolutePath().normalize();
         service.loadOrCreate(projectPath, cancelChecker);
 
-        SourceRoot root = new SourceRoot(projectPath);
+        DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
         org.ballerinalang.langserver.workspace.workspacemanager.Project proj = registry.get(root).get();
         Assert.assertEquals(proj.healthState(), ProjectHealthState.HEALTHY);
 
@@ -653,7 +653,7 @@ public class ProjectServiceTest {
         Path projectPath = tempDir.toAbsolutePath().normalize();
         service.loadOrCreate(projectPath, cancelChecker);
 
-        SourceRoot root = new SourceRoot(projectPath);
+        DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
         eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
                 projectPath.toString()));
         Thread.sleep(100);
@@ -667,7 +667,7 @@ public class ProjectServiceTest {
         Path projectPath = tempDir.toAbsolutePath().normalize();
         service.loadOrCreate(projectPath, cancelChecker);
 
-        SourceRoot root = new SourceRoot(projectPath);
+        DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
         org.ballerinalang.langserver.workspace.workspacemanager.Project project = registry.get(root).orElseThrow();
         project.transitionTo(ProjectHealthState.PROJECT_CRASHED);
         project.transitionTo(ProjectHealthState.RECOVERING);
@@ -687,7 +687,7 @@ public class ProjectServiceTest {
         Path projectPath = tempDir.toAbsolutePath().normalize();
         service.loadOrCreate(projectPath, cancelChecker);
 
-        SourceRoot root = new SourceRoot(projectPath);
+        DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
         org.ballerinalang.langserver.workspace.workspacemanager.Project project = registry.get(root).orElseThrow();
         project.transitionTo(ProjectHealthState.PROJECT_CRASHED);
         project.transitionTo(ProjectHealthState.RECOVERING);
@@ -755,7 +755,7 @@ public class ProjectServiceTest {
         service.didChangeWatchedFiles(List.of(event));
         Thread.sleep(200);
 
-        SourceRoot root = new SourceRoot(singleFileDir.toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(singleFileDir.toAbsolutePath().normalize().toUri());
         Assert.assertEquals(registry.get(root).orElseThrow().kind(), ProjectKind.BUILD,
                 "Ballerina.toml creation should transition the project to BUILD");
         Assert.assertTrue(publishedEvents.stream()
@@ -779,7 +779,7 @@ public class ProjectServiceTest {
         service.didChangeWatchedFiles(List.of(event));
         Thread.sleep(200);
 
-        SourceRoot root = new SourceRoot(projectPath);
+        DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
         Assert.assertEquals(registry.get(root).orElseThrow().kind(), ProjectKind.SINGLE_FILE,
                 "Ballerina.toml deletion should transition the project to SINGLE_FILE");
         Assert.assertTrue(publishedEvents.stream()
@@ -800,7 +800,7 @@ public class ProjectServiceTest {
         Path singleFileDir = Files.createTempDirectory("test-single-file");
         service.loadOrCreate(singleFileDir, cancelChecker);
 
-        SourceRoot root = new SourceRoot(singleFileDir.toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(singleFileDir.toAbsolutePath().normalize().toUri());
         org.ballerinalang.langserver.workspace.workspacemanager.Project proj = registry.get(root).get();
         Assert.assertEquals(proj.kind(), org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind.SINGLE_FILE);
 
@@ -821,7 +821,7 @@ public class ProjectServiceTest {
         Path singleFileDir = Files.createTempDirectory("test-single-file-invalid");
         service.loadOrCreate(singleFileDir, cancelChecker);
 
-        SourceRoot root = new SourceRoot(singleFileDir.toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(singleFileDir.toAbsolutePath().normalize().toUri());
         org.ballerinalang.langserver.workspace.workspacemanager.Project proj = registry.get(root).get();
 
         // Try to transition from SINGLE_FILE to SINGLE_FILE (same kind)
@@ -833,7 +833,7 @@ public class ProjectServiceTest {
     // Helper Methods
     // =========================================================================
 
-    private Project mockBallerinaProject(SourceRoot root,
+    private Project mockBallerinaProject(DocumentUri root,
                                         org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind kind) {
         // Create a mock Ballerina project using Mockito
         Project mockProject = Mockito.mock(Project.class);
