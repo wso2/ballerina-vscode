@@ -829,7 +829,7 @@ const AIChat: React.FC = () => {
             return;
         }
         if (hasActiveReview) {
-            rpcClient.getAiPanelRpcClient().acceptChanges().catch((e: unknown) => console.warn("[AIChat] auto-accept failed:", e));
+            await rpcClient.getAiPanelRpcClient().acceptChanges().catch((e: unknown) => console.warn("[AIChat] auto-accept failed:", e));
             setHasActiveReview(false);
         }
         rpcClient.getAiPanelRpcClient().clearInitialPrompt();
@@ -1503,7 +1503,7 @@ const AIChat: React.FC = () => {
                                                                 loadDesignDiagrams={(reviewItem as any).data.loadDesignDiagrams}
                                                                 isWorkspace={(reviewItem as any).data.isWorkspace}
                                                                 diffPackageMap={(reviewItem as any).data.diffPackageMap}
-                                                                isDiscarded={(reviewItem as any).data.status === "discarded"}
+                                                                isDiscarded={(reviewItem as any)?.data?.status === "discarded"}
                                                                 rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
                                                                 isActive={isLatestAssistantMessage && !isLoading && hasActiveReview}
                                                                 onDiscarded={() => {
