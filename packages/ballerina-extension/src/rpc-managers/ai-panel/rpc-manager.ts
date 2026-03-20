@@ -490,9 +490,9 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
             console.log(`[Review Actions] Declining ${underReviewGenerations.length} generation(s)`);
 
-            // Restore workspace to pre-generation state using checkpoint
-            const earliestReview = underReviewGenerations[0];
-            const checkpoint = earliestReview.checkpoint;
+            // Restore workspace to state before the latest generation ran
+            const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
+            const checkpoint = latestReview.checkpoint;
             if (checkpoint) {
                 await restoreWorkspaceSnapshot(checkpoint);
             } else {
@@ -513,7 +513,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             console.log("[Review Actions] Marked all under_review generations as declined");
 
             // Send telemetry for generation discard
-            const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
             sendGenerationDiscardTelemetry(latestReview.id);
 
             // Clear affectedPackagePaths from all completed reviews to prevent stale data
