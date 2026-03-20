@@ -19,6 +19,7 @@
 package org.ballerinalang.langserver.workspace.execution;
 
 import org.ballerinalang.langserver.commons.workspace.RunContext;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
@@ -26,7 +27,6 @@ import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -103,7 +103,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
             throw new IllegalArgumentException("balSourcePath must not be null");
         }
 
-        SourceRoot sourceRoot = resolveSourceRoot(sourcePath);
+        DocumentUri sourceRoot = resolveSourceUri(sourcePath);
         ProcessId processId = new ProcessId(UUID.randomUUID().toString());
 
         try {
@@ -124,7 +124,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
             processRegistry.register(executionProcess);
             activeProcesses.put(processId, executionProcess);
 
-            publish(EventKind.EXECUTION_PROCESS_STARTED, sourceRoot.path().toString(), processId.value());
+            publish(EventKind.EXECUTION_PROCESS_STARTED, sourceRoot.uri().getPath(), processId.value());
 
             startOutputStreaming(processId, process, sourceRoot);
 
@@ -136,10 +136,8 @@ public final class ExecutionServiceImpl implements ExecutionService {
     }
 
     @Override
-    public void stop(@Nonnull org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot sourceRoot) {
-        processRegistry.cleanup(
-                new SourceRoot(sourceRoot.path()),
-                ExecutionProcess.TerminationReason.USER_REQUESTED);
+    public void stop(@Nonnull DocumentUri sourceRoot) {
+        processRegistry.cleanup(sourceRoot, ExecutionProcess.TerminationReason.USER_REQUESTED);
     }
 
     /**
@@ -214,7 +212,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
 
         try {
             Path path = Path.of(sourceContext).toAbsolutePath().normalize();
-            SourceRoot sourceRoot = new SourceRoot(path);
+            DocumentUri sourceRoot = new DocumentUri.FileUri(path.toUri());
 
             processRegistry.cleanup(sourceRoot, ExecutionProcess.TerminationReason.EVICTION_CLEANUP);
         } catch (Exception ignored) {
@@ -241,7 +239,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
 
         try {
             Path path = Path.of(sourceContext).toAbsolutePath().normalize();
-            SourceRoot sourceRoot = new SourceRoot(path);
+            DocumentUri sourceRoot = new DocumentUri.FileUri(path.toUri());
 
             processRegistry.cleanup(sourceRoot, ExecutionProcess.TerminationReason.PROJECT_KIND_TRANSITIONED);
         } catch (Exception ignored) {
@@ -252,7 +250,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
         return kind == ProjectKind.SINGLE_FILE || kind == ProjectKind.BUILD;
     }
 
-    private void startOutputStreaming(ProcessId processId, Process process, SourceRoot sourceRoot) {
+    private void startOutputStreaming(ProcessId processId, Process process, DocumentUri sourceRoot) {
         virtualThreadExecutor.submit(() -> {
             virtualThreadUsageTracker.accept(Thread.currentThread().isVirtual());
             streamOutput(processId, process, sourceRoot, process.getInputStream(), true);
@@ -275,14 +273,14 @@ public final class ExecutionServiceImpl implements ExecutionService {
                         // Process already terminated, ignore
                     }
                 }
-                publish(EventKind.EXECUTION_PROCESS_TERMINATED, sourceRoot.path().toString(), processId.value());
+                publish(EventKind.EXECUTION_PROCESS_TERMINATED, sourceRoot.uri().getPath(), processId.value());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         });
     }
 
-    private void streamOutput(ProcessId processId, Process process, SourceRoot sourceRoot,
+    private void streamOutput(ProcessId processId, Process process, DocumentUri sourceRoot,
                               InputStream stream, boolean isStdout) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
             String line;
@@ -291,7 +289,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
                     break;
                 }
                 publish(EventKind.EXECUTION_PROCESS_OUTPUT,
-                        sourceRoot.path().toString(),
+                        sourceRoot.uri().getPath(),
                         processId.value() + "|" + (isStdout ? "stdout" : "stderr") + "|" + line);
             }
         } catch (IOException ignored) {
@@ -306,13 +304,10 @@ public final class ExecutionServiceImpl implements ExecutionService {
         return pb;
     }
 
-    private SourceRoot resolveSourceRoot(Path sourcePath) {
+    private DocumentUri resolveSourceUri(Path sourcePath) {
         Path normalized = sourcePath.toAbsolutePath().normalize();
-        Path parent = normalized.getParent();
-        if (parent == null) {
-            parent = normalized;
-        }
-        return new SourceRoot(parent);
+        Path parent = normalized.getParent() != null ? normalized.getParent() : normalized;
+        return new DocumentUri.FileUri(parent.toUri());
     }
 
     private ExecutionProcess.ExecutionMode resolveExecutionMode(RunContext context) {

@@ -19,6 +19,7 @@
 package org.ballerinalang.langserver.workspace.executionmanager;
 
 import org.ballerinalang.langserver.commons.workspace.RunContext;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 
 /**
  * Execution context service contract.
@@ -40,5 +41,5 @@ public interface ExecutionService {
      *
      * @param sourceRoot source root identity
      */
-    void stop(org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot sourceRoot);
+    void stop(DocumentUri sourceRoot);
 }

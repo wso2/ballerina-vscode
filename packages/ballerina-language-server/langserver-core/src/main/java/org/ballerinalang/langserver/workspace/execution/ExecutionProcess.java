@@ -18,8 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.execution;
 
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 
 import javax.annotation.Nonnull;
 
@@ -46,7 +46,7 @@ import java.util.function.Consumer;
 public final class ExecutionProcess {
 
     private final ProcessId processId;
-    private final SourceRoot sourceRoot;
+    private final DocumentUri sourceRoot;
     private final ExecutionMode executionMode;
     private final Path executablePath;
     private final GracePeriod gracePeriod;
@@ -109,7 +109,7 @@ public final class ExecutionProcess {
      * Creates a new process aggregate.
      *
      * @param processId unique process identifier
-     * @param sourceRoot project source root
+     * @param sourceRoot project source root URI
      * @param executionMode execution mode
      * @param executablePath path to executable
      * @param gracePeriod termination grace period
@@ -117,7 +117,7 @@ public final class ExecutionProcess {
      * @param outputConsumer consumer for output stream data
      */
     public ExecutionProcess(ProcessId processId,
-                            SourceRoot sourceRoot,
+                            DocumentUri sourceRoot,
                             ExecutionMode executionMode,
                             Path executablePath,
                             GracePeriod gracePeriod,
@@ -131,7 +131,7 @@ public final class ExecutionProcess {
      * Creates a new process aggregate with custom termination hooks for testing.
      *
      * @param processId unique process identifier
-     * @param sourceRoot project source root
+     * @param sourceRoot project source root URI
      * @param executionMode execution mode
      * @param executablePath path to executable
      * @param gracePeriod termination grace period
@@ -141,7 +141,7 @@ public final class ExecutionProcess {
      * @param forcedKillHook optional hook called during forced kill (for testing)
      */
     ExecutionProcess(@Nonnull ProcessId processId,
-                     @Nonnull SourceRoot sourceRoot,
+                     @Nonnull DocumentUri sourceRoot,
                      @Nonnull ExecutionMode executionMode,
                      @Nonnull Path executablePath,
                      @Nonnull GracePeriod gracePeriod,
@@ -234,11 +234,11 @@ public final class ExecutionProcess {
     }
 
     /**
-     * Returns the source root.
+     * Returns the source root URI.
      *
-     * @return source root
+     * @return source root URI
      */
-    public SourceRoot sourceRoot() {
+    public DocumentUri sourceRoot() {
         return sourceRoot;
     }
 

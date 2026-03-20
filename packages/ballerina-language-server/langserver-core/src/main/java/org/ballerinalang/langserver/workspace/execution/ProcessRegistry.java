@@ -18,8 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.execution;
 
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 
 import javax.annotation.Nonnull;
 
@@ -107,7 +107,7 @@ public final class ProcessRegistry {
      * @return list of process IDs that were terminated
      * @throws NullPointerException if sourceRoot or reason is null
      */
-    public List<ProcessId> cleanup(@Nonnull SourceRoot sourceRoot,
+    public List<ProcessId> cleanup(@Nonnull DocumentUri sourceRoot,
                                    @Nonnull ExecutionProcess.TerminationReason reason) {
         List<ProcessId> removed = new ArrayList<>();
 
