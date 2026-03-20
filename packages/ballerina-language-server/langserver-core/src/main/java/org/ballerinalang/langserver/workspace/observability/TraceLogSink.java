@@ -16,22 +16,30 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.resourcemonitor;
+package org.ballerinalang.langserver.workspace.observability;
+
+import java.util.Map;
 
 /**
- * Event kind identifier for heap pressure detected events.
- *
- * <p>This is the package-local constant for RM-E1 (HeapPressureDetected).
- * T-036 will add this to the central {@link org.ballerinalang.langserver.workspace.eventbus.EventKind} enum.
+ * Best-effort sink for structured trace log entries.
  *
  * @since 1.7.0
  */
-public final class ResourceMonitorEvents {
+public interface TraceLogSink extends AutoCloseable {
 
-    /** RM-E1: Heap pressure detected event identifier. */
-    public static final String RM_E1_HEAP_PRESSURE_DETECTED = "RM-E1";
+    /**
+     * Writes a structured trace entry.
+     *
+     * <p>Implementations must absorb failures and avoid throwing.
+     *
+     * @param level log level for the entry
+     * @param fields structured fields to write
+     */
+    void write(String level, Map<String, String> fields);
 
-    private ResourceMonitorEvents() {
-        // Utility class - prevent instantiation
-    }
+    /**
+     * Closes the sink.
+     */
+    @Override
+    void close();
 }

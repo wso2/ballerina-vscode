@@ -18,15 +18,13 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
-import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.PackageCompilation;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -569,7 +567,8 @@ public class CompilationPipelineTest {
         eventBus.subscribe("test-ce-e5a", SubscriberTier.CRITICAL,
                 Set.of(EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY), event -> resolutionDiagnosticsReady.countDown());
         eventBus.subscribe("test-no-ce-e5b", SubscriberTier.CRITICAL,
-                Set.of(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY), event -> compilationDiagnosticsReady.countDown());
+                Set.of(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY),
+                event -> compilationDiagnosticsReady.countDown());
 
         pipeline = createPipeline(eventBus, new CompilationPipeline.CompilationAction() {
             @Override
@@ -628,7 +627,8 @@ public class CompilationPipelineTest {
             }
 
             @Override
-            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
+            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode,
+                                                              Throwable cause) {
                 recoveryCalls.incrementAndGet();
                 return CompilationPipeline.RecoveryResult.success();
             }
@@ -672,7 +672,8 @@ public class CompilationPipelineTest {
             }
 
             @Override
-            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
+            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode,
+                                                              Throwable cause) {
                 recoveryCalls.incrementAndGet();
                 return CompilationPipeline.RecoveryResult.exhausted();
             }

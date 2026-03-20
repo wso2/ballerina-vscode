@@ -24,16 +24,16 @@ import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-
-import javax.annotation.Nonnull;
 
 /**
  * Subscribes to all domain events and emits structured trace logs.
@@ -51,17 +51,18 @@ public class WorkspaceTraceLogger implements AutoCloseable {
 
     private final EventSyncPubSubHolder eventBus;
     private final AtomicReference<LogLevel> logLevel;
+    private final List<TraceLogSink> sinks;
     private final BiConsumer<String, Map<String, String>> logConsumer;
     private final Consumer<DomainEvent> eventConsumer;
     private volatile boolean subscribed = false;
 
     /**
-     * Creates a trace logger that logs to the console.
+     * Creates a trace logger that logs to the default sinks.
      *
      * @param eventBus the event bus to subscribe to
      */
     public WorkspaceTraceLogger(EventSyncPubSubHolder eventBus) {
-        this(eventBus, LogLevel.INFO, null);
+        this(eventBus, LogLevel.INFO, defaultSinks());
     }
 
     /**
@@ -80,18 +81,26 @@ public class WorkspaceTraceLogger implements AutoCloseable {
      * @param eventBus the event bus to subscribe to
      * @param logConsumer consumer for structured log entries (level, fields)
      */
-    public WorkspaceTraceLogger(@Nonnull EventSyncPubSubHolder eventBus,
+    @Deprecated(forRemoval = true)
+    public WorkspaceTraceLogger(EventSyncPubSubHolder eventBus,
                                 BiConsumer<String, Map<String, String>> logConsumer) {
+        this(eventBus, LogLevel.INFO, logConsumer != null ? List.of(asSink(logConsumer)) : defaultSinks());
+    }
+
+    /**
+     * Creates a trace logger with the specified level and sinks.
+     *
+     * @param eventBus the event bus to subscribe to
+     * @param initialLevel the initial log level
+     * @param sinks trace sinks that receive structured entries
+     */
+    public WorkspaceTraceLogger(EventSyncPubSubHolder eventBus, LogLevel initialLevel,
+                                List<TraceLogSink> sinks) {
         this.eventBus = eventBus;
-        this.logLevel = new AtomicReference<>(LogLevel.INFO);
+        this.logLevel = new AtomicReference<>(initialLevel != null ? initialLevel : LogLevel.INFO);
+        this.sinks = List.copyOf(sinks);
         this.eventConsumer = null;
-        // Wrap the consumer to respect log levels
-        this.logConsumer = logConsumer != null ? 
-            (level, fields) -> {
-                if (shouldLog(level, logLevel.get())) {
-                    logConsumer.accept(level, fields);
-                }
-            } : this::defaultLogOutput;
+        this.logConsumer = this::dispatchToSinks;
         subscribe();
     }
 
@@ -100,18 +109,19 @@ public class WorkspaceTraceLogger implements AutoCloseable {
      *
      * @param eventBus the event bus to subscribe to
      * @param initialLevel the initial log level
-     * @param eventConsumer custom event consumer (null for default console logging)
+     * @param eventConsumer custom event consumer (null for default sink logging)
      */
-    public WorkspaceTraceLogger(@Nonnull EventSyncPubSubHolder eventBus, @Nonnull LogLevel initialLevel,
+    public WorkspaceTraceLogger(EventSyncPubSubHolder eventBus, LogLevel initialLevel,
                                 Consumer<DomainEvent> eventConsumer) {
         this.eventBus = eventBus;
         this.logLevel = new AtomicReference<>(initialLevel != null ? initialLevel : LogLevel.INFO);
+        this.sinks = eventConsumer != null ? List.of() : defaultSinks();
         this.eventConsumer = eventConsumer;
         
         // Use provided consumer or default to console logging
         this.logConsumer = eventConsumer != null ? 
             (level, fields) -> {} : // Consumer handles events directly
-            this::defaultLogOutput;
+            this::dispatchToSinks;
         
         subscribe();
     }
@@ -158,6 +168,16 @@ public class WorkspaceTraceLogger implements AutoCloseable {
 
         Map<String, String> fields = eventToFields(event);
         logConsumer.accept(level, fields);
+    }
+
+    private void dispatchToSinks(String level, Map<String, String> fields) {
+        for (TraceLogSink sink : sinks) {
+            try {
+                sink.write(level, fields);
+            } catch (Exception ignored) {
+                // Best-effort logging must not affect event processing.
+            }
+        }
     }
 
     /**
@@ -208,7 +228,7 @@ public class WorkspaceTraceLogger implements AutoCloseable {
      * Converts a domain event to structured fields.
      */
     private Map<String, String> eventToFields(DomainEvent event) {
-        Map<String, String> fields = new ConcurrentHashMap<>();
+        Map<String, String> fields = new LinkedHashMap<>();
         fields.put("timestamp", event.timestamp().toString());
         fields.put("eventType", event.eventKind().name());
         fields.put("eventId", event.eventKind().eventId());
@@ -217,10 +237,7 @@ public class WorkspaceTraceLogger implements AutoCloseable {
         return fields;
     }
 
-    /**
-     * Default console log output.
-     */
-    private void defaultLogOutput(String level, Map<String, String> fields) {
+    static String formatLogEntry(String level, Map<String, String> fields) {
         StringBuilder sb = new StringBuilder();
         sb.append("[").append(level).append("] ");
         
@@ -245,7 +262,32 @@ public class WorkspaceTraceLogger implements AutoCloseable {
             sb.append(" ").append(key).append("=").append(entry.getValue());
         }
         
-        System.out.println(sb.toString());
+        return sb.toString();
+    }
+
+    private static List<TraceLogSink> defaultSinks() {
+        List<TraceLogSink> defaultSinks = new ArrayList<>();
+        defaultSinks.add(new ConsoleTraceLogSink());
+        try {
+            defaultSinks.add(new FileTraceLogSink());
+        } catch (IOException ignored) {
+            // Degrade gracefully to console-only logging.
+        }
+        return defaultSinks;
+    }
+
+    private static TraceLogSink asSink(BiConsumer<String, Map<String, String>> logConsumer) {
+        return new TraceLogSink() {
+            @Override
+            public void write(String level, Map<String, String> fields) {
+                logConsumer.accept(level, fields);
+            }
+
+            @Override
+            public void close() {
+                // No-op.
+            }
+        };
     }
 
     /**
@@ -285,6 +327,13 @@ public class WorkspaceTraceLogger implements AutoCloseable {
         // Note: We cannot unsubscribe from EventSyncPubSubHolder directly,
         // but we can set log level to OFF to stop processing
         logLevel.set(LogLevel.OFF);
+        for (TraceLogSink sink : sinks) {
+            try {
+                sink.close();
+            } catch (Exception ignored) {
+                // Best-effort cleanup.
+            }
+        }
     }
 }
 
