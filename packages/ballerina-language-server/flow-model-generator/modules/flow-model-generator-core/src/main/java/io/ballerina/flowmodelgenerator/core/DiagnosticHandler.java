@@ -77,6 +77,13 @@ public class DiagnosticHandler {
             LineRange diagnosticLineRange = currentDiagnostic.location().lineRange();
             LinePosition diagnosticEndLine = diagnosticLineRange.endLine();
             while (hasDiagnosticPassed(nodeStartLine, diagnosticEndLine, isLeafNode)) {
+                // Attach skipped diagnostic to the pending enclosing node before advancing
+                if (pendingBuilder != null && pendingNodeLineRange != null &&
+                        PositionUtil.isWithinLineRange(diagnosticLineRange, pendingNodeLineRange)) {
+                    pendingBuilder.diagnostics()
+                            .diagnostic(currentDiagnostic.diagnosticInfo().severity(),
+                                    currentDiagnostic.message());
+                }
                 if (iterator.hasNext()) {
                     currentDiagnostic = iterator.next();
                     hasNodeAnnotated = false;
@@ -143,8 +150,10 @@ public class DiagnosticHandler {
     private void addDiagnostic(DiagnosticCapable builder) {
         builder.diagnostics()
                 .diagnostic(currentDiagnostic.diagnosticInfo().severity(), currentDiagnostic.message());
-        pendingBuilder = null;
-        pendingNodeLineRange = null;
+        if (pendingBuilder == builder) {
+            pendingBuilder = null;
+            pendingNodeLineRange = null;
+        }
     }
 
     /**
