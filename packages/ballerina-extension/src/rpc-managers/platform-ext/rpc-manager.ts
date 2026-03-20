@@ -738,7 +738,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                                     if (resp === "Open Devant") {
                                         vscode.env.openExternal(
                                             Uri.parse(
-                                                `${devantUrl}/organizations/${selected.org.handle}/projects/${selected.project.id}/admin/connections`,
+                                                `${devantUrl}/organizations/${selected.org.handle}/projects/${selected.project.handler}/admin/connections`,
                                             ),
                                         );
                                     }
