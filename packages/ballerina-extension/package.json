@@ -547,7 +547,7 @@
             },
             {
                 "command": "ballerina.open.ai.panel",
-                "title": "Open AI Panel",
+                "title": "Open WSO2 Integrator Copilot",
                 "category": "Ballerina",
                 "icon": {
                     "dark": "./resources/icons/light-ai-chat.svg",
@@ -1004,7 +1004,7 @@
                     "command": "ballerina.open.ai.panel",
                     "group": "navigation@1",
                     "when": "resourceLangId == ballerina || isBallerinaDiagram || (isBalVisualizerActive && isBIProject)",
-                    "title": "Open AI Panel"
+                    "title": "Open WSO2 Integrator Copilot"
                 },
                 {
                     "command": "BI.project.run",

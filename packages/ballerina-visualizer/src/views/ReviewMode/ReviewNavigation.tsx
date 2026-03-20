@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React from "react";
 import styled from "@emotion/styled";
 import { Button } from "@wso2/ui-toolkit";
 
@@ -147,20 +147,6 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
         canToggleVersion
     } = props;
 
-    const [isProcessing, setIsProcessing] = useState(false);
-
-    const handleAccept = async () => {
-        setIsProcessing(true);
-        await onAccept();
-        // setIsProcessing(false);
-    };
-
-    const handleReject = async () => {
-        setIsProcessing(true);
-        await onReject();
-        // setIsProcessing(false);
-    };
-
     const handlePreviousClick = () => {
         if (canGoPrevious) {
             onPrevious();
@@ -230,24 +216,6 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
                 </ToggleSegment>
             </VersionToggle>
 
-            <ActionButtons>
-                <Button
-                    appearance="secondary"
-                    onClick={handleReject}
-                    tooltip="Discard All Changes"
-                    disabled={isProcessing}
-                >
-                    Discard
-                </Button>
-                <Button
-                    appearance="primary"
-                    onClick={handleAccept}
-                    tooltip="Keep All Changes"
-                    disabled={isProcessing}
-                >
-                    Keep
-                </Button>
-            </ActionButtons>
         </NavigationContainer>
     );
 }
