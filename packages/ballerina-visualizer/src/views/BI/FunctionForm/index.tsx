@@ -28,6 +28,7 @@ import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { FormHeader } from "../../../components/FormHeader";
 import { convertConfig, convertNodePropertyToFormField, getImportsForProperty } from "../../../utils/bi";
 import { OAUTH_CLIENT_CONFIG_PROPERTIES } from "../AIChatAgent/AIAgentSidePanel";
+import { checkAiPackageVersionSupport } from "../AIChatAgent/utils";
 import { BodyText, LoadingContainer, TopBar } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
 
@@ -171,6 +172,7 @@ export function FunctionForm(props: FunctionFormProps) {
     const [formSubtitle, setFormSubtitle] = useState<string>("");
     const [saving, setSaving] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [showOAuthConfig, setShowOAuthConfig] = useState<boolean>(false);
 
     const fileName = filePath.split(/[\\/]/).pop();
     const formType = useRef("Function");
@@ -224,84 +226,97 @@ export function FunctionForm(props: FunctionFormProps) {
     }, [isDataMapper, isNpFunction, isAutomation, isAgentTool, functionName]);
 
     useEffect(() => {
-        let fields = functionNode ? convertConfig(functionNode.properties) : [];
+        let cancelled = false;
+        const updateFields = async () => {
+            let fields = functionNode ? convertConfig(functionNode.properties) : [];
 
-        // TODO: Remove this once the hidden flag is implemented 
-        if (isAutomation || functionName === "main") {
-            formType.current = "Automation";
-            const automationFields = fields.filter(field => field.key !== "functionName" && field.key !== "type");
-            fields = automationFields;
-        }
+            // TODO: Remove this once the hidden flag is implemented
+            if (isAutomation || functionName === "main") {
+                formType.current = "Automation";
+                const automationFields = fields.filter(field => field.key !== "functionName" && field.key !== "type");
+                fields = automationFields;
+            }
 
-        const annotations = functionNode?.properties?.annotations?.value;
-        const isExistingAgentTool = typeof annotations === "string" && annotations.includes("@ai:AgentTool");
-        if (isExistingAgentTool) {
-            formType.current = "Agent Tool";
-            setTitleSubtitle('Build a tool that can be used by AI agents');
-            setFormSubtitle('Define the inputs and outputs of the tool');
-        }
+            const annotations = functionNode?.properties?.annotations?.value;
+            const isExistingAgentTool = typeof annotations === "string" && annotations.includes("@ai:AgentTool");
+            if (isExistingAgentTool) {
+                formType.current = "Agent Tool";
+                setTitleSubtitle('Build a tool that can be used by AI agents');
+                setFormSubtitle('Define the inputs and outputs of the tool');
+            }
 
-        // Apply agent tool field overrides in edit mode (isAgentTool is not passed when editing)
-        if (isExistingAgentTool) {
+            // Apply agent tool field overrides in edit mode (isAgentTool is not passed when editing)
+            if (isExistingAgentTool) {
+                fields.forEach((field) => {
+                    if (field.key === "isIsolated" || field.key === "annotations" || field.key === "isPublic") {
+                        field.hidden = true;
+                        field.editable = false;
+                    }
+                    if (field.key === "functionName") {
+                        field.documentation = "Name of the agent tool.";
+                    }
+                    if (field.key === "functionNameDescription") {
+                        field.documentation = "Description of the agent tool. This will help AI agents understand when to use this tool and how to use it.";
+                    }
+                    if (field.key === "parameters") {
+                        field.documentation = "Define the inputs for the agent tool. These are the parameters that AI agents will use when calling this tool.";
+                    }
+                });
+            }
+
+            // update description fields as "TEXTAREA"
             fields.forEach((field) => {
-                if (field.key === "isIsolated" || field.key === "annotations" || field.key === "isPublic") {
-                    field.hidden = true;
-                    field.editable = false;
+                const primaryInputType = getPrimaryInputType(field.types)
+                if (field.key === "functionNameDescription" || field.key === "typeDescription") {
+                    field.type = "DOC_TEXT";
                 }
-                if (field.key === "functionName") {
-                    field.documentation = "Name of the agent tool.";
-                }
-                if (field.key === "functionNameDescription") {
-                    field.documentation = "Description of the agent tool. This will help AI agents understand when to use this tool and how to use it.";
-                }
-                if (field.key === "parameters") {
-                    field.documentation = "Define the inputs for the agent tool. These are the parameters that AI agents will use when calling this tool.";
-                }
-            });
-        }
-
-        // update description fields as "TEXTAREA"
-        fields.forEach((field) => {
-            const primaryInputType = getPrimaryInputType(field.types)
-            if (field.key === "functionNameDescription" || field.key === "typeDescription") {
-                field.type = "DOC_TEXT";
-            }
-            if (field.key === "parameters" && primaryInputType && isTemplateType(primaryInputType)) {
-                if ((primaryInputType.template as any).value.parameterDescription) {
-                    (primaryInputType.template as any).value.parameterDescription.type = "TEXTAREA";
-                }
-            }
-        });
-
-        // Add OAuth client configuration fields for agent tools
-        if (isAgentTool || isExistingAgentTool) {
-            const existingConfig = isExistingAgentTool
-                ? parseAgentIdConfig(annotations as string)
-                : {};
-            const oauthFields = OAUTH_CLIENT_CONFIG_PROPERTIES.map(({ key, property }) => {
-                const field = convertNodePropertyToFormField(key, property);
-                const parsed = existingConfig[key];
-                if (parsed !== undefined) {
-                    field.value = parsed.value;
-                    // Toggle selected type based on whether value is an expression
-                    if (field.types) {
-                        field.types = field.types.map((t) => ({
-                            ...t,
-                            selected: parsed.isExpression
-                                ? t.fieldType === "EXPRESSION"
-                                : t.fieldType !== "EXPRESSION",
-                        }));
-                    }
-                    if (parsed.isExpression) {
-                        field.type = "EXPRESSION";
+                if (field.key === "parameters" && primaryInputType && isTemplateType(primaryInputType)) {
+                    if ((primaryInputType.template as any).value.parameterDescription) {
+                        (primaryInputType.template as any).value.parameterDescription.type = "TEXTAREA";
                     }
                 }
-                return field;
             });
-            fields.push(...oauthFields);
-        }
 
-        setFunctionFields(fields);
+            // Add OAuth client configuration fields for agent tools
+            let oauthSupported = false;
+            if (isAgentTool || isExistingAgentTool) {
+                oauthSupported = await checkAiPackageVersionSupport(rpcClient, projectPath);
+
+                if (oauthSupported) {
+                    const existingConfig = isExistingAgentTool
+                        ? parseAgentIdConfig(annotations as string)
+                        : {};
+                    const oauthFields = OAUTH_CLIENT_CONFIG_PROPERTIES.map(({ key, property }) => {
+                        const field = convertNodePropertyToFormField(key, property);
+                        const parsed = existingConfig[key];
+                        if (parsed !== undefined) {
+                            field.value = parsed.value;
+                            // Toggle selected type based on whether value is an expression
+                            if (field.types) {
+                                field.types = field.types.map((t) => ({
+                                    ...t,
+                                    selected: parsed.isExpression
+                                        ? t.fieldType === "EXPRESSION"
+                                        : t.fieldType !== "EXPRESSION",
+                                }));
+                            }
+                            if (parsed.isExpression) {
+                                field.type = "EXPRESSION";
+                            }
+                        }
+                        return field;
+                    });
+                    fields.push(...oauthFields);
+                }
+            }
+
+            if (!cancelled) {
+                setFunctionFields(fields);
+                setShowOAuthConfig(oauthSupported);
+            }
+        };
+        updateFields();
+        return () => { cancelled = true; };
     }, [functionNode]);
 
     useEffect(() => {
@@ -516,9 +531,11 @@ export function FunctionForm(props: FunctionFormProps) {
 
         // Inject OAuth client config into codedata.data.agentIdConfig
         const oauthConfig: Record<string, string> = {};
-        for (const { key } of OAUTH_CLIENT_CONFIG_PROPERTIES) {
-            if (key in data && data[key] !== undefined && data[key] !== "") {
-                oauthConfig[key] = String(data[key]);
+        if (showOAuthConfig) {
+            for (const { key } of OAUTH_CLIENT_CONFIG_PROPERTIES) {
+                if (key in data && data[key] !== undefined && data[key] !== "") {
+                    oauthConfig[key] = String(data[key]);
+                }
             }
         }
         if (Object.keys(oauthConfig).length > 0) {
@@ -707,7 +724,7 @@ export function FunctionForm(props: FunctionFormProps) {
                                 selectedNode={functionNode?.codedata?.node}
                                 preserveFieldOrder={true}
                                 injectedComponents={
-                                    functionFields.some((f) => f.key === "baseAuthUrl")
+                                    showOAuthConfig && functionFields.some((f) => f.key === "baseAuthUrl")
                                         ? [
                                             {
                                                 component: (
