@@ -241,6 +241,10 @@ const MainPanel = () => {
             console.log("[ProjectStructure updated]", structure);
             setProjectStructure(structure);
         });
+
+        rpcClient?.getBIDiagramRpcClient().getProjectStructure().then((structure) => {
+            setProjectStructure(structure);
+        });
     }, [rpcClient]);
 
     // TODO: Need to refactor this function. use util apply modifications function
