@@ -451,7 +451,7 @@ function DeploymentOptions({
                         title={
                             isDeployed ? (
                                 <DevantHeaderWrap>
-                                    <span>Deployed in Devant</span>
+                                    <span>Deployed in WSO2 Cloud</span>
                                     <Button
                                         appearance="icon"
                                         onClick={(e) => {
@@ -465,15 +465,15 @@ function DeploymentOptions({
                                     </Button>
                                 </DevantHeaderWrap>
                             ) : (
-                                "Deploy to Devant"
+                                "Deploy to WSO2 Cloud"
                             )
                         }
                         description={
                             isDeployed
-                                ? "This integration is already deployed in Devant."
-                                : "Deploy your integration to the cloud using Devant by WSO2."
+                                ? "This integration is already deployed in WSO2 Cloud."
+                                : "Deploy your integration to WSO2 Cloud."
                         }
-                        buttonText={isDeployed ? "View in Devant" : "Deploy"}
+                        buttonText={isDeployed ? "View in Console" : "Deploy"}
                         isExpanded={expandedOptions.has("devant")}
                         onToggle={() => toggleOption("devant")}
                         onDeploy={isDeployed? () => goToDevant() : handleDeploy}
@@ -482,7 +482,7 @@ function DeploymentOptions({
                         secondaryAction={
                             isDeployed && platformExtState?.hasLocalChanges
                                 ? {
-                                    description: "To redeploy in Devant, please commit and push your changes.",
+                                    description: "To redeploy in WSO2 Cloud, please commit and push your changes.",
                                     buttonText: "Open Source Control",
                                     onClick: () =>
                                         rpcClient
@@ -568,17 +568,17 @@ function DevantDashboard({ projectStructure, handleDeploy, goToDevant }: { proje
 
     return (
         <React.Fragment>
-            {platformExtState?.selectedComponent ? <Title variant="h3">Deployed in Devant</Title> : <Title variant="h3">Deploy to Devant</Title>}
+            {platformExtState?.selectedComponent ? <Title variant="h3">Deployed in WSO2 Cloud</Title> : <Title variant="h3">Deploy to WSO2 Cloud</Title>}
             {!hasAutomationOrService ? (
                 <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
-                    Before you can deploy your integration to Devant, please add an artifact (such as a Service or Automation) to your integration.
+                    Before you can deploy your integration to WSO2 Cloud, please add an artifact (such as a Service or Automation) to your integration.
                 </Typography>
             ) : (
                 <>
                     {platformExtState?.selectedComponent ? (
                         <>
                             <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
-                                This integration is deployed in Devant.
+                                This integration is deployed in WSO2 Cloud.
                             </Typography>
                             <Button
                                 appearance="secondary"
@@ -592,7 +592,7 @@ function DevantDashboard({ projectStructure, handleDeploy, goToDevant }: { proje
                                     mx: "auto"
                                 }}
                             >
-                                <Codicon name="save" sx={{ marginRight: 8 }} /> Push Changes to Devant
+                                <Codicon name="save" sx={{ marginRight: 8 }} /> Push Changes to WSO2 Cloud
                             </Button>
                             <Button
                                 appearance="icon"
@@ -605,13 +605,13 @@ function DevantDashboard({ projectStructure, handleDeploy, goToDevant }: { proje
                                     mx: "auto"
                                 }}
                             >
-                                <Codicon name="link" sx={{ marginRight: 8 }} /> Open in Devant Console
+                                <Codicon name="link" sx={{ marginRight: 8 }} /> Open in Console
                             </Button>
                         </>
                     ) : (
                         <React.Fragment>
                             <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
-                                Deploy your integration to Devant and run it in the cloud.
+                                Deploy your integration in WSO2 Cloud.
                             </Typography>
                             <Button
                                 appearance="primary"

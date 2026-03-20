@@ -324,7 +324,7 @@
                                 "description": "Indicates the terminal kind to launch the debugging process in."
                             },
                             "choreoConnect": {
-                                "description": "Connect with Choreo/Devant when launching the app"
+                                "description": "Connect with WSO2 Cloud when launching the app"
                             }
                         }
                     },
