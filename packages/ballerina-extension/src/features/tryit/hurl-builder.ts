@@ -37,26 +37,38 @@ function resolveSchemaRef(ref: string, spec: any): any | undefined {
     return current;
 }
 
-function generateSchemaDoc(schema: any, depth: number, spec: any): string {
+function generateSchemaDoc(schema: any, depth: number, spec: any, seenRefs = new Set<string>()): string {
     const indent = '  '.repeat(depth);
     if (schema?.$ref) {
+        if (seenRefs.has(schema.$ref)) { return ''; }
         const resolved = resolveSchemaRef(schema.$ref, spec);
-        return resolved ? generateSchemaDoc(resolved, depth, spec) : '';
+        return resolved ? generateSchemaDoc(resolved, depth, spec, new Set([...seenRefs, schema.$ref])) : '';
     }
     if (schema?.type === 'object' && schema.properties) {
         let doc = `${indent}${schema.type}\n`;
         for (const [propName, prop] of Object.entries<any>(schema.properties)) {
+            if (prop.$ref && seenRefs.has(prop.$ref)) {
+                doc += `${indent}- ${propName}: (cyclic)\n`;
+                continue;
+            }
             const propSchema = prop.$ref ? resolveSchemaRef(prop.$ref, spec) || prop : prop;
+            const nextRefs = prop.$ref ? new Set([...seenRefs, prop.$ref]) : seenRefs;
             const format = propSchema.format ? `(${propSchema.format})` : '';
             const description = propSchema.description ? ` - ${propSchema.description}` : '';
             doc += `${indent}- ${propName}: ${propSchema.type}${format}${description}\n`;
             if (propSchema.type === 'object' && propSchema.properties) {
-                doc += generateSchemaDoc(propSchema, depth + 1, spec);
+                doc += generateSchemaDoc(propSchema, depth + 1, spec, nextRefs);
             } else if (propSchema.type === 'array' && propSchema.items) {
-                const itemsSchema = propSchema.items.$ref
-                    ? resolveSchemaRef(propSchema.items.$ref, spec) || propSchema.items
-                    : propSchema.items;
-                doc += `${indent}  items: ${generateSchemaDoc(itemsSchema, depth + 1, spec).trimStart()}`;
+                const itemsRef = propSchema.items.$ref;
+                if (itemsRef && nextRefs.has(itemsRef)) {
+                    doc += `${indent}  items: (cyclic)\n`;
+                } else {
+                    const itemsSchema = itemsRef
+                        ? resolveSchemaRef(itemsRef, spec) || propSchema.items
+                        : propSchema.items;
+                    const itemsRefs = itemsRef ? new Set([...nextRefs, itemsRef]) : nextRefs;
+                    doc += `${indent}  items: ${generateSchemaDoc(itemsSchema, depth + 1, spec, itemsRefs).trimStart()}`;
+                }
             }
             if (propSchema.enum) {
                 doc += `${indent}  enum: [${propSchema.enum.join(', ')}]\n`;
@@ -67,20 +79,27 @@ function generateSchemaDoc(schema: any, depth: number, spec: any): string {
     if (schema?.type === 'array') {
         let doc = 'array\n';
         if (schema.items) {
-            const itemsSchema = schema.items.$ref
-                ? resolveSchemaRef(schema.items.$ref, spec) || schema.items
-                : schema.items;
-            doc += `${indent}items: ${generateSchemaDoc(itemsSchema, depth + 1, spec).trimStart()}`;
+            const itemsRef = schema.items.$ref;
+            if (itemsRef && seenRefs.has(itemsRef)) {
+                doc += `${indent}items: (cyclic)\n`;
+            } else {
+                const itemsSchema = itemsRef
+                    ? resolveSchemaRef(itemsRef, spec) || schema.items
+                    : schema.items;
+                const itemsRefs = itemsRef ? new Set([...seenRefs, itemsRef]) : seenRefs;
+                doc += `${indent}items: ${generateSchemaDoc(itemsSchema, depth + 1, spec, itemsRefs).trimStart()}`;
+            }
         }
         return doc;
     }
     return `${schema?.type ?? 'any'}${schema?.format ? ` (${schema.format})` : ''}`;
 }
 
-function generateSampleValue(schema: any, spec: any): any {
+function generateSampleValue(schema: any, spec: any, seenRefs = new Set<string>()): any {
     if (schema?.$ref) {
+        if (seenRefs.has(schema.$ref)) { return {}; }
         const resolved = resolveSchemaRef(schema.$ref, spec);
-        return resolved ? generateSampleValue(resolved, spec) : {};
+        return resolved ? generateSampleValue(resolved, spec, new Set([...seenRefs, schema.$ref])) : {};
     }
     if (!schema?.type) { return {}; }
     switch (schema.type) {
@@ -88,17 +107,22 @@ function generateSampleValue(schema: any, spec: any): any {
             if (!schema.properties) { return {}; }
             const obj: Record<string, any> = {};
             for (const [propName, prop] of Object.entries<any>(schema.properties)) {
+                if (prop.$ref && seenRefs.has(prop.$ref)) { obj[propName] = {}; continue; }
                 const propSchema = prop.$ref ? resolveSchemaRef(prop.$ref, spec) || prop : prop;
-                obj[propName] = generateSampleValue(propSchema, spec);
+                const nextRefs = prop.$ref ? new Set([...seenRefs, prop.$ref]) : seenRefs;
+                obj[propName] = generateSampleValue(propSchema, spec, nextRefs);
             }
             return obj;
         }
         case 'array': {
             if (!schema.items) { return []; }
-            const itemsSchema = schema.items.$ref
-                ? resolveSchemaRef(schema.items.$ref, spec) || schema.items
+            const itemsRef = schema.items.$ref;
+            if (itemsRef && seenRefs.has(itemsRef)) { return [{}]; }
+            const itemsSchema = itemsRef
+                ? resolveSchemaRef(itemsRef, spec) || schema.items
                 : schema.items;
-            return [generateSampleValue(itemsSchema, spec)];
+            const itemsRefs = itemsRef ? new Set([...seenRefs, itemsRef]) : seenRefs;
+            return [generateSampleValue(itemsSchema, spec, itemsRefs)];
         }
         case 'string':
             if (schema.enum?.length) { return schema.enum[0]; }
@@ -212,9 +236,10 @@ function buildHurlCell(method: string, oasPath: string, operation: any, baseUrl:
     // Replace {pathParam} placeholders with type-appropriate sample values so the
     // generated cell is immediately runnable. The user replaces the sample values
     // with real ones before (or after) their first test run.
-    const resolvedPath = oasPath.replace(/\{(\w+)\}/g, (_, name) => {
+    // Use [^}]+ to also match param names containing hyphens (e.g. {user-id}).
+    const resolvedPath = oasPath.replace(/\{([^}]+)\}/g, (_, name) => {
         const p = params.find((p: any) => p.name === name && p.in === 'path');
-        return paramSampleValue(p?.schema, name, oasSpec);
+        return encodeURIComponent(paramSampleValue(p?.schema, name, oasSpec));
     });
     const fullUrl = `${baseUrl.replace(/\/$/, '')}${resolvedPath}`;
     const lines: string[] = [];
@@ -290,6 +315,8 @@ export function buildHurlCellsFromOASSpec(
 
     for (const [oasPath, pathItem] of Object.entries<any>(paths)) {
         const httpMethods = ['get', 'post', 'put', 'delete', 'patch', 'head', 'options'];
+        // Path-level parameters apply to all operations under this path.
+        const pathLevelParams: any[] = pathItem.parameters ?? [];
         for (const method of httpMethods) {
             const operation = pathItem[method];
             if (!operation) { continue; }
@@ -302,13 +329,24 @@ export function buildHurlCellsFromOASSpec(
                 }
             }
 
+            // Merge path-level parameters with operation-level parameters.
+            // Operation-level parameters override path-level ones with the same name+in.
+            const opParams: any[] = operation.parameters ?? [];
+            const mergedParams = [
+                ...pathLevelParams.filter((p: any) => !opParams.some((op: any) => op.name === p.name && op.in === p.in)),
+                ...opParams
+            ];
+            const mergedOperation = mergedParams.length !== opParams.length
+                ? { ...operation, parameters: mergedParams }
+                : operation;
+
             cells.push({
                 kind: 'markdown',
-                content: buildMarkdownCell(method, oasPath, operation)
+                content: buildMarkdownCell(method, oasPath, mergedOperation)
             });
             cells.push({
                 kind: 'hurl',
-                content: buildHurlCell(method, oasPath, operation, baseUrl, oasSpec)
+                content: buildHurlCell(method, oasPath, mergedOperation, baseUrl, oasSpec)
             });
         }
     }
