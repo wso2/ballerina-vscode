@@ -1,22 +1,7 @@
 {
-  "source": "local_connector/main.bal",
-  "position": {
-    "line": 8,
-    "offset": 4
-  },
-  "description": "Resource function with inferred record type parameter - get albums",
-  "codedata": {
-    "node": "RESOURCE_ACTION_CALL",
-    "org": "nipunaf",
-    "module": "new_connection1.db",
-    "packageName": "new_connection1",
-    "object": "Client",
-    "symbol": "get",
-    "version": "0.1.0",
-    "parentSymbol": "dbClient",
-    "resourcePath": "/albums"
-  },
-  "output": {
+  "source": "persist_connector/main.bal",
+  "description": "Create new persist get albums call with simple field selections (title, artist)",
+  "diagram": {
     "id": "31",
     "metadata": {
       "label": "get",
@@ -31,7 +16,18 @@
       "object": "Client",
       "symbol": "get",
       "isNew": true,
-      "inferredReturnType": "targetType[]"
+      "inferredReturnType": "targetType[]",
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 4,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 4,
+          "offset": 4
+        }
+      }
     },
     "returning": false,
     "properties": {
@@ -98,7 +94,8 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "genre"
-        }
+        },
+        "value": "\"Rock\""
       },
       "maxPrice": {
         "metadata": {
@@ -125,7 +122,8 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "maxPrice"
-        }
+        },
+        "value": "50.0d"
       },
       "minStock": {
         "metadata": {
@@ -452,7 +450,7 @@
                     "isGraphqlId": false,
                     "docs": "",
                     "annotationAttachments": [],
-                    "selected": false
+                    "selected": true
                   },
                   {
                     "kind": "FIELD",
@@ -465,7 +463,7 @@
                     "isGraphqlId": false,
                     "docs": "",
                     "annotationAttachments": [],
-                    "selected": false
+                    "selected": true
                   },
                   {
                     "kind": "FIELD",
@@ -1138,7 +1136,984 @@
             "selected": true
           }
         ],
-        "value": "db:AlbumWithRelations",
+        "value": [
+          {
+            "fieldType": "RECORD_FIELD_SELECTOR",
+            "ballerinaType": "record {|db:AlbumRatingOptionalized[] albumratings?; db:PurchaseOptionalized[] purchases?; int albumId?; string title?; string artist?; decimal price?; int stock?;|}",
+            "recordSelectorType": {
+              "rootType": {
+                "editable": true,
+                "metadata": {
+                  "label": "db:AlbumWithRelations",
+                  "description": ""
+                },
+                "codedata": {
+                  "node": "RECORD",
+                  "lineRange": {
+                    "fileName": "types.bal",
+                    "startLine": {
+                      "line": 60,
+                      "offset": 12
+                    },
+                    "endLine": {
+                      "line": 60,
+                      "offset": 30
+                    }
+                  },
+                  "id": 0,
+                  "isNew": false,
+                  "data": {}
+                },
+                "properties": {
+                  "name": {
+                    "metadata": {
+                      "label": "Type name",
+                      "description": "Unique name to identify the type"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
+                      }
+                    ],
+                    "value": "db:AlbumWithRelations",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "isPublic": {
+                    "metadata": {
+                      "label": "public",
+                      "description": "Make visible across the workspace"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "FLAG",
+                        "selected": true
+                      }
+                    ],
+                    "value": true,
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "description": {
+                    "metadata": {
+                      "label": "Type description",
+                      "description": "Detailed description about the type"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      }
+                    ],
+                    "value": "",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "isArray": {
+                    "metadata": {
+                      "label": "Is array type",
+                      "description": "Is this type an array or list value"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "FLAG",
+                        "selected": true
+                      }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                  },
+                  "arraySize": {
+                    "metadata": {
+                      "label": "Size of the array",
+                      "description": "Array dimensions"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      }
+                    ],
+                    "value": "",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                  }
+                },
+                "members": [
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": {
+                      "editable": false,
+                      "codedata": {
+                        "node": "ARRAY"
+                      },
+                      "properties": {
+                        "isArray": {
+                          "metadata": {
+                            "label": "Is array type",
+                            "description": "Is this type an array or list value"
+                          },
+                          "types": [
+                            {
+                              "fieldType": "FLAG",
+                              "selected": true
+                            }
+                          ],
+                          "value": "true",
+                          "optional": true,
+                          "editable": true,
+                          "advanced": true,
+                          "hidden": false
+                        },
+                        "arraySize": {
+                          "metadata": {
+                            "label": "Size of the array",
+                            "description": "Array dimensions"
+                          },
+                          "types": [
+                            {
+                              "fieldType": "TEXT",
+                              "selected": true
+                            }
+                          ],
+                          "value": "",
+                          "optional": true,
+                          "editable": true,
+                          "advanced": true,
+                          "hidden": false
+                        }
+                      },
+                      "members": [
+                        {
+                          "kind": "TYPE",
+                          "refs": [
+                            "db:AlbumRatingOptionalized"
+                          ],
+                          "type": "db:AlbumRatingOptionalized",
+                          "typeName": "db:AlbumRatingOptionalized",
+                          "name": "db:AlbumRatingOptionalized",
+                          "optional": false,
+                          "readonly": false,
+                          "isGraphqlId": false,
+                          "imports": {
+                            "db": "nipunaf/new_connection1.db:0.1.0"
+                          },
+                          "selected": false
+                        }
+                      ],
+                      "allowAdditionalFields": false
+                    },
+                    "typeName": "db:AlbumRatingOptionalized[]",
+                    "name": "albumratings",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "imports": {
+                      "db": "nipunaf/new_connection1.db:0.1.0"
+                    },
+                    "selected": false
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": {
+                      "editable": false,
+                      "codedata": {
+                        "node": "ARRAY"
+                      },
+                      "properties": {
+                        "isArray": {
+                          "metadata": {
+                            "label": "Is array type",
+                            "description": "Is this type an array or list value"
+                          },
+                          "types": [
+                            {
+                              "fieldType": "FLAG",
+                              "selected": true
+                            }
+                          ],
+                          "value": "true",
+                          "optional": true,
+                          "editable": true,
+                          "advanced": true,
+                          "hidden": false
+                        },
+                        "arraySize": {
+                          "metadata": {
+                            "label": "Size of the array",
+                            "description": "Array dimensions"
+                          },
+                          "types": [
+                            {
+                              "fieldType": "TEXT",
+                              "selected": true
+                            }
+                          ],
+                          "value": "",
+                          "optional": true,
+                          "editable": true,
+                          "advanced": true,
+                          "hidden": false
+                        }
+                      },
+                      "members": [
+                        {
+                          "kind": "TYPE",
+                          "refs": [
+                            "db:PurchaseOptionalized"
+                          ],
+                          "type": "db:PurchaseOptionalized",
+                          "typeName": "db:PurchaseOptionalized",
+                          "name": "db:PurchaseOptionalized",
+                          "optional": false,
+                          "readonly": false,
+                          "isGraphqlId": false,
+                          "imports": {
+                            "db": "nipunaf/new_connection1.db:0.1.0"
+                          },
+                          "selected": false
+                        }
+                      ],
+                      "allowAdditionalFields": false
+                    },
+                    "typeName": "db:PurchaseOptionalized[]",
+                    "name": "purchases",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "imports": {
+                      "db": "nipunaf/new_connection1.db:0.1.0"
+                    },
+                    "selected": false
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "int",
+                    "typeName": "int",
+                    "name": "albumId",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "selected": false
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "typeName": "string",
+                    "name": "title",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "selected": true
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "typeName": "string",
+                    "name": "artist",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "selected": true
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "decimal",
+                    "typeName": "decimal",
+                    "name": "price",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "selected": false
+                  },
+                  {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "int",
+                    "typeName": "int",
+                    "name": "stock",
+                    "optional": true,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": [],
+                    "selected": false
+                  }
+                ],
+                "includes": [
+                  "db:AlbumOptionalized"
+                ],
+                "annotationAttachments": [],
+                "allowAdditionalFields": false
+              },
+              "referencedTypes": [
+                {
+                  "name": "db:PurchaseOptionalized",
+                  "editable": true,
+                  "metadata": {
+                    "label": "db:PurchaseOptionalized",
+                    "description": ""
+                  },
+                  "codedata": {
+                    "node": "RECORD",
+                    "id": 0,
+                    "isNew": false,
+                    "data": {}
+                  },
+                  "properties": {
+                    "name": {
+                      "metadata": {
+                        "label": "Type name",
+                        "description": "Unique name to identify the type"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "selected": true
+                        }
+                      ],
+                      "value": "db:PurchaseOptionalized",
+                      "optional": false,
+                      "editable": false,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "isPublic": {
+                      "metadata": {
+                        "label": "public",
+                        "description": "Make visible across the workspace"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "FLAG",
+                          "selected": true
+                        }
+                      ],
+                      "value": true,
+                      "optional": true,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "description": {
+                      "metadata": {
+                        "label": "Type description",
+                        "description": "Detailed description about the type"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": false,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "isArray": {
+                      "metadata": {
+                        "label": "Is array type",
+                        "description": "Is this type an array or list value"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "FLAG",
+                          "selected": true
+                        }
+                      ],
+                      "value": "false",
+                      "optional": true,
+                      "editable": true,
+                      "advanced": true,
+                      "hidden": false
+                    },
+                    "arraySize": {
+                      "metadata": {
+                        "label": "Size of the array",
+                        "description": "Array dimensions"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": true,
+                      "editable": true,
+                      "advanced": true,
+                      "hidden": false
+                    }
+                  },
+                  "members": [
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "int",
+                      "typeName": "int",
+                      "name": "purchaseId",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "string",
+                      "typeName": "string",
+                      "name": "customerName",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "int",
+                      "typeName": "int",
+                      "name": "quantity",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "decimal",
+                      "typeName": "decimal",
+                      "name": "totalPrice",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "int",
+                      "typeName": "int",
+                      "name": "albumId",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    }
+                  ],
+                  "includes": [],
+                  "annotationAttachments": [],
+                  "allowAdditionalFields": false
+                },
+                {
+                  "name": "db:AlbumOptionalized",
+                  "editable": true,
+                  "metadata": {
+                    "label": "db:AlbumOptionalized",
+                    "description": ""
+                  },
+                  "codedata": {
+                    "node": "RECORD",
+                    "id": 0,
+                    "isNew": false,
+                    "data": {}
+                  },
+                  "properties": {
+                    "name": {
+                      "metadata": {
+                        "label": "Type name",
+                        "description": "Unique name to identify the type"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "selected": true
+                        }
+                      ],
+                      "value": "db:AlbumOptionalized",
+                      "optional": false,
+                      "editable": false,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "isPublic": {
+                      "metadata": {
+                        "label": "public",
+                        "description": "Make visible across the workspace"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "FLAG",
+                          "selected": true
+                        }
+                      ],
+                      "value": true,
+                      "optional": true,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "description": {
+                      "metadata": {
+                        "label": "Type description",
+                        "description": "Detailed description about the type"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": false,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "isArray": {
+                      "metadata": {
+                        "label": "Is array type",
+                        "description": "Is this type an array or list value"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "FLAG",
+                          "selected": true
+                        }
+                      ],
+                      "value": "false",
+                      "optional": true,
+                      "editable": true,
+                      "advanced": true,
+                      "hidden": false
+                    },
+                    "arraySize": {
+                      "metadata": {
+                        "label": "Size of the array",
+                        "description": "Array dimensions"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": true,
+                      "editable": true,
+                      "advanced": true,
+                      "hidden": false
+                    }
+                  },
+                  "members": [
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "int",
+                      "typeName": "int",
+                      "name": "albumId",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "string",
+                      "typeName": "string",
+                      "name": "title",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "string",
+                      "typeName": "string",
+                      "name": "artist",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "decimal",
+                      "typeName": "decimal",
+                      "name": "price",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "int",
+                      "typeName": "int",
+                      "name": "stock",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    }
+                  ],
+                  "includes": [],
+                  "annotationAttachments": [],
+                  "allowAdditionalFields": false
+                },
+                {
+                  "name": "db:AlbumRatingOptionalized",
+                  "editable": true,
+                  "metadata": {
+                    "label": "db:AlbumRatingOptionalized",
+                    "description": ""
+                  },
+                  "codedata": {
+                    "node": "RECORD",
+                    "id": 0,
+                    "isNew": false,
+                    "data": {}
+                  },
+                  "properties": {
+                    "name": {
+                      "metadata": {
+                        "label": "Type name",
+                        "description": "Unique name to identify the type"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "selected": true
+                        }
+                      ],
+                      "value": "db:AlbumRatingOptionalized",
+                      "optional": false,
+                      "editable": false,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "isPublic": {
+                      "metadata": {
+                        "label": "public",
+                        "description": "Make visible across the workspace"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "FLAG",
+                          "selected": true
+                        }
+                      ],
+                      "value": true,
+                      "optional": true,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "description": {
+                      "metadata": {
+                        "label": "Type description",
+                        "description": "Detailed description about the type"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": false,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "isArray": {
+                      "metadata": {
+                        "label": "Is array type",
+                        "description": "Is this type an array or list value"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "FLAG",
+                          "selected": true
+                        }
+                      ],
+                      "value": "false",
+                      "optional": true,
+                      "editable": true,
+                      "advanced": true,
+                      "hidden": false
+                    },
+                    "arraySize": {
+                      "metadata": {
+                        "label": "Size of the array",
+                        "description": "Array dimensions"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": true,
+                      "editable": true,
+                      "advanced": true,
+                      "hidden": false
+                    }
+                  },
+                  "members": [
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "string",
+                      "typeName": "string",
+                      "name": "customerName",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": {
+                        "editable": false,
+                        "codedata": {
+                          "node": "UNION"
+                        },
+                        "properties": {
+                          "isArray": {
+                            "metadata": {
+                              "label": "Is array type",
+                              "description": "Is this type an array or list value"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "FLAG",
+                                "selected": true
+                              }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": true,
+                            "hidden": false
+                          },
+                          "arraySize": {
+                            "metadata": {
+                              "label": "Size of the array",
+                              "description": "Array dimensions"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "selected": true
+                              }
+                            ],
+                            "value": "",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false
+                          }
+                        },
+                        "members": [
+                          {
+                            "kind": "TYPE",
+                            "refs": [],
+                            "type": "int",
+                            "typeName": "int",
+                            "name": "int",
+                            "optional": false,
+                            "readonly": false,
+                            "isGraphqlId": false,
+                            "selected": false
+                          },
+                          {
+                            "kind": "TYPE",
+                            "refs": [],
+                            "type": "()",
+                            "typeName": "()",
+                            "name": "()",
+                            "optional": false,
+                            "readonly": false,
+                            "isGraphqlId": false,
+                            "selected": false
+                          }
+                        ],
+                        "allowAdditionalFields": false
+                      },
+                      "typeName": "int?",
+                      "name": "rating",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": {
+                        "editable": false,
+                        "codedata": {
+                          "node": "UNION"
+                        },
+                        "properties": {
+                          "isArray": {
+                            "metadata": {
+                              "label": "Is array type",
+                              "description": "Is this type an array or list value"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "FLAG",
+                                "selected": true
+                              }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": true,
+                            "hidden": false
+                          },
+                          "arraySize": {
+                            "metadata": {
+                              "label": "Size of the array",
+                              "description": "Array dimensions"
+                            },
+                            "types": [
+                              {
+                                "fieldType": "TEXT",
+                                "selected": true
+                              }
+                            ],
+                            "value": "",
+                            "optional": false,
+                            "editable": false,
+                            "advanced": false,
+                            "hidden": false
+                          }
+                        },
+                        "members": [
+                          {
+                            "kind": "TYPE",
+                            "refs": [],
+                            "type": "string",
+                            "typeName": "string",
+                            "name": "string",
+                            "optional": false,
+                            "readonly": false,
+                            "isGraphqlId": false,
+                            "selected": false
+                          },
+                          {
+                            "kind": "TYPE",
+                            "refs": [],
+                            "type": "()",
+                            "typeName": "()",
+                            "name": "()",
+                            "optional": false,
+                            "readonly": false,
+                            "isGraphqlId": false,
+                            "selected": false
+                          }
+                        ],
+                        "allowAdditionalFields": false
+                      },
+                      "typeName": "string?",
+                      "name": "review",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    },
+                    {
+                      "kind": "FIELD",
+                      "refs": [],
+                      "type": "int",
+                      "typeName": "int",
+                      "name": "albumId",
+                      "optional": true,
+                      "readonly": false,
+                      "isGraphqlId": false,
+                      "docs": "",
+                      "annotationAttachments": [],
+                      "selected": false
+                    }
+                  ],
+                  "includes": [],
+                  "annotationAttachments": [],
+                  "allowAdditionalFields": false
+                }
+              ]
+            },
+            "selected": true
+          }
+        ],
         "placeholder": "db:AlbumWithRelations",
         "optional": false,
         "editable": true,
@@ -1208,7 +2183,7 @@
             "selected": true
           }
         ],
-        "value": "var2",
+        "value": "albums",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -1233,5 +2208,37 @@
       }
     },
     "flags": 0
+  },
+  "output": {
+    "persist_connector/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\npublic type AlbumsType record {|\n\tstring title;\n\tstring artist;\n|};"
+      }
+    ],
+    "persist_connector/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 4
+          },
+          "end": {
+            "line": 4,
+            "character": 4
+          }
+        },
+        "newText": "\nAlbumsType[] albums = check dbClient->/albums.get(\"Rock\", 50.0d);"
+      }
+    ]
   }
 }

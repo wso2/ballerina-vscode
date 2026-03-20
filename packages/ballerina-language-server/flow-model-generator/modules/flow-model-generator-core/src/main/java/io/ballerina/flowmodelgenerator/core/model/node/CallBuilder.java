@@ -215,7 +215,7 @@ public abstract class CallBuilder extends NodeBuilder {
         // RECORD_FIELD_SELECTOR and provide the necessary type models for it.
         TypesManager typesManager = new TypesManager(module.document(module.documentIds().iterator().next()));
         RecordSelectorType recordSelectorType = typesManager.getRecordSelectorType(paramData.typeSymbol(),
-                module);
+                module, true);
 
         if (recordSelectorType != null && targetVarType != null) {
             TypeSymbol recordTargetVarType = targetVarType;
@@ -225,7 +225,7 @@ public abstract class CallBuilder extends NodeBuilder {
             }
             if (CommonUtil.getRawType(recordTargetVarType).typeKind().equals(TypeDescKind.RECORD)) {
                 RecordSelectorType targetVarRecordSelectorType = typesManager.getRecordSelectorType(
-                        recordTargetVarType, module);
+                        recordTargetVarType, module, false);
                 if (targetVarRecordSelectorType != null) {
                     recordSelectorType = mergeWithTargetVarRecordSelectorType(targetVarRecordSelectorType,
                             recordSelectorType);

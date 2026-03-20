@@ -245,10 +245,12 @@ public class TypesManager {
      *
      * @param typeSymbol the type symbol to get the record selector type for
      * @param module the module to resolve the type symbol in
+     * @param isDependentType whether the type symbol is the parent type for the record selector
+     *                 (i.e. the dependent record type)
      * @return the record selector type for the given type symbol, or null if the type
      * symbol is not a record or if the record selector type cannot be generated
      */
-    public RecordSelectorType getRecordSelectorType(TypeSymbol typeSymbol, Module module) {
+    public RecordSelectorType getRecordSelectorType(TypeSymbol typeSymbol, Module module, boolean isDependentType) {
         TypeTransformer typeTransformer = new TypeTransformer(module);
         TypeData.TypeDataBuilder typeDataBuilder = new TypeData.TypeDataBuilder();
         Object transformedType = typeTransformer.transform(typeSymbol, typeDataBuilder);
@@ -281,7 +283,17 @@ public class TypesManager {
         // the same package (via CommonUtils.isWithinPackage), so it serves as the same-package predicate.
         for (Object ref : refs.values()) {
             if (ref instanceof TypeData refTypeData && refTypeData.editable()) {
-                result.add(refTypeData);
+                if (isDependentType) {
+                    // If this is the dependent type (i.e. the record type being selected into), we want to ignore
+                    // line range information
+                    result.add(refTypeData.toBuilder()
+                            .codedata()
+                                .lineRange(null)
+                            .stepOut()
+                            .build());
+                } else {
+                    result.add(refTypeData);
+                }
             }
         }
 
@@ -349,7 +361,8 @@ public class TypesManager {
                             .orElse(null);
                     updatedTypeNames.put(targetMemberTypeName,
                             new ReferenceTypeInfo(sourceMemberTypeName, sourceMemberCodedata));
-                    memberBuilder.typeName(sourceMemberTypeName)
+                    memberBuilder.typeName(sourceMember.get().typeName())
+                            .refs(sourceMember.get().refs())
                             .type(sourceMember.get().type());
                 }
                 mergedMembers.add(memberBuilder
@@ -468,7 +481,9 @@ public class TypesManager {
                     .findFirst();
             if (field.isPresent()) {
                 if (referencedType.metadata() != null && referencedTypeName.equals(referencedType.metadata().label())) {
-                    String newTypeName = typePrefix + capitalize(getTypeName(referencedTypeName)) + "Type";
+                    String fieldName = field.get().name();
+                    String sanitizedFieldName = fieldName.startsWith("'") ? fieldName.substring(1) : fieldName;
+                    String newTypeName = typePrefix + capitalize(getTypeName(sanitizedFieldName)) + "Type";
                     TypeData updatedRefType = referencedType.toBuilder()
                             .name(newTypeName)
                             .build();
