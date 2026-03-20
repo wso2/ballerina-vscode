@@ -41,6 +41,7 @@ import io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -63,6 +64,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +73,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_SELECTION;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
@@ -106,6 +109,9 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     // Display label
     private static final String LABEL_FTP = "FTP";
 
+    // Variable name prefix for FTP sources (produces ftpSource, ftpSource1, ftpSource2, ...)
+    private static final String FTP_SOURCE_VAR_NAME = "ftpSource";
+
     // Listener configuration property keys (path is service-level, not listener-level)
     // designApproach contains protocol choice with nested listener properties (host, port, auth)
     private static final List<String> LISTENER_CONFIG_KEYS = List.of(
@@ -135,9 +141,11 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
             ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
-            Value listenerNameProp = listenerNameProperty(context);
+            // Generate a unique source name using the "ftpSource" prefix
+            String sourceName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+                    context.document().syntaxTree().rootNode().lineRange().endLine(), FTP_SOURCE_VAR_NAME);
             Value listener = serviceInitModel.getProperties().get(KEY_LISTENER_VAR_NAME);
-            listener.setValue(listenerNameProp.getValue());
+            listener.setValue(sourceName);
 
             // Check for existing compatible FTP listeners (excluding legacy ones)
             Set<String> allListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
@@ -145,20 +153,159 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             Set<String> compatibleListeners = filterNonLegacyListeners(allListeners, context.semanticModel(),
                     context.project());
 
+            // Capture template metadata from the init model BEFORE properties are removed.
+            // The designApproach CHOICE contains nested properties (host, portNumber, etc.)
+            // with rich descriptions that we want to reuse for existing listener configs.
+            Map<String, Value> properties = serviceInitModel.getProperties();
+            Value designApproach = properties.get(PROPERTY_DESIGN_APPROACH);
+            Map<String, Value> templateProps = (designApproach != null
+                    && designApproach.getChoices() != null && !designApproach.getChoices().isEmpty())
+                    ? designApproach.getChoices().get(0).getProperties() : Map.of();
+
+            // Always build the choice property with "Use existing" and "Create new" source options
+            Map<String, Value> listenerProps =
+                    ListenerUtil.removeAndCollectListenerProperties(properties, LISTENER_CONFIG_KEYS);
+
+            // Wrap the listener properties in a GROUP_SECTION so the frontend renders them
+            // inside a collapsible FormSectionGroup
+            Value groupSection = new Value.ValueBuilder()
+                    .metadata("Source Configuration",
+                            "Configure the " + LABEL_FTP + " source connection")
+                    .types(List.of(PropertyType.types(Value.FieldType.GROUP_SECTION)))
+                    .enabled(true)
+                    .editable(true)
+                    .setProperties(listenerProps)
+                    .build();
+            Map<String, Value> wrappedListenerProps = new LinkedHashMap<>();
+            wrappedListenerProps.put("sourceConfig", groupSection);
+
+            Map<String, Map<String, Value>> listenerConfigs;
             if (!compatibleListeners.isEmpty()) {
-                Map<String, Value> properties = serviceInitModel.getProperties();
-                // Get properties from the enabled design approach choice
-                Map<String, Value> listenerProps =
-                        ListenerUtil.removeAndCollectListenerProperties(properties, LISTENER_CONFIG_KEYS);
-                Value choicesProperty = ListenerUtil.buildListenerChoiceProperty(listenerProps, compatibleListeners,
-                        LABEL_FTP);
-                properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
+                // Extract actual configs from existing listener declarations
+                listenerConfigs = ListenerUtil.extractListenerConfigs(compatibleListeners,
+                        context.semanticModel(), context.project());
+                // Apply init model metadata so existing listener configs use the same
+                // labels/descriptions as the "Create new" source form
+                applyInitModelMetadata(listenerConfigs, templateProps, designApproach);
+            } else {
+                listenerConfigs = Map.of();
             }
+
+            Value choicesProperty = ListenerUtil.buildAlwaysPresentListenerChoiceProperty(
+                    wrappedListenerProps, listenerConfigs, compatibleListeners, LABEL_FTP);
+
+            // Wrap the "Use existing" choice's config properties in a GROUP_SECTION too
+            wrapExistingChoiceInGroupSection(choicesProperty);
+
+            // Insert configureListener at the top of the form (LinkedHashMap preserves insertion order)
+            Map<String, Value> reordered = new LinkedHashMap<>();
+            reordered.put(KEY_CONFIGURE_LISTENER, choicesProperty);
+            reordered.putAll(properties);
+            properties.clear();
+            properties.putAll(reordered);
 
             return serviceInitModel;
         } catch (IOException e) {
             return null;
         }
+    }
+
+    /**
+     * Applies metadata from the init model template properties onto the extracted existing listener
+     * configs so that labels and descriptions are consistent between "Create new" and
+     * "Use existing" source views.
+     *
+     * @param configs         Extracted listener configs (listener name → property key → Value)
+     * @param templateProps   Properties from the first designApproach choice in ftp_init.json
+     * @param designApproach  The designApproach Value from the init model (used for protocol)
+     */
+    private static void applyInitModelMetadata(Map<String, Map<String, Value>> configs,
+                                               Map<String, Value> templateProps,
+                                               Value designApproach) {
+        // Mapping from extracted config keys to init model property keys
+        Map<String, String> keyMapping = Map.of(
+                "host", "host",
+                "portNumber", "portNumber",
+                "authentication", "authentication"
+        );
+
+        for (Map<String, Value> config : configs.values()) {
+            // Build protocol radio button from designApproach choices
+            if (designApproach != null && config.containsKey("protocol")) {
+                config.put("protocol", buildProtocolFromDesignApproach(
+                        designApproach, config.get("protocol").getValue()));
+            }
+
+            // Apply metadata from template properties
+            for (Map.Entry<String, String> mapping : keyMapping.entrySet()) {
+                Value configValue = config.get(mapping.getKey());
+                Value templateValue = templateProps.get(mapping.getValue());
+                if (configValue != null && templateValue != null && templateValue.getMetadata() != null) {
+                    configValue.setMetadata(templateValue.getMetadata());
+                }
+            }
+        }
+    }
+
+    /**
+     * Builds a read-only CHOICE (radio button) protocol Value from the designApproach choices in the
+     * init model, so the options are derived from the model rather than hardcoded.
+     */
+    private static Value buildProtocolFromDesignApproach(Value designApproach, String selectedValue) {
+        List<Value> choices = new ArrayList<>();
+        if (designApproach.getChoices() != null) {
+            for (Value choice : designApproach.getChoices()) {
+                MetaData choiceMeta = choice.getMetadata();
+                if (choiceMeta != null) {
+                    String choiceValue = choice.getValue();
+                    choices.add(new Value.ValueBuilder()
+                            .metadata(choiceMeta.label(), "")
+                            .value(choiceValue)
+                            .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                            .enabled(choiceValue.equals(selectedValue))
+                            .editable(false)
+                            .setAdvanced(false)
+                            .build());
+                }
+            }
+        }
+
+        Value protocol = new Value.ValueBuilder()
+                .setMetadata(designApproach.getMetadata())
+                .value(selectedValue)
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+        protocol.setChoices(choices);
+        return protocol;
+    }
+
+    /**
+     * Wraps the "Use existing" choice's properties in a GROUP_SECTION, consistent with "Create new".
+     * Both choices use the same grouping model: a single GROUP_SECTION containing all fields.
+     */
+    private static void wrapExistingChoiceInGroupSection(Value choicesProperty) {
+        if (choicesProperty.getChoices() == null || choicesProperty.getChoices().isEmpty()) {
+            return;
+        }
+        Value existingChoice = choicesProperty.getChoices().get(0);
+        Map<String, Value> existingProps = existingChoice.getProperties();
+        if (existingProps == null || existingProps.isEmpty()) {
+            return;
+        }
+
+        Value groupSection = new Value.ValueBuilder()
+                .metadata("Source Configuration", "Existing source configuration")
+                .types(List.of(PropertyType.types(Value.FieldType.GROUP_SECTION)))
+                .enabled(true)
+                .editable(false)
+                .setProperties(existingProps)
+                .build();
+        Map<String, Value> wrapped = new LinkedHashMap<>();
+        wrapped.put("sourceConfig", groupSection);
+        existingChoice.setProperties(wrapped);
     }
 
     /**
@@ -172,30 +319,71 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         Map<String, Value> properties = serviceInitModel.getProperties();
 
-        // Check if listener choice property exists and apply it first (designApproach is nested)
+        // Apply the configure listener choice (always present now)
         if (properties.containsKey(KEY_CONFIGURE_LISTENER)) {
             applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
         }
 
-        // Get the selected protocol (ftp, ftps, or sftp) from the design approach choices
-        String selectedProtocol = getEnabledChoiceValue(serviceInitModel, PROPERTY_DESIGN_APPROACH);
-        applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESIGN_APPROACH);
-
         properties = serviceInitModel.getProperties();
 
-        // Check if we should use an existing listener
-        boolean useExistingListener = ListenerUtil.shouldUseExistingListener(properties);
-        String listenerVarName;
-        String listenerDeclaration = "";
-        // path is now a service-level property (in @ftp:ServiceConfig annotation).
+        // Unwrap GROUP_SECTION properties to top level so downstream code can access them directly
+        for (String key : List.copyOf(properties.keySet())) {
+            Value val = properties.get(key);
+            if (val != null && val.getTypes() != null
+                    && val.getTypes().stream().anyMatch(t -> t.fieldType() == Value.FieldType.GROUP_SECTION)
+                    && val.getProperties() != null) {
+                properties.putAll(val.getProperties());
+                properties.remove(key);
+            }
+        }
+
+        // Determine if "Use existing" source was selected.
+        // The existingListener SINGLE_SELECT value contains the listener name.
+        boolean useExistingListener = false;
+        String existingListenerName = null;
+        if (properties.containsKey(ServiceInitModel.KEY_EXISTING_LISTENER)) {
+            Value existingListenerValue = properties.get(ServiceInitModel.KEY_EXISTING_LISTENER);
+            if (existingListenerValue != null && existingListenerValue.getValue() != null) {
+                existingListenerName = String.valueOf(existingListenerValue.getValue());
+                useExistingListener = !existingListenerName.isEmpty();
+            }
+            properties.remove(ServiceInitModel.KEY_EXISTING_LISTENER);
+        }
+        // Backward compatibility: also check the old-style nested CHOICE via listenerSelection
+        if (!useExistingListener && properties.containsKey(KEY_LISTENER_SELECTION)) {
+            Value listenerSelection = properties.get(KEY_LISTENER_SELECTION);
+            if (listenerSelection != null && listenerSelection.getChoices() != null) {
+                for (Value choice : listenerSelection.getChoices()) {
+                    if (choice.isEnabled()) {
+                        existingListenerName = String.valueOf(choice.getValue());
+                        useExistingListener = true;
+                        break;
+                    }
+                }
+            }
+            properties.remove(KEY_LISTENER_SELECTION);
+        }
+        if (!useExistingListener && ListenerUtil.shouldUseExistingListener(properties)) {
+            useExistingListener = true;
+            existingListenerName = ListenerUtil.getExistingListenerName(properties).orElse("");
+        }
+
+        // path is a service-level property (in @ftp:ServiceConfig annotation).
         // Keep backward compatibility with legacy payloads that still send `folderPath`.
         String folderPath = getPropertyValueLiteralValue(properties, "path",
                 getPropertyValueLiteralValue(properties, "folderPath", "\"/\""));
 
+        String listenerVarName;
+        String listenerDeclaration = "";
+
         if (useExistingListener) {
-            listenerVarName = ListenerUtil.getExistingListenerName(properties).orElse("");
+            listenerVarName = existingListenerName;
         } else {
-            // After applyEnabledChoiceProperty, all properties are flattened into the main properties map
+            // "Create new" source was selected - get the protocol and build the listener declaration
+            String selectedProtocol = getEnabledChoiceValue(serviceInitModel, PROPERTY_DESIGN_APPROACH);
+            applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESIGN_APPROACH);
+            properties = serviceInitModel.getProperties();
+
             listenerVarName = properties.get("listenerVarName").getValue();
             String host = getPropertyValueLiteralValue(properties, "host", "\"127.0.0.1\"");
             String port = getPropertyValue(properties, "portNumber", "21");
@@ -217,7 +405,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             if (!username.isEmpty() || !password.isEmpty() || !privateKey.isEmpty() || !secureSocket.isEmpty()) {
                 listenerBuilder.append("auth= { ");
 
-                // Add credentials block if username or password is provided
                 if (!username.isEmpty() || !password.isEmpty()) {
                     listenerBuilder.append("credentials: { ");
                     if (!username.isEmpty()) {
@@ -231,7 +418,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                     }
                     listenerBuilder.append("}");
 
-                    // Add comma if private key or secure socket is also present
                     if (!privateKey.isEmpty() || !secureSocket.isEmpty()) {
                         listenerBuilder.append(", ");
                     } else {
@@ -239,12 +425,10 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                     }
                 }
 
-                // Add private key configuration if provided
                 if (!privateKey.isEmpty()) {
                     listenerBuilder.append("privateKey: ");
                     listenerBuilder.append(privateKey);
 
-                    // Add comma if secure socket is also present
                     if (!secureSocket.isEmpty()) {
                         listenerBuilder.append(", ");
                     } else {

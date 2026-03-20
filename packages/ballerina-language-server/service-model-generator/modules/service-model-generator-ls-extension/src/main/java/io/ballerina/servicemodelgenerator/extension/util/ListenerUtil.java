@@ -67,6 +67,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Listener;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Option;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
@@ -91,6 +92,7 @@ import java.util.Set;
 import static io.ballerina.modelgenerator.commons.CommonUtils.removeLeadingSingleQuote;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB_DEFAULT_LISTENER_EXPR;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_ITEM_LABEL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_TYPE;
@@ -893,6 +895,480 @@ public class ListenerUtil {
         choicesProperty.setChoices(List.of(buildUseExistingListenerChoice(existingListeners, moduleName),
                 buildCreateNewListenerChoice(listenerConfigProperties, moduleName)));
         return choicesProperty;
+    }
+
+    /**
+     * Builds a CHOICE property that is always present, with "Use existing" and "Create new" source options.
+     * When existing listeners are present, "Use existing" is default and shows read-only config.
+     * When no existing listeners, "Use existing" is disabled and "Create new" is default.
+     *
+     * @param newListenerProperties    Map of properties needed to create a new listener
+     * @param listenerConfigs          Map of listener name to its extracted config properties (read-only)
+     * @param existingListeners        Set of existing listener variable names
+     * @param moduleName               Module name for display (e.g., "FTP")
+     * @return Value configured as CHOICE with two options always present.
+     */
+    public static Value buildAlwaysPresentListenerChoiceProperty(Map<String, Value> newListenerProperties,
+                                                                 Map<String, Map<String, Value>> listenerConfigs,
+                                                                 Set<String> existingListeners,
+                                                                 String moduleName) {
+        boolean hasExisting = !existingListeners.isEmpty();
+
+        Value choicesProperty = new Value.ValueBuilder()
+                .setMetadata(new MetaData("Configure " + moduleName + " Source",
+                        "Select an existing " + moduleName + " source or create a new one"))
+                .value(hasExisting ? "0" : "1")
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
+                .enabled(true)
+                .editable(true)
+                .setAdvanced(false)
+                .build();
+
+        Value existingChoice = buildExistingSourceChoice(listenerConfigs, existingListeners, moduleName,
+                hasExisting);
+        Value newChoice = buildNewSourceChoice(newListenerProperties, moduleName, !hasExisting);
+
+        choicesProperty.setChoices(List.of(existingChoice, newChoice));
+        return choicesProperty;
+    }
+
+    /**
+     * Builds the "Use existing" source choice with an inline SINGLE_SELECT dropdown for listener
+     * selection. Each listener's configuration is stored as nested properties on the dropdown
+     * property, keyed by listener name, so the frontend can show read-only config when a
+     * listener is selected.
+     *
+     * @param listenerConfigs   Map of listener name to its read-only config properties
+     * @param listeners         Set of existing listener variable names
+     * @param moduleName        Module name for display
+     * @param enabled           Whether this choice is enabled (false when no listeners exist)
+     * @return Value configured as a FORM whose first property is the inline dropdown.
+     */
+    private static Value buildExistingSourceChoice(Map<String, Map<String, Value>> listenerConfigs,
+                                                    Set<String> listeners, String moduleName,
+                                                    boolean enabled) {
+        Map<String, Value> existingServerProps = new LinkedHashMap<>();
+
+        if (enabled && !listeners.isEmpty()) {
+            // Build SINGLE_SELECT dropdown with listener names as items
+            List<String> listenerNames = new ArrayList<>(listeners);
+
+            // Nested properties keyed by listener name, each containing read-only config
+            Map<String, Value> perListenerConfigs = new LinkedHashMap<>();
+            for (String listenerName : listenerNames) {
+                Map<String, Value> config = listenerConfigs.getOrDefault(
+                        listenerName, new LinkedHashMap<>());
+
+                // Make all config properties read-only
+                Map<String, Value> readOnlyConfig = new LinkedHashMap<>();
+                for (Map.Entry<String, Value> entry : config.entrySet()) {
+                    Value prop = entry.getValue();
+                    prop.setEditable(false);
+                    readOnlyConfig.put(entry.getKey(), prop);
+                }
+
+                Value configGroup = new Value.ValueBuilder()
+                        .metadata(listenerName, moduleName + " source: " + listenerName)
+                        .value(listenerName)
+                        .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                        .enabled(true)
+                        .editable(false)
+                        .setProperties(readOnlyConfig)
+                        .build();
+                perListenerConfigs.put(listenerName, configGroup);
+            }
+
+            Value listenerDropdown = new Value.ValueBuilder()
+                    .metadata("Source Name", "Select an existing " + moduleName + " source")
+                    .value(listenerNames.get(0))
+                    .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
+                    .enabled(true)
+                    .editable(true)
+                    .setItems(new ArrayList<Object>(listenerNames))
+                    .setProperties(perListenerConfigs)
+                    .build();
+
+            existingServerProps.put("existingListener", listenerDropdown);
+        }
+
+        String label = enabled ? "Use existing" : "Use existing (none available)";
+        return new Value.ValueBuilder()
+                .metadata(label, "Select an existing " + moduleName + " source")
+                .value("true")
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(enabled)
+                .editable(enabled)
+                .setAdvanced(false)
+                .setProperties(existingServerProps)
+                .build();
+    }
+
+    /**
+     * Builds the "Create new" source choice with editable configuration properties.
+     * The listener variable name is embedded as a property within this choice so the
+     * user sees it inline rather than as a separate top-level field.
+     *
+     * @param listenerProperties Map of properties for creating a new listener
+     * @param moduleName         Module name for display
+     * @param enabled            Whether this choice is enabled by default
+     * @return Value configured as a FORM with listener configuration properties.
+     */
+    private static Value buildNewSourceChoice(Map<String, Value> listenerProperties,
+                                               String moduleName, boolean enabled) {
+        return new Value.ValueBuilder()
+                .metadata("Create new",
+                        String.format("Create a new %s source", moduleName))
+                .value("true")
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(enabled)
+                .editable(true)
+                .setAdvanced(false)
+                .setProperties(listenerProperties)
+                .build();
+    }
+
+    /**
+     * Extracts listener configuration properties from source code for the given listener names.
+     * For each listener, finds its declaration in the project and extracts key configuration
+     * values (protocol, host, port, authentication).
+     *
+     * @param listenerNames  Set of listener variable names to extract configs for
+     * @param semanticModel  Semantic model for symbol resolution
+     * @param project        Project for source traversal
+     * @return Map of listener name to its configuration properties.
+     */
+    public static Map<String, Map<String, Value>> extractListenerConfigs(Set<String> listenerNames,
+                                                                          SemanticModel semanticModel,
+                                                                          Project project) {
+        Map<String, Map<String, Value>> configs = new LinkedHashMap<>();
+
+        for (String listenerName : listenerNames) {
+            Map<String, Value> config = extractSingleListenerConfig(listenerName, semanticModel, project);
+            if (config != null && !config.isEmpty()) {
+                configs.put(listenerName, config);
+            }
+        }
+        return configs;
+    }
+
+    /**
+     * Extracts configuration for a single listener by finding its declaration node and parsing its
+     * constructor arguments.
+     */
+    private static Map<String, Value> extractSingleListenerConfig(String listenerName,
+                                                                    SemanticModel semanticModel,
+                                                                    Project project) {
+        // Find the listener's VariableSymbol
+        Optional<VariableSymbol> listenerSymbol = Optional.empty();
+        for (Symbol moduleSymbol : semanticModel.moduleSymbols()) {
+            if (!(moduleSymbol instanceof VariableSymbol variableSymbol)
+                    || !variableSymbol.qualifiers().contains(Qualifier.LISTENER)) {
+                continue;
+            }
+            if (variableSymbol.getName().isPresent() && variableSymbol.getName().get().equals(listenerName)) {
+                listenerSymbol = Optional.of(variableSymbol);
+                break;
+            }
+        }
+        if (listenerSymbol.isEmpty() || listenerSymbol.get().getLocation().isEmpty()) {
+            return null;
+        }
+
+        // Find the ListenerDeclarationNode from the symbol's location
+        Location location = listenerSymbol.get().getLocation().get();
+        try {
+            Path path = project.sourceRoot().resolve(location.lineRange().fileName());
+            DocumentId documentId = project.documentId(path);
+            Document document = project.currentPackage().getDefaultModule().document(documentId);
+            if (document == null) {
+                return null;
+            }
+
+            ModulePartNode modulePartNode = document.syntaxTree().rootNode();
+            TextRange range = TextRange.from(location.textRange().startOffset(), location.textRange().length());
+            NonTerminalNode foundNode = modulePartNode.findNode(range);
+            while (foundNode != null && !(foundNode instanceof ListenerDeclarationNode)) {
+                foundNode = foundNode.parent();
+            }
+            if (foundNode == null) {
+                return null;
+            }
+
+            ListenerDeclarationNode listenerNode = (ListenerDeclarationNode) foundNode;
+            return extractConfigFromListenerDeclaration(listenerNode);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Extracts key configuration values from a listener declaration node by parsing its
+     * constructor arguments directly.
+     *
+     * @param listenerNode The listener declaration node
+     * @return Map of config property names to their Value objects
+     */
+    private static Map<String, Value> extractConfigFromListenerDeclaration(ListenerDeclarationNode listenerNode) {
+        Map<String, Value> config = new LinkedHashMap<>();
+
+        Node initializer = listenerNode.initializer();
+        NewExpressionNode newExpressionNode;
+        if (initializer instanceof CheckExpressionNode checkExpressionNode) {
+            newExpressionNode = (NewExpressionNode) checkExpressionNode.expression();
+        } else {
+            newExpressionNode = (NewExpressionNode) initializer;
+        }
+
+        SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
+        if (arguments == null) {
+            return config;
+        }
+
+        // Extract named arguments
+        for (FunctionArgumentNode argument : arguments) {
+            if (argument instanceof NamedArgumentNode namedArg) {
+                String argName = namedArg.argumentName().name().text().trim();
+                String argValue = namedArg.expression().toSourceCode().trim();
+
+                switch (argName) {
+                    case "protocol" -> config.put("protocol", buildProtocolSelectValue(argValue));
+                    case "host" -> config.put("host", buildReadOnlyTextValue("Host",
+                            "Server hostname", argValue));
+                    case "port", "portNumber" -> config.put("portNumber", buildReadOnlyTextValue("Port",
+                            "Server port", argValue));
+                    case "auth" -> config.put("authentication",
+                            buildAuthChoiceValue(namedArg.expression()));
+                    case "secureSocket" -> config.put("secureSocket",
+                            buildReadOnlySecureSocketValue(argValue));
+                    default -> {
+                        // Skip other arguments
+                    }
+                }
+            }
+        }
+
+        // Default to "No Authentication" when no auth argument is present
+        if (!config.containsKey("authentication")) {
+            config.put("authentication", buildAuthChoiceValue(null));
+        }
+
+        return config;
+    }
+
+    /**
+     * Builds a read-only CHOICE (radio button) Value for displaying the authentication
+     * configuration of an existing listener, mirroring the structure in ftp_init.json.
+     *
+     * <p>Parses the auth mapping constructor to determine which auth type is used
+     * (No Auth / Basic / Certificate) and populates the selected choice's properties
+     * with actual values from the source code.
+     */
+    private static Value buildAuthChoiceValue(Node authExpression) {
+        // Parse auth fields from the mapping constructor
+        String username = "";
+        String password = "";
+        String privateKey = "";
+        boolean hasCredentials = false;
+        boolean hasPrivateKey = false;
+
+        if (authExpression instanceof MappingConstructorExpressionNode mapping) {
+            for (MappingFieldNode fieldNode : mapping.fields()) {
+                if (fieldNode instanceof SpecificFieldNode field) {
+                    String fieldName = field.fieldName().toSourceCode().trim();
+                    String fieldValue = field.valueExpr()
+                            .map(expr -> expr.toSourceCode().trim()).orElse("");
+
+                    switch (fieldName) {
+                        case "credentials" -> {
+                            hasCredentials = true;
+                            // Parse nested credentials record
+                            if (field.valueExpr().isPresent()
+                                    && field.valueExpr().get()
+                                    instanceof MappingConstructorExpressionNode credMapping) {
+                                for (MappingFieldNode credField : credMapping.fields()) {
+                                    if (credField instanceof SpecificFieldNode credSpecific) {
+                                        String credFieldName =
+                                                credSpecific.fieldName().toSourceCode().trim();
+                                        String credFieldValue = credSpecific.valueExpr()
+                                                .map(expr -> expr.toSourceCode().trim()).orElse("");
+                                        if ("username".equals(credFieldName)) {
+                                            username = credFieldValue;
+                                        } else if ("password".equals(credFieldName)) {
+                                            password = credFieldValue;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        case "privateKey" -> {
+                            hasPrivateKey = true;
+                            privateKey = fieldValue;
+                        }
+                        default -> {
+                            // Skip other fields
+                        }
+                    }
+                }
+            }
+        }
+
+        // Determine which auth type is active
+        boolean isCertAuth = hasPrivateKey;
+        boolean isBasicAuth = hasCredentials && !hasPrivateKey;
+        boolean isNoAuth = authExpression != null && !isBasicAuth && !isCertAuth;
+
+        // Build choices mirroring ftp_init.json auth CHOICE structure
+        List<Value> choices = new ArrayList<>();
+
+        // No Authentication
+        choices.add(new Value.ValueBuilder()
+                .metadata("No Authentication", "")
+                .value("true")
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(isNoAuth)
+                .editable(false)
+                .setAdvanced(false)
+                .build());
+
+        if (isCertAuth) {
+            // Certificate Based Authentication
+            Map<String, Value> certProps = new LinkedHashMap<>();
+            certProps.put("privateKey", buildReadOnlyTextValue("Private Key",
+                    "Private key configuration for SSH-based authentication", privateKey));
+            if (!username.isEmpty()) {
+                certProps.put("userName", buildReadOnlyTextValue("Username",
+                        "Remote server username for key-based authentication", username));
+            }
+            Value certChoice = new Value.ValueBuilder()
+                    .metadata("Certificate Based Authentication", "")
+                    .value("true")
+                    .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                    .enabled(true)
+                    .editable(false)
+                    .setAdvanced(false)
+                    .setProperties(certProps)
+                    .build();
+            choices.add(certChoice);
+        } else {
+            // Basic Authentication
+            Map<String, Value> basicProps = new LinkedHashMap<>();
+            if (!username.isEmpty()) {
+                basicProps.put("userName", buildReadOnlyTextValue("Username",
+                        "Remote server username for authentication", username));
+            }
+            if (!password.isEmpty()) {
+                basicProps.put("password", buildReadOnlyTextValue("Password",
+                        "Remote server password for authentication", password));
+            }
+            Value basicChoice = new Value.ValueBuilder()
+                    .metadata("Basic Authentication", "")
+                    .value("true")
+                    .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                    .enabled(isBasicAuth)
+                    .editable(false)
+                    .setAdvanced(false)
+                    .setProperties(basicProps)
+                    .build();
+            choices.add(basicChoice);
+        }
+
+        Value auth = new Value.ValueBuilder()
+                .metadata("Authentication", "Select the authentication method")
+                .value("")
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+        auth.setChoices(choices);
+        return auth;
+    }
+
+    /**
+     * Builds a read-only text Value for displaying listener config information.
+     */
+    private static Value buildReadOnlyTextValue(String label, String description, String value) {
+        return new Value.ValueBuilder()
+                .metadata(label, description)
+                .value(value)
+                .types(List.of(PropertyType.types(Value.FieldType.TEXT, "string"),
+                        PropertyType.types(Value.FieldType.EXPRESSION, "string")))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+    }
+
+    /**
+     * Builds a read-only secure socket Value for displaying the secureSocket configuration
+     * of an existing FTPS listener, mirroring the structure in ftp_init.json.
+     */
+    private static Value buildReadOnlySecureSocketValue(String value) {
+        List<PropertyTypeMemberInfo> typeMembers = List.of(
+                new PropertyTypeMemberInfo("SecureSocket", "ballerina:ftp", FTP, "RECORD_TYPE", true)
+        );
+
+        PropertyType recordType = new PropertyType.Builder()
+                .fieldType(Value.FieldType.RECORD_MAP_EXPRESSION)
+                .ballerinaType("ftp:SecureSocket")
+                .setMembers(typeMembers)
+                .selected(true)
+                .build();
+
+        PropertyType expressionType = new PropertyType.Builder()
+                .fieldType(Value.FieldType.EXPRESSION)
+                .ballerinaType("ftp:SecureSocket")
+                .selected(false)
+                .build();
+
+        return new Value.ValueBuilder()
+                .metadata("Secure Socket (SecureSocket)",
+                        "Configure SSL/TLS configuration for secure connection.")
+                .value(value)
+                .types(List.of(recordType, expressionType))
+                .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(true)
+                .build();
+    }
+
+    /**
+     * Builds a read-only CHOICE (radio button) Value for displaying the protocol of an existing listener.
+     */
+    private static Value buildProtocolSelectValue(String value) {
+        // Strip module prefix (e.g. "ftp:SFTP" → "SFTP") for matching against choice values
+        String normalizedValue = value.contains(":") ? value.substring(value.lastIndexOf(':') + 1) : value;
+        List<Value> choices = List.of(
+                buildProtocolChoice("FTP", "FTP", normalizedValue),
+                buildProtocolChoice("SFTP", "SFTP", normalizedValue),
+                buildProtocolChoice("FTPS", "FTPS", normalizedValue)
+        );
+
+        Value protocol = new Value.ValueBuilder()
+                .metadata("Protocol", "Connection protocol")
+                .value(normalizedValue)
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+        protocol.setChoices(choices);
+        return protocol;
+    }
+
+    /**
+     * Builds a single protocol choice for the radio button group.
+     */
+    private static Value buildProtocolChoice(String label, String choiceValue, String selectedValue) {
+        return new Value.ValueBuilder()
+                .metadata(label, "")
+                .value(choiceValue)
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(choiceValue.equals(selectedValue))
+                .editable(false)
+                .setAdvanced(false)
+                .build();
     }
 
     /**

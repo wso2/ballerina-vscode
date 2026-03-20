@@ -12,7 +12,7 @@
     "designApproach": {
       "metadata": {
         "label": "Protocol",
-        "description": "Select the protocol for the remote server connection"
+        "description": "Select the protocol for the remote source connection"
       },
       "enabled": true,
       "editable": true,
@@ -655,8 +655,8 @@
     },
     "listenerVarName": {
       "metadata": {
-        "label": "Listener Name",
-        "description": "Provide a name for the listener being created"
+        "label": "Source Name",
+        "description": "Unique name for this FTP source"
       },
       "codedata": {
         "type": "LISTENER_VAR_NAME"
@@ -667,11 +667,11 @@
           "selected": true
         }
       ],
-      "value": "ftpListenerOut",
+      "value": "ftpSource",
       "enabled": true,
       "editable": true,
       "optional": false,
-      "advanced": true
+      "advanced": false
     }
   }
 }
