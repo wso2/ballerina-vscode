@@ -838,6 +838,8 @@ const AIChat: React.FC = () => {
             await rpcClient.getAiPanelRpcClient().acceptChanges().catch((e: unknown) => console.warn("[AIChat] auto-accept failed:", e));
             setHasActiveReview(false);
         }
+        // Clear until onCheckpointCaptured repopulates with the new set
+        setAvailableCheckpointIds(new Set());
         rpcClient.getAiPanelRpcClient().clearInitialPrompt();
         setMessages((prevMessages) => prevMessages.filter((message) => message.type !== "label"));
         setMessages((prevMessages) => prevMessages.filter((message) => message.type !== "question"));
