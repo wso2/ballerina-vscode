@@ -127,14 +127,29 @@ function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }
         }
 
         let items = undefined;
-        if (getPrimaryInputType(property.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(property.types)?.fieldType === "SINGLE_SELECT") {
+        if (fieldType === "MULTIPLE_SELECT" || fieldType === "SINGLE_SELECT") {
             items = property.items;
+        }
+
+        // For SINGLE_SELECT with nested per-option properties, build dynamicFormFields
+        // Each key in properties maps to a dropdown option whose inner properties become FormField[]
+        let dynamicFormFields: { [key: string]: FormField[] } | undefined = undefined;
+        if (fieldType === "SINGLE_SELECT" && property.properties && property.items) {
+            dynamicFormFields = {};
+            for (const optionKey in property.properties) {
+                const optionValue = property.properties[optionKey];
+                if (optionValue.properties) {
+                    dynamicFormFields[optionKey] = mapPropertiesToFormFields(optionValue.properties);
+                } else {
+                    dynamicFormFields[optionKey] = [];
+                }
+            }
         }
 
         return {
             key,
             label: property?.metadata?.label,
-            type: getPrimaryInputType(property.types)?.fieldType,
+            type: fieldType,
             documentation: property?.metadata?.description || "",
             valueType: getPrimaryInputType(property.types)?.ballerinaType,
             editable: property.editable ?? true,
@@ -149,7 +164,10 @@ function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }
             placeholder: property.placeholder,
             addNewButton: property.addNewButton,
             lineRange: property?.codedata?.lineRange,
-            advanceProps: mapPropertiesToFormFields(property.properties)
+            advanceProps: !dynamicFormFields ? mapPropertiesToFormFields(property.properties) : undefined,
+            dynamicFormFields,
+            groupName: property?.metadata?.groupName,
+            groupNo: property?.metadata?.groupNo,
         } as FormField;
     });
 }
