@@ -29,7 +29,7 @@ import CodeContextCard from "../../CodeContextCard";
 import { AgentMode } from "../../AIChatInput/ModeToggle";
 
 export const FooterContainer = styled.footer({
-    padding: "20px",
+    padding: "20px 20px 12px",
 });
 
 const SuggestedCommandsWrapper = styled.div({
@@ -119,12 +119,15 @@ const renderPrompt = (item: AIPanelPrompt, index: number, aiChatInputRef: React.
     );
 };
 
-const DisclaimerText = styled.p`
+const DisclaimerText = styled.p<{ visible: boolean }>`
     font-size: 11px;
     color: var(--vscode-descriptionForeground);
     text-align: center;
-    margin: 8px 0 0;
-    opacity: 0.7;
+    margin: 6px 0 0;
+    opacity: ${(props: { visible: boolean }) => props.visible ? 0.7 : 0};
+    max-height: ${(props: { visible: boolean }) => props.visible ? '20px' : '0'};
+    overflow: hidden;
+    transition: opacity 0.2s ease, max-height 0.2s ease;
 `;
 
 type FooterProps = {
@@ -218,11 +221,9 @@ const Footer: React.FC<FooterProps> = ({
                 onToggleWebSearch={onToggleWebSearch}
                 disabled={disabled}
             />
-            {!showSuggestedCommands && (
-                <DisclaimerText>
-                    AI-generated output may contain mistakes. Review before adding to your integration.
-                </DisclaimerText>
-            )}
+            <DisclaimerText visible={!showSuggestedCommands}>
+                AI-generated content may contain mistakes. Always review changes.
+            </DisclaimerText>
         </FooterContainer>
     );
 };
