@@ -137,7 +137,7 @@ function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }
             type: getPrimaryInputType(property.types)?.fieldType,
             documentation: property?.metadata?.description || "",
             valueType: getPrimaryInputType(property.types)?.ballerinaType,
-            editable: true,
+            editable: property.editable ?? true,
             enabled: property.enabled ?? true,
             optional: property.optional,
             value,

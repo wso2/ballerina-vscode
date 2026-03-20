@@ -125,10 +125,21 @@ export function ChoiceForm(props: ChoiceFormProps) {
                     defaultValue={selectedOption}
                     defaultChecked={true}
                     value={selectedOption}
-                    options={field.choices.map((choice, index) => ({ id: index.toString(), value: index + 1, content: choice.metadata.label }))}
+                    options={field.choices.map((choice, index) => ({
+                        id: index.toString(),
+                        value: index + 1,
+                        content: choice.metadata.label,
+                        disabled: field.editable === false || (!choice.enabled && (!choice.properties || Object.keys(choice.properties).length === 0))
+                    }))}
                     onChange={(e) => {
+                        if (field.editable === false) return;
                         const checkedValue = Number(e.target.value);
                         const realValue = checkedValue - 1;
+                        // Prevent selecting disabled choices (no properties and not enabled)
+                        const choice = field.choices[realValue];
+                        if (choice && !choice.enabled && (!choice.properties || Object.keys(choice.properties).length === 0)) {
+                            return;
+                        }
                         setSelectedOption(checkedValue);
                         setValue(field.key, realValue);
                         clearErrors();
@@ -136,18 +147,23 @@ export function ChoiceForm(props: ChoiceFormProps) {
                 />
             </ChoiceSection>
 
-            <FormSection>
-                {dynamicFields.filter(dfield => (field.advanced  || !dfield.advanced)).map((dfield, index) => {
-                    return (
-                        <FieldFactory
-                            key={dfield.key}
-                            field={dfield}
-                            autoFocus={index === 0 ? true : false}
-                            recordTypeFields={recordTypeFields}
-                        />
-                    );
-                })}
-            </FormSection>
+            {(() => {
+                const fields = dynamicFields.filter(dfield => (field.advanced || !dfield.advanced));
+                if (fields.length === 0) return null;
+                // Special handling for listener configuration grouping under exisitng or create new listener
+                return (
+                    <FormSection>
+                        {fields.map((dfield, index) => (
+                            <FieldFactory
+                                key={dfield.key}
+                                field={dfield}
+                                autoFocus={index === 0}
+                                recordTypeFields={recordTypeFields}
+                            />
+                        ))}
+                    </FormSection>
+                );
+            })()}
 
         </Form>
 
