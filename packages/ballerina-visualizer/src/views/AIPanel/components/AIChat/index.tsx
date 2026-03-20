@@ -688,12 +688,8 @@ const AIChat: React.FC = () => {
 
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
-            let contentToSave: string | undefined;
-            setMessages(prevMessages => {
-                const assistantIndex = getLatestAssistantMessageIndex(prevMessages);
-                contentToSave = assistantIndex >= 0 ? prevMessages[assistantIndex]?.content : undefined;
-                return prevMessages;
-            });
+            const assistantIndex = getLatestAssistantMessageIndex(messages);
+            const contentToSave = assistantIndex >= 0 ? messages[assistantIndex]?.content : messages[messages.length - 1]?.content;
             await rpcClient.getAiPanelRpcClient().updateChatMessage({
                 messageId: response.messageId,
                 content: contentToSave || "",
