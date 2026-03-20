@@ -268,19 +268,19 @@ export function AddConnectionPopupContent(props: Props) {
                     {!platformExtState?.hasPossibleComponent ? (
                         <IntroText>
                             <VSCodeLink onClick={platformRpcClient.deployIntegrationInDevant}>
-                                Deploy integration to Devant
+                                Deploy integration to WSO2 Cloud
                             </VSCodeLink>{" "}
                             or{" "}
                             <VSCodeLink onClick={handleLinkWorkspace}>
-                                associate with a Devant project
+                                associate with a WSO2 Cloud project
                             </VSCodeLink>{" "}
-                            in order to connect with Devant dependencies
+                            in order to connect with cloud dependencies
                         </IntroText>
                     ) : <IntroText>
                         <VSCodeLink onClick={loginToDevant}>
                             Login
                         </VSCodeLink>{" "}
-                        to Devant in order to connect with Devant dependencies
+                        to WSO2 Cloud in order to connect with cloud dependencies
                     </IntroText>
                     }
                 </>
@@ -289,7 +289,7 @@ export function AddConnectionPopupContent(props: Props) {
                 <IntroText>
                     To establish your connection, first define a connector. You may create a custom connector using an
                     API specification. Alternatively, you can select one of the pre-built
-                    connectors below or connect to services running in Devant or services configured in Devant. You will
+                    connectors below or connect to services running in WSO2 Cloud or services configured in WSO2 Cloud. You will
                     then be guided to provide the required details to complete the connection setup.
                 </IntroText>
             ) : (

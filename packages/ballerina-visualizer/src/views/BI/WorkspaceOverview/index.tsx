@@ -417,8 +417,8 @@ function DeploymentOptions({
     const hasDeployedWithChanges = deployedWithChanges.length > 0;
 
     // Determine title, description, button text, and whether deployment is allowed
-    let title = "Deploy to Devant";
-    let description = "Deploy your project integrations to the cloud using Devant by WSO2.";
+    let title = "Deploy to WSO2 Cloud";
+    let description = "Deploy your project integrations to WSO2 Cloud.";
     let buttonText = "Deploy";
     let primaryAction: () => void | Promise<void> = handleDeploy;
     let secondaryAction = undefined;
@@ -427,22 +427,22 @@ function DeploymentOptions({
 
     if (hasDeployedProjects && !hasUndeployedProjects) {
         // All projects are deployed - disable deployment button
-        title = "Deployed in Devant";
-        description = "All project integrations are deployed in Devant.";
-        buttonText = "View in Devant";
+        title = "Deployed in WSO2 Cloud";
+        description = "All project integrations are deployed in WSO2 Cloud.";
+        buttonText = "View in Console";
         primaryAction = goToDevant;
         isDeploymentDisabled = false; // View action is always enabled
         
         if (hasDeployedWithChanges) {
             secondaryAction = {
-                description: "To redeploy in Devant, please commit and push your changes.",
+                description: "To redeploy in WSO2 Cloud, please commit and push your changes.",
                 buttonText: "Open Source Control",
                 onClick: () => rpcClient.getCommonRpcClient().executeCommand({ commands: ["workbench.scm.focus"] })
             };
         }
     } else if (hasDeployedProjects && hasUndeployedProjects) {
         // Mixed state: some deployed, some not - show clear message about remaining
-        title = "Partially Deployed in Devant";
+        title = "Partially Deployed in WSO2 Cloud";
         
         // Separate deployable and non-deployable undeployed projects
         const deployableUndeployed = undeployedProjects.filter(p => deployableProjectPaths.has(p.projectPath));
