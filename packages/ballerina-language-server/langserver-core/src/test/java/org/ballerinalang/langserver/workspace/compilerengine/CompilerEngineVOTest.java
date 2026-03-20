@@ -26,7 +26,7 @@ import io.ballerina.projects.PackageCompilation;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult.ResolutionDiagnostic;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult.Severity;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -119,7 +119,7 @@ public class CompilerEngineVOTest {
     @Test
     public void dualSnapshotStore_startCompilationMakesInProgressAccessible() {
         DualSnapshotStore store = new DualSnapshotStore();
-        SourceRoot root = new SourceRoot(Path.of("/tmp/project-dual").toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project-dual").toAbsolutePath().normalize().toUri());
 
         InProgressSnapshot inProgressSnapshot = store.startCompilation(root);
 
@@ -131,7 +131,7 @@ public class CompilerEngineVOTest {
     @Test
     public void dualSnapshotStore_publishStableStoresSnapshotAndCompletesInProgressFuture() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        SourceRoot root = new SourceRoot(Path.of("/tmp/project-dual-publish").toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project-dual-publish").toAbsolutePath().normalize().toUri());
         InProgressSnapshot inProgressSnapshot = store.startCompilation(root);
         StableSnapshot stableSnapshot = createStableSnapshot(new ContentVersion(4));
 
@@ -146,7 +146,7 @@ public class CompilerEngineVOTest {
     @Test(expectedExceptions = CancellationException.class)
     public void dualSnapshotStore_cancelInProgressCancelsCompilationFuture() {
         DualSnapshotStore store = new DualSnapshotStore();
-        SourceRoot root = new SourceRoot(Path.of("/tmp/project-dual-cancel").toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project-dual-cancel").toAbsolutePath().normalize().toUri());
         InProgressSnapshot inProgressSnapshot = store.startCompilation(root);
 
         store.cancelInProgress(root);
@@ -158,7 +158,7 @@ public class CompilerEngineVOTest {
     @Test
     public void dualSnapshotStore_getStableReturnsSameReferenceAcrossConcurrentReaders() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        SourceRoot root = new SourceRoot(Path.of("/tmp/project-dual-concurrent").toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project-dual-concurrent").toAbsolutePath().normalize().toUri());
         StableSnapshot stableSnapshot = createStableSnapshot(new ContentVersion(9));
         store.publishStable(root, stableSnapshot);
 
@@ -192,7 +192,7 @@ public class CompilerEngineVOTest {
     @Test
     public void dualSnapshotStore_publishStableUnblocksCompilationWaiter() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        SourceRoot root = new SourceRoot(Path.of("/tmp/project-dual-waiter").toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project-dual-waiter").toAbsolutePath().normalize().toUri());
         InProgressSnapshot inProgressSnapshot = store.startCompilation(root);
         StableSnapshot stableSnapshot = createStableSnapshot(new ContentVersion(7));
         CountDownLatch waiterStarted = new CountDownLatch(1);
@@ -220,8 +220,8 @@ public class CompilerEngineVOTest {
     @Test
     public void dualSnapshotStore_tracksMultipleSourceRootsIndependently() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        SourceRoot firstRoot = new SourceRoot(Path.of("/tmp/project-dual-r1").toAbsolutePath().normalize());
-        SourceRoot secondRoot = new SourceRoot(Path.of("/tmp/project-dual-r2").toAbsolutePath().normalize());
+        DocumentUri firstRoot = new DocumentUri.FileUri(Path.of("/tmp/project-dual-r1").toAbsolutePath().normalize().toUri());
+        DocumentUri secondRoot = new DocumentUri.FileUri(Path.of("/tmp/project-dual-r2").toAbsolutePath().normalize().toUri());
         InProgressSnapshot firstInProgress = store.startCompilation(firstRoot);
         InProgressSnapshot secondInProgress = store.startCompilation(secondRoot);
         StableSnapshot firstStable = createStableSnapshot(new ContentVersion(1));
@@ -242,21 +242,21 @@ public class CompilerEngineVOTest {
 
     @Test
     public void resolution_capturesDiagnosticsWithSourceRoot() {
-        SourceRoot root = new SourceRoot(Path.of("/tmp/project").toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project").toAbsolutePath().normalize().toUri());
         List<ResolutionDiagnostic> diagnostics = List.of(
                 new ResolutionDiagnostic(Severity.WARNING, "Unused import", "/mod1")
         );
 
         ResolutionResult result = new ResolutionResult(root, diagnostics, true);
 
-        Assert.assertSame(result.sourceRoot(), root);
+        Assert.assertSame(result.sourceRootUri(), root);
         Assert.assertEquals(result.diagnostics().size(), 1);
         Assert.assertEquals(result.diagnostics().get(0).severity(), Severity.WARNING);
     }
 
     @Test
     public void resolution_defensiveCopyOfDiagnostics() {
-        SourceRoot root = new SourceRoot(Path.of("/tmp/project").toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project").toAbsolutePath().normalize().toUri());
         List<ResolutionDiagnostic> original = new ArrayList<>();
         original.add(new ResolutionDiagnostic(Severity.INFO, "Info", "/mod1"));
 
@@ -273,7 +273,7 @@ public class CompilerEngineVOTest {
 
     @Test
     public void resolution_successFlagReflectsDiagnostics() {
-        SourceRoot root = new SourceRoot(Path.of("/tmp/project").toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project").toAbsolutePath().normalize().toUri());
 
         ResolutionResult successResult = new ResolutionResult(root, List.of(), true);
         Assert.assertTrue(successResult.success());

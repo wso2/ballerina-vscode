@@ -23,13 +23,14 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.PackageDescriptor;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -63,13 +64,15 @@ public class CompilationServiceImplTest {
     private EventSyncPubSubHolder eventBus;
     private DualSnapshotStore snapshotStore;
     private StableSnapshot mockSnapshot;
-    private static final SourceRoot TEST_ROOT = new SourceRoot(
-            Path.of("/tmp/test-project").toAbsolutePath().normalize());
+    private PackageDescriptor mockDescriptor;
+    private static final DocumentUri TEST_ROOT = new DocumentUri.FileUri(
+            Path.of("/tmp/test-project").toAbsolutePath().normalize().toUri());
 
     @BeforeMethod
     public void setUp() {
         eventBus = new EventSyncPubSubHolder();
         snapshotStore = new DualSnapshotStore();
+        mockDescriptor = mock(PackageDescriptor.class);
         // Pre-create mock snapshot to avoid Mockito initialization issues across tests
         mockSnapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
                 mock(PackageCompilation.class), new ContentVersion(1));
@@ -107,10 +110,10 @@ public class CompilationServiceImplTest {
     @Test
     public void wme1_createsPipelineAndTriggersInitialCompilation() throws InterruptedException {
         CountDownLatch compiled = new CountDownLatch(1);
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             compiled.countDown();
             return mockSnapshot;
-        }, 50);
+        }), 50);
 
         publishWmE1(TEST_ROOT);
 
@@ -121,10 +124,10 @@ public class CompilationServiceImplTest {
     @Test
     public void wme2_evictsPipeline() throws InterruptedException {
         CountDownLatch compiled = new CountDownLatch(1);
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             compiled.countDown();
             return mockSnapshot;
-        }, 50);
+        }), 50);
 
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(compiled.await(3, TimeUnit.SECONDS), "Pipeline should be created");
@@ -147,14 +150,14 @@ public class CompilationServiceImplTest {
         CountDownLatch firstComplete = new CountDownLatch(1);
         CountDownLatch secondStart = new CountDownLatch(1);
         // Use pre-created mockSnapshot
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             if (compileCount.incrementAndGet() == 1) {
                 firstComplete.countDown();
             } else {
                 secondStart.countDown();
             }
             return mockSnapshot;
-        }, 50);
+        }), 50);
 
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(firstComplete.await(3, TimeUnit.SECONDS), "First compilation");
@@ -172,7 +175,7 @@ public class CompilationServiceImplTest {
         CountDownLatch firstCompiled = new CountDownLatch(1);
         CountDownLatch secondCompiled = new CountDownLatch(1);
         AtomicInteger compileCount = new AtomicInteger(0);
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             int count = compileCount.incrementAndGet();
             if (count == 1) {
                 firstCompiled.countDown();
@@ -180,7 +183,7 @@ public class CompilationServiceImplTest {
                 secondCompiled.countDown();
             }
             return mockSnapshot;
-        }, 50);
+        }), 50);
 
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
@@ -195,7 +198,7 @@ public class CompilationServiceImplTest {
         CountDownLatch firstCompiled = new CountDownLatch(1);
         CountDownLatch secondCompiled = new CountDownLatch(1);
         AtomicInteger compileCount = new AtomicInteger(0);
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             int count = compileCount.incrementAndGet();
             if (count == 1) {
                 firstCompiled.countDown();
@@ -203,7 +206,7 @@ public class CompilationServiceImplTest {
                 secondCompiled.countDown();
             }
             return mockSnapshot;
-        }, 50);
+        }), 50);
 
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
@@ -218,7 +221,7 @@ public class CompilationServiceImplTest {
         CountDownLatch firstCompiled = new CountDownLatch(1);
         CountDownLatch throttledCompilation = new CountDownLatch(1);
         AtomicInteger compileCount = new AtomicInteger(0);
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             int count = compileCount.incrementAndGet();
             if (count == 1) {
                 firstCompiled.countDown();
@@ -226,7 +229,7 @@ public class CompilationServiceImplTest {
                 throttledCompilation.countDown();
             }
             return mockSnapshot;
-        }, 50L, 300L);
+        }), 50L, 300L);
 
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
@@ -246,7 +249,7 @@ public class CompilationServiceImplTest {
         CountDownLatch firstCompiled = new CountDownLatch(1);
         CountDownLatch secondCompiled = new CountDownLatch(1);
         AtomicInteger compileCount = new AtomicInteger(0);
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             int count = compileCount.incrementAndGet();
             if (count == 1) {
                 firstCompiled.countDown();
@@ -254,7 +257,7 @@ public class CompilationServiceImplTest {
                 secondCompiled.countDown();
             }
             return mockSnapshot;
-        }, 50);
+        }), 50);
 
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
@@ -267,10 +270,10 @@ public class CompilationServiceImplTest {
     @Test
     public void wmFileWatchedChanged_configuration_doesNotRequest() throws InterruptedException {
         CountDownLatch firstCompiled = new CountDownLatch(1);
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             firstCompiled.countDown();
             return mockSnapshot;
-        }, 50);
+        }), 50);
 
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
@@ -289,15 +292,15 @@ public class CompilationServiceImplTest {
         CountDownLatch compiled = new CountDownLatch(1);
         StableSnapshot snapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
                 mock(PackageCompilation.class), new ContentVersion(1));
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             compiled.countDown();
             return snapshot;
-        }, 50);
+        }), 50);
 
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(compiled.await(3, TimeUnit.SECONDS));
 
-        StableSnapshot stableSnapshot = service.stableSnapshot(TEST_ROOT.path().resolve("main.bal"), null);
+        StableSnapshot stableSnapshot = service.stableSnapshot(mockDescriptor, null);
         Assert.assertNotNull(stableSnapshot);
         Assert.assertSame(stableSnapshot, snapshot);
     }
@@ -307,7 +310,7 @@ public class CompilationServiceImplTest {
         // Use pre-created mockSnapshot
         service = new CompilationServiceImpl(snapshotStore, eventBus, task -> mockSnapshot, 50);
 
-        StableSnapshot snapshot = service.stableSnapshot(TEST_ROOT.path().resolve("main.bal"), null);
+        StableSnapshot snapshot = service.stableSnapshot(mockDescriptor, null);
         Assert.assertNull(snapshot, "Should return null when no snapshot exists");
     }
 
@@ -316,15 +319,15 @@ public class CompilationServiceImplTest {
         CountDownLatch compiled = new CountDownLatch(1);
         StableSnapshot snapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
                 mock(PackageCompilation.class), new ContentVersion(7));
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             compiled.countDown();
             return snapshot;
-        }, 50);
+        }), 50);
 
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(compiled.await(3, TimeUnit.SECONDS));
 
-        SnapshotView latestSnapshot = service.latestSnapshot(TEST_ROOT.path().resolve("main.bal"), null);
+        SnapshotView latestSnapshot = service.latestSnapshot(mockDescriptor, null);
         Assert.assertSame(latestSnapshot, snapshot);
     }
 
@@ -338,7 +341,7 @@ public class CompilationServiceImplTest {
                 mock(PackageCompilation.class), new ContentVersion(8));
         StableSnapshot secondSnapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
                 mock(PackageCompilation.class), new ContentVersion(9));
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             int invocation = compileCount.incrementAndGet();
             if (invocation == 1) {
                 firstCompiled.countDown();
@@ -348,7 +351,7 @@ public class CompilationServiceImplTest {
             Assert.assertTrue(allowSecondCompileToFinish.await(3, TimeUnit.SECONDS),
                     "Test should release second compilation");
             return secondSnapshot;
-        }, 50);
+        }), 50);
 
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial stable snapshot should exist");
@@ -358,7 +361,7 @@ public class CompilationServiceImplTest {
 
         InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(TEST_ROOT);
         Assert.assertNotNull(inProgressSnapshot, "In-progress snapshot should be published while compiling");
-        Assert.assertSame(service.latestSnapshot(TEST_ROOT.path().resolve("main.bal"), null), inProgressSnapshot);
+        Assert.assertSame(service.latestSnapshot(mockDescriptor, null), inProgressSnapshot);
 
         allowSecondCompileToFinish.countDown();
     }
@@ -369,18 +372,18 @@ public class CompilationServiceImplTest {
         CountDownLatch allowCompileToFinish = new CountDownLatch(1);
         StableSnapshot snapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
                 mock(PackageCompilation.class), new ContentVersion(2));
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             compileStarted.countDown();
             Assert.assertTrue(allowCompileToFinish.await(3, TimeUnit.SECONDS),
                     "Test should release compile action");
             return snapshot;
-        }, 50);
+        }), 50);
 
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(compileStarted.await(3, TimeUnit.SECONDS), "Compilation should start");
 
         CompletableFuture<StableSnapshot> future = CompletableFuture.supplyAsync(
-                () -> service.stableSnapshot(TEST_ROOT.path().resolve("main.bal"), null));
+                () -> service.stableSnapshot(mockDescriptor, null));
         Thread.sleep(150);
         Assert.assertFalse(future.isDone(), "stableSnapshot should wait while compilation is in progress");
 
@@ -396,13 +399,13 @@ public class CompilationServiceImplTest {
     public void circuit_transientFailureSchedulesRetry() throws InterruptedException {
         AtomicInteger callCount = new AtomicInteger(0);
         CountDownLatch secondCall = new CountDownLatch(1);
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             if (callCount.incrementAndGet() < 2) {
                 throw new java.io.IOException("transient network error");
             }
             secondCall.countDown();
             return mockSnapshot;
-        }, 50);
+        }), 50);
 
         publishWmE1(TEST_ROOT);
         Assert.assertTrue(secondCall.await(3, TimeUnit.SECONDS),
@@ -414,9 +417,9 @@ public class CompilationServiceImplTest {
     public void circuit_persistentFailureOpensBreakerAndEmitsCEE6() throws InterruptedException {
         CountDownLatch recoveryExhausted = new CountDownLatch(1);
         List<EventKind> receivedEvents = Collections.synchronizedList(new ArrayList<>());
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             throw new IllegalArgumentException("persistent source error");
-        }, 50);
+        }), 50);
 
         // Subscribe to CE-E6 event
         eventBus.subscribe("test-sub", SubscriberTier.CRITICAL,
@@ -434,9 +437,9 @@ public class CompilationServiceImplTest {
     @Test
     public void circuit_fatalFailureOpensBreakerAndEmitsCEE6() throws InterruptedException {
         CountDownLatch recoveryExhausted = new CountDownLatch(1);
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             throw new AssertionError("compiler bug");
-        }, 50);
+        }), 50);
 
         eventBus.subscribe("test-sub", SubscriberTier.CRITICAL,
                 Set.of(EventKind.CE_RESOLUTION_EXHAUSTED), event -> {
@@ -453,7 +456,7 @@ public class CompilationServiceImplTest {
     @Test
     public void service_closeIdempotent() {
         // Use pre-created mockSnapshot
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> mockSnapshot, 50);
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> mockSnapshot), 50);
         service.close();
         service.close(); // Should not throw
     }
@@ -461,7 +464,7 @@ public class CompilationServiceImplTest {
     @Test
     public void service_closeShutdownsRetryScheduler() throws InterruptedException {
         // Use pre-created mockSnapshot
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> mockSnapshot, 50);
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> mockSnapshot), 50);
         service.close();
         Thread.sleep(100);
         // Verify no leaked threads (observable via graceful close)
@@ -469,15 +472,16 @@ public class CompilationServiceImplTest {
 
     @Test
     public void service_multipleProjects_managedIndependently() throws InterruptedException {
-        SourceRoot root2 = new SourceRoot(Path.of("/tmp/test-project-2").toAbsolutePath().normalize());
+        DocumentUri root2 = new DocumentUri.FileUri(
+                Path.of("/tmp/test-project-2").toAbsolutePath().normalize().toUri());
         AtomicInteger compileCount = new AtomicInteger(0);
         CountDownLatch twoCompiles = new CountDownLatch(2);
         // Use pre-created mockSnapshot
-        service = new CompilationServiceImpl(snapshotStore, eventBus, task -> {
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
             compileCount.incrementAndGet();
             twoCompiles.countDown();
             return mockSnapshot;
-        }, 50);
+        }), 50);
 
         publishWmE1(TEST_ROOT);
         publishWmE1(root2);
@@ -489,35 +493,59 @@ public class CompilationServiceImplTest {
 
     // ---- Helper Methods ----
 
-    private void publishWmE1(SourceRoot sr) {
-        eventBus.publish(new DomainEvent(Instant.now(), sr.path().toString(),
+    /**
+     * Wraps a compile-only lambda so that {@code describe()} returns {@link #mockDescriptor},
+     * satisfying the pipeline creation contract in {@code createPipelineIfAbsent}.
+     */
+    private CompilationPipeline.CompilationAction actionWithDescribe(
+            CompilationPipeline.CompilationAction base) {
+        return new CompilationPipeline.CompilationAction() {
+            @Override
+            public ResolutionResult resolve(CompileTask task) throws Exception {
+                return base.resolve(task);
+            }
+            @Override
+            public StableSnapshot compile(CompileTask task) throws Exception {
+                return base.compile(task);
+            }
+            @Override
+            public PackageDescriptor describe(DocumentUri sourceRootUri) {
+                return mockDescriptor;
+            }
+        };
+    }
+
+    private void publishWmE1(DocumentUri sr) {
+        eventBus.publish(new DomainEvent(Instant.now(), sr.uri().toString(),
                 EventKind.WORKSPACE_PROJECT_REGISTERED));
     }
 
-    private void publishWmE2(SourceRoot sr) {
-        eventBus.publish(new DomainEvent(Instant.now(), sr.path().toString(),
+    private void publishWmE2(DocumentUri sr) {
+        eventBus.publish(new DomainEvent(Instant.now(), sr.uri().toString(),
                 EventKind.WORKSPACE_PROJECT_EVICTED));
     }
 
-    private void publishWmE4(SourceRoot sr) {
-        eventBus.publish(new DomainEvent(Instant.now(), sr.path().toString(),
+    private void publishWmE4(DocumentUri sr) {
+        eventBus.publish(new DomainEvent(Instant.now(), sr.uri().toString(),
                 EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED));
     }
 
-    private void publishWmDocumentOpened(SourceRoot sr) {
-        eventBus.publish(new DomainEvent(Instant.now(), sr.path().toString(),
-                EventKind.WM_DOCUMENT_OPENED, sr.path().resolve("main.bal").toString()));
+    private void publishWmDocumentOpened(DocumentUri sr) {
+        eventBus.publish(new DomainEvent(Instant.now(), sr.uri().toString(),
+                EventKind.WM_DOCUMENT_OPENED,
+                Path.of(sr.uri()).resolve("main.bal").toUri().toString()));
     }
 
-    private void publishWmDocumentChanged(SourceRoot sr) {
-        eventBus.publish(new DomainEvent(Instant.now(), sr.path().toString(),
-                EventKind.WM_DOCUMENT_CHANGED, sr.path().resolve("main.bal").toString()));
+    private void publishWmDocumentChanged(DocumentUri sr) {
+        eventBus.publish(new DomainEvent(Instant.now(), sr.uri().toString(),
+                EventKind.WM_DOCUMENT_CHANGED,
+                Path.of(sr.uri()).resolve("main.bal").toUri().toString()));
     }
 
-    private void publishWmFileWatchedChanged(SourceRoot sr, String scope) {
-        eventBus.publish(new DomainEvent(Instant.now(), sr.path().toString(),
+    private void publishWmFileWatchedChanged(DocumentUri sr, String scope) {
+        eventBus.publish(new DomainEvent(Instant.now(), sr.uri().toString(),
                 EventKind.WM_FILE_WATCHED_CHANGED,
-                sr.path().resolve("Dependencies.toml") + "|" + scope + "|Changed"));
+                Path.of(sr.uri()).resolve("Dependencies.toml") + "|" + scope + "|Changed"));
     }
 
     private StableSnapshot createStableSnapshot(SyntaxTree syntaxTree, SemanticModel semanticModel,
@@ -526,7 +554,7 @@ public class CompilationServiceImplTest {
         ModuleId moduleId = mock(ModuleId.class);
         when(documentId.moduleId()).thenReturn(moduleId);
         return new StableSnapshot(Map.of(documentId, syntaxTree),
-                Map.of(TEST_ROOT.path().resolve("main.bal").normalize(), documentId),
+                Map.of(Path.of(TEST_ROOT.uri()).resolve("main.bal").normalize(), documentId),
                 Map.of(moduleId, semanticModel), compilation, version);
     }
 

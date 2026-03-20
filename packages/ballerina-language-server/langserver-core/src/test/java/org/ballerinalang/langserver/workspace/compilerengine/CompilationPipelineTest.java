@@ -26,7 +26,7 @@ import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -173,7 +173,7 @@ public class CompilationPipelineTest {
         Assert.assertEquals(task.contentVersion(), version);
         Assert.assertNotNull(task.createdAt());
         Assert.assertNotNull(task.cancellationToken());
-        Assert.assertEquals(task.sourceRoot(), testSourceRoot());
+        Assert.assertEquals(task.sourceRootUri(), testSourceRoot());
     }
 
     @Test(expectedExceptions = NullPointerException.class)
@@ -542,7 +542,7 @@ public class CompilationPipelineTest {
             @Override
             public ResolutionResult resolve(CompileTask task) {
                 resolutionCalled.countDown();
-                return new ResolutionResult(task.sourceRoot(), List.of(), true);
+                return new ResolutionResult(task.sourceRootUri(), List.of(), true);
             }
 
             @Override
@@ -574,7 +574,7 @@ public class CompilationPipelineTest {
         pipeline = createPipeline(eventBus, new CompilationPipeline.CompilationAction() {
             @Override
             public ResolutionResult resolve(CompileTask task) {
-                return new ResolutionResult(task.sourceRoot(),
+                return new ResolutionResult(task.sourceRootUri(),
                         List.of(new ResolutionResult.ResolutionDiagnostic(ResolutionResult.Severity.ERROR,
                                 "syntax error", "/tmp/project/main.bal")), false);
             }
@@ -611,7 +611,7 @@ public class CompilationPipelineTest {
         pipeline = createPipeline(eventBus, new CompilationPipeline.CompilationAction() {
             @Override
             public ResolutionResult resolve(CompileTask task) {
-                return new ResolutionResult(task.sourceRoot(), List.of(), true);
+                return new ResolutionResult(task.sourceRootUri(), List.of(), true);
             }
 
             @Override
@@ -658,7 +658,7 @@ public class CompilationPipelineTest {
         pipeline = createPipeline(eventBus, new CompilationPipeline.CompilationAction() {
             @Override
             public ResolutionResult resolve(CompileTask task) {
-                return new ResolutionResult(task.sourceRoot(), List.of(), true);
+                return new ResolutionResult(task.sourceRootUri(), List.of(), true);
             }
 
             @Override
@@ -688,8 +688,8 @@ public class CompilationPipelineTest {
 
     // ---- Helpers ----
 
-    private static SourceRoot testSourceRoot() {
-        return new SourceRoot(Path.of("/tmp/project").toAbsolutePath().normalize());
+    private static DocumentUri testSourceRoot() {
+        return new DocumentUri.FileUri(Path.of("/tmp/project").toAbsolutePath().normalize().toUri());
     }
 
     private CompileTask createTask(ContentVersion version) {

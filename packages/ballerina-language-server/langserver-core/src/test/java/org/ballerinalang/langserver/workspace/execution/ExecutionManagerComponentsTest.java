@@ -19,12 +19,12 @@
 package org.ballerinalang.langserver.workspace.execution;
 
 import org.ballerinalang.langserver.commons.workspace.RunContext;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 
 import static org.ballerinalang.langserver.workspace.execution.ExecutionProcess.ExecutionMode;
 import static org.ballerinalang.langserver.workspace.execution.ExecutionProcess.ProcessState;
@@ -84,11 +84,12 @@ public class ExecutionManagerComponentsTest {
      */
     @Test
     public void executionProcess_validTransitions_emitStructuredEvents() {
-        SourceRoot sourceRoot = sourceRoot(tempDir.resolve("project-a"));
+        Path sourceRootPath = sourceRootPath(tempDir.resolve("project-a"));
+        DocumentUri sourceRoot = sourceRoot(sourceRootPath);
         FakeProcess fake = new FakeProcess(true);
 
         ExecutionProcess process = new ExecutionProcess(new ProcessId("p-1"), sourceRoot, ExecutionMode.RUN,
-                sourceRoot.path(), new GracePeriod(Duration.ofMillis(25)), fake, streamSource -> {
+                sourceRootPath, new GracePeriod(Duration.ofMillis(25)), fake, streamSource -> {
         });
 
         process.markRunning();
@@ -111,11 +112,12 @@ public class ExecutionManagerComponentsTest {
      */
     @Test(expectedExceptions = IllegalStateException.class)
     public void executionProcess_invalidTransition_throws() {
-        SourceRoot sourceRoot = sourceRoot(tempDir.resolve("project-b"));
+        Path sourceRootPath = sourceRootPath(tempDir.resolve("project-b"));
+        DocumentUri sourceRoot = sourceRoot(sourceRootPath);
         FakeProcess fake = new FakeProcess(true);
 
         ExecutionProcess process = new ExecutionProcess(new ProcessId("p-2"), sourceRoot, ExecutionMode.RUN,
-                sourceRoot.path(), new GracePeriod(Duration.ofMillis(25)), fake, streamSource -> {
+                sourceRootPath, new GracePeriod(Duration.ofMillis(25)), fake, streamSource -> {
         });
 
         process.terminate(ExecutionProcess.TerminationReason.USER_REQUESTED);
@@ -126,12 +128,13 @@ public class ExecutionManagerComponentsTest {
      */
     @Test
     public void executionProcess_shutdownSequence_termThenKillOnTimeout() {
-        SourceRoot sourceRoot = sourceRoot(tempDir.resolve("project-c"));
+        Path sourceRootPath = sourceRootPath(tempDir.resolve("project-c"));
+        DocumentUri sourceRoot = sourceRoot(sourceRootPath);
         FakeProcess fake = new FakeProcess(false);
         List<String> sequence = new ArrayList<>();
 
         ExecutionProcess process = new ExecutionProcess(new ProcessId("p-3"), sourceRoot, ExecutionMode.RUN,
-                sourceRoot.path(), new GracePeriod(Duration.ofMillis(10)), fake, streamSource -> {
+                sourceRootPath, new GracePeriod(Duration.ofMillis(10)), fake, streamSource -> {
         }, ignored -> {
             sequence.add("TERM");
             fake.destroy();
@@ -151,8 +154,8 @@ public class ExecutionManagerComponentsTest {
      */
     @Test
     public void processRegistry_cleanup_stopsAndRemovesProjectProcesses() {
-        SourceRoot sourceRootA = sourceRoot(tempDir.resolve("project-d"));
-        SourceRoot sourceRootB = sourceRoot(tempDir.resolve("project-e"));
+        DocumentUri sourceRootA = sourceRoot(tempDir.resolve("project-d"));
+        DocumentUri sourceRootB = sourceRoot(tempDir.resolve("project-e"));
         ProcessRegistry registry = new ProcessRegistry(4);
 
         ExecutionProcess p1 = runningProcess("p-4", sourceRootA);
@@ -175,7 +178,7 @@ public class ExecutionManagerComponentsTest {
      */
     @Test(expectedExceptions = IllegalStateException.class)
     public void processRegistry_enforcesBoundedActiveCount() {
-        SourceRoot sourceRoot = sourceRoot(tempDir.resolve("project-f"));
+        DocumentUri sourceRoot = sourceRoot(tempDir.resolve("project-f"));
         ProcessRegistry registry = new ProcessRegistry(1);
 
         registry.register(runningProcess("p-7", sourceRoot));
@@ -240,41 +243,45 @@ public class ExecutionManagerComponentsTest {
         Path sourceRootPath = Files.createDirectories(tempDir.resolve("project-h")).toAbsolutePath().normalize();
         Path sourceFile = sourceRootPath.resolve("service.bal");
         Files.writeString(sourceFile, "service / on new http:Listener(8080) {}");
-        SourceRoot sourceRoot = new SourceRoot(sourceRootPath);
+        DocumentUri sourceRoot = new DocumentUri.FileUri(sourceRootPath.toUri());
 
         ProcessId running = service.run(new RunContext("/bin/sh", sourceFile, List.of("-c", "sleep 10"), Map.of(), null));
 
-        eventBus.publish(new DomainEvent(Instant.now(), sourceRoot.path().toString(),
+        eventBus.publish(new DomainEvent(Instant.now(), sourceRoot.uri().getPath(),
                 EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED, "BUILD"));
         TimeUnit.MILLISECONDS.sleep(250);
         Assert.assertNotEquals(service.queryExecutionStatus(running), ProcessState.TERMINATED);
 
-        eventBus.publish(new DomainEvent(Instant.now(), sourceRoot.path().toString(),
+        eventBus.publish(new DomainEvent(Instant.now(), sourceRoot.uri().getPath(),
                 EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED, "BALA"));
         TimeUnit.MILLISECONDS.sleep(500);
 
         Path sourceRootPath2 = Files.createDirectories(tempDir.resolve("project-i")).toAbsolutePath().normalize();
         Path sourceFile2 = sourceRootPath2.resolve("run.bal");
         Files.writeString(sourceFile2, "function main() {}");
-        SourceRoot sourceRoot2 = new SourceRoot(sourceRootPath2);
+        DocumentUri sourceRoot2 = new DocumentUri.FileUri(sourceRootPath2.toUri());
         service.run(new RunContext("/bin/sh", sourceFile2, List.of("-c", "sleep 10"), Map.of(), null));
 
-        eventBus.publish(new DomainEvent(Instant.now(), sourceRoot2.path().toString(), EventKind.WORKSPACE_PROJECT_EVICTED));
+        eventBus.publish(new DomainEvent(Instant.now(), sourceRoot2.uri().getPath(), EventKind.WORKSPACE_PROJECT_EVICTED));
 
         Assert.assertTrue(terminationLatch.await(8, TimeUnit.SECONDS));
         Assert.assertEquals(terminatedCount.get(), 2);
     }
 
-    private ExecutionProcess runningProcess(String id, SourceRoot sourceRoot) {
+    private ExecutionProcess runningProcess(String id, DocumentUri sourceRoot) {
         ExecutionProcess process = new ExecutionProcess(new ProcessId(id), sourceRoot, ExecutionMode.RUN,
-                sourceRoot.path(), new GracePeriod(Duration.ofMillis(25)), new FakeProcess(true), streamSource -> {
+                Path.of(sourceRoot.uri()), new GracePeriod(Duration.ofMillis(25)), new FakeProcess(true), streamSource -> {
         });
         process.markRunning();
         return process;
     }
 
-    private SourceRoot sourceRoot(Path path) {
-        return new SourceRoot(path.toAbsolutePath().normalize());
+    private DocumentUri sourceRoot(Path path) {
+        return new DocumentUri.FileUri(sourceRootPath(path).toUri());
+    }
+
+    private Path sourceRootPath(Path path) {
+        return path.toAbsolutePath().normalize();
     }
 
     private void subscribe(Set<EventKind> kinds, java.util.function.Consumer<DomainEvent> consumer) {

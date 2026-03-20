@@ -24,8 +24,9 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleId;
-import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Package;
+import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.RunContext;
 import org.ballerinalang.langserver.commons.workspace.RunResult;
@@ -277,14 +278,20 @@ public class WorkspaceManagerFacadeImplTest {
         SyntaxTree mockTree = Mockito.mock(SyntaxTree.class);
         StableSnapshot snapshot = createStableSnapshot(mockTree, Mockito.mock(SemanticModel.class),
                 Mockito.mock(PackageCompilation.class));
-        Mockito.when(mockCompilationService.stableSnapshot(Mockito.eq(testPath), Mockito.isNull()))
+        PackageDescriptor mockDescriptor = Mockito.mock(PackageDescriptor.class);
+        Project mockProject = Mockito.mock(Project.class);
+        Package mockPackage = Mockito.mock(Package.class);
+        Mockito.when(mockProjectService.loadOrCreate(Mockito.eq(testPath), Mockito.isNull())).thenReturn(mockProject);
+        Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
+        Mockito.when(mockPackage.descriptor()).thenReturn(mockDescriptor);
+        Mockito.when(mockCompilationService.stableSnapshot(Mockito.eq(mockDescriptor), Mockito.isNull()))
                 .thenReturn(snapshot);
 
         Optional<SyntaxTree> result = facade.syntaxTree(testPath);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockTree);
-        Mockito.verify(mockCompilationService).stableSnapshot(Mockito.eq(testPath), Mockito.isNull());
+        Mockito.verify(mockCompilationService).stableSnapshot(Mockito.eq(mockDescriptor), Mockito.isNull());
     }
 
     @Test
@@ -293,14 +300,20 @@ public class WorkspaceManagerFacadeImplTest {
         SyntaxTree mockTree = Mockito.mock(SyntaxTree.class);
         StableSnapshot snapshot = createStableSnapshot(mockTree, Mockito.mock(SemanticModel.class),
                 Mockito.mock(PackageCompilation.class));
-        Mockito.when(mockCompilationService.stableSnapshot(testPath, cancelChecker))
+        PackageDescriptor mockDescriptor = Mockito.mock(PackageDescriptor.class);
+        Project mockProject = Mockito.mock(Project.class);
+        Package mockPackage = Mockito.mock(Package.class);
+        Mockito.when(mockProjectService.loadOrCreate(testPath, cancelChecker)).thenReturn(mockProject);
+        Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
+        Mockito.when(mockPackage.descriptor()).thenReturn(mockDescriptor);
+        Mockito.when(mockCompilationService.stableSnapshot(mockDescriptor, cancelChecker))
                 .thenReturn(snapshot);
 
         Optional<SyntaxTree> result = facade.syntaxTree(testPath, cancelChecker);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockTree);
-        Mockito.verify(mockCompilationService).stableSnapshot(testPath, cancelChecker);
+        Mockito.verify(mockCompilationService).stableSnapshot(mockDescriptor, cancelChecker);
     }
 
     @Test
@@ -308,14 +321,20 @@ public class WorkspaceManagerFacadeImplTest {
         SemanticModel mockModel = Mockito.mock(SemanticModel.class);
         StableSnapshot snapshot = createStableSnapshot(Mockito.mock(SyntaxTree.class), mockModel,
                 Mockito.mock(PackageCompilation.class));
-        Mockito.when(mockCompilationService.stableSnapshot(Mockito.eq(testPath), Mockito.isNull()))
+        PackageDescriptor mockDescriptor = Mockito.mock(PackageDescriptor.class);
+        Project mockProject = Mockito.mock(Project.class);
+        Package mockPackage = Mockito.mock(Package.class);
+        Mockito.when(mockProjectService.loadOrCreate(Mockito.eq(testPath), Mockito.isNull())).thenReturn(mockProject);
+        Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
+        Mockito.when(mockPackage.descriptor()).thenReturn(mockDescriptor);
+        Mockito.when(mockCompilationService.stableSnapshot(Mockito.eq(mockDescriptor), Mockito.isNull()))
                 .thenReturn(snapshot);
 
         Optional<SemanticModel> result = facade.semanticModel(testPath);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockModel);
-        Mockito.verify(mockCompilationService).stableSnapshot(Mockito.eq(testPath), Mockito.isNull());
+        Mockito.verify(mockCompilationService).stableSnapshot(Mockito.eq(mockDescriptor), Mockito.isNull());
     }
 
     @Test
@@ -324,14 +343,20 @@ public class WorkspaceManagerFacadeImplTest {
         SemanticModel mockModel = Mockito.mock(SemanticModel.class);
         StableSnapshot snapshot = createStableSnapshot(Mockito.mock(SyntaxTree.class), mockModel,
                 Mockito.mock(PackageCompilation.class));
-        Mockito.when(mockCompilationService.stableSnapshot(testPath, cancelChecker))
+        PackageDescriptor mockDescriptor = Mockito.mock(PackageDescriptor.class);
+        Project mockProject = Mockito.mock(Project.class);
+        Package mockPackage = Mockito.mock(Package.class);
+        Mockito.when(mockProjectService.loadOrCreate(testPath, cancelChecker)).thenReturn(mockProject);
+        Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
+        Mockito.when(mockPackage.descriptor()).thenReturn(mockDescriptor);
+        Mockito.when(mockCompilationService.stableSnapshot(mockDescriptor, cancelChecker))
                 .thenReturn(snapshot);
 
         Optional<SemanticModel> result = facade.semanticModel(testPath, cancelChecker);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockModel);
-        Mockito.verify(mockCompilationService).stableSnapshot(testPath, cancelChecker);
+        Mockito.verify(mockCompilationService).stableSnapshot(mockDescriptor, cancelChecker);
     }
 
     @Test
@@ -339,14 +364,20 @@ public class WorkspaceManagerFacadeImplTest {
         PackageCompilation mockCompilation = Mockito.mock(PackageCompilation.class);
         StableSnapshot snapshot = createStableSnapshot(Mockito.mock(SyntaxTree.class), Mockito.mock(SemanticModel.class),
                 mockCompilation);
-        Mockito.when(mockCompilationService.stableSnapshot(Mockito.eq(testPath), Mockito.isNull()))
+        PackageDescriptor mockDescriptor = Mockito.mock(PackageDescriptor.class);
+        Project mockProject = Mockito.mock(Project.class);
+        Package mockPackage = Mockito.mock(Package.class);
+        Mockito.when(mockProjectService.loadOrCreate(Mockito.eq(testPath), Mockito.isNull())).thenReturn(mockProject);
+        Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
+        Mockito.when(mockPackage.descriptor()).thenReturn(mockDescriptor);
+        Mockito.when(mockCompilationService.stableSnapshot(Mockito.eq(mockDescriptor), Mockito.isNull()))
                 .thenReturn(snapshot);
 
         Optional<PackageCompilation> result = facade.waitAndGetPackageCompilation(testPath);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockCompilation);
-        Mockito.verify(mockCompilationService).stableSnapshot(Mockito.eq(testPath), Mockito.isNull());
+        Mockito.verify(mockCompilationService).stableSnapshot(Mockito.eq(mockDescriptor), Mockito.isNull());
     }
 
     @Test
@@ -355,14 +386,20 @@ public class WorkspaceManagerFacadeImplTest {
         PackageCompilation mockCompilation = Mockito.mock(PackageCompilation.class);
         StableSnapshot snapshot = createStableSnapshot(Mockito.mock(SyntaxTree.class), Mockito.mock(SemanticModel.class),
                 mockCompilation);
-        Mockito.when(mockCompilationService.stableSnapshot(testPath, cancelChecker))
+        PackageDescriptor mockDescriptor = Mockito.mock(PackageDescriptor.class);
+        Project mockProject = Mockito.mock(Project.class);
+        Package mockPackage = Mockito.mock(Package.class);
+        Mockito.when(mockProjectService.loadOrCreate(testPath, cancelChecker)).thenReturn(mockProject);
+        Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
+        Mockito.when(mockPackage.descriptor()).thenReturn(mockDescriptor);
+        Mockito.when(mockCompilationService.stableSnapshot(mockDescriptor, cancelChecker))
                 .thenReturn(snapshot);
 
         Optional<PackageCompilation> result = facade.waitAndGetPackageCompilation(testPath, cancelChecker);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockCompilation);
-        Mockito.verify(mockCompilationService).stableSnapshot(testPath, cancelChecker);
+        Mockito.verify(mockCompilationService).stableSnapshot(mockDescriptor, cancelChecker);
     }
 
     @Test
