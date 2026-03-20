@@ -32,11 +32,11 @@ import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureDetect
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureMonitor;
 import org.ballerinalang.langserver.workspace.workspacemanager.ChangeApplier;
 import org.ballerinalang.langserver.workspace.workspacemanager.ChangeBuffer;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectLoader;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
 
 import java.nio.file.Path;
@@ -146,7 +146,7 @@ public final class WiringConfiguration implements AutoCloseable {
             return;
         }
 
-        SourceRoot root = new SourceRoot(rootPath);
+        DocumentUri root = new DocumentUri.FileUri(rootPath.toUri());
 
         // Determine new kind: if Ballerina.toml exists → BUILD, otherwise → SINGLE_FILE
         boolean tomlExists = rootPath.resolve("Ballerina.toml").toFile().exists();

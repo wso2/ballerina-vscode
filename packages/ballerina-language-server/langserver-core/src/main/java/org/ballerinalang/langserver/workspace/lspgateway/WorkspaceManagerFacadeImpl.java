@@ -24,6 +24,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
@@ -166,13 +167,14 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<SyntaxTree> syntaxTree(Path filePath) {
-        StableSnapshot snapshot = compilationService.stableSnapshot(filePath, null);
-        SyntaxTree tree = snapshot == null ? null : snapshot.syntaxTree(filePath);
-        if (tree != null) {
-            return Optional.of(tree);
-        }
         try {
             Project project = projectService.loadOrCreate(filePath, null);
+            PackageDescriptor descriptor = project.currentPackage().descriptor();
+            StableSnapshot snapshot = compilationService.stableSnapshot(descriptor, null);
+            SyntaxTree tree = snapshot == null ? null : snapshot.syntaxTree(filePath);
+            if (tree != null) {
+                return Optional.of(tree);
+            }
             DocumentId docId = project.documentId(filePath);
             return Optional.of(project.currentPackage().module(docId.moduleId()).document(docId).syntaxTree());
         } catch (Exception e) {
@@ -182,25 +184,33 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<SyntaxTree> syntaxTree(Path filePath, CancelChecker cancelChecker) {
-        return Optional.ofNullable(compilationService.stableSnapshot(filePath, cancelChecker))
-                .map(snapshot -> snapshot.syntaxTree(filePath))
-                .or(() -> syntaxTree(filePath));
+        try {
+            Project project = projectService.loadOrCreate(filePath, cancelChecker);
+            PackageDescriptor descriptor = project.currentPackage().descriptor();
+            StableSnapshot snapshot = compilationService.stableSnapshot(descriptor, cancelChecker);
+            SyntaxTree tree = snapshot == null ? null : snapshot.syntaxTree(filePath);
+            if (tree != null) {
+                return Optional.of(tree);
+            }
+            DocumentId docId = project.documentId(filePath);
+            return Optional.of(project.currentPackage().module(docId.moduleId()).document(docId).syntaxTree());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     @Override
     public Optional<SemanticModel> semanticModel(Path filePath) {
-        StableSnapshot snapshot = compilationService.stableSnapshot(filePath, null);
-        if (snapshot != null) {
-            SemanticModel cached = snapshot.semanticModel(filePath);
-            if (cached != null) {
-                return Optional.of(cached);
-            }
-        }
         try {
             Project project = projectService.loadOrCreate(filePath, null);
+            PackageDescriptor descriptor = project.currentPackage().descriptor();
+            StableSnapshot snapshot = compilationService.stableSnapshot(descriptor, null);
+            SemanticModel semanticModel = snapshot == null ? null : snapshot.semanticModel(filePath);
+            if (semanticModel != null) {
+                return Optional.of(semanticModel);
+            }
             DocumentId docId = project.documentId(filePath);
-            PackageCompilation compilation = project.currentPackage().getCompilation();
-            return Optional.of(compilation.getSemanticModel(docId.moduleId()));
+            return Optional.of(project.currentPackage().getCompilation().getSemanticModel(docId.moduleId()));
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -208,18 +218,16 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<SemanticModel> semanticModel(Path filePath, CancelChecker cancelChecker) {
-        StableSnapshot snapshot = compilationService.stableSnapshot(filePath, cancelChecker);
-        if (snapshot != null) {
-            SemanticModel cached = snapshot.semanticModel(filePath);
-            if (cached != null) {
-                return Optional.of(cached);
-            }
-        }
         try {
             Project project = projectService.loadOrCreate(filePath, cancelChecker);
+            PackageDescriptor descriptor = project.currentPackage().descriptor();
+            StableSnapshot snapshot = compilationService.stableSnapshot(descriptor, cancelChecker);
+            SemanticModel semanticModel = snapshot == null ? null : snapshot.semanticModel(filePath);
+            if (semanticModel != null) {
+                return Optional.of(semanticModel);
+            }
             DocumentId docId = project.documentId(filePath);
-            PackageCompilation compilation = project.currentPackage().getCompilation();
-            return Optional.of(compilation.getSemanticModel(docId.moduleId()));
+            return Optional.of(project.currentPackage().getCompilation().getSemanticModel(docId.moduleId()));
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -227,13 +235,14 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<PackageCompilation> waitAndGetPackageCompilation(Path filePath) {
-        StableSnapshot snapshot = compilationService.stableSnapshot(filePath, null);
-        PackageCompilation compilation = snapshot == null ? null : snapshot.compilation();
-        if (compilation != null) {
-            return Optional.of(compilation);
-        }
         try {
             Project project = projectService.loadOrCreate(filePath, null);
+            PackageDescriptor descriptor = project.currentPackage().descriptor();
+            StableSnapshot snapshot = compilationService.stableSnapshot(descriptor, null);
+            PackageCompilation compilation = snapshot == null ? null : snapshot.compilation();
+            if (compilation != null) {
+                return Optional.of(compilation);
+            }
             return Optional.of(project.currentPackage().getCompilation());
         } catch (Exception e) {
             return Optional.empty();
@@ -242,13 +251,14 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<PackageCompilation> waitAndGetPackageCompilation(Path filePath, CancelChecker cancelChecker) {
-        StableSnapshot snapshot = compilationService.stableSnapshot(filePath, cancelChecker);
-        PackageCompilation compilation = snapshot == null ? null : snapshot.compilation();
-        if (compilation != null) {
-            return Optional.of(compilation);
-        }
         try {
             Project project = projectService.loadOrCreate(filePath, cancelChecker);
+            PackageDescriptor descriptor = project.currentPackage().descriptor();
+            StableSnapshot snapshot = compilationService.stableSnapshot(descriptor, cancelChecker);
+            PackageCompilation compilation = snapshot == null ? null : snapshot.compilation();
+            if (compilation != null) {
+                return Optional.of(compilation);
+            }
             return Optional.of(project.currentPackage().getCompilation());
         } catch (Exception e) {
             return Optional.empty();
@@ -311,7 +321,8 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public boolean stop(Path filePath) {
-        executionService.stop(new org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot(filePath));
+        executionService.stop(new org.ballerinalang.langserver.workspace.documentstore.DocumentUri.FileUri(
+                filePath.toAbsolutePath().normalize().toUri()));
         return true;
     }
 
