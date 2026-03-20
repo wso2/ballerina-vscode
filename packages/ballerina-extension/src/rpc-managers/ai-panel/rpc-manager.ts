@@ -494,7 +494,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
             const checkpoint = latestReview.checkpoint;
             if (checkpoint) {
-                await restoreWorkspaceSnapshot(checkpoint);
+                await restoreWorkspaceSnapshot(checkpoint, true);
             } else {
                 console.warn("[Review Actions] No checkpoint found for generation — workspace changes will not be reverted");
             }
