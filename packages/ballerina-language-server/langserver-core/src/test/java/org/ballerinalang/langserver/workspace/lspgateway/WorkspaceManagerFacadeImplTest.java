@@ -85,8 +85,7 @@ public class WorkspaceManagerFacadeImplTest {
         facade = new WorkspaceManagerFacadeImpl(
                 mockProjectService,
                 mockCompilationService,
-                mockExecutionService,
-                mockClientSession
+                mockExecutionService
         );
 
         testPath = Paths.get("/test/project/main.bal").toAbsolutePath().normalize();

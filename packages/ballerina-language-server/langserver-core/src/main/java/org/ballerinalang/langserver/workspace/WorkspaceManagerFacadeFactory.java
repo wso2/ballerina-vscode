@@ -219,7 +219,7 @@ public final class WorkspaceManagerFacadeFactory {
         return new WorkspaceManagerFacadeImpl(
                 config.projectService(),
                 config.compilationService(),
-                config.executionService(),
-                session);
+                config.executionService()
+        );
     }
 }

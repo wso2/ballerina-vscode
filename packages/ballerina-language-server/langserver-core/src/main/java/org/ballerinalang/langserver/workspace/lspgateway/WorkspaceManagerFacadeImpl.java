@@ -67,7 +67,6 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     private final ProjectService projectService;
     private final CompilationService compilationService;
     private final ExecutionService executionService;
-    private final ClientSession clientSession;
 
     /**
      * Creates a new facade with all required service dependencies.
@@ -75,17 +74,14 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
      * @param projectService project service
      * @param compilationService compilation service
      * @param executionService execution service
-     * @param clientSession client session
      */
     public WorkspaceManagerFacadeImpl(
             ProjectService projectService,
             CompilationService compilationService,
-            ExecutionService executionService,
-            ClientSession clientSession) {
+            ExecutionService executionService) {
         this.projectService = projectService;
         this.compilationService = compilationService;
         this.executionService = executionService;
-        this.clientSession = clientSession;
     }
 
     @Override
