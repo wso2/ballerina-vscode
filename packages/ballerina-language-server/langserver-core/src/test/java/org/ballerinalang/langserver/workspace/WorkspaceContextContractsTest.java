@@ -19,6 +19,7 @@
 package org.ballerinalang.langserver.workspace;
 
 import io.ballerina.projects.Module;
+import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.RunContext;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
@@ -37,7 +38,7 @@ import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectHealthState;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -117,10 +118,10 @@ public class WorkspaceContextContractsTest {
         Assert.assertTrue(CompilationService.class.isInterface());
         Assert.assertEquals(CompilationService.class.getMethods().length, 2);
 
-        Method stableSnapshot = CompilationService.class.getMethod("stableSnapshot", Path.class, CancelChecker.class);
+        Method stableSnapshot = CompilationService.class.getMethod("stableSnapshot", PackageDescriptor.class, CancelChecker.class);
         Assert.assertEquals(stableSnapshot.getReturnType(), StableSnapshot.class);
 
-        Method latestSnapshot = CompilationService.class.getMethod("latestSnapshot", Path.class, CancelChecker.class);
+        Method latestSnapshot = CompilationService.class.getMethod("latestSnapshot", PackageDescriptor.class, CancelChecker.class);
         Assert.assertEquals(latestSnapshot.getReturnType(), SnapshotView.class);
     }
 
@@ -137,7 +138,7 @@ public class WorkspaceContextContractsTest {
         Method run = ExecutionService.class.getMethod("run", RunContext.class);
         Assert.assertEquals(run.getReturnType(), ProcessId.class);
 
-        Method stop = ExecutionService.class.getMethod("stop", SourceRoot.class);
+        Method stop = ExecutionService.class.getMethod("stop", DocumentUri.class);
         Assert.assertEquals(stop.getReturnType(), Void.TYPE);
     }
 

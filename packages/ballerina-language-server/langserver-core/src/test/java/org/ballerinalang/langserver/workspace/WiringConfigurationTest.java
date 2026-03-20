@@ -24,6 +24,7 @@ import io.ballerina.projects.PackageCompilation;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
@@ -34,7 +35,6 @@ import org.ballerinalang.langserver.workspace.workspacemanager.MemoryBudget;
 import org.ballerinalang.langserver.workspace.workspacemanager.Project;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -66,7 +66,7 @@ public class WiringConfigurationTest {
     private EventSyncPubSubHolder eventBus;
     private WiringConfiguration wiring;
     private Path tempDir;
-    private SourceRoot testRoot;
+    private DocumentUri testRoot;
 
     // Track events received by a test observer
     private final List<EventKind> observedEvents = new CopyOnWriteArrayList<>();
@@ -74,7 +74,7 @@ public class WiringConfigurationTest {
     @BeforeMethod
     public void setUp() throws IOException {
         tempDir = Files.createTempDirectory("t020-integration");
-        testRoot = new SourceRoot(tempDir.toAbsolutePath().normalize());
+        testRoot = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
 
         eventBus = new EventSyncPubSubHolder();
 
@@ -338,16 +338,16 @@ public class WiringConfigurationTest {
     // Helpers
     // =========================================================================
 
-    private void publishEvent(EventKind kind, SourceRoot root) {
-        eventBus.publish(new DomainEvent(Instant.now(), root.path().toString(), kind));
+    private void publishEvent(EventKind kind, DocumentUri root) {
+        eventBus.publish(new DomainEvent(Instant.now(), root.uri().toString(), kind));
     }
 
     private void publishEvent(EventKind kind, String sourceContext) {
         eventBus.publish(new DomainEvent(Instant.now(), sourceContext, kind));
     }
 
-    private void publishConfigEvent(SourceRoot root, String reactivityTier) {
-        eventBus.publish(new DomainEvent(Instant.now(), root.path().toString(),
+    private void publishConfigEvent(DocumentUri root, String reactivityTier) {
+        eventBus.publish(new DomainEvent(Instant.now(), root.uri().toString(),
                 EventKind.WM_FILE_WATCHED_CHANGED, reactivityTier));
     }
 
