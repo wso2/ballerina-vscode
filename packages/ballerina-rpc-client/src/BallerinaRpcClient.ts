@@ -69,6 +69,10 @@ import {
     webToolToggle,
     WebToolToggle
 } from "@wso2/ballerina-core";
+import {
+    projectStructureUpdated,
+    ProjectStructureResponse
+} from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
 import { HOST_EXTENSION } from "vscode-messenger-common";
@@ -232,6 +236,10 @@ export class BallerinaRpcClient {
 
     onProjectContentUpdated(callback: (state: boolean) => void) {
         this.messenger.onNotification(projectContentUpdated, callback);
+    }
+
+    onProjectStructureUpdated(callback: (structure: ProjectStructureResponse) => void) {
+        this.messenger.onNotification(projectStructureUpdated, callback);
     }
 
     onIdentifierUpdated(callback: (response: ProjectStructureArtifactResponse[]) => void) {

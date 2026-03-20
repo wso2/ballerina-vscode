@@ -532,6 +532,7 @@ export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrat
 export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
 export const onMigratedProject: NotificationType<ProjectMigrationResult> = { method: 'onMigratedProject' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
+export const projectStructureUpdated: NotificationType<ProjectStructureResponse> = { method: 'projectStructureUpdated' };
 export const onIdentifierUpdated: NotificationType<ProjectStructureArtifactResponse[]> = { method: 'onIdentifierUpdated' };
 export const promptUpdated: NotificationType<void> = { method: 'promptUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
