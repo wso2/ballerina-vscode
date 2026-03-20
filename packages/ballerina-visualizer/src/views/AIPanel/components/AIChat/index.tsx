@@ -53,7 +53,7 @@ import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../C
 import CheckpointSeparator from "../CheckpointSeparator";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 
-import { AIChatView, Header, HeaderButtons, ChatMessage, Badge, ResetsInBadge, ApprovalOverlay, OverlayMessage } from "../../styles";
+import { AIChatView, Header, HeaderButtons, ChatMessage, TurnGroup, Badge, ResetsInBadge, ApprovalOverlay, OverlayMessage } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import MarkdownRenderer from "../MarkdownRenderer";
@@ -162,6 +162,7 @@ const AIChat: React.FC = () => {
     };
 
     const [isLoading, setIsLoading] = useState(false);
+    const [hoveredTurnIndex, setHoveredTurnIndex] = useState<number | null>(null);
     const [lastQuestionIndex, setLastQuestionIndex] = useState(-1);
     const [isCodeLoading, setIsCodeLoading] = useState(false);
     const [currentGeneratingPromptIndex, setCurrentGeneratingPromptIndex] = useState(-1);
@@ -1431,12 +1432,30 @@ const AIChat: React.FC = () => {
                         {Array.isArray(otherMessages) && otherMessages.length === 0 && (
                             <WelcomeMessage isOnboarding={getOnboardingOpens() <= 3.0} />
                         )}
-                        {otherMessages.map((message, index) => {
-                            const isLastResponse = index === currentGeneratingPromptIndex;
-                            const isUserMessage = message.role === "User";
-                            const isAssistantMessage = message.role === "Copilot";
+                        {(() => {
+                            // Group flat message list into [userMsg, assistantMsg | undefined] pairs for turn-level hover
+                            const turns: Array<[typeof otherMessages[0], number, typeof otherMessages[0] | undefined, number | undefined]> = [];
+                            let i = 0;
+                            while (i < otherMessages.length) {
+                                const msg = otherMessages[i];
+                                if (msg.role === "User") {
+                                    const next = otherMessages[i + 1];
+                                    const hasAssistant = next?.role === "Copilot";
+                                    turns.push([msg, i, hasAssistant ? next : undefined, hasAssistant ? i + 1 : undefined]);
+                                    i += hasAssistant ? 2 : 1;
+                                } else {
+                                    turns.push([msg, i, undefined, undefined]);
+                                    i++;
+                                }
+                            }
                             const lastAssistantIndex = otherMessages.map((m) => m.role).lastIndexOf("Copilot");
-                            const isLatestAssistantMessage = isAssistantMessage && index === lastAssistantIndex;
+
+                            return turns.map(([userMsg, userIndex, assistantMsg, assistantIndex], turnIndex) => {
+                                const renderMessage = (message: typeof otherMessages[0], index: number) => {
+                                    const isLastResponse = index === currentGeneratingPromptIndex;
+                                    const isUserMessage = message.role === "User";
+                                    const isAssistantMessage = message.role === "Copilot";
+                                    const isLatestAssistantMessage = isAssistantMessage && index === lastAssistantIndex;
 
                             // Note: Cannot use useMemo here as it's inside map() callback
                             // The stateless regex implementation in splitContent() ensures no corruption during streaming
@@ -1461,6 +1480,7 @@ const AIChat: React.FC = () => {
                                                         isAvailable={false}
                                                         isDisabled={true}
                                                         isCreating={true}
+                                                        isGroupHovered={hoveredTurnIndex === turnIndex}
                                                         onRestore={handleCheckpointRestore}
                                                     />
                                                 )}
@@ -1471,6 +1491,7 @@ const AIChat: React.FC = () => {
                                                         isAvailable={availableCheckpointIds.has(message.checkpointId)}
                                                         isDisabled={isLoading}
                                                         isCreating={false}
+                                                        isGroupHovered={hoveredTurnIndex === turnIndex}
                                                         onRestore={handleCheckpointRestore}
                                                     />
                                                 )}
@@ -1722,7 +1743,20 @@ const AIChat: React.FC = () => {
                                     )}
                                 </ChatMessage>
                             );
-                        })}
+                        };
+
+                                return (
+                                    <TurnGroup
+                                        key={userIndex}
+                                        onMouseEnter={() => setHoveredTurnIndex(turnIndex)}
+                                        onMouseLeave={() => setHoveredTurnIndex(null)}
+                                    >
+                                        {renderMessage(userMsg, userIndex)}
+                                        {assistantMsg !== undefined && renderMessage(assistantMsg, assistantIndex!)}
+                                    </TurnGroup>
+                                );
+                            });
+                        })()}
                         <div ref={messagesEndRef} />
                     </main>
                     {webToolApprovalRequest ? (
