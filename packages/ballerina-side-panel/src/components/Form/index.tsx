@@ -409,7 +409,7 @@ export interface FormProps {
     updateImports?: (key: string, imports: Imports) => void;
 }
 
-export const Form = forwardRef((props: FormProps) => {
+export const Form = forwardRef((props: FormProps, _ref) => {
     const {
         infoLabel,
         formFields,
