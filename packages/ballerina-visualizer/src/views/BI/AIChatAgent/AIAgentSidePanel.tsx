@@ -48,7 +48,7 @@ import {
     convertConfig,
     convertFunctionCategoriesToSidePanelCategories,
     convertNodePropertyToFormField,
-    filterToolInputSymbolDiagnostics,
+    filterToolInputSymbolDiagnostics
 } from "../../../utils/bi";
 import FormGeneratorNew from "../Forms/FormGeneratorNew";
 import { RelativeLoader } from "../../../components/RelativeLoader";
@@ -58,6 +58,8 @@ import { cloneDeep } from "lodash";
 import { createDefaultParameterValue, createToolInputFields, createToolParameters, prepareToolInputFields } from "./formUtils";
 import { FUNCTION_CALL, METHOD_CALL, REMOTE_ACTION_CALL, RESOURCE_ACTION_CALL } from "../../../constants";
 import { NewToolSelectionMode } from "./NewTool";
+import { useProjectStructure } from "../../../ProjectStructureContext";
+import { useGetNodeTemplate } from "../../../hooks/useGetNodeTemplate";
 
 const LoaderContainer = styled.div`
     display: flex;
@@ -240,6 +242,9 @@ const INITIAL_FIELDS: FormField[] = [
 export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const { agentNode, projectPath, onSubmit, mode = NewToolSelectionMode.ALL, onViewChange, onAgentToolCreated, onCancel } = props;
     const { rpcClient } = useRpcContext();
+    const { projectStructure } = useProjectStructure();
+    const getNodeTemplate = useGetNodeTemplate();
+
 
     const [sidePanelView, setSidePanelView] = useState<SidePanelView>(SidePanelView.NODE_LIST);
     const [categories, setCategories] = useState<PanelCategory[]>([]);
@@ -463,8 +468,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 funcDef.properties.parameters.metadata.description = "Define the inputs the agent must provide when invoking this tool.";
                 toolInputFields = convertConfig(funcDef.properties, ["functionName", "functionNameDescription", "isIsolated", "type", "typeDescription", "isPublic"]);
             }
-
-            const functionNodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            const functionNodeTemplate = await getNodeTemplate({
                 position: funcDef?.codedata.lineRange.startLine || { line: 0, offset: 0 },
                 filePath: functionFilePath.current,
                 id: node.codedata,
@@ -506,7 +510,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
     const loadConnectionCallFields = async (node: AvailableNode): Promise<void> => {
         try {
-            const nodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            const nodeTemplate = await getNodeTemplate({
                 position: { line: 0, offset: 0 },
                 filePath: agentFilePath.current,
                 id: node.codedata,

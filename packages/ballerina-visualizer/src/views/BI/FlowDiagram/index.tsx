@@ -63,7 +63,7 @@ import {
     convertDataLoaderCategoriesToSidePanelCategories,
     convertChunkerCategoriesToSidePanelCategories,
     enrichCategoryWithDevant,
-    convertKnowledgeBaseCategoriesToSidePanelCategories,
+    convertKnowledgeBaseCategoriesToSidePanelCategories
 } from "../../../utils/bi";
 import { useDraftNodeManager } from "./hooks/useDraftNodeManager";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
@@ -86,6 +86,7 @@ import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, G
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import { useProjectStructure } from "../../../ProjectStructureContext";
+import { useGetNodeTemplate } from "../../../hooks/useGetNodeTemplate";
 
 const Container = styled.div`
     width: 100%;
@@ -124,6 +125,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const { projectPath, breakpointState, syntaxTree, onUpdate, onReady, onSave } = props;
     const { rpcClient } = useRpcContext();
     const { projectStructure } = useProjectStructure();
+    const getNodeTemplate = useGetNodeTemplate();
 
     const [model, setModel] = useState<Flow>();
     const [suggestedModel, setSuggestedModel] = useState<Flow>();
@@ -1245,7 +1247,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         closeSidePanelAndFetchUpdatedFlowModel();
     };
 
-    const handleOnSelectNode = (nodeId: string, metadata?: any, fileName?: string) => {
+    const handleOnSelectNode = async (nodeId: string, metadata?: any, fileName?: string) => {
         selectedNodeMetadata.current = { nodeId, metadata, fileName: model?.fileName || fileName };
         const { node, category } = metadata as { node: AvailableNode; category?: string };
 
@@ -1479,17 +1481,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     });
                 break;
 
-            default:
+                default:
                 // default node
                 selectedClientName.current = category;
                 setShowProgressIndicator(true);
-                rpcClient
-                    .getBIDiagramRpcClient()
-                    .getNodeTemplate({
-                        position: targetRef.current.startLine,
-                        filePath: model?.fileName || fileName,
-                        id: node.codedata,
-                    })
+                getNodeTemplate({
+                    position: targetRef.current.startLine,
+                    filePath: model?.fileName || fileName,
+                    id: node.codedata,
+                })
                     .then((response: any) => {
                         if (response.errorMsg) {
                             showConnectorError();
@@ -1793,7 +1793,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             });
     };
 
-    const handleOnEditNode = (node: FlowNode) => {
+    const handleOnEditNode = async (node: FlowNode) => {
         setSelectedNodeId(node.id);
         selectedNodeRef.current = node;
         if (suggestedText.current) {
@@ -1808,13 +1808,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
 
         setShowProgressIndicator(true);
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: targetRef.current.startLine,
-                filePath: model.fileName,
-                id: node.codedata,
-            })
+        getNodeTemplate({
+            position: targetRef.current.startLine,
+            filePath: model.fileName,
+            id: node.codedata,
+        })
             .then((response: any) => {
                 if (response.errorMsg) {
                     showConnectorError();
@@ -1982,17 +1980,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         });
     };
 
-    const handleOnAddFunction = () => {
+    const handleOnAddFunction = async () => {
         setShowProgressIndicator(true);
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
 
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: targetRef.current.startLine,
-                filePath: model?.fileName,
-                id: { node: "FUNCTION_CREATION" },
-            })
+        getNodeTemplate({
+            position: targetRef.current.startLine,
+            filePath: model?.fileName,
+            id: { node: "FUNCTION_CREATION" },
+        })
             .then((response) => {
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;
@@ -2016,18 +2012,16 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         });
     };
 
-    const handleOnAddDataMapper = () => {
+    const handleOnAddDataMapper = async () => {
 
         setShowProgressIndicator(true);
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
 
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: targetRef.current.startLine,
-                filePath: model?.fileName,
-                id: { node: "DATA_MAPPER_CREATION" },
-            })
+        getNodeTemplate({
+            position: targetRef.current.startLine,
+            filePath: model?.fileName,
+            id: { node: "DATA_MAPPER_CREATION" },
+        })
             .then((response) => {
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;
@@ -2055,7 +2049,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setProgressMessage(LOADING_MESSAGE);
     };
 
-    const handleOnAddNewAgent = () => {
+    const handleOnAddNewAgent = async () => {
         isCreatingAgent.current = true;
         setShowProgressIndicator(true);
         setShowProgressSpinner(true);
@@ -2063,20 +2057,18 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         // Push current state to navigation stack
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
 
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: targetRef.current.startLine,
-                filePath: model?.fileName,
-                id: {
-                    node: "AGENT_CALL",
-                    org: "ballerina",
-                    symbol: "run",
-                    module: "ai",
-                    packageName: "ai",
-                    object: "Agent"
-                },
-            })
+        getNodeTemplate({
+            position: targetRef.current.startLine,
+            filePath: model?.fileName,
+            id: {
+                node: "AGENT_CALL",
+                org: "ballerina",
+                symbol: "run",
+                module: "ai",
+                packageName: "ai",
+                object: "Agent",
+            },
+        })
             .then((response) => {
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;

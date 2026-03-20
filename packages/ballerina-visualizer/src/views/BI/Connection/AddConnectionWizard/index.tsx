@@ -44,6 +44,7 @@ import { BodyText } from "../../../styles";
 import { DownloadIcon } from "../../../../components/DownloadIcon";
 import FormGeneratorNew from "../../Forms/FormGeneratorNew";
 import { FormSubmitOptions } from "../../FlowDiagram";
+import { useGetNodeTemplate } from "../../../../hooks/useGetNodeTemplate";
 
 const Container = styled.div`
     width: 100%;
@@ -124,6 +125,7 @@ interface AddConnectionWizardProps {
 export function AddConnectionWizard(props: AddConnectionWizardProps) {
     const { projectPath, fileName, target, onClose, isPopupScreen, openCustomConnectorView } = props;
     const { rpcClient } = useRpcContext();
+    const getNodeTemplate = useGetNodeTemplate();
 
     const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.CONNECTOR_LIST);
     const [pullingStatus, setPullingStatus] = useState<PullingStatus>(PullingStatus.FETCHING);
@@ -145,7 +147,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
             documentation: "Name of the connector",
             enabled: true,
             value: "",
-            types: [{fieldType: "STRING", selected: false}],
+            types: [{ fieldType: "STRING", selected: false }],
             diagnostics: [],
         },
         {
@@ -157,7 +159,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
             documentation: "",
             enabled: true,
             value: "",
-            types: [{fieldType: "FILE_SELECT", selected: false}],
+            types: [{ fieldType: "FILE_SELECT", selected: false }],
         },
     ]);
 
@@ -185,9 +187,8 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                     resolve();
                 }, 3000);
             });
-
             // Start the request
-            const nodeTemplatePromise = rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            const nodeTemplatePromise = getNodeTemplate({
                 position: target || null,
                 filePath: fileName,
                 id: connector.codedata,
@@ -209,7 +210,6 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 // If it timed out, set status to SUCCESS
                 setPullingStatus(PullingStatus.SUCCESS);
             }
-
             console.log(">>> FlowNode template", response);
             selectedNodeRef.current = response.flowNode;
             const formProperties = getFormProperties(response.flowNode);

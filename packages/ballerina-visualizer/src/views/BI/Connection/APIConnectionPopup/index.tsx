@@ -25,6 +25,8 @@ import { ExpressionFormField } from "@wso2/ballerina-side-panel";
 import ConnectionConfigView from "../ConnectionConfigView";
 import { FormSubmitOptions } from "../../FlowDiagram";
 import { PopupOverlay, PopupContainer, PopupHeader, BackButton, HeaderTitleContainer, PopupTitle, PopupSubtitle, CloseButton } from "../styles";
+import { useProjectStructure } from "../../../../ProjectStructureContext";
+import { useGetNodeTemplate } from "../../../../hooks/useGetNodeTemplate";
 
 const StepperContainer = styled.div`
     padding: 20px 32px 18px 32px;
@@ -98,17 +100,17 @@ const UploadCard = styled.div<{ hasFile?: boolean; disabled?: boolean }>`
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 14px;
     background: ${ThemeColors.SURFACE_DIM};
-    cursor: ${(props:{ hasFile?: boolean; disabled?: boolean }) => props.disabled ? "not-allowed" : "pointer"};
+    cursor: ${(props: { hasFile?: boolean; disabled?: boolean }) => props.disabled ? "not-allowed" : "pointer"};
     transition: all 0.2s ease;
 
-    ${(props:{ hasFile?: boolean; disabled?: boolean }) => !props.disabled && `
+    ${(props: { hasFile?: boolean; disabled?: boolean }) => !props.disabled && `
         &:hover {
             border-color: ${ThemeColors.PRIMARY};
             background: ${ThemeColors.SURFACE_CONTAINER};
         }
     `}
 
-    ${(props:{ hasFile?: boolean; disabled?: boolean }) =>
+    ${(props: { hasFile?: boolean; disabled?: boolean }) =>
         props.hasFile
             ? `
         border-color: ${ThemeColors.PRIMARY};
@@ -196,14 +198,15 @@ interface APIConnectionPopupProps {
 export function APIConnectionPopup(props: APIConnectionPopupProps) {
     const { fileName, target, onBack, onClose, projectPath } = props;
     const { rpcClient } = useRpcContext();
-
+    const getNodeTemplate = useGetNodeTemplate();
+    
     const [currentStep, setCurrentStep] = useState(0);
 
     const [isSavingConnection, setIsSavingConnection] = useState<boolean>(false);
     const [updatedExpressionField, setUpdatedExpressionField] = useState<ExpressionFormField>(undefined);
     const [selectedFlowNode, setSelectedFlowNode] = useState<FlowNode | undefined>(undefined);
 
-    const steps = useMemo(() => ["Import API Specification", "Create Connection"], []);    
+    const steps = useMemo(() => ["Import API Specification", "Create Connection"], []);
 
     const handleOnFormSubmit = async (node: FlowNode, _editorConfig?: EditorConfig, options?: FormSubmitOptions) => {
         console.log(">>> on form submit", node);
@@ -308,11 +311,11 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
     const renderStepContent = () => {
         if (currentStep === 0) {
             return (
-                <APIConnectionForm 
+                <APIConnectionForm
                     fileName={fileName}
                     target={target}
                     projectPath={projectPath}
-                    onSave={(_, flowNode)=>{
+                    onSave={(_, flowNode) => {
                         setSelectedFlowNode(flowNode);
                         setCurrentStep(1);
                     }}
@@ -350,7 +353,7 @@ interface APIConnectionFormProps {
     projectPath: string;
     fileName: string;
     target?: LinePosition;
-    apiSpecOptions?: {id: string; value: string; content: string;}[];
+    apiSpecOptions?: { id: string; value: string; content: string; }[];
     disabled?: boolean;
     initialName?: string;
     initialFilePath?: string;
@@ -366,6 +369,8 @@ const defaultOptions = [
 export function APIConnectionForm(props: APIConnectionFormProps) {
     const { onSave, fileName, target, projectPath, apiSpecOptions = defaultOptions, disabled, initialName = "", initialFilePath = "", actionButtonText = "Save Connector", availableNode } = props;
     const { rpcClient } = useRpcContext();
+    const { projectStructure } = useProjectStructure();
+    const getNodeTemplate = useGetNodeTemplate();
 
     const [specType, setSpecType] = useState<string>("OpenAPI");
     const [selectedFilePath, setSelectedFilePath] = useState<string>(initialFilePath);
@@ -451,7 +456,7 @@ export function APIConnectionForm(props: APIConnectionFormProps) {
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
                 const defaultPosition = target || { line: 0, offset: 0 };
-                
+
                 // Helper function to search for connectors
                 const searchForConnector = async () => {
                     const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
@@ -471,17 +476,17 @@ export function APIConnectionForm(props: APIConnectionFormProps) {
 
                 // Find the connector we just created
                 let createdConnector = await searchForConnector();
-                
+
                 // If connector not found, retry after 2 second
                 if (!createdConnector) {
                     console.warn(">>> Connector not found on first attempt, retrying after 1 second...");
                     await new Promise(resolve => setTimeout(resolve, 2000));
                     createdConnector = await searchForConnector();
                 }
-                
+
                 if (createdConnector && createdConnector.codedata) {
-                    // Get the flowNode template
-                    const nodeTemplateResponse = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+                    // Get the flowNode template using centralized hook
+                    const nodeTemplateResponse = await getNodeTemplate({
                         position: target || null,
                         filePath: fileName,
                         id: createdConnector.codedata,
