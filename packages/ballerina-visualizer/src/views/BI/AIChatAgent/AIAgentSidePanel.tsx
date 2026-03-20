@@ -58,6 +58,7 @@ import { cloneDeep } from "lodash";
 import { createDefaultParameterValue, createToolInputFields, createToolParameters, prepareToolInputFields } from "./formUtils";
 import { FUNCTION_CALL, METHOD_CALL, REMOTE_ACTION_CALL, RESOURCE_ACTION_CALL } from "../../../constants";
 import { NewToolSelectionMode } from "./NewTool";
+import { checkAiPackageVersionSupport } from "./utils";
 
 const LoaderContainer = styled.div`
     display: flex;
@@ -251,6 +252,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
     const [loading, setLoading] = useState<boolean>(false);
     const [fields, setFields] = useState<FormField[]>(INITIAL_FIELDS);
+    const [showOAuthConfig, setShowOAuthConfig] = useState<boolean>(false);
 
     const targetRef = useRef<LineRange>({ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } });
     const initialCategoriesRef = useRef<PanelCategory[]>([]);
@@ -351,9 +353,6 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             const getNodeRequest: BIAvailableNodesRequest = {
                 position: targetRef.current.startLine,
                 filePath: agentFilePath.current,
-                queryMap: {
-                    "checkAgentToolCompatibility": "true"
-                }
             };
             const response = await rpcClient.getBIDiagramRpcClient().getAvailableNodes(getNodeRequest);
             console.log(">>> Available nodes", response);
@@ -488,9 +487,13 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             }
 
             const templateDescription = functionNodeTemplate.flowNode?.metadata?.description || "";
-            const oauthFields = OAUTH_CLIENT_CONFIG_PROPERTIES.map(({ key, property }) =>
-                convertNodePropertyToFormField(key, property)
-            );
+            const oauthSupported = await checkAiPackageVersionSupport(rpcClient, projectPath);
+            setShowOAuthConfig(oauthSupported);
+            const oauthFields = oauthSupported
+                ? OAUTH_CLIENT_CONFIG_PROPERTIES.map(({ key, property }) =>
+                    convertNodePropertyToFormField(key, property)
+                )
+                : [];
             setFields((prevFields) => [
                 ...prevFields.map((field) =>
                     field.key === "description" ? { ...field, value: templateDescription } : field
@@ -524,9 +527,13 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
             const toolInputFields = createToolInputFields(prepareToolInputFields(nodeParameterFields));
             const templateDescription = nodeTemplate.flowNode?.metadata?.description || "";
-            const oauthFields = OAUTH_CLIENT_CONFIG_PROPERTIES.map(({ key, property }) =>
-                convertNodePropertyToFormField(key, property)
-            );
+            const oauthSupported = await checkAiPackageVersionSupport(rpcClient, projectPath);
+            setShowOAuthConfig(oauthSupported);
+            const oauthFields = oauthSupported
+                ? OAUTH_CLIENT_CONFIG_PROPERTIES.map(({ key, property }) =>
+                    convertNodePropertyToFormField(key, property)
+                )
+                : [];
 
             setFields((prevFields) => [
                 ...prevFields.map((field) =>
@@ -695,7 +702,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
         // Inject OAuth client config into codedata.data.agentIdConfig
         const targetNode = clonedFunctionNode || clonedFlowNode;
-        if (targetNode) {
+        if (targetNode && showOAuthConfig) {
             const config: Record<string, string> = {};
             for (const { key } of OAUTH_CLIENT_CONFIG_PROPERTIES) {
                 const formValue = data[key];
@@ -782,7 +789,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                             ),
                             index: 3,
                         },
-                        {
+                        ...(showOAuthConfig ? [{
                             component: (
                                 <ImplementationInfoContainer>
                                     <p style={{ margin: "0px", fontWeight: "bold" }}>OAuth Client Configuration</p>
@@ -791,7 +798,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                             ),
                             index: fields.filter((f) => f.advanced && !f.hidden).length - OAUTH_CLIENT_CONFIG_PROPERTIES.length,
                             advanced: true,
-                        },
+                        }] : []),
                     ]}
                 />
             )}

@@ -37,6 +37,30 @@ export const getNodeTemplate = async (
     return response?.flowNode;
 };
 
+export const checkAiPackageVersionSupport = async (
+    rpcClient: BallerinaRpcClient,
+    projectPath: string,
+    minVersion: string = "1.11.0"
+): Promise<boolean> => {
+    try {
+        const response = await rpcClient.getAIAgentRpcClient().getPackageVersion({
+            projectPath,
+            org: "ballerina",
+            packageName: "ai",
+        });
+        if (!response?.version) return false;
+        const parts = response.version.split(".").map(Number);
+        const minParts = minVersion.split(".").map(Number);
+        for (let i = 0; i < Math.max(parts.length, minParts.length); i++) {
+            if ((parts[i] || 0) > (minParts[i] || 0)) return true;
+            if ((parts[i] || 0) < (minParts[i] || 0)) return false;
+        }
+        return true;
+    } catch {
+        return false;
+    }
+};
+
 export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient, nodeKind?: NodeKind) => {
     if (nodeKind && (nodeKind === "NP_FUNCTION" || nodeKind === "NP_FUNCTION_DEFINITION")) return BALLERINA;
     const visualizerContext = await rpcClient.getVisualizerLocation();

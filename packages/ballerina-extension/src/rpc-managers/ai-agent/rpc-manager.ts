@@ -40,7 +40,9 @@ import {
     McpToolsResponse,
     MemoryManagersRequest,
     MemoryManagersResponse,
-    NodePosition
+    NodePosition,
+    AIGetPackageVersionRequest,
+    AIGetPackageVersionResponse
 } from "@wso2/ballerina-core";
 import { existsSync } from "fs";
 import vscode from "vscode";
@@ -144,6 +146,16 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 console.log(error);
             }
         });
+    }
+
+    async getPackageVersion(params: AIGetPackageVersionRequest): Promise<AIGetPackageVersionResponse> {
+        const context = StateMachine.context();
+        try {
+            return await context.langClient.getPackageVersion(params);
+        } catch (error) {
+            console.log(error);
+            return { version: "" };
+        }
     }
 
     async createAIAgent(params: AIAgentRequest): Promise<AIAgentResponse> {
