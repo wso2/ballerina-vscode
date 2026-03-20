@@ -343,7 +343,7 @@ public final class NameUtil {
             return resultName;
         }
 
-        int counter = 2;
+        int counter = 1;
         while (names.contains(resultName + counter)) {
             counter++;
         }
@@ -383,31 +383,9 @@ public final class NameUtil {
 
     private static String generateVariableName(int suffix, String name, Set<String> names) {
         names.addAll(CommonUtil.BALLERINA_KEYWORDS);
-        String newName = name.replaceAll(".+[\\:\\.]", "");
+        String newName;
         if (suffix == 1 && !name.isEmpty()) {
-            BiFunction<String, String, String> replacer = (search, text) ->
-                    (text.startsWith(search)) ? text.replaceFirst(search, "") : text;
-            // Replace common prefixes
-            newName = replacer.apply("get", newName);
-            newName = replacer.apply("put", newName);
-            newName = replacer.apply("delete", newName);
-            newName = replacer.apply("update", newName);
-            newName = replacer.apply("set", newName);
-            newName = replacer.apply("add", newName);
-            newName = replacer.apply("create", newName);
-            newName = replacer.apply("to", newName);
-            // Remove '_' underscores
-            while (newName.contains("_")) {
-                String[] parts = newName.split("_");
-                List<String> restParts = Arrays.stream(parts, 1, parts.length).toList();
-                newName = parts[0] + StringUtils.capitalize(String.join("", restParts));
-            }
-            // If empty, revert to original name
-            if (newName.isEmpty()) {
-                newName = name;
-            }
-            // Lower first letter
-            newName = newName.substring(0, 1).toLowerCase(Locale.getDefault()) + newName.substring(1);
+            newName = deriveBaseName(name);
             // if already available, try appending 'Result', 'Out', 'Value'
             boolean alreadyExists = false;
             String[] specialSuffixes = new String[]{"Result", "Out", "Value"};
@@ -448,7 +426,7 @@ public final class NameUtil {
                 }
             }
         } else {
-            newName = newName + suffix;
+            newName = name.replaceAll(".+[\\:\\.]", "") + suffix;
         }
         // if still already available, try a random letter
         while (names.contains(newName)) {
