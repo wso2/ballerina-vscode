@@ -102,7 +102,7 @@ const WelcomeMessage: React.FC<WelcomeMessageProps> = ({ isOnboarding = false })
                         margin: "12px 0",
                     }}
                 >
-                    BI Copilot
+                    WSO2 Integrator Copilot
                 </Typography>
                 <Typography
                     variant="body1"
