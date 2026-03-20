@@ -206,7 +206,7 @@ const AIChat: React.FC = () => {
 
     const isErrorChunkReceivedRef = useRef(false);
 
-    const messagesEndRef = React.createRef<HTMLDivElement>();
+    const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
     /* REFACTORED CODE START [2] */
     // custom hooks: commands + attachments
@@ -780,11 +780,19 @@ const AIChat: React.FC = () => {
     }, [isReqFileExists]);
 
     useEffect(() => {
-        // Step 2: Scroll into view when messages state changes
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+        // Step 2: Scroll into view when messages state changes or review bar appears
+        // Use a small delay when the review bar just appeared to let the DOM settle
+        const doScroll = () => {
+            if (messagesEndRef.current) {
+                messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+            }
+        };
+        if (hasActiveReview) {
+            setTimeout(doScroll, 50);
+        } else {
+            doScroll();
         }
-    }, [messages]);
+    }, [messages, hasActiveReview]);
 
     async function handleSendQuery(content: {
         input: Input[];
