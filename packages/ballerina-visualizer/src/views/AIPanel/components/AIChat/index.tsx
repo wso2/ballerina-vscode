@@ -341,6 +341,7 @@ const AIChat: React.FC = () => {
             setCurrentFileArray([]);
             setLastQuestionIndex(-1);
             setCurrentGeneratingPromptIndex(-1);
+            setHasActiveReview(false);
         } catch (error) {
             console.error("Failed to restore checkpoint:", error);
         }
