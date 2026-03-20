@@ -47,10 +47,10 @@
     },
     {
       "metadata": {
-        "label": "Current Workspace",
-        "description": "Components available in the current workspace",
+        "label": "Within Project",
+        "description": "Components available in the current workspace project",
         "keywords": [
-          "Workspace",
+          "Workspace Project",
           "Local",
           "Function",
           "Types",
