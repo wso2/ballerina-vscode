@@ -37,6 +37,33 @@ function resolveSchemaRef(ref: string, spec: any): any | undefined {
     return current;
 }
 
+/**
+ * Merge allOf/oneOf/anyOf composed schemas into a single flat schema.
+ * Takes the first variant for oneOf/anyOf, merges properties for allOf.
+ */
+function normalizeComposedSchema(schema: any, spec: any, seenRefs = new Set<string>()): any {
+    if (!schema || typeof schema !== 'object') { return schema; }
+    if (schema.allOf) {
+        const merged: any = { type: 'object', properties: {} };
+        for (const sub of schema.allOf) {
+            const resolved = sub.$ref ? (resolveSchemaRef(sub.$ref, spec) ?? sub) : sub;
+            const normalizedSub = normalizeComposedSchema(resolved, spec, seenRefs);
+            if (normalizedSub?.properties) {
+                Object.assign(merged.properties, normalizedSub.properties);
+            }
+        }
+        return merged;
+    }
+    if (schema.oneOf || schema.anyOf) {
+        const variants: any[] = schema.oneOf ?? schema.anyOf;
+        const first = variants[0];
+        if (!first) { return schema; }
+        const resolved = first.$ref ? (resolveSchemaRef(first.$ref, spec) ?? first) : first;
+        return normalizeComposedSchema(resolved, spec, seenRefs);
+    }
+    return schema;
+}
+
 function generateSchemaDoc(schema: any, depth: number, spec: any, seenRefs = new Set<string>()): string {
     const indent = '  '.repeat(depth);
     if (schema?.$ref) {
@@ -44,6 +71,8 @@ function generateSchemaDoc(schema: any, depth: number, spec: any, seenRefs = new
         const resolved = resolveSchemaRef(schema.$ref, spec);
         return resolved ? generateSchemaDoc(resolved, depth, spec, new Set([...seenRefs, schema.$ref])) : '';
     }
+    const normalized = normalizeComposedSchema(schema, spec, seenRefs);
+    if (normalized !== schema) { return generateSchemaDoc(normalized, depth, spec, seenRefs); }
     if (schema?.type === 'object' && schema.properties) {
         let doc = `${indent}${schema.type}\n`;
         for (const [propName, prop] of Object.entries<any>(schema.properties)) {
@@ -101,6 +130,8 @@ function generateSampleValue(schema: any, spec: any, seenRefs = new Set<string>(
         const resolved = resolveSchemaRef(schema.$ref, spec);
         return resolved ? generateSampleValue(resolved, spec, new Set([...seenRefs, schema.$ref])) : {};
     }
+    const normalized = normalizeComposedSchema(schema, spec, seenRefs);
+    if (normalized !== schema) { return generateSampleValue(normalized, spec, seenRefs); }
     if (!schema?.type) { return {}; }
     switch (schema.type) {
         case 'object': {
@@ -170,6 +201,10 @@ function paramSampleValue(schema: any, paramName: string, spec: any): string {
 // ---------------------------------------------------------------------------
 // Path matching: handles both OAS format ({id}) and Ballerina format ([string id])
 // ---------------------------------------------------------------------------
+
+function resolveParameter(parameter: any, spec: any): any {
+    return parameter?.$ref ? (resolveSchemaRef(parameter.$ref, spec) ?? parameter) : parameter;
+}
 
 function matchesResourcePath(oasPath: string, targetPath: string): boolean {
     // Ballerina uses "." to mean the root path of the service (equivalent to "/")
@@ -261,8 +296,11 @@ function buildHurlCell(method: string, oasPath: string, operation: any, baseUrl:
         lines.push(`${p.name}: ${paramSampleValue(p.schema, p.name, oasSpec)}`);
     }
 
-    // Body
-    const bodySchema = operation.requestBody?.content?.['application/json']?.schema;
+    // Body — resolve requestBody $ref before accessing .content
+    const requestBody = operation.requestBody?.$ref
+        ? (resolveSchemaRef(operation.requestBody.$ref, oasSpec) ?? operation.requestBody)
+        : operation.requestBody;
+    const bodySchema = requestBody?.content?.['application/json']?.schema;
     if (bodySchema) {
         const resolved = bodySchema.$ref ? resolveSchemaRef(bodySchema.$ref, oasSpec) : bodySchema;
         if (resolved) {
@@ -316,7 +354,8 @@ export function buildHurlCellsFromOASSpec(
     for (const [oasPath, pathItem] of Object.entries<any>(paths)) {
         const httpMethods = ['get', 'post', 'put', 'delete', 'patch', 'head', 'options'];
         // Path-level parameters apply to all operations under this path.
-        const pathLevelParams: any[] = pathItem.parameters ?? [];
+        // Resolve any Reference Objects ($ref) in path-level params before use.
+        const pathLevelParams: any[] = (pathItem.parameters ?? []).map((p: any) => resolveParameter(p, oasSpec));
         for (const method of httpMethods) {
             const operation = pathItem[method];
             if (!operation) { continue; }
@@ -331,7 +370,8 @@ export function buildHurlCellsFromOASSpec(
 
             // Merge path-level parameters with operation-level parameters.
             // Operation-level parameters override path-level ones with the same name+in.
-            const opParams: any[] = operation.parameters ?? [];
+            // Resolve any Reference Objects ($ref) in operation-level params before merging.
+            const opParams: any[] = (operation.parameters ?? []).map((p: any) => resolveParameter(p, oasSpec));
             const mergedParams = [
                 ...pathLevelParams.filter((p: any) => !opParams.some((op: any) => op.name === p.name && op.in === p.in)),
                 ...opParams
