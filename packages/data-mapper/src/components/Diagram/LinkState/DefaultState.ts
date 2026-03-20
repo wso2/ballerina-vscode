@@ -27,7 +27,7 @@ import {
 import { DiagramEngine, DragDiagramItemsState, PortModel } from '@projectstorm/react-diagrams-core';
 
 import { DMCanvasContainerID } from "../Canvas/DataMapperCanvasWidget";
-import { ArrayOutputNode, InputNode, ObjectOutputNode, QueryOutputNode, SubMappingNode } from '../Node';
+import { ArrayOutputNode, ConvertibleOutputNode, InputNode, ObjectOutputNode, QueryOutputNode, SubMappingNode } from '../Node';
 import { DataMapperNodeModel } from "../Node/commons/DataMapperNode";
 import { LinkOverayContainerID } from '../OverriddenLinkLayer/LinkOverlayPortal';
 import { CreateLinkState } from './CreateLinkState';
@@ -91,6 +91,7 @@ export class DefaultState extends State<DiagramEngine> {
 							|| element instanceof ObjectOutputNode
 							|| element instanceof ArrayOutputNode
 							|| element instanceof QueryOutputNode
+							|| element instanceof ConvertibleOutputNode
 							|| element instanceof InputNode
 							|| element instanceof SubMappingNode
 						)
