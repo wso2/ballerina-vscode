@@ -138,7 +138,7 @@ const WelcomeMessage: React.FC<WelcomeMessageProps> = ({ isOnboarding = false })
                         marginTop: "12px",
                     }}
                 >
-                    <Icon isCodicon name="new-file" iconSx={{ cursor: "default" }} />
+                    <Icon name="Paperclip" sx={{ fontSize: "16px", verticalAlign: "-3px", marginRight: "-4px" }} />
                     to attach context
                 </Typography>
                 {isOnboarding && (
