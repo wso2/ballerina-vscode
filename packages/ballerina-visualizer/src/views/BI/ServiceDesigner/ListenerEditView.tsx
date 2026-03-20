@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { EVENT_TYPE, ListenerModel, NodePosition, LineRange } from '@wso2/ballerina-core';
 import { Typography, ProgressRing, View, ViewContent } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
@@ -93,13 +93,27 @@ export function ListenerEditView(props: ListenerEditViewProps) {
 
     const [saving, setSaving] = useState<boolean>(false);
 
+    /** Remount the form when editing a different listener so React Hook Form state does not leak across listeners. */
+    const listenerFormKey = useMemo(
+        () =>
+            `${filePath}|${position.startLine}|${position.startColumn}|${position.endLine}|${position.endColumn}`,
+        [filePath, position.startLine, position.startColumn, position.endLine, position.endColumn]
+    );
+
     useEffect(() => {
-        const lineRange: LineRange = { startLine: { line: position.startLine, offset: position.startColumn }, endLine: { line: position.endLine, offset: position.endColumn } };
-        rpcClient.getServiceDesignerRpcClient().getListenerModelFromCode({ filePath, codedata: { lineRange } }).then(res => {
-            console.log("Editing Listener Model: ", res.listener)
-            setListenerModel(res.listener);
-        })
-    }, [position]);
+        setListenerModel(undefined);
+        const lineRange: LineRange = {
+            startLine: { line: position.startLine, offset: position.startColumn },
+            endLine: { line: position.endLine, offset: position.endColumn },
+        };
+        rpcClient
+            .getServiceDesignerRpcClient()
+            .getListenerModelFromCode({ filePath, codedata: { lineRange } })
+            .then((res) => {
+                console.log("Editing Listener Model: ", res.listener);
+                setListenerModel(res.listener);
+            });
+    }, [filePath, position, rpcClient]);
 
     const onSubmit = async (value: ListenerModel) => {
         setSaving(true);
@@ -110,7 +124,7 @@ export function ListenerEditView(props: ListenerEditViewProps) {
     return (
         <View>
             <TopNavigationBar projectPath={projectPath} />
-            <TitleBar title={listenerModel?.name + " Configuration"} subtitle="Configure Listener" />
+            <TitleBar title={listenerModel?.name || "" + " Configuration"} subtitle="Configure Listener" />
             <ViewContent padding>
                 {!listenerModel &&
                     <LoadingContainer>
@@ -118,11 +132,17 @@ export function ListenerEditView(props: ListenerEditViewProps) {
                         <Typography variant="h3" sx={{ marginTop: '16px' }}>Loading...</Typography>
                     </LoadingContainer>
                 }
-                {listenerModel &&
+                {listenerModel && (
                     <Container>
-                        <ListenerConfigForm listenerModel={listenerModel} onSubmit={onSubmit} formSubmitText={saving ? "Saving..." : "Save"} isSaving={saving} />
+                        <ListenerConfigForm
+                            key={listenerFormKey}
+                            listenerModel={listenerModel}
+                            onSubmit={onSubmit}
+                            formSubmitText={saving ? "Saving..." : "Save"}
+                            isSaving={saving}
+                        />
                     </Container>
-                }
+                )}
             </ViewContent>
         </View >
 

@@ -359,7 +359,7 @@ export function FormGeneratorNew(props: FormProps) {
 
     const isParamTypePublicByDefault = () => {
         const isPublicField = fieldsValuesRef.current.find(field => field.key === "isPublic");
-        const isPublicFieldValue =  typeof isPublicField?.value === "string" ? isPublicField.value.toLowerCase() === "true" : Boolean(isPublicField?.value);
+        const isPublicFieldValue = typeof isPublicField?.value === "string" ? isPublicField.value.toLowerCase() === "true" : Boolean(isPublicField?.value);
         return (
             isFunctionParameterForm() && isPublicFieldValue
         );
