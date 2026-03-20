@@ -1171,7 +1171,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             window.showWarningMessage("No deployable projects found in the workspace.");
             return { isCompleted: true };
         }
-        const deploymentParams: ICreateNewIntegrationCmdIntegrations[] = [];
+        const integrations: ICreateNewIntegrationCmdIntegrations[]= [];
 
         // If there is only one project in the workspace and it has multiple integration types,
         // ask the user to pick the type similar to the single project deploy flow.
@@ -1184,7 +1184,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 return { isCompleted: true };
             }
 
-            deploymentParams.push({ fsPath: projectPath, supportedIntegrationTypes: [integrationType] });
+            integrations.push({fsPath: projectPath, supportedIntegrationTypes: [integrationType] });
         } else {
             for (const projectScope of projectScopes) {
                 const { projectPath, integrationTypes } = projectScope;
@@ -1193,17 +1193,17 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     continue;
                 }
 
-                deploymentParams.push({ fsPath: projectPath, supportedIntegrationTypes: integrationTypes });
+                integrations.push({fsPath: projectPath, supportedIntegrationTypes: integrationTypes });
             }
         }
 
-        if (deploymentParams.length === 0) {
+        if (integrations.length === 0) {
             return { isCompleted: true };
         }
 
         await commands.executeCommand(
             WICommandIds.CreateNewComponent,
-            deploymentParams,
+            { buildPackLang: 'ballerina', integrations, workspaceDir: StateMachine.context().workspacePath } as ICreateNewIntegrationCmdParams,
             params.rootDirectory
         );
         return { isCompleted: true };
