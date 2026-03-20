@@ -235,7 +235,7 @@ function matchesResourcePath(oasPath: string, targetPath: string): boolean {
 
 function buildMarkdownCell(method: string, oasPath: string, operation: any): string {
     const lines: string[] = [];
-    lines.push(`#### ${method.toUpperCase()} ${oasPath}`);
+    lines.push(`#### ${method.toUpperCase()} ${oasPath.replace(/\\-/g, '-')}`);
 
     const params: any[] = operation.parameters ?? [];
 
@@ -268,11 +268,15 @@ function buildMarkdownCell(method: string, oasPath: string, operation: any): str
 function buildHurlCell(method: string, oasPath: string, operation: any, baseUrl: string, oasSpec: any): string {
     const params: any[] = operation.parameters ?? [];
 
+    // Ballerina service paths use \- to escape hyphens (e.g. /location\-retrieval).
+    // Strip the backslashes so the generated URL contains plain hyphens.
+    const normalizedOasPath = oasPath.replace(/\\-/g, '-');
+
     // Replace {pathParam} placeholders with type-appropriate sample values so the
     // generated cell is immediately runnable. The user replaces the sample values
     // with real ones before (or after) their first test run.
     // Use [^}]+ to also match param names containing hyphens (e.g. {user-id}).
-    const resolvedPath = oasPath.replace(/\{([^}]+)\}/g, (_, name) => {
+    const resolvedPath = normalizedOasPath.replace(/\{([^}]+)\}/g, (_, name) => {
         const p = params.find((p: any) => p.name === name && p.in === 'path');
         return encodeURIComponent(paramSampleValue(p?.schema, name, oasSpec));
     });
