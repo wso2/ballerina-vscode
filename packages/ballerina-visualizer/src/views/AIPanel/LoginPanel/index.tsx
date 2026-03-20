@@ -110,8 +110,7 @@ const LegalNotice: React.FC = () => {
     return (
         <PostLoginSection>
             <div>
-                WSO2 Integrator Copilot uses AI to assist with integration. Please review all suggested content before adding it to
-                your integration.
+                WSO2 Integrator Copilot uses AI to assist with integration. AI-generated content may contain mistakes. Always review changes.
             </div>
             <div>
                 By signing in, you agree to our{" "}
