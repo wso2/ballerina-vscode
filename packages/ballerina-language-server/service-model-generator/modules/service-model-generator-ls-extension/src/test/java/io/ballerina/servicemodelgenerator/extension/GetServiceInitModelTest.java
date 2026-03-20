@@ -56,7 +56,7 @@ public class GetServiceInitModelTest extends AbstractLSTest {
             GetServiceInitModelTest.TestConfig updatedConfig = new GetServiceInitModelTest.TestConfig(
                     testConfig.description(), testConfig.filePath(), testConfig.orgName(), testConfig.pkgName(),
                     testConfig.moduleName(), jsonMap);
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(jsonMap, testConfig.response());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
