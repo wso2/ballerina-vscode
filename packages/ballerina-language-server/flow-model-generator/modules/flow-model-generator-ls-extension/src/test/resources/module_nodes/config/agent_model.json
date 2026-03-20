@@ -365,7 +365,17 @@
           }
         },
         "diagnostics": {
-          "hasDiagnostics": true
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "undefined parameter 'memoryManager'"
+            },
+            {
+              "severity": "ERROR",
+              "message": "unknown type 'DefaultMessageWindowChatMemoryManager'"
+            }
+          ]
         },
         "flags": 1
       },
