@@ -108,10 +108,10 @@ public final class NameUtil {
     public static String generateVariableName(String signature, Set<String> names) {
         try {
             TypeDescKind typeDescKind = TypeDescKind.valueOf(signature);
-            return generateVariableName(1, generateNameForRawType(typeDescKind), names);
+            return generateResultSuffixedName(generateNameForRawType(typeDescKind), names);
         } catch (IllegalArgumentException ignored) {
             String camelCase = toCamelCase(signature);
-            return generateVariableName(1, camelCase, names);
+            return generateResultSuffixedName(camelCase, names);
         }
     }
 
@@ -318,6 +318,67 @@ public final class NameUtil {
             result.append(word);
         }
         return result.toString();
+    }
+
+    /**
+     * Generates a unique variable name using the "Result" suffix with numeric increments.
+     * Resolution order: base → baseResult → baseResult1 → baseResult2 → ...
+     * If the base name already ends with "Result", skips directly to numeric: base → base1 → base2 → ...
+     *
+     * @param rawName The raw name (before prefix stripping).
+     * @param names   The set of existing names to avoid duplicates.
+     * @return A unique variable name.
+     */
+    private static String generateResultSuffixedName(String rawName, Set<String> names) {
+        names.addAll(CommonUtil.BALLERINA_KEYWORDS);
+        String baseName = deriveBaseName(rawName);
+
+        if (!names.contains(baseName)) {
+            return baseName;
+        }
+
+        // If name already ends with "Result", go straight to numeric suffixes
+        String resultName = baseName.endsWith("Result") ? baseName : baseName + "Result";
+        if (!names.contains(resultName)) {
+            return resultName;
+        }
+
+        int counter = 2;
+        while (names.contains(resultName + counter)) {
+            counter++;
+        }
+        return resultName + counter;
+    }
+
+    /**
+     * Derives a clean base variable name from a raw name by stripping module prefixes,
+     * common verb prefixes, underscores, and lowercasing the first letter.
+     *
+     * @param name The raw name.
+     * @return The derived base name.
+     */
+    private static String deriveBaseName(String name) {
+        String newName = name.replaceAll(".+[\\:\\.]", "");
+        BiFunction<String, String, String> replacer = (search, text) ->
+                (text.startsWith(search)) ? text.replaceFirst(search, "") : text;
+        newName = replacer.apply("get", newName);
+        newName = replacer.apply("put", newName);
+        newName = replacer.apply("delete", newName);
+        newName = replacer.apply("update", newName);
+        newName = replacer.apply("set", newName);
+        newName = replacer.apply("add", newName);
+        newName = replacer.apply("create", newName);
+        newName = replacer.apply("to", newName);
+        while (newName.contains("_")) {
+            String[] parts = newName.split("_");
+            List<String> restParts = Arrays.stream(parts, 1, parts.length).toList();
+            newName = parts[0] + StringUtils.capitalize(String.join("", restParts));
+        }
+        if (newName.isEmpty()) {
+            newName = name;
+        }
+        newName = newName.substring(0, 1).toLowerCase(Locale.getDefault()) + newName.substring(1);
+        return newName;
     }
 
     private static String generateVariableName(int suffix, String name, Set<String> names) {
