@@ -84,7 +84,7 @@ export class DefaultState extends State<DiagramEngine> {
 				fire: (actionEvent: ActionEvent<MouseEvent>) => {
 					const element = this.engine.getActionEventBus().getModelForEvent(actionEvent);
 					const isFieldAction = (actionEvent.event.target as Element)
-						.closest('div[id^="expand-or-collapse"], div[id^="add-array-element"], [id^="field-action"]');
+						.closest('div[id^="expand-or-collapse"], div[id^="add-array-element"], [data-field-action]');
 
 					if (!isFieldAction
 						&& (element instanceof PortModel
