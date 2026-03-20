@@ -22,13 +22,19 @@ import io.ballerina.centralconnector.CentralAPI;
 import io.ballerina.centralconnector.RemoteCentral;
 import io.ballerina.centralconnector.response.SymbolResponse;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.Types;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.Documentable;
 import io.ballerina.compiler.api.symbols.Documentation;
 import io.ballerina.compiler.api.symbols.Qualifiable;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.flowmodelgenerator.core.TypeCompletionItemBuilder;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
@@ -46,15 +52,43 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.common.utils.SymbolUtil;
+import org.eclipse.lsp4j.CompletionItemLabelDetails;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_ANY;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_ANYDATA;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_BOOLEAN;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_BYTE;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_BYTE_ARRAY;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_DECIMAL;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_ERROR;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_FLOAT;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_FUNCTION;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_FUTURE;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_HANDLE;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_INT;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_JSON;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_JSON_ARRAY;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_MAP_JSON;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_MAP_STRING;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_NIL;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_READONLY;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_RECORD;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_STREAM;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_STRING;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_STRING_ARRAY;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_TYPEDESC;
+import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_XML;
 
 /**
  * Represents a command to search for types within a module. This class extends SearchCommand and provides functionality
@@ -78,6 +112,16 @@ import java.util.Optional;
 class TypeSearchCommand extends SearchCommand {
 
     private final List<String> moduleNames;
+
+    private static final Map<String, List<String>> categoryMap = Map.of(
+            "Primitive Types",
+            List.of(TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_DECIMAL, TYPE_BOOLEAN, TYPE_NIL, TYPE_BYTE),
+            "Data Types", List.of(TYPE_JSON, TYPE_XML, TYPE_ANYDATA),
+            "Structural Types",
+            List.of(TYPE_BYTE_ARRAY, TYPE_MAP_JSON, TYPE_MAP_STRING, TYPE_JSON_ARRAY, TYPE_STRING_ARRAY, TYPE_RECORD),
+            "Error Types", List.of(TYPE_ERROR),
+            "Behaviour Types", List.of(TYPE_FUNCTION, TYPE_FUTURE, TYPE_TYPEDESC, TYPE_HANDLE, TYPE_STREAM),
+            "Other Types", List.of(TYPE_ANY, TYPE_READONLY));
 
     public TypeSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
@@ -251,13 +295,29 @@ class TypeSearchCommand extends SearchCommand {
 
         List<Item> availableNodes = new ArrayList<>();
         for (ScoredType scoredType : scoredTypes) {
+            Optional<? extends TypeSymbol> typeDescriptor = SymbolUtil.getTypeDescriptor(scoredType.symbol());
+            typeDescriptor = (typeDescriptor.isPresent() &&
+                    typeDescriptor.get().typeKind() == TypeDescKind.TYPE_REFERENCE)
+                    ? Optional.of(((TypeReferenceTypeSymbol) typeDescriptor.get()).typeDescriptor())
+                    : typeDescriptor;
+
+            // The following information is needed for config editor
+            NodeKind nodeKind = NodeKind.TYPEDESC;
+            if (typeDescriptor.isPresent() && typeDescriptor.get().typeKind() != null
+                    && typeDescriptor.get().typeKind() != TypeDescKind.COMPILATION_ERROR) {
+                nodeKind = typeDescriptor.get().kind() == SymbolKind.CLASS
+                        ? NodeKind.CLASS
+                        : toNodeKind(typeDescriptor.get().typeKind());
+
+            }
+
             Metadata metadata = new Metadata.Builder<>(null)
                     .label(scoredType.typeName())
                     .description(scoredType.description())
                     .build();
 
             Codedata codedata = new Codedata.Builder<>(null)
-                    .node(NodeKind.TYPEDESC)
+                    .node(nodeKind)
                     .org(orgName)
                     .module(packageName)
                     .packageName(packageName)
@@ -308,7 +368,7 @@ class TypeSearchCommand extends SearchCommand {
         }
     }
 
-     private void buildImportedLocalModules() {
+    private void buildImportedLocalModules() {
         Iterable<Module> modules = project.currentPackage().modules();
         for (Module module : modules) {
             if (module.isDefaultModule()) {
@@ -373,16 +433,26 @@ class TypeSearchCommand extends SearchCommand {
         }
     }
 
-        /**
-         * Helper record to store type definition and class symbols along with their relevance scores for ranking.
-         *
-         * @param symbol the symbol representing the type
-         * @param typeName the name of the type
-         * @param description the description of the type
-         * @param score the relevance score for ranking
-         */
-        private record ScoredType(Symbol symbol, String typeName, String description, int score) {
+    private static NodeKind toNodeKind(TypeDescKind typeDescKind) {
+        return switch (typeDescKind) {
+            case ARRAY -> NodeKind.ARRAY;
+            case RECORD -> NodeKind.RECORD;
+            case UNION -> NodeKind.UNION;
+            case INTERSECTION -> NodeKind.INTERSECTION;
+            case TABLE -> NodeKind.TABLE;
+            case MAP -> NodeKind.MAP;
+            default -> NodeKind.TYPEDESC;
+        };
     }
 
-
+    /**
+     * Helper record to store type definition and class symbols along with their relevance scores for ranking.
+     *
+     * @param symbol      the symbol representing the type
+     * @param typeName    the name of the type
+     * @param description the description of the type
+     * @param score       the relevance score for ranking
+     */
+    private record ScoredType(Symbol symbol, String typeName, String description, int score) {
+    }
 }

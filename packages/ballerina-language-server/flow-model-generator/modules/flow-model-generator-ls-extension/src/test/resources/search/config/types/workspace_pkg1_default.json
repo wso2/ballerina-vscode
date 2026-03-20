@@ -32,7 +32,7 @@
                 "description": "Represents an employee record"
               },
               "codedata": {
-                "node": "TYPEDESC",
+                "node": "RECORD",
                 "org": "testorg",
                 "module": "package1",
                 "packageName": "package1",
@@ -47,7 +47,7 @@
                 "description": ""
               },
               "codedata": {
-                "node": "TYPEDESC",
+                "node": "RECORD",
                 "org": "testorg",
                 "module": "package1",
                 "packageName": "package1",
@@ -71,7 +71,7 @@
                 "description": "Represents a physical address"
               },
               "codedata": {
-                "node": "TYPEDESC",
+                "node": "RECORD",
                 "org": "testorg",
                 "module": "package2",
                 "packageName": "package2",
