@@ -21,21 +21,21 @@ import styled from "@emotion/styled";
 import { SemanticDiff, ChangeTypeEnum, MACHINE_VIEW, VisualizerLocation } from "@wso2/ballerina-core";
 import { getColorByMethod } from "../../../BI/ServiceDesigner/components/ResourceAccordion";
 
-const Container = styled.div<{ subtle?: boolean }>`
+const Container = styled.div<{ subtle?: boolean; expanded?: boolean }>`
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 10px 14px;
+    gap: 6px;
+    padding: 6px 10px;
     background-color: ${(p: { subtle?: boolean }) =>
         p.subtle
             ? "color-mix(in srgb, var(--vscode-editor-background) 60%, transparent)"
             : "var(--vscode-editor-background)"};
-    border: 1px solid ${(p: { subtle?: boolean }) =>
-        p.subtle
-            ? "color-mix(in srgb, var(--vscode-panel-border) 40%, transparent)"
+    border: 1px solid ${(p: { subtle?: boolean; expanded?: boolean }) =>
+        p.subtle && !p.expanded
+            ? "color-mix(in srgb, var(--vscode-panel-border) 60%, transparent)"
             : "var(--vscode-panel-border)"};
     border-radius: 4px;
-    margin: 8px 0 4px;
+    margin: 6px 0 2px;
 `;
 
 const TitleBarRow = styled.div`
@@ -791,8 +791,8 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     };
 
     const titleColor = status !== "pending" ? "var(--vscode-descriptionForeground)" : "var(--vscode-foreground)";
-    const titleWeight = status !== "pending" ? 400 : 600;
-    const titleText = status === "pending" ? "Changes made" : status === "accepted" ? "Changes applied" : "Changes reverted";
+    const titleWeight = 400;
+    const titleText = status === "pending" ? "Changes made" : status === "accepted" ? "Changes made" : "Changes reverted";
 
     const renderContent = () => {
         if (viewMode === "diagram" && packageGroups && packageGroups.length > 0) {
@@ -808,9 +808,9 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     };
 
     return (
-        <Container subtle={status !== "pending"}>
+        <Container subtle={status !== "pending"} expanded={isExpanded}>
             <TitleBarRow>
-                <TitleRow onClick={() => setIsExpanded(v => !v)} style={{ fontSize: "13px", fontWeight: titleWeight, color: titleColor }}>
+                <TitleRow onClick={() => setIsExpanded(v => !v)} style={{ fontSize: "13px", fontWeight: titleWeight, color: titleColor, opacity: status !== "pending" && !isExpanded ? 0.5 : 1 }}>
                     <span
                         className={`codicon ${isExpanded ? "codicon-chevron-down" : "codicon-chevron-right"}`}
                         style={{ fontSize: "11px" }}
