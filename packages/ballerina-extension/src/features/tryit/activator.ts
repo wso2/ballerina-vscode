@@ -94,7 +94,7 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
                                 ) ?? (services.length === 1 ? services[0] : undefined);
                                 if (matchingService) {
                                     const actualPort = await getServicePort(projectPath, matchingService, content.oasSpec);
-                                    const bp = matchingService.basePath === '/' ? '' : matchingService.basePath;
+                                    const bp = matchingService.basePath === '/' ? '' : sanitizePath(matchingService.basePath);
                                     descriptor = { ...content, baseUrl: `http://localhost:${actualPort}${bp}` };
                                 }
                             } catch {
@@ -212,7 +212,7 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             const selectedPort: number = await getServicePort(projectPath, selectedService, openapiSpec);
             selectedService.port = selectedPort;
 
-            const basePath = selectedService.basePath === '/' ? '' : selectedService.basePath;
+            const basePath = selectedService.basePath === '/' ? '' : sanitizePath(selectedService.basePath);
             const baseUrl = `http://localhost:${selectedPort}${basePath}`;
             const serviceName = selectedService.name || selectedService.basePath;
             const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
