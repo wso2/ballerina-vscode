@@ -24,7 +24,7 @@ import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import java.util.Objects;
@@ -42,7 +42,7 @@ public class DualSnapshotStore {
 
     private static final ContentVersion INITIAL_CONTENT_VERSION = new ContentVersion(0);
 
-    private final ConcurrentHashMap<SourceRoot, SnapshotPair> snapshots;
+    private final ConcurrentHashMap<DocumentUri, SnapshotPair> snapshots;
 
     /**
      * Creates an empty dual snapshot store.
@@ -57,7 +57,7 @@ public class DualSnapshotStore {
      * @param sourceRoot the source root identity
      * @return the latest stable snapshot, or {@code null} when none has been published
      */
-    public StableSnapshot getStable(@Nonnull SourceRoot sourceRoot) {
+    public StableSnapshot getStable(@Nonnull DocumentUri sourceRoot) {
         SnapshotPair snapshotPair = snapshots.get(sourceRoot);
         return snapshotPair == null ? null : snapshotPair.stableSnapshot();
     }
@@ -68,7 +68,7 @@ public class DualSnapshotStore {
      * @param sourceRoot the source root identity
      * @return the active in-progress snapshot, or {@code null} when none is running
      */
-    public InProgressSnapshot getInProgress(@Nonnull SourceRoot sourceRoot) {
+    public InProgressSnapshot getInProgress(@Nonnull DocumentUri sourceRoot) {
         SnapshotPair snapshotPair = snapshots.get(sourceRoot);
         return snapshotPair == null ? null : snapshotPair.inProgressSnapshot();
     }
@@ -79,7 +79,7 @@ public class DualSnapshotStore {
      * @param sourceRoot the source root identity
      * @return the newly created in-progress snapshot
      */
-    public InProgressSnapshot startCompilation(@Nonnull SourceRoot sourceRoot) {
+    public InProgressSnapshot startCompilation(@Nonnull DocumentUri sourceRoot) {
         SnapshotPair snapshotPair = snapshots.computeIfAbsent(sourceRoot, ignored -> new SnapshotPair());
         return snapshotPair.startCompilation();
     }
@@ -90,7 +90,7 @@ public class DualSnapshotStore {
      * @param sourceRoot the source root identity
      * @param stableSnapshot the stable snapshot to publish
      */
-    public void publishStable(@Nonnull SourceRoot sourceRoot, @Nonnull StableSnapshot stableSnapshot) {
+    public void publishStable(@Nonnull DocumentUri sourceRoot, @Nonnull StableSnapshot stableSnapshot) {
         SnapshotPair snapshotPair = snapshots.computeIfAbsent(sourceRoot, ignored -> new SnapshotPair());
         snapshotPair.publishStable(stableSnapshot);
     }
@@ -100,7 +100,7 @@ public class DualSnapshotStore {
      *
      * @param sourceRoot the source root identity
      */
-    public void cancelInProgress(@Nonnull SourceRoot sourceRoot) {
+    public void cancelInProgress(@Nonnull DocumentUri sourceRoot) {
         SnapshotPair snapshotPair = snapshots.get(sourceRoot);
         if (snapshotPair != null) {
             snapshotPair.cancelInProgress();
@@ -112,7 +112,7 @@ public class DualSnapshotStore {
      *
      * @param sourceRoot the source root identity
      */
-    public void remove(@Nonnull SourceRoot sourceRoot) {
+    public void remove(@Nonnull DocumentUri sourceRoot) {
         SnapshotPair snapshotPair = snapshots.remove(sourceRoot);
         if (snapshotPair != null) {
             snapshotPair.cancelInProgress();

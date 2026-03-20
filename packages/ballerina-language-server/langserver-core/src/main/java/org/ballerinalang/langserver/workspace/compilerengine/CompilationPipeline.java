@@ -18,15 +18,17 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
+import io.ballerina.projects.PackageDescriptor;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 
 import javax.annotation.Nonnull;
 
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
@@ -55,7 +57,7 @@ public class CompilationPipeline implements AutoCloseable {
      */
     public interface CompilationAction {
         default ResolutionResult resolve(CompileTask task) throws Exception {
-            return new ResolutionResult(task.sourceRoot(), java.util.List.of(), true);
+            return new ResolutionResult(task.sourceRootUri(), java.util.List.of(), true);
         }
 
         StableSnapshot compile(CompileTask task) throws Exception;
@@ -67,6 +69,17 @@ public class CompilationPipeline implements AutoCloseable {
 
         default RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) throws Exception {
             return RecoveryResult.exhausted();
+        }
+
+        /**
+         * Returns the package descriptor for the given source root URI.
+         * Called once at pipeline creation time to establish the PackageDescriptor index.
+         *
+         * @param sourceRootUri the source root URI
+         * @return the package descriptor for the project at this URI
+         */
+        default PackageDescriptor describe(DocumentUri sourceRootUri) throws Exception {
+            throw new UnsupportedOperationException("describe() must be implemented");
         }
     }
 
@@ -87,7 +100,7 @@ public class CompilationPipeline implements AutoCloseable {
         }
     }
 
-    private final SourceRoot sourceRoot;
+    private final DocumentUri sourceRootUri;
     private final DualSnapshotStore snapshotStore;
     private final EventSyncPubSubHolder eventBus;
     private final CompilationAction compilationAction;
@@ -100,21 +113,21 @@ public class CompilationPipeline implements AutoCloseable {
     private final AtomicBoolean closed;
 
     /**
-     * Creates a compilation pipeline for the given source root.
+     * Creates a compilation pipeline for the given source root URI.
      *
-     * @param sourceRoot        the project identity
+     * @param sourceRootUri     the project identity
      * @param snapshotStore     store to publish snapshots into
      * @param eventBus          event bus for domain event emission
      * @param compilationAction the actual compilation strategy
      */
-    public CompilationPipeline(@Nonnull SourceRoot sourceRoot, @Nonnull DualSnapshotStore snapshotStore,
+    public CompilationPipeline(@Nonnull DocumentUri sourceRootUri, @Nonnull DualSnapshotStore snapshotStore,
                                 @Nonnull EventSyncPubSubHolder eventBus, @Nonnull CompilationAction compilationAction) {
-        this.sourceRoot = sourceRoot;
+        this.sourceRootUri = sourceRootUri;
         this.snapshotStore = snapshotStore;
         this.eventBus = eventBus;
         this.compilationAction = compilationAction;
 
-        String dirName = sourceRoot.path().getFileName().toString();
+        String dirName = Path.of(sourceRootUri.uri().getPath()).getFileName().toString();
         this.debounceScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "compile-debounce-" + dirName);
             t.setDaemon(true);
@@ -138,6 +151,7 @@ public class CompilationPipeline implements AutoCloseable {
      * @param contentVersion the version to compile
      */
     public void requestCompilation(@Nonnull ContentVersion contentVersion) {
+        Objects.requireNonNull(contentVersion, "contentVersion must not be null");
         if (closed.get()) {
             return;
         }
@@ -152,12 +166,12 @@ public class CompilationPipeline implements AutoCloseable {
     }
 
     /**
-     * Returns the source root this pipeline manages.
+     * Returns the source root URI this pipeline manages.
      *
-     * @return source root
+     * @return source root URI
      */
-    public SourceRoot sourceRoot() {
-        return sourceRoot;
+    public DocumentUri sourceRootUri() {
+        return sourceRootUri;
     }
 
     /**
@@ -182,7 +196,7 @@ public class CompilationPipeline implements AutoCloseable {
         if (inflight != null) {
             inflight.cancel();
         }
-        snapshotStore.cancelInProgress(sourceRoot);
+        snapshotStore.cancelInProgress(sourceRootUri);
         debounceScheduler.shutdownNow();
         compilationWorker.shutdownNow();
     }
@@ -208,8 +222,8 @@ public class CompilationPipeline implements AutoCloseable {
         }
 
         CancellationToken token = new CancellationToken();
-        CompileTask task = new CompileTask(sourceRoot, contentVersion, token);
-        InProgressSnapshot inProgressSnapshot = snapshotStore.startCompilation(sourceRoot);
+        CompileTask task = new CompileTask(sourceRootUri, contentVersion, token);
+        InProgressSnapshot inProgressSnapshot = snapshotStore.startCompilation(sourceRootUri);
         inflightTask.set(task);
 
         compilationWorker.submit(() -> executeCompilation(task, inProgressSnapshot));
@@ -229,7 +243,7 @@ public class CompilationPipeline implements AutoCloseable {
 
             // Publication guard: discard result if cancelled (ADR-018 Mandate 8)
             if (task.isCancelled()) {
-                LOG.fine(() -> "Cancelled compilation result discarded for " + sourceRoot);
+                LOG.fine(() -> "Cancelled compilation result discarded for " + sourceRootUri);
                 emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
                 return;
             }
@@ -237,32 +251,32 @@ public class CompilationPipeline implements AutoCloseable {
             // Staleness guard before publish
             ContentVersion latest = latestRequestedVersion.get();
             if (latest != null && latest.compareTo(task.contentVersion()) > 0) {
-                LOG.fine(() -> "Stale compilation discarded for " + sourceRoot + " version="
+                LOG.fine(() -> "Stale compilation discarded for " + sourceRootUri + " version="
                         + task.contentVersion());
                 emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
                 return;
             }
 
             emitEvent(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY);
-            snapshotStore.publishStable(sourceRoot, snapshot);
+            snapshotStore.publishStable(sourceRootUri, snapshot);
             published = true;
             emitEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED);
         } catch (CancellationException e) {
-            LOG.fine(() -> "Compilation cancelled for " + sourceRoot);
+            LOG.fine(() -> "Compilation cancelled for " + sourceRootUri);
             emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
         } catch (InterruptedException e) {
-            LOG.fine(() -> "Compilation interrupted for " + sourceRoot);
+            LOG.fine(() -> "Compilation interrupted for " + sourceRootUri);
             emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
         } catch (Exception e) {
             if (isBirCompilationFailure(e)) {
                 scheduleRecovery(task, e);
                 return;
             }
-            LOG.log(Level.WARNING, "Compilation failed for " + sourceRoot, e);
+            LOG.log(Level.WARNING, "Compilation failed for " + sourceRootUri, e);
             emitEvent(EventKind.COMPILER_COMPILATION_FAILED);
         } finally {
-            if (!published && snapshotStore.getInProgress(sourceRoot) == inProgressSnapshot) {
-                snapshotStore.cancelInProgress(sourceRoot);
+            if (!published && snapshotStore.getInProgress(sourceRootUri) == inProgressSnapshot) {
+                snapshotStore.cancelInProgress(sourceRootUri);
             }
             activeWorkerThread.compareAndSet(Thread.currentThread(), null);
             inflightTask.compareAndSet(task, null);
@@ -288,7 +302,7 @@ public class CompilationPipeline implements AutoCloseable {
                 emitEvent(EventKind.CE_RESOLUTION_EXHAUSTED);
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Recovery failed for " + sourceRoot, e);
+            LOG.log(Level.WARNING, "Recovery failed for " + sourceRootUri, e);
             emitEvent(EventKind.CE_RESOLUTION_EXHAUSTED);
         }
     }
@@ -311,10 +325,10 @@ public class CompilationPipeline implements AutoCloseable {
     private void emitEvent(EventKind kind) {
         try {
             DomainEvent event = new DomainEvent(Instant.now(), "compilation-pipeline", kind,
-                    sourceRoot.path().toString());
+                    sourceRootUri.uri().toString());
             eventBus.publish(event);
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Failed to emit event " + kind + " for " + sourceRoot, e);
+            LOG.log(Level.WARNING, "Failed to emit event " + kind + " for " + sourceRootUri, e);
         }
     }
 

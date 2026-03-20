@@ -21,9 +21,10 @@ package org.ballerinalang.langserver.workspace.compilerengine;
 import javax.annotation.Nonnull;
 
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -36,7 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class CompileTask {
 
-    private final SourceRoot sourceRoot;
+    private final DocumentUri sourceRootUri;
     private final ContentVersion contentVersion;
     private final CancellationToken cancellationToken;
     private final Instant createdAt;
@@ -45,15 +46,15 @@ public final class CompileTask {
     /**
      * Creates a compile task starting at {@link CompilationPhase#PRE_PARSE}.
      *
-     * @param sourceRoot        the project source root
+     * @param sourceRootUri     the project source root URI
      * @param contentVersion    the content version triggering this compilation
      * @param cancellationToken cooperative cancellation flag
      */
-    public CompileTask(@Nonnull SourceRoot sourceRoot, @Nonnull ContentVersion contentVersion,
+    public CompileTask(@Nonnull DocumentUri sourceRootUri, @Nonnull ContentVersion contentVersion,
                        @Nonnull CancellationToken cancellationToken) {
-        this.sourceRoot = sourceRoot;
-        this.contentVersion = contentVersion;
-        this.cancellationToken = cancellationToken;
+        this.sourceRootUri = Objects.requireNonNull(sourceRootUri, "sourceRootUri must not be null");
+        this.contentVersion = Objects.requireNonNull(contentVersion, "contentVersion must not be null");
+        this.cancellationToken = Objects.requireNonNull(cancellationToken, "cancellationToken must not be null");
         this.createdAt = Instant.now();
         this.currentPhase = new AtomicReference<>(CompilationPhase.PRE_PARSE);
     }
@@ -85,8 +86,8 @@ public final class CompileTask {
         return cancellationToken.isCancelled();
     }
 
-    public SourceRoot sourceRoot() {
-        return sourceRoot;
+    public DocumentUri sourceRootUri() {
+        return sourceRootUri;
     }
 
     public ContentVersion contentVersion() {
