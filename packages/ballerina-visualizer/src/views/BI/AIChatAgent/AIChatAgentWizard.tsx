@@ -61,6 +61,23 @@ export interface AIChatAgentWizardProps {
 
 const LISTENER = "Listener";
 const MODEL = "Model";
+const KNOWN_SUFFIXES = ["agent", "model", "listener", "service"];
+
+function toBaseName(name: string): string {
+    // Split on spaces/underscores, convert to camelCase
+    const words = name.trim().split(/[\s_]+/).filter(Boolean);
+    if (words.length === 0) return "";
+    const camel = words[0].charAt(0).toLowerCase() + words[0].slice(1)
+        + words.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("");
+    // Strip known suffixes
+    const lower = camel.toLowerCase();
+    for (const suffix of KNOWN_SUFFIXES) {
+        if (lower.endsWith(suffix) && lower.length > suffix.length) {
+            return camel.slice(0, -suffix.length);
+        }
+    }
+    return camel;
+}
 
 const OPEN_AI_PROVIDER = "OpenAiProvider";
 const MODEL_PROVIDER = "MODEL_PROVIDER";
@@ -102,41 +119,47 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             setNameError("Name is required");
             return false;
         }
-        if (/^[0-9]/.test(name)) {
-            setNameError("Name cannot start with a number");
+        if (/^\s/.test(name) || /^[0-9]/.test(name.trim())) {
+            setNameError("Name must start with a letter");
             return false;
         }
-        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-            setNameError("Name can only contain letters, numbers, and underscores");
+        if (!/^[a-zA-Z][a-zA-Z0-9\s_]*$/.test(name)) {
+            setNameError("Name can only contain letters, numbers, spaces, and underscores");
+            return false;
+        }
+        const base = toBaseName(name);
+        if (!base) {
+            setNameError("Name is required");
             return false;
         }
         if (designModelRef.current) {
+            const basePath = `/${base}`;
             const isServiceExists = designModelRef.current.services.some(
-                service => service.absolutePath?.trim() === `/${name}`
+                service => service.absolutePath?.trim().toLowerCase() === basePath.toLowerCase()
             );
             if (isServiceExists) {
                 setNameError("An AI Chat Agent with this name already exists. Please choose a different name.");
                 return false;
             }
-            const agentConnectionName = `${name}Agent`;
+            const agentConnectionName = `${base}Agent`;
             const isConnectionExists = designModelRef.current.connections.some(
-                connection => connection.symbol === agentConnectionName
+                connection => connection.symbol.toLowerCase() === agentConnectionName.toLowerCase()
             );
             if (isConnectionExists) {
                 setNameError(`"${agentConnectionName}" already exists. Please choose a different name.`);
                 return false;
             }
-            const modelName = `${name}Model`;
+            const modelName = `${base}Model`;
             const isModelExists = designModelRef.current.connections.some(
-                connection => connection.symbol === modelName
+                connection => connection.symbol.toLowerCase() === modelName.toLowerCase()
             );
             if (isModelExists) {
                 setNameError(`"${modelName}" already exists. Please choose a different name.`);
                 return false;
             }
-            const listenerName = `${name}Listener`;
+            const listenerName = `${base}Listener`;
             const isListenerExists = designModelRef.current.listeners.some(
-                listener => listener.symbol === listenerName
+                listener => listener.symbol.toLowerCase() === listenerName.toLowerCase()
             );
             if (isListenerExists) {
                 setNameError(`A listener named "${listenerName}" already exists. Please choose a different name.`);
@@ -151,6 +174,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
         if (!validateName(agentName)) {
             return;
         }
+        const baseName = toBaseName(agentName);
         setIsCreating(true);
         try {
             // Initialize wizard data when user clicks create
@@ -191,7 +215,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             const modelNodeTemplate = await getNodeTemplate(rpcClient, defaultModelNode.codedata, projectPath.current);
 
             // Generate source code for model provider
-            const modelVarName = `${agentName}` + MODEL;
+            const modelVarName = `${baseName}` + MODEL;
             modelNodeTemplate.properties.variable.value = modelVarName;
             await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: projectPath.current, flowNode: modelNodeTemplate });
 
@@ -223,8 +247,8 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             const agentNodeTemplate = await getNodeTemplate(rpcClient, agentNode.codedata, projectPath.current);
 
             // save the agent node
-            const systemPromptValue = `{role: string \`\`, instructions: string \`\`}`;
-            const agentVarName = `${agentName}Agent`;
+            const systemPromptValue = `{role: string \`${agentName}\`, instructions: string \`\`}`;
+            const agentVarName = `${baseName}Agent`;
             agentNodeTemplate.properties.systemPrompt.value = systemPromptValue;
             agentNodeTemplate.properties.model.value = modelVarName;
             agentNodeTemplate.properties.tools.value = "[]";
@@ -248,7 +272,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                 filePath: mainBalFile
             };
 
-            const listenerVariableName = agentName + LISTENER;
+            const listenerVariableName = baseName + LISTENER;
             const listenerResponse = await rpcClient.getServiceDesignerRpcClient().getListenerModel(payload);
 
             const listenerConfiguration = listenerResponse.listener;
@@ -273,8 +297,8 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             serviceConfiguration.properties["listener"].editable = true;
             serviceConfiguration.properties["listener"].items = [listenerVariableName];
             serviceConfiguration.properties["listener"].value = listenerVariableName;
-            serviceConfiguration.properties["basePath"].value = `/${agentName}`;
-            serviceConfiguration.properties["agentName"].value = agentName;
+            serviceConfiguration.properties["basePath"].value = `/${baseName}`;
+            serviceConfiguration.properties["agentName"].value = baseName;
 
             const serviceSourceCodeResult = await rpcClient.getServiceDesignerRpcClient().addServiceSourceCode({
                 filePath: "",
