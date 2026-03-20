@@ -534,6 +534,19 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
         }
     };
 
+    const withOnlyFilledFields = (config: TypeField): TypeField => {
+        const clone = { ...config };
+        if (clone.fields) {
+            clone.fields = clone.fields
+                .map(withOnlyFilledFields)
+                .filter(f => {
+                    if (f.fields && f.fields.length > 0) return true;
+                    return f.value !== undefined && f.value !== null && f.value !== '' && f.value !== '[]';
+                });
+        }
+        return clone;
+    };
+
     const mergeValuesIntoConfig = (config: TypeField, values: any) => {
         if (config.fields && typeof values === 'object' && values !== null) {
             config.fields.forEach(field => {
@@ -557,7 +570,7 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
             try {
                 const request: RecordSourceGenRequest = {
                     filePath: fileName,
-                    type: recordConfig
+                    type: withOnlyFilledFields(recordConfig)
                 };
                 const response: RecordSourceGenResponse = await rpcClient.getBIDiagramRpcClient().getRecordSource(request);
                 console.log('>>> recordSourceResponse', response);
