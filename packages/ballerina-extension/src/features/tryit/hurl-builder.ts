@@ -125,11 +125,22 @@ function generateSampleValue(schema: any, spec: any): any {
 }
 
 // ---------------------------------------------------------------------------
-// OAS path → hurl URL  ({param} → {{param}})
+// OAS path → hurl URL  (path params replaced with type-appropriate sample values)
 // ---------------------------------------------------------------------------
 
-function oasPathToHurlPath(oasPath: string): string {
-    return oasPath.replace(/\{(\w+)\}/g, '{{$1}}');
+/**
+ * Return a sample scalar string for a single OAS schema.
+ * Falls back to the param name so the URL stays human-readable.
+ */
+function paramSampleValue(schema: any, paramName: string, spec: any): string {
+    if (!schema) { return paramName; }
+    const raw = generateSampleValue(schema?.type === 'array' && schema.items
+        ? (schema.items.$ref ? resolveSchemaRef(schema.items.$ref, spec) || schema.items : schema.items)
+        : schema, spec);
+    if (raw === undefined || raw === null) { return paramName; }
+    if (typeof raw === 'object') { return JSON.stringify(raw); }
+    const str = String(raw);
+    return str === '{?}' ? paramName : str;
 }
 
 // ---------------------------------------------------------------------------
@@ -164,9 +175,8 @@ function matchesResourcePath(oasPath: string, targetPath: string): boolean {
 // ---------------------------------------------------------------------------
 
 function buildMarkdownCell(method: string, oasPath: string, operation: any): string {
-    const hurlPath = oasPathToHurlPath(oasPath);
     const lines: string[] = [];
-    lines.push(`#### ${method.toUpperCase()} ${hurlPath}`);
+    lines.push(`#### ${method.toUpperCase()} ${oasPath}`);
 
     const params: any[] = operation.parameters ?? [];
 
@@ -197,8 +207,16 @@ function buildMarkdownCell(method: string, oasPath: string, operation: any): str
 // ---------------------------------------------------------------------------
 
 function buildHurlCell(method: string, oasPath: string, operation: any, baseUrl: string, oasSpec: any): string {
-    const hurlPath = oasPathToHurlPath(oasPath);
-    const fullUrl = `${baseUrl.replace(/\/$/, '')}${hurlPath}`;
+    const params: any[] = operation.parameters ?? [];
+
+    // Replace {pathParam} placeholders with type-appropriate sample values so the
+    // generated cell is immediately runnable. The user replaces the sample values
+    // with real ones before (or after) their first test run.
+    const resolvedPath = oasPath.replace(/\{(\w+)\}/g, (_, name) => {
+        const p = params.find((p: any) => p.name === name && p.in === 'path');
+        return paramSampleValue(p?.schema, name, oasSpec);
+    });
+    const fullUrl = `${baseUrl.replace(/\/$/, '')}${resolvedPath}`;
     const lines: string[] = [];
 
     // Doc comment from operation summary/description
@@ -214,9 +232,8 @@ function buildHurlCell(method: string, oasPath: string, operation: any, baseUrl:
     lines.push(`${method.toUpperCase()} ${fullUrl}`);
 
     // Header params
-    const params: any[] = operation.parameters ?? [];
     for (const p of params.filter((p: any) => p.in === 'header')) {
-        lines.push(`${p.name}: {{${p.name}}}`);
+        lines.push(`${p.name}: ${paramSampleValue(p.schema, p.name, oasSpec)}`);
     }
 
     // Body
@@ -245,7 +262,7 @@ function buildHurlCell(method: string, oasPath: string, operation: any, baseUrl:
         lines.push('');
         lines.push('[QueryStringParams]');
         for (const p of queryParams) {
-            lines.push(`${p.name}: {{${p.name}}}`);
+            lines.push(`${p.name}: ${paramSampleValue(p.schema, p.name, oasSpec)}`);
         }
     }
 
