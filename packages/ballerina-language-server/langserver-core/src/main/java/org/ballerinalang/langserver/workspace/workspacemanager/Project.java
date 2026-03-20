@@ -18,6 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
@@ -41,7 +43,7 @@ import javax.annotation.Nonnull;
  */
 public final class Project {
 
-    private final SourceRoot sourceRoot;
+    private final DocumentUri sourceRoot;
     private final AtomicReference<ProjectKind> kind;
     private final AtomicReference<HealthState> healthState;
     private final HeapEstimate heapEstimate;
@@ -66,7 +68,7 @@ public final class Project {
     public record HealthTransitionEvent(
             UUID eventId,
             Instant timestamp,
-            SourceRoot sourceRoot,
+            DocumentUri sourceRoot,
             String eventType,
             ProjectHealthState fromState,
             ProjectHealthState toState) {}
@@ -78,7 +80,7 @@ public final class Project {
     public record KindTransitionEvent(
             UUID eventId,
             Instant timestamp,
-            SourceRoot sourceRoot,
+            DocumentUri sourceRoot,
             String eventType,
             ProjectKind fromKind,
             ProjectKind toKind) {}
@@ -90,12 +92,12 @@ public final class Project {
     /**
      * Creates a new project in {@link ProjectHealthState#HEALTHY} state.
      *
-     * @param sourceRoot    absolute, normalised project root path
+     * @param sourceRoot    the project source root URI
      * @param kind          initial project kind
      * @param heapEstimate  initial heap-usage estimate
      * @throws NullPointerException if any argument is null
      */
-    public Project(@Nonnull SourceRoot sourceRoot, @Nonnull ProjectKind kind, @Nonnull HeapEstimate heapEstimate) {
+    public Project(@Nonnull DocumentUri sourceRoot, @Nonnull ProjectKind kind, @Nonnull HeapEstimate heapEstimate) {
         this.sourceRoot = sourceRoot;
         this.kind = new AtomicReference<>(kind);
         this.healthState = new AtomicReference<>(new HealthState(ProjectHealthState.HEALTHY, false));
@@ -205,9 +207,9 @@ public final class Project {
     /**
      * Returns the project identity.
      *
-     * @return source root
+     * @return source root URI
      */
-    public SourceRoot sourceRoot() {
+    public DocumentUri sourceRoot() {
         return sourceRoot;
     }
 

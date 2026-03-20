@@ -119,6 +119,18 @@ public class ChangeBuffer {
     }
 
     /**
+     * Removes all buffered changes for URIs whose path starts with the given root path prefix.
+     * Used during project eviction to clean up all document entries under a source root.
+     *
+     * @param rootPath the source root path prefix (from {@code URI.getPath()})
+     */
+    public void clearSubtree(String rootPath) {
+        layeredChanges.keySet().removeIf(uri -> uri.uri().getPath().startsWith(rootPath));
+        closedDocChanges.keySet().removeIf(uri -> uri.uri().getPath().startsWith(rootPath));
+        deferredWatcherEvents.keySet().removeIf(uri -> uri.uri().getPath().startsWith(rootPath));
+    }
+
+    /**
      * Returns {@code true} if any layer has pending changes for the given URI.
      *
      * @param uri document identity

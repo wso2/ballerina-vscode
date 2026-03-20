@@ -83,15 +83,15 @@ public final class UriResolver {
     }
 
     /**
-     * Evicts all cached entries under the given source root prefix.
+     * Evicts all cached entries under the given source root URI prefix.
      *
      * <p>Creates a new immutable trie snapshot with the entire subtree removed and publishes
      * it atomically. Must be called from the single maintainer thread only.</p>
      *
-     * @param sourceRoot the source root whose subtree should be evicted
+     * @param sourceRootUri the source root URI whose subtree should be evicted
      */
-    public void evictSubtree(@Nonnull SourceRoot sourceRoot) {
-        root.set(root.get().removeSubtree(toSegments(sourceRoot.path())));
+    public void evictSubtree(@Nonnull DocumentUri sourceRootUri) {
+        root.set(root.get().removeSubtree(toSegments(sourceRootUri.uri())));
     }
 
     /**

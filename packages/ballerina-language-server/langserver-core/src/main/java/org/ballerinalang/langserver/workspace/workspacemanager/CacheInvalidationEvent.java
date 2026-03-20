@@ -18,6 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+
 /**
  * Domain event signalling that a cache invalidation is required.
  * {@code affectedRoot} is {@code null} for {@link InvalidationType#BATCH_UPDATE}.
@@ -25,7 +27,7 @@ package org.ballerinalang.langserver.workspace.workspacemanager;
  * @since 1.7.0
  */
 public record CacheInvalidationEvent(
-        SourceRoot affectedRoot,
+        DocumentUri affectedRoot,
         InvalidationType type) {
 
     /**

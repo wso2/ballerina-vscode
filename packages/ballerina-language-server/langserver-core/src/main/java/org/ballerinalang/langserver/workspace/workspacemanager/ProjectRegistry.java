@@ -21,8 +21,10 @@ package org.ballerinalang.langserver.workspace.workspacemanager;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheStats;
+import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListeners;
 import com.google.common.cache.RemovalNotification;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 
 import javax.annotation.Nonnull;
 
@@ -57,7 +59,7 @@ import java.util.concurrent.locks.Lock;
 public final class ProjectRegistry {
 
     // Weight unit = MB; heterogeneous entry sizes require maximumWeight (not maximumSize).
-    private final Cache<SourceRoot, Project> cache;
+    private final Cache<DocumentUri, Project> cache;
     private final List<CacheInvalidationListener> listeners = new CopyOnWriteArrayList<>();
     private final ExecutorService evictionExecutor;
 
@@ -76,11 +78,11 @@ public final class ProjectRegistry {
     // Cache construction
     // -------------------------------------------------------------------------
 
-    private Cache<SourceRoot, Project> buildCache(MemoryBudget budget) {
+    private Cache<DocumentUri, Project> buildCache(MemoryBudget budget) {
         return CacheBuilder.newBuilder()
                 .maximumWeight(budget.toMb())
                 // Weigher: weight unit is MB; returns estimatedHeapMb() for each project.
-                .weigher((SourceRoot k, Project v) -> v.heapEstimate().estimatedHeapMb())
+                .weigher((DocumentUri k, Project v) -> v.heapEstimate().estimatedHeapMb())
                 .removalListener(RemovalListeners.asynchronous(this::onEviction, evictionExecutor))
                 .recordStats()
                 .build();
@@ -99,7 +101,7 @@ public final class ProjectRegistry {
      * @return existing or newly created project
      * @throws ExecutionException if the factory throws
      */
-    public Project computeIfAbsent(@Nonnull SourceRoot root, @Nonnull java.util.concurrent.Callable<Project> factory)
+    public Project computeIfAbsent(@Nonnull DocumentUri root, @Nonnull java.util.concurrent.Callable<Project> factory)
             throws ExecutionException {
         return cache.get(root, factory);
     }
@@ -110,7 +112,7 @@ public final class ProjectRegistry {
      * @param root    project identity; must not be null
      * @param project the project to store; must not be null
      */
-    public void register(@Nonnull SourceRoot root, @Nonnull Project project) {
+    public void register(@Nonnull DocumentUri root, @Nonnull Project project) {
         cache.put(root, project);
         fireEvent(new CacheInvalidationEvent(root, CacheInvalidationEvent.InvalidationType.PROJECT_ADDED));
     }
@@ -120,7 +122,7 @@ public final class ProjectRegistry {
      *
      * @param projects map of source roots to projects; must not be null
      */
-    public void putAll(@Nonnull Map<SourceRoot, Project> projects) {
+    public void putAll(@Nonnull Map<DocumentUri, Project> projects) {
         cache.putAll(projects);
         fireEvent(new CacheInvalidationEvent(null, CacheInvalidationEvent.InvalidationType.BATCH_UPDATE));
     }
@@ -130,7 +132,7 @@ public final class ProjectRegistry {
      *
      * @param root project identity; must not be null
      */
-    public void remove(@Nonnull SourceRoot root) {
+    public void remove(@Nonnull DocumentUri root) {
         cache.invalidate(root);
         fireEvent(new CacheInvalidationEvent(root, CacheInvalidationEvent.InvalidationType.PROJECT_REMOVED));
     }
@@ -142,7 +144,7 @@ public final class ProjectRegistry {
     public void evictBackgroundProjects() {
         cache.asMap().forEach((root, project) -> {
             if (project.openDocumentCount().tier() == ProjectTier.BACKGROUND) {
-                cache.invalidate(root);
+                remove(root);
             }
         });
     }
@@ -157,7 +159,7 @@ public final class ProjectRegistry {
      * @param root project identity; must not be null
      * @return project wrapped in Optional, or empty
      */
-    public Optional<Project> get(@Nonnull SourceRoot root) {
+    public Optional<Project> get(@Nonnull DocumentUri root) {
         return Optional.ofNullable(cache.getIfPresent(root));
     }
 
@@ -212,7 +214,7 @@ public final class ProjectRegistry {
      * Asynchronous removal callback (ADR-013). Probes the project write lock
      * to detect active mutations, then logs the eviction.
      */
-    private void onEviction(RemovalNotification<SourceRoot, Project> notification) {
+    private void onEviction(RemovalNotification<DocumentUri, Project> notification) {
         Project project = notification.getValue();
         if (project == null) {
             return;
@@ -222,7 +224,13 @@ public final class ProjectRegistry {
         if (acquired) {
             writeLock.unlock();
         }
-        // [MEMORY] evicted sourceRoot=... heapMb=... cause=...  (logged by caller when LSClientLogger available)
+        // Fire PROJECT_REMOVED only for automatic evictions (LRU/size-based).
+        // Explicit remove() already fires the event synchronously, so skip EXPLICIT cause
+        // to avoid double-firing.
+        if (notification.getCause() != RemovalCause.EXPLICIT) {
+            fireEvent(new CacheInvalidationEvent(notification.getKey(),
+                    CacheInvalidationEvent.InvalidationType.PROJECT_REMOVED));
+        }
     }
 
     private void fireEvent(CacheInvalidationEvent event) {

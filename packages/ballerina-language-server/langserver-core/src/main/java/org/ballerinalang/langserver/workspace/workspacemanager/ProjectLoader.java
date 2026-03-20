@@ -18,6 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+
 /**
  * Functional interface for loading Ballerina projects.
  *
@@ -32,9 +34,9 @@ public interface ProjectLoader {
     /**
      * Loads a Ballerina project for the given source root and project kind.
      *
-     * @param root the project source root; must not be null
+     * @param root the project source root URI; must not be null
      * @param kind the project kind; must not be null
      * @return a loaded Ballerina project; must not be null
      */
-    io.ballerina.projects.Project load(SourceRoot root, ProjectKind kind);
+    io.ballerina.projects.Project load(DocumentUri root, ProjectKind kind);
 }

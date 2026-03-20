@@ -85,11 +85,11 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     private final EventSyncPubSubHolder eventBus;
     private final ProjectLoader loader;
     private final ChangeBuffer changeBuffer;
-    private final ConcurrentHashMap<SourceRoot, Project> ballerinaProjects;
+    private final ConcurrentHashMap<DocumentUri, Project> ballerinaProjects;
     /** Per-URI monotonically increasing version counter for EDITOR-layer buffered changes. */
     private final ConcurrentHashMap<DocumentUri, AtomicInteger> versionCounters;
     private final ConcurrentHashMap<Path, AtomicInteger> dependenciesSelfWriteTokens;
-    private final ConcurrentHashMap<SourceRoot, Set<EventKind>> observedCompilerSignals;
+    private final ConcurrentHashMap<DocumentUri, Set<EventKind>> observedCompilerSignals;
 
     /**
      * Constructs a project service with full wiring of dependencies.
@@ -161,7 +161,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         }
 
         // Slow path: resolve root, get-or-create WM project (ADR-019 mandate 2)
-        SourceRoot root = resolveSourceRoot(normalized);
+        DocumentUri root = resolveSourceRoot(normalized);
         try {
             org.ballerinalang.langserver.workspace.workspacemanager.Project wmProject =
                     registry.computeIfAbsent(root,
@@ -213,14 +213,14 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         }
 
         // Scan all workspace folders and collect projects to register
-        Map<SourceRoot, org.ballerinalang.langserver.workspace.workspacemanager.Project> toRegister =
+        Map<DocumentUri, org.ballerinalang.langserver.workspace.workspacemanager.Project> toRegister =
                 new HashMap<>();
 
         for (Path folder : workspaceFolders) {
             Path normalized = folder.toAbsolutePath().normalize();
 
             // Resolve the source root and detect kind
-            SourceRoot root = resolveSourceRoot(normalized);
+            DocumentUri root = resolveSourceRoot(normalized);
             ProjectKind kind = detectKind(root);
 
             // Check if already registered
@@ -266,6 +266,8 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
                     ballerinaProjects.remove(event.affectedRoot());
                     // Evict the entire subtree from UriResolver
                     uriResolver.evictSubtree(event.affectedRoot());
+                    // Clean up per-document and per-root secondary maps
+                    purgeEntriesForRoot(event.affectedRoot());
                     publishWm(EventKind.WORKSPACE_PROJECT_EVICTED, event.affectedRoot());
                 }
             }
@@ -289,7 +291,8 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
                 .map(ResolvedEntry.ProjectEntry::project)
                 .ifPresent(project -> {
                     // Find the WM project for tier tracking
-                    registry.get(new SourceRoot(path)).ifPresent(wmProject -> {
+                    DocumentUri rootUri = toFileUri(path.toAbsolutePath().normalize());
+                    registry.get(rootUri).ifPresent(wmProject -> {
                         ProjectTier before = wmProject.openDocumentCount().tier();
                         wmProject.openDocumentCount().increment();
                         ProjectTier after = wmProject.openDocumentCount().tier();
@@ -309,20 +312,27 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
                 .map(ResolvedEntry.ProjectEntry::project)
                 .ifPresent(project -> {
                     // Find the WM project for tier tracking
-                    registry.get(new SourceRoot(path)).ifPresent(wmProject -> {
+                    DocumentUri rootUri = toFileUri(path.toAbsolutePath().normalize());
+                    registry.get(rootUri).ifPresent(wmProject -> {
                         ProjectTier before = wmProject.openDocumentCount().tier();
                         wmProject.openDocumentCount().decrement();
                         ProjectTier after = wmProject.openDocumentCount().tier();
+                        if (wmProject.kind() == ProjectKind.SINGLE_FILE) {
+                            evictProject(path);
+                        }
                         if (before != after) {
                             publishWm(EventKind.WORKSPACE_PROJECT_TIER_CHANGED, wmProject.sourceRoot());
+//                                 if (after == ProjectTier.BACKGROUND && wmProject.kind() == ProjectKind.SINGLE_FILE) {
+//                                evictProject(path);
+//                            }
                         }
                     });
                 });
     }
 
     private void onCompilationFailed(DomainEvent event) {
-        Path root = parsePath(event.coalesceScope());
-        registry.get(new SourceRoot(root)).ifPresent(project -> {
+        DocumentUri root = parseDocumentUri(event.coalesceScope());
+        registry.get(root).ifPresent(project -> {
             try {
                 project.transitionTo(ProjectHealthState.COMPILATION_CRASHED);
                 publishWm(EventKind.WORKSPACE_PROJECT_HEALTH_STATE_CHANGED, project.sourceRoot());
@@ -333,7 +343,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     private void onDiagnosticsReady(DomainEvent event) {
-        SourceRoot root = new SourceRoot(parsePath(event.coalesceScope()));
+        DocumentUri root = parseDocumentUri(event.coalesceScope());
         recordCompilerSignal(root, event.eventKind());
         registry.get(root).ifPresent(project -> {
             if (project.healthState() == ProjectHealthState.RECOVERING) {
@@ -348,17 +358,17 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     private void onResolutionDiagnosticsReady(DomainEvent event) {
-        recordCompilerSignal(new SourceRoot(parsePath(event.coalesceScope())), event.eventKind());
+        recordCompilerSignal(parseDocumentUri(event.coalesceScope()), event.eventKind());
     }
 
     private void onResolutionRecovered(DomainEvent event) {
-        SourceRoot root = new SourceRoot(parsePath(event.coalesceScope()));
+        DocumentUri root = parseDocumentUri(event.coalesceScope());
         recordCompilerSignal(root, event.eventKind());
         registry.get(root).ifPresent(project -> transitionProject(project, ProjectHealthState.RECOVERING));
     }
 
     private void onResolutionExhausted(DomainEvent event) {
-        SourceRoot root = new SourceRoot(parsePath(event.coalesceScope()));
+        DocumentUri root = parseDocumentUri(event.coalesceScope());
         recordCompilerSignal(root, event.eventKind());
         registry.get(root).ifPresent(project -> transitionProject(project, ProjectHealthState.CIRCUIT_OPEN));
     }
@@ -371,7 +381,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         }
     }
 
-    boolean hasObservedCompilerSignal(@Nonnull SourceRoot root, @Nonnull EventKind signal) {
+    boolean hasObservedCompilerSignal(@Nonnull DocumentUri root, @Nonnull EventKind signal) {
         return observedCompilerSignals.getOrDefault(root, Collections.emptySet()).contains(signal);
     }
 
@@ -382,11 +392,11 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     /**
      * Transitions a project's kind and publishes the kind-transition event.
      *
-     * @param root the project source root; must not be null
+     * @param root the project source root URI; must not be null
      * @param target the target project kind; must not be null
      * @throws IllegalStateException if the kind transition is invalid
      */
-    public void transitionKind(@Nonnull SourceRoot root, @Nonnull ProjectKind target) {
+    public void transitionKind(@Nonnull DocumentUri root, @Nonnull ProjectKind target) {
         registry.get(root).ifPresent(project -> {
             project.transitionKind(target);
             publishWm(EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED, root);
@@ -403,13 +413,12 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         Path normalized = filePath.toAbsolutePath().normalize();
         try {
             DocumentUri docUri = toFileUri(normalized);
-            SourceRoot root = uriResolver.resolve(docUri)
+            DocumentUri root = uriResolver.resolve(docUri)
                     .filter(ResolvedEntry.ProjectEntry.class::isInstance)
                     .map(ResolvedEntry.ProjectEntry.class::cast)
                     .map(e -> findSourceRoot(e.project()))
                     .orElseGet(() -> resolveSourceRoot(normalized));
-            ballerinaProjects.remove(root);
-            uriResolver.evictSubtree(root);
+            registry.remove(root);
         } catch (Exception ignored) {
             // Path not resolvable — no-op.
         }
@@ -461,7 +470,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             Document document = module.document(docId);
             // Ballerina project API is immutable: apply() returns a new Document in a new Project.
             Document updated = document.modify().withContent(content).apply();
-            SourceRoot root = resolveSourceRoot(normalized);
+            DocumentUri root = resolveSourceRoot(normalized);
             ballerinaProjects.put(root, updated.module().project());
         } catch (Exception ignored) {
             // File not yet in project or project not supporting this op — skip.
@@ -569,9 +578,9 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * If not found, uses the path itself (for single-file projects).
      *
      * @param normalized absolute, normalized path
-     * @return source root
+     * @return source root URI
      */
-    private SourceRoot resolveSourceRoot(Path normalized) {
+    private DocumentUri resolveSourceRoot(Path normalized) {
         // Check if normalized path itself or its parent directory contains Ballerina.toml
         Path currentCheck = normalized;
         if (normalized.toFile().isFile()) {
@@ -582,7 +591,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         Path current = currentCheck;
         while (current != null) {
             if (current.resolve("Ballerina.toml").toFile().exists()) {
-                return new SourceRoot(current);
+                return new DocumentUri.FileUri(current.toUri());
             }
             current = current.getParent();
         }
@@ -591,23 +600,24 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         // as the source root so the projectLoader receives a file path that
         // BallerinaCompilerApi can recognise as a SingleFileProject.
         if (normalized.toFile().isFile()) {
-            return new SourceRoot(normalized);
+            return new DocumentUri.FileUri(normalized.toUri());
         }
-        return new SourceRoot(currentCheck != null ? currentCheck : normalized);
+        return new DocumentUri.FileUri((currentCheck != null ? currentCheck : normalized).toUri());
     }
 
     /**
      * Detects the project kind based on whether Ballerina.toml exists at the root.
      *
-     * @param root the source root
+     * @param root the source root URI
      * @return BUILD if Ballerina.toml exists, SINGLE_FILE otherwise
      */
-    private ProjectKind detectKind(SourceRoot root) {
+    private ProjectKind detectKind(DocumentUri root) {
+        Path rootPath = Path.of(root.uri().getPath());
         // A file-as-root means it's a standalone .bal file (single-file project).
-        if (root.path().toFile().isFile()) {
+        if (rootPath.toFile().isFile()) {
             return ProjectKind.SINGLE_FILE;
         }
-        if (root.path().resolve("Ballerina.toml").toFile().exists()) {
+        if (rootPath.resolve("Ballerina.toml").toFile().exists()) {
             return ProjectKind.BUILD;
         }
         return ProjectKind.SINGLE_FILE;
@@ -621,10 +631,37 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      */
     private Path parsePath(String pathStr) {
         try {
+            java.net.URI uri = java.net.URI.create(pathStr);
+            if (uri.getScheme() != null) {
+                return Path.of(uri);
+            }
+        } catch (Exception ignored) {
+            // Fall through to path-based parsing
+        }
+        try {
             return Path.of(pathStr);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid path: " + pathStr, e);
         }
+    }
+
+    /**
+     * Parses a coalesce scope string into a DocumentUri.
+     * The scope may be a URI string (e.g. file:///...) or a plain path string.
+     *
+     * @param scope the coalesce scope string
+     * @return a DocumentUri representing the source root
+     */
+    private DocumentUri parseDocumentUri(String scope) {
+        try {
+            java.net.URI uri = java.net.URI.create(scope);
+            if (uri.getScheme() != null) {
+                return new DocumentUri.FileUri(uri);
+            }
+        } catch (Exception ignored) {
+            // Fall through to path-based parsing
+        }
+        return new DocumentUri.FileUri(Path.of(scope).normalize().toUri());
     }
 
     private HeapPressureLevel parseHeapPressureLevel(String rawLevel) {
@@ -659,7 +696,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
 
         ProjectKind targetKind = changeType == FileChangeType.Created ? ProjectKind.BUILD : ProjectKind.SINGLE_FILE;
         try {
-            transitionKind(new SourceRoot(rootPath.toAbsolutePath().normalize()), targetKind);
+            transitionKind(new DocumentUri.FileUri(rootPath.toAbsolutePath().normalize().toUri()), targetKind);
         } catch (IllegalStateException ignored) {
             // Ignore duplicate or otherwise invalid transitions from watcher replays.
         }
@@ -706,14 +743,14 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * Publishes a workspace-manager event with a root.
      *
      * @param kind event kind
-     * @param root affected source root
+     * @param root affected source root URI
      */
-    private void publishWm(EventKind kind, SourceRoot root) {
+    private void publishWm(EventKind kind, DocumentUri root) {
         eventBus.publish(new DomainEvent(Instant.now(), "workspace-manager", kind,
-                root.path().toString()));
+                root.uri().toString()));
     }
 
-    private void recordCompilerSignal(SourceRoot root, EventKind signal) {
+    private void recordCompilerSignal(DocumentUri root, EventKind signal) {
         if (registry.get(root).isEmpty()) {
             return;
         }
@@ -766,18 +803,43 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     /**
-     * Finds the SourceRoot for a Ballerina project by searching in ballerinaProjects.
-     * This is used when we have a Project but need to find its corresponding SourceRoot.
+     * Finds the DocumentUri (source root) for a Ballerina project by searching in ballerinaProjects.
+     * This is used when we have a Project but need to find its corresponding source root URI.
      *
      * @param project the Ballerina project
-     * @return the SourceRoot if found, or null if not found
+     * @return the source root URI if found, or null if not found
      */
-    private SourceRoot findSourceRoot(Project project) {
-        for (Map.Entry<SourceRoot, Project> entry : ballerinaProjects.entrySet()) {
+    private DocumentUri findSourceRoot(Project project) {
+        for (Map.Entry<DocumentUri, Project> entry : ballerinaProjects.entrySet()) {
             if (entry.getValue() == project) {
                 return entry.getKey();
             }
         }
         return null;
+    }
+
+    /**
+     * Removes all secondary map entries associated with the given source root.
+     *
+     * <p>Cleans up per-document entries ({@code versionCounters}, {@code changeBuffer}) whose
+     * URI path falls under the source root, the per-root {@code observedCompilerSignals} entry,
+     * and any {@code dependenciesSelfWriteTokens} whose path is within the source root directory.</p>
+     *
+     * @param root the evicted source root
+     */
+    private void purgeEntriesForRoot(DocumentUri root) {
+        String rootPath = root.uri().getPath();
+
+        // Per-document entries: version counters and change buffer
+        versionCounters.keySet().removeIf(uri -> uri.uri().getPath().startsWith(rootPath));
+        changeBuffer.clearSubtree(rootPath);
+
+        // Per-root compiler signals
+        observedCompilerSignals.remove(root);
+
+        // Dependencies.toml self-write tokens
+        Path rootDir = Path.of(root.uri()).toAbsolutePath().normalize();
+        dependenciesSelfWriteTokens.keySet().removeIf(path ->
+                path.toAbsolutePath().normalize().startsWith(rootDir));
     }
 }
