@@ -2103,6 +2103,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                 >
                   <div
                     class="css-74"
+                    color="var(--vscode-errorForeground)"
                   >
                     <div
                       class="css-75"
