@@ -91,7 +91,7 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
                                 const matchingService = services.find(s =>
                                     s.basePath === serviceMetadata?.basePath &&
                                     (!serviceMetadata?.listener || compareListeners(s.listener, serviceMetadata.listener))
-                                ) ?? services[0];
+                                ) ?? (services.length === 1 ? services[0] : undefined);
                                 if (matchingService) {
                                     const actualPort = await getServicePort(projectPath, matchingService, content.oasSpec);
                                     const bp = matchingService.basePath === '/' ? '' : matchingService.basePath;
@@ -259,7 +259,7 @@ interface OasDescriptor {
 }
 
 function isOasDescriptor(v: any): v is OasDescriptor {
-    return v !== null && typeof v === 'object' && !Array.isArray(v) && 'oasSpec' in v && 'baseUrl' in v;
+    return v !== null && typeof v === 'object' && !Array.isArray(v) && 'oasSpec' in v && 'baseUrl' in v && 'serviceName' in v;
 }
 
 async function openHurlNotebook(
