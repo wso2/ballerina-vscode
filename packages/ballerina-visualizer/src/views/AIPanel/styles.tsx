@@ -64,6 +64,8 @@ export const ChatMessage = styled.div({
     padding: "8px 20px",
 });
 
+export const TurnGroup = styled.div``;
+
 export const Badge = styled.div`
     display: inline-block;
     text-align: left;

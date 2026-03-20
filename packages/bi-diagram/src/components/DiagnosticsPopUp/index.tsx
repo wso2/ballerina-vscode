@@ -177,7 +177,7 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
     };
 
     const disabledFixTooltip = !isUserAuthenticated
-        ? "You need to be logged into BI Copilot to fix diagnostics"
+        ? "You need to be logged into WSO2 Integrator Copilot to fix diagnostics"
         : !targetRange
             ? "No source location available for diagnostics"
             : diagnosticMessages.length === 0
@@ -209,7 +209,7 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
                         <Tooltip content={disabledFixTooltip}>
                             <span>
                                 <FixButton disabled={!canFix} onClick={handleOnFix}>
-                                    Fix with BI Copilot
+                                    Fix with WSO2 Integrator Copilot
                                 </FixButton>
                             </span>
                         </Tooltip>
