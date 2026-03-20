@@ -817,21 +817,19 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
                     />
                     {titleText}
                 </TitleRow>
-                {isActive && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        {!isReviewModeOpen && hasDiagramView && (
-                            <ReviewIconButton
-                                onClick={() => navigateReviewMode(0)}
-                                disabled={isProcessing}
-                                title="Open review mode"
-                            >
-                                <span className="codicon codicon-open-preview" style={{ fontSize: "12px" }} />
-                                <span>Review</span>
-                            </ReviewIconButton>
-                        )}
-                        {renderViewToggle()}
-                    </div>
-                )}
+                <div style={{ display: "flex", alignItems: "center", gap: 4, visibility: isExpanded ? "visible" : "hidden" }}>
+                    {isActive && !isReviewModeOpen && hasDiagramView && (
+                        <ReviewIconButton
+                            onClick={() => navigateReviewMode(0)}
+                            disabled={isProcessing}
+                            title="Open review mode"
+                        >
+                            <span className="codicon codicon-open-preview" style={{ fontSize: "12px" }} />
+                            <span>Review</span>
+                        </ReviewIconButton>
+                    )}
+                    {hasDiagramView && renderViewToggle()}
+                </div>
             </TitleBarRow>
             {isExpanded && (
                 <>
