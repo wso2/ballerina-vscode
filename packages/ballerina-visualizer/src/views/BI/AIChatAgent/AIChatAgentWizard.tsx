@@ -27,6 +27,7 @@ import { RelativeLoader } from '../../../components/RelativeLoader';
 import { FormHeader } from '../../../components/FormHeader';
 import { getAiModuleOrg, getNodeTemplate } from './utils';
 import { AI, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from '../../../constants';
+import { useProjectStructure } from '../../../ProjectStructureContext';
 
 const FormContainer = styled.div`
     display: flex;
@@ -70,6 +71,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
     // module name for ai agent
     const type = "ai";
     const { rpcClient } = useRpcContext();
+    const {projectStructure} = useProjectStructure();
     const [agentName, setAgentName] = useState<string>("");
     const [nameError, setNameError] = useState<string>("");
     const [isCreating, setIsCreating] = useState<boolean>(false);

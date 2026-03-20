@@ -30,6 +30,8 @@ import { convertConfig, convertNodePropertyToFormField, getImportsForProperty } 
 import { OAUTH_CLIENT_CONFIG_PROPERTIES } from "../AIChatAgent/AIAgentSidePanel";
 import { BodyText, LoadingContainer, TopBar } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
+import { useProjectStructure } from "../../../ProjectStructureContext";
+import { useGetNodeTemplate } from "../../../hooks/useGetNodeTemplate";
 
 const FormContainer = styled.div`
     display: flex;
@@ -162,6 +164,7 @@ interface FunctionFormProps {
 
 export function FunctionForm(props: FunctionFormProps) {
     const { rpcClient } = useRpcContext();
+    const getNodeTemplate = useGetNodeTemplate();
     const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isAutomation, isAgentTool, isPopup } = props;
 
     const [functionFields, setFunctionFields] = useState<FormField[]>([]);
@@ -346,13 +349,12 @@ export function FunctionForm(props: FunctionFormProps) {
     const getFunctionNode = async (kind: NodeKind) => {
         setIsLoading(true);
         const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
-        const res = await rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: { line: 0, offset: 0 },
-                filePath: filePath,
-                id: { node: kind },
-            });
+
+        const res = await getNodeTemplate({
+            position: { line: 0, offset: 0 },
+            filePath: filePath,
+            id: { node: kind },
+        });
         let flowNode = res.flowNode;
         if (isNpFunction) {
             /* 

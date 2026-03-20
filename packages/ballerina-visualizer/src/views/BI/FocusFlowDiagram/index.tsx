@@ -60,6 +60,8 @@ import { EXPRESSION_EXTRACTION_REGEX } from "../../../constants";
 import { ConnectionKind } from "../../../components/ConnectionSelector";
 import { SidePanelView } from "../FlowDiagram/PanelManager";
 import { createPromptHelperPane } from "./utils";
+import { useProjectStructure } from "../../../ProjectStructureContext";
+import { useGetNodeTemplate } from "../../../hooks/useGetNodeTemplate";
 
 const Container = styled.div`
     width: 100%;
@@ -83,6 +85,7 @@ export interface BIFocusFlowDiagramProps {
 export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
     const { projectPath, filePath, onUpdate, onReady } = props;
     const { rpcClient } = useRpcContext();
+    const getNodeTemplate = useGetNodeTemplate();
 
     const [model, setModel] = useState<Flow>();
     const [suggestedModel, setSuggestedModel] = useState<Flow>();
@@ -331,7 +334,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
             });
     };
 
-    const handleOnEditNode = (node: FlowNode) => {
+    const handleOnEditNode = async (node: FlowNode) => {
         console.log(">>> on edit node", node);
         selectedNodeRef.current = node;
         if (suggestedText.current) {
@@ -343,16 +346,12 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         if (!targetRef.current) {
             return;
         }
-
         setShowProgressIndicator(true);
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: targetRef.current.startLine,
-                filePath: model.fileName,
-                id: node.codedata,
-            })
-            .then((response) => {
+        getNodeTemplate({
+            position: targetRef.current.startLine,
+            filePath: model.fileName,
+            id: node.codedata,
+        }).then((response) => {
                 const nodesWithCustomForms = ["IF", "FORK"];
                 // if node doesn't have properties. don't show edit form
                 if (!response.flowNode.properties && !nodesWithCustomForms.includes(response.flowNode.codedata.node)) {

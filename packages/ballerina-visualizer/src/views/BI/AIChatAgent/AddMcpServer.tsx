@@ -20,6 +20,8 @@ import { attemptValueResolution, createMockTools, extractOriginalValues, generat
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
 import { extractAccessToken, findAgentNodeFromAgentCallNode, getEndOfFileLineRange, resolveVariableValue, resolveAuthConfig } from "./utils";
+import { useProjectStructure } from "../../../ProjectStructureContext";
+import { useGetNodeTemplate } from "../../../hooks/useGetNodeTemplate";
 
 interface Tool {
     name: string;
@@ -42,6 +44,8 @@ const TOOLKIT_NAME_FIELD_KEY = "toolKitName";
 export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const { agentCallNode, onSave, editMode = false } = props;
     const { rpcClient } = useRpcContext();
+    const { projectStructure } = useProjectStructure();
+    const getNodeTemplate = useGetNodeTemplate();
 
     const [serverUrl, setServerUrl] = useState("");
     const [auth, setAuth] = useState("");
@@ -77,15 +81,13 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     };
 
     const fetchMcpToolKitTemplate = async () => {
-        const response = await rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: { line: agentFileEndLineRangeRef.current.endLine.line, offset: agentFileEndLineRangeRef.current.endLine.offset },
-                filePath: agentFilePathRef.current,
-                id: {
-                    node: "MCP_TOOL_KIT",
-                }
-            });
+        const response = await getNodeTemplate({
+            position: { line: agentFileEndLineRangeRef.current.endLine.line, offset: agentFileEndLineRangeRef.current.endLine.offset },
+            filePath: agentFilePathRef.current,
+            id: {
+                node: "MCP_TOOL_KIT",
+            },
+        });
         return response.flowNode;
     };
 
