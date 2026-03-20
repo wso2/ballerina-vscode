@@ -454,7 +454,7 @@ export interface MapWithFnRequest {
 export interface ResolveOutputRequest {
     filePath: string;
     codedata: CodeData;
-    varName?: string;
+    varName: string;
     targetField: string;
     subMappingName?: string;
 }
