@@ -30,12 +30,12 @@ import org.ballerinalang.langserver.workspace.compilerengine.RecoveryLadder;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -73,8 +73,8 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class RecoveryLadderAcceptanceTest {
 
-    private static final SourceRoot TEST_ROOT = new SourceRoot(
-            Path.of("/tmp/acceptance-recovery-ladder").toAbsolutePath().normalize());
+    private static final DocumentUri TEST_ROOT = new DocumentUri.FileUri(
+            Path.of("/tmp/acceptance-recovery-ladder").toAbsolutePath().normalize().toUri());
 
     private CompilationPipeline pipeline;
     private EventSyncPubSubHolder eventBus;

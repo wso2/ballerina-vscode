@@ -23,6 +23,7 @@ import org.ballerinalang.langserver.workspace.compilerengine.CompilationServiceI
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
@@ -36,7 +37,6 @@ import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectLoader;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -110,14 +110,14 @@ public class CrossContextBoundaryTest {
         CountDownLatch secondCompilation = new CountDownLatch(1);
         compilationService = new CompilationServiceImpl(new DualSnapshotStore(), eventBus,
                 countingAction(compileCount, secondCompilation), 50L);
-        SourceRoot root = new SourceRoot(tempDir.toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
         Path mainFile = tempDir.resolve("main.bal");
-        eventBus.publish(new DomainEvent(Instant.now(), root.path().toString(), EventKind.WORKSPACE_PROJECT_REGISTERED));
+        eventBus.publish(new DomainEvent(Instant.now(), root.uri().toString(), EventKind.WORKSPACE_PROJECT_REGISTERED));
 
         Assert.assertTrue(awaitCompileCount(compileCount, 1, 3), "Project registration should trigger initial compile");
 
-        eventBus.publish(new DomainEvent(Instant.now(), root.path().toString(), EventKind.WM_DOCUMENT_CHANGED,
-                mainFile.toString()));
+        eventBus.publish(new DomainEvent(Instant.now(), root.uri().toString(), EventKind.WM_DOCUMENT_CHANGED,
+                mainFile.toUri().toString()));
 
         Assert.assertTrue(secondCompilation.await(3, TimeUnit.SECONDS),
                 "WM_DOCUMENT_CHANGED should trigger a second compilation in CE");
@@ -126,8 +126,8 @@ public class CrossContextBoundaryTest {
     @Test
     public void rmHeapPressure_crossesToProjectServiceAndEvictsBackgroundProjects() throws Exception {
         projectService = createProjectService();
-        SourceRoot activeRoot = new SourceRoot(tempDir.toAbsolutePath().normalize());
-        SourceRoot backgroundRoot = new SourceRoot(tempDir.resolve("background").toAbsolutePath().normalize());
+        DocumentUri activeRoot = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
+        DocumentUri backgroundRoot = new DocumentUri.FileUri(tempDir.resolve("background").toAbsolutePath().normalize().toUri());
 
         Project activeProject = new Project(activeRoot, ProjectKind.BUILD, HeapEstimate.ofMb(64));
         Project backgroundProject = new Project(backgroundRoot, ProjectKind.BUILD, HeapEstimate.ofMb(64));
@@ -150,15 +150,15 @@ public class CrossContextBoundaryTest {
         CountDownLatch throttledCompilation = new CountDownLatch(1);
         compilationService = new CompilationServiceImpl(new DualSnapshotStore(), eventBus,
                 countingAction(compileCount, throttledCompilation), 50L, 300L);
-        SourceRoot root = new SourceRoot(tempDir.toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
         Path mainFile = tempDir.resolve("main.bal");
-        eventBus.publish(new DomainEvent(Instant.now(), root.path().toString(), EventKind.WORKSPACE_PROJECT_REGISTERED));
+        eventBus.publish(new DomainEvent(Instant.now(), root.uri().toString(), EventKind.WORKSPACE_PROJECT_REGISTERED));
         Assert.assertTrue(awaitCompileCount(compileCount, 1, 3), "Project registration should trigger initial compile");
 
         eventBus.publish(new DomainEvent(Instant.now(), "resource-monitor",
                 EventKind.RM_E1_HEAP_PRESSURE_DETECTED, HeapPressureLevel.WARNING.name()));
-        eventBus.publish(new DomainEvent(Instant.now(), root.path().toString(), EventKind.WM_DOCUMENT_CHANGED,
-                mainFile.toString()));
+        eventBus.publish(new DomainEvent(Instant.now(), root.uri().toString(), EventKind.WM_DOCUMENT_CHANGED,
+                mainFile.toUri().toString()));
 
         Assert.assertFalse(throttledCompilation.await(150, TimeUnit.MILLISECONDS),
                 "RM_E1 should throttle immediate recompilation requests in CE");
@@ -171,10 +171,10 @@ public class CrossContextBoundaryTest {
         projectService = createProjectService();
         Path mainFile = tempDir.resolve("main.bal");
         projectService.loadOrCreate(mainFile, () -> { });
-        SourceRoot root = new SourceRoot(tempDir.toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
 
         eventBus.publish(new DomainEvent(Instant.now(), "compiler-engine",
-                EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY, root.path().toString()));
+                EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY, root.uri().toString()));
 
         Assert.assertTrue(awaitCondition(() -> hasObservedCompilerSignal(root, EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY), 3),
                 "CE-E5a should be observed by ProjectService");
@@ -185,14 +185,14 @@ public class CrossContextBoundaryTest {
         projectService = createProjectService();
         Path mainFile = tempDir.resolve("main.bal");
         projectService.loadOrCreate(mainFile, () -> { });
-        SourceRoot root = new SourceRoot(tempDir.toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
         Project project = registry.get(root).orElseThrow();
         project.notifySourceChanged();
         project.transitionTo(ProjectHealthState.COMPILATION_CRASHED);
         project.transitionTo(ProjectHealthState.RECOVERING);
 
         eventBus.publish(new DomainEvent(Instant.now(), "compiler-engine",
-                EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY, root.path().toString()));
+                EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY, root.uri().toString()));
 
         Assert.assertTrue(awaitCondition(() -> project.healthState() == ProjectHealthState.HEALTHY, 3),
                 "CE-E5b should restore a recovering project to HEALTHY");
@@ -203,13 +203,13 @@ public class CrossContextBoundaryTest {
         projectService = createProjectService();
         Path mainFile = tempDir.resolve("main.bal");
         projectService.loadOrCreate(mainFile, () -> { });
-        SourceRoot root = new SourceRoot(tempDir.toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
         Project project = registry.get(root).orElseThrow();
         project.transitionTo(ProjectHealthState.PROJECT_CRASHED);
         project.transitionTo(ProjectHealthState.RECOVERING);
 
         eventBus.publish(new DomainEvent(Instant.now(), "compiler-engine",
-                EventKind.CE_RESOLUTION_EXHAUSTED, root.path().toString()));
+                EventKind.CE_RESOLUTION_EXHAUSTED, root.uri().toString()));
 
         Assert.assertTrue(awaitCondition(() -> project.healthState() == ProjectHealthState.CIRCUIT_OPEN, 3),
                 "CE resolution exhaustion should move a recovering project to CIRCUIT_OPEN");
@@ -220,14 +220,14 @@ public class CrossContextBoundaryTest {
         projectService = createProjectService();
         Path mainFile = tempDir.resolve("main.bal");
         projectService.loadOrCreate(mainFile, () -> { });
-        SourceRoot root = new SourceRoot(tempDir.toAbsolutePath().normalize());
+        DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
         Project project = registry.get(root).orElseThrow();
         project.transitionTo(ProjectHealthState.PROJECT_CRASHED);
         project.transitionTo(ProjectHealthState.RECOVERING);
         project.transitionTo(ProjectHealthState.CIRCUIT_OPEN);
 
         eventBus.publish(new DomainEvent(Instant.now(), "compiler-engine",
-                EventKind.CE_RESOLUTION_RECOVERED, root.path().toString()));
+                EventKind.CE_RESOLUTION_RECOVERED, root.uri().toString()));
 
         Assert.assertTrue(awaitCondition(() -> project.healthState() == ProjectHealthState.RECOVERING, 3),
                 "CE resolution recovery should move a circuit-open project back to RECOVERING");
@@ -249,9 +249,9 @@ public class CrossContextBoundaryTest {
         };
     }
 
-    private boolean hasObservedCompilerSignal(SourceRoot root, EventKind signal) {
+    private boolean hasObservedCompilerSignal(DocumentUri root, EventKind signal) {
         try {
-            Method method = ProjectServiceImpl.class.getDeclaredMethod("hasObservedCompilerSignal", SourceRoot.class,
+            Method method = ProjectServiceImpl.class.getDeclaredMethod("hasObservedCompilerSignal", DocumentUri.class,
                     EventKind.class);
             method.setAccessible(true);
             return (boolean) method.invoke(projectService, root, signal);

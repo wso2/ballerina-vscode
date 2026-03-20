@@ -34,16 +34,15 @@ import org.ballerinalang.langserver.workspace.workspacemanager.HeapEstimate;
 import org.ballerinalang.langserver.workspace.workspacemanager.Project;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ResolvedEntry;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.net.URI;
-import java.nio.file.Paths;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -146,7 +145,8 @@ public class ThreadSafetyTest {
 
     @Test
     public void testConcurrentReadsDoNotBlockEachOther() {
-        Project project = new Project(new SourceRoot(Paths.get("/tmp/test")),
+        Project project = new Project(
+                new DocumentUri.FileUri(Path.of("/tmp/test").toAbsolutePath().normalize().toUri()),
                 ProjectKind.BUILD, HeapEstimate.ofMb(10));
         Lock readLock = project.projectLock().readLock();
 
@@ -313,7 +313,7 @@ public class ThreadSafetyTest {
     @Test
     public void testDualSnapshotStoreNullBeforeFirstPublish() {
         DualSnapshotStore store = new DualSnapshotStore();
-        SourceRoot sourceRoot = new SourceRoot(Paths.get("/tmp/proj"));
+        DocumentUri sourceRoot = new DocumentUri.FileUri(Path.of("/tmp/proj").toAbsolutePath().normalize().toUri());
 
         Assert.assertNull(store.getStable(sourceRoot),
                 "getStable() must return null before any publishStable() call");
@@ -326,7 +326,7 @@ public class ThreadSafetyTest {
     @Test
     public void testDualSnapshotStoreAtomicPublish() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        SourceRoot sourceRoot = new SourceRoot(Paths.get("/tmp/proj"));
+        DocumentUri sourceRoot = new DocumentUri.FileUri(Path.of("/tmp/proj").toAbsolutePath().normalize().toUri());
 
         StableSnapshot oldSnapshot = stubSnapshot(new ContentVersion(1));
         StableSnapshot newSnapshot = stubSnapshot(new ContentVersion(2));
@@ -380,14 +380,14 @@ public class ThreadSafetyTest {
     }
 
     /**
-     * 10 threads call startCompilation() concurrently on the same SourceRoot.
+     * 10 threads call startCompilation() concurrently on the same project root URI.
      * All calls must return a non-null InProgressSnapshot, and the store's
      * getInProgress() result must be one of the returned snapshots.
      */
     @Test
     public void testDualSnapshotStoreStartCompilationIsAtomic() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        SourceRoot sourceRoot = new SourceRoot(Paths.get("/tmp/proj"));
+        DocumentUri sourceRoot = new DocumentUri.FileUri(Path.of("/tmp/proj").toAbsolutePath().normalize().toUri());
 
         int threadCount = 10;
         CyclicBarrier startBarrier = new CyclicBarrier(threadCount);

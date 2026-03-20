@@ -29,10 +29,10 @@ import org.ballerinalang.langserver.workspace.compilerengine.InProgressSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -54,8 +54,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class CancellationModelTest {
 
-    private static final SourceRoot TEST_ROOT = new SourceRoot(
-            Path.of("/tmp/acceptance-cancellation-model").toAbsolutePath().normalize());
+    private static final DocumentUri TEST_ROOT = new DocumentUri.FileUri(
+            Path.of("/tmp/acceptance-cancellation-model").toAbsolutePath().normalize().toUri());
 
     private CompilationPipeline pipeline;
     private EventSyncPubSubHolder eventBus;
