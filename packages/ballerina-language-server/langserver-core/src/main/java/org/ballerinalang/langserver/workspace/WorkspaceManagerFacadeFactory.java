@@ -26,6 +26,7 @@ import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.environment.PackageLockingMode;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
@@ -39,6 +40,7 @@ import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.RecoveryLadder;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.lspgateway.ClientSession;
@@ -89,30 +91,38 @@ public final class WorkspaceManagerFacadeFactory {
 
         CompilationPipeline.CompilationAction compilationAction = new CompilationPipeline.CompilationAction() {
             @Override
+            public PackageDescriptor describe(DocumentUri sourceRootUri) {
+                Project project = projectService().loadOrCreate(Path.of(sourceRootUri.uri()), null);
+                return project.currentPackage().descriptor();
+            }
+
+            @Override
             public ResolutionResult resolve(CompileTask task) {
                 ProjectServiceImpl ps = projectService();
                 LockingMode lockingMode = currentLockingMode(task);
+                Path sourceRoot = Path.of(task.sourceRootUri().uri());
                 try {
-                    Project project = ps.loadOrCreate(task.sourceRoot().path(), null);
+                    Project project = ps.loadOrCreate(sourceRoot, null);
                     project.currentPackage().getResolution(compilationOptions(lockingMode));
-                    return new ResolutionResult(task.sourceRoot(), List.of(), true);
+                    return new ResolutionResult(task.sourceRootUri(), List.of(), true);
                 } catch (RuntimeException e) {
                     String message = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
-                    return new ResolutionResult(task.sourceRoot(), List.of(
+                    return new ResolutionResult(task.sourceRootUri(), List.of(
                             new ResolutionResult.ResolutionDiagnostic(ResolutionResult.Severity.ERROR,
-                                    message, task.sourceRoot().path().toString())), false);
+                                    message, sourceRoot.toString())), false);
                 }
             }
 
             @Override
             public StableSnapshot compile(CompileTask task) {
-                return snapshot(projectService().loadOrCreate(task.sourceRoot().path(), null), task.contentVersion());
+                return snapshot(projectService().loadOrCreate(Path.of(task.sourceRootUri().uri()), null),
+                        task.contentVersion());
             }
 
             @Override
             public LockingMode currentLockingMode(CompileTask task) {
                 ProjectServiceImpl ps = projectService();
-                Project project = ps.loadOrCreate(task.sourceRoot().path(), null);
+                Project project = ps.loadOrCreate(Path.of(task.sourceRootUri().uri()), null);
                 return ps.getLockingMode(project);
             }
 
@@ -122,7 +132,7 @@ public final class WorkspaceManagerFacadeFactory {
                 while (recoveryMode != initialMode) {
                     try {
                         Project transientProject = BallerinaCompilerApi.getInstance()
-                                .loadProject(task.sourceRoot().path(), buildOptions(recoveryMode));
+                                .loadProject(Path.of(task.sourceRootUri().uri()), buildOptions(recoveryMode));
                         transientProject.currentPackage().getResolution(compilationOptions(recoveryMode));
                         transientProject.currentPackage().getCompilation();
                         return CompilationPipeline.RecoveryResult.success();
@@ -195,7 +205,7 @@ public final class WorkspaceManagerFacadeFactory {
                 .projectRegistry(projectRegistry)
                 .uriResolver(uriResolver)
                 .projectLoader((root, kind) ->
-                        BallerinaCompilerApi.getInstance().loadProject(root.path(), buildOptions))
+                        BallerinaCompilerApi.getInstance().loadProject(Path.of(root.uri()), buildOptions))
                 .gracePeriod(gracePeriod)
                 .build();
 

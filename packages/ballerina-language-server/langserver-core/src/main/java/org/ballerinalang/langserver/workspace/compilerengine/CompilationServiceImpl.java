@@ -18,20 +18,21 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
+import io.ballerina.projects.PackageDescriptor;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
-import org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -67,9 +68,10 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     private final long retryDelayMs;
     private final long heapPressureThrottleMs;
     private final ScheduledExecutorService retryScheduler;
-    private final Map<SourceRoot, CompilationPipeline> pipelines;
-    private final Map<SourceRoot, CircuitBreakerAction> circuitActions;
-    private final Map<SourceRoot, ScheduledFuture<?>> throttledRequests;
+    private final Map<DocumentUri, CompilationPipeline> pipelines;
+    private final Map<DocumentUri, CircuitBreakerAction> circuitActions;
+    private final Map<DocumentUri, ScheduledFuture<?>> throttledRequests;
+    private final Map<PackageDescriptor, DocumentUri> descriptorIndex;
     private final AtomicInteger versionCounter;
     private final AtomicLong throttledUntilNanos;
     private final AtomicBoolean closed;
@@ -119,6 +121,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         this.pipelines = new ConcurrentHashMap<>();
         this.circuitActions = new ConcurrentHashMap<>();
         this.throttledRequests = new ConcurrentHashMap<>();
+        this.descriptorIndex = new ConcurrentHashMap<>();
         this.versionCounter = new AtomicInteger(0);
         this.throttledUntilNanos = new AtomicLong(0L);
         this.closed = new AtomicBoolean(false);
@@ -132,29 +135,29 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     @Override
-    public StableSnapshot stableSnapshot(@Nonnull Path path, CancelChecker cancelChecker) {
-        Optional<SourceRoot> sourceRoot = findSourceRoot(path);
-        if (sourceRoot.isEmpty()) {
+    public StableSnapshot stableSnapshot(@Nonnull PackageDescriptor descriptor, CancelChecker cancelChecker) {
+        DocumentUri uri = descriptorIndex.get(descriptor);
+        if (uri == null) {
             return null;
         }
-        StableSnapshot stableSnapshot = snapshotStore.getStable(sourceRoot.get());
+        StableSnapshot stableSnapshot = snapshotStore.getStable(uri);
         if (stableSnapshot != null) {
             return stableSnapshot;
         }
-        return awaitInProgress(sourceRoot.get(), cancelChecker);
+        return awaitInProgress(uri, cancelChecker);
     }
 
     @Override
-    public SnapshotView latestSnapshot(@Nonnull Path path, CancelChecker cancelChecker) {
-        Optional<SourceRoot> sourceRoot = findSourceRoot(path);
-        if (sourceRoot.isEmpty()) {
+    public SnapshotView latestSnapshot(@Nonnull PackageDescriptor descriptor, CancelChecker cancelChecker) {
+        DocumentUri uri = descriptorIndex.get(descriptor);
+        if (uri == null) {
             return null;
         }
-        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(sourceRoot.get());
+        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(uri);
         if (inProgressSnapshot != null) {
             return inProgressSnapshot;
         }
-        return snapshotStore.getStable(sourceRoot.get());
+        return snapshotStore.getStable(uri);
     }
 
     @Override
@@ -168,6 +171,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         pipelines.clear();
         circuitActions.clear();
         throttledRequests.clear();
+        descriptorIndex.clear();
         retryScheduler.shutdownNow();
     }
 
@@ -191,18 +195,14 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     private void handleWorkspaceEvent(DomainEvent event) {
-        SourceRoot sourceRoot = reconstructSourceRoot(event);
-        System.err.println("[CE] Workspace event: " + event.eventKind() + " for " + sourceRoot.path());
+        DocumentUri sourceRootUri = reconstructSourceUri(event);
 
         switch (event.eventKind()) {
-            case WORKSPACE_PROJECT_REGISTERED -> {
-                System.err.println("[CE] Creating pipeline for: " + sourceRoot.path());
-                createPipelineIfAbsent(sourceRoot);
-            }
-            case WORKSPACE_PROJECT_EVICTED -> evictPipeline(sourceRoot);
+            case WORKSPACE_PROJECT_REGISTERED -> createPipelineIfAbsent(sourceRootUri);
+            case WORKSPACE_PROJECT_EVICTED -> evictPipeline(sourceRootUri);
             case WORKSPACE_PROJECT_KIND_TRANSITIONED -> {
-                evictPipeline(sourceRoot);
-                createPipelineIfAbsent(sourceRoot);
+                evictPipeline(sourceRootUri);
+                createPipelineIfAbsent(sourceRootUri);
             }
             default -> {
                 // No-op for unexpected event kinds
@@ -226,14 +226,14 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     private void handleDocumentChanged(DomainEvent event) {
-        SourceRoot sourceRoot = reconstructSourceRoot(event);
-        requestCompilationWithThrottle(sourceRoot);
+        DocumentUri sourceRootUri = reconstructSourceUri(event);
+        requestCompilationWithThrottle(sourceRootUri);
     }
 
     private void handleFileWatchedChanged(DomainEvent event) {
-        SourceRoot sourceRoot = reconstructSourceRoot(event);
+        DocumentUri sourceRootUri = reconstructSourceUri(event);
         if (isDependencyGraphChange(event.coalesceScope())) {
-            requestCompilationWithThrottle(sourceRoot);
+            requestCompilationWithThrottle(sourceRootUri);
         }
         // "CONFIGURATION" scope is ignored
     }
@@ -250,32 +250,32 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
     }
 
-    private void requestCompilationWithThrottle(SourceRoot sourceRoot) {
-        CompilationPipeline pipeline = pipelines.get(sourceRoot);
+    private void requestCompilationWithThrottle(DocumentUri sourceRootUri) {
+        CompilationPipeline pipeline = pipelines.get(sourceRootUri);
         if (pipeline == null) {
             return;
         }
 
         long delayNanos = throttledUntilNanos.get() - System.nanoTime();
         if (delayNanos <= 0) {
-            cancelThrottledRequest(sourceRoot);
+            cancelThrottledRequest(sourceRootUri);
             requestCompilation(pipeline);
             return;
         }
 
-        ScheduledFuture<?> existing = throttledRequests.remove(sourceRoot);
+        ScheduledFuture<?> existing = throttledRequests.remove(sourceRootUri);
         if (existing != null) {
             existing.cancel(false);
         }
 
         ScheduledFuture<?> scheduled = retryScheduler.schedule(() -> {
-            throttledRequests.remove(sourceRoot);
-            CompilationPipeline activePipeline = pipelines.get(sourceRoot);
+            throttledRequests.remove(sourceRootUri);
+            CompilationPipeline activePipeline = pipelines.get(sourceRootUri);
             if (activePipeline != null && !closed.get()) {
                 requestCompilation(activePipeline);
             }
         }, TimeUnit.NANOSECONDS.toMillis(delayNanos), TimeUnit.MILLISECONDS);
-        throttledRequests.put(sourceRoot, scheduled);
+        throttledRequests.put(sourceRootUri, scheduled);
     }
 
     private void requestCompilation(CompilationPipeline pipeline) {
@@ -283,8 +283,8 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         pipeline.requestCompilation(nextVersion);
     }
 
-    private void cancelThrottledRequest(SourceRoot sourceRoot) {
-        ScheduledFuture<?> pendingRequest = throttledRequests.remove(sourceRoot);
+    private void cancelThrottledRequest(DocumentUri sourceRootUri) {
+        ScheduledFuture<?> pendingRequest = throttledRequests.remove(sourceRootUri);
         if (pendingRequest != null) {
             pendingRequest.cancel(false);
         }
@@ -299,46 +299,45 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
     }
 
-    private void createPipelineIfAbsent(SourceRoot sourceRoot) {
-        if (pipelines.containsKey(sourceRoot)) {
-            System.err.println("[CE] Pipeline already exists for: " + sourceRoot.path());
+    private void createPipelineIfAbsent(DocumentUri sourceRootUri) {
+        if (pipelines.containsKey(sourceRootUri)) {
             return;
         }
-        System.err.println("[CE] Creating new pipeline for: " + sourceRoot.path());
-        CircuitBreakerAction circuitAction = new CircuitBreakerAction(sourceRoot);
-        CompilationPipeline pipeline = new CompilationPipeline(sourceRoot, snapshotStore, eventBus, circuitAction);
-        CompilationPipeline existing = pipelines.putIfAbsent(sourceRoot, pipeline);
+        PackageDescriptor descriptor;
+        try {
+            descriptor = baseAction.describe(sourceRootUri);
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Failed to describe project at " + sourceRootUri, e);
+            return;
+        }
+        CircuitBreakerAction circuitAction = new CircuitBreakerAction(sourceRootUri);
+        CompilationPipeline pipeline = new CompilationPipeline(sourceRootUri, snapshotStore, eventBus, circuitAction);
+        CompilationPipeline existing = pipelines.putIfAbsent(sourceRootUri, pipeline);
         if (existing != null) {
-            System.err.println("[CE] Pipeline race condition for: " + sourceRoot.path());
             pipeline.close();
             return;
         }
-        circuitActions.put(sourceRoot, circuitAction);
-        System.err.println("[CE] Requesting compilation for: " + sourceRoot.path());
+        descriptorIndex.put(descriptor, sourceRootUri);
+        circuitActions.put(sourceRootUri, circuitAction);
         pipeline.requestCompilation(new ContentVersion(versionCounter.getAndIncrement()));
     }
 
-    private void evictPipeline(SourceRoot sourceRoot) {
-        CompilationPipeline pipeline = pipelines.remove(sourceRoot);
-        circuitActions.remove(sourceRoot);
-        ScheduledFuture<?> pendingRequest = throttledRequests.remove(sourceRoot);
+    private void evictPipeline(DocumentUri sourceRootUri) {
+        CompilationPipeline pipeline = pipelines.remove(sourceRootUri);
+        circuitActions.remove(sourceRootUri);
+        descriptorIndex.entrySet().removeIf(e -> e.getValue().equals(sourceRootUri));
+        ScheduledFuture<?> pendingRequest = throttledRequests.remove(sourceRootUri);
         if (pendingRequest != null) {
             pendingRequest.cancel(false);
         }
         if (pipeline != null) {
             pipeline.close();
-            snapshotStore.remove(sourceRoot);
+            snapshotStore.remove(sourceRootUri);
         }
     }
 
-    private Optional<SourceRoot> findSourceRoot(Path path) {
-        return pipelines.keySet().stream()
-                .filter(sr -> path.startsWith(sr.path()))
-                .findFirst();
-    }
-
-    private StableSnapshot awaitInProgress(SourceRoot sourceRoot, CancelChecker cancelChecker) {
-        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(sourceRoot);
+    private StableSnapshot awaitInProgress(DocumentUri sourceRootUri, CancelChecker cancelChecker) {
+        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(sourceRootUri);
         if (!(inProgressSnapshot instanceof DualSnapshotStore.StoreInProgressSnapshot storeInProgress)) {
             return null;
         }
@@ -359,8 +358,9 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
     }
 
-    private SourceRoot reconstructSourceRoot(DomainEvent event) {
-        return new SourceRoot(Path.of(event.sourceContext()).normalize());
+    private DocumentUri reconstructSourceUri(DomainEvent event) {
+        URI uri = URI.create(event.coalesceScope());
+        return new DocumentUri.FileUri(uri);
     }
 
     private boolean isDependencyGraphChange(String scope) {
@@ -378,13 +378,13 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      */
     private class CircuitBreakerAction implements CompilationPipeline.CompilationAction {
 
-        private final SourceRoot sourceRoot;
+        private final DocumentUri sourceRootUri;
         private final AtomicInteger retryCount;
         private final AtomicBoolean circuitOpen;
         private volatile ScheduledFuture<?> retryTask;
 
-        CircuitBreakerAction(SourceRoot sourceRoot) {
-            this.sourceRoot = sourceRoot;
+        CircuitBreakerAction(DocumentUri sourceRootUri) {
+            this.sourceRootUri = sourceRootUri;
             this.retryCount = new AtomicInteger(0);
             this.circuitOpen = new AtomicBoolean(false);
         }
@@ -397,7 +397,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         @Override
         public StableSnapshot compile(CompileTask task) throws Exception {
             if (circuitOpen.get()) {
-                throw new IllegalStateException("Circuit breaker is open for " + sourceRoot);
+                throw new IllegalStateException("Circuit breaker is open for " + sourceRootUri);
             }
 
             try {
@@ -442,7 +442,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         private void scheduleRetryOrOpenCircuit(FailureClass failureClass) {
             if (failureClass == FailureClass.TRANSIENT && retryCount.getAndIncrement() < 1) {
                 // Schedule a retry for the next compilation request
-                CompilationPipeline pipeline = pipelines.get(sourceRoot);
+                CompilationPipeline pipeline = pipelines.get(sourceRootUri);
                 if (pipeline != null) {
                     retryTask = retryScheduler.schedule(() -> {
                         ContentVersion nextVersion = new ContentVersion(versionCounter.getAndIncrement());
@@ -458,11 +458,11 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
         private void emitRecoveryExhausted() {
             try {
-                DomainEvent event = new DomainEvent(Instant.now(), sourceRoot.path().toString(),
+                DomainEvent event = new DomainEvent(Instant.now(), sourceRootUri.uri().toString(),
                         EventKind.CE_RESOLUTION_EXHAUSTED);
                 eventBus.publish(event);
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to emit CE-E6 for " + sourceRoot, e);
+                LOG.log(Level.WARNING, "Failed to emit CE-E6 for " + sourceRootUri, e);
             }
         }
 

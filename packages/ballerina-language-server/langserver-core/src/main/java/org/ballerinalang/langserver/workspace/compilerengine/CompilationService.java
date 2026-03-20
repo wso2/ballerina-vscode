@@ -18,9 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
+import io.ballerina.projects.PackageDescriptor;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
-
-import java.nio.file.Path;
 import javax.annotation.Nonnull;
 
 /**
@@ -31,23 +30,20 @@ import javax.annotation.Nonnull;
 public interface CompilationService {
 
     /**
-     * Returns the stable snapshot for a path.
+     * Returns the stable snapshot for the given package, blocking until one is available.
      *
-     * @param path source path
+     * @param descriptor the package descriptor identifying the compilation unit
      * @param cancelChecker cancel checker
-     * @return stable snapshot
+     * @return stable snapshot, or {@code null} if the package is not tracked
      */
-    StableSnapshot stableSnapshot(@Nonnull Path path, CancelChecker cancelChecker);
+    StableSnapshot stableSnapshot(@Nonnull PackageDescriptor descriptor, CancelChecker cancelChecker);
 
     /**
-     * Returns the latest available snapshot view for a path.
+     * Returns the latest available snapshot view for the given package.
      *
-     * <p>This prefers an active in-progress snapshot when compilation is running,
-     * and otherwise falls back to the last published stable snapshot.
-     *
-     * @param path source path
+     * @param descriptor the package descriptor identifying the compilation unit
      * @param cancelChecker cancel checker
      * @return latest available snapshot view
      */
-    SnapshotView latestSnapshot(@Nonnull Path path, CancelChecker cancelChecker);
+    SnapshotView latestSnapshot(@Nonnull PackageDescriptor descriptor, CancelChecker cancelChecker);
 }
