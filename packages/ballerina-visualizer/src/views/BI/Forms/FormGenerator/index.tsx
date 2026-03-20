@@ -106,6 +106,7 @@ import KnowledgeBaseForm from "../KnowledgeBaseForm";
 import { EditorContext, StackItem, TypeHelperItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
 import React from "react";
+import { useProjectStructure } from "../../../../ProjectStructureContext";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
 import { getFilteredTypesByKind } from "../../TypeEditor/utils";
@@ -236,6 +237,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     } = props;
 
     const { rpcClient } = useRpcContext();
+    const { projectStructure } = useProjectStructure();
+
     const [baseFields, setBaseFields] = useState<FormField[]>([]);
     const formImportsRef = useRef<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
