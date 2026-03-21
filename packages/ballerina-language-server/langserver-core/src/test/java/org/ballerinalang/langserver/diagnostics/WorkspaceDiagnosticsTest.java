@@ -28,7 +28,8 @@ import org.ballerinalang.langserver.contexts.LanguageServerContextImpl;
 import org.ballerinalang.langserver.diagnostic.DiagnosticsHelper;
 import org.ballerinalang.langserver.util.FileUtils;
 import org.ballerinalang.langserver.util.TestUtil;
-import org.ballerinalang.langserver.workspace.BallerinaWorkspaceManager;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
+import org.ballerinalang.langserver.workspace.WorkspaceManagerFacadeFactory;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
@@ -57,7 +58,7 @@ public class WorkspaceDiagnosticsTest {
     private Endpoint serviceEndpoint;
     private final Path testRoot = FileUtils.RES_DIR.resolve("diagnostics").resolve("workspace-diag");
     private final LanguageServerContext serverContext = new LanguageServerContextImpl();
-    private final BallerinaWorkspaceManager workspaceManager = new BallerinaWorkspaceManager(serverContext);
+    private final WorkspaceManager workspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
 
     @BeforeClass
     public void init() {

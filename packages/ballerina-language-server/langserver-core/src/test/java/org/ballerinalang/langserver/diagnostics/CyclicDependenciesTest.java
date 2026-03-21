@@ -27,7 +27,8 @@ import org.ballerinalang.langserver.contexts.ContextBuilder;
 import org.ballerinalang.langserver.contexts.LanguageServerContextImpl;
 import org.ballerinalang.langserver.diagnostic.DiagnosticsHelper;
 import org.ballerinalang.langserver.util.FileUtils;
-import org.ballerinalang.langserver.workspace.BallerinaWorkspaceManager;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
+import org.ballerinalang.langserver.workspace.WorkspaceManagerFacadeFactory;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
 import org.mockito.Mockito;
@@ -48,12 +49,12 @@ public class CyclicDependenciesTest {
 
     private final Path projectRoot = FileUtils.RES_DIR.resolve("diagnostics").resolve("sources");
     private LanguageServerContext serverContext;
-    private BallerinaWorkspaceManager workspaceManager;
+    private WorkspaceManager workspaceManager;
 
     @BeforeClass
     public void setup() {
         serverContext = new LanguageServerContextImpl();
-        workspaceManager = new BallerinaWorkspaceManager(serverContext);
+        workspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
     }
 
     @AfterClass
@@ -63,7 +64,7 @@ public class CyclicDependenciesTest {
     }
 
     // TODO: Tracked with https://github.com/wso2/product-ballerina-integrator/issues/1375
-    @Test(dataProvider = "cyclic-package-provider", enabled = false)
+    @Test(dataProvider = "cyclic-package-provider")
     public void testCyclicDependenciesOnOpen(String packageName, List<String> expectedMessages)
             throws WorkspaceDocumentException, EventSyncException,
             InterruptedException {

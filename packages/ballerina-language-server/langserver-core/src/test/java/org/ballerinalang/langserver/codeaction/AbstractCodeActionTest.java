@@ -36,7 +36,7 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.contexts.LanguageServerContextImpl;
 import org.ballerinalang.langserver.util.FileUtils;
 import org.ballerinalang.langserver.util.TestUtil;
-import org.ballerinalang.langserver.workspace.BallerinaWorkspaceManager;
+import org.ballerinalang.langserver.workspace.WorkspaceManagerFacadeFactory;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionContext;
 import org.eclipse.lsp4j.Diagnostic;
@@ -332,7 +332,7 @@ public abstract class AbstractCodeActionTest extends AbstractLSTest {
 
     @BeforeClass
     public void setup() {
-        workspaceManager = new BallerinaWorkspaceManager(new LanguageServerContextImpl());
+        workspaceManager = WorkspaceManagerFacadeFactory.create(new LanguageServerContextImpl());
         serverContext = new LanguageServerContextImpl();
     }
 
