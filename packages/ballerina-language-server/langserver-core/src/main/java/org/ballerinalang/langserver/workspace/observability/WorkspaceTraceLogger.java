@@ -62,7 +62,7 @@ public class WorkspaceTraceLogger implements AutoCloseable {
      * @param eventBus the event bus to subscribe to
      */
     public WorkspaceTraceLogger(EventSyncPubSubHolder eventBus) {
-        this(eventBus, LogLevel.INFO, defaultSinks());
+        this(eventBus, LogLevel.TRACE, defaultSinks());
     }
 
     /**
@@ -72,7 +72,7 @@ public class WorkspaceTraceLogger implements AutoCloseable {
      * @param eventConsumer consumer for received events
      */
     public WorkspaceTraceLogger(EventSyncPubSubHolder eventBus, Consumer<DomainEvent> eventConsumer) {
-        this(eventBus, LogLevel.INFO, eventConsumer);
+        this(eventBus, LogLevel.TRACE, eventConsumer);
     }
 
     /**
@@ -84,7 +84,7 @@ public class WorkspaceTraceLogger implements AutoCloseable {
     @Deprecated(forRemoval = true)
     public WorkspaceTraceLogger(EventSyncPubSubHolder eventBus,
                                 BiConsumer<String, Map<String, String>> logConsumer) {
-        this(eventBus, LogLevel.INFO, logConsumer != null ? List.of(asSink(logConsumer)) : defaultSinks());
+        this(eventBus, LogLevel.TRACE, logConsumer != null ? List.of(asSink(logConsumer)) : defaultSinks());
     }
 
     /**
@@ -97,7 +97,7 @@ public class WorkspaceTraceLogger implements AutoCloseable {
     public WorkspaceTraceLogger(EventSyncPubSubHolder eventBus, LogLevel initialLevel,
                                 List<TraceLogSink> sinks) {
         this.eventBus = eventBus;
-        this.logLevel = new AtomicReference<>(initialLevel != null ? initialLevel : LogLevel.INFO);
+        this.logLevel = new AtomicReference<>(initialLevel != null ? initialLevel : LogLevel.TRACE);
         this.sinks = List.copyOf(sinks);
         this.eventConsumer = null;
         this.logConsumer = this::dispatchToSinks;
@@ -118,7 +118,6 @@ public class WorkspaceTraceLogger implements AutoCloseable {
         this.sinks = eventConsumer != null ? List.of() : defaultSinks();
         this.eventConsumer = eventConsumer;
         
-        // Use provided consumer or default to console logging
         this.logConsumer = eventConsumer != null ? 
             (level, fields) -> {} : // Consumer handles events directly
             this::dispatchToSinks;
@@ -267,11 +266,10 @@ public class WorkspaceTraceLogger implements AutoCloseable {
 
     private static List<TraceLogSink> defaultSinks() {
         List<TraceLogSink> defaultSinks = new ArrayList<>();
-        defaultSinks.add(new ConsoleTraceLogSink());
         try {
             defaultSinks.add(new FileTraceLogSink());
         } catch (IOException ignored) {
-            // Degrade gracefully to console-only logging.
+            // Degrade gracefully if file logging is unavailable.
         }
         return defaultSinks;
     }
