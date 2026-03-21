@@ -1022,8 +1022,8 @@ public class ListenerUtil {
                     case "protocol" -> config.put("protocol", buildProtocolSelectValue(argValue));
                     case "host" -> config.put("host", buildReadOnlyTextValue("Host",
                             "Server hostname", argValue));
-                    case "port", "portNumber" -> config.put("portNumber", buildReadOnlyTextValue("Port",
-                            "Server port", argValue));
+                    case "port", "portNumber" -> config.put("portNumber", buildReadOnlyNumericValue("Port",
+                            "Server port", argValue, "int"));
                     case "auth" -> config.put("authentication",
                             buildAuthChoiceValue(namedArg.expression(), protocol));
                     case "secureSocket" -> config.put("secureSocket",
@@ -1128,8 +1128,9 @@ public class ListenerUtil {
             // SFTP uses Certificate Based Authentication
             Map<String, Value> certProps = new LinkedHashMap<>();
             if (hasPrivateKey) {
-                certProps.put("privateKey", buildReadOnlyTextValue("Private Key",
-                        "Private key configuration for SSH-based authentication", privateKey));
+                certProps.put("privateKey", buildReadOnlyRecordValue("Private Key",
+                        "Private key configuration for SSH-based authentication",
+                        privateKey, "ftp:PrivateKey", "PrivateKey", false));
             }
             if (!username.isEmpty()) {
                 certProps.put("userName", buildReadOnlyTextValue("Username",
@@ -1182,13 +1183,79 @@ public class ListenerUtil {
 
     /**
      * Builds a read-only text Value for displaying listener config information.
+     * Detects whether the value is a string literal or an expression and sets the
+     * selected type accordingly.
      */
     private static Value buildReadOnlyTextValue(String label, String description, String value) {
+        String displayValue = cleanStringTemplateValue(value);
+        boolean isExpression = !displayValue.isEmpty() && !displayValue.startsWith("\"");
+        return new Value.ValueBuilder()
+                .metadata(label, description)
+                .value(displayValue)
+                .types(List.of(
+                        new PropertyType.Builder()
+                                .fieldType(Value.FieldType.TEXT)
+                                .ballerinaType("string")
+                                .selected(!isExpression)
+                                .build(),
+                        new PropertyType.Builder()
+                                .fieldType(Value.FieldType.EXPRESSION)
+                                .ballerinaType("string")
+                                .selected(isExpression)
+                                .build()))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+    }
+
+    /**
+     * Strips Ballerina string template syntax from a value for clean display.
+     * e.g. {@code string `${test}`} becomes {@code test},
+     *      {@code string `hello`} becomes {@code "hello"},
+     *      {@code "literal"} and plain expressions pass through unchanged.
+     */
+    private static String cleanStringTemplateValue(String value) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+        // Match string template: string `...`
+        if (value.startsWith("string `") && value.endsWith("`")) {
+            String inner = value.substring("string `".length(), value.length() - 1);
+            // Single interpolation: ${expr} → expr
+            if (inner.startsWith("${") && inner.endsWith("}") && inner.indexOf("${", 2) == -1) {
+                return inner.substring(2, inner.length() - 1);
+            }
+            // Plain text inside template: wrap as string literal
+            if (!inner.contains("${")) {
+                return "\"" + inner + "\"";
+            }
+        }
+        return value;
+    }
+
+    /**
+     * Builds a read-only numeric Value for displaying listener config information.
+     * Detects whether the value is a numeric literal or an expression and sets the
+     * selected type accordingly.
+     */
+    private static Value buildReadOnlyNumericValue(String label, String description,
+                                                    String value, String ballerinaType) {
+        boolean isExpression = !value.isEmpty() && !value.matches("-?\\d+");
         return new Value.ValueBuilder()
                 .metadata(label, description)
                 .value(value)
-                .types(List.of(PropertyType.types(Value.FieldType.TEXT, "string"),
-                        PropertyType.types(Value.FieldType.EXPRESSION, "string")))
+                .types(List.of(
+                        new PropertyType.Builder()
+                                .fieldType(Value.FieldType.NUMBER)
+                                .ballerinaType(ballerinaType)
+                                .selected(!isExpression)
+                                .build(),
+                        new PropertyType.Builder()
+                                .fieldType(Value.FieldType.EXPRESSION)
+                                .ballerinaType(ballerinaType)
+                                .selected(isExpression)
+                                .build()))
                 .enabled(true)
                 .editable(false)
                 .setAdvanced(false)
@@ -1200,32 +1267,46 @@ public class ListenerUtil {
      * of an existing FTPS listener, mirroring the structure in ftp_init.json.
      */
     private static Value buildReadOnlySecureSocketValue(String value) {
+        return buildReadOnlyRecordValue("Secure Socket (SecureSocket)",
+                "Configure SSL/TLS configuration for secure connection.",
+                value, "ftp:SecureSocket", "SecureSocket", true);
+    }
+
+    /**
+     * Builds a read-only record Value for displaying record-type listener config information.
+     * Detects whether the value is a mapping constructor (record literal) or an expression
+     * and sets the selected type accordingly.
+     */
+    private static Value buildReadOnlyRecordValue(String label, String description, String value,
+                                                   String ballerinaType, String typeName,
+                                                   boolean advanced) {
+        boolean isExpression = !value.isEmpty() && !value.startsWith("{");
+
         List<PropertyTypeMemberInfo> typeMembers = List.of(
-                new PropertyTypeMemberInfo("SecureSocket", "ballerina:ftp", FTP, "RECORD_TYPE", true)
+                new PropertyTypeMemberInfo(typeName, "ballerina:ftp", FTP, "RECORD_TYPE", true)
         );
 
         PropertyType recordType = new PropertyType.Builder()
                 .fieldType(Value.FieldType.RECORD_MAP_EXPRESSION)
-                .ballerinaType("ftp:SecureSocket")
+                .ballerinaType(ballerinaType)
                 .setMembers(typeMembers)
-                .selected(true)
+                .selected(!isExpression)
                 .build();
 
         PropertyType expressionType = new PropertyType.Builder()
                 .fieldType(Value.FieldType.EXPRESSION)
-                .ballerinaType("ftp:SecureSocket")
-                .selected(false)
+                .ballerinaType(ballerinaType)
+                .selected(isExpression)
                 .build();
 
         return new Value.ValueBuilder()
-                .metadata("Secure Socket (SecureSocket)",
-                        "Configure SSL/TLS configuration for secure connection.")
+                .metadata(label, description)
                 .value(value)
                 .types(List.of(recordType, expressionType))
                 .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))
                 .enabled(true)
                 .editable(false)
-                .setAdvanced(true)
+                .setAdvanced(advanced)
                 .build();
     }
 
