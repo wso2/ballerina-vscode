@@ -28,6 +28,8 @@ import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
+
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
@@ -79,11 +81,11 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      *
      * @param snapshotStore snapshot store for publishing compiled snapshots
      * @param eventBus event bus for publishing/subscribing to domain events
-     * @param baseAction the underlying compilation action to wrap with circuit breaker
+     * @param projectService the project service
      */
     public CompilationServiceImpl(DualSnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
-                                  CompilationPipeline.CompilationAction baseAction) {
-        this(snapshotStore, eventBus, baseAction, 500L, 250L);
+                                  ProjectServiceImpl projectService) {
+        this(snapshotStore, eventBus, projectService, 500L, 250L);
     }
 
     /**
@@ -91,12 +93,12 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      *
      * @param snapshotStore snapshot store for publishing compiled snapshots
      * @param eventBus event bus for publishing/subscribing to domain events
-     * @param baseAction the underlying compilation action to wrap with circuit breaker
+     * @param projectService the project service
      * @param retryDelayMs delay in milliseconds before retrying a transient failure
      */
     public CompilationServiceImpl(DualSnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
-                                  CompilationPipeline.CompilationAction baseAction, long retryDelayMs) {
-        this(snapshotStore, eventBus, baseAction, retryDelayMs, 250L);
+                                  ProjectServiceImpl projectService, long retryDelayMs) {
+        this(snapshotStore, eventBus, projectService, retryDelayMs, 250L);
     }
 
     /**
@@ -104,16 +106,16 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      *
      * @param snapshotStore snapshot store for publishing compiled snapshots
      * @param eventBus event bus for publishing/subscribing to domain events
-     * @param baseAction the underlying compilation action to wrap with circuit breaker
+     * @param projectService the project service
      * @param retryDelayMs delay in milliseconds before retrying a transient failure
      * @param heapPressureThrottleMs delay in milliseconds to defer document-triggered recompilation after RM-E1
      */
     public CompilationServiceImpl(@Nonnull DualSnapshotStore snapshotStore, @Nonnull EventSyncPubSubHolder eventBus,
-                                  @Nonnull CompilationPipeline.CompilationAction baseAction, long retryDelayMs,
+                                  @Nonnull ProjectServiceImpl projectService, long retryDelayMs,
                                   long heapPressureThrottleMs) {
         this.snapshotStore = snapshotStore;
         this.eventBus = eventBus;
-        this.baseAction = baseAction;
+        this.baseAction = new CompilationActionImpl(projectService);
         this.retryDelayMs = retryDelayMs;
         this.heapPressureThrottleMs = heapPressureThrottleMs;
         this.pipelines = new ConcurrentHashMap<>();

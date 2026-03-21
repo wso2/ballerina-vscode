@@ -86,131 +86,15 @@ public final class WorkspaceManagerFacadeFactory {
         UriResolver uriResolver = new UriResolver();
         GracePeriod gracePeriod = GracePeriod.ofMillis(2000);
 
-        // Holder to break the circular reference: compilationAction -> projectService
-        ProjectServiceImpl[] projectServiceHolder = {null};
-
-        CompilationPipeline.CompilationAction compilationAction = new CompilationPipeline.CompilationAction() {
-            @Override
-            public PackageDescriptor describe(String sourceRootIdentifier) {
-                Project project = projectService().loadOrCreateFromIdentifier(sourceRootIdentifier, null);
-                return project.currentPackage().descriptor();
-            }
-
-            @Override
-            public ResolutionResult resolve(CompileTask task) {
-                ProjectServiceImpl ps = projectService();
-                LockingMode lockingMode = currentLockingMode(task);
-                String sourceRootIdentifier = task.sourceRootIdentifier();
-                try {
-                    Project project = ps.loadOrCreateFromIdentifier(sourceRootIdentifier, null);
-                    project.currentPackage().getResolution(compilationOptions(lockingMode));
-                    return new ResolutionResult(task.descriptor(), List.of(), true);
-                } catch (RuntimeException e) {
-                    String message = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
-                    return new ResolutionResult(task.descriptor(), List.of(
-                            new ResolutionResult.ResolutionDiagnostic(ResolutionResult.Severity.ERROR,
-                                    message, sourceRootIdentifier)), false);
-                }
-            }
-
-            @Override
-            public StableSnapshot compile(CompileTask task) {
-                return snapshot(projectService().loadOrCreateFromIdentifier(task.sourceRootIdentifier(), null),
-                        task.contentVersion());
-            }
-
-            @Override
-            public LockingMode currentLockingMode(CompileTask task) {
-                ProjectServiceImpl ps = projectService();
-                Project project = ps.loadOrCreateFromIdentifier(task.sourceRootIdentifier(), null);
-                return ps.getLockingMode(project);
-            }
-
-            @Override
-            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
-                LockingMode recoveryMode = nextMorePermissiveMode(initialMode);
-                while (recoveryMode != initialMode) {
-                    try {
-                        Project transientProject = BallerinaCompilerApi.getInstance()
-                                .loadProject(projectService().resolvePathFromIdentifier(task.sourceRootIdentifier()),
-                                        buildOptions(recoveryMode));
-                        transientProject.currentPackage().getResolution(compilationOptions(recoveryMode));
-                        transientProject.currentPackage().getCompilation();
-                        return CompilationPipeline.RecoveryResult.success();
-                    } catch (RuntimeException ignored) {
-                        initialMode = recoveryMode;
-                        recoveryMode = nextMorePermissiveMode(recoveryMode);
-                    }
-                }
-                return CompilationPipeline.RecoveryResult.exhausted();
-            }
-
-            private ProjectServiceImpl projectService() {
-                ProjectServiceImpl ps = projectServiceHolder[0];
-                if (ps == null) {
-                    throw new IllegalStateException("ProjectService not yet initialized");
-                }
-                return ps;
-            }
-
-            private StableSnapshot snapshot(Project project,
-                                            org.ballerinalang.langserver.workspace.documentstore.ContentVersion version) {
-                PackageCompilation compilation = project.currentPackage().getCompilation();
-                Map<DocumentId, SyntaxTree> syntaxTrees = new HashMap<>();
-                Map<Path, DocumentId> pathToDocumentIds = new HashMap<>();
-                Map<ModuleId, SemanticModel> semanticModels = new HashMap<>();
-                project.currentPackage().moduleIds().forEach(moduleId -> {
-                    Module packageModule = project.currentPackage().module(moduleId);
-                    semanticModels.put(moduleId, compilation.getSemanticModel(moduleId));
-                    packageModule.documentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
-                            {
-                                syntaxTrees.put(docId, packageModule.document(docId).syntaxTree());
-                                pathToDocumentIds.put(path.normalize(), docId);
-                            }));
-                    packageModule.testDocumentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
-                            {
-                                syntaxTrees.put(docId, packageModule.document(docId).syntaxTree());
-                                pathToDocumentIds.put(path.normalize(), docId);
-                            }));
-                });
-                if (syntaxTrees.isEmpty() || semanticModels.isEmpty()) {
-                    throw new RuntimeException("No source documents in project: " + project.sourceRoot());
-                }
-                return new StableSnapshot(syntaxTrees, pathToDocumentIds, semanticModels,
-                        compilation, version);
-            }
-
-            private CompilationOptions compilationOptions(LockingMode lockingMode) {
-                return CompilationOptions.builder()
-                        .setOffline(CommonUtil.COMPILE_OFFLINE)
-                        .setLockingMode(PackageLockingMode.valueOf(lockingMode.name()))
-                        .build();
-            }
-
-            private BuildOptions buildOptions(LockingMode lockingMode) {
-                return BuildOptions.builder()
-                        .setOffline(CommonUtil.COMPILE_OFFLINE)
-                        .setLockingMode(PackageLockingMode.valueOf(lockingMode.name()))
-                        .build();
-            }
-
-            private LockingMode nextMorePermissiveMode(LockingMode mode) {
-                return RecoveryLadder.nextMode(mode, FailureType.RESOLUTION_SUCCEEDED);
-            }
-        };
-
         WiringConfiguration config = WiringConfiguration.builder()
                 .eventBus(eventBus)
                 .snapshotStore(snapshotStore)
-                .compilationAction(compilationAction)
                 .projectRegistry(projectRegistry)
                 .uriResolver(uriResolver)
                 .projectLoader((root, kind) ->
                         BallerinaCompilerApi.getInstance().loadProject(Path.of(root.uri()), buildOptions))
                 .gracePeriod(gracePeriod)
                 .build();
-
-        projectServiceHolder[0] = config.projectService();
 
         ClientSession session = new ClientSession(
                 new ClientCapabilities(),

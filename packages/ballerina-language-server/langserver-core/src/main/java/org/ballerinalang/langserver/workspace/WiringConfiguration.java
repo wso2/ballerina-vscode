@@ -95,7 +95,7 @@ public final class WiringConfiguration implements AutoCloseable {
 
         // 4. CompilationService (subscribes to WM-E1, WM-E2, WM-E4, WM-E9, WM-E11)
         this.compilationService = new CompilationServiceImpl(
-                builder.snapshotStore, eventBus, builder.compilationAction);
+                builder.snapshotStore, eventBus, this.projectService);
 
         // 5. ExecutionService (subscribes to WM-E2, WM-E4)
         this.executionService = new ExecutionServiceImpl(
@@ -215,7 +215,6 @@ public final class WiringConfiguration implements AutoCloseable {
 
         private @Nonnull EventSyncPubSubHolder eventBus;
         private @Nonnull DualSnapshotStore snapshotStore;
-        private @Nonnull CompilationPipeline.CompilationAction compilationAction;
         private @Nonnull ProjectRegistry projectRegistry;
         private @Nonnull UriResolver uriResolver;
         private @Nonnull ProjectLoader projectLoader;
@@ -230,11 +229,6 @@ public final class WiringConfiguration implements AutoCloseable {
 
         public Builder snapshotStore(DualSnapshotStore snapshotStore) {
             this.snapshotStore = snapshotStore;
-            return this;
-        }
-
-        public Builder compilationAction(CompilationPipeline.CompilationAction compilationAction) {
-            this.compilationAction = compilationAction;
             return this;
         }
 
