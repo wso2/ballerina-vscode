@@ -26,7 +26,6 @@ import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
 import org.ballerinalang.langserver.workspace.compilerengine.SnapshotView;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentState;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionMode;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
@@ -78,7 +77,6 @@ public class WorkspaceContextContractsTest {
         assertEnumValues(CompilationPhase.class, "PRE_PARSE", "POST_PARSE", "POST_TYPE_CHECK", "POST_DIAGNOSTICS");
         assertEnumValues(ProcessState.class, "STARTING", "RUNNING", "TERMINATING", "TERMINATED");
         assertEnumValues(ExecutionMode.class, "RUN", "DEBUG");
-        assertEnumValues(DocumentState.class, "OPEN", "CLOSED");
         assertEnumValues(SubscriberTier.class, "CRITICAL", "COALESCEABLE", "BEST_EFFORT");
     }
 

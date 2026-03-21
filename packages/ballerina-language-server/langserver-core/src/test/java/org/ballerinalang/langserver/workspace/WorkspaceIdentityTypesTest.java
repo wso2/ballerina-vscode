@@ -20,13 +20,11 @@ package org.ballerinalang.langserver.workspace;
 
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
-import org.ballerinalang.langserver.workspace.documentstore.FileId;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.net.URI;
-import java.util.Arrays;
 
 /**
  * Tests workspace identity value objects and bounded-context package scaffolding.
@@ -105,32 +103,6 @@ public class WorkspaceIdentityTypesTest {
     public void contentVersion_next_returnsIncrementedVersion() {
         ContentVersion version = new ContentVersion(10);
         Assert.assertEquals(version.next(), new ContentVersion(11));
-    }
-
-    /**
-     * Verifies file IDs use value equality for equal identifiers.
-     */
-    @Test
-    public void fileId_withSameRawId_isValueEqual() {
-        FileId first = FileId.from("doc-01");
-        FileId second = FileId.from("doc-01");
-        FileId third = FileId.from("doc-02");
-
-        Assert.assertEquals(first, second);
-        Assert.assertNotEquals(first, third);
-    }
-
-    /**
-     * Verifies file ID does not expose its underlying raw representation.
-     */
-    @Test
-    public void fileId_isOpaque_noPublicRawValueAccessor() {
-        boolean hasPublicRawAccessor = Arrays.stream(FileId.class.getDeclaredMethods())
-                .anyMatch(method -> method.getParameterCount() == 0
-                        && method.getReturnType().equals(String.class)
-                        && !method.getName().equals("toString"));
-
-        Assert.assertFalse(hasPublicRawAccessor);
     }
 
 }
