@@ -108,8 +108,8 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     // Display label
     private static final String LABEL_FTP = "FTP";
 
-    // Variable name prefix for FTP sources (produces ftpSource, ftpSource1, ftpSource2, ...)
-    private static final String FTP_SOURCE_VAR_NAME = "ftpSource";
+    // Variable name prefix for FTP listeners (produces ftpListener, ftpListener1, ftpListener2, ...)
+    private static final String FTP_SOURCE_VAR_NAME = "ftpListener";
 
     public static final String EVENT = "EVENT";
     private static final String SERVICE_CONFIG = "ServiceConfig";
@@ -138,13 +138,13 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
             // Navigate into the pre-structured configureListener CHOICE
             Value configureListener = serviceInitModel.getProperties().get(KEY_CONFIGURE_LISTENER);
-            Value createNewChoice = configureListener.getChoices().get(1);
-            Value sourceConfig = createNewChoice.getProperties().get("sourceConfig");
+            Value createNewChoice = configureListener.getChoices().get(0);
+            Value listenerConfig = createNewChoice.getProperties().get("listenerConfig");
 
-            // Generate a unique source name using the "ftpSource" prefix
-            String sourceName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+            // Generate a unique listener name using the "ftpListener" prefix
+            String listenerName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
                     context.document().syntaxTree().rootNode().lineRange().endLine(), FTP_SOURCE_VAR_NAME);
-            sourceConfig.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(sourceName);
+            listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerName);
 
             // Check for existing compatible FTP listeners (excluding legacy ones)
             Set<String> allListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
@@ -154,7 +154,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
             if (!compatibleListeners.isEmpty()) {
                 // Extract template metadata from designApproach for consistent labels
-                Value designApproach = sourceConfig.getProperties().get(PROPERTY_DESIGN_APPROACH);
+                Value designApproach = listenerConfig.getProperties().get(PROPERTY_DESIGN_APPROACH);
                 Map<String, Value> templateProps = (designApproach != null
                         && designApproach.getChoices() != null && !designApproach.getChoices().isEmpty())
                         ? designApproach.getChoices().get(0).getProperties() : Map.of();
@@ -165,20 +165,20 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                 applyInitModelMetadata(listenerConfigs, templateProps, designApproach);
 
                 // Populate the "Use existing" choice
-                Value existingChoice = configureListener.getChoices().get(0);
+                Value existingChoice = configureListener.getChoices().get(1);
                 existingChoice.setMetadata(new MetaData("Use existing",
-                        "Select an existing " + LABEL_FTP + " source"));
+                        "Select an existing " + LABEL_FTP + " listener"));
                 existingChoice.setEnabled(true);
                 existingChoice.setEditable(true);
 
-                // Build the SINGLE_SELECT dropdown and place it in the existing sourceConfig
+                // Build the SINGLE_SELECT dropdown and place it in the existing listenerConfig
                 Value listenerDropdown = buildListenerDropdown(listenerConfigs, compatibleListeners);
-                Map<String, Value> existingSourceProps = new LinkedHashMap<>();
-                existingSourceProps.put(ServiceInitModel.KEY_EXISTING_LISTENER, listenerDropdown);
-                existingChoice.getProperties().get("sourceConfig").setProperties(existingSourceProps);
+                Map<String, Value> existingListenerProps = new LinkedHashMap<>();
+                existingListenerProps.put(ServiceInitModel.KEY_EXISTING_LISTENER, listenerDropdown);
+                existingChoice.getProperties().get("listenerConfig").setProperties(existingListenerProps);
 
                 // Set "Use existing" as default selection
-                configureListener.setValue("0");
+                configureListener.setValue("1");
                 createNewChoice.setEnabled(false);
             }
 
@@ -303,7 +303,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             }
 
             Value configGroup = new Value.ValueBuilder()
-                    .metadata(listenerName, LABEL_FTP + " source: " + listenerName)
+                    .metadata(listenerName, LABEL_FTP + " listener: " + listenerName)
                     .value(listenerName)
                     .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                     .enabled(true)
@@ -314,7 +314,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         }
 
         return new Value.ValueBuilder()
-                .metadata("Source Name", "Select an existing " + LABEL_FTP + " source")
+                .metadata("Listener Name", "Select an existing " + LABEL_FTP + " listener")
                 .value(listenerNames.get(0))
                 .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
                 .enabled(true)

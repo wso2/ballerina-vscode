@@ -18,63 +18,33 @@
       "properties": {
         "configureListener": {
           "metadata": {
-            "label": "Configure FTP Source",
-            "description": "Select an existing FTP source or create a new one"
+            "label": "Configure FTP Listener",
+            "description": "Select an existing FTP listener or create a new one"
           },
-          "value": "1",
+          "value": "0",
           "choices": [
             {
               "metadata": {
-                "label": "Use existing (none available)",
-                "description": "Select an existing FTP source"
-              },
-              "value": "true",
-              "properties": {
-                "sourceConfig": {
-                  "metadata": {
-                    "label": "Source Configuration",
-                    "description": "Existing source configuration"
-                  },
-                  "properties": {},
-                  "types": [
-                    {
-                      "fieldType": "GROUP_SECTION",
-                      "selected": false
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": false,
-                  "optional": false,
-                  "advanced": false
-                }
-              },
-              "enabled": false,
-              "editable": false,
-              "optional": false,
-              "advanced": false
-            },
-            {
-              "metadata": {
                 "label": "Create new",
-                "description": "Create a new FTP source"
+                "description": "Create a new FTP listener"
               },
               "value": "true",
               "properties": {
-                "sourceConfig": {
+                "listenerConfig": {
                   "metadata": {
-                    "label": "Source Configuration",
-                    "description": "Configure the FTP source connection"
+                    "label": "Listener Configuration",
+                    "description": "Configure the FTP listener"
                   },
                   "properties": {
                     "listenerVarName": {
                       "metadata": {
-                        "label": "Source Name",
-                        "description": "Unique name for this FTP source"
+                        "label": "Listener Name",
+                        "description": "Unique name for this FTP listener"
                       },
                       "codedata": {
                         "type": "LISTENER_VAR_NAME"
                       },
-                      "value": "ftpSource",
+                      "value": "ftpListener",
                       "types": [
                         {
                           "fieldType": "IDENTIFIER",
@@ -89,7 +59,7 @@
                     "designApproach": {
                       "metadata": {
                         "label": "Protocol",
-                        "description": "Select the protocol for the remote source connection"
+                        "description": "Select the protocol for the remote server connection"
                       },
                       "placeholder": "",
                       "value": "",
@@ -662,6 +632,36 @@
               },
               "enabled": true,
               "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Use existing (none available)",
+                "description": "Select an existing FTP listener"
+              },
+              "value": "true",
+              "properties": {
+                "listenerConfig": {
+                  "metadata": {
+                    "label": "Listener Configuration",
+                    "description": "Existing listener configuration"
+                  },
+                  "properties": {},
+                  "types": [
+                    {
+                      "fieldType": "GROUP_SECTION",
+                      "selected": false
+                    }
+                  ],
+                  "enabled": true,
+                  "editable": false,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "enabled": false,
+              "editable": false,
               "optional": false,
               "advanced": false
             }
