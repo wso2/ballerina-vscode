@@ -25,7 +25,7 @@ import LoadingIndicator from "./LoadingIndicator";
 import { ExecutionTimeline } from "./ExecutionTimeline";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Icon, Button, ThemeColors } from "@wso2/ui-toolkit";
-import { SessionInfoResponse } from "@wso2/ballerina-core";
+import { SessionInfoResponse, AgentInfo } from "@wso2/ballerina-core";
 import ReactMarkdown from "react-markdown";
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
@@ -206,7 +206,7 @@ const ChatHeader = styled.div`
     padding: 12px 8px 8px;
     z-index: 2;
     border-bottom: 1px solid var(--vscode-panel-border);
-    gap: 8px;
+    gap: 6px;
 `;
 
 const ClearChatButton = styled.button`
@@ -301,6 +301,88 @@ const CopyButton = styled.button`
     }
 `;
 
+// ---------- AGENT SELECTOR ----------
+const AgentSelectorWrapper = styled.div`
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+`;
+
+const AgentSelectorButton = styled.button`
+    background: none;
+    border: 1px solid var(--vscode-panel-border);
+    color: var(--vscode-foreground);
+    font-size: 12px;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 200px;
+
+    &:hover {
+        background-color: var(--vscode-list-hoverBackground);
+    }
+`;
+
+const AgentSelectorName = styled.span`
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+`;
+
+const AgentDropdown = styled.div`
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    min-width: 180px;
+    max-width: 280px;
+    background-color: var(--vscode-editorWidget-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    overflow: hidden;
+`;
+
+const AgentDropdownItem = styled.button<{ isActive: boolean }>`
+    width: 100%;
+    background: ${({ isActive }: { isActive: boolean }) =>
+        isActive ? "var(--vscode-list-activeSelectionBackground)" : "none"};
+    color: ${({ isActive }: { isActive: boolean }) =>
+        isActive ? "var(--vscode-list-activeSelectionForeground)" : "var(--vscode-foreground)"};
+    border: none;
+    padding: 6px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    text-align: left;
+
+    &:hover {
+        background-color: ${({ isActive }: { isActive: boolean }) =>
+        isActive ? "var(--vscode-list-activeSelectionBackground)" : "var(--vscode-list-hoverBackground)"};
+    }
+`;
+
+const AgentItemName = styled.span`
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+`;
+
+const AgentItemPath = styled.span`
+    color: var(--vscode-descriptionForeground);
+    font-size: 11px;
+    white-space: nowrap;
+    flex-shrink: 0;
+`;
+
 // ---------- WARNING POPUP ----------
 const ModalBackdrop = styled.div({
     position: 'fixed',
@@ -386,6 +468,15 @@ const ClearChatWarningPopup: React.FC<ClearChatWarningPopupProps> = ({ isOpen, o
 };
 
 // Preprocess LaTeX delimiters to convert \(...\) and \[...\] to $...$ and $$...$$
+function toDisplayName(name: string): string {
+    return name
+        .replace(/\\/g, '')
+        .replace(/[-_]/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+        .replace(/\b\w/g, c => c.toUpperCase());
+}
+
 export function preprocessLatex(text: string): string {
     if (!text || typeof text !== 'string') return text;
 
@@ -407,9 +498,13 @@ const ChatInterface: React.FC = () => {
     const [showInfoPopover, setShowInfoPopover] = useState(false);
     const [sessionInfo, setSessionInfo] = useState<SessionInfoResponse | null>(null);
     const [copiedField, setCopiedField] = useState<string | null>(null);
+    const [availableAgents, setAvailableAgents] = useState<AgentInfo[]>([]);
+    const [activeAgentName, setActiveAgentName] = useState<string>('');
+    const [showAgentDropdown, setShowAgentDropdown] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const infoPopoverRef = useRef<HTMLDivElement>(null);
+    const agentDropdownRef = useRef<HTMLDivElement>(null);
 
     // Check if we have any traces (to enable/disable Session Traces button)
     const hasTraces = messages.some(msg => !msg.isUser && msg.traceId);
@@ -448,14 +543,64 @@ const ChatInterface: React.FC = () => {
             }
         };
 
+        const loadAvailableAgents = async () => {
+            try {
+                const response = await rpcClient.getAgentChatRpcClient().getAvailableChatAgents();
+                setAvailableAgents(response.agents);
+                setActiveAgentName(response.activeAgentName);
+            } catch (error) {
+                console.error('Failed to load available agents:', error);
+            }
+        };
+
         loadChatHistory();
         checkTracingStatus();
+        loadAvailableAgents();
+    }, [rpcClient]);
+
+    // Listen for active agent changes from the extension host (e.g. when user clicks Chat on a different agent)
+    useEffect(() => {
+        rpcClient.getAgentChatRpcClient().onActiveAgentChanged(async (agentName: string) => {
+            try {
+                const response = await rpcClient.getAgentChatRpcClient().switchChatAgent({ agentName });
+                setActiveAgentName(agentName);
+
+                const chatMessages: ChatMessage[] = response.chatHistory.map((msg: { type: string; text: string; isUser: boolean; traceId?: string; executionSteps?: ExecutionStep[] }) => ({
+                    type: msg.type === 'error' ? ChatMessageType.ERROR : ChatMessageType.MESSAGE,
+                    text: msg.text,
+                    isUser: msg.isUser,
+                    traceId: msg.traceId,
+                    executionSteps: msg.executionSteps
+                }));
+                setMessages(chatMessages);
+                setSessionInfo(null);
+                setShowInfoPopover(false);
+
+                // Refresh available agents in case the list changed
+                const agentsResponse = await rpcClient.getAgentChatRpcClient().getAvailableChatAgents();
+                setAvailableAgents(agentsResponse.agents);
+            } catch (error) {
+                console.error('Failed to switch agent from notification:', error);
+            }
+        });
     }, [rpcClient]);
 
     // Auto scroll to the bottom when messages change
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
+
+    // Close agent dropdown on outside click
+    useEffect(() => {
+        if (!showAgentDropdown) return;
+        const handleClickOutside = (e: MouseEvent) => {
+            if (agentDropdownRef.current && !agentDropdownRef.current.contains(e.target as Node)) {
+                setShowAgentDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showAgentDropdown]);
 
     // Close info popover on outside click
     useEffect(() => {
@@ -492,6 +637,33 @@ const ChatInterface: React.FC = () => {
             setTimeout(() => setCopiedField(null), 1500);
         } catch (error) {
             console.error('Failed to copy to clipboard:', error);
+        }
+    };
+
+    const handleSwitchAgent = async (agentName: string) => {
+        if (agentName === activeAgentName || isLoading) return;
+
+        try {
+            const response = await rpcClient.getAgentChatRpcClient().switchChatAgent({ agentName });
+            setActiveAgentName(agentName);
+
+            // Load the chat history for the switched agent
+            const chatMessages: ChatMessage[] = response.chatHistory.map((msg: { type: string; text: string; isUser: boolean; traceId?: string; executionSteps?: ExecutionStep[] }) => ({
+                type: msg.type === 'error' ? ChatMessageType.ERROR : ChatMessageType.MESSAGE,
+                text: msg.text,
+                isUser: msg.isUser,
+                traceId: msg.traceId,
+                executionSteps: msg.executionSteps
+            }));
+            setMessages(chatMessages);
+
+            // Reset session info cache
+            setSessionInfo(null);
+            setShowInfoPopover(false);
+        } catch (error) {
+            console.error('Failed to switch agent:', error);
+        } finally {
+            setShowAgentDropdown(false);
         }
     };
 
@@ -653,6 +825,47 @@ const ChatInterface: React.FC = () => {
                         </InfoPopover>
                     )}
                 </InfoButtonWrapper>
+                {availableAgents.length > 1 && (
+                    <AgentSelectorWrapper ref={agentDropdownRef}>
+                        <AgentSelectorButton
+                            onClick={() => setShowAgentDropdown(!showAgentDropdown)}
+                            disabled={isLoading}
+                            title="Switch agent"
+                        >
+                            <Icon
+                                name="bi-ai-agent"
+                                sx={{ width: 14, height: 14, flexShrink: 0 }}
+                                iconSx={{ fontSize: "14px", color: "var(--vscode-terminal-ansiBrightCyan)" }}
+                            />
+                            <AgentSelectorName>{toDisplayName(activeAgentName)}</AgentSelectorName>
+                            <span className="codicon codicon-chevron-down" style={{ fontSize: 10, flexShrink: 0 }} />
+                        </AgentSelectorButton>
+                        {showAgentDropdown && (
+                            <AgentDropdown>
+                                {availableAgents.map((agent) => (
+                                    <AgentDropdownItem
+                                        key={agent.name}
+                                        isActive={agent.name === activeAgentName}
+                                        onClick={() => handleSwitchAgent(agent.name)}
+                                    >
+                                        <Icon
+                                            name="bi-ai-agent"
+                                            sx={{ width: 14, height: 14, flexShrink: 0 }}
+                                            iconSx={{
+                                                fontSize: "14px",
+                                                color: agent.name === activeAgentName
+                                                    ? "var(--vscode-list-activeSelectionForeground)"
+                                                    : "var(--vscode-terminal-ansiBrightCyan)"
+                                            }}
+                                        />
+                                        <AgentItemName>{toDisplayName(agent.name)}</AgentItemName>
+                                        <AgentItemPath>{agent.basePath.replace(/\\/g, '')}</AgentItemPath>
+                                    </AgentDropdownItem>
+                                ))}
+                            </AgentDropdown>
+                        )}
+                    </AgentSelectorWrapper>
+                )}
                 <div style={{ flex: 1 }} />
                 {messages.length > 0 && (
                     <>
@@ -673,10 +886,9 @@ const ChatInterface: React.FC = () => {
                 {messages.length === 0 && (
                     <Watermark>
                         <ChatIcon className="codicon codicon-comment-discussion" />
-                        <WatermarkTitle>Agent Chat</WatermarkTitle>
+                        <WatermarkTitle>{activeAgentName ? `Agent Chat - ${toDisplayName(activeAgentName)}` : 'Agent Chat'}</WatermarkTitle>
                         <WatermarkSubTitle>
-                            The chat interface serves as a testing environment to evaluate and refine the flow of the AI
-                            agent.
+                            Use this chat interface to evaluate your AI agent's responses and refine its conversational flow.
                         </WatermarkSubTitle>
                     </Watermark>
                 )}
