@@ -19,7 +19,7 @@
 import { WebviewView, WebviewPanel, window } from 'vscode';
 import { Messenger } from 'vscode-messenger';
 import { StateMachine } from './stateMachine';
-import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, projectStructureUpdated, ProjectStructureResponse, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, checkpointCaptured, CheckpointCapturedPayload, promptUpdated, approvalOverlayState, ApprovalOverlayState, onIdentifierUpdated, ProjectStructureArtifactResponse } from '@wso2/ballerina-core';
+import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, checkpointCaptured, CheckpointCapturedPayload, promptUpdated, approvalOverlayState, ApprovalOverlayState, onIdentifierUpdated, ProjectStructureArtifactResponse } from '@wso2/ballerina-core';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { registerVisualizerRpcHandlers } from './rpc-managers/visualizer/rpc-handler';
 import { registerLangClientRpcHandlers } from './rpc-managers/lang-client/rpc-handler';
@@ -183,10 +183,6 @@ function isWebviewPanel(webview: WebviewPanel | WebviewView): boolean {
 
 export function notifyCurrentWebview() {
     RPCLayer._messenger.sendNotification(projectContentUpdated, { type: 'webview', webviewType: VisualizerWebview.viewType }, true);
-}
-
-export function notifyProjectStructureUpdated(structure: ProjectStructureResponse) {
-    RPCLayer._messenger.sendNotification(projectStructureUpdated, { type: 'webview', webviewType: VisualizerWebview.viewType }, structure);
 }
 
 export function notifyAiWebview() {

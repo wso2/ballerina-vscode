@@ -26,7 +26,7 @@ import {
 import { fetchAndCacheLibraryData } from './features/library-browser';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { commands, extensions, Uri, window, workspace, WorkspaceFolder } from 'vscode';
-import { notifyCurrentWebview, notifyProjectStructureUpdated, RPCLayer } from './RPCLayer';
+import { notifyCurrentWebview, RPCLayer } from './RPCLayer';
 import {
     generateUid,
     getComponentIdentifier,
@@ -94,7 +94,6 @@ const stateMachine = createMachine<MachineContext>(
                         // Use queueMicrotask to ensure context is updated before command execution
                         queueMicrotask(() => {
                             commands.executeCommand("BI.project-explorer.refresh");
-                            notifyProjectStructureUpdated(StateMachine.context().projectStructure);
                             // Check if the current view is Service desginer and if so don't notify the webview
                             if (StateMachine.context().view !== MACHINE_VIEW.ServiceDesigner && StateMachine.context().view !== MACHINE_VIEW.BIDiagram) {
                                 notifyCurrentWebview();
@@ -282,9 +281,6 @@ const stateMachine = createMachine<MachineContext>(
                                 projectStructure: (context, event) => event.data.projectStructure
                             }),
                             () => {
-                                queueMicrotask(() => {
-                                    notifyProjectStructureUpdated(StateMachine.context().projectStructure);
-                                });
                             }
                         ]
                     },

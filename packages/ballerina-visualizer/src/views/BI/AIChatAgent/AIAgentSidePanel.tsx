@@ -241,7 +241,6 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const { agentNode, projectPath, onSubmit, mode = NewToolSelectionMode.ALL, onViewChange, onAgentToolCreated, onCancel } = props;
     const { rpcClient } = useRpcContext();
 
-
     const [sidePanelView, setSidePanelView] = useState<SidePanelView>(SidePanelView.NODE_LIST);
     const [categories, setCategories] = useState<PanelCategory[]>([]);
     const [selectedNodeCodeData, setSelectedNodeCodeData] = useState<CodeData>(undefined);
@@ -464,6 +463,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 funcDef.properties.parameters.metadata.description = "Define the inputs the agent must provide when invoking this tool.";
                 toolInputFields = convertConfig(funcDef.properties, ["functionName", "functionNameDescription", "isIsolated", "type", "typeDescription", "isPublic"]);
             }
+            
             const functionNodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
                 position: funcDef?.codedata.lineRange.startLine || { line: 0, offset: 0 },
                 filePath: functionFilePath.current,

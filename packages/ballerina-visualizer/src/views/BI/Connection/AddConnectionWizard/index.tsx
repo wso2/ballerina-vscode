@@ -185,6 +185,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                     resolve();
                 }, 3000);
             });
+
             // Start the request
             const nodeTemplatePromise = rpcClient.getBIDiagramRpcClient().getNodeTemplate({
                 position: target || null,
@@ -208,6 +209,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 // If it timed out, set status to SUCCESS
                 setPullingStatus(PullingStatus.SUCCESS);
             }
+            
             console.log(">>> FlowNode template", response);
             selectedNodeRef.current = response.flowNode;
             const formProperties = getFormProperties(response.flowNode);
