@@ -28,7 +28,10 @@ import {
     AgentStatusResponse,
     ClearChatResponse,
     SessionInput,
-    SessionInfoResponse
+    SessionInfoResponse,
+    AvailableAgentsResponse,
+    SwitchAgentRequest,
+    SwitchAgentResponse
 } from "@wso2/ballerina-core";
 import * as vscode from 'vscode';
 import { extension } from '../../BalExtensionContext';
@@ -502,6 +505,64 @@ export class AgentChatRpcManager implements AgentChatAPI {
         return {
             sessionId: extension.agentChatContext?.chatSessionId || '',
             chatEndpoint: extension.agentChatContext?.chatEp || '',
+        };
+    }
+
+    async getAvailableChatAgents(): Promise<AvailableAgentsResponse> {
+        const ctx = extension.agentChatContext;
+        if (!ctx || !ctx.agents || ctx.agents.length === 0) {
+            return {
+                agents: ctx ? [{
+                    name: 'default',
+                    basePath: '/',
+                    chatEp: ctx.chatEp,
+                    chatSessionId: ctx.chatSessionId,
+                }] : [],
+                activeAgentName: ctx?.activeAgentName || 'default',
+            };
+        }
+
+        return {
+            agents: ctx.agents.map(a => ({
+                name: a.name,
+                basePath: a.basePath,
+                chatEp: a.chatEp,
+                chatSessionId: a.chatSessionId,
+            })),
+            activeAgentName: ctx.activeAgentName,
+        };
+    }
+
+    async switchChatAgent(params: SwitchAgentRequest): Promise<SwitchAgentResponse> {
+        const ctx = extension.agentChatContext;
+        if (!ctx || !ctx.agents) {
+            throw new Error('No agents available to switch to');
+        }
+
+        const targetAgent = ctx.agents.find(a => a.name === params.agentName);
+        if (!targetAgent) {
+            throw new Error(`Agent "${params.agentName}" not found`);
+        }
+
+        // Update the active agent
+        ctx.activeAgentName = targetAgent.name;
+        ctx.chatEp = targetAgent.chatEp;
+        ctx.chatSessionId = targetAgent.chatSessionId;
+
+        // Update the activator's session map
+        updateChatSessionId(targetAgent.chatEp, targetAgent.chatSessionId);
+
+        // Return the agent info and its chat history
+        const chatHistory = AgentChatRpcManager.chatHistoryMap.get(targetAgent.chatSessionId) || [];
+
+        return {
+            agent: {
+                name: targetAgent.name,
+                basePath: targetAgent.basePath,
+                chatEp: targetAgent.chatEp,
+                chatSessionId: targetAgent.chatSessionId,
+            },
+            chatHistory,
         };
     }
 }

@@ -27,7 +27,7 @@ import {
 import * as path from 'path';
 import { WebViewOptions, getComposerWebViewOptions, getLibraryWebViewContent } from "../../utils/webview-utils";
 import { extension } from '../../BalExtensionContext';
-import { RPCLayer } from '../../RPCLayer';
+import { RPCLayer, sendAgentChangedNotification } from '../../RPCLayer';
 import { AgentChatContext } from "./activate";
 
 export class ChatPanel {
@@ -49,9 +49,13 @@ export class ChatPanel {
     }
 
     public static render(agentChatContext: AgentChatContext) {
+        const previousActiveAgent = extension.agentChatContext?.activeAgentName;
         extension.agentChatContext = agentChatContext;
         if (ChatPanel.currentPanel) {
             ChatPanel.currentPanel._panel.reveal(ViewColumn.Beside);
+            if (previousActiveAgent !== agentChatContext.activeAgentName) {
+                sendAgentChangedNotification(agentChatContext.activeAgentName);
+            }
         } else {
             const panel = window.createWebviewPanel(
                 ChatPanel.viewType,
