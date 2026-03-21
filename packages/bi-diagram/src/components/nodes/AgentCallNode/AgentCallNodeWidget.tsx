@@ -442,7 +442,7 @@ export interface NodeWidgetProps extends Omit<AgentCallNodeWidgetProps, "childre
 
 export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId } =
+    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId, entrypointContext } =
         useDiagramContext();
     const traceAnimation = useTraceAnimation();
 
@@ -674,6 +674,17 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const nodeInstructions = nodeMetadata?.agent?.instructions || '';
 
     const isTraceMatch = traceAnimation && (() => {
+        // Guard: only animate if the trace's entrypoint matches the current flow diagram's service/function
+        if (entrypointContext) {
+            const traceService = traceAnimation.entrypointServiceName ?? '';
+            const traceFunction = traceAnimation.entrypointFunctionName ?? '';
+            const ctxService = entrypointContext.serviceName ?? '';
+            const ctxFunction = entrypointContext.functionName ?? '';
+            if (traceService !== ctxService || traceFunction !== ctxFunction) {
+                return false;
+            }
+        }
+
         const sysInstr = traceAnimation.systemInstructions;
         if (sysInstr) {
             const extractedRole = sysInstr.match(/(?:^|\n)#\s*Role[ \t]*\r?\n([\s\S]*?)(?=\r?\n#\s*Instructions|$)/i)?.[1]?.trim();
