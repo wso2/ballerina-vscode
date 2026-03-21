@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { Task, MACHINE_VIEW } from "@wso2/ballerina-core/lib/state-machine-types";
+import { Task, MACHINE_VIEW, ClarifyQuestion } from "@wso2/ballerina-core/lib/state-machine-types";
 import { CopilotEventHandler } from "../utils/events";
 import { ConfigVariable } from "../../../utils/toml-utils";
 import { StateMachine } from "../../../stateMachine";
@@ -46,6 +46,14 @@ export interface ConnectorSpecResponse {
     provided: boolean;
     spec?: any;
     comment?: string;
+}
+
+/**
+ * Clarify tool response
+ */
+export interface ClarifyResponse {
+    answered: boolean;
+    answers?: Array<{ question: string; answers: string[] }>;
 }
 
 /**
@@ -90,6 +98,7 @@ export class ApprovalManager {
     private connectorSpecs = new Map<string, PromiseResolver<ConnectorSpecResponse>>();
     private configurationRequests = new Map<string, PromiseResolver<ConfigurationResponse>>();
     private webToolApprovals = new Map<string, PromiseResolver<{ approved: boolean }>>();
+    private clarifyRequests = new Map<string, PromiseResolver<ClarifyResponse>>();
     private approvalQueue: ApprovalQueueItem[] = [];
     private approvalQueueActive = false;
     private notificationCounters = new Map<string, number>();
@@ -497,6 +506,55 @@ export class ApprovalManager {
     }
 
     // ============================================
+    // Clarify Tool
+    // ============================================
+
+    /**
+     * Request clarification from user
+     * Emits clarify_event and waits for user to select answer(s)
+     */
+    requestClarify(
+        requestId: string,
+        params: { questions: ClarifyQuestion[] },
+        eventHandler: CopilotEventHandler,
+    ): Promise<ClarifyResponse> {
+        console.log(`[ApprovalManager] Requesting clarification: ${requestId}`);
+
+        eventHandler({
+            type: "clarify_event",
+            requestId,
+            stage: "asking",
+            questions: params.questions,
+        });
+
+        return new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                this.clarifyRequests.delete(requestId);
+                reject(new Error(`Clarify request timeout for request ${requestId}`));
+            }, this.DEFAULT_TIMEOUT_MS);
+
+            this.clarifyRequests.set(requestId, { resolve, reject, timeoutId });
+        });
+    }
+
+    /**
+     * Resolve a pending clarify request (called by RPC handler when user responds)
+     */
+    resolveClarify(requestId: string, answered: boolean, answers?: Array<{ question: string; answers: string[] }>): void {
+        const resolver = this.clarifyRequests.get(requestId);
+        if (!resolver) {
+            console.warn(`[ApprovalManager] No pending clarify request for: ${requestId}`);
+            return;
+        }
+
+        console.log(`[ApprovalManager] Resolving clarify request: ${requestId}, answered: ${answered}`);
+
+        if (resolver.timeoutId) { clearTimeout(resolver.timeoutId); }
+        resolver.resolve({ answered, answers });
+        this.clarifyRequests.delete(requestId);
+    }
+
+    // ============================================
     // Notification Counter
     // ============================================
 
@@ -587,6 +645,15 @@ export class ApprovalManager {
         this.approvalQueue = [];
         this.approvalQueueActive = false;
 
+        // Resolve clarify requests as skipped
+        for (const [, resolver] of this.clarifyRequests.entries()) {
+            if (resolver.timeoutId) {
+                clearTimeout(resolver.timeoutId);
+            }
+            resolver.resolve({ answered: false });
+        }
+        this.clarifyRequests.clear();
+
         // Reset all notification counters and fire handlers (e.g. turn off globe)
         for (const [type, count] of this.notificationCounters.entries()) {
             if (count > 0) {
@@ -599,13 +666,14 @@ export class ApprovalManager {
     /**
      * Get count of pending approvals (useful for debugging)
      */
-    getPendingCount(): { plans: number; tasks: number; connectorSpecs: number; configurations: number; webTools: number } {
+    getPendingCount(): { plans: number; tasks: number; connectorSpecs: number; configurations: number; webTools: number; clarify: number } {
         return {
             plans: this.planApprovals.size,
             tasks: this.taskApprovals.size,
             connectorSpecs: this.connectorSpecs.size,
             configurations: this.configurationRequests.size,
             webTools: this.webToolApprovals.size,
+            clarify: this.clarifyRequests.size,
         };
     }
 }
