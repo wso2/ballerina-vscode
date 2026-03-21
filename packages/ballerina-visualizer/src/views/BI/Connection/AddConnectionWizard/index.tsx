@@ -44,7 +44,6 @@ import { BodyText } from "../../../styles";
 import { DownloadIcon } from "../../../../components/DownloadIcon";
 import FormGeneratorNew from "../../Forms/FormGeneratorNew";
 import { FormSubmitOptions } from "../../FlowDiagram";
-import { useGetNodeTemplate } from "../../../../hooks/useGetNodeTemplate";
 
 const Container = styled.div`
     width: 100%;
@@ -125,7 +124,6 @@ interface AddConnectionWizardProps {
 export function AddConnectionWizard(props: AddConnectionWizardProps) {
     const { projectPath, fileName, target, onClose, isPopupScreen, openCustomConnectorView } = props;
     const { rpcClient } = useRpcContext();
-    const getNodeTemplate = useGetNodeTemplate();
 
     const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.CONNECTOR_LIST);
     const [pullingStatus, setPullingStatus] = useState<PullingStatus>(PullingStatus.FETCHING);
@@ -188,7 +186,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 }, 3000);
             });
             // Start the request
-            const nodeTemplatePromise = getNodeTemplate({
+            const nodeTemplatePromise = rpcClient.getBIDiagramRpcClient().getNodeTemplate({
                 position: target || null,
                 filePath: fileName,
                 id: connector.codedata,

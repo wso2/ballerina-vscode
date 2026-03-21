@@ -60,8 +60,7 @@ import { EXPRESSION_EXTRACTION_REGEX } from "../../../constants";
 import { ConnectionKind } from "../../../components/ConnectionSelector";
 import { SidePanelView } from "../FlowDiagram/PanelManager";
 import { createPromptHelperPane } from "./utils";
-import { useProjectStructure } from "../../../ProjectStructureContext";
-import { useGetNodeTemplate } from "../../../hooks/useGetNodeTemplate";
+
 
 const Container = styled.div`
     width: 100%;
@@ -85,7 +84,6 @@ export interface BIFocusFlowDiagramProps {
 export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
     const { projectPath, filePath, onUpdate, onReady } = props;
     const { rpcClient } = useRpcContext();
-    const getNodeTemplate = useGetNodeTemplate();
 
     const [model, setModel] = useState<Flow>();
     const [suggestedModel, setSuggestedModel] = useState<Flow>();
@@ -347,7 +345,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
             return;
         }
         setShowProgressIndicator(true);
-        getNodeTemplate({
+        rpcClient.getBIDiagramRpcClient().getNodeTemplate({
             position: targetRef.current.startLine,
             filePath: model.fileName,
             id: node.codedata,

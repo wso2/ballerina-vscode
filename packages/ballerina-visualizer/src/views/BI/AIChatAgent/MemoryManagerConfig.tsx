@@ -29,7 +29,6 @@ import { usePanelOverlay } from "../FlowDiagram/hooks/usePanelOverlay";
 import { ConnectionSelectionList } from "../../../components/ConnectionSelector/ConnectionSelectionList";
 import { ConnectionCreator } from "../../../components/ConnectionSelector/ConnectionCreator";
 import { getNodeTemplateForConnection } from "../FlowDiagram/utils";
-import { useProjectStructure } from "../../../ProjectStructureContext";
 
 const Container = styled.div`
     padding: 24px 16px 0;
@@ -73,7 +72,6 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
     const { agentNode, memoryNode: existingMemoryVariable, onSave } = props;
 
     const { rpcClient } = useRpcContext();
-    const { projectStructure } = useProjectStructure();
     const { openOverlay, closeTopOverlay } = usePanelOverlay();
 
     const [availableMemory, setAvailableMemory] = useState<CodeData[]>([]);

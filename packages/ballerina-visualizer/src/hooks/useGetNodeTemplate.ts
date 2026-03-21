@@ -18,24 +18,14 @@
 
 import { BINodeTemplateRequest, BINodeTemplateResponse } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { useProjectStructure } from "../ProjectStructureContext";
 
 /**
- * Returns a wrapped version of `getNodeTemplate` that automatically resolves
- * and injects the `isLibrary` flag based on the current project's Ballerina.toml
- * and project structure. Use this everywhere in the visualizer instead of calling
+ * Returns a wrapped version of `getNodeTemplate`. The `isLibrary` flag is resolved
+ * server-side by the extension handler, so callers do not need to provide it.
+ * Use this everywhere in the visualizer instead of calling
  * `rpcClient.getBIDiagramRpcClient().getNodeTemplate()` directly.
  */
 export function useGetNodeTemplate(): (params: Omit<BINodeTemplateRequest, "isLibrary">) => Promise<BINodeTemplateResponse> {
     const { rpcClient } = useRpcContext();
-    const { projectStructure } = useProjectStructure();
-
-    return async (params: Omit<BINodeTemplateRequest, "isLibrary">) => {
-        const tomlValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
-        const projectName = tomlValues?.package?.name || '';
-        const currentProject = projectStructure?.projects?.find((project) => project.projectName === projectName);
-        const isLibrary = currentProject?.isLibrary ?? false;
-
-        return rpcClient.getBIDiagramRpcClient().getNodeTemplate({ ...params, isLibrary });
-    };
+    return (params) => rpcClient.getBIDiagramRpcClient().getNodeTemplate(params);
 }

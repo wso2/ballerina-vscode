@@ -28,25 +28,11 @@ export const getNodeTemplate = async (
     filePath: string,
     position: LinePosition = { line: 0, offset: 0 },
 ) => {
-    // Resolve whether current project is a library and inject `isLibrary` like `useGetNodeTemplate` does.
-    const tomlValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
-    const projectName = tomlValues?.package?.name || '';
-    let isLibrary = false;
-    try {
-        const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
-        const currentProject = projectStructure?.projects?.find((project) => project.projectName === projectName);
-        isLibrary = currentProject?.isLibrary ?? false;
-    } catch (e) {
-        // Fallback to false if project structure cannot be resolved
-        console.warn('Failed to resolve project structure for isLibrary flag', e);
-        isLibrary = false;
-    }
-
+    // `isLibrary` is resolved server-side by the extension handler.
     const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
         position: position,
         filePath: filePath,
         id: codeData,
-        isLibrary,
     });
     console.log(">>> get node template response", response);
     return response?.flowNode;

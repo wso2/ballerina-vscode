@@ -76,7 +76,6 @@ import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../For
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
 import { useModalStack } from "../../../../Context";
-import { useProjectStructure } from "../../../../ProjectStructureContext";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -162,7 +161,7 @@ export function FormGeneratorNew(props: FormProps) {
     } = props;
 
     const { rpcClient } = useRpcContext();
-    const { projectStructure } = useProjectStructure();
+
 
 
     const getAdjustedStartLine = (targetLineRange: LineRange | undefined, expressionOffset: number): LinePosition | undefined => {
