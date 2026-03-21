@@ -659,7 +659,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getNodeTemplate(params: BINodeTemplateRequest): Promise<BINodeTemplateResponse> {
         console.log(">>> requesting bi node template from ls", params);
         params.forceAssign = true; // TODO: remove this
-        params.isLibrary = await isLibraryProject(StateMachine.context().projectPath ?? '');
+        const projectPath = StateMachine.context().projectPath;
+        params.isLibrary = projectPath ? await isLibraryProject(projectPath) : false;
 
         // Check if the file exists
         if (!fs.existsSync(params.filePath)) {
