@@ -29,7 +29,7 @@ interface FormSectionGroupProps {
 const Wrapper = styled.div<{ isExpanded: boolean }>`
     border: 1px solid var(--vscode-panel-border);
     border-radius: 4px;
-    overflow: hidden;
+    overflow: ${(props: { isExpanded: boolean }) => (props.isExpanded ? "visible" : "hidden")};
     transition: border-color 0.2s ease;
 
     &:hover {
@@ -77,10 +77,10 @@ const ChevronIcon = styled.div<{ isExpanded: boolean }>`
 const Content = styled.div<{ isExpanded: boolean }>`
     display: grid;
     gap: 20px;
-    max-height: ${(props: { isExpanded: boolean }) => (props.isExpanded ? "2000px" : "0")};
+    max-height: ${(props: { isExpanded: boolean }) => (props.isExpanded ? "none" : "0")};
     opacity: ${(props: { isExpanded: boolean }) => (props.isExpanded ? 1 : 0)};
-    overflow: hidden;
-    transition: max-height 0.3s ease, opacity 0.2s ease;
+    overflow: ${(props: { isExpanded: boolean }) => (props.isExpanded ? "visible" : "hidden")};
+    transition: opacity 0.2s ease;
     padding: ${(props: { isExpanded: boolean }) => (props.isExpanded ? "16px" : "0 16px")};
     border-top: ${(props: { isExpanded: boolean }) =>
         props.isExpanded ? "1px solid var(--vscode-panel-border)" : "none"};

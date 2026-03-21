@@ -333,6 +333,11 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                             }
                         });
                     }
+
+                    // If this property is a GROUP_SECTION, recurse into its nested properties
+                    if (primaryType?.fieldType === "GROUP_SECTION" && property.properties) {
+                        collectRecordTypeFields(property.properties);
+                    }
                 });
             };
 
