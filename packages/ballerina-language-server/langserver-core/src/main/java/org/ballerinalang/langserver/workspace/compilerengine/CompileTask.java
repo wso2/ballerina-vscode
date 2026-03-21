@@ -18,18 +18,18 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
+import io.ballerina.projects.PackageDescriptor;
+
 import javax.annotation.Nonnull;
 
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 
 import java.time.Instant;
-import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Compilation unit of work binding a source root, content version, and cancellation token.
+ * Compilation unit of work binding a package descriptor, content version, and cancellation token.
  *
  * <p>Each phase advance acts as a cooperative cancellation checkpoint (ADR-018).
  *
@@ -37,7 +37,8 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class CompileTask {
 
-    private final DocumentUri sourceRootUri;
+    private final PackageDescriptor descriptor;
+    private final String sourceRootIdentifier;
     private final ContentVersion contentVersion;
     private final CancellationToken cancellationToken;
     private final Instant createdAt;
@@ -46,15 +47,30 @@ public final class CompileTask {
     /**
      * Creates a compile task starting at {@link CompilationPhase#PRE_PARSE}.
      *
-     * @param sourceRootUri     the project source root URI
+     * @param descriptor the package descriptor identifying the compilation unit
      * @param contentVersion    the content version triggering this compilation
      * @param cancellationToken cooperative cancellation flag
      */
-    public CompileTask(@Nonnull DocumentUri sourceRootUri, @Nonnull ContentVersion contentVersion,
+    public CompileTask(@Nonnull PackageDescriptor descriptor, @Nonnull ContentVersion contentVersion,
+                        @Nonnull CancellationToken cancellationToken) {
+        this(descriptor, null, contentVersion, cancellationToken);
+    }
+
+    /**
+     * Creates a compile task starting at {@link CompilationPhase#PRE_PARSE}.
+     *
+     * @param descriptor the package descriptor identifying the compilation unit
+     * @param sourceRootIdentifier the source root identifier for project-loading operations
+     * @param contentVersion the content version triggering this compilation
+     * @param cancellationToken cooperative cancellation flag
+     */
+    public CompileTask(@Nonnull PackageDescriptor descriptor, String sourceRootIdentifier,
+                       @Nonnull ContentVersion contentVersion,
                        @Nonnull CancellationToken cancellationToken) {
-        this.sourceRootUri = Objects.requireNonNull(sourceRootUri, "sourceRootUri must not be null");
-        this.contentVersion = Objects.requireNonNull(contentVersion, "contentVersion must not be null");
-        this.cancellationToken = Objects.requireNonNull(cancellationToken, "cancellationToken must not be null");
+        this.descriptor = descriptor;
+        this.sourceRootIdentifier = sourceRootIdentifier;
+        this.contentVersion = contentVersion;
+        this.cancellationToken = cancellationToken;
         this.createdAt = Instant.now();
         this.currentPhase = new AtomicReference<>(CompilationPhase.PRE_PARSE);
     }
@@ -86,8 +102,12 @@ public final class CompileTask {
         return cancellationToken.isCancelled();
     }
 
-    public DocumentUri sourceRootUri() {
-        return sourceRootUri;
+    public PackageDescriptor descriptor() {
+        return descriptor;
+    }
+
+    public String sourceRootIdentifier() {
+        return sourceRootIdentifier;
     }
 
     public ContentVersion contentVersion() {

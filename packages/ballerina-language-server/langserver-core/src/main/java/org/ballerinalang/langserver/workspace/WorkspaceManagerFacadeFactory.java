@@ -91,8 +91,8 @@ public final class WorkspaceManagerFacadeFactory {
 
         CompilationPipeline.CompilationAction compilationAction = new CompilationPipeline.CompilationAction() {
             @Override
-            public PackageDescriptor describe(DocumentUri sourceRootUri) {
-                Project project = projectService().loadOrCreate(Path.of(sourceRootUri.uri()), null);
+            public PackageDescriptor describe(String sourceRootIdentifier) {
+                Project project = projectService().loadOrCreateFromIdentifier(sourceRootIdentifier, null);
                 return project.currentPackage().descriptor();
             }
 
@@ -100,29 +100,29 @@ public final class WorkspaceManagerFacadeFactory {
             public ResolutionResult resolve(CompileTask task) {
                 ProjectServiceImpl ps = projectService();
                 LockingMode lockingMode = currentLockingMode(task);
-                Path sourceRoot = Path.of(task.sourceRootUri().uri());
+                String sourceRootIdentifier = task.sourceRootIdentifier();
                 try {
-                    Project project = ps.loadOrCreate(sourceRoot, null);
+                    Project project = ps.loadOrCreateFromIdentifier(sourceRootIdentifier, null);
                     project.currentPackage().getResolution(compilationOptions(lockingMode));
-                    return new ResolutionResult(task.sourceRootUri(), List.of(), true);
+                    return new ResolutionResult(task.descriptor(), List.of(), true);
                 } catch (RuntimeException e) {
                     String message = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
-                    return new ResolutionResult(task.sourceRootUri(), List.of(
+                    return new ResolutionResult(task.descriptor(), List.of(
                             new ResolutionResult.ResolutionDiagnostic(ResolutionResult.Severity.ERROR,
-                                    message, sourceRoot.toString())), false);
+                                    message, sourceRootIdentifier)), false);
                 }
             }
 
             @Override
             public StableSnapshot compile(CompileTask task) {
-                return snapshot(projectService().loadOrCreate(Path.of(task.sourceRootUri().uri()), null),
+                return snapshot(projectService().loadOrCreateFromIdentifier(task.sourceRootIdentifier(), null),
                         task.contentVersion());
             }
 
             @Override
             public LockingMode currentLockingMode(CompileTask task) {
                 ProjectServiceImpl ps = projectService();
-                Project project = ps.loadOrCreate(Path.of(task.sourceRootUri().uri()), null);
+                Project project = ps.loadOrCreateFromIdentifier(task.sourceRootIdentifier(), null);
                 return ps.getLockingMode(project);
             }
 
@@ -132,7 +132,8 @@ public final class WorkspaceManagerFacadeFactory {
                 while (recoveryMode != initialMode) {
                     try {
                         Project transientProject = BallerinaCompilerApi.getInstance()
-                                .loadProject(Path.of(task.sourceRootUri().uri()), buildOptions(recoveryMode));
+                                .loadProject(projectService().resolvePathFromIdentifier(task.sourceRootIdentifier()),
+                                        buildOptions(recoveryMode));
                         transientProject.currentPackage().getResolution(compilationOptions(recoveryMode));
                         transientProject.currentPackage().getCompilation();
                         return CompilationPipeline.RecoveryResult.success();

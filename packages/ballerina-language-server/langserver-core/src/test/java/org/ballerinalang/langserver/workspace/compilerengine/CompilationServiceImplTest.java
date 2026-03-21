@@ -24,6 +24,7 @@ import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
+import io.ballerina.projects.PackageName;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
@@ -38,6 +39,7 @@ import org.testng.annotations.Test;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -65,14 +67,16 @@ public class CompilationServiceImplTest {
     private DualSnapshotStore snapshotStore;
     private StableSnapshot mockSnapshot;
     private PackageDescriptor mockDescriptor;
-    private static final DocumentUri TEST_ROOT = new DocumentUri.FileUri(
-            Path.of("/tmp/test-project").toAbsolutePath().normalize().toUri());
+    private Path workspaceDir;
+    private DocumentUri testRoot;
 
     @BeforeMethod
-    public void setUp() {
+    public void setUp() throws Exception {
         eventBus = new EventSyncPubSubHolder();
         snapshotStore = new DualSnapshotStore();
-        mockDescriptor = mock(PackageDescriptor.class);
+        workspaceDir = Files.createTempDirectory("compilation-service-test").toAbsolutePath().normalize();
+        testRoot = new DocumentUri.FileUri(workspaceDir.toUri());
+        mockDescriptor = createDescriptor(workspaceDir.getFileName().toString());
         // Pre-create mock snapshot to avoid Mockito initialization issues across tests
         mockSnapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
                 mock(PackageCompilation.class), new ContentVersion(1));
@@ -115,7 +119,7 @@ public class CompilationServiceImplTest {
             return mockSnapshot;
         }), 50);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
 
         Assert.assertTrue(compiled.await(3, TimeUnit.SECONDS),
                 "WM-E1 should trigger initial compilation");
@@ -129,18 +133,18 @@ public class CompilationServiceImplTest {
             return mockSnapshot;
         }), 50);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(compiled.await(3, TimeUnit.SECONDS), "Pipeline should be created");
         Thread.sleep(200);
 
         // Verify pipeline exists
-        Assert.assertNotNull(snapshotStore.getStable(TEST_ROOT), "Snapshot should exist");
+        Assert.assertNotNull(snapshotStore.getStable(mockDescriptor), "Snapshot should exist");
 
-        publishWmE2(TEST_ROOT);
+        publishWmE2(testRoot);
         Thread.sleep(200);
 
         // Verify pipeline is evicted
-        Assert.assertNull(snapshotStore.getStable(TEST_ROOT),
+        Assert.assertNull(snapshotStore.getStable(mockDescriptor),
                 "WM-E2 should evict pipeline and snapshot");
     }
 
@@ -159,10 +163,10 @@ public class CompilationServiceImplTest {
             return mockSnapshot;
         }), 50);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(firstComplete.await(3, TimeUnit.SECONDS), "First compilation");
 
-        publishWmE4(TEST_ROOT);
+        publishWmE4(testRoot);
         Assert.assertTrue(secondStart.await(3, TimeUnit.SECONDS),
                 "WM-E4 should evict and recreate pipeline");
         Assert.assertEquals(compileCount.get(), 2, "Should compile twice");
@@ -185,10 +189,10 @@ public class CompilationServiceImplTest {
             return mockSnapshot;
         }), 50);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
 
-        publishWmDocumentOpened(TEST_ROOT);
+        publishWmDocumentOpened(testRoot);
         Assert.assertTrue(secondCompiled.await(3, TimeUnit.SECONDS),
                 "WM_DOCUMENT_OPENED should request compilation");
     }
@@ -208,10 +212,10 @@ public class CompilationServiceImplTest {
             return mockSnapshot;
         }), 50);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
 
-        publishWmDocumentChanged(TEST_ROOT);
+        publishWmDocumentChanged(testRoot);
         Assert.assertTrue(secondCompiled.await(3, TimeUnit.SECONDS),
                 "WM_DOCUMENT_CHANGED should request compilation");
     }
@@ -231,12 +235,12 @@ public class CompilationServiceImplTest {
             return mockSnapshot;
         }), 50L, 300L);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
 
         eventBus.publish(new DomainEvent(Instant.now(), "resource-monitor",
                 EventKind.RM_E1_HEAP_PRESSURE_DETECTED, HeapPressureLevel.WARNING.name()));
-        publishWmDocumentChanged(TEST_ROOT);
+        publishWmDocumentChanged(testRoot);
 
         Assert.assertFalse(throttledCompilation.await(150, TimeUnit.MILLISECONDS),
                 "RM-E1 should throttle immediate document-triggered recompilation");
@@ -259,10 +263,10 @@ public class CompilationServiceImplTest {
             return mockSnapshot;
         }), 50);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
 
-        publishWmFileWatchedChanged(TEST_ROOT, "DEPENDENCY_GRAPH");
+        publishWmFileWatchedChanged(testRoot, "DEPENDENCY_GRAPH");
         Assert.assertTrue(secondCompiled.await(3, TimeUnit.SECONDS),
                 "WM_FILE_WATCHED_CHANGED with DEPENDENCY_GRAPH scope should request compilation");
     }
@@ -275,10 +279,10 @@ public class CompilationServiceImplTest {
             return mockSnapshot;
         }), 50);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
 
-        publishWmFileWatchedChanged(TEST_ROOT, "CONFIGURATION");
+        publishWmFileWatchedChanged(testRoot, "CONFIGURATION");
         Thread.sleep(300);
 
         // Verify no second compilation triggered
@@ -297,7 +301,7 @@ public class CompilationServiceImplTest {
             return snapshot;
         }), 50);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(compiled.await(3, TimeUnit.SECONDS));
 
         StableSnapshot stableSnapshot = service.stableSnapshot(mockDescriptor, null);
@@ -324,8 +328,9 @@ public class CompilationServiceImplTest {
             return snapshot;
         }), 50);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(compiled.await(3, TimeUnit.SECONDS));
+        Thread.sleep(250);
 
         SnapshotView latestSnapshot = service.latestSnapshot(mockDescriptor, null);
         Assert.assertSame(latestSnapshot, snapshot);
@@ -353,13 +358,13 @@ public class CompilationServiceImplTest {
             return secondSnapshot;
         }), 50);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial stable snapshot should exist");
 
-        publishWmDocumentChanged(TEST_ROOT);
+        publishWmDocumentChanged(testRoot);
         Assert.assertTrue(secondCompileStarted.await(3, TimeUnit.SECONDS), "Second compilation should start");
 
-        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(TEST_ROOT);
+        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(mockDescriptor);
         Assert.assertNotNull(inProgressSnapshot, "In-progress snapshot should be published while compiling");
         Assert.assertSame(service.latestSnapshot(mockDescriptor, null), inProgressSnapshot);
 
@@ -379,7 +384,7 @@ public class CompilationServiceImplTest {
             return snapshot;
         }), 50);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(compileStarted.await(3, TimeUnit.SECONDS), "Compilation should start");
 
         CompletableFuture<StableSnapshot> future = CompletableFuture.supplyAsync(
@@ -407,7 +412,7 @@ public class CompilationServiceImplTest {
             return mockSnapshot;
         }), 50);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(secondCall.await(3, TimeUnit.SECONDS),
                 "Transient failure should be retried");
         Assert.assertEquals(callCount.get(), 2, "Should attempt compilation twice");
@@ -428,7 +433,7 @@ public class CompilationServiceImplTest {
                     recoveryExhausted.countDown();
                 });
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(recoveryExhausted.await(3, TimeUnit.SECONDS),
                 "Persistent failure should emit CE-E6");
         Assert.assertTrue(receivedEvents.contains(EventKind.CE_RESOLUTION_EXHAUSTED));
@@ -446,7 +451,7 @@ public class CompilationServiceImplTest {
                     recoveryExhausted.countDown();
                 });
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         Assert.assertTrue(recoveryExhausted.await(3, TimeUnit.SECONDS),
                 "Fatal failure should emit CE-E6");
     }
@@ -483,7 +488,7 @@ public class CompilationServiceImplTest {
             return mockSnapshot;
         }), 50);
 
-        publishWmE1(TEST_ROOT);
+        publishWmE1(testRoot);
         publishWmE1(root2);
 
         Assert.assertTrue(twoCompiles.await(3, TimeUnit.SECONDS),
@@ -509,8 +514,12 @@ public class CompilationServiceImplTest {
                 return base.compile(task);
             }
             @Override
-            public PackageDescriptor describe(DocumentUri sourceRootUri) {
-                return mockDescriptor;
+            public PackageDescriptor describe(String sourceRootIdentifier) {
+                if (testRoot.uri().toString().equals(sourceRootIdentifier)) {
+                    return mockDescriptor;
+                }
+                String sanitized = sourceRootIdentifier.replaceAll("[^A-Za-z0-9_-]", "-");
+                return createDescriptor(sanitized);
             }
         };
     }
@@ -554,8 +563,16 @@ public class CompilationServiceImplTest {
         ModuleId moduleId = mock(ModuleId.class);
         when(documentId.moduleId()).thenReturn(moduleId);
         return new StableSnapshot(Map.of(documentId, syntaxTree),
-                Map.of(Path.of(TEST_ROOT.uri()).resolve("main.bal").normalize(), documentId),
+                Map.of(workspaceDir.resolve("main.bal").normalize(), documentId),
                 Map.of(moduleId, semanticModel), compilation, version);
+    }
+
+    private PackageDescriptor createDescriptor(String packageNameValue) {
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
+        PackageName packageName = mock(PackageName.class);
+        when(descriptor.name()).thenReturn(packageName);
+        when(packageName.value()).thenReturn(packageNameValue);
+        return descriptor;
     }
 
 }

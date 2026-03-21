@@ -18,9 +18,11 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
+import io.ballerina.projects.PackageDescriptor;
+import io.ballerina.projects.PackageName;
 import io.ballerina.projects.PackageCompilation;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
@@ -29,7 +31,6 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -50,6 +51,8 @@ import static org.mockito.Mockito.mock;
  * @since 1.7.0
  */
 public class CompilationPipelineTest {
+
+    private static final PackageDescriptor TEST_DESCRIPTOR = createDescriptor("project");
 
     private CompilationPipeline pipeline;
     private EventSyncPubSubHolder eventBus;
@@ -158,7 +161,7 @@ public class CompilationPipelineTest {
     @Test
     public void task_cancelDelegatesToToken() {
         CancellationToken token = new CancellationToken();
-        CompileTask task = new CompileTask(testSourceRoot(), new ContentVersion(1), token);
+        CompileTask task = new CompileTask(testDescriptor(), new ContentVersion(1), token);
         task.cancel();
         Assert.assertTrue(token.isCancelled());
         Assert.assertTrue(task.isCancelled());
@@ -171,22 +174,22 @@ public class CompilationPipelineTest {
         Assert.assertEquals(task.contentVersion(), version);
         Assert.assertNotNull(task.createdAt());
         Assert.assertNotNull(task.cancellationToken());
-        Assert.assertEquals(task.sourceRootUri(), testSourceRoot());
+        Assert.assertEquals(task.descriptor(), testDescriptor());
     }
 
     @Test(expectedExceptions = NullPointerException.class)
-    public void task_rejectsNullSourceRoot() {
+    public void task_rejectsNullDescriptor() {
         new CompileTask(null, new ContentVersion(1), new CancellationToken());
     }
 
     @Test(expectedExceptions = NullPointerException.class)
     public void task_rejectsNullContentVersion() {
-        new CompileTask(testSourceRoot(), null, new CancellationToken());
+        new CompileTask(testDescriptor(), null, new CancellationToken());
     }
 
     @Test(expectedExceptions = NullPointerException.class)
     public void task_rejectsNullCancellationToken() {
-        new CompileTask(testSourceRoot(), new ContentVersion(1), null);
+        new CompileTask(testDescriptor(), new ContentVersion(1), null);
     }
 
     // ---- CompilationPipeline ----
@@ -268,19 +271,21 @@ public class CompilationPipelineTest {
         pipeline.requestCompilation(new ContentVersion(1));
         Assert.assertTrue(done.await(3, TimeUnit.SECONDS));
         Thread.sleep(200);
-        Assert.assertNotNull(store.getStable(testSourceRoot()));
+        Assert.assertNotNull(store.getStable(testDescriptor()));
     }
 
     @Test
     public void pipeline_emitsCEE1OnSuccessfulPublish() throws InterruptedException {
         CountDownLatch eventReceived = new CountDownLatch(1);
         List<EventKind> receivedKinds = Collections.synchronizedList(new ArrayList<>());
+        List<DomainEvent> receivedEvents = Collections.synchronizedList(new ArrayList<>());
         StableSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
 
         eventBus = new EventSyncPubSubHolder();
         eventBus.subscribe("test-sub", SubscriberTier.CRITICAL,
                 Set.of(EventKind.COMPILER_SNAPSHOT_PUBLISHED), event -> {
                     receivedKinds.add(event.eventKind());
+                    receivedEvents.add(event);
                     eventReceived.countDown();
                 });
 
@@ -289,6 +294,7 @@ public class CompilationPipelineTest {
         pipeline.requestCompilation(new ContentVersion(1));
         Assert.assertTrue(eventReceived.await(3, TimeUnit.SECONDS));
         Assert.assertTrue(receivedKinds.contains(EventKind.COMPILER_SNAPSHOT_PUBLISHED));
+        Assert.assertEquals(receivedEvents.get(0).sourceContext(), "project");
     }
 
     @Test
@@ -362,7 +368,7 @@ public class CompilationPipelineTest {
         Assert.assertTrue(v1Done.await(3, TimeUnit.SECONDS));
         Thread.sleep(500);
 
-        StableSnapshot snap = store.getStable(testSourceRoot());
+        StableSnapshot snap = store.getStable(testDescriptor());
         if (snap != null) {
             Assert.assertNotEquals(snap.contentVersion(), new ContentVersion(1),
                     "Stale version 1 should not be published");
@@ -426,7 +432,7 @@ public class CompilationPipelineTest {
     }
 
     @Test(expectedExceptions = NullPointerException.class)
-    public void pipeline_rejectsNullSourceRoot() {
+    public void pipeline_rejectsNullDescriptor() {
         EventSyncPubSubHolder bus = new EventSyncPubSubHolder();
         try {
             new CompilationPipeline(null, new DualSnapshotStore(), bus,
@@ -485,7 +491,7 @@ public class CompilationPipelineTest {
                     cancellationEvent.countDown();
                 });
 
-        pipeline = new CompilationPipeline(testSourceRoot(), new DualSnapshotStore(), eventBus, task -> {
+        pipeline = new CompilationPipeline(testDescriptor(), new DualSnapshotStore(), eventBus, task -> {
             if (task.contentVersion().equals(new ContentVersion(1))) {
                 firstStarted.countDown();
                 releaseCancelledTask.await(5, TimeUnit.SECONDS);
@@ -515,7 +521,7 @@ public class CompilationPipelineTest {
                     eventReceived.countDown();
                 });
 
-        pipeline = new CompilationPipeline(testSourceRoot(), new DualSnapshotStore(), eventBus, task -> {
+        pipeline = new CompilationPipeline(testDescriptor(), new DualSnapshotStore(), eventBus, task -> {
             throw new InterruptedException("Thread interrupted during compilation");
         });
 
@@ -540,7 +546,7 @@ public class CompilationPipelineTest {
             @Override
             public ResolutionResult resolve(CompileTask task) {
                 resolutionCalled.countDown();
-                return new ResolutionResult(task.sourceRootUri(), List.of(), true);
+                return new ResolutionResult(task.descriptor(), List.of(), true);
             }
 
             @Override
@@ -573,7 +579,7 @@ public class CompilationPipelineTest {
         pipeline = createPipeline(eventBus, new CompilationPipeline.CompilationAction() {
             @Override
             public ResolutionResult resolve(CompileTask task) {
-                return new ResolutionResult(task.sourceRootUri(),
+                return new ResolutionResult(task.descriptor(),
                         List.of(new ResolutionResult.ResolutionDiagnostic(ResolutionResult.Severity.ERROR,
                                 "syntax error", "/tmp/project/main.bal")), false);
             }
@@ -610,7 +616,7 @@ public class CompilationPipelineTest {
         pipeline = createPipeline(eventBus, new CompilationPipeline.CompilationAction() {
             @Override
             public ResolutionResult resolve(CompileTask task) {
-                return new ResolutionResult(task.sourceRootUri(), List.of(), true);
+                return new ResolutionResult(task.descriptor(), List.of(), true);
             }
 
             @Override
@@ -658,7 +664,7 @@ public class CompilationPipelineTest {
         pipeline = createPipeline(eventBus, new CompilationPipeline.CompilationAction() {
             @Override
             public ResolutionResult resolve(CompileTask task) {
-                return new ResolutionResult(task.sourceRootUri(), List.of(), true);
+                return new ResolutionResult(task.descriptor(), List.of(), true);
             }
 
             @Override
@@ -689,33 +695,41 @@ public class CompilationPipelineTest {
 
     // ---- Helpers ----
 
-    private static DocumentUri testSourceRoot() {
-        return new DocumentUri.FileUri(Path.of("/tmp/project").toAbsolutePath().normalize().toUri());
+    private static PackageDescriptor testDescriptor() {
+        return TEST_DESCRIPTOR;
     }
 
     private CompileTask createTask(ContentVersion version) {
-        return new CompileTask(testSourceRoot(), version, new CancellationToken());
+        return new CompileTask(testDescriptor(), version, new CancellationToken());
     }
 
     private CompilationPipeline createPipeline(CompilationPipeline.CompilationAction action) {
         eventBus = new EventSyncPubSubHolder();
-        return new CompilationPipeline(testSourceRoot(), new DualSnapshotStore(), eventBus, action);
+        return new CompilationPipeline(testDescriptor(), new DualSnapshotStore(), eventBus, action);
     }
 
     private CompilationPipeline createPipeline(DualSnapshotStore store,
                                                CompilationPipeline.CompilationAction action) {
         eventBus = new EventSyncPubSubHolder();
-        return new CompilationPipeline(testSourceRoot(), store, eventBus, action);
+        return new CompilationPipeline(testDescriptor(), store, eventBus, action);
     }
 
     private CompilationPipeline createPipeline(EventSyncPubSubHolder bus,
                                                CompilationPipeline.CompilationAction action) {
         this.eventBus = bus;
-        return new CompilationPipeline(testSourceRoot(), new DualSnapshotStore(), bus, action);
+        return new CompilationPipeline(testDescriptor(), new DualSnapshotStore(), bus, action);
     }
 
     private static StableSnapshot createMockSnapshot(ContentVersion version) {
         return new StableSnapshot(Map.of(), Map.of(), Map.of(),
                 mock(PackageCompilation.class), version);
+    }
+
+    private static PackageDescriptor createDescriptor(String packageNameValue) {
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
+        PackageName packageName = mock(PackageName.class);
+        org.mockito.Mockito.when(descriptor.name()).thenReturn(packageName);
+        org.mockito.Mockito.when(packageName.value()).thenReturn(packageNameValue);
+        return descriptor;
     }
 }

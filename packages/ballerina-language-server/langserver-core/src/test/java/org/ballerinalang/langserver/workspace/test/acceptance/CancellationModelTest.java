@@ -20,6 +20,8 @@ package org.ballerinalang.langserver.workspace.test.acceptance;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.PackageDescriptor;
+import io.ballerina.projects.PackageName;
 import org.awaitility.Awaitility;
 import org.ballerinalang.langserver.workspace.compilerengine.CancellationToken;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
@@ -29,7 +31,6 @@ import org.ballerinalang.langserver.workspace.compilerengine.InProgressSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
@@ -54,8 +55,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class CancellationModelTest {
 
-    private static final DocumentUri TEST_ROOT = new DocumentUri.FileUri(
-            Path.of("/tmp/acceptance-cancellation-model").toAbsolutePath().normalize().toUri());
+    private static final Path TEST_ROOT_PATH = Path.of("/tmp/acceptance-cancellation-model")
+            .toAbsolutePath().normalize();
+    private static final String TEST_ROOT_ID = TEST_ROOT_PATH.toUri().toString();
+    private static final PackageDescriptor TEST_ROOT = descriptor("acceptance-cancellation-model");
 
     private CompilationPipeline pipeline;
     private EventSyncPubSubHolder eventBus;
@@ -161,7 +164,7 @@ public class CancellationModelTest {
         eventBus = new EventSyncPubSubHolder();
         eventBus.subscribe("cancelled-task-listener", SubscriberTier.CRITICAL,
                 Set.of(EventKind.COMPILER_COMPILATION_CANCELLED), event -> cancellationEvent.countDown());
-        pipeline = new CompilationPipeline(TEST_ROOT, new DualSnapshotStore(), eventBus, task -> {
+        pipeline = new CompilationPipeline(TEST_ROOT, TEST_ROOT_ID, new DualSnapshotStore(), eventBus, task -> {
             if (task.contentVersion().value() == 1) {
                 firstStarted.countDown();
                 releaseCancelledTask.await(5, TimeUnit.SECONDS);
@@ -266,7 +269,7 @@ public class CancellationModelTest {
      */
     @Test(dataProvider = "phaseBoundaries")
     public void cancelledCompileTask_throwsAtEveryPhaseBoundary(CompilationPhase phase) {
-        CompileTask task = new CompileTask(TEST_ROOT, new ContentVersion(5), new CancellationToken());
+        CompileTask task = new CompileTask(TEST_ROOT, TEST_ROOT_ID, new ContentVersion(5), new CancellationToken());
         task.cancel();
 
         Assert.assertThrows(CancellationException.class,
@@ -334,11 +337,19 @@ public class CancellationModelTest {
     private CompilationPipeline createPipeline(DualSnapshotStore snapshotStore,
                                                CompilationPipeline.CompilationAction action) {
         eventBus = new EventSyncPubSubHolder();
-        return new CompilationPipeline(TEST_ROOT, snapshotStore, eventBus, action);
+        return new CompilationPipeline(TEST_ROOT, TEST_ROOT_ID, snapshotStore, eventBus, action);
     }
 
     private static StableSnapshot createSnapshot(ContentVersion version) {
         return new StableSnapshot(Map.of(), Map.of(), Map.of(),
                 Mockito.mock(PackageCompilation.class), version);
+    }
+
+    private static PackageDescriptor descriptor(String packageNameValue) {
+        PackageDescriptor descriptor = Mockito.mock(PackageDescriptor.class);
+        PackageName packageName = Mockito.mock(PackageName.class);
+        Mockito.when(descriptor.name()).thenReturn(packageName);
+        Mockito.when(packageName.value()).thenReturn(packageNameValue);
+        return descriptor;
     }
 }

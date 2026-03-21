@@ -17,19 +17,19 @@
  */
 package org.ballerinalang.langserver.workspace.test.acceptance;
 
+import io.ballerina.projects.PackageDescriptor;
+import io.ballerina.projects.PackageName;
 import io.ballerina.projects.PackageCompilation;
 import org.awaitility.Awaitility;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.InProgressSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -51,8 +51,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class DualSnapshotAcceptanceTest {
 
-    private static final DocumentUri TEST_ROOT = new DocumentUri.FileUri(
-            Path.of("/tmp/acceptance-dual-snapshot").toAbsolutePath().normalize().toUri());
+    private static final PackageDescriptor TEST_ROOT = descriptor("acceptance-dual-snapshot");
     private static final long LATENCY_THRESHOLD_MS = 5;
 
     private DualSnapshotStore store;
@@ -458,5 +457,13 @@ public class DualSnapshotAcceptanceTest {
     private static StableSnapshot createSnapshot(ContentVersion version) {
         return new StableSnapshot(Map.of(), Map.of(), Map.of(),
                 Mockito.mock(PackageCompilation.class), version);
+    }
+
+    private static PackageDescriptor descriptor(String packageNameValue) {
+        PackageDescriptor descriptor = Mockito.mock(PackageDescriptor.class);
+        PackageName packageName = Mockito.mock(PackageName.class);
+        Mockito.when(descriptor.name()).thenReturn(packageName);
+        Mockito.when(packageName.value()).thenReturn(packageNameValue);
+        return descriptor;
     }
 }

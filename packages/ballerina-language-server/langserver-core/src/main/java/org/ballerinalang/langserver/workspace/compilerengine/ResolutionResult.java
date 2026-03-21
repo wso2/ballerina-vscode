@@ -18,30 +18,31 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
+import io.ballerina.projects.PackageDescriptor;
+
 import javax.annotation.Nonnull;
 
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
-
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Captures pre-compilation resolution diagnostics per ADR-008.
  *
- * @param sourceRootUri  the project that was resolved
+ * @param descriptor the package descriptor that was resolved
  * @param diagnostics immutable list of resolution diagnostics
- * @param success     {@code true} when no ERROR-level diagnostics are present
+ * @param success {@code true} when no ERROR-level diagnostics are present
  * @since 1.7.0
  */
-public record ResolutionResult(@Nonnull DocumentUri sourceRootUri,
-                                @Nonnull List<ResolutionDiagnostic> diagnostics,
-                                boolean success) {
+public record ResolutionResult(@Nonnull PackageDescriptor descriptor,
+                                 @Nonnull List<ResolutionDiagnostic> diagnostics,
+                                 boolean success) {
 
     /**
      * Validates fields and creates a defensive copy of diagnostics.
      */
     public ResolutionResult {
-        Objects.requireNonNull(sourceRootUri, "sourceRootUri must not be null");
+        if (descriptor == null) {
+            throw new NullPointerException("descriptor must not be null");
+        }
         diagnostics = List.copyOf(diagnostics);
     }
 

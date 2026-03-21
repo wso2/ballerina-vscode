@@ -23,18 +23,17 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.PackageDescriptor;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 
 /**
- * Thread-safe per-source-root store for stable and in-progress snapshots.
+ * Thread-safe per-package store for stable and in-progress snapshots.
  *
  * @since 1.7.0
  */
@@ -42,7 +41,7 @@ public class DualSnapshotStore {
 
     private static final ContentVersion INITIAL_CONTENT_VERSION = new ContentVersion(0);
 
-    private final ConcurrentHashMap<DocumentUri, SnapshotPair> snapshots;
+    private final ConcurrentHashMap<PackageDescriptor, SnapshotPair> snapshots;
 
     /**
      * Creates an empty dual snapshot store.
@@ -54,54 +53,54 @@ public class DualSnapshotStore {
     /**
      * Returns the current stable snapshot for the source root.
      *
-     * @param sourceRoot the source root identity
+     * @param descriptor the package descriptor identity
      * @return the latest stable snapshot, or {@code null} when none has been published
      */
-    public StableSnapshot getStable(@Nonnull DocumentUri sourceRoot) {
-        SnapshotPair snapshotPair = snapshots.get(sourceRoot);
+    public StableSnapshot getStable(@Nonnull PackageDescriptor descriptor) {
+        SnapshotPair snapshotPair = snapshots.get(descriptor);
         return snapshotPair == null ? null : snapshotPair.stableSnapshot();
     }
 
     /**
      * Returns the current in-progress snapshot for the source root.
      *
-     * @param sourceRoot the source root identity
+     * @param descriptor the package descriptor identity
      * @return the active in-progress snapshot, or {@code null} when none is running
      */
-    public InProgressSnapshot getInProgress(@Nonnull DocumentUri sourceRoot) {
-        SnapshotPair snapshotPair = snapshots.get(sourceRoot);
+    public InProgressSnapshot getInProgress(@Nonnull PackageDescriptor descriptor) {
+        SnapshotPair snapshotPair = snapshots.get(descriptor);
         return snapshotPair == null ? null : snapshotPair.inProgressSnapshot();
     }
 
     /**
      * Starts a new compilation cycle for the source root.
      *
-     * @param sourceRoot the source root identity
+     * @param descriptor the package descriptor identity
      * @return the newly created in-progress snapshot
      */
-    public InProgressSnapshot startCompilation(@Nonnull DocumentUri sourceRoot) {
-        SnapshotPair snapshotPair = snapshots.computeIfAbsent(sourceRoot, ignored -> new SnapshotPair());
+    public InProgressSnapshot startCompilation(@Nonnull PackageDescriptor descriptor) {
+        SnapshotPair snapshotPair = snapshots.computeIfAbsent(descriptor, ignored -> new SnapshotPair());
         return snapshotPair.startCompilation();
     }
 
     /**
      * Publishes the latest stable snapshot for the source root.
      *
-     * @param sourceRoot the source root identity
+     * @param descriptor the package descriptor identity
      * @param stableSnapshot the stable snapshot to publish
      */
-    public void publishStable(@Nonnull DocumentUri sourceRoot, @Nonnull StableSnapshot stableSnapshot) {
-        SnapshotPair snapshotPair = snapshots.computeIfAbsent(sourceRoot, ignored -> new SnapshotPair());
+    public void publishStable(@Nonnull PackageDescriptor descriptor, @Nonnull StableSnapshot stableSnapshot) {
+        SnapshotPair snapshotPair = snapshots.computeIfAbsent(descriptor, ignored -> new SnapshotPair());
         snapshotPair.publishStable(stableSnapshot);
     }
 
     /**
      * Cancels the current in-progress compilation for the source root.
      *
-     * @param sourceRoot the source root identity
+     * @param descriptor the package descriptor identity
      */
-    public void cancelInProgress(@Nonnull DocumentUri sourceRoot) {
-        SnapshotPair snapshotPair = snapshots.get(sourceRoot);
+    public void cancelInProgress(@Nonnull PackageDescriptor descriptor) {
+        SnapshotPair snapshotPair = snapshots.get(descriptor);
         if (snapshotPair != null) {
             snapshotPair.cancelInProgress();
         }
@@ -110,10 +109,10 @@ public class DualSnapshotStore {
     /**
      * Removes all snapshot state for the given source root.
      *
-     * @param sourceRoot the source root identity
+     * @param descriptor the package descriptor identity
      */
-    public void remove(@Nonnull DocumentUri sourceRoot) {
-        SnapshotPair snapshotPair = snapshots.remove(sourceRoot);
+    public void remove(@Nonnull PackageDescriptor descriptor) {
+        SnapshotPair snapshotPair = snapshots.remove(descriptor);
         if (snapshotPair != null) {
             snapshotPair.cancelInProgress();
         }

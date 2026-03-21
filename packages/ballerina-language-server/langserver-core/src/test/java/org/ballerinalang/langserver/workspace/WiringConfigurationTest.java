@@ -21,6 +21,8 @@ package org.ballerinalang.langserver.workspace;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.PackageDescriptor;
+import io.ballerina.projects.PackageName;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
@@ -67,6 +69,7 @@ public class WiringConfigurationTest {
     private WiringConfiguration wiring;
     private Path tempDir;
     private DocumentUri testRoot;
+    private PackageDescriptor testDescriptor;
 
     // Track events received by a test observer
     private final List<EventKind> observedEvents = new CopyOnWriteArrayList<>();
@@ -81,11 +84,23 @@ public class WiringConfigurationTest {
         // Create test-observable mock compilation action
         StableSnapshot mockSnapshot = new StableSnapshot(Map.of(), Map.of(), Map.of(),
                 mock(PackageCompilation.class), new ContentVersion(1));
+        testDescriptor = descriptor(tempDir.getFileName().toString());
 
         wiring = WiringConfiguration.builder()
                 .eventBus(eventBus)
                 .snapshotStore(new DualSnapshotStore())
-                .compilationAction(task -> mockSnapshot)
+                .compilationAction(new org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline
+                        .CompilationAction() {
+                    @Override
+                    public StableSnapshot compile(org.ballerinalang.langserver.workspace.compilerengine.CompileTask task) {
+                        return mockSnapshot;
+                    }
+
+                    @Override
+                    public PackageDescriptor describe(String sourceRootIdentifier) {
+                        return testDescriptor;
+                    }
+                })
                 .projectRegistry(new ProjectRegistry(MemoryBudget.ofMb(256)))
                 .uriResolver(new UriResolver())
                 .projectLoader((root, kind) -> mock(io.ballerina.projects.Project.class))
@@ -195,7 +210,7 @@ public class WiringConfigurationTest {
         Thread.sleep(500);
 
         // Verify CE pipeline exists (snapshot published)
-        Assert.assertNotNull(wiring.snapshotStore().getStable(testRoot),
+        Assert.assertNotNull(wiring.snapshotStore().getStable(testDescriptor),
                 "Pipeline should exist with a snapshot before eviction");
 
         // Simulate heap pressure → WM-E2
@@ -208,7 +223,7 @@ public class WiringConfigurationTest {
         Thread.sleep(500);
 
         // CE should have cleaned up the pipeline
-        Assert.assertNull(wiring.snapshotStore().getStable(testRoot),
+        Assert.assertNull(wiring.snapshotStore().getStable(testDescriptor),
                 "Chain 4: WM-E2 should cause CE to evict pipeline and clear snapshot");
     }
 
@@ -349,6 +364,14 @@ public class WiringConfigurationTest {
     private void publishConfigEvent(DocumentUri root, String reactivityTier) {
         eventBus.publish(new DomainEvent(Instant.now(), root.uri().toString(),
                 EventKind.WM_FILE_WATCHED_CHANGED, reactivityTier));
+    }
+
+    private PackageDescriptor descriptor(String packageNameValue) {
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
+        PackageName packageName = mock(PackageName.class);
+        org.mockito.Mockito.when(descriptor.name()).thenReturn(packageName);
+        org.mockito.Mockito.when(packageName.value()).thenReturn(packageNameValue);
+        return descriptor;
     }
 
     private static void deleteRecursive(Path path) {

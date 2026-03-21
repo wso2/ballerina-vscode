@@ -185,6 +185,27 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         }
     }
 
+    /**
+     * Resolves a source-root identifier through the project service and loads the project.
+     *
+     * @param sourceRootIdentifier URI or path-like source root identifier
+     * @param cancelChecker cancel checker
+     * @return loaded project
+     */
+    public Project loadOrCreateFromIdentifier(@Nonnull String sourceRootIdentifier, CancelChecker cancelChecker) {
+        return loadOrCreate(resolvePathFromIdentifier(sourceRootIdentifier), cancelChecker);
+    }
+
+    /**
+     * Resolves a source-root identifier through the project service.
+     *
+     * @param sourceRootIdentifier URI or path-like source root identifier
+     * @return normalized source root path
+     */
+    public Path resolvePathFromIdentifier(@Nonnull String sourceRootIdentifier) {
+        return parsePath(sourceRootIdentifier).toAbsolutePath().normalize();
+    }
+
     @Override
     public Collection<Project> allProjects() {
         return ballerinaProjects.values();

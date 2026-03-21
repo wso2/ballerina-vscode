@@ -22,6 +22,8 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.PackageDescriptor;
+import io.ballerina.projects.PackageName;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.InProgressSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
@@ -313,7 +315,7 @@ public class ThreadSafetyTest {
     @Test
     public void testDualSnapshotStoreNullBeforeFirstPublish() {
         DualSnapshotStore store = new DualSnapshotStore();
-        DocumentUri sourceRoot = new DocumentUri.FileUri(Path.of("/tmp/proj").toAbsolutePath().normalize().toUri());
+        PackageDescriptor sourceRoot = descriptor("thread-safety-proj-1");
 
         Assert.assertNull(store.getStable(sourceRoot),
                 "getStable() must return null before any publishStable() call");
@@ -326,7 +328,7 @@ public class ThreadSafetyTest {
     @Test
     public void testDualSnapshotStoreAtomicPublish() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        DocumentUri sourceRoot = new DocumentUri.FileUri(Path.of("/tmp/proj").toAbsolutePath().normalize().toUri());
+        PackageDescriptor sourceRoot = descriptor("thread-safety-proj-2");
 
         StableSnapshot oldSnapshot = stubSnapshot(new ContentVersion(1));
         StableSnapshot newSnapshot = stubSnapshot(new ContentVersion(2));
@@ -387,7 +389,7 @@ public class ThreadSafetyTest {
     @Test
     public void testDualSnapshotStoreStartCompilationIsAtomic() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        DocumentUri sourceRoot = new DocumentUri.FileUri(Path.of("/tmp/proj").toAbsolutePath().normalize().toUri());
+        PackageDescriptor sourceRoot = descriptor("thread-safety-proj-3");
 
         int threadCount = 10;
         CyclicBarrier startBarrier = new CyclicBarrier(threadCount);
@@ -434,6 +436,14 @@ public class ThreadSafetyTest {
     private static StableSnapshot stubSnapshot(ContentVersion version) {
         return new StableSnapshot(java.util.Map.<DocumentId, SyntaxTree>of(), java.util.Map.of(),
                 java.util.Map.<ModuleId, SemanticModel>of(), mock(PackageCompilation.class), version);
+    }
+
+    private static PackageDescriptor descriptor(String packageNameValue) {
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
+        PackageName packageName = mock(PackageName.class);
+        org.mockito.Mockito.when(descriptor.name()).thenReturn(packageName);
+        org.mockito.Mockito.when(packageName.value()).thenReturn(packageNameValue);
+        return descriptor;
     }
 
     private static void checkFieldType(String className, String fieldName, Class<?> expectedType)

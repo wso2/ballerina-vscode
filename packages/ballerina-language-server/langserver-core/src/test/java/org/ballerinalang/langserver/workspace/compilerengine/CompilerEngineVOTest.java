@@ -23,10 +23,10 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.PackageDescriptor;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult.ResolutionDiagnostic;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult.Severity;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -119,26 +119,26 @@ public class CompilerEngineVOTest {
     @Test
     public void dualSnapshotStore_startCompilationMakesInProgressAccessible() {
         DualSnapshotStore store = new DualSnapshotStore();
-        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project-dual").toAbsolutePath().normalize().toUri());
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
 
-        InProgressSnapshot inProgressSnapshot = store.startCompilation(root);
+        InProgressSnapshot inProgressSnapshot = store.startCompilation(descriptor);
 
-        Assert.assertSame(store.getInProgress(root), inProgressSnapshot);
-        Assert.assertNull(store.getStable(root));
+        Assert.assertSame(store.getInProgress(descriptor), inProgressSnapshot);
+        Assert.assertNull(store.getStable(descriptor));
         Assert.assertFalse(inProgressSnapshot.compilation(NO_OP_CANCEL_CHECKER).isDone());
     }
 
     @Test
     public void dualSnapshotStore_publishStableStoresSnapshotAndCompletesInProgressFuture() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project-dual-publish").toAbsolutePath().normalize().toUri());
-        InProgressSnapshot inProgressSnapshot = store.startCompilation(root);
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
+        InProgressSnapshot inProgressSnapshot = store.startCompilation(descriptor);
         StableSnapshot stableSnapshot = createStableSnapshot(new ContentVersion(4));
 
-        store.publishStable(root, stableSnapshot);
+        store.publishStable(descriptor, stableSnapshot);
 
-        Assert.assertSame(store.getStable(root), stableSnapshot);
-        Assert.assertNull(store.getInProgress(root));
+        Assert.assertSame(store.getStable(descriptor), stableSnapshot);
+        Assert.assertNull(store.getInProgress(descriptor));
         Assert.assertSame(inProgressSnapshot.compilation(NO_OP_CANCEL_CHECKER).get(1, TimeUnit.SECONDS),
                 stableSnapshot.compilation());
     }
@@ -146,21 +146,21 @@ public class CompilerEngineVOTest {
     @Test(expectedExceptions = CancellationException.class)
     public void dualSnapshotStore_cancelInProgressCancelsCompilationFuture() {
         DualSnapshotStore store = new DualSnapshotStore();
-        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project-dual-cancel").toAbsolutePath().normalize().toUri());
-        InProgressSnapshot inProgressSnapshot = store.startCompilation(root);
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
+        InProgressSnapshot inProgressSnapshot = store.startCompilation(descriptor);
 
-        store.cancelInProgress(root);
+        store.cancelInProgress(descriptor);
 
-        Assert.assertNull(store.getInProgress(root));
+        Assert.assertNull(store.getInProgress(descriptor));
         inProgressSnapshot.compilation(NO_OP_CANCEL_CHECKER).join();
     }
 
     @Test
     public void dualSnapshotStore_getStableReturnsSameReferenceAcrossConcurrentReaders() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project-dual-concurrent").toAbsolutePath().normalize().toUri());
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
         StableSnapshot stableSnapshot = createStableSnapshot(new ContentVersion(9));
-        store.publishStable(root, stableSnapshot);
+        store.publishStable(descriptor, stableSnapshot);
 
         int threadCount = 8;
         CountDownLatch done = new CountDownLatch(threadCount);
@@ -173,7 +173,7 @@ public class CompilerEngineVOTest {
                 try {
                     start.await(5, TimeUnit.SECONDS);
                     synchronized (observed) {
-                        observed.add(store.getStable(root));
+                        observed.add(store.getStable(descriptor));
                     }
                 } catch (Exception e) {
                     throw new AssertionError(e);
@@ -192,8 +192,8 @@ public class CompilerEngineVOTest {
     @Test
     public void dualSnapshotStore_publishStableUnblocksCompilationWaiter() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project-dual-waiter").toAbsolutePath().normalize().toUri());
-        InProgressSnapshot inProgressSnapshot = store.startCompilation(root);
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
+        InProgressSnapshot inProgressSnapshot = store.startCompilation(descriptor);
         StableSnapshot stableSnapshot = createStableSnapshot(new ContentVersion(7));
         CountDownLatch waiterStarted = new CountDownLatch(1);
         CompletableFuture<PackageCompilation> observedCompilation = new CompletableFuture<>();
@@ -210,7 +210,7 @@ public class CompilerEngineVOTest {
         waiter.start();
         Assert.assertTrue(waiterStarted.await(1, TimeUnit.SECONDS), "Waiter did not start");
 
-        store.publishStable(root, stableSnapshot);
+        store.publishStable(descriptor, stableSnapshot);
 
         Assert.assertSame(observedCompilation.get(2, TimeUnit.SECONDS), stableSnapshot.compilation());
         waiter.join(2000);
@@ -220,18 +220,18 @@ public class CompilerEngineVOTest {
     @Test
     public void dualSnapshotStore_tracksMultipleSourceRootsIndependently() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        DocumentUri firstRoot = new DocumentUri.FileUri(Path.of("/tmp/project-dual-r1").toAbsolutePath().normalize().toUri());
-        DocumentUri secondRoot = new DocumentUri.FileUri(Path.of("/tmp/project-dual-r2").toAbsolutePath().normalize().toUri());
-        InProgressSnapshot firstInProgress = store.startCompilation(firstRoot);
-        InProgressSnapshot secondInProgress = store.startCompilation(secondRoot);
+        PackageDescriptor firstDescriptor = mock(PackageDescriptor.class);
+        PackageDescriptor secondDescriptor = mock(PackageDescriptor.class);
+        InProgressSnapshot firstInProgress = store.startCompilation(firstDescriptor);
+        InProgressSnapshot secondInProgress = store.startCompilation(secondDescriptor);
         StableSnapshot firstStable = createStableSnapshot(new ContentVersion(1));
         StableSnapshot secondStable = createStableSnapshot(new ContentVersion(2));
 
-        store.publishStable(firstRoot, firstStable);
-        store.publishStable(secondRoot, secondStable);
+        store.publishStable(firstDescriptor, firstStable);
+        store.publishStable(secondDescriptor, secondStable);
 
-        Assert.assertSame(store.getStable(firstRoot), firstStable);
-        Assert.assertSame(store.getStable(secondRoot), secondStable);
+        Assert.assertSame(store.getStable(firstDescriptor), firstStable);
+        Assert.assertSame(store.getStable(secondDescriptor), secondStable);
         Assert.assertSame(firstInProgress.compilation(NO_OP_CANCEL_CHECKER).get(1, TimeUnit.SECONDS),
                 firstStable.compilation());
         Assert.assertSame(secondInProgress.compilation(NO_OP_CANCEL_CHECKER).get(1, TimeUnit.SECONDS),
@@ -241,47 +241,47 @@ public class CompilerEngineVOTest {
     // ---- ResolutionResult ----
 
     @Test
-    public void resolution_capturesDiagnosticsWithSourceRoot() {
-        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project").toAbsolutePath().normalize().toUri());
+    public void resolution_capturesDiagnosticsWithDescriptor() {
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
         List<ResolutionDiagnostic> diagnostics = List.of(
                 new ResolutionDiagnostic(Severity.WARNING, "Unused import", "/mod1")
         );
 
-        ResolutionResult result = new ResolutionResult(root, diagnostics, true);
+        ResolutionResult result = new ResolutionResult(descriptor, diagnostics, true);
 
-        Assert.assertSame(result.sourceRootUri(), root);
+        Assert.assertSame(result.descriptor(), descriptor);
         Assert.assertEquals(result.diagnostics().size(), 1);
         Assert.assertEquals(result.diagnostics().get(0).severity(), Severity.WARNING);
     }
 
     @Test
     public void resolution_defensiveCopyOfDiagnostics() {
-        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project").toAbsolutePath().normalize().toUri());
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
         List<ResolutionDiagnostic> original = new ArrayList<>();
         original.add(new ResolutionDiagnostic(Severity.INFO, "Info", "/mod1"));
 
-        ResolutionResult result = new ResolutionResult(root, original, true);
+        ResolutionResult result = new ResolutionResult(descriptor, original, true);
         original.add(new ResolutionDiagnostic(Severity.ERROR, "Error", "/mod2"));
 
         Assert.assertEquals(result.diagnostics().size(), 1, "Defensive copy should prevent mutation");
     }
 
     @Test(expectedExceptions = NullPointerException.class)
-    public void resolution_rejectsNullSourceRoot() {
+    public void resolution_rejectsNullDescriptor() {
         new ResolutionResult(null, List.of(), true);
     }
 
     @Test
     public void resolution_successFlagReflectsDiagnostics() {
-        DocumentUri root = new DocumentUri.FileUri(Path.of("/tmp/project").toAbsolutePath().normalize().toUri());
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
 
-        ResolutionResult successResult = new ResolutionResult(root, List.of(), true);
+        ResolutionResult successResult = new ResolutionResult(descriptor, List.of(), true);
         Assert.assertTrue(successResult.success());
 
         List<ResolutionDiagnostic> errors = List.of(
                 new ResolutionDiagnostic(Severity.ERROR, "Unresolved module", "/mod1")
         );
-        ResolutionResult failResult = new ResolutionResult(root, errors, false);
+        ResolutionResult failResult = new ResolutionResult(descriptor, errors, false);
         Assert.assertFalse(failResult.success());
     }
 

@@ -20,6 +20,8 @@ package org.ballerinalang.langserver.workspace.test.acceptance;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.PackageDescriptor;
+import io.ballerina.projects.PackageName;
 import org.awaitility.Awaitility;
 import org.ballerinalang.langserver.workspace.compilerengine.CancellationToken;
 import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
@@ -30,7 +32,6 @@ import org.ballerinalang.langserver.workspace.compilerengine.RecoveryLadder;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
@@ -73,8 +74,10 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class RecoveryLadderAcceptanceTest {
 
-    private static final DocumentUri TEST_ROOT = new DocumentUri.FileUri(
-            Path.of("/tmp/acceptance-recovery-ladder").toAbsolutePath().normalize().toUri());
+    private static final Path TEST_ROOT_PATH = Path.of("/tmp/acceptance-recovery-ladder")
+            .toAbsolutePath().normalize();
+    private static final String TEST_ROOT_ID = TEST_ROOT_PATH.toUri().toString();
+    private static final PackageDescriptor TEST_ROOT = descriptor("acceptance-recovery-ladder");
 
     private CompilationPipeline pipeline;
     private EventSyncPubSubHolder eventBus;
@@ -219,7 +222,8 @@ public class RecoveryLadderAcceptanceTest {
         DualSnapshotStore snapshotStore = new DualSnapshotStore();
         setupEventCapture();
 
-        pipeline = new CompilationPipeline(TEST_ROOT, snapshotStore, eventBus, new CompilationPipeline.CompilationAction() {
+        pipeline = new CompilationPipeline(TEST_ROOT, TEST_ROOT_ID, snapshotStore, eventBus,
+                new CompilationPipeline.CompilationAction() {
             @Override
             public StableSnapshot compile(CompileTask task) throws Exception {
                 throw new Exception("Failed to load the module for compilation");
@@ -557,8 +561,8 @@ public class RecoveryLadderAcceptanceTest {
                 .orElse(null);
 
         Assert.assertNotNull(recoveredEvent, "CE_RESOLUTION_RECOVERED event must be published");
-        Assert.assertEquals(recoveredEvent.sourceContext(), "compilation-pipeline",
-                "Event source context must be compilation-pipeline");
+        Assert.assertEquals(recoveredEvent.sourceContext(), "acceptance-recovery-ladder",
+                "Event source context must match the package descriptor name");
         Assert.assertNotNull(recoveredEvent.timestamp(), "Event must have timestamp");
     }
 
@@ -633,7 +637,7 @@ public class RecoveryLadderAcceptanceTest {
             CompilationPipeline.CompilationAction action) {
         setupEventCapture();
         DualSnapshotStore snapshotStore = new DualSnapshotStore();
-        return new CompilationPipeline(TEST_ROOT, snapshotStore, eventBus, action);
+        return new CompilationPipeline(TEST_ROOT, TEST_ROOT_ID, snapshotStore, eventBus, action);
     }
 
     private static StableSnapshot createSnapshot(ContentVersion version) {
@@ -644,5 +648,13 @@ public class RecoveryLadderAcceptanceTest {
                 Mockito.mock(PackageCompilation.class),
                 version
         );
+    }
+
+    private static PackageDescriptor descriptor(String packageNameValue) {
+        PackageDescriptor descriptor = Mockito.mock(PackageDescriptor.class);
+        PackageName packageName = Mockito.mock(PackageName.class);
+        Mockito.when(descriptor.name()).thenReturn(packageName);
+        Mockito.when(packageName.value()).thenReturn(packageNameValue);
+        return descriptor;
     }
 }

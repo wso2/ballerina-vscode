@@ -20,16 +20,13 @@ package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.projects.PackageDescriptor;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 
-import javax.annotation.Nonnull;
-
-import java.nio.file.Path;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
@@ -41,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nonnull;
 
 /**
  * Per-project compilation orchestrator with debounce, LIFO cancellation, and event emission (ADR-007/008/018).
@@ -56,8 +54,9 @@ public class CompilationPipeline implements AutoCloseable {
      * Strategy for performing the actual compilation work.
      */
     public interface CompilationAction {
+
         default ResolutionResult resolve(CompileTask task) throws Exception {
-            return new ResolutionResult(task.sourceRootUri(), java.util.List.of(), true);
+            return new ResolutionResult(task.descriptor(), List.of(), true);
         }
 
         StableSnapshot compile(CompileTask task) throws Exception;
@@ -72,13 +71,13 @@ public class CompilationPipeline implements AutoCloseable {
         }
 
         /**
-         * Returns the package descriptor for the given source root URI.
-         * Called once at pipeline creation time to establish the PackageDescriptor index.
+         * Returns the package descriptor for the given source root path. Called once at pipeline creation time to
+         * establish the PackageDescriptor index.
          *
-         * @param sourceRootUri the source root URI
-         * @return the package descriptor for the project at this URI
+         * @param sourceRootPath the source root path
+         * @return the package descriptor for the project at this path
          */
-        default PackageDescriptor describe(DocumentUri sourceRootUri) throws Exception {
+        default PackageDescriptor describe(String sourceRootIdentifier) throws Exception {
             throw new UnsupportedOperationException("describe() must be implemented");
         }
     }
@@ -100,7 +99,9 @@ public class CompilationPipeline implements AutoCloseable {
         }
     }
 
-    private final DocumentUri sourceRootUri;
+    private final PackageDescriptor descriptor;
+    private final String descriptorName;
+    private final String sourceRootIdentifier;
     private final DualSnapshotStore snapshotStore;
     private final EventSyncPubSubHolder eventBus;
     private final CompilationAction compilationAction;
@@ -113,28 +114,46 @@ public class CompilationPipeline implements AutoCloseable {
     private final AtomicBoolean closed;
 
     /**
-     * Creates a compilation pipeline for the given source root URI.
+     * Creates a compilation pipeline for the given package descriptor.
      *
-     * @param sourceRootUri     the project identity
+     * @param descriptor        the package descriptor identity
      * @param snapshotStore     store to publish snapshots into
      * @param eventBus          event bus for domain event emission
      * @param compilationAction the actual compilation strategy
      */
-    public CompilationPipeline(@Nonnull DocumentUri sourceRootUri, @Nonnull DualSnapshotStore snapshotStore,
-                                @Nonnull EventSyncPubSubHolder eventBus, @Nonnull CompilationAction compilationAction) {
-        this.sourceRootUri = sourceRootUri;
+    public CompilationPipeline(@Nonnull PackageDescriptor descriptor, @Nonnull DualSnapshotStore snapshotStore,
+                               @Nonnull EventSyncPubSubHolder eventBus,
+                               @Nonnull CompilationAction compilationAction) {
+        this(descriptor, null, snapshotStore, eventBus, compilationAction);
+    }
+
+    /**
+     * Creates a compilation pipeline for the given package descriptor and source root path.
+     *
+     * @param descriptor           the package descriptor identity
+     * @param sourceRootIdentifier the project source root path, when available
+     * @param snapshotStore        store to publish snapshots into
+     * @param eventBus             event bus for domain event emission
+     * @param compilationAction    the actual compilation strategy
+     */
+    public CompilationPipeline(@Nonnull PackageDescriptor descriptor, String sourceRootIdentifier,
+                               @Nonnull DualSnapshotStore snapshotStore,
+                               @Nonnull EventSyncPubSubHolder eventBus,
+                               @Nonnull CompilationAction compilationAction) {
+        this.descriptor = descriptor;
+        this.descriptorName = descriptorName(descriptor);
+        this.sourceRootIdentifier = sourceRootIdentifier;
         this.snapshotStore = snapshotStore;
         this.eventBus = eventBus;
         this.compilationAction = compilationAction;
 
-        String dirName = Path.of(sourceRootUri.uri().getPath()).getFileName().toString();
         this.debounceScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "compile-debounce-" + dirName);
+            Thread t = new Thread(r, "compile-debounce-" + descriptorName);
             t.setDaemon(true);
             return t;
         });
         this.compilationWorker = Executors.newSingleThreadExecutor(r -> {
-            Thread t = new Thread(r, "compile-worker-" + dirName);
+            Thread t = new Thread(r, "compile-worker-" + descriptorName);
             t.setDaemon(true);
             return t;
         });
@@ -166,12 +185,12 @@ public class CompilationPipeline implements AutoCloseable {
     }
 
     /**
-     * Returns the source root URI this pipeline manages.
+     * Returns the package descriptor this pipeline manages.
      *
-     * @return source root URI
+     * @return package descriptor
      */
-    public DocumentUri sourceRootUri() {
-        return sourceRootUri;
+    public PackageDescriptor descriptor() {
+        return descriptor;
     }
 
     /**
@@ -196,7 +215,7 @@ public class CompilationPipeline implements AutoCloseable {
         if (inflight != null) {
             inflight.cancel();
         }
-        snapshotStore.cancelInProgress(sourceRootUri);
+        snapshotStore.cancelInProgress(descriptor);
         debounceScheduler.shutdownNow();
         compilationWorker.shutdownNow();
     }
@@ -222,8 +241,8 @@ public class CompilationPipeline implements AutoCloseable {
         }
 
         CancellationToken token = new CancellationToken();
-        CompileTask task = new CompileTask(sourceRootUri, contentVersion, token);
-        InProgressSnapshot inProgressSnapshot = snapshotStore.startCompilation(sourceRootUri);
+        CompileTask task = new CompileTask(descriptor, sourceRootIdentifier, contentVersion, token);
+        InProgressSnapshot inProgressSnapshot = snapshotStore.startCompilation(descriptor);
         inflightTask.set(task);
 
         compilationWorker.submit(() -> executeCompilation(task, inProgressSnapshot));
@@ -243,7 +262,7 @@ public class CompilationPipeline implements AutoCloseable {
 
             // Publication guard: discard result if cancelled (ADR-018 Mandate 8)
             if (task.isCancelled()) {
-                LOG.fine(() -> "Cancelled compilation result discarded for " + sourceRootUri);
+                LOG.fine(() -> "Cancelled compilation result discarded for " + descriptorName);
                 emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
                 return;
             }
@@ -251,32 +270,32 @@ public class CompilationPipeline implements AutoCloseable {
             // Staleness guard before publish
             ContentVersion latest = latestRequestedVersion.get();
             if (latest != null && latest.compareTo(task.contentVersion()) > 0) {
-                LOG.fine(() -> "Stale compilation discarded for " + sourceRootUri + " version="
+                LOG.fine(() -> "Stale compilation discarded for " + descriptorName + " version="
                         + task.contentVersion());
                 emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
                 return;
             }
 
             emitEvent(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY);
-            snapshotStore.publishStable(sourceRootUri, snapshot);
+            snapshotStore.publishStable(descriptor, snapshot);
             published = true;
             emitEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED);
         } catch (CancellationException e) {
-            LOG.fine(() -> "Compilation cancelled for " + sourceRootUri);
+            LOG.fine(() -> "Compilation cancelled for " + descriptorName);
             emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
         } catch (InterruptedException e) {
-            LOG.fine(() -> "Compilation interrupted for " + sourceRootUri);
+            LOG.fine(() -> "Compilation interrupted for " + descriptorName);
             emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
         } catch (Exception e) {
             if (isBirCompilationFailure(e)) {
                 scheduleRecovery(task, e);
                 return;
             }
-            LOG.log(Level.WARNING, "Compilation failed for " + sourceRootUri, e);
+            LOG.log(Level.WARNING, "Compilation failed for " + descriptorName, e);
             emitEvent(EventKind.COMPILER_COMPILATION_FAILED);
         } finally {
-            if (!published && snapshotStore.getInProgress(sourceRootUri) == inProgressSnapshot) {
-                snapshotStore.cancelInProgress(sourceRootUri);
+            if (!published && snapshotStore.getInProgress(descriptor) == inProgressSnapshot) {
+                snapshotStore.cancelInProgress(descriptor);
             }
             activeWorkerThread.compareAndSet(Thread.currentThread(), null);
             inflightTask.compareAndSet(task, null);
@@ -293,7 +312,8 @@ public class CompilationPipeline implements AutoCloseable {
 
     private void executeRecovery(CompileTask task, Throwable cause) {
         try {
-            RecoveryResult recoveryResult = compilationAction.recover(task, compilationAction.currentLockingMode(task), cause);
+            RecoveryResult recoveryResult =
+                    compilationAction.recover(task, compilationAction.currentLockingMode(task), cause);
             if (recoveryResult.recovered()) {
                 emitEvent(EventKind.CE_RESOLUTION_RECOVERED);
                 requestCompilation(latestRequestedVersion.updateAndGet(version ->
@@ -302,7 +322,7 @@ public class CompilationPipeline implements AutoCloseable {
                 emitEvent(EventKind.CE_RESOLUTION_EXHAUSTED);
             }
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Recovery failed for " + sourceRootUri, e);
+            LOG.log(Level.WARNING, "Recovery failed for " + descriptorName, e);
             emitEvent(EventKind.CE_RESOLUTION_EXHAUSTED);
         }
     }
@@ -324,12 +344,25 @@ public class CompilationPipeline implements AutoCloseable {
 
     private void emitEvent(EventKind kind) {
         try {
-            DomainEvent event = new DomainEvent(Instant.now(), "compilation-pipeline", kind,
-                    sourceRootUri.uri().toString());
+            String eventScope = sourceRootIdentifier == null || sourceRootIdentifier.isBlank()
+                    ? descriptorName : sourceRootIdentifier;
+            DomainEvent event = new DomainEvent(Instant.now(), descriptorName, kind, eventScope);
             eventBus.publish(event);
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Failed to emit event " + kind + " for " + sourceRootUri, e);
+            LOG.log(Level.WARNING, "Failed to emit event " + kind + " for " + descriptorName, e);
         }
+    }
+
+    private static String descriptorName(PackageDescriptor descriptor) {
+        try {
+            if (descriptor != null && descriptor.name() != null && descriptor.name().value() != null
+                    && !descriptor.name().value().isBlank()) {
+                return descriptor.name().value();
+            }
+        } catch (Exception ignored) {
+            // Fall through to default name for test doubles and partial descriptors.
+        }
+        return "unknown-package";
     }
 
     private boolean isBirCompilationFailure(Throwable error) {
