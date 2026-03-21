@@ -23,6 +23,7 @@ import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
@@ -43,14 +44,12 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;
-import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -248,9 +247,10 @@ public class FTPListenerUtil {
         boolean allNewStyle = true;
         boolean allLegacyStyle = true;
         for (ServiceDeclarationNode serviceNode : attachedServices) {
-            boolean hasServiceConfig = FTPFunctionModelUtil.findFtpAnnotation(
-                    serviceNode.metadata().isPresent() ? serviceNode.metadata().get().annotations() : null,
-                    "ServiceConfig", semanticModel).isPresent();
+            boolean hasServiceConfig = serviceNode.metadata().isPresent() &&
+                    FTPFunctionModelUtil.findFtpAnnotation(
+                            serviceNode.metadata().get().annotations(),
+                            "ServiceConfig", semanticModel).isPresent();
             allNewStyle &= hasServiceConfig;
             allLegacyStyle &= !hasServiceConfig;
         }
