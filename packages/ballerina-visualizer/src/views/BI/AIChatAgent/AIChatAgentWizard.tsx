@@ -26,7 +26,24 @@ import { TopNavigationBar } from '../../../components/TopNavigationBar';
 import { RelativeLoader } from '../../../components/RelativeLoader';
 import { FormHeader } from '../../../components/FormHeader';
 import { getAiModuleOrg, getNodeTemplate } from './utils';
-import { AI, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from '../../../constants';
+import { AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from '../../../constants';
+
+const WSO2_MODEL_PROVIDER_CODEDATA: CodeData = {
+    node: "MODEL_PROVIDER",
+    org: "ballerina",
+    module: "ai",
+    packageName: "ai",
+    symbol: "getDefaultModelProvider",
+};
+
+const OPENAI_PROVIDER_CODEDATA: CodeData = {
+    node: "CLASS_INIT",
+    org: "ballerinax",
+    module: "ai",
+    packageName: "ai",
+    object: "OpenAiProvider",
+    symbol: "init",
+};
 
 const FormContainer = styled.div`
     display: flex;
@@ -67,7 +84,20 @@ function toBaseName(name: string): string {
     // Split on spaces/underscores, convert to camelCase
     const words = name.trim().split(/[\s_]+/).filter(Boolean);
     if (words.length === 0) return "";
-    const camel = words[0].charAt(0).toLowerCase() + words[0].slice(1)
+    const firstWord = words[0];
+    // Lowercase leading acronyms: "HR" -> "hr", "HTMLParser" -> "htmlParser"
+    const leadingUpper = firstWord.match(/^[A-Z]+/);
+    let lowerFirst: string;
+    if (leadingUpper && leadingUpper[0].length === firstWord.length) {
+        // Entire word is uppercase: "HR" -> "hr"
+        lowerFirst = firstWord.toLowerCase();
+    } else if (leadingUpper && leadingUpper[0].length > 1) {
+        // Acronym followed by more chars: "HRPolicy" -> "hrPolicy"
+        lowerFirst = leadingUpper[0].slice(0, -1).toLowerCase() + firstWord.slice(leadingUpper[0].length - 1);
+    } else {
+        lowerFirst = firstWord.charAt(0).toLowerCase() + firstWord.slice(1);
+    }
+    const camel = lowerFirst
         + words.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("");
     // Strip known suffixes
     const lower = camel.toLowerCase();
@@ -79,9 +109,6 @@ function toBaseName(name: string): string {
     return camel;
 }
 
-const OPEN_AI_PROVIDER = "OpenAiProvider";
-const MODEL_PROVIDER = "MODEL_PROVIDER";
-const CLASS_INIT = "CLASS_INIT";
 
 export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
     // module name for ai agent
@@ -194,25 +221,13 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
             setCurrentStep(1);
 
-            // Search for model providers
-            const modelProviderSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
-                filePath: projectPath.current,
-                queryMap: { q: aiModuleOrg.current === BALLERINA ? AI : OPEN_AI_PROVIDER },
-                searchKind: aiModuleOrg.current === BALLERINA ? MODEL_PROVIDER : CLASS_INIT
-            });
-            const modelNodes = modelProviderSearchResponse.categories[0].items as AvailableNode[];
-
-            // Get default model provider
-            const defaultModelNode = modelNodes.find((model) =>
-                model.codedata.object === OPEN_AI_PROVIDER || (model.codedata.org === BALLERINA && model.codedata.module === AI)
-            );
-            if (!defaultModelNode) {
-                console.log(">>> no default model found");
-                throw new Error("No default model found");
-            }
+            // Select model provider based on org
+            const modelProviderCodedata = aiModuleOrg.current === BALLERINA
+                ? WSO2_MODEL_PROVIDER_CODEDATA
+                : OPENAI_PROVIDER_CODEDATA;
 
             // Get model node template
-            const modelNodeTemplate = await getNodeTemplate(rpcClient, defaultModelNode.codedata, projectPath.current);
+            const modelNodeTemplate = await getNodeTemplate(rpcClient, modelProviderCodedata, projectPath.current);
 
             // Generate source code for model provider
             const modelVarName = `${baseName}` + MODEL;
@@ -308,7 +323,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             const newServiceArtifact = serviceSourceCodeResult.artifacts.find(artifact => artifact.isNew);
 
             // If the selected model is the default WSO2 model provider, configure it
-            if (defaultModelNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER) {
+            if (modelProviderCodedata.symbol === GET_DEFAULT_MODEL_PROVIDER) {
                 await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
             }
 
@@ -347,7 +362,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                         <FormFields>
                             <TextField
                                 label="Name"
-                                description="Name of the agent"
+                                description="Name of the agent (e.g. 'Customer Support Assistant', 'Sales Advisor', 'Data Analyst')"
                                 value={agentName}
                                 disabled={isCreating}
                                 onChange={(e) => {
