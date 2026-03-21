@@ -74,7 +74,7 @@ public class CompilationPipeline implements AutoCloseable {
          * Returns the package descriptor for the given source root path. Called once at pipeline creation time to
          * establish the PackageDescriptor index.
          *
-         * @param sourceRootPath the source root path
+         * @param sourceRootIdentifier the source root path
          * @return the package descriptor for the project at this path
          */
         default PackageDescriptor describe(String sourceRootIdentifier) throws Exception {

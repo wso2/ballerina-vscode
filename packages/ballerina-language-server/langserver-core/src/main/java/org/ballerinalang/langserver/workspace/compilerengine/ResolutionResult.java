@@ -40,9 +40,6 @@ public record ResolutionResult(@Nonnull PackageDescriptor descriptor,
      * Validates fields and creates a defensive copy of diagnostics.
      */
     public ResolutionResult {
-        if (descriptor == null) {
-            throw new NullPointerException("descriptor must not be null");
-        }
         diagnostics = List.copyOf(diagnostics);
     }
 

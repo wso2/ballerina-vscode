@@ -134,11 +134,31 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
     @Override
     public StableSnapshot stableSnapshot(@Nonnull PackageDescriptor descriptor, CancelChecker cancelChecker) {
-        StableSnapshot stableSnapshot = snapshotStore.getStable(descriptor);
-        if (stableSnapshot != null) {
-            return stableSnapshot;
+        while (true) {
+            if (cancelChecker != null) {
+                cancelChecker.checkCanceled();
+            }
+            StableSnapshot stable = snapshotStore.getStable(descriptor);
+            if (stable != null) {
+                return stable;
+            }
+            InProgressSnapshot inProgress = snapshotStore.getInProgress(descriptor);
+            if (inProgress instanceof DualSnapshotStore.StoreInProgressSnapshot storeInProgress) {
+                StableSnapshot awaited = awaitPublished(storeInProgress, cancelChecker);
+                if (awaited != null) {
+                    return awaited;
+                }
+            }
+            if (!pipelines.containsKey(descriptor)) {
+                return null;
+            }
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return null;
+            }
         }
-        return awaitInProgress(descriptor, cancelChecker);
     }
 
     @Override
@@ -336,11 +356,8 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
     }
 
-    private StableSnapshot awaitInProgress(PackageDescriptor descriptor, CancelChecker cancelChecker) {
-        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(descriptor);
-        if (!(inProgressSnapshot instanceof DualSnapshotStore.StoreInProgressSnapshot storeInProgress)) {
-            return null;
-        }
+    private StableSnapshot awaitPublished(DualSnapshotStore.StoreInProgressSnapshot storeInProgress,
+                                           CancelChecker cancelChecker) {
         while (true) {
             if (cancelChecker != null) {
                 cancelChecker.checkCanceled();
