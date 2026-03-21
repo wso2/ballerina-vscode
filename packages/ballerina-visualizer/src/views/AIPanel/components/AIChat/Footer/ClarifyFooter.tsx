@@ -211,6 +211,9 @@ const ClarifyFooter: React.FC<ClarifyFooterProps> = ({ questions, requestId, rpc
             setSelections(prev => ({ ...prev, [page]: [value] }));
             setOtherEnabled(prev => ({ ...prev, [page]: false }));
             setCustomTexts(prev => ({ ...prev, [page]: "" }));
+            if (page < questions.length - 1) {
+                setTimeout(() => setPage(p => p + 1), 300);
+            }
         }
     };
 
