@@ -26,7 +26,7 @@ export const getNodeTemplate = async (
     rpcClient: BallerinaRpcClient,
     codeData: CodeData,
     filePath: string,
-    position: LinePosition = { line: 0, offset: 0 },
+    position: LinePosition = { line: 0, offset: 0 }
 ) => {
     const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
         position: position,

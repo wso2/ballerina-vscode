@@ -185,7 +185,6 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
     const loadMemoryTemplate = async (memoryCodeData: CodeData): Promise<void> => {
         setIsLoading(true);
         try {
-
             // Fetch the node template for the selected memory
             const nodeTemplate = await getNodeTemplate(
                 rpcClient,

@@ -480,7 +480,7 @@ export function APIConnectionForm(props: APIConnectionFormProps) {
                 }
 
                 if (createdConnector && createdConnector.codedata) {
-                    // Get the flowNode template using centralized hook
+                    // Get the flowNode template
                     const nodeTemplateResponse = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
                         position: target || null,
                         filePath: fileName,
