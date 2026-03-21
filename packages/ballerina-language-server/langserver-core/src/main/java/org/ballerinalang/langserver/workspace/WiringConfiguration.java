@@ -94,8 +94,9 @@ public final class WiringConfiguration implements AutoCloseable {
                 changeBuffer);
 
         // 4. CompilationService (subscribes to WM-E1, WM-E2, WM-E4, WM-E9, WM-E11)
-        this.compilationService = new CompilationServiceImpl(
-                builder.snapshotStore, eventBus, this.projectService);
+        this.compilationService = builder.compilationAction != null
+                ? new CompilationServiceImpl(builder.snapshotStore, eventBus, builder.compilationAction, 500L)
+                : new CompilationServiceImpl(builder.snapshotStore, eventBus, this.projectService);
 
         // 5. ExecutionService (subscribes to WM-E2, WM-E4)
         this.executionService = new ExecutionServiceImpl(
@@ -221,6 +222,7 @@ public final class WiringConfiguration implements AutoCloseable {
         private @Nonnull GracePeriod gracePeriod;
         private int maxActiveProcesses = 5;
         private long heapPressurePollIntervalMs = 5000L;
+        private CompilationPipeline.CompilationAction compilationAction;
 
         public Builder eventBus(EventSyncPubSubHolder eventBus) {
             this.eventBus = eventBus;
@@ -259,6 +261,17 @@ public final class WiringConfiguration implements AutoCloseable {
 
         public Builder heapPressurePollIntervalMs(long heapPressurePollIntervalMs) {
             this.heapPressurePollIntervalMs = heapPressurePollIntervalMs;
+            return this;
+        }
+
+        /**
+         * Overrides the compilation action with a test double; intended for unit tests only.
+         *
+         * @param compilationAction test-specific compilation strategy
+         * @return this builder
+         */
+        public Builder compilationAction(CompilationPipeline.CompilationAction compilationAction) {
+            this.compilationAction = compilationAction;
             return this;
         }
 

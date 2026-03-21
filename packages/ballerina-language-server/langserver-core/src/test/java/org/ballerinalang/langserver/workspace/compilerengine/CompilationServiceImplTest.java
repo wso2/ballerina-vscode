@@ -50,6 +50,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Mockito.mock;
@@ -494,6 +495,52 @@ public class CompilationServiceImplTest {
         Assert.assertTrue(twoCompiles.await(3, TimeUnit.SECONDS),
                 "Both projects should compile independently");
         Assert.assertEquals(compileCount.get(), 2);
+    }
+
+    // ---- Concurrency Limit ----
+
+    @Test
+    // RED: this test should fail — no 6-param constructor with maxConcurrentCompilations exists yet
+    public void service_concurrencyLimitOf1_enforcesSerialCompilation() throws InterruptedException {
+        DocumentUri root2 = new DocumentUri.FileUri(
+                Path.of("/tmp/test-project-concurrency-2").toAbsolutePath().normalize().toUri());
+
+        AtomicInteger concurrentCount = new AtomicInteger(0);
+        AtomicInteger maxConcurrent = new AtomicInteger(0);
+        CountDownLatch allDone = new CountDownLatch(2);
+
+        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
+            int current = concurrentCount.incrementAndGet();
+            maxConcurrent.updateAndGet(m -> Math.max(m, current));
+            Thread.sleep(150);
+            concurrentCount.decrementAndGet();
+            allDone.countDown();
+            return mockSnapshot;
+        }), 50L, 250L, 1);
+
+        publishWmE1(testRoot);
+        publishWmE1(root2);
+
+        Assert.assertTrue(allDone.await(8, TimeUnit.SECONDS),
+                "Both projects must eventually compile");
+        Assert.assertTrue(maxConcurrent.get() <= 1,
+                "At most 1 compilation must run at a time with maxConcurrentCompilations=1");
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    // RED: this test should fail — no 6-param constructor exists yet
+    public void service_constructorRejectsZeroConcurrencyLimit() {
+        new CompilationServiceImpl(snapshotStore, eventBus,
+                actionWithDescribe(task -> mockSnapshot), 50L, 250L, 0);
+    }
+
+    @Test
+    // RED: this test should fail — no 6-param constructor exists yet
+    public void service_constructorAcceptsOneAsConcurrencyLimit() {
+        // BVA: 1 is the valid lower bound — must not throw
+        service = new CompilationServiceImpl(snapshotStore, eventBus,
+                actionWithDescribe(task -> mockSnapshot), 50L, 250L, 1);
+        Assert.assertNotNull(service);
     }
 
     // ---- Helper Methods ----

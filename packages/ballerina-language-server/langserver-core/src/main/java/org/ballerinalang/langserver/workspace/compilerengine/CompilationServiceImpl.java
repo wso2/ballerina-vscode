@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -67,6 +68,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     private final CompilationPipeline.CompilationAction baseAction;
     private final long retryDelayMs;
     private final long heapPressureThrottleMs;
+    private final Semaphore compilationPermits;
     private final ScheduledExecutorService retryScheduler;
     private final Map<PackageDescriptor, CompilationPipeline> pipelines;
     private final Map<PackageDescriptor, CircuitBreakerAction> circuitActions;
@@ -113,11 +115,86 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     public CompilationServiceImpl(@Nonnull DualSnapshotStore snapshotStore, @Nonnull EventSyncPubSubHolder eventBus,
                                   @Nonnull ProjectServiceImpl projectService, long retryDelayMs,
                                   long heapPressureThrottleMs) {
+        this(snapshotStore, eventBus, projectService, retryDelayMs, heapPressureThrottleMs,
+                Runtime.getRuntime().availableProcessors());
+    }
+
+    /**
+     * Creates a compilation service with configurable retry delay, RM-E1 throttle window, and concurrency limit.
+     *
+     * @param snapshotStore              snapshot store for publishing compiled snapshots
+     * @param eventBus                   event bus for publishing/subscribing to domain events
+     * @param projectService             the project service
+     * @param retryDelayMs               delay in milliseconds before retrying a transient failure
+     * @param heapPressureThrottleMs     delay in milliseconds to defer recompilation after RM-E1
+     * @param maxConcurrentCompilations  maximum number of concurrent compilations across all pipelines; must be >= 1
+     */
+    public CompilationServiceImpl(@Nonnull DualSnapshotStore snapshotStore, @Nonnull EventSyncPubSubHolder eventBus,
+                                  @Nonnull ProjectServiceImpl projectService, long retryDelayMs,
+                                  long heapPressureThrottleMs, int maxConcurrentCompilations) {
+        this(snapshotStore, eventBus, new CompilationActionImpl(projectService), retryDelayMs,
+                heapPressureThrottleMs, buildSemaphore(maxConcurrentCompilations));
+    }
+
+    /**
+     * Test constructor: uses a custom compilation action with default retry settings.
+     *
+     * @param snapshotStore     snapshot store for publishing compiled snapshots
+     * @param eventBus          event bus for publishing/subscribing to domain events
+     * @param compilationAction the compilation strategy (typically a test double)
+     * @param retryDelayMs      delay in milliseconds before retrying a transient failure
+     */
+    public CompilationServiceImpl(@Nonnull DualSnapshotStore snapshotStore, @Nonnull EventSyncPubSubHolder eventBus,
+                                  @Nonnull CompilationPipeline.CompilationAction compilationAction,
+                                  long retryDelayMs) {
+        this(snapshotStore, eventBus, compilationAction, retryDelayMs, 250L);
+    }
+
+    /**
+     * Test constructor: uses a custom compilation action with explicit retry and throttle settings.
+     *
+     * @param snapshotStore          snapshot store for publishing compiled snapshots
+     * @param eventBus               event bus for publishing/subscribing to domain events
+     * @param compilationAction      the compilation strategy (typically a test double)
+     * @param retryDelayMs           delay in milliseconds before retrying a transient failure
+     * @param heapPressureThrottleMs delay in milliseconds to defer recompilation after RM-E1
+     */
+    public CompilationServiceImpl(@Nonnull DualSnapshotStore snapshotStore, @Nonnull EventSyncPubSubHolder eventBus,
+                                  @Nonnull CompilationPipeline.CompilationAction compilationAction,
+                                  long retryDelayMs, long heapPressureThrottleMs) {
+        this(snapshotStore, eventBus, compilationAction, retryDelayMs, heapPressureThrottleMs,
+                new Semaphore(Integer.MAX_VALUE, false));
+    }
+
+    /**
+     * Test constructor: uses a custom compilation action with explicit retry, throttle, and concurrency limit.
+     *
+     * @param snapshotStore              snapshot store for publishing compiled snapshots
+     * @param eventBus                   event bus for publishing/subscribing to domain events
+     * @param compilationAction          the compilation strategy (typically a test double)
+     * @param retryDelayMs               delay in milliseconds before retrying a transient failure
+     * @param heapPressureThrottleMs     delay in milliseconds to defer recompilation after RM-E1
+     * @param maxConcurrentCompilations  maximum number of concurrent compilations across all pipelines; must be >= 1
+     */
+    public CompilationServiceImpl(@Nonnull DualSnapshotStore snapshotStore, @Nonnull EventSyncPubSubHolder eventBus,
+                                  @Nonnull CompilationPipeline.CompilationAction compilationAction,
+                                  long retryDelayMs, long heapPressureThrottleMs, int maxConcurrentCompilations) {
+        this(snapshotStore, eventBus, compilationAction, retryDelayMs, heapPressureThrottleMs,
+                buildSemaphore(maxConcurrentCompilations));
+    }
+
+    /**
+     * Primary constructor: all public constructors delegate to this one.
+     */
+    private CompilationServiceImpl(DualSnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
+                                   CompilationPipeline.CompilationAction compilationAction, long retryDelayMs,
+                                   long heapPressureThrottleMs, Semaphore compilationPermits) {
         this.snapshotStore = snapshotStore;
         this.eventBus = eventBus;
-        this.baseAction = new CompilationActionImpl(projectService);
+        this.baseAction = compilationAction;
         this.retryDelayMs = retryDelayMs;
         this.heapPressureThrottleMs = heapPressureThrottleMs;
+        this.compilationPermits = compilationPermits;
         this.pipelines = new ConcurrentHashMap<>();
         this.circuitActions = new ConcurrentHashMap<>();
         this.throttledRequests = new ConcurrentHashMap<>();
@@ -330,7 +407,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
         CircuitBreakerAction circuitAction = new CircuitBreakerAction(descriptor, sourceRootIdentifier);
         CompilationPipeline pipeline = new CompilationPipeline(descriptor, sourceRootIdentifier, snapshotStore, eventBus,
-                circuitAction);
+                circuitAction, compilationPermits);
         CompilationPipeline existing = pipelines.putIfAbsent(descriptor, pipeline);
         if (existing != null) {
             pipeline.close();
@@ -402,6 +479,14 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
     private boolean isDependencyGraphChange(String scope) {
         return "DEPENDENCY_GRAPH".equals(scope) || scope.contains("|DEPENDENCY_GRAPH|");
+    }
+
+    private static Semaphore buildSemaphore(int maxConcurrentCompilations) {
+        if (maxConcurrentCompilations < 1) {
+            throw new IllegalArgumentException(
+                    "maxConcurrentCompilations must be >= 1, got: " + maxConcurrentCompilations);
+        }
+        return new Semaphore(maxConcurrentCompilations, true);
     }
 
     private static String descriptorName(PackageDescriptor descriptor) {

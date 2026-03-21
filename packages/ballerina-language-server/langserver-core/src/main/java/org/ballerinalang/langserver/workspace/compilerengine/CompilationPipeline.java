@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -105,6 +106,7 @@ public class CompilationPipeline implements AutoCloseable {
     private final DualSnapshotStore snapshotStore;
     private final EventSyncPubSubHolder eventBus;
     private final CompilationAction compilationAction;
+    private final Semaphore compilationPermits;
     private final ScheduledExecutorService debounceScheduler;
     private final ExecutorService compilationWorker;
     private final AtomicReference<ScheduledFuture<?>> pendingDebounce;
@@ -140,12 +142,35 @@ public class CompilationPipeline implements AutoCloseable {
                                @Nonnull DualSnapshotStore snapshotStore,
                                @Nonnull EventSyncPubSubHolder eventBus,
                                @Nonnull CompilationAction compilationAction) {
-        this.descriptor = descriptor;
+        this(descriptor, sourceRootIdentifier, snapshotStore, eventBus, compilationAction,
+                new Semaphore(Integer.MAX_VALUE, false));
+    }
+
+    /**
+     * Creates a compilation pipeline with a shared semaphore for cross-pipeline concurrency limiting.
+     *
+     * <p>Pipelines sharing the same semaphore will collectively honour its permit count; at most
+     * {@code compilationPermits.availablePermits()} compilations run simultaneously across the group.
+     *
+     * @param descriptor           the package descriptor identity
+     * @param sourceRootIdentifier the project source root path, when available
+     * @param snapshotStore        store to publish snapshots into
+     * @param eventBus             event bus for domain event emission
+     * @param compilationAction    the actual compilation strategy
+     * @param compilationPermits   shared semaphore controlling the maximum concurrent compilations
+     */
+    public CompilationPipeline(@Nonnull PackageDescriptor descriptor, String sourceRootIdentifier,
+                               @Nonnull DualSnapshotStore snapshotStore,
+                               @Nonnull EventSyncPubSubHolder eventBus,
+                               @Nonnull CompilationAction compilationAction,
+                               @Nonnull Semaphore compilationPermits) {
+        this.descriptor = Objects.requireNonNull(descriptor, "descriptor must not be null");
         this.descriptorName = descriptorName(descriptor);
         this.sourceRootIdentifier = sourceRootIdentifier;
-        this.snapshotStore = snapshotStore;
-        this.eventBus = eventBus;
-        this.compilationAction = compilationAction;
+        this.snapshotStore = Objects.requireNonNull(snapshotStore, "snapshotStore must not be null");
+        this.eventBus = Objects.requireNonNull(eventBus, "eventBus must not be null");
+        this.compilationAction = Objects.requireNonNull(compilationAction, "compilationAction must not be null");
+        this.compilationPermits = Objects.requireNonNull(compilationPermits, "compilationPermits must not be null");
 
         this.debounceScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "compile-debounce-" + descriptorName);
@@ -251,7 +276,16 @@ public class CompilationPipeline implements AutoCloseable {
     private void executeCompilation(CompileTask task, InProgressSnapshot inProgressSnapshot) {
         activeWorkerThread.set(Thread.currentThread());
         boolean published = false;
+        boolean permitAcquired = false;
         try {
+            compilationPermits.acquire();
+            permitAcquired = true;
+            // Re-check cancellation — task may have been superseded while waiting for a permit
+            if (task.isCancelled()) {
+                emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
+                return;
+            }
+
             ResolutionResult resolutionResult = compilationAction.resolve(task);
             if (!resolutionResult.success()) {
                 emitEvent(EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY);
@@ -294,6 +328,9 @@ public class CompilationPipeline implements AutoCloseable {
             LOG.log(Level.WARNING, "Compilation failed for " + descriptorName, e);
             emitEvent(EventKind.COMPILER_COMPILATION_FAILED);
         } finally {
+            if (permitAcquired) {
+                compilationPermits.release();
+            }
             if (!published && snapshotStore.getInProgress(descriptor) == inProgressSnapshot) {
                 snapshotStore.cancelInProgress(descriptor);
             }

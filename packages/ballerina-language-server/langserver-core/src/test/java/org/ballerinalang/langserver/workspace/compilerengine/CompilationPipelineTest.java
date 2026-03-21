@@ -40,7 +40,9 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Mockito.mock;
@@ -691,6 +693,117 @@ public class CompilationPipelineTest {
         Assert.assertFalse(diagnosticsReady.await(300, TimeUnit.MILLISECONDS),
                 "Exhausted recovery must not publish CE-E5b");
         Assert.assertEquals(recoveryCalls.get(), 1, "Recovery ladder should be invoked once");
+    }
+
+    // ---- Semaphore-based concurrency limit ----
+
+    @Test
+    // RED: this test should fail — CompilationPipeline does not yet acquire/release compilationPermits
+    public void pipeline_sharedSemaphoreEnforcesSerialExecution() throws InterruptedException {
+        Semaphore shared = new Semaphore(1, true);
+
+        CountDownLatch aStarted = new CountDownLatch(1);
+        CountDownLatch aCanFinish = new CountDownLatch(1);
+        CountDownLatch bStarted = new CountDownLatch(1);
+        AtomicBoolean overlap = new AtomicBoolean(false);
+        AtomicBoolean aRunning = new AtomicBoolean(false);
+
+        DualSnapshotStore storeA = new DualSnapshotStore();
+        DualSnapshotStore storeB = new DualSnapshotStore();
+        EventSyncPubSubHolder busA = new EventSyncPubSubHolder();
+        EventSyncPubSubHolder busB = new EventSyncPubSubHolder();
+        PackageDescriptor descA = createDescriptor("alpha");
+        PackageDescriptor descB = createDescriptor("beta");
+
+        StableSnapshot snapA = createMockSnapshot(new ContentVersion(1));
+        StableSnapshot snapB = createMockSnapshot(new ContentVersion(1));
+
+        CompilationPipeline pipelineA = new CompilationPipeline(descA, null, storeA, busA,
+                task -> {
+                    aRunning.set(true);
+                    aStarted.countDown();
+                    aCanFinish.await(5, TimeUnit.SECONDS);
+                    aRunning.set(false);
+                    return snapA;
+                }, shared);
+
+        CompilationPipeline pipelineB = new CompilationPipeline(descB, null, storeB, busB,
+                task -> {
+                    if (aRunning.get()) {
+                        overlap.set(true);
+                    }
+                    bStarted.countDown();
+                    return snapB;
+                }, shared);
+
+        try {
+            pipelineA.requestCompilation(new ContentVersion(1));
+            Assert.assertTrue(aStarted.await(3, TimeUnit.SECONDS), "Pipeline A must start");
+
+            pipelineB.requestCompilation(new ContentVersion(1));
+            // B must NOT start while A holds the single permit
+            Assert.assertFalse(bStarted.await(400, TimeUnit.MILLISECONDS),
+                    "Pipeline B must not compile while A holds the semaphore");
+
+            aCanFinish.countDown();
+            Assert.assertTrue(bStarted.await(3, TimeUnit.SECONDS), "Pipeline B must start after A releases");
+            Assert.assertFalse(overlap.get(), "Compilations must not overlap");
+        } finally {
+            pipelineA.close();
+            pipelineB.close();
+            busA.close();
+            busB.close();
+        }
+    }
+
+    @Test
+    // RED: this test should fail — CompilationPipeline does not yet acquire compilationPermits,
+    // so with Semaphore(0) the action would run immediately instead of blocking
+    public void pipeline_closeWhileBlockedOnSemaphoreCompletesCleanly() throws InterruptedException {
+        Semaphore noPermits = new Semaphore(0);
+        AtomicBoolean compileActionCalled = new AtomicBoolean(false);
+
+        DualSnapshotStore store = new DualSnapshotStore();
+        EventSyncPubSubHolder bus = new EventSyncPubSubHolder();
+        PackageDescriptor desc = createDescriptor("blocked-project");
+        StableSnapshot snap = createMockSnapshot(new ContentVersion(1));
+
+        CompilationPipeline blocked = new CompilationPipeline(desc, null, store, bus,
+                task -> {
+                    compileActionCalled.set(true);
+                    return snap;
+                }, noPermits);
+
+        try {
+            blocked.requestCompilation(new ContentVersion(1));
+            // Give the worker time to reach (and block on) the semaphore
+            Thread.sleep(250);
+
+            // Action must NOT have been called — worker is blocked waiting for a permit
+            Assert.assertFalse(compileActionCalled.get(),
+                    "Compile action must not run while worker is blocked on semaphore");
+
+            // close() must complete without hanging
+            CountDownLatch closeDone = new CountDownLatch(1);
+            Thread closer = new Thread(() -> { blocked.close(); closeDone.countDown(); });
+            closer.setDaemon(true);
+            closer.start();
+            Assert.assertTrue(closeDone.await(3, TimeUnit.SECONDS),
+                    "close() must complete cleanly even when worker is blocked on semaphore");
+        } finally {
+            bus.close();
+        }
+    }
+
+    @Test
+    public void pipeline_defaultConstructorAllowsUnboundedConcurrency() throws InterruptedException {
+        // Existing 4-param constructor must still work — no Semaphore injected, no limit
+        CountDownLatch done = new CountDownLatch(1);
+        StableSnapshot snap = createMockSnapshot(new ContentVersion(1));
+        pipeline = createPipeline(task -> { done.countDown(); return snap; });
+        pipeline.requestCompilation(new ContentVersion(1));
+        Assert.assertTrue(done.await(3, TimeUnit.SECONDS),
+                "Pipeline created via default constructor must compile normally");
     }
 
     // ---- Helpers ----
