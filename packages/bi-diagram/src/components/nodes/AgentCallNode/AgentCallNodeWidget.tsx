@@ -677,7 +677,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
         const sysInstr = traceAnimation.systemInstructions;
         if (sysInstr) {
             const extractedRole = sysInstr.match(/(?:^|\n)#\s*Role[ \t]*\r?\n([\s\S]*?)(?=\r?\n#\s*Instructions|$)/i)?.[1]?.trim();
-            const extractedInstructions = sysInstr.match(/(?:^|\n)#\s*Instructions[ \t]*\r?\n([\s\S]*)$/i)?.[1]?.trim();
+            const extractedInstructions = sysInstr.match(/(?:^|\n)#\s*Instructions[ \t]*\r?\n([\s\S]*?)(?=\r?\n#\s*Instructions for Tool Validation Failure Handling|$)/i)?.[1]?.trim();
 
             const roleMatch = nodeRole != null && extractedRole === nodeRole.trim();
             const instrMatch = nodeInstructions != null && extractedInstructions === nodeInstructions.trim();
