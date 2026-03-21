@@ -18,11 +18,14 @@
 
 package org.ballerinalang.langserver.workspace.eventbus;
 
+import org.ballerinalang.langserver.workspace.observability.TelemetryEmitter;
+import org.ballerinalang.langserver.workspace.observability.TraceLogSink;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.time.Instant;
+import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -79,7 +82,7 @@ public class EventSyncPubSubHolderTest {
             latch.countDown();
         });
 
-        holder.publish(new DomainEvent(Instant.now(), "workspace-a", EventKind.WORKSPACE_PROJECT_REGISTERED));
+        holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, URI.create("file:///workspace-a")));
 
         Assert.assertTrue(latch.await(2, TimeUnit.SECONDS));
         Assert.assertNotEquals(firstSubscriberThread.get(), publishThreadId.get());
@@ -104,12 +107,13 @@ public class EventSyncPubSubHolderTest {
             awaitLatch(releaseProcessing);
         });
 
-        holder.publish(new DomainEvent(Instant.now(), "workspace-a", EventKind.WORKSPACE_PROJECT_REGISTERED));
+        holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, URI.create("file:///workspace-a")));
         Assert.assertTrue(processingStarted.await(1, TimeUnit.SECONDS));
 
         Assert.assertThrows(IllegalStateException.class, () -> {
             for (int i = 0; i < 1_500; i++) {
-                holder.publish(new DomainEvent(Instant.now(), "workspace-a", EventKind.WORKSPACE_PROJECT_REGISTERED));
+                holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED,
+                        URI.create("file:///workspace-a")));
             }
         });
 
@@ -133,9 +137,10 @@ public class EventSyncPubSubHolderTest {
             latch.countDown();
         });
 
-        DomainEvent first = new DomainEvent(Instant.now(), "file:///workspace/main.bal", EventKind.WM_DOCUMENT_CHANGED);
-        DomainEvent second = new DomainEvent(Instant.now(), "file:///workspace/main.bal", EventKind.WM_DOCUMENT_CHANGED);
-        DomainEvent third = new DomainEvent(Instant.now(), "file:///workspace/main.bal", EventKind.WM_DOCUMENT_CHANGED);
+        URI docUri = URI.create("file:///workspace/main.bal");
+        DomainEvent first = new DocumentEvent(EventKind.WM_DOCUMENT_CHANGED, null, docUri);
+        DomainEvent second = new DocumentEvent(EventKind.WM_DOCUMENT_CHANGED, null, docUri);
+        DomainEvent third = new DocumentEvent(EventKind.WM_DOCUMENT_CHANGED, null, docUri);
         holder.publish(first);
         holder.publish(second);
         holder.publish(third);
@@ -165,18 +170,22 @@ public class EventSyncPubSubHolderTest {
             awaitLatch(releaseProcessing);
         });
 
-        holder.publish(new DomainEvent(Instant.now(), "seq-1", EventKind.WORKSPACE_PROJECT_REGISTERED));
+        holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED,
+                URI.create("file:///seq-1")));
         Assert.assertTrue(processingStarted.await(1, TimeUnit.SECONDS));
 
         for (int i = 2; i <= 202; i++) {
-            holder.publish(new DomainEvent(Instant.now(), "seq-" + i, EventKind.WORKSPACE_PROJECT_REGISTERED));
+            holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED,
+                    URI.create("file:///seq-" + i)));
         }
 
         releaseProcessing.countDown();
         Thread.sleep(300);
 
-        boolean containsSecond = delivered.stream().anyMatch(event -> event.sourceContext().equals("seq-2"));
-        boolean containsLast = delivered.stream().anyMatch(event -> event.sourceContext().equals("seq-202"));
+        boolean containsSecond = delivered.stream().anyMatch(
+                event -> event instanceof ProjectEvent pe && pe.sourceRoot().toString().endsWith("/seq-2"));
+        boolean containsLast = delivered.stream().anyMatch(
+                event -> event instanceof ProjectEvent pe && pe.sourceRoot().toString().endsWith("/seq-202"));
 
         Assert.assertFalse(containsSecond);
         Assert.assertTrue(containsLast);
@@ -203,13 +212,103 @@ public class EventSyncPubSubHolderTest {
         holder.subscribe("fast", SubscriberTier.CRITICAL,
                 Set.of(EventKind.WORKSPACE_PROJECT_REGISTERED), event -> fastDelivered.countDown());
 
-        holder.publish(new DomainEvent(Instant.now(), "workspace-a", EventKind.WORKSPACE_PROJECT_REGISTERED));
+        holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, URI.create("file:///workspace-a")));
 
         Assert.assertTrue(blockedStarted.await(1, TimeUnit.SECONDS));
         Assert.assertTrue(fastDelivered.await(1, TimeUnit.SECONDS));
 
         unblockBlocked.countDown();
         holder.close();
+    }
+
+    /**
+     * Verifies that a CRITICAL tier timeout emits a critical_delivery_timeout metric.
+     *
+     * @throws InterruptedException if interrupted while coordinating latches
+     */
+    @Test
+    public void criticalTier_timeout_emitsMetric() throws InterruptedException {
+        List<Map<String, String>> captured = new CopyOnWriteArrayList<>();
+        TelemetryEmitter emitter = new TelemetryEmitter(List.of(capturingSink(captured)));
+        EventSyncPubSubHolder holder = new EventSyncPubSubHolder(emitter);
+
+        CountDownLatch processingStarted = new CountDownLatch(1);
+        CountDownLatch releaseProcessing = new CountDownLatch(1);
+
+        holder.subscribe("critical-metric-sub", SubscriberTier.CRITICAL,
+                Set.of(EventKind.WORKSPACE_PROJECT_REGISTERED), event -> {
+            processingStarted.countDown();
+            awaitLatch(releaseProcessing);
+        });
+
+        holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, URI.create("file:///workspace-a")));
+        Assert.assertTrue(processingStarted.await(1, TimeUnit.SECONDS));
+
+        Assert.assertThrows(IllegalStateException.class, () -> {
+            for (int i = 0; i < 1_500; i++) {
+                holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED,
+                        URI.create("file:///workspace-a")));
+            }
+        });
+
+        releaseProcessing.countDown();
+        holder.close();
+
+        boolean hasTimeout = captured.stream()
+                .anyMatch(e -> "event_bus.critical_delivery_timeout".equals(e.get("metricName"))
+                        && "critical-metric-sub".equals(e.get("subscriber")));
+        Assert.assertTrue(hasTimeout, "Expected critical_delivery_timeout metric to be emitted");
+    }
+
+    /**
+     * Verifies that a BEST_EFFORT head-drop emits a dropped_count metric.
+     *
+     * @throws InterruptedException if interrupted while awaiting delivery
+     */
+    @Test
+    public void bestEffortTier_headDrop_emitsMetric() throws InterruptedException {
+        List<Map<String, String>> captured = new CopyOnWriteArrayList<>();
+        TelemetryEmitter emitter = new TelemetryEmitter(List.of(capturingSink(captured)));
+        EventSyncPubSubHolder holder = new EventSyncPubSubHolder(emitter);
+
+        CountDownLatch processingStarted = new CountDownLatch(1);
+        CountDownLatch releaseProcessing = new CountDownLatch(1);
+
+        holder.subscribe("best-effort-metric-sub", SubscriberTier.BEST_EFFORT,
+                Set.of(EventKind.WORKSPACE_PROJECT_REGISTERED), event -> {
+            processingStarted.countDown();
+            awaitLatch(releaseProcessing);
+        });
+
+        // Block the consumer, then overflow the 200-event queue
+        holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, URI.create("file:///seq-1")));
+        Assert.assertTrue(processingStarted.await(1, TimeUnit.SECONDS));
+
+        for (int i = 2; i <= 205; i++) {
+            holder.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED,
+                    URI.create("file:///seq-" + i)));
+        }
+
+        releaseProcessing.countDown();
+        holder.close();
+
+        boolean hasDropped = captured.stream()
+                .anyMatch(e -> "event_bus.dropped_count".equals(e.get("metricName"))
+                        && "best-effort-metric-sub".equals(e.get("subscriber")));
+        Assert.assertTrue(hasDropped, "Expected dropped_count metric to be emitted on head-drop");
+    }
+
+    private static TraceLogSink capturingSink(List<Map<String, String>> target) {
+        return new TraceLogSink() {
+            @Override
+            public void write(String level, Map<String, String> fields) {
+                target.add(new java.util.LinkedHashMap<>(fields));
+            }
+
+            @Override
+            public void close() {
+            }
+        };
     }
 
     private static void awaitLatch(CountDownLatch latch) {

@@ -22,6 +22,10 @@ import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import javax.annotation.Nonnull;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -354,27 +358,40 @@ public class ProjectTest {
     }
 
     /**
-     * Verifies null sourceRoot throws NullPointerException.
+     * Verifies null sourceRoot is annotated @Nonnull on the constructor.
      */
-    @Test(expectedExceptions = NullPointerException.class)
-    public void project_constructor_nullDocumentUriThrows() {
-        new Project(null, ProjectKind.BUILD, HeapEstimate.ofMb(0));
+    @Test
+    public void project_constructor_nullDocumentUriThrows() throws NoSuchMethodException {
+        Constructor<Project> ctor = Project.class.getDeclaredConstructor(
+                DocumentUri.class, ProjectKind.class, HeapEstimate.class);
+        Assert.assertTrue(hasNonnull(ctor.getParameterAnnotations()[0]),
+                "sourceRoot parameter must be @Nonnull");
     }
 
     /**
-     * Verifies null kind throws NullPointerException.
+     * Verifies null kind is annotated @Nonnull on the constructor.
      */
-    @Test(expectedExceptions = NullPointerException.class)
-    public void project_constructor_nullKindThrows() {
-        new Project(SOURCE_ROOT, null, HeapEstimate.ofMb(0));
+    @Test
+    public void project_constructor_nullKindThrows() throws NoSuchMethodException {
+        Constructor<Project> ctor = Project.class.getDeclaredConstructor(
+                DocumentUri.class, ProjectKind.class, HeapEstimate.class);
+        Assert.assertTrue(hasNonnull(ctor.getParameterAnnotations()[1]),
+                "kind parameter must be @Nonnull");
     }
 
     /**
-     * Verifies null heapEstimate throws NullPointerException.
+     * Verifies null heapEstimate is annotated @Nonnull on the constructor.
      */
-    @Test(expectedExceptions = NullPointerException.class)
-    public void project_constructor_nullHeapEstimateThrows() {
-        new Project(SOURCE_ROOT, ProjectKind.BUILD, null);
+    @Test
+    public void project_constructor_nullHeapEstimateThrows() throws NoSuchMethodException {
+        Constructor<Project> ctor = Project.class.getDeclaredConstructor(
+                DocumentUri.class, ProjectKind.class, HeapEstimate.class);
+        Assert.assertTrue(hasNonnull(ctor.getParameterAnnotations()[2]),
+                "heapEstimate parameter must be @Nonnull");
+    }
+
+    private static boolean hasNonnull(Annotation[] annotations) {
+        return Arrays.stream(annotations).anyMatch(a -> a.annotationType() == Nonnull.class);
     }
 
     /**

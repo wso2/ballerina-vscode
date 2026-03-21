@@ -22,6 +22,7 @@ import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
 import io.ballerina.projects.PackageCompilation;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
@@ -30,6 +31,11 @@ import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
+
+import javax.annotation.Nonnull;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -179,19 +185,32 @@ public class CompilationPipelineTest {
         Assert.assertEquals(task.descriptor(), testDescriptor());
     }
 
-    @Test(expectedExceptions = NullPointerException.class)
-    public void task_rejectsNullDescriptor() {
-        new CompileTask(null, new ContentVersion(1), new CancellationToken());
+    @Test
+    public void task_rejectsNullDescriptor() throws NoSuchMethodException {
+        Constructor<CompileTask> ctor = CompileTask.class.getDeclaredConstructor(
+                PackageDescriptor.class, ContentVersion.class, CancellationToken.class);
+        Assert.assertTrue(hasNonnull(ctor.getParameterAnnotations()[0]),
+                "descriptor parameter must be @Nonnull");
     }
 
-    @Test(expectedExceptions = NullPointerException.class)
-    public void task_rejectsNullContentVersion() {
-        new CompileTask(testDescriptor(), null, new CancellationToken());
+    @Test
+    public void task_rejectsNullContentVersion() throws NoSuchMethodException {
+        Constructor<CompileTask> ctor = CompileTask.class.getDeclaredConstructor(
+                PackageDescriptor.class, ContentVersion.class, CancellationToken.class);
+        Assert.assertTrue(hasNonnull(ctor.getParameterAnnotations()[1]),
+                "contentVersion parameter must be @Nonnull");
     }
 
-    @Test(expectedExceptions = NullPointerException.class)
-    public void task_rejectsNullCancellationToken() {
-        new CompileTask(testDescriptor(), new ContentVersion(1), null);
+    @Test
+    public void task_rejectsNullCancellationToken() throws NoSuchMethodException {
+        Constructor<CompileTask> ctor = CompileTask.class.getDeclaredConstructor(
+                PackageDescriptor.class, ContentVersion.class, CancellationToken.class);
+        Assert.assertTrue(hasNonnull(ctor.getParameterAnnotations()[2]),
+                "cancellationToken parameter must be @Nonnull");
+    }
+
+    private static boolean hasNonnull(Annotation[] annotations) {
+        return Arrays.stream(annotations).anyMatch(a -> a.annotationType() == Nonnull.class);
     }
 
     // ---- CompilationPipeline ----
@@ -296,7 +315,9 @@ public class CompilationPipelineTest {
         pipeline.requestCompilation(new ContentVersion(1));
         Assert.assertTrue(eventReceived.await(3, TimeUnit.SECONDS));
         Assert.assertTrue(receivedKinds.contains(EventKind.COMPILER_SNAPSHOT_PUBLISHED));
-        Assert.assertEquals(receivedEvents.get(0).sourceContext(), "project");
+        Assert.assertTrue(receivedEvents.get(0) instanceof CompilerEvent ce
+                && "project".equals(ce.descriptorName()),
+                "Event descriptor name must match the pipeline's source root identifier");
     }
 
     @Test

@@ -22,9 +22,12 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.environment.PackageLockingMode;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.eclipse.lsp4j.FileChangeType;
@@ -39,7 +42,6 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -139,8 +141,7 @@ public class ProjectServiceTest {
         project1.openDocumentCount().increment();
 
         // Publish RM-E1 heap pressure through the event bus
-        eventBus.publish(new DomainEvent(Instant.now(), "heap-monitor",
-                EventKind.RM_E1_HEAP_PRESSURE_DETECTED, HeapPressureLevel.WARNING.name()));
+        eventBus.publish(new HeapPressureEvent(HeapPressureLevel.WARNING));
 
         Thread.sleep(200);
 
@@ -160,8 +161,7 @@ public class ProjectServiceTest {
 
         registry.register(root, project);
 
-        eventBus.publish(new DomainEvent(Instant.now(), EventKind.RM_E1_HEAP_PRESSURE_DETECTED.eventId(),
-                EventKind.RM_E1_HEAP_PRESSURE_DETECTED, HeapPressureLevel.EMERGENCY.name()));
+        eventBus.publish(new HeapPressureEvent(HeapPressureLevel.EMERGENCY));
 
         Thread.sleep(200);
         Assert.assertTrue(registry.get(root).isEmpty(), "Emergency pressure should evict background projects");
@@ -180,7 +180,8 @@ public class ProjectServiceTest {
         eventBus.subscribe("test-doc-opened", SubscriberTier.CRITICAL,
                 Set.of(EventKind.WM_DOCUMENT_OPENED), capturedEvents::add);
 
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED));
+        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED, null,
+                URI.create("file:///test/main.bal")));
         // Wait for async event delivery
         Thread.sleep(200);
         Assert.assertEquals(capturedEvents.size(), 1, "Event should be published");
@@ -465,8 +466,8 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
         publishedEvents.clear();
 
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED,
-                projectPath.toString()));
+        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED,
+                projectPath.toUri(), projectPath.toUri()));
 
         // Allow async processing
         Thread.sleep(100);
@@ -483,8 +484,8 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
         publishedEvents.clear();
 
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED,
-                projectPath.toString()));
+        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED,
+                projectPath.toUri(), projectPath.toUri()));
 
         // Allow async processing
         Thread.sleep(100);
@@ -499,8 +500,8 @@ public class ProjectServiceTest {
         Path unknownPath = tempDir.resolve("unknown").toAbsolutePath().normalize();
         publishedEvents.clear();
 
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED,
-                unknownPath.toString()));
+        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED,
+                unknownPath.toUri(), unknownPath.toUri()));
 
         Assert.assertTrue(publishedEvents.isEmpty(), "No event should be published for unknown path");
     }
@@ -515,15 +516,15 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
 
         // Open document
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED,
-                projectPath.toString()));
+        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED,
+                projectPath.toUri(), projectPath.toUri()));
         Thread.sleep(100);
 
         publishedEvents.clear();
 
         // Close document
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_CLOSED,
-                projectPath.toString()));
+        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_CLOSED,
+                projectPath.toUri(), projectPath.toUri()));
         Thread.sleep(100);
 
         DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
@@ -538,15 +539,15 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
 
         // Open document
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED,
-                projectPath.toString()));
+        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED,
+                projectPath.toUri(), projectPath.toUri()));
         Thread.sleep(100);
 
         publishedEvents.clear();
 
         // Close document
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_CLOSED,
-                projectPath.toString()));
+        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_CLOSED,
+                projectPath.toUri(), projectPath.toUri()));
         Thread.sleep(100);
 
         Assert.assertTrue(publishedEvents.stream()
@@ -564,8 +565,8 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
 
         publishedEvents.clear();
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.COMPILER_COMPILATION_FAILED,
-                projectPath.toString()));
+        eventBus.publish(new CompilerEvent(EventKind.COMPILER_COMPILATION_FAILED,
+                projectPath.toUri(), "test-pkg"));
         Thread.sleep(100);
 
         DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
@@ -581,8 +582,8 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
         publishedEvents.clear();
 
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.COMPILER_COMPILATION_FAILED,
-                projectPath.toString()));
+        eventBus.publish(new CompilerEvent(EventKind.COMPILER_COMPILATION_FAILED,
+                projectPath.toUri(), "test-pkg"));
         Thread.sleep(100);
 
         Assert.assertTrue(publishedEvents.stream()
@@ -595,8 +596,8 @@ public class ProjectServiceTest {
         Path unknownPath = tempDir.resolve("unknown").toAbsolutePath().normalize();
         publishedEvents.clear();
 
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.COMPILER_COMPILATION_FAILED,
-                unknownPath.toString()));
+        eventBus.publish(new CompilerEvent(EventKind.COMPILER_COMPILATION_FAILED,
+                unknownPath.toUri(), "test-pkg"));
 
         Assert.assertTrue(publishedEvents.isEmpty(), "No event should be published for unknown root");
     }
@@ -619,8 +620,8 @@ public class ProjectServiceTest {
         proj.transitionTo(ProjectHealthState.RECOVERING);
 
         publishedEvents.clear();
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY,
-                projectPath.toString()));
+        eventBus.publish(new CompilerEvent(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY,
+                projectPath.toUri(), "test-pkg"));
         Thread.sleep(100);
 
         Assert.assertEquals(proj.healthState(), ProjectHealthState.HEALTHY,
@@ -637,8 +638,8 @@ public class ProjectServiceTest {
         Assert.assertEquals(proj.healthState(), ProjectHealthState.HEALTHY);
 
         publishedEvents.clear();
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY,
-                projectPath.toString()));
+        eventBus.publish(new CompilerEvent(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY,
+                projectPath.toUri(), "test-pkg"));
         Thread.sleep(100);
 
         // Should not publish event if no transition occurred
@@ -654,8 +655,8 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
 
         DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
-                projectPath.toString()));
+        eventBus.publish(new CompilerEvent(EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
+                projectPath.toUri(), "test-pkg"));
         Thread.sleep(100);
 
         Assert.assertTrue(service.hasObservedCompilerSignal(root, EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY),
@@ -672,8 +673,8 @@ public class ProjectServiceTest {
         project.transitionTo(ProjectHealthState.PROJECT_CRASHED);
         project.transitionTo(ProjectHealthState.RECOVERING);
 
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_RESOLUTION_EXHAUSTED,
-                projectPath.toString()));
+        eventBus.publish(new CompilerEvent(EventKind.CE_RESOLUTION_EXHAUSTED,
+                projectPath.toUri(), "test-pkg"));
         Thread.sleep(100);
 
         Assert.assertEquals(project.healthState(), ProjectHealthState.CIRCUIT_OPEN,
@@ -693,8 +694,8 @@ public class ProjectServiceTest {
         project.transitionTo(ProjectHealthState.RECOVERING);
         project.transitionTo(ProjectHealthState.CIRCUIT_OPEN);
 
-        eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.CE_RESOLUTION_RECOVERED,
-                projectPath.toString()));
+        eventBus.publish(new CompilerEvent(EventKind.CE_RESOLUTION_RECOVERED,
+                projectPath.toUri(), "test-pkg"));
         Thread.sleep(100);
 
         Assert.assertEquals(project.healthState(), ProjectHealthState.RECOVERING,

@@ -18,6 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.eventbus;
 
+    import org.ballerinalang.langserver.workspace.observability.TelemetryEmitter;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -54,6 +56,7 @@ final class DeliveryChannel {
     private final Consumer<DomainEvent> consumer;
     private final AtomicBoolean closed;
     private final AtomicInteger sampleCounter;
+    private final TelemetryEmitter telemetryEmitter;
 
     private final BlockingQueue<DomainEvent> queue;
     private final ConcurrentHashMap<String, DomainEvent> stagingMap;
@@ -63,7 +66,7 @@ final class DeliveryChannel {
     private DeliveryChannel(String subscriberId, SubscriberTier subscriberTier, Set<EventKind> subscribedKinds,
                             Consumer<DomainEvent> consumer, BlockingQueue<DomainEvent> queue,
                             ConcurrentHashMap<String, DomainEvent> stagingMap, ExecutorService deliveryExecutor,
-                            ScheduledExecutorService coalesceDrainer) {
+                            ScheduledExecutorService coalesceDrainer, TelemetryEmitter telemetryEmitter) {
         this.subscriberId = subscriberId;
         this.subscriberTier = subscriberTier;
         this.subscribedKinds = subscribedKinds;
@@ -74,6 +77,7 @@ final class DeliveryChannel {
         this.coalesceDrainer = coalesceDrainer;
         this.closed = new AtomicBoolean(false);
         this.sampleCounter = new AtomicInteger(0);
+        this.telemetryEmitter = telemetryEmitter;
     }
 
     /**
@@ -86,14 +90,14 @@ final class DeliveryChannel {
      * @return configured delivery channel
      */
     static DeliveryChannel create(String subscriberId, SubscriberTier subscriberTier, Set<EventKind> subscribedKinds,
-                                  Consumer<DomainEvent> consumer) {
+                                  Consumer<DomainEvent> consumer, TelemetryEmitter telemetryEmitter) {
         Set<EventKind> immutableKinds = Set.copyOf(subscribedKinds);
         return switch (subscriberTier) {
             case CRITICAL -> {
                 ArrayBlockingQueue<DomainEvent> queue = new ArrayBlockingQueue<>(CRITICAL_CAPACITY);
                 ExecutorService executor = Executors.newSingleThreadExecutor(threadFactory(subscriberId, subscriberTier));
                 DeliveryChannel channel = new DeliveryChannel(subscriberId, subscriberTier, immutableKinds, consumer,
-                        queue, null, executor, null);
+                        queue, null, executor, null, telemetryEmitter);
                 executor.submit(channel::drainQueue);
                 yield channel;
             }
@@ -101,7 +105,7 @@ final class DeliveryChannel {
                 ArrayBlockingQueue<DomainEvent> queue = new ArrayBlockingQueue<>(BEST_EFFORT_CAPACITY);
                 ExecutorService executor = Executors.newSingleThreadExecutor(threadFactory(subscriberId, subscriberTier));
                 DeliveryChannel channel = new DeliveryChannel(subscriberId, subscriberTier, immutableKinds, consumer,
-                        queue, null, executor, null);
+                        queue, null, executor, null, telemetryEmitter);
                 executor.submit(channel::drainQueue);
                 yield channel;
             }
@@ -110,7 +114,7 @@ final class DeliveryChannel {
                 ScheduledExecutorService drainer = Executors.newSingleThreadScheduledExecutor(
                         threadFactory(subscriberId, subscriberTier));
                 DeliveryChannel channel = new DeliveryChannel(subscriberId, subscriberTier, immutableKinds, consumer,
-                        null, stagingMap, null, drainer);
+                        null, stagingMap, null, drainer, telemetryEmitter);
                 drainer.scheduleAtFixedRate(channel::drainCoalesceMap, COALESCE_DRAIN_INTERVAL_MILLIS,
                         COALESCE_DRAIN_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
                 yield channel;
@@ -163,6 +167,10 @@ final class DeliveryChannel {
     private void enqueueCritical(DomainEvent event) {
         try {
             if (!queue.offer(event, CRITICAL_PUBLISH_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
+                telemetryEmitter.emit("event_bus.critical_delivery_timeout", Map.of(
+                        "subscriber", subscriberId,
+                        "eventKind", event.eventKind().name()
+                ));
                 throw new IllegalStateException("Critical event delivery timed out for subscriber: " + subscriberId);
             }
         } catch (InterruptedException interruptedException) {
@@ -187,6 +195,10 @@ final class DeliveryChannel {
         if (!queue.offer(event)) {
             queue.poll();
             queue.offer(event);
+            telemetryEmitter.emit("event_bus.dropped_count", Map.of(
+                    "subscriber", subscriberId,
+                    "eventKind", event.eventKind().name()
+            ));
         }
     }
 
@@ -194,6 +206,7 @@ final class DeliveryChannel {
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 DomainEvent event = queue.take();
+                telemetryEmitter.emitGauge("event_bus.queue_depth", queue.size());
                 consumer.accept(event);
             } catch (InterruptedException interruptedException) {
                 Thread.currentThread().interrupt();

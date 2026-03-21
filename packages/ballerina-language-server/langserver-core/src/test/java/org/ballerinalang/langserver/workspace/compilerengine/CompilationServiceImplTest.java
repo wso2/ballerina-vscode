@@ -27,9 +27,13 @@ import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent;
+import org.ballerinalang.langserver.workspace.eventbus.HeapPressureEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProjectEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.testng.Assert;
@@ -39,9 +43,9 @@ import org.testng.annotations.Test;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -239,8 +243,7 @@ public class CompilationServiceImplTest {
         publishWmE1(testRoot);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
 
-        eventBus.publish(new DomainEvent(Instant.now(), "resource-monitor",
-                EventKind.RM_E1_HEAP_PRESSURE_DETECTED, HeapPressureLevel.WARNING.name()));
+        eventBus.publish(new HeapPressureEvent(HeapPressureLevel.WARNING));
         publishWmDocumentChanged(testRoot);
 
         Assert.assertFalse(throttledCompilation.await(150, TimeUnit.MILLISECONDS),
@@ -562,7 +565,7 @@ public class CompilationServiceImplTest {
             }
             @Override
             public PackageDescriptor describe(String sourceRootIdentifier) {
-                if (testRoot.uri().toString().equals(sourceRootIdentifier)) {
+                if (workspaceDir.toString().equals(sourceRootIdentifier)) {
                     return mockDescriptor;
                 }
                 String sanitized = sourceRootIdentifier.replaceAll("[^A-Za-z0-9_-]", "-");
@@ -572,36 +575,30 @@ public class CompilationServiceImplTest {
     }
 
     private void publishWmE1(DocumentUri sr) {
-        eventBus.publish(new DomainEvent(Instant.now(), sr.uri().toString(),
-                EventKind.WORKSPACE_PROJECT_REGISTERED));
+        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, sr.uri()));
     }
 
     private void publishWmE2(DocumentUri sr) {
-        eventBus.publish(new DomainEvent(Instant.now(), sr.uri().toString(),
-                EventKind.WORKSPACE_PROJECT_EVICTED));
+        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_EVICTED, sr.uri()));
     }
 
     private void publishWmE4(DocumentUri sr) {
-        eventBus.publish(new DomainEvent(Instant.now(), sr.uri().toString(),
-                EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED));
+        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED, sr.uri()));
     }
 
     private void publishWmDocumentOpened(DocumentUri sr) {
-        eventBus.publish(new DomainEvent(Instant.now(), sr.uri().toString(),
-                EventKind.WM_DOCUMENT_OPENED,
-                Path.of(sr.uri()).resolve("main.bal").toUri().toString()));
+        URI docUri = Path.of(sr.uri()).resolve("main.bal").toUri();
+        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED, sr.uri(), docUri));
     }
 
     private void publishWmDocumentChanged(DocumentUri sr) {
-        eventBus.publish(new DomainEvent(Instant.now(), sr.uri().toString(),
-                EventKind.WM_DOCUMENT_CHANGED,
-                Path.of(sr.uri()).resolve("main.bal").toUri().toString()));
+        URI docUri = Path.of(sr.uri()).resolve("main.bal").toUri();
+        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_CHANGED, sr.uri(), docUri));
     }
 
     private void publishWmFileWatchedChanged(DocumentUri sr, String scope) {
-        eventBus.publish(new DomainEvent(Instant.now(), sr.uri().toString(),
-                EventKind.WM_FILE_WATCHED_CHANGED,
-                Path.of(sr.uri()).resolve("Dependencies.toml") + "|" + scope + "|Changed"));
+        URI watchedFile = Path.of(sr.uri()).resolve("Dependencies.toml").toUri();
+        eventBus.publish(new FileWatchedChangedEvent(sr.uri(), watchedFile, scope));
     }
 
     private StableSnapshot createStableSnapshot(SyntaxTree syntaxTree, SemanticModel semanticModel,

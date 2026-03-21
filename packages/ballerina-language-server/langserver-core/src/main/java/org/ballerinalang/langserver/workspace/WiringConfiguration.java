@@ -24,6 +24,8 @@ import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent;
+import org.ballerinalang.langserver.workspace.eventbus.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.execution.ExecutionServiceImpl;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
@@ -40,7 +42,6 @@ import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImp
 import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
 
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -83,8 +84,7 @@ public final class WiringConfiguration implements AutoCloseable {
 
         // 2. HeapPressureMonitor — started immediately; publishes RM-E1 via lambda bridge
         Consumer<HeapPressureDetected> hpdPublisher = hpd ->
-                eventBus.publish(new DomainEvent(Instant.now(), "resource-monitor",
-                        EventKind.RM_E1_HEAP_PRESSURE_DETECTED, hpd.level().name()));
+                eventBus.publish(new HeapPressureEvent(hpd.level()));
         this.heapPressureMonitor = new HeapPressureMonitor(hpdPublisher, builder.heapPressurePollIntervalMs);
         this.heapPressureMonitor.start();
 
@@ -128,22 +128,26 @@ public final class WiringConfiguration implements AutoCloseable {
      * Handles DS-E4 events with STRUCTURAL reactivity tier by triggering
      * project kind transitions in the workspace manager.
      *
-     * <p>DS-E4 coalesceScope format: {@code path|TIER|CHANGE_TYPE} or just {@code TIER}.
-     * Only STRUCTURAL tier triggers kind transitions (Ballerina.toml create/delete).
+     * <p>Only {@link FileWatchedChangedEvent} instances with a {@code changeScope} containing
+     * {@value #STRUCTURAL_TIER} trigger kind transitions (Ballerina.toml create/delete).
      */
     private void onStructuralConfigChange(DomainEvent event) {
-        String scope = event.coalesceScope();
-        if (scope == null || !scope.contains(STRUCTURAL_TIER)) {
+        if (!(event instanceof FileWatchedChangedEvent fwce)) {
+            return;
+        }
+        if (!fwce.changeScope().contains(STRUCTURAL_TIER)) {
             return;
         }
 
-        // Determine source root from the event
-        String sourceContext = event.sourceContext();
+        // Determine source root URI from the event
+        if (fwce.sourceRoot() == null) {
+            return;
+        }
         Path rootPath;
         try {
-            rootPath = Path.of(sourceContext).toAbsolutePath().normalize();
+            rootPath = Path.of(fwce.sourceRoot()).toAbsolutePath().normalize();
         } catch (Exception e) {
-            LOG.log(Level.FINE, "Could not parse source root from DS-E4 event: " + sourceContext, e);
+            LOG.log(Level.FINE, "Could not parse source root from DS-E4 event: " + fwce.sourceRoot(), e);
             return;
         }
 

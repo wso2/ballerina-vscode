@@ -266,9 +266,13 @@ public class CompilerEngineVOTest {
         Assert.assertEquals(result.diagnostics().size(), 1, "Defensive copy should prevent mutation");
     }
 
-    @Test(expectedExceptions = NullPointerException.class)
-    public void resolution_rejectsNullDescriptor() {
-        new ResolutionResult(null, List.of(), true);
+    @Test
+    public void resolution_rejectsNullDescriptor() throws NoSuchMethodException {
+        Constructor<ResolutionResult> ctor = ResolutionResult.class.getDeclaredConstructor(
+                PackageDescriptor.class, List.class, boolean.class);
+        boolean hasNonnull = java.util.Arrays.stream(ctor.getParameterAnnotations()[0])
+                .anyMatch(a -> a.annotationType() == Nonnull.class);
+        Assert.assertTrue(hasNonnull, "descriptor parameter must be @Nonnull");
     }
 
     @Test

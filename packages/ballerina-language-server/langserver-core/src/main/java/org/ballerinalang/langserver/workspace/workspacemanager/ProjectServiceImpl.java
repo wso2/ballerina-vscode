@@ -24,9 +24,17 @@ import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.eventbus.BatchEvent;
+import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent;
+import org.ballerinalang.langserver.workspace.eventbus.HeapPressureEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProjectEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProjectEvictedEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProjectKindTransitionedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.eclipse.lsp4j.FileChangeType;
@@ -36,7 +44,6 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import java.net.URI;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,6 +52,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -285,14 +293,14 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             case PROJECT_REMOVED -> {
                 if (event.affectedRoot() != null) {
                     ballerinaProjects.remove(event.affectedRoot());
-                    // Evict the entire subtree from UriResolver
                     uriResolver.evictSubtree(event.affectedRoot());
-                    // Clean up per-document and per-root secondary maps
                     purgeEntriesForRoot(event.affectedRoot());
-                    publishWm(EventKind.WORKSPACE_PROJECT_EVICTED, event.affectedRoot());
+                    EvictionReason reason = event.evictionReason() != null
+                            ? event.evictionReason() : EvictionReason.DOCUMENT_CLOSED;
+                    eventBus.publish(new ProjectEvictedEvent(event.affectedRoot().uri(), reason));
                 }
             }
-            case BATCH_UPDATE -> publishWmNoRoot(EventKind.WORKSPACE_BATCH_PROJECTS_REGISTERED);
+            case BATCH_UPDATE -> eventBus.publish(new BatchEvent());
             case PROJECT_ADDED -> {
                 // UriResolver updates happen during loadOrCreate; no action needed here
             }
@@ -304,7 +312,10 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     // =========================================================================
 
     private void onDocumentOpened(DomainEvent event) {
-        Path path = parsePath(event.coalesceScope());
+        if (!(event instanceof DocumentEvent docEvent)) {
+            return;
+        }
+        Path path = parsePath(docEvent.documentUri().toString());
         DocumentUri docUri = toFileUri(path);
         uriResolver.project(docUri).ifPresent(project -> {
                     // Find the WM project for tier tracking
@@ -321,7 +332,10 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     private void onDocumentClosed(DomainEvent event) {
-        Path path = parsePath(event.coalesceScope());
+        if (!(event instanceof DocumentEvent docEvent)) {
+            return;
+        }
+        Path path = parsePath(docEvent.documentUri().toString());
         DocumentUri docUri = toFileUri(path);
         uriResolver.project(docUri).ifPresent(project -> {
                     // Find the WM project for tier tracking
@@ -335,16 +349,16 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
                         }
                         if (before != after) {
                             publishWm(EventKind.WORKSPACE_PROJECT_TIER_CHANGED, wmProject.sourceRoot());
-//                                 if (after == ProjectTier.BACKGROUND && wmProject.kind() == ProjectKind.SINGLE_FILE) {
-//                                evictProject(path);
-//                            }
                         }
                     });
                 });
     }
 
     private void onCompilationFailed(DomainEvent event) {
-        DocumentUri root = parseDocumentUri(event.coalesceScope());
+        if (!(event instanceof CompilerEvent ce)) {
+            return;
+        }
+        DocumentUri root = new DocumentUri.FileUri(ce.sourceRoot());
         registry.get(root).ifPresent(project -> {
             try {
                 project.transitionTo(ProjectHealthState.COMPILATION_CRASHED);
@@ -356,7 +370,10 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     private void onDiagnosticsReady(DomainEvent event) {
-        DocumentUri root = parseDocumentUri(event.coalesceScope());
+        if (!(event instanceof CompilerEvent ce)) {
+            return;
+        }
+        DocumentUri root = new DocumentUri.FileUri(ce.sourceRoot());
         recordCompilerSignal(root, event.eventKind());
         registry.get(root).ifPresent(project -> {
             if (project.healthState() == ProjectHealthState.RECOVERING) {
@@ -371,24 +388,35 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     private void onResolutionDiagnosticsReady(DomainEvent event) {
-        recordCompilerSignal(parseDocumentUri(event.coalesceScope()), event.eventKind());
+        if (!(event instanceof CompilerEvent ce)) {
+            return;
+        }
+        recordCompilerSignal(new DocumentUri.FileUri(ce.sourceRoot()), event.eventKind());
     }
 
     private void onResolutionRecovered(DomainEvent event) {
-        DocumentUri root = parseDocumentUri(event.coalesceScope());
+        if (!(event instanceof CompilerEvent ce)) {
+            return;
+        }
+        DocumentUri root = new DocumentUri.FileUri(ce.sourceRoot());
         recordCompilerSignal(root, event.eventKind());
         registry.get(root).ifPresent(project -> transitionProject(project, ProjectHealthState.RECOVERING));
     }
 
     private void onResolutionExhausted(DomainEvent event) {
-        DocumentUri root = parseDocumentUri(event.coalesceScope());
+        if (!(event instanceof CompilerEvent ce)) {
+            return;
+        }
+        DocumentUri root = new DocumentUri.FileUri(ce.sourceRoot());
         recordCompilerSignal(root, event.eventKind());
         registry.get(root).ifPresent(project -> transitionProject(project, ProjectHealthState.CIRCUIT_OPEN));
     }
 
     private void onHeapPressureDetected(DomainEvent event) {
-        HeapPressureLevel level = parseHeapPressureLevel(event.coalesceScope());
-        switch (level) {
+        if (!(event instanceof HeapPressureEvent hpe)) {
+            return;
+        }
+        switch (hpe.pressureLevel()) {
             case WARNING, CRITICAL, EMERGENCY -> registry.evictBackgroundProjects();
             case NORMAL -> { }
         }
@@ -412,7 +440,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     public void transitionKind(@Nonnull DocumentUri root, @Nonnull ProjectKind target) {
         registry.get(root).ifPresent(project -> {
             project.transitionKind(target);
-            publishWm(EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED, root);
+            eventBus.publish(new ProjectKindTransitionedEvent(root.uri(), target));
         });
     }
 
@@ -524,16 +552,20 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
                 URI uri = URI.create(event.getUri());
                 DocumentUri docUri = new DocumentUri.FileUri(uri);
                 Path filePath = Path.of(uri).toAbsolutePath().normalize();
+                String changeScope;
                 if (isBufferedTomlFile(filePath)) {
                     if (isDependenciesToml(filePath) && consumeDependenciesTomlSelfWrite(filePath)) {
                         continue;
                     }
                     appendWatchedTomlChange(docUri, event.getType());
                     transitionProjectKindIfNeeded(filePath, event.getType());
+                    changeScope = "DEPENDENCY_GRAPH";
                 } else {
                     changeBuffer.routeWatcherEvent(docUri, event);
+                    changeScope = "SOURCE";
                 }
-                publishDoc(EventKind.WM_FILE_WATCHED_CHANGED, docUri);
+                URI sourceRootUri = resolveSourceRootUri(docUri);
+                eventBus.publish(new FileWatchedChangedEvent(sourceRootUri, uri, changeScope));
             } catch (Exception ignored) {
                 // Malformed or non-file URI — skip this event
             }
@@ -564,8 +596,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * Test-only hook: simulates heap pressure by invoking the eviction callback.
      */
     public void simulateHeapPressure() {
-        eventBus.publish(new DomainEvent(Instant.now(), "heap-monitor",
-                EventKind.RM_E1_HEAP_PRESSURE_DETECTED, HeapPressureLevel.WARNING.name()));
+        eventBus.publish(new HeapPressureEvent(HeapPressureLevel.WARNING));
     }
 
     /**
@@ -614,6 +645,25 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     /**
+     * Resolves the source root URI for a document URI. Returns null if not resolvable.
+     *
+     * @param docUri the document URI
+     * @return source root URI or null
+     */
+    @Nullable
+    private URI resolveSourceRootUri(DocumentUri docUri) {
+        try {
+            return uriResolver.project(docUri)
+                    .map(this::findSourceRoot)
+                    .filter(root -> root != null)
+                    .map(DocumentUri::uri)
+                    .orElse(null);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    /**
      * Detects the project kind based on whether Ballerina.toml exists at the root.
      *
      * @param root the source root URI
@@ -650,37 +700,6 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             return Path.of(pathStr);
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid path: " + pathStr, e);
-        }
-    }
-
-    /**
-     * Parses a coalesce scope string into a DocumentUri.
-     * The scope may be a URI string (e.g. file:///...) or a plain path string.
-     *
-     * @param scope the coalesce scope string
-     * @return a DocumentUri representing the source root
-     */
-    private DocumentUri parseDocumentUri(String scope) {
-        try {
-            java.net.URI uri = java.net.URI.create(scope);
-            if (uri.getScheme() != null) {
-                return new DocumentUri.FileUri(uri);
-            }
-        } catch (Exception ignored) {
-            // Fall through to path-based parsing
-        }
-        return new DocumentUri.FileUri(Path.of(scope).normalize().toUri());
-    }
-
-    private HeapPressureLevel parseHeapPressureLevel(String rawLevel) {
-        if (rawLevel == null || rawLevel.isBlank()) {
-            return HeapPressureLevel.WARNING;
-        }
-
-        try {
-            return HeapPressureLevel.valueOf(rawLevel);
-        } catch (IllegalArgumentException ignored) {
-            return HeapPressureLevel.WARNING;
         }
     }
 
@@ -754,8 +773,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * @param root affected source root URI
      */
     private void publishWm(EventKind kind, DocumentUri root) {
-        eventBus.publish(new DomainEvent(Instant.now(), "workspace-manager", kind,
-                root.uri().toString()));
+        eventBus.publish(new ProjectEvent(kind, root.uri()));
     }
 
     private void recordCompilerSignal(DocumentUri root, EventKind signal) {
@@ -785,18 +803,8 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * @param uri  document URI
      */
     private void publishDoc(EventKind kind, DocumentUri uri) {
-        eventBus.publish(new DomainEvent(Instant.now(), "workspace-manager", kind,
-                uri.uri().toString()));
-    }
-
-    /**
-     * Publishes a workspace-manager event without a specific root.
-     *
-     * @param kind event kind
-     */
-    private void publishWmNoRoot(EventKind kind) {
-        eventBus.publish(new DomainEvent(Instant.now(), "workspace-manager", kind,
-                "workspace-manager"));
+        URI sourceRootUri = resolveSourceRootUri(uri);
+        eventBus.publish(new DocumentEvent(kind, sourceRootUri, uri.uri()));
     }
 
     /**
@@ -817,6 +825,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * @param project the Ballerina project
      * @return the source root URI if found, or null if not found
      */
+    @Nullable
     private DocumentUri findSourceRoot(Project project) {
         for (Map.Entry<DocumentUri, Project> entry : ballerinaProjects.entrySet()) {
             if (entry.getValue() == project) {

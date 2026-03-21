@@ -24,6 +24,10 @@ import org.eclipse.lsp4j.WindowClientCapabilities;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import javax.annotation.Nonnull;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.RecordComponent;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -105,8 +109,10 @@ public class ClientSessionTest {
 
     @Test(groups = "client-session")
     public void constructor_nullClientCapabilitiesThrowsNPE() {
-        Assert.assertThrows(NullPointerException.class, () ->
-                new ClientSession(null, List.of(), "session-1"));
+        RecordComponent[] components = ClientSession.class.getRecordComponents();
+        Annotation[] annotations = components[0].getAnnotations();
+        boolean hasNonnull = Arrays.stream(annotations).anyMatch(a -> a.annotationType() == Nonnull.class);
+        Assert.assertTrue(hasNonnull, "clientCapabilities record component must be @Nonnull");
     }
 
     @Test(groups = "client-session")

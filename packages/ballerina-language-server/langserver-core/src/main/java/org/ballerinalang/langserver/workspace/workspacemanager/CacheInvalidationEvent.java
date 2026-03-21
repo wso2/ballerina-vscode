@@ -20,15 +20,29 @@ package org.ballerinalang.langserver.workspace.workspacemanager;
 
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 
+import javax.annotation.Nullable;
+
 /**
  * Domain event signalling that a cache invalidation is required.
  * {@code affectedRoot} is {@code null} for {@link InvalidationType#BATCH_UPDATE}.
+ * {@code evictionReason} is non-null only for {@link InvalidationType#PROJECT_REMOVED}.
  *
  * @since 1.7.0
  */
 public record CacheInvalidationEvent(
         DocumentUri affectedRoot,
-        InvalidationType type) {
+        InvalidationType type,
+        @Nullable EvictionReason evictionReason) {
+
+    /**
+     * Creates a cache invalidation event with no eviction reason.
+     *
+     * @param affectedRoot the affected root URI
+     * @param type         the invalidation type
+     */
+    public CacheInvalidationEvent(DocumentUri affectedRoot, InvalidationType type) {
+        this(affectedRoot, type, null);
+    }
 
     /**
      * Discriminates the scope of the invalidation.

@@ -18,12 +18,15 @@
 
 package org.ballerinalang.langserver.workspace.execution;
 
-import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.RunContext;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.ProcessEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProcessOutputEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProjectEvictedEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProjectKindTransitionedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
@@ -33,8 +36,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.Set;
 
@@ -60,8 +63,6 @@ public final class ExecutionServiceImpl implements ExecutionService {
     private final ExecutorService virtualThreadExecutor;
     private final Consumer<Boolean> virtualThreadUsageTracker;
     private final ConcurrentHashMap<ProcessId, ExecutionProcess> activeProcesses = new ConcurrentHashMap<>();
-
-    private static final String SOURCE_CONTEXT = "executionmanager";
 
     /**
      * Creates a new execution service.
@@ -98,13 +99,13 @@ public final class ExecutionServiceImpl implements ExecutionService {
     }
 
     @Override
-    public ProcessId run(@Nonnull Project project, @Nonnull RunContext context) {
+    public ProcessId run(@Nonnull RunContext context) {
         Path sourcePath = context.balSourcePath();
         if (sourcePath == null) {
             throw new IllegalArgumentException("balSourcePath must not be null");
         }
 
-        DocumentUri sourceRoot = resolveSourceUri(project);
+        DocumentUri sourceRoot = resolveSourceUri(sourcePath);
         ProcessId processId = new ProcessId(UUID.randomUUID().toString());
 
         try {
@@ -125,7 +126,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
             processRegistry.register(executionProcess);
             activeProcesses.put(processId, executionProcess);
 
-            publish(EventKind.EXECUTION_PROCESS_STARTED, sourceRoot.uri().getPath(), processId.value());
+            publish(EventKind.EXECUTION_PROCESS_STARTED, sourceRoot.uri(), processId.value(), null);
 
             startOutputStreaming(processId, process, sourceRoot);
 
@@ -137,8 +138,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
     }
 
     @Override
-    public void stop(@Nonnull Project project) {
-        DocumentUri sourceRoot = resolveSourceUri(project);
+    public void stop(@Nonnull DocumentUri sourceRoot) {
         processRegistry.cleanup(sourceRoot, ExecutionProcess.TerminationReason.USER_REQUESTED);
     }
 
@@ -207,42 +207,26 @@ public final class ExecutionServiceImpl implements ExecutionService {
     }
 
     private void onProjectEvicted(DomainEvent event) {
-        String sourceContext = event.sourceContext();
-        if (sourceContext == null || sourceContext.isBlank()) {
+        if (!(event instanceof ProjectEvictedEvent pee)) {
             return;
         }
-
         try {
-            Path path = Path.of(sourceContext).toAbsolutePath().normalize();
-            DocumentUri sourceRoot = new DocumentUri.FileUri(path.toUri());
-
+            DocumentUri sourceRoot = new DocumentUri.FileUri(pee.sourceRoot());
             processRegistry.cleanup(sourceRoot, ExecutionProcess.TerminationReason.EVICTION_CLEANUP);
         } catch (Exception ignored) {
         }
     }
 
     private void onProjectKindTransitioned(DomainEvent event) {
-        String sourceContext = event.sourceContext();
-        String coalesceScope = event.coalesceScope();
-        if (sourceContext == null || sourceContext.isBlank()) {
+        if (!(event instanceof ProjectKindTransitionedEvent pkte)) {
             return;
         }
-
-        ProjectKind newKind;
-        try {
-            newKind = ProjectKind.valueOf(coalesceScope);
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return;
-        }
-
+        ProjectKind newKind = pkte.newKind();
         if (isSupportedProjectKind(newKind)) {
             return;
         }
-
         try {
-            Path path = Path.of(sourceContext).toAbsolutePath().normalize();
-            DocumentUri sourceRoot = new DocumentUri.FileUri(path.toUri());
-
+            DocumentUri sourceRoot = new DocumentUri.FileUri(pkte.sourceRoot());
             processRegistry.cleanup(sourceRoot, ExecutionProcess.TerminationReason.PROJECT_KIND_TRANSITIONED);
         } catch (Exception ignored) {
         }
@@ -275,7 +259,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
                         // Process already terminated, ignore
                     }
                 }
-                publish(EventKind.EXECUTION_PROCESS_TERMINATED, sourceRoot.uri().getPath(), processId.value());
+                publish(EventKind.EXECUTION_PROCESS_TERMINATED, sourceRoot.uri(), processId.value(), null);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -290,9 +274,8 @@ public final class ExecutionServiceImpl implements ExecutionService {
                 if (!process.isAlive()) {
                     break;
                 }
-                publish(EventKind.EXECUTION_PROCESS_OUTPUT,
-                        sourceRoot.uri().getPath(),
-                        processId.value() + "|" + (isStdout ? "stdout" : "stderr") + "|" + line);
+                String outputLine = (isStdout ? "stdout" : "stderr") + "|" + line;
+                publish(EventKind.EXECUTION_PROCESS_OUTPUT, sourceRoot.uri(), processId.value(), outputLine);
             }
         } catch (IOException ignored) {
         }
@@ -306,8 +289,8 @@ public final class ExecutionServiceImpl implements ExecutionService {
         return pb;
     }
 
-    private DocumentUri resolveSourceUri(Project project) {
-        return new DocumentUri.FileUri(project.sourceRoot().toAbsolutePath().normalize().toUri());
+    private DocumentUri resolveSourceUri(Path balSourcePath) {
+        return new DocumentUri.FileUri(balSourcePath.toAbsolutePath().normalize().getParent().toUri());
     }
 
     private ExecutionProcess.ExecutionMode resolveExecutionMode(RunContext context) {
@@ -317,9 +300,19 @@ public final class ExecutionServiceImpl implements ExecutionService {
         return ExecutionProcess.ExecutionMode.RUN;
     }
 
-    private void publish(EventKind eventKind, String sourceContext, String coalesceScope) {
-        String eventSourceContext = sourceContext == null || sourceContext.isBlank() ? SOURCE_CONTEXT : sourceContext;
-        String eventCoalesceScope = coalesceScope == null || coalesceScope.isBlank() ? SOURCE_CONTEXT : coalesceScope;
-        eventBus.publish(new DomainEvent(Instant.now(), eventSourceContext, eventKind, eventCoalesceScope));
+    /**
+     * Publishes a process-related domain event.
+     *
+     * @param eventKind   the event kind
+     * @param sourceRoot  the source root URI
+     * @param processId   the process identifier string
+     * @param output      the output string for {@link EventKind#EXECUTION_PROCESS_OUTPUT}, or {@code null}
+     */
+    private void publish(EventKind eventKind, URI sourceRoot, String processId, String output) {
+        if (eventKind == EventKind.EXECUTION_PROCESS_OUTPUT && output != null) {
+            eventBus.publish(new ProcessOutputEvent(sourceRoot, processId, output));
+        } else {
+            eventBus.publish(new ProcessEvent(eventKind, sourceRoot, processId));
+        }
     }
 }

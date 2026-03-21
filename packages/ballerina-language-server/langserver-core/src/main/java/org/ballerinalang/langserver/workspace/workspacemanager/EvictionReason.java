@@ -24,7 +24,10 @@ package org.ballerinalang.langserver.workspace.workspacemanager;
  * @since 1.7.0
  */
 public enum EvictionReason {
-    LRU,
+    /** All documents in the project were closed by the user (normal lifecycle). */
+    DOCUMENT_CLOSED,
+    /** Memory pressure triggered eviction to free heap (abnormal, may cause churn). */
     HEAP_PRESSURE,
-    EXPLICIT
+    /** Cache weight limit was reached; least-recently-used project was evicted (churn indicator). */
+    LRU_EVICTION
 }

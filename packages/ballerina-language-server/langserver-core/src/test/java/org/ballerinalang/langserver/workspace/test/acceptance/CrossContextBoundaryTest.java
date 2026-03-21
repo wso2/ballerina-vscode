@@ -18,15 +18,22 @@
 package org.ballerinalang.langserver.workspace.test.acceptance;
 
 import io.ballerina.projects.PackageCompilation;
+import io.ballerina.projects.PackageDescriptor;
+import io.ballerina.projects.PackageName;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
+import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationServiceImpl;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.HeapPressureEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProjectEvent;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.ballerinalang.langserver.workspace.workspacemanager.ChangeBuffer;
 import org.ballerinalang.langserver.workspace.workspacemanager.HeapEstimate;
@@ -45,9 +52,9 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -55,6 +62,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Acceptance tests for v2.0 cross-context boundaries after the DS+WM merge.
@@ -112,12 +120,11 @@ public class CrossContextBoundaryTest {
                 countingAction(compileCount, secondCompilation), 50L);
         DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
         Path mainFile = tempDir.resolve("main.bal");
-        eventBus.publish(new DomainEvent(Instant.now(), root.uri().toString(), EventKind.WORKSPACE_PROJECT_REGISTERED));
+        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, root.uri()));
 
         Assert.assertTrue(awaitCompileCount(compileCount, 1, 3), "Project registration should trigger initial compile");
 
-        eventBus.publish(new DomainEvent(Instant.now(), root.uri().toString(), EventKind.WM_DOCUMENT_CHANGED,
-                mainFile.toUri().toString()));
+        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_CHANGED, root.uri(), mainFile.toUri()));
 
         Assert.assertTrue(secondCompilation.await(3, TimeUnit.SECONDS),
                 "WM_DOCUMENT_CHANGED should trigger a second compilation in CE");
@@ -135,8 +142,7 @@ public class CrossContextBoundaryTest {
         registry.register(activeRoot, activeProject);
         registry.register(backgroundRoot, backgroundProject);
 
-        eventBus.publish(new DomainEvent(Instant.now(), "resource-monitor",
-                EventKind.RM_E1_HEAP_PRESSURE_DETECTED, HeapPressureLevel.WARNING.name()));
+        eventBus.publish(new HeapPressureEvent(HeapPressureLevel.WARNING));
 
         Assert.assertTrue(awaitCondition(() -> registry.get(activeRoot).isPresent(), 3),
                 "Active project should remain after RM_E1");
@@ -152,13 +158,11 @@ public class CrossContextBoundaryTest {
                 countingAction(compileCount, throttledCompilation), 50L, 300L);
         DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
         Path mainFile = tempDir.resolve("main.bal");
-        eventBus.publish(new DomainEvent(Instant.now(), root.uri().toString(), EventKind.WORKSPACE_PROJECT_REGISTERED));
+        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, root.uri()));
         Assert.assertTrue(awaitCompileCount(compileCount, 1, 3), "Project registration should trigger initial compile");
 
-        eventBus.publish(new DomainEvent(Instant.now(), "resource-monitor",
-                EventKind.RM_E1_HEAP_PRESSURE_DETECTED, HeapPressureLevel.WARNING.name()));
-        eventBus.publish(new DomainEvent(Instant.now(), root.uri().toString(), EventKind.WM_DOCUMENT_CHANGED,
-                mainFile.toUri().toString()));
+        eventBus.publish(new HeapPressureEvent(HeapPressureLevel.WARNING));
+        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_CHANGED, root.uri(), mainFile.toUri()));
 
         Assert.assertFalse(throttledCompilation.await(150, TimeUnit.MILLISECONDS),
                 "RM_E1 should throttle immediate recompilation requests in CE");
@@ -173,8 +177,7 @@ public class CrossContextBoundaryTest {
         projectService.loadOrCreate(mainFile, () -> { });
         DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
 
-        eventBus.publish(new DomainEvent(Instant.now(), "compiler-engine",
-                EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY, root.uri().toString()));
+        eventBus.publish(new CompilerEvent(EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY, root.uri(), "test-pkg"));
 
         Assert.assertTrue(awaitCondition(() -> hasObservedCompilerSignal(root, EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY), 3),
                 "CE-E5a should be observed by ProjectService");
@@ -191,8 +194,7 @@ public class CrossContextBoundaryTest {
         project.transitionTo(ProjectHealthState.COMPILATION_CRASHED);
         project.transitionTo(ProjectHealthState.RECOVERING);
 
-        eventBus.publish(new DomainEvent(Instant.now(), "compiler-engine",
-                EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY, root.uri().toString()));
+        eventBus.publish(new CompilerEvent(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY, root.uri(), "test-pkg"));
 
         Assert.assertTrue(awaitCondition(() -> project.healthState() == ProjectHealthState.HEALTHY, 3),
                 "CE-E5b should restore a recovering project to HEALTHY");
@@ -208,8 +210,7 @@ public class CrossContextBoundaryTest {
         project.transitionTo(ProjectHealthState.PROJECT_CRASHED);
         project.transitionTo(ProjectHealthState.RECOVERING);
 
-        eventBus.publish(new DomainEvent(Instant.now(), "compiler-engine",
-                EventKind.CE_RESOLUTION_EXHAUSTED, root.uri().toString()));
+        eventBus.publish(new CompilerEvent(EventKind.CE_RESOLUTION_EXHAUSTED, root.uri(), "test-pkg"));
 
         Assert.assertTrue(awaitCondition(() -> project.healthState() == ProjectHealthState.CIRCUIT_OPEN, 3),
                 "CE resolution exhaustion should move a recovering project to CIRCUIT_OPEN");
@@ -226,8 +227,7 @@ public class CrossContextBoundaryTest {
         project.transitionTo(ProjectHealthState.RECOVERING);
         project.transitionTo(ProjectHealthState.CIRCUIT_OPEN);
 
-        eventBus.publish(new DomainEvent(Instant.now(), "compiler-engine",
-                EventKind.CE_RESOLUTION_RECOVERED, root.uri().toString()));
+        eventBus.publish(new CompilerEvent(EventKind.CE_RESOLUTION_RECOVERED, root.uri(), "test-pkg"));
 
         Assert.assertTrue(awaitCondition(() -> project.healthState() == ProjectHealthState.RECOVERING, 3),
                 "CE resolution recovery should move a circuit-open project back to RECOVERING");
@@ -241,12 +241,28 @@ public class CrossContextBoundaryTest {
     private CompilationPipeline.CompilationAction countingAction(AtomicInteger compileCount, CountDownLatch latch) {
         StableSnapshot snapshot = new StableSnapshot(Map.of(), Map.of(), Map.of(),
                 mock(PackageCompilation.class), new ContentVersion(1));
-        return task -> {
-            if (compileCount.incrementAndGet() >= 2) {
-                latch.countDown();
+        PackageDescriptor descriptor = createDescriptor("cross");
+        return new CompilationPipeline.CompilationAction() {
+            @Override
+            public StableSnapshot compile(CompileTask task) {
+                if (compileCount.incrementAndGet() >= 2) {
+                    latch.countDown();
+                }
+                return snapshot;
             }
-            return snapshot;
+            @Override
+            public PackageDescriptor describe(String sourceRootIdentifier) {
+                return descriptor;
+            }
         };
+    }
+
+    private static PackageDescriptor createDescriptor(String name) {
+        PackageName packageName = mock(PackageName.class);
+        when(packageName.value()).thenReturn(name);
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
+        when(descriptor.name()).thenReturn(packageName);
+        return descriptor;
     }
 
     private boolean hasObservedCompilerSignal(DocumentUri root, EventKind signal) {

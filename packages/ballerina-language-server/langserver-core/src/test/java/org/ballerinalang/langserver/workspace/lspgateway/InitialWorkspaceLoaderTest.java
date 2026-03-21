@@ -18,6 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.lspgateway;
 
+import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
@@ -30,9 +31,9 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -251,7 +252,8 @@ public class InitialWorkspaceLoaderTest {
         Thread.sleep(200);
 
         // Simulate CE-E1 event
-        eventBus.publish(new DomainEvent(Instant.now(), "compiler", EventKind.COMPILER_SNAPSHOT_PUBLISHED));
+        eventBus.publish(new CompilerEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED,
+                URI.create("file:///compiler"), "test-pkg"));
         Thread.sleep(200);
 
         Assert.assertTrue(loader.readinessController().isSemanticReady());
@@ -272,7 +274,8 @@ public class InitialWorkspaceLoaderTest {
         Thread.sleep(200);
 
         // Simulate CE-E1 event
-        eventBus.publish(new DomainEvent(Instant.now(), "compiler", EventKind.COMPILER_SNAPSHOT_PUBLISHED));
+        eventBus.publish(new CompilerEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED,
+                URI.create("file:///compiler"), "test-pkg"));
         Thread.sleep(200);
 
         Mockito.verify(progressTracker).end(
@@ -296,9 +299,11 @@ public class InitialWorkspaceLoaderTest {
         Thread.sleep(300);
 
         // Simulate multiple CE-E1 events
-        eventBus.publish(new DomainEvent(Instant.now(), "compiler", EventKind.COMPILER_SNAPSHOT_PUBLISHED));
+        eventBus.publish(new CompilerEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED,
+                URI.create("file:///compiler"), "test-pkg"));
         Thread.sleep(100);
-        eventBus.publish(new DomainEvent(Instant.now(), "compiler", EventKind.COMPILER_SNAPSHOT_PUBLISHED));
+        eventBus.publish(new CompilerEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED,
+                URI.create("file:///compiler"), "test-pkg"));
         Thread.sleep(100);
 
         // Progress end should be called only once (from CE-E1, not from finally block)

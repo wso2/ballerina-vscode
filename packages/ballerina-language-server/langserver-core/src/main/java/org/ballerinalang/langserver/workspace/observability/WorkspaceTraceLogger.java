@@ -23,11 +23,9 @@ import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 
-import java.time.Instant;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -224,16 +222,10 @@ public class WorkspaceTraceLogger implements AutoCloseable {
     }
 
     /**
-     * Converts a domain event to structured fields.
+     * Converts a domain event to structured fields via {@link DomainEvent#serialize()}.
      */
     private Map<String, String> eventToFields(DomainEvent event) {
-        Map<String, String> fields = new LinkedHashMap<>();
-        fields.put("timestamp", event.timestamp().toString());
-        fields.put("eventType", event.eventKind().name());
-        fields.put("eventId", event.eventKind().eventId());
-        fields.put("sourceContext", event.sourceContext());
-        fields.put("coalesceScope", event.coalesceScope());
-        return fields;
+        return event.serialize();
     }
 
     static String formatLogEntry(String level, Map<String, String> fields) {

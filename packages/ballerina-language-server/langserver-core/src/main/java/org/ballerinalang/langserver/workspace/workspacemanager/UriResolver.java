@@ -476,6 +476,20 @@ public final class UriResolver {
     }
 
     /**
+     * Extracts the normalized path string from a URI, stripping any trailing slash that
+     * {@link java.nio.file.Path#toUri()} appends for directory paths.
+     *
+     * <p>Use this instead of {@link URI#toString()} or {@link URI#getPath()} when the result
+     * will be compared against {@link Path#toString()} values (e.g., as index keys).
+     *
+     * @param uri the URI whose path component should be normalized
+     * @return the path string with no trailing slash, as produced by {@link Path#toString()}
+     */
+    public static String pathOf(URI uri) {
+        return Path.of(uri.getPath()).toString();
+    }
+
+    /**
      * Decomposes a URI's path into trie segments using {@link Path} for segment splitting.
      */
     private static String[] toSegments(URI uri) {

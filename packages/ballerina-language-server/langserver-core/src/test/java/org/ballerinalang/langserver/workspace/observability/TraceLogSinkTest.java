@@ -21,6 +21,7 @@ package org.ballerinalang.langserver.workspace.observability;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.ProjectEvent;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -28,9 +29,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -173,7 +174,7 @@ public class TraceLogSinkTest {
         RecordingTraceLogSink secondSink = new RecordingTraceLogSink();
         WorkspaceTraceLogger traceLogger = new WorkspaceTraceLogger(eventBus, LogLevel.INFO, List.of(firstSink, secondSink));
 
-        eventBus.publish(new DomainEvent(Instant.now(), "workspace-a", EventKind.WORKSPACE_PROJECT_REGISTERED));
+        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, URI.create("file:///workspace-a")));
         Thread.sleep(300);
 
         Assert.assertEquals(firstSink.entries.size(), 1);
@@ -221,7 +222,7 @@ public class TraceLogSinkTest {
         WorkspaceTraceLogger traceLogger = new WorkspaceTraceLogger(eventBus, LogLevel.INFO,
                 List.of(failingSink, recordingSink));
 
-        eventBus.publish(new DomainEvent(Instant.now(), "workspace-a", EventKind.WORKSPACE_PROJECT_REGISTERED));
+        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, URI.create("file:///workspace-a")));
         Thread.sleep(300);
 
         Assert.assertEquals(recordingSink.entries.size(), 1);

@@ -499,28 +499,22 @@ public class WorkspaceManagerFacadeImplTest {
     @Test
     public void testRun_DelegatesToExecutionService() throws IOException {
         RunContext context = new RunContext("java", testPath, Collections.emptyList(), Collections.emptyMap(), null);
-        Project mockProject = Mockito.mock(Project.class);
         ProcessId mockProcessId = Mockito.mock(ProcessId.class);
-        Mockito.when(mockProjectService.loadOrCreate(testPath, null)).thenReturn(mockProject);
-        Mockito.when(mockExecutionService.run(mockProject, context)).thenReturn(mockProcessId);
+        Mockito.when(mockExecutionService.run(context)).thenReturn(mockProcessId);
 
         RunResult result = facade.run(context);
 
         Assert.assertNotNull(result);
-        Mockito.verify(mockProjectService).loadOrCreate(testPath, null);
-        Mockito.verify(mockExecutionService).run(mockProject, context);
+        Mockito.verify(mockExecutionService).run(context);
     }
 
     @Test
     public void testStop_DelegatesToExecutionService() {
-        Project mockProject = Mockito.mock(Project.class);
-        Mockito.when(mockProjectService.loadOrCreate(testPath, null)).thenReturn(mockProject);
-
         boolean result = facade.stop(testPath);
 
         Assert.assertTrue(result);
-        Mockito.verify(mockProjectService).loadOrCreate(testPath, null);
-        Mockito.verify(mockExecutionService).stop(mockProject);
+        Mockito.verify(mockExecutionService).stop(
+                new DocumentUri.FileUri(testPath.toAbsolutePath().normalize().toUri()));
     }
 
     @Test

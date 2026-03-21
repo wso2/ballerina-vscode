@@ -32,6 +32,7 @@ import org.ballerinalang.langserver.workspace.compilerengine.RecoveryLadder;
 import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
@@ -561,8 +562,9 @@ public class RecoveryLadderAcceptanceTest {
                 .orElse(null);
 
         Assert.assertNotNull(recoveredEvent, "CE_RESOLUTION_RECOVERED event must be published");
-        Assert.assertEquals(recoveredEvent.sourceContext(), "acceptance-recovery-ladder",
-                "Event source context must match the package descriptor name");
+        Assert.assertTrue(recoveredEvent instanceof CompilerEvent ce
+                && "acceptance-recovery-ladder".equals(ce.descriptorName()),
+                "Event descriptor name must match the package descriptor name");
         Assert.assertNotNull(recoveredEvent.timestamp(), "Event must have timestamp");
     }
 

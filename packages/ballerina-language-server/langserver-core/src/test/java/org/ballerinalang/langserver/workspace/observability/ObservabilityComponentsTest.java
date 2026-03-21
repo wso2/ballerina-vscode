@@ -18,12 +18,20 @@
 
 package org.ballerinalang.langserver.workspace.observability;
 
+import org.ballerinalang.langserver.workspace.eventbus.BatchEvent;
+import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.HeapPressureEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProcessEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProjectEvent;
+import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -207,7 +215,7 @@ public class ObservabilityComponentsTest {
 
         Set<EventKind> allKinds = Set.of(EventKind.values());
         for (EventKind kind : allKinds) {
-            eventBus.publish(new DomainEvent(Instant.now(), "test-context", kind));
+            eventBus.publish(typedEventFor(kind));
         }
 
         Thread.sleep(500);
@@ -322,8 +330,9 @@ public class ObservabilityComponentsTest {
 
         new WorkspaceTraceLogger(eventBus, event -> receivedCount.incrementAndGet());
 
+        URI docUri = URI.create("file:///workspace/main.bal");
         for (int i = 0; i < 500; i++) {
-            eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED));
+            eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED, null, docUri));
         }
 
         Thread.sleep(300);
@@ -339,18 +348,19 @@ public class ObservabilityComponentsTest {
      */
     @Test
     public void observability_endToEnd_eventsAndMetricsFlowToSameSink() throws InterruptedException {
-        EventSyncPubSubHolder eventBus = new EventSyncPubSubHolder();
         List<Map<String, String>> captured = new CopyOnWriteArrayList<>();
         TraceLogSink sink = capturingSink(captured);
 
         TelemetryEmitter emitter = new TelemetryEmitter(List.of(sink));
+        EventSyncPubSubHolder eventBus = new EventSyncPubSubHolder(emitter);
         new WorkspaceTraceLogger(eventBus, event -> {
             emitter.emit("event.received", Map.of("kind", event.eventKind().name()));
         });
 
-        eventBus.publish(new DomainEvent(Instant.now(), "workspace-1", EventKind.WORKSPACE_PROJECT_REGISTERED));
-        eventBus.publish(new DomainEvent(Instant.now(), "workspace-1", EventKind.WM_DOCUMENT_OPENED));
-        eventBus.publish(new DomainEvent(Instant.now(), "workspace-1", EventKind.COMPILER_SNAPSHOT_PUBLISHED));
+        URI wsRoot = URI.create("file:///workspace-1");
+        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, wsRoot));
+        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED, wsRoot, URI.create("file:///workspace-1/main.bal")));
+        eventBus.publish(new CompilerEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED, wsRoot, "test-pkg"));
 
         Thread.sleep(300);
 
@@ -363,6 +373,38 @@ public class ObservabilityComponentsTest {
     }
 
     // ==================== Helpers ====================
+
+    /**
+     * Returns a typed {@link DomainEvent} for the given {@link EventKind}, using stub payloads.
+     * Used in tests that need to publish every event kind without caring about payload content.
+     */
+    private static DomainEvent typedEventFor(EventKind kind) {
+        URI root = URI.create("file:///test-root");
+        URI doc = URI.create("file:///test-root/main.bal");
+        return switch (kind) {
+            case WORKSPACE_PROJECT_REGISTERED,
+                 WORKSPACE_PROJECT_HEALTH_STATE_CHANGED,
+                 WORKSPACE_PROJECT_TIER_CHANGED,
+                 WORKSPACE_LOCKING_MODE_CHANGED,
+                 CACHE_INVALIDATION_REQUESTED -> new ProjectEvent(kind, root);
+            case WORKSPACE_PROJECT_EVICTED    -> new ProjectEvent(kind, root);
+            case WORKSPACE_PROJECT_KIND_TRANSITIONED -> new ProjectEvent(kind, root);
+            case WORKSPACE_BATCH_PROJECTS_REGISTERED -> new BatchEvent();
+            case WM_DOCUMENT_OPENED, WM_DOCUMENT_CHANGED, WM_DOCUMENT_CLOSED ->
+                    new DocumentEvent(kind, root, doc);
+            case WM_FILE_WATCHED_CHANGED ->
+                    new org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent(root, doc, "SOURCE");
+            case COMPILER_SNAPSHOT_PUBLISHED, COMPILER_COMPILATION_FAILED, COMPILER_COMPILATION_CANCELLED,
+                 COMPILER_RESOLUTION_COMPLETED, CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
+                 CE_E5B_COMPILATION_DIAGNOSTICS_READY, CE_RESOLUTION_EXHAUSTED, CE_RESOLUTION_RECOVERED ->
+                    new CompilerEvent(kind, root, "test-pkg");
+            case EXECUTION_PROCESS_STARTED, EXECUTION_PROCESS_TERMINATED ->
+                    new ProcessEvent(kind, root, "pid-1");
+            case EXECUTION_PROCESS_OUTPUT ->
+                    new org.ballerinalang.langserver.workspace.eventbus.ProcessOutputEvent(root, "pid-1", "stdout|line");
+            case RM_E1_HEAP_PRESSURE_DETECTED -> new HeapPressureEvent(HeapPressureLevel.WARNING);
+        };
+    }
 
     private static TraceLogSink capturingSink(List<Map<String, String>> target) {
         return new TraceLogSink() {

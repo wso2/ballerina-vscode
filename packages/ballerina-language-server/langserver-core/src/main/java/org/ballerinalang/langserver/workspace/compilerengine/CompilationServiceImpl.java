@@ -20,18 +20,23 @@ package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.projects.PackageDescriptor;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent;
+import org.ballerinalang.langserver.workspace.eventbus.HeapPressureEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProjectEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
+import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
 
-import java.nio.file.Path;
-import java.time.Instant;
+import java.net.URI;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -326,7 +331,8 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
     private void handleFileWatchedChanged(DomainEvent event) {
         PackageDescriptor descriptor = resolveDescriptor(event);
-        if (descriptor != null && isDependencyGraphChange(event.coalesceScope())) {
+        if (descriptor != null && event instanceof FileWatchedChangedEvent fwce
+                && isDependencyGraphChange(fwce.changeScope())) {
             requestCompilationWithThrottle(descriptor);
         }
         // "CONFIGURATION" scope is ignored
@@ -336,8 +342,10 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         if (heapPressureThrottleMs <= 0) {
             return;
         }
-        HeapPressureLevel level = parseHeapPressureLevel(event.coalesceScope());
-        switch (level) {
+        if (!(event instanceof HeapPressureEvent hpe)) {
+            return;
+        }
+        switch (hpe.pressureLevel()) {
             case WARNING, CRITICAL, EMERGENCY ->
                     throttledUntilNanos.set(System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(heapPressureThrottleMs));
             case NORMAL -> throttledUntilNanos.set(0L);
@@ -381,15 +389,6 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         ScheduledFuture<?> pendingRequest = throttledRequests.remove(descriptor);
         if (pendingRequest != null) {
             pendingRequest.cancel(false);
-        }
-    }
-
-    private HeapPressureLevel parseHeapPressureLevel(String scope) {
-        try {
-            return HeapPressureLevel.valueOf(scope);
-        } catch (IllegalArgumentException ex) {
-            LOG.log(Level.FINE, "Unknown heap pressure level: {0}", scope);
-            return HeapPressureLevel.NORMAL;
         }
     }
 
@@ -460,21 +459,13 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     private String sourceRootIdentifier(DomainEvent event) {
-        return switch (event.eventKind()) {
-            case WORKSPACE_PROJECT_REGISTERED, WORKSPACE_PROJECT_EVICTED, WORKSPACE_PROJECT_KIND_TRANSITIONED ->
-                    firstNonBlank(event.coalesceScope(), event.sourceContext());
-            default -> firstNonBlank(event.sourceContext(), event.coalesceScope());
+        URI uri = switch (event) {
+            case ProjectEvent pe    -> pe.sourceRoot();
+            case DocumentEvent de   -> de.sourceRoot();
+            case CompilerEvent ce   -> ce.sourceRoot();
+            default                 -> null;
         };
-    }
-
-    private String firstNonBlank(String primary, String secondary) {
-        if (primary != null && !primary.isBlank()) {
-            return primary;
-        }
-        if (secondary != null && !secondary.isBlank()) {
-            return secondary;
-        }
-        return null;
+        return uri == null ? null : UriResolver.pathOf(uri);
     }
 
     private boolean isDependencyGraphChange(String scope) {
@@ -594,13 +585,26 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
         private void emitRecoveryExhausted() {
             try {
-                String eventScope = sourceRootIdentifier == null || sourceRootIdentifier.isBlank()
-                        ? descriptorName(descriptor) : sourceRootIdentifier;
-                DomainEvent event = new DomainEvent(Instant.now(), descriptorName(descriptor),
-                        EventKind.CE_RESOLUTION_EXHAUSTED, eventScope);
-                eventBus.publish(event);
+                URI uri = parseSourceRootUri(sourceRootIdentifier);
+                eventBus.publish(new CompilerEvent(EventKind.CE_RESOLUTION_EXHAUSTED, uri,
+                        descriptorName(descriptor)));
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to emit CE-E6 for " + descriptorName(descriptor), e);
+            }
+        }
+
+        private URI parseSourceRootUri(String identifier) {
+            if (identifier == null || identifier.isBlank()) {
+                return null;
+            }
+            try {
+                String trimmed = identifier.trim();
+                if (trimmed.startsWith("file:") || trimmed.startsWith("http:") || trimmed.startsWith("https:")) {
+                    return URI.create(trimmed);
+                }
+                return URI.create("file://" + trimmed);
+            } catch (IllegalArgumentException e) {
+                return null;
             }
         }
 

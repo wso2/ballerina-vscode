@@ -311,16 +311,14 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public RunResult run(RunContext runContext) throws IOException {
-        Project project = projectService.loadOrCreate(runContext.balSourcePath(), null);
-        executionService.run(project, runContext);
+        executionService.run(runContext);
         return new RunResult(null, List.of());
     }
 
     @Override
     public boolean stop(Path filePath) {
         try {
-            Project project = projectService.loadOrCreate(filePath, null);
-            executionService.stop(project);
+            executionService.stop(new DocumentUri.FileUri(filePath.toAbsolutePath().normalize().toUri()));
             return true;
         } catch (Exception e) {
             return false;

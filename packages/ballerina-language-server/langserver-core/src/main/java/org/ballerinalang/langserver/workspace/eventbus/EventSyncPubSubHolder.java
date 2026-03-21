@@ -18,8 +18,11 @@
 
 package org.ballerinalang.langserver.workspace.eventbus;
 
+import org.ballerinalang.langserver.workspace.observability.TelemetryEmitter;
+
 import javax.annotation.Nonnull;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,13 +38,24 @@ public class EventSyncPubSubHolder implements AutoCloseable {
 
     private final Map<String, DeliveryChannel> deliveryChannels;
     private final AtomicBoolean closed;
+    private final TelemetryEmitter telemetryEmitter;
 
     /**
-     * Creates a new event bus holder with bounded per-subscriber channels.
+     * Creates a new event bus holder that emits queue metrics to the given telemetry emitter.
+     *
+     * @param telemetryEmitter emitter for queue depth, drop, and timeout metrics
      */
-    public EventSyncPubSubHolder() {
+    public EventSyncPubSubHolder(@Nonnull TelemetryEmitter telemetryEmitter) {
         this.deliveryChannels = new ConcurrentHashMap<>();
         this.closed = new AtomicBoolean(false);
+        this.telemetryEmitter = telemetryEmitter;
+    }
+
+    /**
+     * Creates a new event bus holder with no metric emission (for tests).
+     */
+    public EventSyncPubSubHolder() {
+        this(new TelemetryEmitter(List.of()));
     }
 
     /**
@@ -63,7 +77,8 @@ public class EventSyncPubSubHolder implements AutoCloseable {
             throw new IllegalArgumentException("subscribedKinds must not be empty");
         }
 
-        DeliveryChannel channel = DeliveryChannel.create(subscriberId, subscriberTier, subscribedKinds, consumer);
+        DeliveryChannel channel = DeliveryChannel.create(subscriberId, subscriberTier, subscribedKinds, consumer,
+                telemetryEmitter);
         DeliveryChannel existing = deliveryChannels.putIfAbsent(subscriberId, channel);
         if (existing != null) {
             channel.close();

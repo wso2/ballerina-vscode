@@ -18,8 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.executionmanager;
 
-import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.RunContext;
+import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 
 /**
  * Execution context service contract.
@@ -31,16 +31,15 @@ public interface ExecutionService {
     /**
      * Starts execution for a run context.
      *
-     * @param project resolved project
      * @param context run context
      * @return process identifier
      */
-    ProcessId run(Project project, RunContext context);
+    ProcessId run(RunContext context);
 
     /**
      * Stops execution for a source root.
      *
-     * @param project resolved project
+     * @param sourceRoot the document URI identifying the project root
      */
-    void stop(Project project);
+    void stop(DocumentUri sourceRoot);
 }

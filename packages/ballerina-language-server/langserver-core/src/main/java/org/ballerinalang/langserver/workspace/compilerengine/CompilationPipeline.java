@@ -20,12 +20,12 @@ package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.projects.PackageDescriptor;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
+import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 
-import java.time.Instant;
+import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
@@ -103,6 +103,7 @@ public class CompilationPipeline implements AutoCloseable {
     private final PackageDescriptor descriptor;
     private final String descriptorName;
     private final String sourceRootIdentifier;
+    private final URI sourceRootUri;
     private final DualSnapshotStore snapshotStore;
     private final EventSyncPubSubHolder eventBus;
     private final CompilationAction compilationAction;
@@ -167,6 +168,7 @@ public class CompilationPipeline implements AutoCloseable {
         this.descriptor = Objects.requireNonNull(descriptor, "descriptor must not be null");
         this.descriptorName = descriptorName(descriptor);
         this.sourceRootIdentifier = sourceRootIdentifier;
+        this.sourceRootUri = parseSourceRootUri(sourceRootIdentifier);
         this.snapshotStore = Objects.requireNonNull(snapshotStore, "snapshotStore must not be null");
         this.eventBus = Objects.requireNonNull(eventBus, "eventBus must not be null");
         this.compilationAction = Objects.requireNonNull(compilationAction, "compilationAction must not be null");
@@ -381,12 +383,25 @@ public class CompilationPipeline implements AutoCloseable {
 
     private void emitEvent(EventKind kind) {
         try {
-            String eventScope = sourceRootIdentifier == null || sourceRootIdentifier.isBlank()
-                    ? descriptorName : sourceRootIdentifier;
-            DomainEvent event = new DomainEvent(Instant.now(), descriptorName, kind, eventScope);
-            eventBus.publish(event);
+            eventBus.publish(new CompilerEvent(kind, sourceRootUri, descriptorName));
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to emit event " + kind + " for " + descriptorName, e);
+        }
+    }
+
+    private static URI parseSourceRootUri(String sourceRootIdentifier) {
+        if (sourceRootIdentifier == null || sourceRootIdentifier.isBlank()) {
+            return null;
+        }
+        try {
+            String trimmed = sourceRootIdentifier.trim();
+            if (trimmed.startsWith("file:") || trimmed.startsWith("http:") || trimmed.startsWith("https:")) {
+                return URI.create(trimmed);
+            }
+            return URI.create("file://" + trimmed);
+        } catch (IllegalArgumentException e) {
+            LOG.fine(() -> "Could not parse sourceRootIdentifier as URI: " + sourceRootIdentifier);
+            return null;
         }
     }
 

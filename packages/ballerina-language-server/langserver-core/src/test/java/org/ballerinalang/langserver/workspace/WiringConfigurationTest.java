@@ -27,10 +27,17 @@ import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProcessEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProjectEvent;
+import org.ballerinalang.langserver.workspace.eventbus.ProjectEvictedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.workspacemanager.EvictionReason;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.workspacemanager.HeapEstimate;
 import org.ballerinalang.langserver.workspace.workspacemanager.MemoryBudget;
@@ -44,9 +51,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -269,27 +276,25 @@ public class WiringConfigurationTest {
         List<EventKind> loggedEvents = new CopyOnWriteArrayList<>();
         // DocumentStore is now merged into workspace-manager, so we have 3 bounded contexts:
         // WM (incl. doc ops), CE, EM
-        CountDownLatch allContexts = new CountDownLatch(3);
-        List<String> contextsParsed = new CopyOnWriteArrayList<>();
+        CountDownLatch allThreeEvents = new CountDownLatch(3);
 
         // The trace logger is already wired in WiringConfiguration.
         // Verify it receives events by subscribing a test observer to all event kinds
         eventBus.subscribe("trace-test-observer", SubscriberTier.BEST_EFFORT,
                 EnumSet.allOf(EventKind.class), event -> {
                     loggedEvents.add(event.eventKind());
-                    String ctx = event.sourceContext();
-                    if (!contextsParsed.contains(ctx)) {
-                        contextsParsed.add(ctx);
-                        allContexts.countDown();
-                    }
+                    allThreeEvents.countDown();
                 });
 
         // Publish events from all 3 bounded contexts (DS merged into WM per ADR-046)
-        publishEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, "workspace-manager");
-        publishEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED, "compiler-engine");
-        publishEvent(EventKind.EXECUTION_PROCESS_STARTED, "executionmanager");
+        URI wmRoot = URI.create("file:///workspace-manager");
+        URI ceRoot = URI.create("file:///compiler-engine");
+        URI emRoot = URI.create("file:///execution-manager");
+        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, wmRoot));
+        eventBus.publish(new CompilerEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED, ceRoot, "test-pkg"));
+        eventBus.publish(new ProcessEvent(EventKind.EXECUTION_PROCESS_STARTED, emRoot, "pid-1"));
 
-        Assert.assertTrue(allContexts.await(3, TimeUnit.SECONDS),
+        Assert.assertTrue(allThreeEvents.await(3, TimeUnit.SECONDS),
                 "Events from all 3 bounded contexts should be received");
         Assert.assertTrue(loggedEvents.contains(EventKind.WORKSPACE_PROJECT_REGISTERED));
         Assert.assertTrue(loggedEvents.contains(EventKind.COMPILER_SNAPSHOT_PUBLISHED));
@@ -354,16 +359,31 @@ public class WiringConfigurationTest {
     // =========================================================================
 
     private void publishEvent(EventKind kind, DocumentUri root) {
-        eventBus.publish(new DomainEvent(Instant.now(), root.uri().toString(), kind));
-    }
-
-    private void publishEvent(EventKind kind, String sourceContext) {
-        eventBus.publish(new DomainEvent(Instant.now(), sourceContext, kind));
+        DomainEvent event = switch (kind) {
+            case WORKSPACE_PROJECT_REGISTERED, WORKSPACE_PROJECT_HEALTH_STATE_CHANGED,
+                 WORKSPACE_PROJECT_TIER_CHANGED, WORKSPACE_LOCKING_MODE_CHANGED,
+                 CACHE_INVALIDATION_REQUESTED ->
+                    new ProjectEvent(kind, root.uri());
+            case WORKSPACE_PROJECT_EVICTED ->
+                    new ProjectEvictedEvent(root.uri(), EvictionReason.DOCUMENT_CLOSED);
+            case WORKSPACE_PROJECT_KIND_TRANSITIONED ->
+                    new ProjectEvent(kind, root.uri());
+            case WM_DOCUMENT_OPENED, WM_DOCUMENT_CHANGED, WM_DOCUMENT_CLOSED ->
+                    new DocumentEvent(kind, root.uri(), root.uri().resolve("main.bal"));
+            case COMPILER_COMPILATION_FAILED, COMPILER_SNAPSHOT_PUBLISHED, COMPILER_COMPILATION_CANCELLED,
+                 COMPILER_RESOLUTION_COMPLETED, CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
+                 CE_E5B_COMPILATION_DIAGNOSTICS_READY, CE_RESOLUTION_EXHAUSTED, CE_RESOLUTION_RECOVERED ->
+                    new CompilerEvent(kind, root.uri(), "test-pkg");
+            case EXECUTION_PROCESS_STARTED, EXECUTION_PROCESS_TERMINATED ->
+                    new ProcessEvent(kind, root.uri(), "pid-1");
+            default -> new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, root.uri());
+        };
+        eventBus.publish(event);
     }
 
     private void publishConfigEvent(DocumentUri root, String reactivityTier) {
-        eventBus.publish(new DomainEvent(Instant.now(), root.uri().toString(),
-                EventKind.WM_FILE_WATCHED_CHANGED, reactivityTier));
+        URI docUri = root.uri().resolve("Ballerina.toml");
+        eventBus.publish(new FileWatchedChangedEvent(root.uri(), docUri, reactivityTier));
     }
 
     private PackageDescriptor descriptor(String packageNameValue) {

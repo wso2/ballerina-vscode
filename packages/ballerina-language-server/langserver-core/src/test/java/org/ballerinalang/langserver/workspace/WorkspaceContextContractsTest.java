@@ -67,7 +67,7 @@ public class WorkspaceContextContractsTest {
         assertEnumValues(ProjectHealthState.class, "HEALTHY", "COMPILATION_CRASHED", "PROJECT_CRASHED",
                 "CANCELLED", "RECOVERING", "CIRCUIT_OPEN");
         assertEnumValues(LockingMode.class, "SOFT", "MEDIUM", "HARD", "LOCKED");
-        assertEnumValues(EvictionReason.class, "LRU", "HEAP_PRESSURE", "EXPLICIT");
+        assertEnumValues(EvictionReason.class, "DOCUMENT_CLOSED", "HEAP_PRESSURE", "LRU_EVICTION");
     }
 
     /**
