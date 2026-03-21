@@ -19,7 +19,6 @@
 package io.ballerina.servicemodelgenerator.extension.util;
 
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
@@ -27,31 +26,19 @@ import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
-import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
-import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.MappingFieldNode;
-import io.ballerina.compiler.syntax.tree.MetadataNode;
-import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.NewExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
-import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
-import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
@@ -60,14 +47,12 @@ import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
-import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Option;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
-import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
@@ -92,7 +77,6 @@ import java.util.Set;
 import static io.ballerina.modelgenerator.commons.CommonUtils.removeLeadingSingleQuote;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_ITEM_LABEL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_TYPE;
@@ -108,7 +92,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_D
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_DEFAULT_LISTENER_ITEM_LABEL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MQTT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MQTT_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
@@ -187,173 +170,6 @@ public class ListenerUtil {
         }
 
         return listeners;
-    }
-
-    /**
-     * Filters FTP listeners by the requested service flow style.
-     *
-     * @param listeners        candidate listener names
-     * @param removeDeprecated true to keep only new-style listeners and hide deprecated properties
-     * @param semanticModel    semantic model for symbol checks
-     * @param project          project for source traversal
-     * @return filtered listeners
-     */
-    public static Set<String> filterFtpListenersByDeprecatedMode(Set<String> listeners,
-                                                                 boolean removeDeprecated,
-                                                                 SemanticModel semanticModel, Project project) {
-        Set<String> filtered = new LinkedHashSet<>();
-        for (String listenerName : listeners) {
-            if (isFtpListenerCompatibleWithFlow(listenerName, removeDeprecated, semanticModel, project)) {
-                filtered.add(listenerName);
-            }
-        }
-        return filtered;
-    }
-
-    /**
-     * Shapes FTP listener properties for legacy/new flows in attach-listener create flow.
-     */
-    public static void adjustFtpListenerModelForDeprecatedMode(Listener listenerModel,
-                                                               boolean removeDeprecated) {
-        adjustFtpListenerModelForDeprecatedMode(listenerModel, removeDeprecated, null, null);
-    }
-
-    /**
-     * Shapes FTP listener properties for legacy/new flows in attach-listener create flow.
-     * In addition, this method can suggest a unique listener name using semantic model + source document.
-     */
-    public static void adjustFtpListenerModelForDeprecatedMode(Listener listenerModel,
-                                                               boolean removeDeprecated,
-                                                               SemanticModel semanticModel,
-                                                               Document document) {
-        if (listenerModel == null || listenerModel.getProperties() == null) {
-            return;
-        }
-
-        Map<String, Value> props = new LinkedHashMap<>(listenerModel.getProperties());
-        if (removeDeprecated) {
-            props.remove("path");
-            props.remove("folderPath");
-        }
-
-        List<String> primaryKeys = new ArrayList<>(List.of("host", "port", "portNumber", "auth", "authentication"));
-        if (!removeDeprecated) {
-            primaryKeys.add("path");
-            primaryKeys.add("folderPath");
-        }
-
-        Map<String, Value> ordered = new LinkedHashMap<>();
-        for (String key : primaryKeys) {
-            addIfPresent(ordered, props, key);
-        }
-        addIfPresent(ordered, props, PROP_KEY_VARIABLE_NAME);
-        addIfPresent(ordered, props, PROP_KEY_LISTENER_TYPE);
-
-        for (Map.Entry<String, Value> entry : props.entrySet()) {
-            ordered.putIfAbsent(entry.getKey(), entry.getValue());
-        }
-
-        for (Map.Entry<String, Value> entry : ordered.entrySet()) {
-            entry.getValue().setAdvanced(!primaryKeys.contains(entry.getKey()));
-        }
-
-        if (semanticModel != null && document != null && ordered.containsKey(PROP_KEY_VARIABLE_NAME)) {
-            Value variableName = ordered.get(PROP_KEY_VARIABLE_NAME);
-            if (variableName != null && (variableName.getValue() == null || variableName.getValue().isBlank())) {
-                String moduleName = moduleName(listenerModel.getModuleName());
-                String suggestedName = Utils.generateVariableIdentifier(semanticModel, document,
-                        document.syntaxTree().rootNode().lineRange().endLine(),
-                        LISTENER_VAR_NAME.formatted(moduleName));
-                variableName.setValue(suggestedName);
-            }
-        }
-
-        listenerModel.setProperties(ordered);
-    }
-
-    private static void addIfPresent(Map<String, Value> target, Map<String, Value> source, String key) {
-        if (source.containsKey(key)) {
-            target.put(key, source.get(key));
-        }
-    }
-
-    private static boolean isFtpListenerCompatibleWithFlow(String listenerName,
-                                                           boolean removeDeprecated,
-                                                           SemanticModel semanticModel, Project project) {
-        Module defaultModule = project.currentPackage().getDefaultModule();
-        List<ServiceDeclarationNode> attachedServices = new ArrayList<>();
-
-        for (DocumentId documentId : defaultModule.documentIds()) {
-            Document document = defaultModule.document(documentId);
-            ModulePartNode modulePartNode = document.syntaxTree().rootNode();
-
-            for (ModuleMemberDeclarationNode member : modulePartNode.members()) {
-                if (member.kind() != SyntaxKind.SERVICE_DECLARATION) {
-                    continue;
-                }
-                ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) member;
-                if (isServiceAttachedToListener(serviceNode, listenerName)) {
-                    attachedServices.add(serviceNode);
-                }
-            }
-        }
-
-        if (attachedServices.isEmpty()) {
-            return true;
-        }
-
-        boolean allNewStyle = true;
-        boolean allLegacyStyle = true;
-        for (ServiceDeclarationNode serviceNode : attachedServices) {
-            boolean hasServiceConfig = hasFtpServiceConfigAnnotation(serviceNode, semanticModel);
-            allNewStyle &= hasServiceConfig;
-            allLegacyStyle &= !hasServiceConfig;
-        }
-
-        return removeDeprecated ? allNewStyle : allLegacyStyle;
-    }
-
-    private static boolean isServiceAttachedToListener(ServiceDeclarationNode serviceNode, String listenerName) {
-        for (ExpressionNode expr : serviceNode.expressions()) {
-            if (expr instanceof SimpleNameReferenceNode simpleRef && simpleRef.name().text().equals(listenerName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean hasFtpServiceConfigAnnotation(ServiceDeclarationNode serviceNode,
-                                                         SemanticModel semanticModel) {
-        Optional<MetadataNode> metadata = serviceNode.metadata();
-        if (metadata.isEmpty()) {
-            return false;
-        }
-
-        for (AnnotationNode annotation : metadata.get().annotations()) {
-            if (isMatchingFtpAnnotation(annotation, "ServiceConfig", semanticModel)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean isMatchingFtpAnnotation(AnnotationNode annotation, String annotationName,
-                                                   SemanticModel semanticModel) {
-        Optional<Symbol> symbol = semanticModel.symbol(annotation);
-        if (symbol.orElse(null) instanceof AnnotationSymbol annotationSymbol) {
-            Optional<ModuleSymbol> module = annotationSymbol.getModule();
-            if (module.isEmpty() || annotationSymbol.getName().isEmpty()
-                    || !annotationName.equals(annotationSymbol.getName().get())) {
-                return false;
-            }
-            String orgName = module.get().id().orgName();
-            String packageName = module.get().id().packageName();
-            String moduleName = module.get().id().moduleName();
-            return "ballerina".equals(orgName) && (FTP.equals(packageName) || FTP.equals(moduleName));
-        }
-
-        return annotation.annotReference().toString().trim().endsWith(":" + annotationName)
-                && annotation.annotReference().toString().trim().startsWith(FTP + ":");
     }
 
     public static Optional<String> getHttpDefaultListenerNameRef(SemanticModel semanticModel, Project project) {
@@ -782,45 +598,12 @@ public class ListenerUtil {
                                                         ModuleInfo moduleInfo) {
         SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
         boolean removeDeprecated = true;
-        if (FTP.equals(functionData.packageName()) && hasLegacyFtpPathArgument(arguments)) {
+        if (FTP.equals(functionData.packageName()) && FTPListenerUtil.hasLegacyFtpPathArgument(arguments)) {
             removeDeprecated = false;
         }
         ListenerDeclAnalyzer analyzer = new ListenerDeclAnalyzer(listener.getProperties(), semanticModel, moduleInfo,
                 removeDeprecated);
         analyzer.analyze(arguments, initSymbol, functionData);
-    }
-
-    private static boolean hasLegacyFtpPathArgument(SeparatedNodeList<FunctionArgumentNode> arguments) {
-        for (FunctionArgumentNode argument : arguments) {
-            if (argument.kind() == SyntaxKind.NAMED_ARG) {
-                NamedArgumentNode namedArg = (NamedArgumentNode) argument;
-                String argName = namedArg.argumentName().name().text().trim();
-                if ("path".equals(argName) || "folderPath".equals(argName)) {
-                    return true;
-                }
-            } else if (argument.kind() == SyntaxKind.POSITIONAL_ARG) {
-                PositionalArgumentNode positionalArg = (PositionalArgumentNode) argument;
-                if (positionalArg.expression() instanceof MappingConstructorExpressionNode mappingExpr
-                        && hasLegacyPathField(mappingExpr)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private static boolean hasLegacyPathField(MappingConstructorExpressionNode mappingExpr) {
-        for (MappingFieldNode field : mappingExpr.fields()) {
-            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
-                continue;
-            }
-            SpecificFieldNode specificField = (SpecificFieldNode) field;
-            String fieldName = specificField.fieldName().toSourceCode().trim();
-            if ("path".equals(fieldName) || "folderPath".equals(fieldName)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -895,457 +678,6 @@ public class ListenerUtil {
         choicesProperty.setChoices(List.of(buildUseExistingListenerChoice(existingListeners, moduleName),
                 buildCreateNewListenerChoice(listenerConfigProperties, moduleName)));
         return choicesProperty;
-    }
-
-    /**
-     * Extracts listener configuration properties from source code for the given listener names.
-     * For each listener, finds its declaration in the project and extracts key configuration
-     * values (protocol, host, port, authentication).
-     *
-     * @param listenerNames  Set of listener variable names to extract configs for
-     * @param semanticModel  Semantic model for symbol resolution
-     * @param project        Project for source traversal
-     * @return Map of listener name to its configuration properties.
-     */
-    public static Map<String, Map<String, Value>> extractListenerConfigs(Set<String> listenerNames,
-                                                                          SemanticModel semanticModel,
-                                                                          Project project) {
-        Map<String, Map<String, Value>> configs = new LinkedHashMap<>();
-
-        for (String listenerName : listenerNames) {
-            Map<String, Value> config = extractSingleListenerConfig(listenerName, semanticModel, project);
-            if (config != null && !config.isEmpty()) {
-                configs.put(listenerName, config);
-            }
-        }
-        return configs;
-    }
-
-    /**
-     * Extracts configuration for a single listener by finding its declaration node and parsing its
-     * constructor arguments.
-     */
-    private static Map<String, Value> extractSingleListenerConfig(String listenerName,
-                                                                    SemanticModel semanticModel,
-                                                                    Project project) {
-        // Find the listener's VariableSymbol
-        Optional<VariableSymbol> listenerSymbol = Optional.empty();
-        for (Symbol moduleSymbol : semanticModel.moduleSymbols()) {
-            if (!(moduleSymbol instanceof VariableSymbol variableSymbol)
-                    || !variableSymbol.qualifiers().contains(Qualifier.LISTENER)) {
-                continue;
-            }
-            if (variableSymbol.getName().isPresent() && variableSymbol.getName().get().equals(listenerName)) {
-                listenerSymbol = Optional.of(variableSymbol);
-                break;
-            }
-        }
-        if (listenerSymbol.isEmpty() || listenerSymbol.get().getLocation().isEmpty()) {
-            return null;
-        }
-
-        // Find the ListenerDeclarationNode from the symbol's location
-        Location location = listenerSymbol.get().getLocation().get();
-        try {
-            Path path = project.sourceRoot().resolve(location.lineRange().fileName());
-            DocumentId documentId = project.documentId(path);
-            Document document = project.currentPackage().getDefaultModule().document(documentId);
-            if (document == null) {
-                return null;
-            }
-
-            ModulePartNode modulePartNode = document.syntaxTree().rootNode();
-            TextRange range = TextRange.from(location.textRange().startOffset(), location.textRange().length());
-            NonTerminalNode foundNode = modulePartNode.findNode(range);
-            while (foundNode != null && !(foundNode instanceof ListenerDeclarationNode)) {
-                foundNode = foundNode.parent();
-            }
-            if (foundNode == null) {
-                return null;
-            }
-
-            ListenerDeclarationNode listenerNode = (ListenerDeclarationNode) foundNode;
-            return extractConfigFromListenerDeclaration(listenerNode);
-        } catch (RuntimeException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Extracts key configuration values from a listener declaration node by parsing its
-     * constructor arguments directly.
-     *
-     * @param listenerNode The listener declaration node
-     * @return Map of config property names to their Value objects
-     */
-    private static Map<String, Value> extractConfigFromListenerDeclaration(ListenerDeclarationNode listenerNode) {
-        Map<String, Value> config = new LinkedHashMap<>();
-
-        Node initializer = listenerNode.initializer();
-        NewExpressionNode newExpressionNode;
-        if (initializer instanceof CheckExpressionNode checkExpressionNode) {
-            newExpressionNode = (NewExpressionNode) checkExpressionNode.expression();
-        } else {
-            newExpressionNode = (NewExpressionNode) initializer;
-        }
-
-        SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
-        if (arguments == null) {
-            return config;
-        }
-
-        // First pass: extract protocol to determine auth model
-        String protocol = "FTP";
-        for (FunctionArgumentNode argument : arguments) {
-            if (argument instanceof NamedArgumentNode namedArg) {
-                String argName = namedArg.argumentName().name().text().trim();
-                if ("protocol".equals(argName)) {
-                    String argValue = namedArg.expression().toSourceCode().trim();
-                    // Strip module prefix (e.g., "ftp:SFTP" → "SFTP")
-                    if (argValue.contains(":")) {
-                        protocol = argValue.substring(argValue.indexOf(':') + 1).trim();
-                    } else {
-                        protocol = argValue;
-                    }
-                    break;
-                }
-            }
-        }
-
-        // Second pass: extract all named arguments
-        for (FunctionArgumentNode argument : arguments) {
-            if (argument instanceof NamedArgumentNode namedArg) {
-                String argName = namedArg.argumentName().name().text().trim();
-                String argValue = namedArg.expression().toSourceCode().trim();
-
-                switch (argName) {
-                    case "protocol" -> config.put("protocol", buildProtocolSelectValue(argValue));
-                    case "host" -> config.put("host", buildReadOnlyTextValue("Host",
-                            "Server hostname", argValue));
-                    case "port", "portNumber" -> config.put("portNumber", buildReadOnlyNumericValue("Port",
-                            "Server port", argValue, "int"));
-                    case "auth" -> config.put("authentication",
-                            buildAuthChoiceValue(namedArg.expression(), protocol));
-                    case "secureSocket" -> config.put("secureSocket",
-                            buildReadOnlySecureSocketValue(argValue));
-                    default -> {
-                        // Skip other arguments
-                    }
-                }
-            }
-        }
-
-        // Default to "No Authentication" when no auth argument is present
-        if (!config.containsKey("authentication")) {
-            config.put("authentication", buildAuthChoiceValue(null, protocol));
-        }
-
-        return config;
-    }
-
-    /**
-     * Builds a read-only CHOICE (radio button) Value for displaying the authentication
-     * configuration of an existing listener, mirroring the structure in ftp_init.json.
-     *
-     * <p>Parses the auth mapping constructor to determine which auth type is used
-     * (No Auth / Basic / Certificate) and populates the selected choice's properties
-     * with actual values from the source code. The protocol determines which auth
-     * option is shown: Basic Authentication for FTP/FTPS, Certificate Based for SFTP.
-     *
-     * @param authExpression The auth argument expression node, or null if no auth argument
-     * @param protocol       The protocol string (FTP, SFTP, or FTPS)
-     */
-    private static Value buildAuthChoiceValue(Node authExpression, String protocol) {
-        boolean isSftp = "SFTP".equalsIgnoreCase(protocol);
-
-        // Parse auth fields from the mapping constructor
-        String username = "";
-        String password = "";
-        String privateKey = "";
-        boolean hasCredentials = false;
-        boolean hasPrivateKey = false;
-
-        if (authExpression instanceof MappingConstructorExpressionNode mapping) {
-            for (MappingFieldNode fieldNode : mapping.fields()) {
-                if (fieldNode instanceof SpecificFieldNode field) {
-                    String fieldName = field.fieldName().toSourceCode().trim();
-                    String fieldValue = field.valueExpr()
-                            .map(expr -> expr.toSourceCode().trim()).orElse("");
-
-                    switch (fieldName) {
-                        case "credentials" -> {
-                            hasCredentials = true;
-                            // Parse nested credentials record
-                            if (field.valueExpr().isPresent()
-                                    && field.valueExpr().get()
-                                    instanceof MappingConstructorExpressionNode credMapping) {
-                                for (MappingFieldNode credField : credMapping.fields()) {
-                                    if (credField instanceof SpecificFieldNode credSpecific) {
-                                        String credFieldName =
-                                                credSpecific.fieldName().toSourceCode().trim();
-                                        String credFieldValue = credSpecific.valueExpr()
-                                                .map(expr -> expr.toSourceCode().trim()).orElse("");
-                                        if ("username".equals(credFieldName)) {
-                                            username = credFieldValue;
-                                        } else if ("password".equals(credFieldName)) {
-                                            password = credFieldValue;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        case "privateKey" -> {
-                            hasPrivateKey = true;
-                            privateKey = fieldValue;
-                        }
-                        default -> {
-                            // Skip other fields
-                        }
-                    }
-                }
-            }
-        }
-
-        // Determine which auth type is active
-        boolean isCertAuth = hasPrivateKey;
-        boolean isBasicAuth = hasCredentials && !hasPrivateKey;
-        boolean isNoAuth = !isBasicAuth && !isCertAuth;
-
-        // Build choices mirroring ftp_init.json auth CHOICE structure
-        List<Value> choices = new ArrayList<>();
-
-        // No Authentication
-        choices.add(new Value.ValueBuilder()
-                .metadata("No Authentication", "")
-                .value("true")
-                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                .enabled(isNoAuth)
-                .editable(false)
-                .setAdvanced(false)
-                .build());
-
-        if (isSftp) {
-            // SFTP uses Certificate Based Authentication
-            Map<String, Value> certProps = new LinkedHashMap<>();
-            if (hasPrivateKey) {
-                certProps.put("privateKey", buildReadOnlyRecordValue("Private Key",
-                        "Private key configuration for SSH-based authentication",
-                        privateKey, "ftp:PrivateKey", "PrivateKey", false));
-            }
-            if (!username.isEmpty()) {
-                certProps.put("userName", buildReadOnlyTextValue("Username",
-                        "Remote server username for key-based authentication", username));
-            }
-            Value certChoice = new Value.ValueBuilder()
-                    .metadata("Certificate Based Authentication", "")
-                    .value("true")
-                    .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                    .enabled(isCertAuth)
-                    .editable(false)
-                    .setAdvanced(false)
-                    .setProperties(certProps)
-                    .build();
-            choices.add(certChoice);
-        } else {
-            // FTP/FTPS uses Basic Authentication
-            Map<String, Value> basicProps = new LinkedHashMap<>();
-            if (!username.isEmpty()) {
-                basicProps.put("userName", buildReadOnlyTextValue("Username",
-                        "Remote server username for authentication", username));
-            }
-            if (!password.isEmpty()) {
-                basicProps.put("password", buildReadOnlyTextValue("Password",
-                        "Remote server password for authentication", password));
-            }
-            Value basicChoice = new Value.ValueBuilder()
-                    .metadata("Basic Authentication", "")
-                    .value("true")
-                    .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                    .enabled(isBasicAuth)
-                    .editable(false)
-                    .setAdvanced(false)
-                    .setProperties(basicProps)
-                    .build();
-            choices.add(basicChoice);
-        }
-
-        Value auth = new Value.ValueBuilder()
-                .metadata("Authentication", "Select the authentication method")
-                .value("")
-                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
-                .enabled(true)
-                .editable(false)
-                .setAdvanced(false)
-                .build();
-        auth.setChoices(choices);
-        return auth;
-    }
-
-    /**
-     * Builds a read-only text Value for displaying listener config information.
-     * Detects whether the value is a string literal or an expression and sets the
-     * selected type accordingly.
-     */
-    private static Value buildReadOnlyTextValue(String label, String description, String value) {
-        String displayValue = cleanStringTemplateValue(value);
-        boolean isExpression = !displayValue.isEmpty() && !displayValue.startsWith("\"");
-        return new Value.ValueBuilder()
-                .metadata(label, description)
-                .value(displayValue)
-                .types(List.of(
-                        new PropertyType.Builder()
-                                .fieldType(Value.FieldType.TEXT)
-                                .ballerinaType("string")
-                                .selected(!isExpression)
-                                .build(),
-                        new PropertyType.Builder()
-                                .fieldType(Value.FieldType.EXPRESSION)
-                                .ballerinaType("string")
-                                .selected(isExpression)
-                                .build()))
-                .enabled(true)
-                .editable(false)
-                .setAdvanced(false)
-                .build();
-    }
-
-    /**
-     * Strips Ballerina string template syntax from a value for clean display.
-     * e.g. {@code string `${test}`} becomes {@code test},
-     *      {@code string `hello`} becomes {@code "hello"},
-     *      {@code "literal"} and plain expressions pass through unchanged.
-     */
-    private static String cleanStringTemplateValue(String value) {
-        if (value == null || value.isEmpty()) {
-            return value;
-        }
-        // Match string template: string `...`
-        if (value.startsWith("string `") && value.endsWith("`")) {
-            String inner = value.substring("string `".length(), value.length() - 1);
-            // Single interpolation: ${expr} → expr
-            if (inner.startsWith("${") && inner.endsWith("}") && inner.indexOf("${", 2) == -1) {
-                return inner.substring(2, inner.length() - 1);
-            }
-            // Plain text inside template: wrap as string literal
-            if (!inner.contains("${")) {
-                return "\"" + inner + "\"";
-            }
-        }
-        return value;
-    }
-
-    /**
-     * Builds a read-only numeric Value for displaying listener config information.
-     * Detects whether the value is a numeric literal or an expression and sets the
-     * selected type accordingly.
-     */
-    private static Value buildReadOnlyNumericValue(String label, String description,
-                                                    String value, String ballerinaType) {
-        boolean isExpression = !value.isEmpty() && !value.matches("-?\\d+");
-        return new Value.ValueBuilder()
-                .metadata(label, description)
-                .value(value)
-                .types(List.of(
-                        new PropertyType.Builder()
-                                .fieldType(Value.FieldType.NUMBER)
-                                .ballerinaType(ballerinaType)
-                                .selected(!isExpression)
-                                .build(),
-                        new PropertyType.Builder()
-                                .fieldType(Value.FieldType.EXPRESSION)
-                                .ballerinaType(ballerinaType)
-                                .selected(isExpression)
-                                .build()))
-                .enabled(true)
-                .editable(false)
-                .setAdvanced(false)
-                .build();
-    }
-
-    /**
-     * Builds a read-only secure socket Value for displaying the secureSocket configuration
-     * of an existing FTPS listener, mirroring the structure in ftp_init.json.
-     */
-    private static Value buildReadOnlySecureSocketValue(String value) {
-        return buildReadOnlyRecordValue("Secure Socket (SecureSocket)",
-                "Configure SSL/TLS configuration for secure connection.",
-                value, "ftp:SecureSocket", "SecureSocket", true);
-    }
-
-    /**
-     * Builds a read-only record Value for displaying record-type listener config information.
-     * Detects whether the value is a mapping constructor (record literal) or an expression
-     * and sets the selected type accordingly.
-     */
-    private static Value buildReadOnlyRecordValue(String label, String description, String value,
-                                                   String ballerinaType, String typeName,
-                                                   boolean advanced) {
-        boolean isExpression = !value.isEmpty() && !value.startsWith("{");
-
-        List<PropertyTypeMemberInfo> typeMembers = List.of(
-                new PropertyTypeMemberInfo(typeName, "ballerina:ftp", FTP, "RECORD_TYPE", true)
-        );
-
-        PropertyType recordType = new PropertyType.Builder()
-                .fieldType(Value.FieldType.RECORD_MAP_EXPRESSION)
-                .ballerinaType(ballerinaType)
-                .setMembers(typeMembers)
-                .selected(!isExpression)
-                .build();
-
-        PropertyType expressionType = new PropertyType.Builder()
-                .fieldType(Value.FieldType.EXPRESSION)
-                .ballerinaType(ballerinaType)
-                .selected(isExpression)
-                .build();
-
-        return new Value.ValueBuilder()
-                .metadata(label, description)
-                .value(value)
-                .types(List.of(recordType, expressionType))
-                .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))
-                .enabled(true)
-                .editable(false)
-                .setAdvanced(advanced)
-                .build();
-    }
-
-    /**
-     * Builds a read-only CHOICE (radio button) Value for displaying the protocol of an existing listener.
-     */
-    private static Value buildProtocolSelectValue(String value) {
-        // Strip module prefix (e.g. "ftp:SFTP" → "SFTP") for matching against choice values
-        String normalizedValue = value.contains(":") ? value.substring(value.lastIndexOf(':') + 1) : value;
-        List<Value> choices = List.of(
-                buildProtocolChoice("FTP", "FTP", normalizedValue),
-                buildProtocolChoice("SFTP", "SFTP", normalizedValue),
-                buildProtocolChoice("FTPS", "FTPS", normalizedValue)
-        );
-
-        Value protocol = new Value.ValueBuilder()
-                .metadata("Protocol", "Connection protocol")
-                .value(normalizedValue)
-                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
-                .enabled(true)
-                .editable(false)
-                .setAdvanced(false)
-                .build();
-        protocol.setChoices(choices);
-        return protocol;
-    }
-
-    /**
-     * Builds a single protocol choice for the radio button group.
-     */
-    private static Value buildProtocolChoice(String label, String choiceValue, String selectedValue) {
-        return new Value.ValueBuilder()
-                .metadata(label, "")
-                .value(choiceValue)
-                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                .enabled(choiceValue.equals(selectedValue))
-                .editable(false)
-                .setAdvanced(false)
-                .build();
     }
 
     /**

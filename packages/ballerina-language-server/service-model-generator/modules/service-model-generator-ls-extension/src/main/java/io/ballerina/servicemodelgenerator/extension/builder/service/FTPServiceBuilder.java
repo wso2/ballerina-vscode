@@ -25,12 +25,10 @@ import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.projects.Document;
@@ -50,6 +48,7 @@ import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContex
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.util.FTPFunctionModelUtil;
+import io.ballerina.servicemodelgenerator.extension.util.FTPListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.ballerinalang.formatter.core.FormatterException;
@@ -161,7 +160,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                         ? designApproach.getChoices().get(0).getProperties() : Map.of();
 
                 // Extract actual configs from existing listener declarations
-                Map<String, Map<String, Value>> listenerConfigs = ListenerUtil.extractListenerConfigs(
+                Map<String, Map<String, Value>> listenerConfigs = FTPListenerUtil.extractListenerConfigs(
                         compatibleListeners, context.semanticModel(), context.project());
                 applyInitModelMetadata(listenerConfigs, templateProps, designApproach);
 
@@ -720,7 +719,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                 }
 
                 ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) member;
-                if (isServiceAttachedToListener(serviceNode, listenerName)) {
+                if (FTPListenerUtil.isServiceAttachedToListener(serviceNode, listenerName)) {
                     // Check if this service uses the new pattern (has @ftp:ServiceConfig annotation)
                     if (!hasServiceConfigAnnotation(serviceNode, semanticModel)) {
                         return false; // Legacy service found
@@ -750,20 +749,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             }
         }
         return Optional.empty();
-    }
-
-    /**
-     * Checks if a service is attached to a specific listener.
-     */
-    private boolean isServiceAttachedToListener(ServiceDeclarationNode serviceNode, String listenerName) {
-        for (ExpressionNode expr : serviceNode.expressions()) {
-            if (expr instanceof SimpleNameReferenceNode simpleRef) {
-                if (simpleRef.name().text().equals(listenerName)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**
