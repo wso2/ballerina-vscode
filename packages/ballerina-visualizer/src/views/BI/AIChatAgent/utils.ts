@@ -28,7 +28,6 @@ export const getNodeTemplate = async (
     filePath: string,
     position: LinePosition = { line: 0, offset: 0 },
 ) => {
-    // `isLibrary` is resolved server-side by the extension handler.
     const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
         position: position,
         filePath: filePath,
