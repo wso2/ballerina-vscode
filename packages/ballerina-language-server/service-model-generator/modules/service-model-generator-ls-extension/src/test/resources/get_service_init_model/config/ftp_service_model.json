@@ -360,8 +360,8 @@
                                       "codedata": {
                                         "type": "IDENTIFIER"
                                       },
-                                      "placeholder": "default",
-                                      "value": "\"default\"",
+                                      "placeholder": "",
+                                      "value": "",
                                       "types": [
                                         {
                                           "fieldType": "IDENTIFIER",
