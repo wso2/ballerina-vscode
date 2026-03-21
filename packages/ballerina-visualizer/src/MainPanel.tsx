@@ -208,6 +208,7 @@ const MainPanel = () => {
     const [popupState, setPopupState] = useState<PopupMachineStateValue>("initialize");
     const [breakpointState, setBreakpointState] = useState<number>(0);
     const breakpointStateRef = useRef<number>(0);
+    const navKeyRef = useRef<number>(0);
 
     const debounceFetchContext = useCallback(
         debounce(() => {
@@ -282,6 +283,8 @@ const MainPanel = () => {
     };
 
     const fetchContext = () => {
+        navKeyRef.current += 1;
+        const navKey = navKeyRef.current;
         setNavActive(true);
         rpcClient.getVisualizerLocation().then(async (value) => {
             const configFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['config.bal'] })).filePath;
@@ -372,25 +375,14 @@ const MainPanel = () => {
                         setViewComponent(<ERDiagram projectPath={value.projectPath} />);
                         break;
                     case MACHINE_VIEW.TypeDiagram:
-                        if (value?.identifier) {
-                            setViewComponent(
-                                <TypeDiagram
-                                    selectedTypeId={value?.identifier}
-                                    addType={value?.addType}
-                                    projectPath={value?.projectPath}
-                                />
-                            );
-                        } else {
-                            // To support rerendering when user click on view all btn from left side panel
-                            setViewComponent(
-                                <TypeDiagram
-                                    key={value?.rootDiagramId ? value.rootDiagramId : `default-diagram`}
-                                    selectedTypeId={value?.identifier}
-                                    addType={value?.addType}
-                                    projectPath={value?.projectPath}
-                                />
-                            );
-                        }
+                        setViewComponent(
+                            <TypeDiagram
+                                key={navKey}
+                                selectedTypeId={value?.identifier}
+                                addType={value?.addType}
+                                projectPath={value?.projectPath}
+                            />
+                        );
                         break;
                     case MACHINE_VIEW.DataMapper:
                         let position: LinePosition = {
@@ -430,6 +422,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIDataMapperForm:
                         setViewComponent(
                             <FunctionForm
+                                key={navKey}
                                 projectPath={value.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={value?.identifier}
@@ -554,6 +547,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.AddConnectionWizard:
                         setViewComponent(
                             <AddConnectionPopup
+                                key={navKey}
                                 projectPath={value.projectPath}
                                 fileName={value.documentUri || value.projectPath}
                                 onNavigateToOverview={handleNavigateToOverview}
@@ -563,6 +557,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.EditConnectionWizard:
                         setViewComponent(
                             <EditConnectionPopup
+                                key={navKey}
                                 connectionName={value?.identifier}
                             />
                         );
@@ -589,6 +584,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIFunctionForm:
                         setViewComponent(
                             <FunctionForm
+                                key={navKey}
                                 projectPath={value.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={value?.identifier}
@@ -618,6 +614,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.ViewConfigVariables:
                         setViewComponent(
                             <ViewConfigurableVariables
+                                key={navKey}
                                 projectPath={value?.projectPath}
                                 fileName={configFilePath}
                                 testsConfigTomlPath={testsConfigTomlPath}
@@ -628,6 +625,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.AddConfigVariables:
                         setViewComponent(
                             <ViewConfigurableVariables
+                                key={navKey}
                                 projectPath={value?.projectPath}
                                 fileName={configFilePath}
                                 testsConfigTomlPath={testsConfigTomlPath}
