@@ -126,6 +126,10 @@ export interface DiagramContextState {
     setLockCanvas?: (lock: boolean) => void;
     isUserAuthenticated?: boolean;
     expressionContext: ExpressionContextProps;
+    entrypointContext?: {
+        serviceName?: string;
+        functionName?: string;
+    };
 }
 
 export const DiagramContext = React.createContext<DiagramContextState>({
@@ -215,6 +219,8 @@ export type TraceAnimationState = {
     activeAgentToolNames: string[];
     entries: TraceAnimationEntry[];
     systemInstructions?: string;
+    entrypointServiceName?: string;
+    entrypointFunctionName?: string;
 } | undefined;
 
 const FADE_OUT_DURATION_MS = 400;
@@ -281,6 +287,8 @@ export function setTraceAnimationActive(
     type: 'invoke_agent' | 'chat' | 'execute_tool',
     activeToolName?: string,
     systemInstructions?: string,
+    entrypointServiceName?: string,
+    entrypointFunctionName?: string,
 ) {
     const key = entryKey(type, activeToolName);
 
@@ -327,6 +335,8 @@ export function setTraceAnimationActive(
         entries: updatedEntries,
         // Persist systemInstructions from chat events; tool events inherit it
         systemInstructions: systemInstructions || traceAnimationState?.systemInstructions,
+        entrypointServiceName: entrypointServiceName ?? traceAnimationState?.entrypointServiceName,
+        entrypointFunctionName: entrypointFunctionName ?? traceAnimationState?.entrypointFunctionName,
     };
     notifyListeners();
 }
