@@ -367,6 +367,7 @@ export type ChatNotify =
     | GeneratedSourcesEvent
     | ConnectorGenerationNotification
     | ConfigurationCollectionEvent
+    | ClarifyEvent
     | ChatComponentEvent
     | PlanUpdated
     | CompactionStartEvent
@@ -523,6 +524,21 @@ export interface ConfigurationCollectionEvent {
         message: string;
         code: string;
     };
+}
+
+export interface ClarifyQuestion {
+    question: string;
+    tabLabel: string;
+    options: Array<{ label: string; value: string }>;
+    selectionType: "single" | "multiple";
+}
+
+export interface ClarifyEvent {
+    type: "clarify_event";
+    requestId: string;
+    stage: "asking" | "answered" | "skipped";
+    questions: ClarifyQuestion[];
+    answers?: Array<{ question: string; answers: string[] }>;
 }
 
 export interface ChatComponentEvent {
