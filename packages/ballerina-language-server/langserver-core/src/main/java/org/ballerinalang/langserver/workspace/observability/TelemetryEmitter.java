@@ -20,185 +20,114 @@ package org.ballerinalang.langserver.workspace.observability;
 
 import javax.annotation.Nonnull;
 
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Lock-free, non-blocking telemetry emitter for structured metric events.
- * 
- * <p>The telemetry emitter provides a simple interface for recording
- * metric events with associated key-value labels. All operations are
- * non-blocking and return immediately.
+ * Fire-and-forget telemetry emitter that writes structured metric entries directly to {@link TraceLogSink}s.
+ *
+ * <p>No metric data is retained in memory after the sink write returns. Each call to
+ * {@link #emit}, {@link #emitValue}, or {@link #emitGauge} formats the metric as structured
+ * key-value fields and dispatches immediately to all registered sinks. Sink failures are
+ * absorbed silently — telemetry must never affect the caller.
+ *
+ * <p>Metric entries use log level {@code METRIC} to distinguish them from domain event
+ * traces in the output stream.
  *
  * @since 1.7.0
  */
 public class TelemetryEmitter {
 
-    private static final int MAX_LABEL_KEYS = 100;
-    private static final int MAX_LABEL_VALUE_LENGTH = 256;
+    private static final String LEVEL = "METRIC";
 
-    private final MetricRegistry metricRegistry;
-    private final ConcurrentHashMap<String, AtomicLong> emittedCounters;
+    private final List<TraceLogSink> sinks;
 
     /**
-     * Creates a new telemetry emitter backed by the given metric registry.
+     * Creates a telemetry emitter that dispatches to the given sinks.
      *
-     * @param metricRegistry the registry to record metrics to
-     * @throws NullPointerException if metricRegistry is null
+     * @param sinks the sinks to write metric entries to
      */
-    public TelemetryEmitter(@Nonnull MetricRegistry metricRegistry) {
-        this.metricRegistry = metricRegistry;
-        this.emittedCounters = new ConcurrentHashMap<>();
+    public TelemetryEmitter(@Nonnull List<TraceLogSink> sinks) {
+        this.sinks = List.copyOf(sinks);
     }
 
     /**
-     * Emits a telemetry event with associated labels.
-     * 
-     * <p>This method is non-blocking and returns immediately. The event
-     * is recorded asynchronously in the underlying metric registry.
+     * Emits a counter metric event with associated labels.
+     *
+     * <p>This method is non-blocking and returns immediately after dispatching to sinks.
      *
      * @param metricName the name of the metric
-     * @param labels key-value labels associated with the event
+     * @param labels     key-value labels associated with the event; may be null or empty
      */
     public void emit(String metricName, Map<String, String> labels) {
         if (metricName == null || metricName.isBlank()) {
             return;
         }
 
-        // Increment global telemetry counter
-        metricRegistry.incrementCounter("telemetry.emitted");
-        
-        // Increment metric-specific counter
-        String counterName = "telemetry." + sanitizeMetricName(metricName);
-        metricRegistry.incrementCounter(counterName);
-
-        // Record label cardinality if labels are provided
+        Map<String, String> fields = new LinkedHashMap<>();
+        fields.put("timestamp", Instant.now().toString());
+        fields.put("metricType", "counter");
+        fields.put("metricName", metricName);
         if (labels != null && !labels.isEmpty()) {
-            String labelCounterName = counterName + ".labeled";
-            metricRegistry.incrementCounter(labelCounterName);
-            
-            // Track unique label combinations (capped to prevent explosion)
-            recordLabelCardinality(counterName, labels);
+            labels.forEach((k, v) -> {
+                if (k != null && !k.isBlank() && v != null) {
+                    fields.put(k, v);
+                }
+            });
         }
+
+        dispatch(fields);
     }
 
     /**
-     * Emits a telemetry event with a numeric value.
+     * Emits a value metric event with a numeric measurement.
      *
      * @param metricName the name of the metric
-     * @param value the numeric value to record
+     * @param value      the numeric value to record
      */
     public void emitValue(String metricName, long value) {
         if (metricName == null || metricName.isBlank()) {
             return;
         }
 
-        metricRegistry.incrementCounter("telemetry.emitted");
-        
-        String counterName = "telemetry." + sanitizeMetricName(metricName);
-        metricRegistry.incrementCounter(counterName);
-        metricRegistry.recordHistogram(counterName + ".values", value);
+        Map<String, String> fields = new LinkedHashMap<>();
+        fields.put("timestamp", Instant.now().toString());
+        fields.put("metricType", "value");
+        fields.put("metricName", metricName);
+        fields.put("value", Long.toString(value));
+
+        dispatch(fields);
     }
 
     /**
-     * Emits a gauge value.
+     * Emits a gauge metric event with a point-in-time value.
      *
      * @param metricName the name of the metric
-     * @param value the gauge value to set
+     * @param value      the gauge value
      */
     public void emitGauge(String metricName, long value) {
         if (metricName == null || metricName.isBlank()) {
             return;
         }
 
-        String gaugeName = "telemetry." + sanitizeMetricName(metricName) + ".gauge";
-        metricRegistry.setGauge(gaugeName, value);
+        Map<String, String> fields = new LinkedHashMap<>();
+        fields.put("timestamp", Instant.now().toString());
+        fields.put("metricType", "gauge");
+        fields.put("metricName", metricName);
+        fields.put("value", Long.toString(value));
+
+        dispatch(fields);
     }
 
-    /**
-     * Returns the number of times emit has been called for a specific metric.
-     *
-     * @param metricName the metric name
-     * @return the emission count
-     */
-    public long getEmitCount(String metricName) {
-        String counterName = "telemetry." + sanitizeMetricName(metricName);
-        return metricRegistry.getCounter(counterName);
-    }
-
-    /**
-     * Records label cardinality for a metric, capping the number of unique combinations.
-     */
-    private void recordLabelCardinality(String baseName, Map<String, String> labels) {
-        // Sanitize labels to prevent memory explosion
-        Map<String, String> sanitizedLabels = sanitizeLabels(labels);
-        
-        // Create a unique key from sorted label pairs for cardinality tracking
-        String cardinalityKey = baseName + ":" + createLabelKey(sanitizedLabels);
-        
-        AtomicLong counter = emittedCounters.computeIfAbsent(cardinalityKey, k -> new AtomicLong(0));
-        long current = counter.incrementAndGet();
-        
-        // Report cardinality as a gauge
-        if (current == 1) {
-            // New unique combination
-            metricRegistry.incrementCounter(baseName + ".cardinality");
-        }
-    }
-
-    /**
-     * Sanitizes a metric name to be registry-safe.
-     */
-    private String sanitizeMetricName(String name) {
-        return name.replaceAll("[^a-zA-Z0-9._-]", "_");
-    }
-
-    /**
-     * Sanitizes labels to prevent memory issues.
-     */
-    private Map<String, String> sanitizeLabels(Map<String, String> labels) {
-        if (labels == null || labels.isEmpty()) {
-            return Map.of();
-        }
-
-        Map<String, String> result = new ConcurrentHashMap<>();
-        int count = 0;
-        
-        for (Map.Entry<String, String> entry : labels.entrySet()) {
-            if (count >= MAX_LABEL_KEYS) {
-                break;
-            }
-            
-            String key = entry.getKey();
-            String value = entry.getValue();
-            
-            if (key != null && !key.isBlank() && value != null) {
-                // Truncate long values
-                if (value.length() > MAX_LABEL_VALUE_LENGTH) {
-                    value = value.substring(0, MAX_LABEL_VALUE_LENGTH);
-                }
-                result.put(key, value);
-                count++;
+    private void dispatch(Map<String, String> fields) {
+        for (TraceLogSink sink : sinks) {
+            try {
+                sink.write(LEVEL, fields);
+            } catch (Exception ignored) {
+                // Best-effort — telemetry must never affect the caller.
             }
         }
-        
-        return result;
-    }
-
-    /**
-     * Creates a deterministic key from labels.
-     */
-    private String createLabelKey(Map<String, String> labels) {
-        if (labels.isEmpty()) {
-            return "";
-        }
-        
-        // Sort keys for deterministic ordering
-        return labels.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .map(e -> e.getKey() + "=" + e.getValue())
-                .reduce((a, b) -> a + "," + b)
-                .orElse("");
     }
 }

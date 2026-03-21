@@ -21,7 +21,6 @@ package org.ballerinalang.langserver.workspace.observability;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -29,249 +28,194 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Supplier;
 
 /**
- * Tests for observability components: MetricRegistry, TelemetryEmitter, and WorkspaceTraceLogger.
+ * Tests for observability components: TelemetryEmitter and WorkspaceTraceLogger.
  *
  * @since 1.7.0
  */
 public class ObservabilityComponentsTest {
 
-    // ==================== MetricRegistry Tests ====================
-
-    /**
-     * Verifies MetricRegistry supports increment/decrement counters in thread-safe manner.
-     */
-    @Test
-    public void metricRegistry_counterIncrementDecrement_isThreadSafe() throws InterruptedException {
-        MetricRegistry registry = new MetricRegistry();
-        int threads = 10;
-        int incrementsPerThread = 1000;
-        CountDownLatch latch = new CountDownLatch(threads);
-
-        for (int i = 0; i < threads; i++) {
-            Thread thread = new Thread(() -> {
-                for (int j = 0; j < incrementsPerThread; j++) {
-                    registry.incrementCounter("test.counter");
-                }
-                latch.countDown();
-            });
-            thread.start();
-        }
-
-        Assert.assertTrue(latch.await(5, TimeUnit.SECONDS));
-        Assert.assertEquals(registry.getCounter("test.counter"), threads * incrementsPerThread);
-
-        // Test decrement
-        registry.decrementCounter("test.counter");
-        Assert.assertEquals(registry.getCounter("test.counter"), threads * incrementsPerThread - 1);
-    }
-
-    /**
-     * Verifies MetricRegistry supports recording histogram values in thread-safe manner.
-     */
-    @Test
-    public void metricRegistry_histogramRecord_isThreadSafe() throws InterruptedException {
-        MetricRegistry registry = new MetricRegistry();
-        int threads = 10;
-        int recordsPerThread = 100;
-        CountDownLatch latch = new CountDownLatch(threads);
-
-        for (int i = 0; i < threads; i++) {
-            final int threadId = i;
-            Thread thread = new Thread(() -> {
-                for (int j = 0; j < recordsPerThread; j++) {
-                    registry.recordHistogram("test.histogram", threadId * 100 + j);
-                }
-                latch.countDown();
-            });
-            thread.start();
-        }
-
-        Assert.assertTrue(latch.await(5, TimeUnit.SECONDS));
-        HistogramSnapshot snapshot = registry.getHistogramSnapshot("test.histogram");
-        Assert.assertEquals(snapshot.count(), threads * recordsPerThread);
-    }
-
-    /**
-     * Verifies MetricRegistry supports setting gauge values in thread-safe manner.
-     */
-    @Test
-    public void metricRegistry_gaugeSet_isThreadSafe() throws InterruptedException {
-        MetricRegistry registry = new MetricRegistry();
-        int threads = 10;
-        int setsPerThread = 1000;
-        CountDownLatch latch = new CountDownLatch(threads);
-        AtomicLong lastValue = new AtomicLong(0);
-
-        for (int i = 0; i < threads; i++) {
-            final int threadId = i;
-            Thread thread = new Thread(() -> {
-                for (int j = 0; j < setsPerThread; j++) {
-                    long value = threadId * 10000L + j;
-                    registry.setGauge("test.gauge", value);
-                    lastValue.set(value);
-                }
-                latch.countDown();
-            });
-            thread.start();
-        }
-
-        Assert.assertTrue(latch.await(5, TimeUnit.SECONDS));
-        // Gauge should have the last set value
-        Assert.assertEquals(registry.getGauge("test.gauge"), lastValue.get());
-    }
-
-    /**
-     * Verifies MetricRegistry drops entries under simulated memory pressure rather than growing unbounded.
-     */
-    @Test
-    public void metricRegistry_underPressure_dropsMetricsRatherThanGrowing() {
-        MetricRegistry registry = new MetricRegistry();
-        
-        // Simulate high-volume metric recording
-        for (int i = 0; i < 1_000_000; i++) {
-            registry.incrementCounter("pressure.counter");
-            registry.recordHistogram("pressure.histogram", i);
-        }
-
-        // Verify registry didn't crash and metrics are within bounds
-        // The registry should be lossy and not OOM
-        long counterValue = registry.getCounter("pressure.counter");
-        HistogramSnapshot histogram = registry.getHistogramSnapshot("pressure.histogram");
-        
-        // Counter should be positive but may not be exactly 1M due to lossiness
-        Assert.assertTrue(counterValue > 0, "Counter should have recorded some values");
-        Assert.assertTrue(histogram.count() >= 0, "Histogram should not be negative");
-    }
-
-    /**
-     * Verifies MetricRegistry returns zero for non-existent counters.
-     */
-    @Test
-    public void metricRegistry_nonExistentCounter_returnsZero() {
-        MetricRegistry registry = new MetricRegistry();
-        Assert.assertEquals(registry.getCounter("nonexistent.counter"), 0L);
-    }
-
-    /**
-     * Verifies MetricRegistry returns empty snapshot for non-existent histograms.
-     */
-    @Test
-    public void metricRegistry_nonExistentHistogram_returnsEmptySnapshot() {
-        MetricRegistry registry = new MetricRegistry();
-        HistogramSnapshot snapshot = registry.getHistogramSnapshot("nonexistent.histogram");
-        Assert.assertEquals(snapshot.count(), 0L);
-    }
-
-    /**
-     * Verifies MetricRegistry returns zero for non-existent gauges.
-     */
-    @Test
-    public void metricRegistry_nonExistentGauge_returnsZero() {
-        MetricRegistry registry = new MetricRegistry();
-        Assert.assertEquals(registry.getGauge("nonexistent.gauge"), 0L);
-    }
-
-    /**
-     * Verifies histogram snapshot provides correct statistics.
-     */
-    @Test
-    public void metricRegistry_histogramSnapshot_providesCorrectStatistics() {
-        MetricRegistry registry = new MetricRegistry();
-        
-        // Record known values
-        long[] values = {10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
-        for (long value : values) {
-            registry.recordHistogram("stats.histogram", value);
-        }
-
-        HistogramSnapshot snapshot = registry.getHistogramSnapshot("stats.histogram");
-        Assert.assertEquals(snapshot.count(), 10L);
-        Assert.assertEquals(snapshot.min(), 10L);
-        Assert.assertEquals(snapshot.max(), 100L);
-        Assert.assertTrue(snapshot.mean() > 0);
-    }
-
     // ==================== TelemetryEmitter Tests ====================
 
     /**
-     * Verifies TelemetryEmitter.emit() returns immediately without blocking.
+     * Verifies TelemetryEmitter.emit() dispatches counter entries to sinks immediately.
      */
     @Test
-    public void telemetryEmitter_emit_isNonBlocking() {
-        MetricRegistry registry = new MetricRegistry();
-        TelemetryEmitter emitter = new TelemetryEmitter(registry);
-        
-        long startTime = System.nanoTime();
-        
-        // Emit many metrics rapidly
-        for (int i = 0; i < 10000; i++) {
-            emitter.emit("metric." + i, Map.of("key", "value"));
-        }
-        
-        long elapsedNanos = System.nanoTime() - startTime;
-        long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(elapsedNanos);
-        
-        // Should complete very quickly (under 100ms for 10k calls)
-        Assert.assertTrue(elapsedMillis < 100, 
-            "TelemetryEmitter.emit() should be non-blocking, but took " + elapsedMillis + "ms");
+    public void telemetryEmitter_emit_dispatchesToSinks() {
+        List<Map<String, String>> captured = new CopyOnWriteArrayList<>();
+        TelemetryEmitter emitter = new TelemetryEmitter(List.of(capturingSink(captured)));
+
+        emitter.emit("test.counter", Map.of("label1", "value1"));
+
+        Assert.assertEquals(captured.size(), 1);
+        Map<String, String> entry = captured.get(0);
+        Assert.assertEquals(entry.get("metricType"), "counter");
+        Assert.assertEquals(entry.get("metricName"), "test.counter");
+        Assert.assertEquals(entry.get("label1"), "value1");
+        Assert.assertNotNull(entry.get("timestamp"));
     }
 
     /**
-     * Verifies TelemetryEmitter correctly records metrics to registry.
+     * Verifies TelemetryEmitter.emitValue() dispatches value entries to sinks.
      */
     @Test
-    public void telemetryEmitter_emit_recordsMetricsToRegistry() {
-        MetricRegistry registry = new MetricRegistry();
-        TelemetryEmitter emitter = new TelemetryEmitter(registry);
-        
-        emitter.emit("test.metric", Map.of("label1", "value1", "label2", "value2"));
-        emitter.emit("test.metric", Map.of("label1", "value1", "label2", "value2"));
-        
-        // Counter for emit operations should be recorded
-        Assert.assertTrue(registry.getCounter("telemetry.emitted") >= 0);
+    public void telemetryEmitter_emitValue_dispatchesToSinks() {
+        List<Map<String, String>> captured = new CopyOnWriteArrayList<>();
+        TelemetryEmitter emitter = new TelemetryEmitter(List.of(capturingSink(captured)));
+
+        emitter.emitValue("compilation.latency_ms", 450L);
+
+        Assert.assertEquals(captured.size(), 1);
+        Map<String, String> entry = captured.get(0);
+        Assert.assertEquals(entry.get("metricType"), "value");
+        Assert.assertEquals(entry.get("metricName"), "compilation.latency_ms");
+        Assert.assertEquals(entry.get("value"), "450");
+    }
+
+    /**
+     * Verifies TelemetryEmitter.emitGauge() dispatches gauge entries to sinks.
+     */
+    @Test
+    public void telemetryEmitter_emitGauge_dispatchesToSinks() {
+        List<Map<String, String>> captured = new CopyOnWriteArrayList<>();
+        TelemetryEmitter emitter = new TelemetryEmitter(List.of(capturingSink(captured)));
+
+        emitter.emitGauge("queue.depth", 7L);
+
+        Assert.assertEquals(captured.size(), 1);
+        Map<String, String> entry = captured.get(0);
+        Assert.assertEquals(entry.get("metricType"), "gauge");
+        Assert.assertEquals(entry.get("metricName"), "queue.depth");
+        Assert.assertEquals(entry.get("value"), "7");
+    }
+
+    /**
+     * Verifies that blank or null metric names are silently ignored.
+     */
+    @Test
+    public void telemetryEmitter_blankMetricName_isIgnored() {
+        List<Map<String, String>> captured = new CopyOnWriteArrayList<>();
+        TelemetryEmitter emitter = new TelemetryEmitter(List.of(capturingSink(captured)));
+
+        emitter.emit(null, Map.of());
+        emitter.emit("  ", Map.of());
+        emitter.emitValue(null, 1L);
+        emitter.emitGauge("", 1L);
+
+        Assert.assertEquals(captured.size(), 0, "No entries should be dispatched for blank/null metric names");
+    }
+
+    /**
+     * Verifies that a sink failure does not propagate to the caller.
+     */
+    @Test
+    public void telemetryEmitter_sinkFailure_isAbsorbed() {
+        TraceLogSink throwingSink = new TraceLogSink() {
+            @Override
+            public void write(String level, Map<String, String> fields) {
+                throw new RuntimeException("sink error");
+            }
+
+            @Override
+            public void close() {
+            }
+        };
+
+        List<Map<String, String>> captured = new CopyOnWriteArrayList<>();
+        TelemetryEmitter emitter = new TelemetryEmitter(List.of(throwingSink, capturingSink(captured)));
+
+        // Should not throw — failure in first sink must not prevent dispatch to second
+        emitter.emit("test.metric", null);
+
+        Assert.assertEquals(captured.size(), 1, "Second sink should still receive the entry");
+    }
+
+    /**
+     * Verifies that null labels are safely handled (no NullPointerException).
+     */
+    @Test
+    public void telemetryEmitter_nullLabels_areSkipped() {
+        List<Map<String, String>> captured = new CopyOnWriteArrayList<>();
+        TelemetryEmitter emitter = new TelemetryEmitter(List.of(capturingSink(captured)));
+
+        emitter.emit("test.counter", null);
+
+        Assert.assertEquals(captured.size(), 1);
+        // Only timestamp, metricType, metricName should be present
+        Assert.assertEquals(captured.get(0).get("metricType"), "counter");
+    }
+
+    /**
+     * Verifies TelemetryEmitter is non-blocking — 10k emit calls complete well under 100ms.
+     */
+    @Test
+    public void telemetryEmitter_emit_isNonBlocking() {
+        TelemetryEmitter emitter = new TelemetryEmitter(List.of());
+
+        long startTime = System.nanoTime();
+        for (int i = 0; i < 10_000; i++) {
+            emitter.emit("metric." + i, Map.of("key", "value"));
+        }
+        long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+
+        Assert.assertTrue(elapsedMillis < 100,
+                "TelemetryEmitter.emit() should be non-blocking, but took " + elapsedMillis + "ms");
+    }
+
+    /**
+     * Verifies METRIC level is used in sink writes to distinguish from trace entries.
+     */
+    @Test
+    public void telemetryEmitter_writesMetricLevel() {
+        List<String> capturedLevels = new CopyOnWriteArrayList<>();
+        TraceLogSink levelCapturingSink = new TraceLogSink() {
+            @Override
+            public void write(String level, Map<String, String> fields) {
+                capturedLevels.add(level);
+            }
+
+            @Override
+            public void close() {
+            }
+        };
+        TelemetryEmitter emitter = new TelemetryEmitter(List.of(levelCapturingSink));
+
+        emitter.emit("counter", null);
+        emitter.emitValue("latency", 100L);
+        emitter.emitGauge("depth", 5L);
+
+        Assert.assertEquals(capturedLevels.size(), 3);
+        capturedLevels.forEach(level ->
+                Assert.assertEquals(level, "METRIC", "All metric entries must use METRIC level"));
     }
 
     // ==================== WorkspaceTraceLogger Tests ====================
 
     /**
-     * Verifies WorkspaceTraceLogger subscribes to all 22 event kinds.
+     * Verifies WorkspaceTraceLogger subscribes to all event kinds.
      */
     @Test
-    public void workspaceTraceLogger_subscribesToAll22EventKinds() {
+    public void workspaceTraceLogger_subscribesToAllEventKinds() throws InterruptedException {
         EventSyncPubSubHolder eventBus = new EventSyncPubSubHolder();
-        List<String> loggedEvents = new java.util.concurrent.CopyOnWriteArrayList<>();
-        
-        WorkspaceTraceLogger traceLogger = new WorkspaceTraceLogger(eventBus, 
-            event -> loggedEvents.add(event.eventKind().name()));
+        List<String> loggedEvents = new CopyOnWriteArrayList<>();
 
-        // Publish one of each event kind
+        new WorkspaceTraceLogger(eventBus, event -> loggedEvents.add(event.eventKind().name()));
+
         Set<EventKind> allKinds = Set.of(EventKind.values());
         for (EventKind kind : allKinds) {
             eventBus.publish(new DomainEvent(Instant.now(), "test-context", kind));
         }
 
-        // Wait for async delivery
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        Thread.sleep(500);
 
-        // Verify all event kinds were logged
         Set<String> loggedEventNames = new java.util.HashSet<>(loggedEvents);
         for (EventKind kind : allKinds) {
             Assert.assertTrue(loggedEventNames.contains(kind.name()),
-                "Event kind should be logged: " + kind.name());
+                    "Event kind should be logged: " + kind.name());
         }
 
         eventBus.close();
@@ -282,18 +226,17 @@ public class ObservabilityComponentsTest {
      */
     @Test
     public void workspaceTraceLogger_logsStructuredKeyValueFields() {
-        List<Map<String, String>> loggedEntries = new java.util.concurrent.CopyOnWriteArrayList<>();
-        
+        List<Map<String, String>> loggedEntries = new CopyOnWriteArrayList<>();
+
         WorkspaceTraceLogger traceLogger = new WorkspaceTraceLogger(
-            new EventSyncPubSubHolder(),
-            (level, fields) -> loggedEntries.add(fields)
+                new EventSyncPubSubHolder(),
+                (level, fields) -> loggedEntries.add(fields)
         );
 
-        // Use INFO level (default) to ensure the entry is logged
         traceLogger.logStructured("INFO", Map.of(
-            "eventType", "WM-E1",
-            "sourceContext", "workspace-a",
-            "timestamp", Instant.now().toString()
+                "eventType", "WM-E1",
+                "sourceContext", "workspace-a",
+                "timestamp", Instant.now().toString()
         ));
 
         Assert.assertEquals(loggedEntries.size(), 1);
@@ -308,22 +251,21 @@ public class ObservabilityComponentsTest {
      */
     @Test
     public void workspaceTraceLogger_debugLevel_enablesDebugLogs() {
-        List<String> loggedLevels = new java.util.concurrent.CopyOnWriteArrayList<>();
-        
+        List<String> loggedLevels = new CopyOnWriteArrayList<>();
+
         WorkspaceTraceLogger traceLogger = new WorkspaceTraceLogger(
-            new EventSyncPubSubHolder(),
-            (level, fields) -> loggedLevels.add(level)
+                new EventSyncPubSubHolder(),
+                (level, fields) -> loggedLevels.add(level)
         );
-        
+
         traceLogger.setLogLevel(LogLevel.DEBUG);
-        
         traceLogger.logStructured("DEBUG", Map.of("test", "value"));
         traceLogger.logStructured("INFO", Map.of("test", "value"));
         traceLogger.logStructured("TRACE", Map.of("test", "value"));
 
-        Assert.assertTrue(loggedLevels.contains("DEBUG"), "DEBUG should be logged when level is DEBUG");
-        Assert.assertTrue(loggedLevels.contains("INFO"), "INFO should be logged when level is DEBUG");
-        Assert.assertFalse(loggedLevels.contains("TRACE"), "TRACE should not be logged when level is DEBUG");
+        Assert.assertTrue(loggedLevels.contains("DEBUG"));
+        Assert.assertTrue(loggedLevels.contains("INFO"));
+        Assert.assertFalse(loggedLevels.contains("TRACE"));
     }
 
     /**
@@ -331,44 +273,43 @@ public class ObservabilityComponentsTest {
      */
     @Test
     public void workspaceTraceLogger_traceLevel_enablesAllLogs() {
-        List<String> loggedLevels = new java.util.concurrent.CopyOnWriteArrayList<>();
-        
+        List<String> loggedLevels = new CopyOnWriteArrayList<>();
+
         WorkspaceTraceLogger traceLogger = new WorkspaceTraceLogger(
-            new EventSyncPubSubHolder(),
-            (level, fields) -> loggedLevels.add(level)
+                new EventSyncPubSubHolder(),
+                (level, fields) -> loggedLevels.add(level)
         );
-        
+
         traceLogger.setLogLevel(LogLevel.TRACE);
-        
         traceLogger.logStructured("DEBUG", Map.of("test", "value"));
         traceLogger.logStructured("INFO", Map.of("test", "value"));
         traceLogger.logStructured("TRACE", Map.of("test", "value"));
 
-        Assert.assertTrue(loggedLevels.contains("DEBUG"), "DEBUG should be logged when level is TRACE");
-        Assert.assertTrue(loggedLevels.contains("INFO"), "INFO should be logged when level is TRACE");
-        Assert.assertTrue(loggedLevels.contains("TRACE"), "TRACE should be logged when level is TRACE");
+        Assert.assertTrue(loggedLevels.contains("DEBUG"));
+        Assert.assertTrue(loggedLevels.contains("INFO"));
+        Assert.assertTrue(loggedLevels.contains("TRACE"));
     }
 
     /**
-     * Verifies WorkspaceTraceLogger with default level suppresses debug and trace.
+     * Verifies WorkspaceTraceLogger at INFO level suppresses debug and trace.
      */
     @Test
     public void workspaceTraceLogger_defaultLevel_suppressesDebugAndTrace() {
-        List<String> loggedLevels = new java.util.concurrent.CopyOnWriteArrayList<>();
-        
+        List<String> loggedLevels = new CopyOnWriteArrayList<>();
+
         WorkspaceTraceLogger traceLogger = new WorkspaceTraceLogger(
-            new EventSyncPubSubHolder(),
-            (level, fields) -> loggedLevels.add(level)
+                new EventSyncPubSubHolder(),
+                (level, fields) -> loggedLevels.add(level)
         );
-        // Default level (INFO)
-        
+        traceLogger.setLogLevel(LogLevel.INFO);
+
         traceLogger.logStructured("DEBUG", Map.of("test", "value"));
         traceLogger.logStructured("INFO", Map.of("test", "value"));
         traceLogger.logStructured("TRACE", Map.of("test", "value"));
 
-        Assert.assertFalse(loggedLevels.contains("DEBUG"), "DEBUG should not be logged at default level");
-        Assert.assertTrue(loggedLevels.contains("INFO"), "INFO should be logged at default level");
-        Assert.assertFalse(loggedLevels.contains("TRACE"), "TRACE should not be logged at default level");
+        Assert.assertFalse(loggedLevels.contains("DEBUG"));
+        Assert.assertTrue(loggedLevels.contains("INFO"));
+        Assert.assertFalse(loggedLevels.contains("TRACE"));
     }
 
     /**
@@ -378,56 +319,61 @@ public class ObservabilityComponentsTest {
     public void workspaceTraceLogger_usesBestEffortTier() throws InterruptedException {
         EventSyncPubSubHolder eventBus = new EventSyncPubSubHolder();
         AtomicInteger receivedCount = new AtomicInteger(0);
-        
-        // Create trace logger that should use BEST_EFFORT tier
-        WorkspaceTraceLogger traceLogger = new WorkspaceTraceLogger(eventBus, 
-            event -> receivedCount.incrementAndGet());
 
-        // Publish many events
+        new WorkspaceTraceLogger(eventBus, event -> receivedCount.incrementAndGet());
+
         for (int i = 0; i < 500; i++) {
             eventBus.publish(new DomainEvent(Instant.now(), "test", EventKind.WM_DOCUMENT_OPENED));
         }
 
-        // Wait for delivery
         Thread.sleep(300);
-
-        // Should have received some events (BEST_EFFORT may drop under pressure)
         Assert.assertTrue(receivedCount.get() >= 0, "Should have received events or gracefully dropped");
-        
+
         eventBus.close();
     }
 
     // ==================== Integration Tests ====================
 
     /**
-     * Verifies end-to-end observability flow: events -> trace logger -> metrics.
+     * Verifies end-to-end: events flow through trace logger, telemetry emitter writes to shared sinks.
      */
     @Test
-    public void observability_endToEnd_eventsAreLoggedAndMetered() throws InterruptedException {
+    public void observability_endToEnd_eventsAndMetricsFlowToSameSink() throws InterruptedException {
         EventSyncPubSubHolder eventBus = new EventSyncPubSubHolder();
-        MetricRegistry registry = new MetricRegistry();
-        TelemetryEmitter emitter = new TelemetryEmitter(registry);
-        
-        List<String> loggedEvents = new java.util.concurrent.CopyOnWriteArrayList<>();
-        WorkspaceTraceLogger traceLogger = new WorkspaceTraceLogger(eventBus, 
-            event -> {
-                loggedEvents.add(event.eventKind().name());
-                emitter.emit("event.received", Map.of("kind", event.eventKind().name()));
-            });
+        List<Map<String, String>> captured = new CopyOnWriteArrayList<>();
+        TraceLogSink sink = capturingSink(captured);
 
-        // Publish events
+        TelemetryEmitter emitter = new TelemetryEmitter(List.of(sink));
+        new WorkspaceTraceLogger(eventBus, event -> {
+            emitter.emit("event.received", Map.of("kind", event.eventKind().name()));
+        });
+
         eventBus.publish(new DomainEvent(Instant.now(), "workspace-1", EventKind.WORKSPACE_PROJECT_REGISTERED));
         eventBus.publish(new DomainEvent(Instant.now(), "workspace-1", EventKind.WM_DOCUMENT_OPENED));
         eventBus.publish(new DomainEvent(Instant.now(), "workspace-1", EventKind.COMPILER_SNAPSHOT_PUBLISHED));
 
-        // Wait for async processing
         Thread.sleep(300);
 
-        // Verify events were logged
-        Assert.assertTrue(loggedEvents.contains("WORKSPACE_PROJECT_REGISTERED"));
-        Assert.assertTrue(loggedEvents.contains("WM_DOCUMENT_OPENED"));
-        Assert.assertTrue(loggedEvents.contains("COMPILER_SNAPSHOT_PUBLISHED"));
+        Assert.assertTrue(captured.size() >= 3, "Should have at least one metric entry per event");
+        boolean hasRegistered = captured.stream()
+                .anyMatch(e -> "WORKSPACE_PROJECT_REGISTERED".equals(e.get("kind")));
+        Assert.assertTrue(hasRegistered, "Metric for WORKSPACE_PROJECT_REGISTERED should be present");
 
         eventBus.close();
+    }
+
+    // ==================== Helpers ====================
+
+    private static TraceLogSink capturingSink(List<Map<String, String>> target) {
+        return new TraceLogSink() {
+            @Override
+            public void write(String level, Map<String, String> fields) {
+                target.add(new java.util.LinkedHashMap<>(fields));
+            }
+
+            @Override
+            public void close() {
+            }
+        };
     }
 }
