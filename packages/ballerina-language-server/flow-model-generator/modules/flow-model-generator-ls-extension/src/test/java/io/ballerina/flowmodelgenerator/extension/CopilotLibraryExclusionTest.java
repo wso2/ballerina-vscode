@@ -77,6 +77,31 @@ public class CopilotLibraryExclusionTest {
     }
 
     @Test
+    public void testExcludeEntireLibrary() {
+        List<Library> libraries = buildLibWithFunctions("ballerinax/trigger.salesforce",
+                new String[]{"onCreate", "onUpdate", "onDelete"});
+
+        manager.applyLibraryExclusions(libraries);
+
+        Assert.assertTrue(libraries.isEmpty(),
+                "Library with name-only exclusion entry should be entirely removed");
+    }
+
+    @Test
+    public void testExcludeEntireLibraryPreservesOthers() {
+        List<Library> libraries = new ArrayList<>();
+        libraries.addAll(buildLibWithFunctions("ballerinax/trigger.salesforce",
+                new String[]{"onCreate"}));
+        libraries.addAll(buildLibWithFunctions("ballerina/http",
+                new String[]{"createClient", "send"}));
+
+        manager.applyLibraryExclusions(libraries);
+
+        Assert.assertEquals(libraries.size(), 1, "Only the excluded library should be removed");
+        Assert.assertEquals(libraries.get(0).getName(), "ballerina/http");
+    }
+
+    @Test
     public void testWithAndWithoutExclusion() {
         List<Library> with = buildLibWithClient("ballerinax/slack", "Client",
                 new String[]{"init", "getConversationMembers", "getConversationList", "postMessage"});

@@ -44,6 +44,7 @@ public class CopilotLibraryFilterTest extends AbstractLSTest {
     protected Object[] getConfigsList() {
         return new Object[][]{
                 {Path.of("get_filtered_libraries.json")},
+                {Path.of("get_filtered_libraries_trigger_salesforce.json")},
         };
     }
 
@@ -103,6 +104,18 @@ public class CopilotLibraryFilterTest extends AbstractLSTest {
             // updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
+    }
+
+    @Test
+    public void testTriggerSalesforceExcluded() throws IOException {
+        GetSelectedLibrariesRequest request = new GetSelectedLibrariesRequest(
+                new String[]{"ballerinax/trigger.salesforce"});
+        JsonElement response = getResponse(request);
+        JsonArray libraries = response.getAsJsonObject().getAsJsonArray("libraries");
+
+        Assert.assertNotNull(libraries, "Libraries array should not be null");
+        Assert.assertTrue(libraries.isEmpty(),
+                "trigger.salesforce should be excluded and return empty libraries");
     }
 
     @Override
