@@ -27,8 +27,7 @@ import { FormHeader } from "../../../components/FormHeader";
 import { convertConfig, getImportsForProperty } from "../../../utils/bi";
 import { LoadingContainer } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
-import { useProjectStructure } from "../../../ProjectStructureContext";
-import { useGetNodeTemplate } from "../../../hooks/useGetNodeTemplate";
+
 
 type NodeProperties = OriginalNodeProperties & {
     [key: string]: any;
@@ -74,8 +73,6 @@ interface FunctionFormProps {
 
 export function FunctionFormStatic(props: FunctionFormProps) {
     const { rpcClient } = useRpcContext();
-    const {projectStructure} =useProjectStructure();
-    const getNodeTemplate = useGetNodeTemplate();
     const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isAutomation, defaultType, handleSubmit } = props;
 
     const [functionFields, setFunctionFields] = useState<FormField[]>([]);
@@ -139,7 +136,7 @@ export function FunctionFormStatic(props: FunctionFormProps) {
     const getFunctionNode = async (kind: NodeKind) => {
         setIsLoading(true);
 
-        const res = await getNodeTemplate({
+        const res = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
             position: { line: 0, offset: 0 },
             filePath: Utils.joinPath(URI.file(projectPath), fileName).fsPath,
             id: { node: kind },

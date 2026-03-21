@@ -42,7 +42,6 @@ import { FormSubmitOptions } from "../../FlowDiagram";
 import { cloneDeep } from "lodash";
 import { URI, Utils } from "vscode-uri";
 import { PopupOverlay, PopupContainer, PopupHeader as ConfigHeader, BackButton, HeaderTitleContainer as ConfigTitleContainer, PopupTitle, PopupSubtitle as ConfigSubtitle, CloseButton } from "../styles";
-import { useGetNodeTemplate } from "../../../../hooks/useGetNodeTemplate";
 
 const ConnectorInfoCard = styled.div`
     display: flex;
@@ -244,7 +243,6 @@ export interface ConnectionConfigurationFormProps extends Omit<ConnectionConfigu
 export function ConnectionConfigurationForm(props: ConnectionConfigurationFormProps) {
     const { selectedConnector, fileName, target, onClose, filteredCategories = [], loading, devantExpressionEditor, customValidator, overrideFlowNode } = props;
     const { rpcClient } = useRpcContext();
-    const getNodeTemplate = useGetNodeTemplate();
 
     const [pullingStatus, setPullingStatus] = useState<PullingStatus | undefined>(undefined);
     const [savingFormStatus, setSavingFormStatus] = useState<SavingFormStatus | undefined>(undefined);
@@ -277,7 +275,7 @@ export function ConnectionConfigurationForm(props: ConnectionConfigurationFormPr
                 });
 
                 // Start the request
-                const nodeTemplatePromise = getNodeTemplate({
+                const nodeTemplatePromise = rpcClient.getBIDiagramRpcClient().getNodeTemplate({
                     position: target || null,
                     filePath: fileName,
                     id: selectedConnector.codedata,

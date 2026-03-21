@@ -26,7 +26,6 @@ import {
     EVENT_TYPE,
     ParentPopupData,
     ProjectStructureArtifactResponse,
-    ProjectStructureResponse,
     DIRECTORY_MAP,
     CodeData,
     LinePosition,
@@ -55,7 +54,6 @@ import { STKindChecker } from "@wso2/syntax-tree";
 import { URI, Utils } from "vscode-uri";
 import { ThemeColors, Typography } from "@wso2/ui-toolkit";
 import { PanelType, useModalStack, useVisualizerContext } from "./Context";
-import { ProjectStructureProvider } from "./ProjectStructureContext";
 import { ConstructPanel } from "./views/ConstructPanel";
 import { EditPanel } from "./views/EditPanel";
 import { RecordEditor } from "./views/RecordEditor/RecordEditor";
@@ -210,7 +208,6 @@ const MainPanel = () => {
     const [popupState, setPopupState] = useState<PopupMachineStateValue>("initialize");
     const [breakpointState, setBreakpointState] = useState<number>(0);
     const breakpointStateRef = useRef<number>(0);
-    const [projectStructure, setProjectStructure] = useState<ProjectStructureResponse | null>(null);
 
     const debounceFetchContext = useCallback(
         debounce(() => {
@@ -236,14 +233,6 @@ const MainPanel = () => {
                 breakpointStateRef.current = newValue;
                 return newValue;
             });
-        });
-        rpcClient?.onProjectStructureUpdated((structure: ProjectStructureResponse) => {
-            console.log("[ProjectStructure updated]", structure);
-            setProjectStructure(structure);
-        });
-
-        rpcClient?.getBIDiagramRpcClient().getProjectStructure().then((structure) => {
-            setProjectStructure(structure);
         });
     }, [rpcClient]);
 
@@ -731,8 +720,7 @@ const MainPanel = () => {
     return (
         <>
             <Global styles={globalStyles} />
-            <ProjectStructureProvider value={{ projectStructure, setProjectStructure }}>
-                <VisualizerContainer id="visualizer-container">
+            <VisualizerContainer id="visualizer-container">
                 {/* {navActive && <NavigationBar showHome={showHome} />} */}
                 {(showOverlay || modalStack.length > 0) && <Overlay />}
                 {viewComponent && <ComponentViewWrapper>{viewComponent}</ComponentViewWrapper>}
@@ -789,7 +777,6 @@ const MainPanel = () => {
                     ))
                 }
                 </VisualizerContainer>
-            </ProjectStructureProvider>
         </>
     );
 };

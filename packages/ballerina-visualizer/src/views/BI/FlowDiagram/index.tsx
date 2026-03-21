@@ -85,8 +85,6 @@ import { DiagramSkeleton } from "../../../components/Skeletons";
 import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, GET_DEFAULT_MODEL_PROVIDER, LOADING_MESSAGE } from "../../../constants";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
-import { useProjectStructure } from "../../../ProjectStructureContext";
-import { useGetNodeTemplate } from "../../../hooks/useGetNodeTemplate";
 
 const Container = styled.div`
     width: 100%;
@@ -124,8 +122,7 @@ type NodePromptLaunchOptions = {
 export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const { projectPath, breakpointState, syntaxTree, onUpdate, onReady, onSave } = props;
     const { rpcClient } = useRpcContext();
-    const { projectStructure } = useProjectStructure();
-    const getNodeTemplate = useGetNodeTemplate();
+
 
     const [model, setModel] = useState<Flow>();
     const [suggestedModel, setSuggestedModel] = useState<Flow>();
@@ -1485,7 +1482,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 // default node
                 selectedClientName.current = category;
                 setShowProgressIndicator(true);
-                getNodeTemplate({
+                rpcClient.getBIDiagramRpcClient().getNodeTemplate({
                     position: targetRef.current.startLine,
                     filePath: model?.fileName || fileName,
                     id: node.codedata,
@@ -1808,7 +1805,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
 
         setShowProgressIndicator(true);
-        getNodeTemplate({
+        rpcClient.getBIDiagramRpcClient().getNodeTemplate({
             position: targetRef.current.startLine,
             filePath: model.fileName,
             id: node.codedata,
@@ -1984,7 +1981,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setShowProgressIndicator(true);
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
 
-        getNodeTemplate({
+        rpcClient.getBIDiagramRpcClient().getNodeTemplate({
             position: targetRef.current.startLine,
             filePath: model?.fileName,
             id: { node: "FUNCTION_CREATION" },
@@ -2017,7 +2014,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         setShowProgressIndicator(true);
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
 
-        getNodeTemplate({
+        rpcClient.getBIDiagramRpcClient().getNodeTemplate({
             position: targetRef.current.startLine,
             filePath: model?.fileName,
             id: { node: "DATA_MAPPER_CREATION" },
@@ -2057,7 +2054,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         // Push current state to navigation stack
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
 
-        getNodeTemplate({
+        rpcClient.getBIDiagramRpcClient().getNodeTemplate({
             position: targetRef.current.startLine,
             filePath: model?.fileName,
             id: {

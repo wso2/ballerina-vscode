@@ -25,8 +25,6 @@ import { ExpressionFormField } from "@wso2/ballerina-side-panel";
 import ConnectionConfigView from "../ConnectionConfigView";
 import { FormSubmitOptions } from "../../FlowDiagram";
 import { PopupOverlay, PopupContainer, PopupHeader, BackButton, HeaderTitleContainer, PopupTitle, PopupSubtitle, CloseButton } from "../styles";
-import { useProjectStructure } from "../../../../ProjectStructureContext";
-import { useGetNodeTemplate } from "../../../../hooks/useGetNodeTemplate";
 
 const StepperContainer = styled.div`
     padding: 20px 32px 18px 32px;
@@ -198,7 +196,6 @@ interface APIConnectionPopupProps {
 export function APIConnectionPopup(props: APIConnectionPopupProps) {
     const { fileName, target, onBack, onClose, projectPath } = props;
     const { rpcClient } = useRpcContext();
-    const getNodeTemplate = useGetNodeTemplate();
     
     const [currentStep, setCurrentStep] = useState(0);
 
@@ -369,8 +366,6 @@ const defaultOptions = [
 export function APIConnectionForm(props: APIConnectionFormProps) {
     const { onSave, fileName, target, projectPath, apiSpecOptions = defaultOptions, disabled, initialName = "", initialFilePath = "", actionButtonText = "Save Connector", availableNode } = props;
     const { rpcClient } = useRpcContext();
-    const { projectStructure } = useProjectStructure();
-    const getNodeTemplate = useGetNodeTemplate();
 
     const [specType, setSpecType] = useState<string>("OpenAPI");
     const [selectedFilePath, setSelectedFilePath] = useState<string>(initialFilePath);
@@ -486,7 +481,7 @@ export function APIConnectionForm(props: APIConnectionFormProps) {
 
                 if (createdConnector && createdConnector.codedata) {
                     // Get the flowNode template using centralized hook
-                    const nodeTemplateResponse = await getNodeTemplate({
+                    const nodeTemplateResponse = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
                         position: target || null,
                         filePath: fileName,
                         id: createdConnector.codedata,
