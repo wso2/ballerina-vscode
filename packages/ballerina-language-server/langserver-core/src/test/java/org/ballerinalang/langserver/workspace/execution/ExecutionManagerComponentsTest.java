@@ -18,6 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.execution;
 
+import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.RunContext;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
@@ -25,6 +26,7 @@ import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
+import org.mockito.Mockito;
 
 import static org.ballerinalang.langserver.workspace.execution.ExecutionProcess.ExecutionMode;
 import static org.ballerinalang.langserver.workspace.execution.ExecutionProcess.ProcessState;
@@ -213,7 +215,10 @@ public class ExecutionManagerComponentsTest {
                 Map.of(),
                 null);
 
-        ProcessId processId = service.run(context);
+        Project project = Mockito.mock(Project.class);
+        Mockito.when(project.sourceRoot()).thenReturn(sourceRootPath);
+
+        ProcessId processId = service.run(project, context);
         Assert.assertTrue(latch.await(6, TimeUnit.SECONDS));
         Assert.assertTrue(events.contains(EventKind.EXECUTION_PROCESS_STARTED));
         Assert.assertTrue(events.contains(EventKind.EXECUTION_PROCESS_OUTPUT));
@@ -244,8 +249,11 @@ public class ExecutionManagerComponentsTest {
         Path sourceFile = sourceRootPath.resolve("service.bal");
         Files.writeString(sourceFile, "service / on new http:Listener(8080) {}");
         DocumentUri sourceRoot = new DocumentUri.FileUri(sourceRootPath.toUri());
+        Project project = Mockito.mock(Project.class);
+        Mockito.when(project.sourceRoot()).thenReturn(sourceRootPath);
 
-        ProcessId running = service.run(new RunContext("/bin/sh", sourceFile, List.of("-c", "sleep 10"), Map.of(), null));
+        ProcessId running = service.run(project,
+                new RunContext("/bin/sh", sourceFile, List.of("-c", "sleep 10"), Map.of(), null));
 
         eventBus.publish(new DomainEvent(Instant.now(), sourceRoot.uri().getPath(),
                 EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED, "BUILD"));
@@ -260,7 +268,9 @@ public class ExecutionManagerComponentsTest {
         Path sourceFile2 = sourceRootPath2.resolve("run.bal");
         Files.writeString(sourceFile2, "function main() {}");
         DocumentUri sourceRoot2 = new DocumentUri.FileUri(sourceRootPath2.toUri());
-        service.run(new RunContext("/bin/sh", sourceFile2, List.of("-c", "sleep 10"), Map.of(), null));
+        Project project2 = Mockito.mock(Project.class);
+        Mockito.when(project2.sourceRoot()).thenReturn(sourceRootPath2);
+        service.run(project2, new RunContext("/bin/sh", sourceFile2, List.of("-c", "sleep 10"), Map.of(), null));
 
         eventBus.publish(new DomainEvent(Instant.now(), sourceRoot2.uri().getPath(), EventKind.WORKSPACE_PROJECT_EVICTED));
 

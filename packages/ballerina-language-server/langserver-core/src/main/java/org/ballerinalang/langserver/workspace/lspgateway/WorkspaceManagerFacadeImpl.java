@@ -311,15 +311,20 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public RunResult run(RunContext runContext) throws IOException {
-        executionService.run(runContext);
+        Project project = projectService.loadOrCreate(runContext.balSourcePath(), null);
+        executionService.run(project, runContext);
         return new RunResult(null, List.of());
     }
 
     @Override
     public boolean stop(Path filePath) {
-        executionService.stop(new org.ballerinalang.langserver.workspace.documentstore.DocumentUri.FileUri(
-                filePath.toAbsolutePath().normalize().toUri()));
-        return true;
+        try {
+            Project project = projectService.loadOrCreate(filePath, null);
+            executionService.stop(project);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Override

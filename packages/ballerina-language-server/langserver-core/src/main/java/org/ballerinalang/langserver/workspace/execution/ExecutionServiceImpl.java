@@ -18,6 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.execution;
 
+import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.RunContext;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
@@ -97,13 +98,13 @@ public final class ExecutionServiceImpl implements ExecutionService {
     }
 
     @Override
-    public ProcessId run(@Nonnull RunContext context) {
+    public ProcessId run(@Nonnull Project project, @Nonnull RunContext context) {
         Path sourcePath = context.balSourcePath();
         if (sourcePath == null) {
             throw new IllegalArgumentException("balSourcePath must not be null");
         }
 
-        DocumentUri sourceRoot = resolveSourceUri(sourcePath);
+        DocumentUri sourceRoot = resolveSourceUri(project);
         ProcessId processId = new ProcessId(UUID.randomUUID().toString());
 
         try {
@@ -136,7 +137,8 @@ public final class ExecutionServiceImpl implements ExecutionService {
     }
 
     @Override
-    public void stop(@Nonnull DocumentUri sourceRoot) {
+    public void stop(@Nonnull Project project) {
+        DocumentUri sourceRoot = resolveSourceUri(project);
         processRegistry.cleanup(sourceRoot, ExecutionProcess.TerminationReason.USER_REQUESTED);
     }
 
@@ -304,10 +306,8 @@ public final class ExecutionServiceImpl implements ExecutionService {
         return pb;
     }
 
-    private DocumentUri resolveSourceUri(Path sourcePath) {
-        Path normalized = sourcePath.toAbsolutePath().normalize();
-        Path parent = normalized.getParent() != null ? normalized.getParent() : normalized;
-        return new DocumentUri.FileUri(parent.toUri());
+    private DocumentUri resolveSourceUri(Project project) {
+        return new DocumentUri.FileUri(project.sourceRoot().toAbsolutePath().normalize().toUri());
     }
 
     private ExecutionProcess.ExecutionMode resolveExecutionMode(RunContext context) {

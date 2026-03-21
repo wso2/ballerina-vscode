@@ -53,6 +53,7 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -76,7 +77,7 @@ public class WorkspaceManagerFacadeImplTest {
     private Path testPath;
 
     @BeforeMethod
-    public void setUp() {
+    public void setUp() throws Exception {
         mockProjectService = Mockito.mock(ProjectService.class);
         mockCompilationService = Mockito.mock(CompilationService.class);
         mockExecutionService = Mockito.mock(ExecutionService.class);
@@ -88,12 +89,13 @@ public class WorkspaceManagerFacadeImplTest {
                 mockExecutionService
         );
 
-        testPath = Paths.get("/test/project/main.bal").toAbsolutePath().normalize();
+        Path workspaceDir = Files.createTempDirectory("workspace-facade-test").toAbsolutePath().normalize();
+        testPath = Files.writeString(workspaceDir.resolve("main.bal"), "function main() {}\n");
     }
 
     @Test
     public void testRelativePath_DelegatesToProjectService() {
-        Path expectedRoot = Paths.get("/test/project").toAbsolutePath().normalize();
+        Path expectedRoot = testPath.getParent();
         Project mockProject = Mockito.mock(Project.class);
         Mockito.when(mockProject.sourceRoot()).thenReturn(expectedRoot);
         Mockito.when(mockProjectService.loadOrCreate(Mockito.eq(testPath), Mockito.isNull()))
@@ -119,7 +121,7 @@ public class WorkspaceManagerFacadeImplTest {
     @Test
     public void testRelativePathWithCancelChecker_DelegatesToProjectService() {
         CancelChecker cancelChecker = Mockito.mock(CancelChecker.class);
-        Path expectedRoot = Paths.get("/test/project").toAbsolutePath().normalize();
+        Path expectedRoot = testPath.getParent();
         Project mockProject = Mockito.mock(Project.class);
         Mockito.when(mockProject.sourceRoot()).thenReturn(expectedRoot);
         Mockito.when(mockProjectService.loadOrCreate(testPath, cancelChecker))
@@ -497,21 +499,28 @@ public class WorkspaceManagerFacadeImplTest {
     @Test
     public void testRun_DelegatesToExecutionService() throws IOException {
         RunContext context = new RunContext("java", testPath, Collections.emptyList(), Collections.emptyMap(), null);
+        Project mockProject = Mockito.mock(Project.class);
         ProcessId mockProcessId = Mockito.mock(ProcessId.class);
-        Mockito.when(mockExecutionService.run(context)).thenReturn(mockProcessId);
+        Mockito.when(mockProjectService.loadOrCreate(testPath, null)).thenReturn(mockProject);
+        Mockito.when(mockExecutionService.run(mockProject, context)).thenReturn(mockProcessId);
 
         RunResult result = facade.run(context);
 
         Assert.assertNotNull(result);
-        Mockito.verify(mockExecutionService).run(context);
+        Mockito.verify(mockProjectService).loadOrCreate(testPath, null);
+        Mockito.verify(mockExecutionService).run(mockProject, context);
     }
 
     @Test
     public void testStop_DelegatesToExecutionService() {
+        Project mockProject = Mockito.mock(Project.class);
+        Mockito.when(mockProjectService.loadOrCreate(testPath, null)).thenReturn(mockProject);
+
         boolean result = facade.stop(testPath);
 
         Assert.assertTrue(result);
-        Mockito.verify(mockExecutionService).stop(Mockito.any());
+        Mockito.verify(mockProjectService).loadOrCreate(testPath, null);
+        Mockito.verify(mockExecutionService).stop(mockProject);
     }
 
     @Test
