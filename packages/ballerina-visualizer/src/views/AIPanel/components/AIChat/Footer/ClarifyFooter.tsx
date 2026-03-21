@@ -27,14 +27,14 @@ import { ActionButton } from "../../AgentStreamView/styles";
 const ApprovalContainer = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 `;
 
 const TabRow = styled.div`
     display: flex;
     gap: 0;
     border-bottom: 1px solid var(--vscode-panel-border);
-    margin-bottom: 2px;
+    margin-bottom: 4px;
 `;
 
 const Tab = styled.button<{ active: boolean }>`
@@ -45,7 +45,7 @@ const Tab = styled.button<{ active: boolean }>`
     font-weight: ${({ active }: { active: boolean }) => active ? 600 : 400};
     font-family: var(--vscode-font-family);
     font-size: 12px;
-    padding: 5px 10px;
+    padding: 6px 12px;
     cursor: pointer;
     margin-bottom: -1px;
     white-space: nowrap;
@@ -60,12 +60,13 @@ const QuestionHeader = styled.div`
     align-items: baseline;
     flex-wrap: wrap;
     gap: 6px;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
 `;
 
 const QuestionText = styled.span`
     font-size: 13px;
     font-weight: 500;
+    line-height: 1.4;
     color: var(--vscode-editor-foreground);
     font-family: var(--vscode-font-family);
 `;
@@ -81,19 +82,21 @@ const TypeBadge = styled.span`
 const OptionsList = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 4px;
 `;
 
 const OptionButton = styled.button<{ selected: boolean }>`
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 1px;
+    gap: 0;
     width: 100%;
-    background: transparent;
-    border: none;
+    background: ${({ selected }: { selected: boolean }) =>
+        selected ? "var(--vscode-list-activeSelectionBackground, var(--vscode-list-hoverBackground))" : "transparent"};
+    border: 1px solid ${({ selected }: { selected: boolean }) =>
+        selected ? "var(--vscode-focusBorder, var(--vscode-input-border))" : "transparent"};
     cursor: pointer;
-    padding: 5px 8px;
+    padding: 7px 10px;
     border-radius: 4px;
     text-align: left;
 
@@ -110,15 +113,16 @@ const OptionButton = styled.button<{ selected: boolean }>`
 const OptionRow = styled.div`
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
     width: 100%;
 `;
 
 const OptionLabel = styled.span<{ selected: boolean }>`
-    font-size: 12px;
+    font-size: 13px;
     font-family: var(--vscode-font-family);
+    font-weight: ${({ selected }: { selected: boolean }) => selected ? 500 : 400};
     color: ${({ selected }: { selected: boolean }) =>
-        selected ? "var(--vscode-editor-foreground)" : "var(--vscode-descriptionForeground)"};
+        selected ? "var(--vscode-editor-foreground)" : "var(--vscode-foreground)"};
 `;
 
 const InputContainer = styled.div`
@@ -284,7 +288,7 @@ const ClarifyFooter: React.FC<ClarifyFooterProps> = ({ questions, requestId, rpc
                                             ? isSelected ? "codicon-check" : "codicon-circle-outline"
                                             : isSelected ? "codicon-circle-filled" : "codicon-circle-outline"
                                         }`}
-                                        style={{ fontSize: "11px", flexShrink: 0 }}
+                                        style={{ fontSize: "14px", flexShrink: 0, color: isSelected ? "var(--vscode-charts-blue)" : "var(--vscode-descriptionForeground)", opacity: isSelected ? 1 : 0.5 }}
                                     />
                                     <OptionLabel selected={isSelected}>{opt.label}</OptionLabel>
                                 </OptionRow>
@@ -302,7 +306,7 @@ const ClarifyFooter: React.FC<ClarifyFooterProps> = ({ questions, requestId, rpc
                                     ? isOtherActive ? "codicon-check" : "codicon-circle-outline"
                                     : isOtherActive ? "codicon-circle-filled" : "codicon-circle-outline"
                                 }`}
-                                style={{ fontSize: "11px", flexShrink: 0 }}
+                                style={{ fontSize: "14px", flexShrink: 0, color: isOtherActive ? "var(--vscode-charts-blue)" : "var(--vscode-descriptionForeground)", opacity: isOtherActive ? 1 : 0.5 }}
                             />
                             <OptionLabel selected={isOtherActive}>Other</OptionLabel>
                         </OptionRow>
