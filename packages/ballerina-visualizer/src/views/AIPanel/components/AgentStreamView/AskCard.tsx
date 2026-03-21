@@ -23,28 +23,51 @@ import {
     InlineCardHeader,
     InlineCardIcon,
     InlineCardTitle,
+    InlineDivider,
 } from "./styles";
 
 // ── Locally scoped styled components ─────────────────────────────────────────
-
-const AnswerSummary = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 4px 0 2px;
-`;
-
-const AnswerRow = styled.div`
-    font-size: 12px;
-    font-family: var(--vscode-font-family);
-    color: var(--vscode-descriptionForeground);
-`;
 
 const ChevronIcon = styled.span`
     margin-left: auto;
     font-size: 11px;
     color: var(--vscode-descriptionForeground);
     opacity: 0.7;
+`;
+
+const QABlock = styled.div`
+    display: flex;
+    flex-direction: column;
+    padding: 2px 0 4px;
+`;
+
+const QAItem = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 0;
+`;
+
+const QAQuestion = styled.div`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-font-family);
+    opacity: 0.85;
+`;
+
+const QAAnswerRow = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+`;
+
+const QAAnswerChip = styled.span`
+    font-size: 11px;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-editor-foreground);
+    background: var(--vscode-badge-background, var(--vscode-editor-inactiveSelectionBackground));
+    border-radius: 3px;
+    padding: 1px 6px;
 `;
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -64,42 +87,38 @@ const AskCard: React.FC<AskCardProps> = ({ data }) => {
 
     if (stage === "answered") {
         const answers: Array<{ question: string; answers: string[] }> = data.answers ?? [];
+        const hasAnswers = answers.length > 0;
         return (
             <InlineCard status="done">
                 <InlineCardHeader
-                    onClick={() => setExpanded(e => !e)}
-                    style={{ cursor: answers.length > 0 ? "pointer" : "default" }}
+                    onClick={() => hasAnswers && setExpanded(e => !e)}
+                    style={{ cursor: hasAnswers ? "pointer" : "default" }}
                 >
                     <InlineCardIcon>
                         <span className="codicon codicon-pass" />
                     </InlineCardIcon>
-                    <InlineCardTitle>Clarification provided</InlineCardTitle>
-                    {answers.length > 0 && (
+                    <InlineCardTitle>Questions answered</InlineCardTitle>
+                    {hasAnswers && (
                         <ChevronIcon className={`codicon codicon-chevron-${expanded ? "up" : "down"}`} />
                     )}
                 </InlineCardHeader>
-                {expanded && answers.length > 0 && (
-                    <AnswerSummary>
+                {expanded && hasAnswers && (
+                    <QABlock>
                         {answers.map((a, i) => (
-                            <AnswerRow key={i}>
-                                <strong>{a.question}:</strong> {a.answers.join(", ")}
-                            </AnswerRow>
+                            <React.Fragment key={i}>
+                                {i > 0 && <InlineDivider />}
+                                <QAItem>
+                                    <QAQuestion>{a.question}</QAQuestion>
+                                    <QAAnswerRow>
+                                        {a.answers.map((ans, j) => (
+                                            <QAAnswerChip key={j}>{ans}</QAAnswerChip>
+                                        ))}
+                                    </QAAnswerRow>
+                                </QAItem>
+                            </React.Fragment>
                         ))}
-                    </AnswerSummary>
+                    </QABlock>
                 )}
-            </InlineCard>
-        );
-    }
-
-    if (stage === "skipped") {
-        return (
-            <InlineCard status="done">
-                <InlineCardHeader>
-                    <InlineCardIcon>
-                        <span className="codicon codicon-circle-slash" />
-                    </InlineCardIcon>
-                    <InlineCardTitle>Clarification skipped</InlineCardTitle>
-                </InlineCardHeader>
             </InlineCard>
         );
     }
