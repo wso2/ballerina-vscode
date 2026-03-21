@@ -18,10 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
-
 import java.time.Instant;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;

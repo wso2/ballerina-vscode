@@ -17,8 +17,6 @@
  */
 package org.ballerinalang.langserver.workspace.test.acceptance;
 
-import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
@@ -30,7 +28,7 @@ import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline
 import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
-import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.workspacemanager.ContentVersion;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.lspgateway.TwoTierReadinessController;
 import org.mockito.Mockito;

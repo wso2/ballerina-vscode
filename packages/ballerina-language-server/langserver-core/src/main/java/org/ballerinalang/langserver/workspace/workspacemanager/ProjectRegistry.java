@@ -24,13 +24,11 @@ import com.google.common.cache.CacheStats;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListeners;
 import com.google.common.cache.RemovalNotification;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 
 import javax.annotation.Nonnull;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;

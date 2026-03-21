@@ -22,7 +22,7 @@ import io.ballerina.projects.PackageDescriptor;
 
 import javax.annotation.Nonnull;
 
-import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.workspacemanager.ContentVersion;
 
 import java.time.Instant;
 import java.util.concurrent.CancellationException;

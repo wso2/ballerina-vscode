@@ -34,7 +34,7 @@ import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureDetect
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureMonitor;
 import org.ballerinalang.langserver.workspace.workspacemanager.ChangeApplier;
 import org.ballerinalang.langserver.workspace.workspacemanager.ChangeBuffer;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectLoader;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry;

@@ -27,12 +27,9 @@ import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.util.ProjectConstants;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 
-import java.net.URI;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;

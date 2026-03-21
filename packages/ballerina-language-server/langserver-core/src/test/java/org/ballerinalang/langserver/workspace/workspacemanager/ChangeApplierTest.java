@@ -26,8 +26,6 @@ import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.TextDocument;
-import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;

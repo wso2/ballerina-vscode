@@ -18,8 +18,8 @@
 
 package org.ballerinalang.langserver.workspace;
 
-import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.workspacemanager.ContentVersion;
+import org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

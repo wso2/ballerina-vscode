@@ -34,7 +34,7 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;

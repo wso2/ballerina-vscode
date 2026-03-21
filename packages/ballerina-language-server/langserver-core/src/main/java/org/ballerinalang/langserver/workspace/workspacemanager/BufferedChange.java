@@ -18,7 +18,6 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
-import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 
 import javax.annotation.Nonnull;

@@ -88,7 +88,7 @@ import static org.awaitility.Awaitility.await;
  *
  * @since 1.0.0
  */
-@Test(enabled = false, description = "The tests are designed for the old workspace manager implementation")
+@Test()
 public class TestWorkspaceManager {
 
     private static final Path RESOURCE_DIRECTORY = Path.of("src/test/resources/project");

@@ -19,7 +19,7 @@
 package org.ballerinalang.langserver.workspace.execution;
 
 import org.ballerinalang.langserver.commons.workspace.RunContext;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;

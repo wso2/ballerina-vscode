@@ -20,7 +20,7 @@ package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.DocumentId;
-import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.workspacemanager.ContentVersion;
 
 /**
  * Shared syntax-level snapshot contract for the dual-snapshot access pattern.

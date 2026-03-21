@@ -19,7 +19,6 @@
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
 import io.ballerina.projects.Project;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;

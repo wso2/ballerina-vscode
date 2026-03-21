@@ -18,8 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.test.acceptance;
 
-import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.workspacemanager.ContentVersion;
+import org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri;
 import org.ballerinalang.langserver.workspace.workspacemanager.BufferedChange;
 import org.ballerinalang.langserver.workspace.workspacemanager.ChangeBuffer;
 import org.ballerinalang.langserver.workspace.workspacemanager.ChangeLayer;
@@ -32,8 +32,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;

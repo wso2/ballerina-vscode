@@ -22,7 +22,6 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.TomlDocument;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;

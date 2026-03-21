@@ -18,7 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.execution;
 
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
 
 import javax.annotation.Nonnull;
@@ -26,7 +26,6 @@ import javax.annotation.Nonnull;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;

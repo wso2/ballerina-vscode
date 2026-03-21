@@ -18,8 +18,6 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
-import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;

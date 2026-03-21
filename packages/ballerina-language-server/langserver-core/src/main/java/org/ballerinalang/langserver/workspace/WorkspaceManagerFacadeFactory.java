@@ -18,45 +18,23 @@
 
 package org.ballerinalang.langserver.workspace;
 
-import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.BuildOptions;
-import io.ballerina.projects.CompilationOptions;
-import io.ballerina.projects.DocumentId;
-import io.ballerina.projects.Module;
-import io.ballerina.projects.ModuleId;
-import io.ballerina.projects.PackageCompilation;
-import io.ballerina.projects.PackageDescriptor;
-import io.ballerina.projects.Project;
-import io.ballerina.projects.environment.PackageLockingMode;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
-import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
-import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
-import org.ballerinalang.langserver.workspace.compilerengine.FailureType;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
-import org.ballerinalang.langserver.workspace.compilerengine.RecoveryLadder;
-import org.ballerinalang.langserver.workspace.compilerengine.ResolutionResult;
-import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.lspgateway.ClientSession;
 import org.ballerinalang.langserver.workspace.lspgateway.WorkspaceManagerFacadeImpl;
-import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.ballerinalang.langserver.workspace.workspacemanager.MemoryBudget;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry;
-import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
 import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
 import org.eclipse.lsp4j.ClientCapabilities;
 
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Factory that assembles a fully-wired {@link WorkspaceManagerFacadeImpl} from a

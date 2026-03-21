@@ -37,7 +37,7 @@ import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectHealthState;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
+import org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.testng.Assert;
 import org.testng.annotations.Test;

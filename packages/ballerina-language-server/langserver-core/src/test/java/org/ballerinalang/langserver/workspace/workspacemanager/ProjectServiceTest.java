@@ -21,7 +21,6 @@ package org.ballerinalang.langserver.workspace.workspacemanager;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.environment.PackageLockingMode;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
@@ -42,7 +41,6 @@ import org.testng.annotations.Test;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -50,8 +48,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for {@link ProjectServiceImpl} service layer implementation.

@@ -20,7 +20,7 @@ package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
-import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.workspacemanager.ContentVersion;
 import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
@@ -30,7 +30,6 @@ import org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.eventbus.ProjectEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
-import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;

@@ -23,7 +23,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
-import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
+import org.ballerinalang.langserver.workspace.workspacemanager.ContentVersion;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import java.util.concurrent.CompletableFuture;

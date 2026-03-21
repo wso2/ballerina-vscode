@@ -291,9 +291,9 @@ private static DocumentUri root(String path) {
 
 | File | Old Import | New Import | Notes |
 |------|-----------|-----------|-------|
-| WiringConfigurationTest.java | `org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot` | `org.ballerinalang.langserver.workspace.documentstore.DocumentUri` | Line 37 |
-| CrossContextBoundaryTest.java | `org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot` | `org.ballerinalang.langserver.workspace.documentstore.DocumentUri` | Line 39 |
-| RegistryTest.java | (none currently) | `org.ballerinalang.langserver.workspace.documentstore.DocumentUri` | Add import |
+| WiringConfigurationTest.java | `org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot` | `org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri` | Line 37 |
+| CrossContextBoundaryTest.java | `org.ballerinalang.langserver.workspace.workspacemanager.SourceRoot` | `org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri` | Line 39 |
+| RegistryTest.java | (none currently) | `org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri` | Add import |
 
 **Import `DocumentUri`, not subclasses.** The sealed interface `DocumentUri` permits all variants. Tests only use `DocumentUri.FileUri`, but importing the interface allows future variants.
 

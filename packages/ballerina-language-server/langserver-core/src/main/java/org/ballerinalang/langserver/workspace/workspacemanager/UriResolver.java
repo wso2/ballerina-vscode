@@ -23,7 +23,6 @@ import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.TomlDocument;
 import io.ballerina.projects.util.ProjectConstants;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 
 import java.net.URI;
 import java.nio.file.Path;

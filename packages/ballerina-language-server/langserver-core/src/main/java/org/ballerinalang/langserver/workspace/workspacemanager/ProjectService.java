@@ -20,7 +20,6 @@ package org.ballerinalang.langserver.workspace.workspacemanager;
 
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
-import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;

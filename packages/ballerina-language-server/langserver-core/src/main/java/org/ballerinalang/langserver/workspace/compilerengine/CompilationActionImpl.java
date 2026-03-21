@@ -31,9 +31,9 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.environment.PackageLockingMode;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
+import org.ballerinalang.langserver.workspace.workspacemanager.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
-import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import javax.annotation.Nonnull;
 import java.nio.file.Path;
@@ -109,7 +109,7 @@ public final class CompilationActionImpl implements CompilationPipeline.Compilat
     }
 
     private StableSnapshot snapshot(Project project,
-                                    org.ballerinalang.langserver.workspace.documentstore.ContentVersion version) {
+                                    ContentVersion version) {
         PackageCompilation compilation = project.currentPackage().getCompilation();
         Map<DocumentId, SyntaxTree> syntaxTrees = new HashMap<>();
         Map<Path, DocumentId> pathToDocumentIds = new HashMap<>();

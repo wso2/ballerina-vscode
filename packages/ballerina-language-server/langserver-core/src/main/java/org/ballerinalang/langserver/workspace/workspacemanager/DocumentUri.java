@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.documentstore;
+package org.ballerinalang.langserver.workspace.workspacemanager;
 
 import java.net.URI;
 import javax.annotation.Nonnull;
