@@ -692,6 +692,10 @@ export const Form = forwardRef((props: FormProps) => {
                         collectAdvancedFields(selectedChoice.properties);
                     }
                 }
+                // Skip GROUP_SECTION properties - they handle their own advanced fields internally
+                else if (propValue?.properties && !propValue.advanced && getPrimaryInputType(propValue?.types)?.fieldType === "GROUP_SECTION") {
+                    // Do not traverse into GROUP_SECTION; its ChoiceForm renders advanced fields within the group
+                }
                 // If this property is advanced, add it to the list
                 else if (propValue.advanced && propValue.enabled && !propValue.hidden && !propValue.choices) {
                     const choiceFormField: FormField = {
@@ -1016,8 +1020,8 @@ export const Form = forwardRef((props: FormProps) => {
                  */}
             <S.CategoryRow bottomBorder={false}>
                 {(() => {
-                    const fieldsToRender = formFields
-                        .sort((a, b) => b.groupNo - a.groupNo)
+                    const fieldsToRender = [...formFields]
+                        .sort((a, b) => (b.groupNo ?? 0) - (a.groupNo ?? 0))
                         .filter((field) => field.type !== "VIEW");
 
                     const renderedComponents: React.ReactNode[] = [];

@@ -119,7 +119,24 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return (
             <FormSectionGroup title={field.label}>
                 {field.advanceProps?.map((childField) => (
-                    <FieldFactory key={childField.key} field={childField} />
+                    <FieldFactory
+                        key={childField.key}
+                        field={childField}
+                        selectedNode={selectedNode}
+                        openRecordEditor={openRecordEditor}
+                        openSubPanel={openSubPanel}
+                        subPanelView={subPanelView}
+                        handleOnFieldFocus={handleOnFieldFocus}
+                        onBlur={onBlur}
+                        handleOnTypeChange={handleOnTypeChange}
+                        recordTypeFields={recordTypeFields}
+                        onIdentifierEditingStateChange={onIdentifierEditingStateChange}
+                        setSubComponentEnabled={setSubComponentEnabled}
+                        handleNewTypeSelected={handleNewTypeSelected}
+                        isContextTypeEditorSupported={isContextTypeEditorSupported}
+                        openFormTypeEditor={openFormTypeEditor}
+                        updateImports={updateImports}
+                    />
                 ))}
             </FormSectionGroup>
         );

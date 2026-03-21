@@ -18,7 +18,7 @@
 
 import React, { useEffect, useState } from "react";
 
-import { Dropdown, LocationSelector, RadioButtonGroup } from "@wso2/ui-toolkit";
+import { Codicon, Dropdown, LinkButton, LocationSelector, RadioButtonGroup, ThemeColors } from "@wso2/ui-toolkit";
 
 import { FormField } from "../Form/types";
 import { capitalize, getValueForDropdown } from "./utils";
@@ -50,6 +50,11 @@ const FormSection = styled.div`
     width: 100%;
 `;
 
+const ButtonContainer = styled.div`
+    display: flex;
+    justify-content: flex-start;
+`;
+
 export function ChoiceForm(props: ChoiceFormProps) {
     const { field, recordTypeFields } = props;
     const { form } = useFormContext();
@@ -58,6 +63,7 @@ export function ChoiceForm(props: ChoiceFormProps) {
     const [selectedOption, setSelectedOption] = useState<number>(1);
 
     const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
+    const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(false);
 
     useEffect(() => {
         // Find the first enabled choice
@@ -165,16 +171,40 @@ export function ChoiceForm(props: ChoiceFormProps) {
             </ChoiceSection>
 
             {(() => {
-                const fields = dynamicFields.filter(dfield => (field.advanced || !dfield.advanced));
-                if (fields.length === 0) return null;
+                const nonAdvancedFields = dynamicFields.filter(dfield => !dfield.advanced);
+                const advancedFields = dynamicFields.filter(dfield => dfield.advanced);
+
+                if (nonAdvancedFields.length === 0 && advancedFields.length === 0) return null;
 
                 return (
                     <FormSection>
-                        {fields.map((dfield, index) => (
+                        {nonAdvancedFields.map((dfield, index) => (
                             <FieldFactory
                                 key={dfield.key}
                                 field={dfield}
                                 autoFocus={index === 0}
+                                recordTypeFields={recordTypeFields}
+                            />
+                        ))}
+                        {advancedFields.length > 0 && (
+                            <ButtonContainer>
+                                <LinkButton
+                                    onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                >
+                                    <Codicon
+                                        name={showAdvancedOptions ? "chevron-up" : "chevron-down"}
+                                        iconSx={{ fontSize: 12 }}
+                                        sx={{ height: 12 }}
+                                    />
+                                    {showAdvancedOptions ? "Collapse" : "Expand"}
+                                </LinkButton>
+                            </ButtonContainer>
+                        )}
+                        {showAdvancedOptions && advancedFields.map((dfield) => (
+                            <FieldFactory
+                                key={dfield.key}
+                                field={dfield}
                                 recordTypeFields={recordTypeFields}
                             />
                         ))}
