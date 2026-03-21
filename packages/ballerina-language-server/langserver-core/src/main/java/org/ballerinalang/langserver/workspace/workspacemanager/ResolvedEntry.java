@@ -23,6 +23,9 @@ import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.TomlDocument;
 
+import java.util.Objects;
+import java.util.Optional;
+
 /**
  * Discriminated union of resolved Ballerina compiler objects for a given URI.
  *
@@ -37,6 +40,24 @@ public sealed interface ResolvedEntry
                 ResolvedEntry.DocumentEntry,
                 ResolvedEntry.ConfigEntry {
 
+    /**
+     * Returns the logical target type of this resolved entry.
+     *
+     * @return target type for trie discrimination
+     */
+    default TargetType targetType() {
+        if (this instanceof ProjectEntry) {
+            return TargetType.PROJECT;
+        }
+        if (this instanceof ModuleEntry) {
+            return TargetType.MODULE;
+        }
+        if (this instanceof DocumentEntry) {
+            return TargetType.DOCUMENT;
+        }
+        return TargetType.CONFIG;
+    }
+
     /** A URI that resolves to a Ballerina project root. */
     record ProjectEntry(Project project) implements ResolvedEntry {}
 
@@ -50,5 +71,42 @@ public sealed interface ResolvedEntry
      * A URI that resolves to a TOML config file
      * (e.g. {@code Ballerina.toml}, {@code Dependencies.toml}).
      */
-    record ConfigEntry(TomlDocument config) implements ResolvedEntry {}
+    final class ConfigEntry implements ResolvedEntry {
+
+        private final TomlDocument config;
+        private final Project project;
+
+        public ConfigEntry(TomlDocument config) {
+            this(config, null);
+        }
+
+        public ConfigEntry(TomlDocument config, Project project) {
+            this.config = Objects.requireNonNull(config, "config must not be null");
+            this.project = project;
+        }
+
+        public TomlDocument config() {
+            return config;
+        }
+
+        public Optional<Project> project() {
+            return Optional.ofNullable(project);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof ConfigEntry other)) {
+                return false;
+            }
+            return Objects.equals(config, other.config) && Objects.equals(project, other.project);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(config, project);
+        }
+    }
 }

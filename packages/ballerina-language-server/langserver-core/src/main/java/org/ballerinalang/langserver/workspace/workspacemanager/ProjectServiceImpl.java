@@ -155,9 +155,9 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
 
         // Fast path: check if already cached in UriResolver
         DocumentUri docUri = toFileUri(normalized);
-        Optional<ResolvedEntry> cached = uriResolver.resolve(docUri);
-        if (cached.isPresent() && cached.get() instanceof ResolvedEntry.ProjectEntry projectEntry) {
-            return projectEntry.project();
+        Optional<Project> cached = uriResolver.project(docUri);
+        if (cached.isPresent()) {
+            return cached.get();
         }
 
         // Slow path: resolve root, get-or-create WM project (ADR-019 mandate 2)
@@ -285,11 +285,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     private void onDocumentOpened(DomainEvent event) {
         Path path = parsePath(event.coalesceScope());
         DocumentUri docUri = toFileUri(path);
-        uriResolver.resolve(docUri)
-                .filter(ResolvedEntry.ProjectEntry.class::isInstance)
-                .map(ResolvedEntry.ProjectEntry.class::cast)
-                .map(ResolvedEntry.ProjectEntry::project)
-                .ifPresent(project -> {
+        uriResolver.project(docUri).ifPresent(project -> {
                     // Find the WM project for tier tracking
                     DocumentUri rootUri = toFileUri(path.toAbsolutePath().normalize());
                     registry.get(rootUri).ifPresent(wmProject -> {
@@ -306,11 +302,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     private void onDocumentClosed(DomainEvent event) {
         Path path = parsePath(event.coalesceScope());
         DocumentUri docUri = toFileUri(path);
-        uriResolver.resolve(docUri)
-                .filter(ResolvedEntry.ProjectEntry.class::isInstance)
-                .map(ResolvedEntry.ProjectEntry.class::cast)
-                .map(ResolvedEntry.ProjectEntry::project)
-                .ifPresent(project -> {
+        uriResolver.project(docUri).ifPresent(project -> {
                     // Find the WM project for tier tracking
                     DocumentUri rootUri = toFileUri(path.toAbsolutePath().normalize());
                     registry.get(rootUri).ifPresent(wmProject -> {
@@ -413,10 +405,8 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         Path normalized = filePath.toAbsolutePath().normalize();
         try {
             DocumentUri docUri = toFileUri(normalized);
-            DocumentUri root = uriResolver.resolve(docUri)
-                    .filter(ResolvedEntry.ProjectEntry.class::isInstance)
-                    .map(ResolvedEntry.ProjectEntry.class::cast)
-                    .map(e -> findSourceRoot(e.project()))
+            DocumentUri root = uriResolver.project(docUri)
+                    .map(this::findSourceRoot)
                     .orElseGet(() -> resolveSourceRoot(normalized));
             registry.remove(root);
         } catch (Exception ignored) {
@@ -434,14 +424,11 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         Path normalized = filePath.toAbsolutePath().normalize();
         try {
             DocumentUri docUri = toFileUri(normalized);
-            Optional<ResolvedEntry> cached = uriResolver.resolve(docUri);
+            Optional<Project> cached = uriResolver.project(docUri);
             if (cached.isEmpty()) {
                 return;
             }
-            if (!(cached.get() instanceof ResolvedEntry.ProjectEntry projectEntry)) {
-                return;
-            }
-            Project project = projectEntry.project();
+            Project project = cached.get();
             DocumentId docId = project.documentId(normalized);
             Document document = project.currentPackage().module(docId.moduleId()).document(docId);
             Project updated = document.module().modify().removeDocument(docId).apply().project();

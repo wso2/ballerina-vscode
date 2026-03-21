@@ -157,9 +157,7 @@ public class ChangeApplier {
      * @return the resolved Document, or empty if not found or not a document entry
      */
     private Optional<Document> resolveDocument(DocumentUri uri) {
-        return uriResolver.resolve(uri)
-                .filter(e -> e instanceof ResolvedEntry.DocumentEntry)
-                .map(e -> ((ResolvedEntry.DocumentEntry) e).document());
+        return uriResolver.document(uri);
     }
 
     /**

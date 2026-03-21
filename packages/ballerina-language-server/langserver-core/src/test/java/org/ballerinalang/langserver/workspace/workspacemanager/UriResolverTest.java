@@ -46,6 +46,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class UriResolverTest {
 
+    private static final String FILE_SCHEME = "file";
+    private static final String EXPR_SCHEME = "expr";
+
     private UriResolver resolver;
     private Project mockProject;
     private Module mockModule;
@@ -55,10 +58,10 @@ public class UriResolverTest {
     @BeforeMethod
     public void setUp() {
         resolver = new UriResolver();
-        mockProject = Mockito.mock(Project.class);
-        mockModule = Mockito.mock(Module.class);
-        mockDocument = Mockito.mock(Document.class);
-        mockTomlDocument = Mockito.mock(TomlDocument.class);
+        mockProject = projectAt("/workspace/project");
+        mockModule = moduleOf(mockProject);
+        mockDocument = documentOf(mockModule);
+        mockTomlDocument = configOf(mockProject);
     }
 
     /**
@@ -66,43 +69,37 @@ public class UriResolverTest {
      */
     @Test
     public void resolve_emptyResolver_returnsEmpty() {
-        DocumentUri uri = new DocumentUri.FileUri(URI.create("file:///workspace/main.bal"));
+        DocumentUri uri = fileUri("/workspace/main.bal");
 
         Assert.assertEquals(resolver.resolve(uri), Optional.empty());
     }
 
     /**
-     * Verifies register + resolve round-trip for a ProjectEntry.
+     * Verifies scheme-aware resolution returns the entry registered for that scheme.
      */
     @Test
-    public void resolve_afterRegisterProject_returnsProjectEntry() {
-        DocumentUri uri = new DocumentUri.FileUri(URI.create("file:///workspace/project"));
-        ResolvedEntry entry = new ResolvedEntry.ProjectEntry(mockProject);
+    public void resolve_samePathDifferentSchemes_returnsSchemeSpecificEntry() {
+        Document fileDocument = documentOf(moduleOf(mockProject));
+        Document exprDocument = documentOf(moduleOf(mockProject));
+        DocumentUri fileUri = fileUri("/workspace/project/main.bal");
+        DocumentUri exprUri = exprUri("/workspace/project/main.bal");
+        ResolvedEntry fileEntry = new ResolvedEntry.DocumentEntry(fileDocument);
+        ResolvedEntry exprEntry = new ResolvedEntry.DocumentEntry(exprDocument);
 
-        resolver.register(uri, entry);
+        resolver.register(fileUri, fileEntry);
+        resolver.register(exprUri, exprEntry);
 
-        Assert.assertEquals(resolver.resolve(uri), Optional.of(entry));
+        Assert.assertEquals(resolver.resolve(fileUri, FILE_SCHEME), Optional.of(fileEntry));
+        Assert.assertEquals(resolver.resolve(exprUri, EXPR_SCHEME), Optional.of(exprEntry));
+        Assert.assertEquals(resolver.resolve(fileUri, EXPR_SCHEME), Optional.of(exprEntry));
     }
 
     /**
-     * Verifies register + resolve round-trip for a ModuleEntry.
+     * Verifies the default resolve overload uses the URI's scheme.
      */
     @Test
-    public void resolve_afterRegisterModule_returnsModuleEntry() {
-        DocumentUri uri = new DocumentUri.FileUri(URI.create("file:///workspace/project/modules/auth"));
-        ResolvedEntry entry = new ResolvedEntry.ModuleEntry(mockModule);
-
-        resolver.register(uri, entry);
-
-        Assert.assertEquals(resolver.resolve(uri), Optional.of(entry));
-    }
-
-    /**
-     * Verifies register + resolve round-trip for a DocumentEntry.
-     */
-    @Test
-    public void resolve_afterRegisterDocument_returnsDocumentEntry() {
-        DocumentUri uri = new DocumentUri.FileUri(URI.create("file:///workspace/project/main.bal"));
+    public void resolve_defaultSchemeOverload_usesUriScheme() {
+        DocumentUri uri = exprUri("/workspace/project/main.bal");
         ResolvedEntry entry = new ResolvedEntry.DocumentEntry(mockDocument);
 
         resolver.register(uri, entry);
@@ -111,50 +108,86 @@ public class UriResolverTest {
     }
 
     /**
-     * Verifies register + resolve round-trip for a ConfigEntry.
+     * Verifies document convenience resolution returns the typed document directly.
      */
     @Test
-    public void resolve_afterRegisterConfig_returnsConfigEntry() {
-        DocumentUri uri = new DocumentUri.FileUri(URI.create("file:///workspace/project/Ballerina.toml"));
-        ResolvedEntry entry = new ResolvedEntry.ConfigEntry(mockTomlDocument);
-
-        resolver.register(uri, entry);
-
-        Assert.assertEquals(resolver.resolve(uri), Optional.of(entry));
-    }
-
-    /**
-     * Verifies that a different URI returns empty after registering another URI.
-     */
-    @Test
-    public void resolve_differentUri_returnsEmpty() {
-        DocumentUri registered = new DocumentUri.FileUri(URI.create("file:///workspace/main.bal"));
-        DocumentUri other = new DocumentUri.FileUri(URI.create("file:///workspace/util.bal"));
-
-        resolver.register(registered, new ResolvedEntry.DocumentEntry(mockDocument));
-
-        Assert.assertEquals(resolver.resolve(other), Optional.empty());
-    }
-
-    /**
-     * Verifies that unregister followed by resolve returns empty.
-     */
-    @Test
-    public void resolve_afterUnregister_returnsEmpty() {
-        DocumentUri uri = new DocumentUri.FileUri(URI.create("file:///workspace/main.bal"));
+    public void document_afterRegisterDocument_returnsTypedDocument() {
+        DocumentUri uri = fileUri("/workspace/project/main.bal");
         resolver.register(uri, new ResolvedEntry.DocumentEntry(mockDocument));
 
-        resolver.unregister(uri);
-
-        Assert.assertEquals(resolver.resolve(uri), Optional.empty());
+        Assert.assertEquals(resolver.document(uri), Optional.of(mockDocument));
     }
 
     /**
-     * Verifies that unregister of a non-existent URI is a no-op.
+     * Verifies module resolution derives upward from a cached document.
+     */
+    @Test
+    public void module_whenOnlyDocumentCached_derivesFromDocument() {
+        DocumentUri uri = fileUri("/workspace/project/modules/auth/auth.bal");
+        resolver.register(uri, new ResolvedEntry.DocumentEntry(mockDocument));
+
+        Assert.assertEquals(resolver.module(uri), Optional.of(mockModule));
+    }
+
+    /**
+     * Verifies project resolution derives upward from a cached document.
+     */
+    @Test
+    public void project_whenOnlyDocumentCached_derivesFromDocument() {
+        DocumentUri uri = fileUri("/workspace/project/modules/auth/auth.bal");
+        resolver.register(uri, new ResolvedEntry.DocumentEntry(mockDocument));
+
+        Assert.assertEquals(resolver.project(uri), Optional.of(mockProject));
+    }
+
+    /**
+     * Verifies project resolution derives upward from a cached module.
+     */
+    @Test
+    public void project_whenOnlyModuleCached_derivesFromModule() {
+        DocumentUri moduleUri = fileUri("/workspace/project/modules/auth");
+        resolver.register(moduleUri, new ResolvedEntry.ModuleEntry(mockModule));
+
+        Assert.assertEquals(resolver.project(moduleUri), Optional.of(mockProject));
+    }
+
+    /**
+     * Verifies config convenience resolution returns the typed TOML document.
+     */
+    @Test
+    public void config_afterRegisterConfig_returnsTypedConfig() {
+        DocumentUri configUri = fileUri("/workspace/project/Ballerina.toml");
+        resolver.register(configUri, new ResolvedEntry.ConfigEntry(mockTomlDocument, mockProject));
+
+        Assert.assertEquals(resolver.config(configUri), Optional.of(mockTomlDocument));
+    }
+
+    /**
+     * Verifies targeted unregister removes only the requested entry from a multi-entry node.
+     */
+    @Test
+    public void unregister_targetedEntry_preservesOtherEntriesAtSameNode() {
+        DocumentUri rootUri = fileUri("/workspace/project");
+        Project project = projectAt("/workspace/project");
+        Module module = moduleOf(project);
+
+        resolver.register(rootUri, new ResolvedEntry.ProjectEntry(project));
+        resolver.register(rootUri, new ResolvedEntry.ModuleEntry(module));
+
+        resolver.unregister(rootUri, FILE_SCHEME, TargetType.PROJECT);
+
+        Assert.assertEquals(resolver.project(rootUri), Optional.of(project));
+        Assert.assertEquals(resolver.resolve(rootUri, FILE_SCHEME),
+                Optional.of(new ResolvedEntry.ModuleEntry(module)));
+        Assert.assertEquals(resolver.module(rootUri), Optional.of(module));
+    }
+
+    /**
+     * Verifies unregister of a non-existent URI is a no-op.
      */
     @Test
     public void unregister_nonExistentUri_isNoOp() {
-        DocumentUri uri = new DocumentUri.FileUri(URI.create("file:///workspace/main.bal"));
+        DocumentUri uri = fileUri("/workspace/main.bal");
 
         resolver.unregister(uri);
 
@@ -162,32 +195,16 @@ public class UriResolverTest {
     }
 
     /**
-     * Verifies that re-registering the same URI overwrites the previous entry.
-     */
-    @Test
-    public void register_sameUri_overwritesPreviousEntry() {
-        DocumentUri uri = new DocumentUri.FileUri(URI.create("file:///workspace/main.bal"));
-        ResolvedEntry first = new ResolvedEntry.DocumentEntry(mockDocument);
-        ResolvedEntry second = new ResolvedEntry.ProjectEntry(mockProject);
-
-        resolver.register(uri, first);
-        resolver.register(uri, second);
-
-        Assert.assertEquals(resolver.resolve(uri), Optional.of(second));
-    }
-
-    /**
-     * Verifies that evictSubtree removes all entries under the given source root prefix.
+     * Verifies evictSubtree removes all entries under the given source root prefix.
      */
     @Test
     public void evictSubtree_removesAllEntriesUnderPrefix() {
-        DocumentUri sourceRoot = new DocumentUri.FileUri(
-                Path.of("/workspace/project").toAbsolutePath().normalize().toUri());
-        DocumentUri doc1 = new DocumentUri.FileUri(URI.create("file:///workspace/project/main.bal"));
-        DocumentUri doc2 = new DocumentUri.FileUri(URI.create("file:///workspace/project/modules/auth/auth.bal"));
+        DocumentUri sourceRoot = fileUri("/workspace/project");
+        DocumentUri doc1 = fileUri("/workspace/project/main.bal");
+        DocumentUri doc2 = fileUri("/workspace/project/modules/auth/auth.bal");
 
         resolver.register(doc1, new ResolvedEntry.DocumentEntry(mockDocument));
-        resolver.register(doc2, new ResolvedEntry.DocumentEntry(mockDocument));
+        resolver.register(doc2, new ResolvedEntry.DocumentEntry(documentOf(moduleOf(mockProject))));
         resolver.evictSubtree(sourceRoot);
 
         Assert.assertEquals(resolver.resolve(doc1), Optional.empty());
@@ -195,73 +212,200 @@ public class UriResolverTest {
     }
 
     /**
-     * Verifies that evictSubtree preserves entries outside the given prefix.
+     * Verifies evictSubtree preserves entries outside the given prefix.
      */
     @Test
     public void evictSubtree_preservesEntriesOutsidePrefix() {
-        DocumentUri sourceRoot = new DocumentUri.FileUri(
-                Path.of("/workspace/project-a").toAbsolutePath().normalize().toUri());
-        DocumentUri inScope = new DocumentUri.FileUri(URI.create("file:///workspace/project-a/main.bal"));
-        DocumentUri outScope = new DocumentUri.FileUri(URI.create("file:///workspace/project-b/main.bal"));
-        ResolvedEntry entry = new ResolvedEntry.DocumentEntry(mockDocument);
+        DocumentUri sourceRoot = fileUri("/workspace/project-a");
+        DocumentUri inScope = fileUri("/workspace/project-a/main.bal");
+        DocumentUri outScope = fileUri("/workspace/project-b/main.bal");
+        ResolvedEntry inScopeEntry = new ResolvedEntry.DocumentEntry(mockDocument);
+        ResolvedEntry outScopeEntry = new ResolvedEntry.DocumentEntry(documentOf(moduleOf(projectAt("/workspace/project-b"))));
 
-        resolver.register(inScope, entry);
-        resolver.register(outScope, entry);
+        resolver.register(inScope, inScopeEntry);
+        resolver.register(outScope, outScopeEntry);
         resolver.evictSubtree(sourceRoot);
 
         Assert.assertEquals(resolver.resolve(inScope), Optional.empty());
-        Assert.assertEquals(resolver.resolve(outScope), Optional.of(entry));
+        Assert.assertEquals(resolver.resolve(outScope), Optional.of(outScopeEntry));
     }
 
     /**
-     * Verifies that old trie snapshots remain valid after a write (snapshot immutability).
+     * Verifies evictSubtree on an empty resolver is a no-op.
      */
     @Test
-    public void register_oldSnapshotRemainsImmutable() {
-        DocumentUri uri = new DocumentUri.FileUri(URI.create("file:///workspace/main.bal"));
-        ResolvedEntry first = new ResolvedEntry.DocumentEntry(mockDocument);
-        ResolvedEntry second = new ResolvedEntry.ProjectEntry(mockProject);
+    public void evictSubtree_emptyResolver_isNoOp() {
+        DocumentUri sourceRoot = fileUri("/workspace/project");
 
-        resolver.register(uri, first);
-        Optional<ResolvedEntry> capturedBeforeUpdate = resolver.resolve(uri);
+        resolver.evictSubtree(sourceRoot);
 
-        resolver.register(uri, second);
-
-        Assert.assertEquals(capturedBeforeUpdate, Optional.of(first));
-        Assert.assertEquals(resolver.resolve(uri), Optional.of(second));
+        Assert.assertEquals(resolver.resolve(fileUri("/workspace/project/main.bal")), Optional.empty());
     }
 
     /**
-     * Verifies that multiple entries at different URIs resolve independently.
+     * Verifies a URI can be re-registered after subtree eviction.
      */
     @Test
-    public void register_multipleUris_eachResolvesIndependently() {
-        DocumentUri uri1 = new DocumentUri.FileUri(URI.create("file:///workspace/project"));
-        DocumentUri uri2 = new DocumentUri.FileUri(URI.create("file:///workspace/project/modules/auth"));
-        DocumentUri uri3 = new DocumentUri.FileUri(URI.create("file:///workspace/project/main.bal"));
-        DocumentUri uri4 = new DocumentUri.FileUri(URI.create("file:///workspace/project/Ballerina.toml"));
-        ResolvedEntry e1 = new ResolvedEntry.ProjectEntry(mockProject);
-        ResolvedEntry e2 = new ResolvedEntry.ModuleEntry(mockModule);
-        ResolvedEntry e3 = new ResolvedEntry.DocumentEntry(mockDocument);
-        ResolvedEntry e4 = new ResolvedEntry.ConfigEntry(mockTomlDocument);
+    public void resolve_afterEvictSubtreeAndReregister_returnsNewEntry() {
+        DocumentUri sourceRoot = fileUri("/workspace/project");
+        DocumentUri documentUri = fileUri("/workspace/project/main.bal");
+        Document firstDocument = documentOf(moduleOf(projectAt("/workspace/project")));
+        Document secondDocument = documentOf(moduleOf(projectAt("/workspace/project")));
 
-        resolver.register(uri1, e1);
-        resolver.register(uri2, e2);
-        resolver.register(uri3, e3);
-        resolver.register(uri4, e4);
+        resolver.register(documentUri, new ResolvedEntry.DocumentEntry(firstDocument));
+        resolver.evictSubtree(sourceRoot);
+        resolver.register(documentUri, new ResolvedEntry.DocumentEntry(secondDocument));
 
-        Assert.assertEquals(resolver.resolve(uri1), Optional.of(e1));
-        Assert.assertEquals(resolver.resolve(uri2), Optional.of(e2));
-        Assert.assertEquals(resolver.resolve(uri3), Optional.of(e3));
-        Assert.assertEquals(resolver.resolve(uri4), Optional.of(e4));
+        Assert.assertEquals(resolver.document(documentUri), Optional.of(secondDocument));
     }
 
     /**
-     * Verifies that concurrent reads during a write do not block or throw — lock-free proof.
+     * Verifies long common prefixes still resolve to independent entries.
+     */
+    @Test
+    public void resolve_urisWithLongCommonPrefix_resolveIndependently() {
+        DocumentUri firstUri = fileUri("/workspace/project/modules/common/deeply/nested/first/main.bal");
+        DocumentUri secondUri = fileUri("/workspace/project/modules/common/deeply/nested/second/main.bal");
+        Document firstDocument = documentOf(moduleOf(projectAt("/workspace/project")));
+        Document secondDocument = documentOf(moduleOf(projectAt("/workspace/project")));
+
+        resolver.register(firstUri, new ResolvedEntry.DocumentEntry(firstDocument));
+        resolver.register(secondUri, new ResolvedEntry.DocumentEntry(secondDocument));
+
+        Assert.assertEquals(resolver.document(firstUri), Optional.of(firstDocument));
+        Assert.assertEquals(resolver.document(secondUri), Optional.of(secondDocument));
+    }
+
+    /**
+     * Verifies lifecycle document update refreshes document and ancestors.
+     */
+    @Test
+    public void onDocumentUpdate_refreshesDocumentModuleAndProjectEntries() {
+        Project project = projectAt("/workspace/project");
+        Module module = moduleOf(project);
+        Document document = documentOf(module);
+        DocumentUri projectRootUri = fileUri("/workspace/project");
+        DocumentUri moduleUri = fileUri("/workspace/project/modules/auth");
+        DocumentUri documentUri = fileUri("/workspace/project/modules/auth/auth.bal");
+
+        resolver.onDocumentUpdate(documentUri, FILE_SCHEME, document);
+
+        Assert.assertEquals(resolver.document(documentUri), Optional.of(document));
+        Assert.assertEquals(resolver.module(moduleUri), Optional.of(module));
+        Assert.assertSame(resolver.project(projectRootUri).orElseThrow(), project);
+    }
+
+    /**
+     * Verifies lifecycle document remove removes only the document entry and refreshes ancestors.
+     */
+    @Test
+    public void onDocumentRemove_existingSiblingPreservesSiblingAndRefreshesAncestors() {
+        Project initialProject = projectAt("/workspace/project");
+        Module initialModule = moduleOf(initialProject);
+        Document removedDocument = documentOf(initialModule);
+        Document siblingDocument = documentOf(initialModule);
+        Project updatedProject = projectAt("/workspace/project");
+        Module updatedModule = moduleOf(updatedProject);
+        DocumentUri projectRootUri = fileUri("/workspace/project");
+        DocumentUri moduleUri = fileUri("/workspace/project/modules/auth");
+        DocumentUri removedUri = fileUri("/workspace/project/modules/auth/auth.bal");
+        DocumentUri siblingUri = fileUri("/workspace/project/modules/auth/util.bal");
+
+        resolver.onDocumentUpdate(removedUri, FILE_SCHEME, removedDocument);
+        resolver.onDocumentUpdate(siblingUri, FILE_SCHEME, siblingDocument);
+
+        resolver.onDocumentRemove(removedUri, FILE_SCHEME, updatedModule);
+
+        Assert.assertEquals(resolver.document(removedUri), Optional.empty());
+        Assert.assertEquals(resolver.document(siblingUri), Optional.of(siblingDocument));
+        Assert.assertEquals(resolver.module(moduleUri), Optional.of(updatedModule));
+        Assert.assertSame(resolver.project(projectRootUri).orElseThrow(), updatedProject);
+    }
+
+    /**
+     * Verifies lifecycle project update evicts descendants and keeps only the refreshed project.
+     */
+    @Test
+    public void onProjectUpdate_existingSubtreeEvictsDescendantsAndRegistersProjectOnly() {
+        DocumentUri projectRootUri = fileUri("/workspace/project");
+        DocumentUri moduleUri = fileUri("/workspace/project/modules/auth");
+        DocumentUri documentUri = fileUri("/workspace/project/modules/auth/auth.bal");
+        DocumentUri configUri = fileUri("/workspace/project/Ballerina.toml");
+        Project initialProject = projectAt("/workspace/project");
+        Document initialDocument = documentOf(moduleOf(initialProject));
+        TomlDocument initialConfig = configOf(initialProject);
+        Project updatedProject = projectAt("/workspace/project");
+
+        resolver.onProjectCreate(projectRootUri, FILE_SCHEME, initialProject);
+        resolver.onDocumentUpdate(documentUri, FILE_SCHEME, initialDocument);
+        resolver.onConfigUpdate(configUri, FILE_SCHEME, initialConfig);
+
+        resolver.onProjectUpdate(projectRootUri, FILE_SCHEME, updatedProject);
+
+        Assert.assertSame(resolver.project(projectRootUri).orElseThrow(), updatedProject);
+        Assert.assertEquals(resolver.module(moduleUri), Optional.empty());
+        Assert.assertEquals(resolver.document(documentUri), Optional.empty());
+        Assert.assertEquals(resolver.config(configUri), Optional.empty());
+    }
+
+    /**
+     * Verifies lifecycle project remove evicts the full subtree.
+     */
+    @Test
+    public void onProjectRemove_existingSubtreeEvictsEverythingUnderRoot() {
+        DocumentUri projectRootUri = fileUri("/workspace/project");
+        DocumentUri documentUri = fileUri("/workspace/project/main.bal");
+
+        resolver.onDocumentUpdate(documentUri, FILE_SCHEME, mockDocument);
+        resolver.onProjectRemove(projectRootUri);
+
+        Assert.assertEquals(resolver.project(projectRootUri), Optional.empty());
+        Assert.assertEquals(resolver.document(documentUri), Optional.empty());
+    }
+
+    /**
+     * Verifies lifecycle config update registers the config and refreshes the project ancestor.
+     */
+    @Test
+    public void onConfigUpdate_refreshesConfigAndProjectEntries() {
+        Project project = projectAt("/workspace/project");
+        TomlDocument config = configOf(project);
+        DocumentUri projectRootUri = fileUri("/workspace/project");
+        DocumentUri configUri = fileUri("/workspace/project/Ballerina.toml");
+
+        resolver.onProjectCreate(projectRootUri, FILE_SCHEME, project);
+
+        resolver.onConfigUpdate(configUri, FILE_SCHEME, config);
+
+        Assert.assertEquals(resolver.config(configUri), Optional.of(config));
+        Assert.assertSame(resolver.project(projectRootUri).orElseThrow(), project);
+    }
+
+    /**
+     * Verifies lifecycle config remove removes only the config entry and keeps the refreshed project.
+     */
+    @Test
+    public void onConfigRemove_existingConfigRemovesConfigAndPreservesProject() {
+        Project initialProject = projectAt("/workspace/project");
+        Project updatedProject = projectAt("/workspace/project");
+        TomlDocument initialConfig = configOf(initialProject);
+        DocumentUri projectRootUri = fileUri("/workspace/project");
+        DocumentUri configUri = fileUri("/workspace/project/Ballerina.toml");
+
+        resolver.onProjectCreate(projectRootUri, FILE_SCHEME, initialProject);
+        resolver.onConfigUpdate(configUri, FILE_SCHEME, initialConfig);
+        resolver.onConfigRemove(configUri, FILE_SCHEME, updatedProject);
+
+        Assert.assertEquals(resolver.config(configUri), Optional.empty());
+        Assert.assertSame(resolver.project(projectRootUri).orElseThrow(), updatedProject);
+    }
+
+    /**
+     * Verifies concurrent reads during writes remain lock-free.
      */
     @Test
     public void concurrentReads_duringWrite_doNotBlockOrThrow() throws InterruptedException {
-        DocumentUri uri = new DocumentUri.FileUri(URI.create("file:///workspace/main.bal"));
+        DocumentUri uri = fileUri("/workspace/main.bal");
         ResolvedEntry entry = new ResolvedEntry.DocumentEntry(mockDocument);
         resolver.register(uri, entry);
 
@@ -311,5 +455,90 @@ public class UriResolverTest {
         Assert.assertTrue(completed, "Concurrent reads/write did not complete in time");
         Assert.assertTrue(errors.isEmpty(), "Concurrent reads threw exceptions: " + errors);
         Assert.assertEquals(successCount.get(), readerCount * 100, "Not all reads completed successfully");
+    }
+
+    /**
+     * Verifies concurrent reads during subtree eviction do not block or throw.
+     */
+    @Test
+    public void concurrentReads_duringEvictSubtree_doNotBlockOrThrow() throws InterruptedException {
+        DocumentUri sourceRoot = fileUri("/workspace/project");
+        DocumentUri uri = fileUri("/workspace/project/main.bal");
+        resolver.register(uri, new ResolvedEntry.DocumentEntry(mockDocument));
+
+        int readerCount = 50;
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch doneLatch = new CountDownLatch(readerCount + 1);
+        List<Throwable> errors = new ArrayList<>();
+
+        ExecutorService executor = Executors.newFixedThreadPool(readerCount + 1);
+        executor.submit(() -> {
+            try {
+                startLatch.await();
+                for (int i = 0; i < 100; i++) {
+                    resolver.evictSubtree(sourceRoot);
+                    resolver.register(uri, new ResolvedEntry.DocumentEntry(mockDocument));
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+
+        for (int i = 0; i < readerCount; i++) {
+            executor.submit(() -> {
+                try {
+                    startLatch.await();
+                    for (int j = 0; j < 100; j++) {
+                        resolver.resolve(uri);
+                    }
+                } catch (Throwable t) {
+                    synchronized (errors) {
+                        errors.add(t);
+                    }
+                } finally {
+                    doneLatch.countDown();
+                }
+            });
+        }
+
+        startLatch.countDown();
+        boolean completed = doneLatch.await(10, TimeUnit.SECONDS);
+        executor.shutdownNow();
+
+        Assert.assertTrue(completed, "Concurrent reads/evictions did not complete in time");
+        Assert.assertTrue(errors.isEmpty(), "Concurrent reads threw exceptions: " + errors);
+    }
+
+    private DocumentUri fileUri(String path) {
+        return new DocumentUri.FileUri(Path.of(path).toAbsolutePath().normalize().toUri());
+    }
+
+    private DocumentUri exprUri(String path) {
+        Path normalized = Path.of(path).toAbsolutePath().normalize();
+        return new DocumentUri.ExprUri(URI.create(EXPR_SCHEME + "://" + normalized));
+    }
+
+    private Project projectAt(String sourceRoot) {
+        Project project = Mockito.mock(Project.class);
+        Mockito.when(project.sourceRoot()).thenReturn(Path.of(sourceRoot).toAbsolutePath().normalize());
+        return project;
+    }
+
+    private Module moduleOf(Project project) {
+        Module module = Mockito.mock(Module.class);
+        Mockito.when(module.project()).thenReturn(project);
+        return module;
+    }
+
+    private Document documentOf(Module module) {
+        Document document = Mockito.mock(Document.class);
+        Mockito.when(document.module()).thenReturn(module);
+        return document;
+    }
+
+    private TomlDocument configOf(Project project) {
+        return Mockito.mock(TomlDocument.class, Mockito.withSettings().name("config-" + project.hashCode()));
     }
 }
