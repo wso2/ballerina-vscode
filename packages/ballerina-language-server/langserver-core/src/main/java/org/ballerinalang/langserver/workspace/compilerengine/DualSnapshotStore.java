@@ -23,7 +23,6 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
-import io.ballerina.projects.PackageDescriptor;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
@@ -41,7 +40,7 @@ public class DualSnapshotStore {
 
     private static final ContentVersion INITIAL_CONTENT_VERSION = new ContentVersion(0);
 
-    private final ConcurrentHashMap<PackageDescriptor, SnapshotPair> snapshots;
+    private final ConcurrentHashMap<CompilationKey, SnapshotPair> snapshots;
 
     /**
      * Creates an empty dual snapshot store.
@@ -51,68 +50,68 @@ public class DualSnapshotStore {
     }
 
     /**
-     * Returns the current stable snapshot for the source root.
+     * Returns the current stable snapshot for the given compilation key.
      *
-     * @param descriptor the package descriptor identity
+     * @param key the compound compilation key (source root + package descriptor)
      * @return the latest stable snapshot, or {@code null} when none has been published
      */
-    public StableSnapshot getStable(@Nonnull PackageDescriptor descriptor) {
-        SnapshotPair snapshotPair = snapshots.get(descriptor);
+    public StableSnapshot getStable(@Nonnull CompilationKey key) {
+        SnapshotPair snapshotPair = snapshots.get(key);
         return snapshotPair == null ? null : snapshotPair.stableSnapshot();
     }
 
     /**
-     * Returns the current in-progress snapshot for the source root.
+     * Returns the current in-progress snapshot for the given compilation key.
      *
-     * @param descriptor the package descriptor identity
+     * @param key the compound compilation key (source root + package descriptor)
      * @return the active in-progress snapshot, or {@code null} when none is running
      */
-    public InProgressSnapshot getInProgress(@Nonnull PackageDescriptor descriptor) {
-        SnapshotPair snapshotPair = snapshots.get(descriptor);
+    public InProgressSnapshot getInProgress(@Nonnull CompilationKey key) {
+        SnapshotPair snapshotPair = snapshots.get(key);
         return snapshotPair == null ? null : snapshotPair.inProgressSnapshot();
     }
 
     /**
-     * Starts a new compilation cycle for the source root.
+     * Starts a new compilation cycle for the given compilation key.
      *
-     * @param descriptor the package descriptor identity
+     * @param key the compound compilation key (source root + package descriptor)
      * @return the newly created in-progress snapshot
      */
-    public InProgressSnapshot startCompilation(@Nonnull PackageDescriptor descriptor) {
-        SnapshotPair snapshotPair = snapshots.computeIfAbsent(descriptor, ignored -> new SnapshotPair());
+    public InProgressSnapshot startCompilation(@Nonnull CompilationKey key) {
+        SnapshotPair snapshotPair = snapshots.computeIfAbsent(key, ignored -> new SnapshotPair());
         return snapshotPair.startCompilation();
     }
 
     /**
-     * Publishes the latest stable snapshot for the source root.
+     * Publishes the latest stable snapshot for the given compilation key.
      *
-     * @param descriptor the package descriptor identity
+     * @param key the compound compilation key (source root + package descriptor)
      * @param stableSnapshot the stable snapshot to publish
      */
-    public void publishStable(@Nonnull PackageDescriptor descriptor, @Nonnull StableSnapshot stableSnapshot) {
-        SnapshotPair snapshotPair = snapshots.computeIfAbsent(descriptor, ignored -> new SnapshotPair());
+    public void publishStable(@Nonnull CompilationKey key, @Nonnull StableSnapshot stableSnapshot) {
+        SnapshotPair snapshotPair = snapshots.computeIfAbsent(key, ignored -> new SnapshotPair());
         snapshotPair.publishStable(stableSnapshot);
     }
 
     /**
-     * Cancels the current in-progress compilation for the source root.
+     * Cancels the current in-progress compilation for the given compilation key.
      *
-     * @param descriptor the package descriptor identity
+     * @param key the compound compilation key (source root + package descriptor)
      */
-    public void cancelInProgress(@Nonnull PackageDescriptor descriptor) {
-        SnapshotPair snapshotPair = snapshots.get(descriptor);
+    public void cancelInProgress(@Nonnull CompilationKey key) {
+        SnapshotPair snapshotPair = snapshots.get(key);
         if (snapshotPair != null) {
             snapshotPair.cancelInProgress();
         }
     }
 
     /**
-     * Removes all snapshot state for the given source root.
+     * Removes all snapshot state for the given compilation key.
      *
-     * @param descriptor the package descriptor identity
+     * @param key the compound compilation key (source root + package descriptor)
      */
-    public void remove(@Nonnull PackageDescriptor descriptor) {
-        SnapshotPair snapshotPair = snapshots.remove(descriptor);
+    public void remove(@Nonnull CompilationKey key) {
+        SnapshotPair snapshotPair = snapshots.remove(key);
         if (snapshotPair != null) {
             snapshotPair.cancelInProgress();
         }

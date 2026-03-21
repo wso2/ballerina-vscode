@@ -292,7 +292,7 @@ public class CompilationPipelineTest {
         pipeline.requestCompilation(new ContentVersion(1));
         Assert.assertTrue(done.await(3, TimeUnit.SECONDS));
         Thread.sleep(200);
-        Assert.assertNotNull(store.getStable(testDescriptor()));
+        Assert.assertNotNull(store.getStable(testKey()));
     }
 
     @Test
@@ -391,7 +391,7 @@ public class CompilationPipelineTest {
         Assert.assertTrue(v1Done.await(3, TimeUnit.SECONDS));
         Thread.sleep(500);
 
-        StableSnapshot snap = store.getStable(testDescriptor());
+        StableSnapshot snap = store.getStable(testKey());
         if (snap != null) {
             Assert.assertNotEquals(snap.contentVersion(), new ContentVersion(1),
                     "Stale version 1 should not be published");
@@ -455,10 +455,10 @@ public class CompilationPipelineTest {
     }
 
     @Test(expectedExceptions = NullPointerException.class)
-    public void pipeline_rejectsNullDescriptor() {
+    public void pipeline_rejectsNullKey() {
         EventSyncPubSubHolder bus = new EventSyncPubSubHolder();
         try {
-            new CompilationPipeline(null, new DualSnapshotStore(), bus,
+            new CompilationPipeline((CompilationKey) null, new DualSnapshotStore(), bus,
                     task -> createMockSnapshot(task.contentVersion()));
         } finally {
             bus.close();
@@ -514,7 +514,7 @@ public class CompilationPipelineTest {
                     cancellationEvent.countDown();
                 });
 
-        pipeline = new CompilationPipeline(testDescriptor(), new DualSnapshotStore(), eventBus, task -> {
+        pipeline = new CompilationPipeline(testKey(), new DualSnapshotStore(), eventBus, task -> {
             if (task.contentVersion().equals(new ContentVersion(1))) {
                 firstStarted.countDown();
                 releaseCancelledTask.await(5, TimeUnit.SECONDS);
@@ -544,7 +544,7 @@ public class CompilationPipelineTest {
                     eventReceived.countDown();
                 });
 
-        pipeline = new CompilationPipeline(testDescriptor(), new DualSnapshotStore(), eventBus, task -> {
+        pipeline = new CompilationPipeline(testKey(), new DualSnapshotStore(), eventBus, task -> {
             throw new InterruptedException("Thread interrupted during compilation");
         });
 
@@ -739,7 +739,7 @@ public class CompilationPipelineTest {
         StableSnapshot snapA = createMockSnapshot(new ContentVersion(1));
         StableSnapshot snapB = createMockSnapshot(new ContentVersion(1));
 
-        CompilationPipeline pipelineA = new CompilationPipeline(descA, null, storeA, busA,
+        CompilationPipeline pipelineA = new CompilationPipeline(testKey(descA, "/root/alpha"), storeA, busA,
                 task -> {
                     aRunning.set(true);
                     aStarted.countDown();
@@ -748,7 +748,7 @@ public class CompilationPipelineTest {
                     return snapA;
                 }, shared);
 
-        CompilationPipeline pipelineB = new CompilationPipeline(descB, null, storeB, busB,
+        CompilationPipeline pipelineB = new CompilationPipeline(testKey(descB, "/root/beta"), storeB, busB,
                 task -> {
                     if (aRunning.get()) {
                         overlap.set(true);
@@ -789,7 +789,7 @@ public class CompilationPipelineTest {
         PackageDescriptor desc = createDescriptor("blocked-project");
         StableSnapshot snap = createMockSnapshot(new ContentVersion(1));
 
-        CompilationPipeline blocked = new CompilationPipeline(desc, null, store, bus,
+        CompilationPipeline blocked = new CompilationPipeline(testKey(desc, "/root/blocked"), store, bus,
                 task -> {
                     compileActionCalled.set(true);
                     return snap;
@@ -833,25 +833,33 @@ public class CompilationPipelineTest {
         return TEST_DESCRIPTOR;
     }
 
+    private static CompilationKey testKey() {
+        return new CompilationKey("/test-root/project", TEST_DESCRIPTOR);
+    }
+
+    private static CompilationKey testKey(PackageDescriptor descriptor, String root) {
+        return new CompilationKey(root, descriptor);
+    }
+
     private CompileTask createTask(ContentVersion version) {
         return new CompileTask(testDescriptor(), version, new CancellationToken());
     }
 
     private CompilationPipeline createPipeline(CompilationPipeline.CompilationAction action) {
         eventBus = new EventSyncPubSubHolder();
-        return new CompilationPipeline(testDescriptor(), new DualSnapshotStore(), eventBus, action);
+        return new CompilationPipeline(testKey(), new DualSnapshotStore(), eventBus, action);
     }
 
     private CompilationPipeline createPipeline(DualSnapshotStore store,
                                                CompilationPipeline.CompilationAction action) {
         eventBus = new EventSyncPubSubHolder();
-        return new CompilationPipeline(testDescriptor(), store, eventBus, action);
+        return new CompilationPipeline(testKey(), store, eventBus, action);
     }
 
     private CompilationPipeline createPipeline(EventSyncPubSubHolder bus,
                                                CompilationPipeline.CompilationAction action) {
         this.eventBus = bus;
-        return new CompilationPipeline(testDescriptor(), new DualSnapshotStore(), bus, action);
+        return new CompilationPipeline(testKey(), new DualSnapshotStore(), bus, action);
     }
 
     private static StableSnapshot createMockSnapshot(ContentVersion version) {

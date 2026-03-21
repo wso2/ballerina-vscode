@@ -24,6 +24,7 @@ import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
 import org.awaitility.Awaitility;
 import org.ballerinalang.langserver.workspace.compilerengine.CancellationToken;
+import org.ballerinalang.langserver.workspace.compilerengine.CompilationKey;
 import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
@@ -223,7 +224,7 @@ public class RecoveryLadderAcceptanceTest {
         DualSnapshotStore snapshotStore = new DualSnapshotStore();
         setupEventCapture();
 
-        pipeline = new CompilationPipeline(TEST_ROOT, TEST_ROOT_ID, snapshotStore, eventBus,
+        pipeline = new CompilationPipeline(new CompilationKey(TEST_ROOT_ID, TEST_ROOT), snapshotStore, eventBus,
                 new CompilationPipeline.CompilationAction() {
             @Override
             public StableSnapshot compile(CompileTask task) throws Exception {
@@ -639,7 +640,7 @@ public class RecoveryLadderAcceptanceTest {
             CompilationPipeline.CompilationAction action) {
         setupEventCapture();
         DualSnapshotStore snapshotStore = new DualSnapshotStore();
-        return new CompilationPipeline(TEST_ROOT, TEST_ROOT_ID, snapshotStore, eventBus, action);
+        return new CompilationPipeline(new CompilationKey(TEST_ROOT_ID, TEST_ROOT), snapshotStore, eventBus, action);
     }
 
     private static StableSnapshot createSnapshot(ContentVersion version) {

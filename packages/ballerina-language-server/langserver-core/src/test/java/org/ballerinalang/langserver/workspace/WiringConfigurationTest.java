@@ -23,6 +23,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
+import org.ballerinalang.langserver.workspace.compilerengine.CompilationKey;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
@@ -217,7 +218,8 @@ public class WiringConfigurationTest {
         Thread.sleep(500);
 
         // Verify CE pipeline exists (snapshot published)
-        Assert.assertNotNull(wiring.snapshotStore().getStable(testDescriptor),
+        Assert.assertNotNull(wiring.snapshotStore().getStable(
+                        new CompilationKey(tempDir.toAbsolutePath().normalize().toString(), testDescriptor)),
                 "Pipeline should exist with a snapshot before eviction");
 
         // Simulate heap pressure → WM-E2
@@ -230,7 +232,8 @@ public class WiringConfigurationTest {
         Thread.sleep(500);
 
         // CE should have cleaned up the pipeline
-        Assert.assertNull(wiring.snapshotStore().getStable(testDescriptor),
+        Assert.assertNull(wiring.snapshotStore().getStable(
+                        new CompilationKey(tempDir.toAbsolutePath().normalize().toString(), testDescriptor)),
                 "Chain 4: WM-E2 should cause CE to evict pipeline and clear snapshot");
     }
 

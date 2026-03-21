@@ -24,6 +24,7 @@ import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
+import org.ballerinalang.langserver.workspace.compilerengine.CompilationKey;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.InProgressSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
@@ -317,7 +318,7 @@ public class ThreadSafetyTest {
         DualSnapshotStore store = new DualSnapshotStore();
         PackageDescriptor sourceRoot = descriptor("thread-safety-proj-1");
 
-        Assert.assertNull(store.getStable(sourceRoot),
+        Assert.assertNull(store.getStable(testKey(sourceRoot)),
                 "getStable() must return null before any publishStable() call");
     }
 
@@ -333,7 +334,7 @@ public class ThreadSafetyTest {
         StableSnapshot oldSnapshot = stubSnapshot(new ContentVersion(1));
         StableSnapshot newSnapshot = stubSnapshot(new ContentVersion(2));
 
-        store.publishStable(sourceRoot, oldSnapshot);
+        store.publishStable(testKey(sourceRoot), oldSnapshot);
 
         int readerCount = 50;
         CountDownLatch startGate = new CountDownLatch(1);
@@ -346,7 +347,7 @@ public class ThreadSafetyTest {
             executor.submit(() -> {
                 try {
                     startGate.await();
-                    StableSnapshot result = store.getStable(sourceRoot);
+                    StableSnapshot result = store.getStable(testKey(sourceRoot));
                     if (result != null) {
                         seen.add(result);
                     }
@@ -361,7 +362,7 @@ public class ThreadSafetyTest {
         executor.submit(() -> {
             try {
                 startGate.await();
-                store.publishStable(sourceRoot, newSnapshot);
+                store.publishStable(testKey(sourceRoot), newSnapshot);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } finally {
@@ -377,7 +378,7 @@ public class ThreadSafetyTest {
             Assert.assertTrue(snap == oldSnapshot || snap == newSnapshot,
                     "Reader observed a snapshot that is neither old nor new — atomic publish violated");
         }
-        Assert.assertSame(store.getStable(sourceRoot), newSnapshot,
+        Assert.assertSame(store.getStable(testKey(sourceRoot)), newSnapshot,
                 "After publishStable(), getStable() must return the new snapshot");
     }
 
@@ -402,7 +403,7 @@ public class ThreadSafetyTest {
             executor.submit(() -> {
                 try {
                     startBarrier.await();
-                    InProgressSnapshot snapshot = store.startCompilation(sourceRoot);
+                    InProgressSnapshot snapshot = store.startCompilation(testKey(sourceRoot));
                     synchronized (listLock) {
                         created.add(snapshot);
                     }
@@ -423,7 +424,7 @@ public class ThreadSafetyTest {
             Assert.assertNotNull(snap, "startCompilation() must never return null");
         }
 
-        InProgressSnapshot current = store.getInProgress(sourceRoot);
+        InProgressSnapshot current = store.getInProgress(testKey(sourceRoot));
         Assert.assertNotNull(current, "After concurrent startCompilation(), one InProgressSnapshot must remain active");
         Assert.assertTrue(created.contains(current),
                 "Active InProgressSnapshot must be one of the snapshots returned by startCompilation()");
@@ -436,6 +437,18 @@ public class ThreadSafetyTest {
     private static StableSnapshot stubSnapshot(ContentVersion version) {
         return new StableSnapshot(java.util.Map.<DocumentId, SyntaxTree>of(), java.util.Map.of(),
                 java.util.Map.<ModuleId, SemanticModel>of(), mock(PackageCompilation.class), version);
+    }
+
+    /**
+     * Wraps a {@link PackageDescriptor} in a {@link CompilationKey} using the descriptor's
+     * package name as the source root path. Used to satisfy {@link DualSnapshotStore}'s
+     * {@code CompilationKey}-based API in test assertions.
+     *
+     * @param descriptor the package descriptor to wrap
+     * @return a {@link CompilationKey} keyed by the descriptor's package name
+     */
+    private static CompilationKey testKey(PackageDescriptor descriptor) {
+        return new CompilationKey("/" + descriptor.name().value(), descriptor);
     }
 
     private static PackageDescriptor descriptor(String packageNameValue) {

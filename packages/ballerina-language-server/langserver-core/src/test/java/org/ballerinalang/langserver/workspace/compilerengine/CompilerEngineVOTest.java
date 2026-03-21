@@ -119,26 +119,26 @@ public class CompilerEngineVOTest {
     @Test
     public void dualSnapshotStore_startCompilationMakesInProgressAccessible() {
         DualSnapshotStore store = new DualSnapshotStore();
-        PackageDescriptor descriptor = mock(PackageDescriptor.class);
+        CompilationKey key = mockKey("project-a");
 
-        InProgressSnapshot inProgressSnapshot = store.startCompilation(descriptor);
+        InProgressSnapshot inProgressSnapshot = store.startCompilation(key);
 
-        Assert.assertSame(store.getInProgress(descriptor), inProgressSnapshot);
-        Assert.assertNull(store.getStable(descriptor));
+        Assert.assertSame(store.getInProgress(key), inProgressSnapshot);
+        Assert.assertNull(store.getStable(key));
         Assert.assertFalse(inProgressSnapshot.compilation(NO_OP_CANCEL_CHECKER).isDone());
     }
 
     @Test
     public void dualSnapshotStore_publishStableStoresSnapshotAndCompletesInProgressFuture() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        PackageDescriptor descriptor = mock(PackageDescriptor.class);
-        InProgressSnapshot inProgressSnapshot = store.startCompilation(descriptor);
+        CompilationKey key = mockKey("project-b");
+        InProgressSnapshot inProgressSnapshot = store.startCompilation(key);
         StableSnapshot stableSnapshot = createStableSnapshot(new ContentVersion(4));
 
-        store.publishStable(descriptor, stableSnapshot);
+        store.publishStable(key, stableSnapshot);
 
-        Assert.assertSame(store.getStable(descriptor), stableSnapshot);
-        Assert.assertNull(store.getInProgress(descriptor));
+        Assert.assertSame(store.getStable(key), stableSnapshot);
+        Assert.assertNull(store.getInProgress(key));
         Assert.assertSame(inProgressSnapshot.compilation(NO_OP_CANCEL_CHECKER).get(1, TimeUnit.SECONDS),
                 stableSnapshot.compilation());
     }
@@ -146,21 +146,21 @@ public class CompilerEngineVOTest {
     @Test(expectedExceptions = CancellationException.class)
     public void dualSnapshotStore_cancelInProgressCancelsCompilationFuture() {
         DualSnapshotStore store = new DualSnapshotStore();
-        PackageDescriptor descriptor = mock(PackageDescriptor.class);
-        InProgressSnapshot inProgressSnapshot = store.startCompilation(descriptor);
+        CompilationKey key = mockKey("project-c");
+        InProgressSnapshot inProgressSnapshot = store.startCompilation(key);
 
-        store.cancelInProgress(descriptor);
+        store.cancelInProgress(key);
 
-        Assert.assertNull(store.getInProgress(descriptor));
+        Assert.assertNull(store.getInProgress(key));
         inProgressSnapshot.compilation(NO_OP_CANCEL_CHECKER).join();
     }
 
     @Test
     public void dualSnapshotStore_getStableReturnsSameReferenceAcrossConcurrentReaders() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        PackageDescriptor descriptor = mock(PackageDescriptor.class);
+        CompilationKey key = mockKey("project-d");
         StableSnapshot stableSnapshot = createStableSnapshot(new ContentVersion(9));
-        store.publishStable(descriptor, stableSnapshot);
+        store.publishStable(key, stableSnapshot);
 
         int threadCount = 8;
         CountDownLatch done = new CountDownLatch(threadCount);
@@ -173,7 +173,7 @@ public class CompilerEngineVOTest {
                 try {
                     start.await(5, TimeUnit.SECONDS);
                     synchronized (observed) {
-                        observed.add(store.getStable(descriptor));
+                        observed.add(store.getStable(key));
                     }
                 } catch (Exception e) {
                     throw new AssertionError(e);
@@ -192,8 +192,8 @@ public class CompilerEngineVOTest {
     @Test
     public void dualSnapshotStore_publishStableUnblocksCompilationWaiter() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        PackageDescriptor descriptor = mock(PackageDescriptor.class);
-        InProgressSnapshot inProgressSnapshot = store.startCompilation(descriptor);
+        CompilationKey key = mockKey("project-e");
+        InProgressSnapshot inProgressSnapshot = store.startCompilation(key);
         StableSnapshot stableSnapshot = createStableSnapshot(new ContentVersion(7));
         CountDownLatch waiterStarted = new CountDownLatch(1);
         CompletableFuture<PackageCompilation> observedCompilation = new CompletableFuture<>();
@@ -210,7 +210,7 @@ public class CompilerEngineVOTest {
         waiter.start();
         Assert.assertTrue(waiterStarted.await(1, TimeUnit.SECONDS), "Waiter did not start");
 
-        store.publishStable(descriptor, stableSnapshot);
+        store.publishStable(key, stableSnapshot);
 
         Assert.assertSame(observedCompilation.get(2, TimeUnit.SECONDS), stableSnapshot.compilation());
         waiter.join(2000);
@@ -220,18 +220,18 @@ public class CompilerEngineVOTest {
     @Test
     public void dualSnapshotStore_tracksMultipleSourceRootsIndependently() throws Exception {
         DualSnapshotStore store = new DualSnapshotStore();
-        PackageDescriptor firstDescriptor = mock(PackageDescriptor.class);
-        PackageDescriptor secondDescriptor = mock(PackageDescriptor.class);
-        InProgressSnapshot firstInProgress = store.startCompilation(firstDescriptor);
-        InProgressSnapshot secondInProgress = store.startCompilation(secondDescriptor);
+        CompilationKey firstKey = mockKey("project-f1");
+        CompilationKey secondKey = mockKey("project-f2");
+        InProgressSnapshot firstInProgress = store.startCompilation(firstKey);
+        InProgressSnapshot secondInProgress = store.startCompilation(secondKey);
         StableSnapshot firstStable = createStableSnapshot(new ContentVersion(1));
         StableSnapshot secondStable = createStableSnapshot(new ContentVersion(2));
 
-        store.publishStable(firstDescriptor, firstStable);
-        store.publishStable(secondDescriptor, secondStable);
+        store.publishStable(firstKey, firstStable);
+        store.publishStable(secondKey, secondStable);
 
-        Assert.assertSame(store.getStable(firstDescriptor), firstStable);
-        Assert.assertSame(store.getStable(secondDescriptor), secondStable);
+        Assert.assertSame(store.getStable(firstKey), firstStable);
+        Assert.assertSame(store.getStable(secondKey), secondStable);
         Assert.assertSame(firstInProgress.compilation(NO_OP_CANCEL_CHECKER).get(1, TimeUnit.SECONDS),
                 firstStable.compilation());
         Assert.assertSame(secondInProgress.compilation(NO_OP_CANCEL_CHECKER).get(1, TimeUnit.SECONDS),
@@ -290,6 +290,14 @@ public class CompilerEngineVOTest {
     }
 
     // ---- Helper ----
+
+    private static CompilationKey mockKey(String packageName) {
+        PackageDescriptor descriptor = mock(PackageDescriptor.class);
+        io.ballerina.projects.PackageName name = mock(io.ballerina.projects.PackageName.class);
+        when(descriptor.name()).thenReturn(name);
+        when(name.value()).thenReturn(packageName);
+        return new CompilationKey("/test-root/" + packageName, descriptor);
+    }
 
     private StableSnapshot createStableSnapshot(ContentVersion contentVersion) {
         DocumentId documentId = mock(DocumentId.class);

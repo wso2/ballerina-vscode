@@ -24,6 +24,7 @@ import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
 import org.awaitility.Awaitility;
 import org.ballerinalang.langserver.workspace.compilerengine.CancellationToken;
+import org.ballerinalang.langserver.workspace.compilerengine.CompilationKey;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
@@ -154,8 +155,8 @@ public class AsyncCompilationPipelineTest {
         pipeline.requestCompilation(new ContentVersion(42));
 
         Awaitility.await().atMost(3, TimeUnit.SECONDS)
-                .until(() -> snapshotStore.getStable(TEST_ROOT) != null);
-        Assert.assertSame(snapshotStore.getStable(TEST_ROOT), expectedSnapshot,
+                .until(() -> snapshotStore.getStable(testKey()) != null);
+        Assert.assertSame(snapshotStore.getStable(testKey()), expectedSnapshot,
                 "Successful compilation must publish the completed snapshot atomically");
     }
 
@@ -191,7 +192,7 @@ public class AsyncCompilationPipelineTest {
 
         Assert.assertTrue(latestPublished.await(3, TimeUnit.SECONDS), "Latest compilation never completed");
         Awaitility.await().atMost(3, TimeUnit.SECONDS)
-                .untilAsserted(() -> Assert.assertEquals(snapshotStore.getStable(TEST_ROOT).contentVersion(),
+                .untilAsserted(() -> Assert.assertEquals(snapshotStore.getStable(testKey()).contentVersion(),
                         new ContentVersion(11), "Only the latest content version may remain published"));
     }
 
@@ -255,7 +256,7 @@ public class AsyncCompilationPipelineTest {
     private CompilationPipeline createPipeline(DualSnapshotStore snapshotStore,
                                                CompilationPipeline.CompilationAction action) {
         eventBus = new EventSyncPubSubHolder();
-        return new CompilationPipeline(TEST_ROOT, TEST_ROOT_ID, snapshotStore, eventBus, action);
+        return new CompilationPipeline(testKey(), snapshotStore, eventBus, action);
     }
 
     private static StableSnapshot createSnapshot(ContentVersion version) {
@@ -269,5 +270,10 @@ public class AsyncCompilationPipelineTest {
         Mockito.when(descriptor.name()).thenReturn(packageName);
         Mockito.when(packageName.value()).thenReturn(packageNameValue);
         return descriptor;
+    }
+
+    /** Returns the {@link CompilationKey} used by all tests in this class. */
+    private static CompilationKey testKey() {
+        return new CompilationKey(TEST_ROOT_ID, TEST_ROOT);
     }
 }

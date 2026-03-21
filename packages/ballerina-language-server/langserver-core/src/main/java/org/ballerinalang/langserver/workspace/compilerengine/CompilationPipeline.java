@@ -27,7 +27,6 @@ import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -100,9 +99,8 @@ public class CompilationPipeline implements AutoCloseable {
         }
     }
 
-    private final PackageDescriptor descriptor;
+    private final CompilationKey key;
     private final String descriptorName;
-    private final String sourceRootIdentifier;
     private final URI sourceRootUri;
     private final DualSnapshotStore snapshotStore;
     private final EventSyncPubSubHolder eventBus;
@@ -117,34 +115,17 @@ public class CompilationPipeline implements AutoCloseable {
     private final AtomicBoolean closed;
 
     /**
-     * Creates a compilation pipeline for the given package descriptor.
+     * Creates a compilation pipeline for the given compilation key.
      *
-     * @param descriptor        the package descriptor identity
+     * @param key               the compound key (source root + package descriptor)
      * @param snapshotStore     store to publish snapshots into
      * @param eventBus          event bus for domain event emission
      * @param compilationAction the actual compilation strategy
      */
-    public CompilationPipeline(@Nonnull PackageDescriptor descriptor, @Nonnull DualSnapshotStore snapshotStore,
+    public CompilationPipeline(@Nonnull CompilationKey key, @Nonnull DualSnapshotStore snapshotStore,
                                @Nonnull EventSyncPubSubHolder eventBus,
                                @Nonnull CompilationAction compilationAction) {
-        this(descriptor, null, snapshotStore, eventBus, compilationAction);
-    }
-
-    /**
-     * Creates a compilation pipeline for the given package descriptor and source root path.
-     *
-     * @param descriptor           the package descriptor identity
-     * @param sourceRootIdentifier the project source root path, when available
-     * @param snapshotStore        store to publish snapshots into
-     * @param eventBus             event bus for domain event emission
-     * @param compilationAction    the actual compilation strategy
-     */
-    public CompilationPipeline(@Nonnull PackageDescriptor descriptor, String sourceRootIdentifier,
-                               @Nonnull DualSnapshotStore snapshotStore,
-                               @Nonnull EventSyncPubSubHolder eventBus,
-                               @Nonnull CompilationAction compilationAction) {
-        this(descriptor, sourceRootIdentifier, snapshotStore, eventBus, compilationAction,
-                new Semaphore(Integer.MAX_VALUE, false));
+        this(key, snapshotStore, eventBus, compilationAction, new Semaphore(Integer.MAX_VALUE, false));
     }
 
     /**
@@ -153,26 +134,23 @@ public class CompilationPipeline implements AutoCloseable {
      * <p>Pipelines sharing the same semaphore will collectively honour its permit count; at most
      * {@code compilationPermits.availablePermits()} compilations run simultaneously across the group.
      *
-     * @param descriptor           the package descriptor identity
-     * @param sourceRootIdentifier the project source root path, when available
-     * @param snapshotStore        store to publish snapshots into
-     * @param eventBus             event bus for domain event emission
-     * @param compilationAction    the actual compilation strategy
-     * @param compilationPermits   shared semaphore controlling the maximum concurrent compilations
+     * @param key                the compound key (source root + package descriptor)
+     * @param snapshotStore      store to publish snapshots into
+     * @param eventBus           event bus for domain event emission
+     * @param compilationAction  the actual compilation strategy
+     * @param compilationPermits shared semaphore controlling the maximum concurrent compilations
      */
-    public CompilationPipeline(@Nonnull PackageDescriptor descriptor, String sourceRootIdentifier,
-                               @Nonnull DualSnapshotStore snapshotStore,
+    public CompilationPipeline(@Nonnull CompilationKey key, @Nonnull DualSnapshotStore snapshotStore,
                                @Nonnull EventSyncPubSubHolder eventBus,
                                @Nonnull CompilationAction compilationAction,
                                @Nonnull Semaphore compilationPermits) {
-        this.descriptor = Objects.requireNonNull(descriptor, "descriptor must not be null");
-        this.descriptorName = descriptorName(descriptor);
-        this.sourceRootIdentifier = sourceRootIdentifier;
-        this.sourceRootUri = parseSourceRootUri(sourceRootIdentifier);
-        this.snapshotStore = Objects.requireNonNull(snapshotStore, "snapshotStore must not be null");
-        this.eventBus = Objects.requireNonNull(eventBus, "eventBus must not be null");
-        this.compilationAction = Objects.requireNonNull(compilationAction, "compilationAction must not be null");
-        this.compilationPermits = Objects.requireNonNull(compilationPermits, "compilationPermits must not be null");
+        this.key = key;
+        this.descriptorName = descriptorName(key.descriptor());
+        this.sourceRootUri = parseSourceRootUri(key.sourceRoot());
+        this.snapshotStore = snapshotStore;
+        this.eventBus = eventBus;
+        this.compilationAction = compilationAction;
+        this.compilationPermits = compilationPermits;
 
         this.debounceScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "compile-debounce-" + descriptorName);
@@ -197,7 +175,6 @@ public class CompilationPipeline implements AutoCloseable {
      * @param contentVersion the version to compile
      */
     public void requestCompilation(@Nonnull ContentVersion contentVersion) {
-        Objects.requireNonNull(contentVersion, "contentVersion must not be null");
         if (closed.get()) {
             return;
         }
@@ -212,12 +189,21 @@ public class CompilationPipeline implements AutoCloseable {
     }
 
     /**
+     * Returns the compilation key (source root + package descriptor) for this pipeline.
+     *
+     * @return compilation key
+     */
+    public CompilationKey key() {
+        return key;
+    }
+
+    /**
      * Returns the package descriptor this pipeline manages.
      *
      * @return package descriptor
      */
     public PackageDescriptor descriptor() {
-        return descriptor;
+        return key.descriptor();
     }
 
     /**
@@ -242,7 +228,7 @@ public class CompilationPipeline implements AutoCloseable {
         if (inflight != null) {
             inflight.cancel();
         }
-        snapshotStore.cancelInProgress(descriptor);
+        snapshotStore.cancelInProgress(key);
         debounceScheduler.shutdownNow();
         compilationWorker.shutdownNow();
     }
@@ -268,8 +254,8 @@ public class CompilationPipeline implements AutoCloseable {
         }
 
         CancellationToken token = new CancellationToken();
-        CompileTask task = new CompileTask(descriptor, sourceRootIdentifier, contentVersion, token);
-        InProgressSnapshot inProgressSnapshot = snapshotStore.startCompilation(descriptor);
+        CompileTask task = new CompileTask(key.descriptor(), key.sourceRoot(), contentVersion, token);
+        InProgressSnapshot inProgressSnapshot = snapshotStore.startCompilation(key);
         inflightTask.set(task);
 
         compilationWorker.submit(() -> executeCompilation(task, inProgressSnapshot));
@@ -313,7 +299,7 @@ public class CompilationPipeline implements AutoCloseable {
             }
 
             emitEvent(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY);
-            snapshotStore.publishStable(descriptor, snapshot);
+            snapshotStore.publishStable(key, snapshot);
             published = true;
             emitEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED);
         } catch (CancellationException e) {
@@ -333,8 +319,8 @@ public class CompilationPipeline implements AutoCloseable {
             if (permitAcquired) {
                 compilationPermits.release();
             }
-            if (!published && snapshotStore.getInProgress(descriptor) == inProgressSnapshot) {
-                snapshotStore.cancelInProgress(descriptor);
+            if (!published && snapshotStore.getInProgress(key) == inProgressSnapshot) {
+                snapshotStore.cancelInProgress(key);
             }
             activeWorkerThread.compareAndSet(Thread.currentThread(), null);
             inflightTask.compareAndSet(task, null);

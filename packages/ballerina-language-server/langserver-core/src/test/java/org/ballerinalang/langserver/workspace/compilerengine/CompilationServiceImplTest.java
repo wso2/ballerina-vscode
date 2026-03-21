@@ -25,10 +25,10 @@ import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
+import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.documentstore.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
-import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent;
@@ -54,7 +54,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Mockito.mock;
@@ -72,6 +71,7 @@ public class CompilationServiceImplTest {
     private DualSnapshotStore snapshotStore;
     private StableSnapshot mockSnapshot;
     private PackageDescriptor mockDescriptor;
+    private Project mockProject;
     private Path workspaceDir;
     private DocumentUri testRoot;
 
@@ -82,6 +82,8 @@ public class CompilationServiceImplTest {
         workspaceDir = Files.createTempDirectory("compilation-service-test").toAbsolutePath().normalize();
         testRoot = new DocumentUri.FileUri(workspaceDir.toUri());
         mockDescriptor = createDescriptor(workspaceDir.getFileName().toString());
+        mockProject = mock(Project.class);
+        when(mockProject.sourceRoot()).thenReturn(workspaceDir);
         // Pre-create mock snapshot to avoid Mockito initialization issues across tests
         mockSnapshot = createStableSnapshot(mock(SyntaxTree.class), mock(SemanticModel.class),
                 mock(PackageCompilation.class), new ContentVersion(1));
@@ -143,13 +145,13 @@ public class CompilationServiceImplTest {
         Thread.sleep(200);
 
         // Verify pipeline exists
-        Assert.assertNotNull(snapshotStore.getStable(mockDescriptor), "Snapshot should exist");
+        Assert.assertNotNull(snapshotStore.getStable(mockKey()), "Snapshot should exist");
 
         publishWmE2(testRoot);
         Thread.sleep(200);
 
         // Verify pipeline is evicted
-        Assert.assertNull(snapshotStore.getStable(mockDescriptor),
+        Assert.assertNull(snapshotStore.getStable(mockKey()),
                 "WM-E2 should evict pipeline and snapshot");
     }
 
@@ -308,7 +310,7 @@ public class CompilationServiceImplTest {
         publishWmE1(testRoot);
         Assert.assertTrue(compiled.await(3, TimeUnit.SECONDS));
 
-        StableSnapshot stableSnapshot = service.stableSnapshot(mockDescriptor, null);
+        StableSnapshot stableSnapshot = service.stableSnapshot(mockProject, mockDescriptor, null);
         Assert.assertNotNull(stableSnapshot);
         Assert.assertSame(stableSnapshot, snapshot);
     }
@@ -318,7 +320,7 @@ public class CompilationServiceImplTest {
         // Use pre-created mockSnapshot
         service = new CompilationServiceImpl(snapshotStore, eventBus, task -> mockSnapshot, 50);
 
-        StableSnapshot snapshot = service.stableSnapshot(mockDescriptor, null);
+        StableSnapshot snapshot = service.stableSnapshot(mockProject, mockDescriptor, null);
         Assert.assertNull(snapshot, "Should return null when no snapshot exists");
     }
 
@@ -336,7 +338,7 @@ public class CompilationServiceImplTest {
         Assert.assertTrue(compiled.await(3, TimeUnit.SECONDS));
         Thread.sleep(250);
 
-        SnapshotView latestSnapshot = service.latestSnapshot(mockDescriptor, null);
+        SnapshotView latestSnapshot = service.latestSnapshot(mockProject, mockDescriptor, null);
         Assert.assertSame(latestSnapshot, snapshot);
     }
 
@@ -368,9 +370,9 @@ public class CompilationServiceImplTest {
         publishWmDocumentChanged(testRoot);
         Assert.assertTrue(secondCompileStarted.await(3, TimeUnit.SECONDS), "Second compilation should start");
 
-        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(mockDescriptor);
+        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(mockKey());
         Assert.assertNotNull(inProgressSnapshot, "In-progress snapshot should be published while compiling");
-        Assert.assertSame(service.latestSnapshot(mockDescriptor, null), inProgressSnapshot);
+        Assert.assertSame(service.latestSnapshot(mockProject, mockDescriptor, null), inProgressSnapshot);
 
         allowSecondCompileToFinish.countDown();
     }
@@ -392,7 +394,7 @@ public class CompilationServiceImplTest {
         Assert.assertTrue(compileStarted.await(3, TimeUnit.SECONDS), "Compilation should start");
 
         CompletableFuture<StableSnapshot> future = CompletableFuture.supplyAsync(
-                () -> service.stableSnapshot(mockDescriptor, null));
+                () -> service.stableSnapshot(mockProject, mockDescriptor, null));
         Thread.sleep(150);
         Assert.assertFalse(future.isDone(), "stableSnapshot should wait while compilation is in progress");
 
@@ -609,6 +611,10 @@ public class CompilationServiceImplTest {
         return new StableSnapshot(Map.of(documentId, syntaxTree),
                 Map.of(workspaceDir.resolve("main.bal").normalize(), documentId),
                 Map.of(moduleId, semanticModel), compilation, version);
+    }
+
+    private CompilationKey mockKey() {
+        return new CompilationKey(workspaceDir.toString(), mockDescriptor);
     }
 
     private PackageDescriptor createDescriptor(String packageNameValue) {

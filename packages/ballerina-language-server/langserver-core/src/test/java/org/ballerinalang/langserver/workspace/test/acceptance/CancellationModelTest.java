@@ -17,19 +17,18 @@
  */
 package org.ballerinalang.langserver.workspace.test.acceptance;
 
-import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
 import org.awaitility.Awaitility;
 import org.ballerinalang.langserver.workspace.compilerengine.CancellationToken;
+import org.ballerinalang.langserver.workspace.compilerengine.CompilationKey;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
+import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.InProgressSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
-import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
@@ -57,8 +56,9 @@ public class CancellationModelTest {
 
     private static final Path TEST_ROOT_PATH = Path.of("/tmp/acceptance-cancellation-model")
             .toAbsolutePath().normalize();
-    private static final String TEST_ROOT_ID = TEST_ROOT_PATH.toUri().toString();
-    private static final PackageDescriptor TEST_ROOT = descriptor("acceptance-cancellation-model");
+    private static final String TEST_ROOT_ID = TEST_ROOT_PATH.toString();
+    private static final PackageDescriptor TEST_DESCRIPTOR = descriptor("acceptance-cancellation-model");
+    private static final CompilationKey TEST_KEY = new CompilationKey(TEST_ROOT_ID, TEST_DESCRIPTOR);
 
     private CompilationPipeline pipeline;
     private EventSyncPubSubHolder eventBus;
@@ -143,8 +143,8 @@ public class CancellationModelTest {
         pipeline.requestCompilation(new ContentVersion(2));
 
         Awaitility.await().atMost(3, TimeUnit.SECONDS)
-                .until(() -> snapshotStore.getStable(TEST_ROOT) != null);
-        Assert.assertEquals(snapshotStore.getStable(TEST_ROOT).contentVersion(), new ContentVersion(2),
+                .until(() -> snapshotStore.getStable(TEST_KEY) != null);
+        Assert.assertEquals(snapshotStore.getStable(TEST_KEY).contentVersion(), new ContentVersion(2),
                 "Interrupted compilation must never publish a partial snapshot");
     }
 
@@ -164,7 +164,7 @@ public class CancellationModelTest {
         eventBus = new EventSyncPubSubHolder();
         eventBus.subscribe("cancelled-task-listener", SubscriberTier.CRITICAL,
                 Set.of(EventKind.COMPILER_COMPILATION_CANCELLED), event -> cancellationEvent.countDown());
-        pipeline = new CompilationPipeline(TEST_ROOT, TEST_ROOT_ID, new DualSnapshotStore(), eventBus, task -> {
+        pipeline = new CompilationPipeline(TEST_KEY, new DualSnapshotStore(), eventBus, task -> {
             if (task.contentVersion().value() == 1) {
                 firstStarted.countDown();
                 releaseCancelledTask.await(5, TimeUnit.SECONDS);
@@ -208,7 +208,7 @@ public class CancellationModelTest {
         releaseCancelledTask.countDown();
 
         Awaitility.await().atMost(3, TimeUnit.SECONDS)
-                .untilAsserted(() -> Assert.assertEquals(snapshotStore.getStable(TEST_ROOT).contentVersion(),
+                .untilAsserted(() -> Assert.assertEquals(snapshotStore.getStable(TEST_KEY).contentVersion(),
                         new ContentVersion(2), "Cancellation guard must prevent stale snapshots from being published"));
     }
 
@@ -223,7 +223,7 @@ public class CancellationModelTest {
         CountDownLatch firstStarted = new CountDownLatch(1);
         CountDownLatch replacementStarted = new CountDownLatch(1);
         CountDownLatch releaseReplacement = new CountDownLatch(1);
-        snapshotStore.publishStable(TEST_ROOT, previousSnapshot);
+        snapshotStore.publishStable(TEST_KEY, previousSnapshot);
 
         pipeline = createPipeline(snapshotStore, task -> {
             if (task.contentVersion().value() == 1) {
@@ -247,9 +247,9 @@ public class CancellationModelTest {
         pipeline.requestCompilation(new ContentVersion(2));
         Assert.assertTrue(replacementStarted.await(3, TimeUnit.SECONDS), "Replacement compilation did not start");
 
-        Assert.assertSame(snapshotStore.getStable(TEST_ROOT), previousSnapshot,
+        Assert.assertSame(snapshotStore.getStable(TEST_KEY), previousSnapshot,
                 "Consumers calling getStable() during replacement compilation must still see the last published snapshot");
-        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(TEST_ROOT);
+        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(TEST_KEY);
         Assert.assertNotNull(inProgressSnapshot,
                 "Replacement compilation must remain visible through getInProgress() until it publishes");
         Assert.assertFalse(inProgressSnapshot.compilation(() -> {
@@ -258,7 +258,7 @@ public class CancellationModelTest {
         releaseReplacement.countDown();
 
         Awaitility.await().atMost(3, TimeUnit.SECONDS)
-                .untilAsserted(() -> Assert.assertEquals(snapshotStore.getStable(TEST_ROOT).contentVersion(),
+                .untilAsserted(() -> Assert.assertEquals(snapshotStore.getStable(TEST_KEY).contentVersion(),
                         new ContentVersion(2), "Replacement compilation must publish the new stable snapshot"));
     }
 
@@ -269,7 +269,7 @@ public class CancellationModelTest {
      */
     @Test(dataProvider = "phaseBoundaries")
     public void cancelledCompileTask_throwsAtEveryPhaseBoundary(CompilationPhase phase) {
-        CompileTask task = new CompileTask(TEST_ROOT, TEST_ROOT_ID, new ContentVersion(5), new CancellationToken());
+        CompileTask task = new CompileTask(TEST_DESCRIPTOR, TEST_ROOT_ID, new ContentVersion(5), new CancellationToken());
         task.cancel();
 
         Assert.assertThrows(CancellationException.class,
@@ -337,7 +337,7 @@ public class CancellationModelTest {
     private CompilationPipeline createPipeline(DualSnapshotStore snapshotStore,
                                                CompilationPipeline.CompilationAction action) {
         eventBus = new EventSyncPubSubHolder();
-        return new CompilationPipeline(TEST_ROOT, TEST_ROOT_ID, snapshotStore, eventBus, action);
+        return new CompilationPipeline(TEST_KEY, snapshotStore, eventBus, action);
     }
 
     private static StableSnapshot createSnapshot(ContentVersion version) {

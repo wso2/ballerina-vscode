@@ -19,6 +19,7 @@
 package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.projects.PackageDescriptor;
+import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.workspace.documentstore.ContentVersion;
 import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
 import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
@@ -75,10 +76,10 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     private final long heapPressureThrottleMs;
     private final Semaphore compilationPermits;
     private final ScheduledExecutorService retryScheduler;
-    private final Map<PackageDescriptor, CompilationPipeline> pipelines;
-    private final Map<PackageDescriptor, CircuitBreakerAction> circuitActions;
-    private final Map<PackageDescriptor, ScheduledFuture<?>> throttledRequests;
-    private final Map<String, PackageDescriptor> sourceRootIndex;
+    private final Map<CompilationKey, CompilationPipeline> pipelines;
+    private final Map<CompilationKey, CircuitBreakerAction> circuitActions;
+    private final Map<CompilationKey, ScheduledFuture<?>> throttledRequests;
+    private final Map<String, Set<CompilationKey>> sourceRootIndex;
     private final AtomicInteger versionCounter;
     private final AtomicLong throttledUntilNanos;
     private final AtomicBoolean closed;
@@ -217,24 +218,28 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     @Override
-    public StableSnapshot stableSnapshot(@Nonnull PackageDescriptor descriptor, CancelChecker cancelChecker) {
+    public StableSnapshot stableSnapshot(@Nonnull Project project, @Nonnull PackageDescriptor descriptor,
+                                         CancelChecker cancelChecker) {
+        CompilationKey key = keyOf(project, descriptor);
         while (true) {
             if (cancelChecker != null) {
                 cancelChecker.checkCanceled();
             }
-            StableSnapshot stable = snapshotStore.getStable(descriptor);
+            StableSnapshot stable = snapshotStore.getStable(key);
             if (stable != null) {
                 return stable;
             }
-            InProgressSnapshot inProgress = snapshotStore.getInProgress(descriptor);
+            InProgressSnapshot inProgress = snapshotStore.getInProgress(key);
             if (inProgress instanceof DualSnapshotStore.StoreInProgressSnapshot storeInProgress) {
                 StableSnapshot awaited = awaitPublished(storeInProgress, cancelChecker);
                 if (awaited != null) {
                     return awaited;
                 }
             }
-            if (!pipelines.containsKey(descriptor)) {
-                return null;
+            if (!pipelines.containsKey(key)) {
+                if (!awaitOrBootstrapPipeline(key, project, cancelChecker)) {
+                    return null;
+                }
             }
             try {
                 Thread.sleep(50);
@@ -245,13 +250,46 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
     }
 
+    /**
+     * Waits briefly for async event delivery to register the pipeline, then bootstraps it directly if needed.
+     *
+     * @param key compilation key for the requested package
+     * @param project project owning the compilation request
+     * @param cancelChecker cancellation checker for the waiting thread
+     * @return true if the pipeline exists after waiting or bootstrapping, false if interrupted or closed
+     */
+    private boolean awaitOrBootstrapPipeline(CompilationKey key, Project project, CancelChecker cancelChecker) {
+        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(200);
+        while (!pipelines.containsKey(key)) {
+            if (closed.get()) {
+                return false;
+            }
+            if (cancelChecker != null) {
+                cancelChecker.checkCanceled();
+            }
+            if (System.nanoTime() >= deadline) {
+                createPipelineIfAbsent(project.sourceRoot().toAbsolutePath().normalize().toString());
+                return pipelines.containsKey(key);
+            }
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
-    public SnapshotView latestSnapshot(@Nonnull PackageDescriptor descriptor, CancelChecker cancelChecker) {
-        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(descriptor);
+    public SnapshotView latestSnapshot(@Nonnull Project project, @Nonnull PackageDescriptor descriptor,
+                                       CancelChecker cancelChecker) {
+        CompilationKey key = keyOf(project, descriptor);
+        InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(key);
         if (inProgressSnapshot != null) {
             return inProgressSnapshot;
         }
-        return snapshotStore.getStable(descriptor);
+        return snapshotStore.getStable(key);
     }
 
     @Override
@@ -323,19 +361,21 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     private void handleDocumentChanged(DomainEvent event) {
-        PackageDescriptor descriptor = resolveDescriptor(event);
-        if (descriptor != null) {
-            requestCompilationWithThrottle(descriptor);
+        Set<CompilationKey> keys = resolveKeys(event);
+        if (keys != null) {
+            keys.forEach(this::requestCompilationWithThrottle);
         }
     }
 
     private void handleFileWatchedChanged(DomainEvent event) {
-        PackageDescriptor descriptor = resolveDescriptor(event);
-        if (descriptor != null && event instanceof FileWatchedChangedEvent fwce
-                && isDependencyGraphChange(fwce.changeScope())) {
-            requestCompilationWithThrottle(descriptor);
+        if (!(event instanceof FileWatchedChangedEvent fwce) || !isDependencyGraphChange(fwce.changeScope())) {
+            return;
+            // "CONFIGURATION" scope is ignored
         }
-        // "CONFIGURATION" scope is ignored
+        Set<CompilationKey> keys = resolveKeys(event);
+        if (keys != null) {
+            keys.forEach(this::requestCompilationWithThrottle);
+        }
     }
 
     private void handleHeapPressureEvent(DomainEvent event) {
@@ -352,32 +392,32 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
     }
 
-    private void requestCompilationWithThrottle(PackageDescriptor descriptor) {
-        CompilationPipeline pipeline = pipelines.get(descriptor);
+    private void requestCompilationWithThrottle(CompilationKey key) {
+        CompilationPipeline pipeline = pipelines.get(key);
         if (pipeline == null) {
             return;
         }
 
         long delayNanos = throttledUntilNanos.get() - System.nanoTime();
         if (delayNanos <= 0) {
-            cancelThrottledRequest(descriptor);
+            cancelThrottledRequest(key);
             requestCompilation(pipeline);
             return;
         }
 
-        ScheduledFuture<?> existing = throttledRequests.remove(descriptor);
+        ScheduledFuture<?> existing = throttledRequests.remove(key);
         if (existing != null) {
             existing.cancel(false);
         }
 
         ScheduledFuture<?> scheduled = retryScheduler.schedule(() -> {
-            throttledRequests.remove(descriptor);
-            CompilationPipeline activePipeline = pipelines.get(descriptor);
+            throttledRequests.remove(key);
+            CompilationPipeline activePipeline = pipelines.get(key);
             if (activePipeline != null && !closed.get()) {
                 requestCompilation(activePipeline);
             }
         }, TimeUnit.NANOSECONDS.toMillis(delayNanos), TimeUnit.MILLISECONDS);
-        throttledRequests.put(descriptor, scheduled);
+        throttledRequests.put(key, scheduled);
     }
 
     private void requestCompilation(CompilationPipeline pipeline) {
@@ -385,18 +425,14 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         pipeline.requestCompilation(nextVersion);
     }
 
-    private void cancelThrottledRequest(PackageDescriptor descriptor) {
-        ScheduledFuture<?> pendingRequest = throttledRequests.remove(descriptor);
+    private void cancelThrottledRequest(CompilationKey key) {
+        ScheduledFuture<?> pendingRequest = throttledRequests.remove(key);
         if (pendingRequest != null) {
             pendingRequest.cancel(false);
         }
     }
 
     private void createPipelineIfAbsent(String sourceRootIdentifier) {
-        PackageDescriptor existingDescriptor = sourceRootIndex.get(sourceRootIdentifier);
-        if (existingDescriptor != null && pipelines.containsKey(existingDescriptor)) {
-            return;
-        }
         PackageDescriptor descriptor;
         try {
             descriptor = baseAction.describe(sourceRootIdentifier);
@@ -404,33 +440,39 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
             LOG.log(Level.WARNING, "Failed to describe project at " + sourceRootIdentifier, e);
             return;
         }
-        CircuitBreakerAction circuitAction = new CircuitBreakerAction(descriptor, sourceRootIdentifier);
-        CompilationPipeline pipeline = new CompilationPipeline(descriptor, sourceRootIdentifier, snapshotStore, eventBus,
+        CompilationKey key = new CompilationKey(sourceRootIdentifier, descriptor);
+        if (pipelines.containsKey(key)) {
+            return;
+        }
+        CircuitBreakerAction circuitAction = new CircuitBreakerAction(key);
+        CompilationPipeline pipeline = new CompilationPipeline(key, snapshotStore, eventBus,
                 circuitAction, compilationPermits);
-        CompilationPipeline existing = pipelines.putIfAbsent(descriptor, pipeline);
+        CompilationPipeline existing = pipelines.putIfAbsent(key, pipeline);
         if (existing != null) {
             pipeline.close();
             return;
         }
-        sourceRootIndex.put(sourceRootIdentifier, descriptor);
-        circuitActions.put(descriptor, circuitAction);
+        sourceRootIndex.computeIfAbsent(sourceRootIdentifier, k -> ConcurrentHashMap.newKeySet()).add(key);
+        circuitActions.put(key, circuitAction);
         pipeline.requestCompilation(new ContentVersion(versionCounter.getAndIncrement()));
     }
 
     private void evictPipeline(String sourceRootIdentifier) {
-        PackageDescriptor descriptor = sourceRootIndex.remove(sourceRootIdentifier);
-        if (descriptor == null) {
+        Set<CompilationKey> keys = sourceRootIndex.remove(sourceRootIdentifier);
+        if (keys == null) {
             return;
         }
-        CompilationPipeline pipeline = pipelines.remove(descriptor);
-        circuitActions.remove(descriptor);
-        ScheduledFuture<?> pendingRequest = throttledRequests.remove(descriptor);
-        if (pendingRequest != null) {
-            pendingRequest.cancel(false);
-        }
-        if (pipeline != null) {
-            pipeline.close();
-            snapshotStore.remove(descriptor);
+        for (CompilationKey key : keys) {
+            CompilationPipeline pipeline = pipelines.remove(key);
+            circuitActions.remove(key);
+            ScheduledFuture<?> pendingRequest = throttledRequests.remove(key);
+            if (pendingRequest != null) {
+                pendingRequest.cancel(false);
+            }
+            if (pipeline != null) {
+                pipeline.close();
+                snapshotStore.remove(key);
+            }
         }
     }
 
@@ -453,9 +495,14 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
     }
 
-    private PackageDescriptor resolveDescriptor(DomainEvent event) {
+    private Set<CompilationKey> resolveKeys(DomainEvent event) {
         String sourceRootIdentifier = sourceRootIdentifier(event);
         return sourceRootIdentifier == null ? null : sourceRootIndex.get(sourceRootIdentifier);
+    }
+
+    private CompilationKey keyOf(Project project, PackageDescriptor descriptor) {
+        String sourceRoot = project.sourceRoot().toAbsolutePath().normalize().toString();
+        return new CompilationKey(sourceRoot, descriptor);
     }
 
     private String sourceRootIdentifier(DomainEvent event) {
@@ -503,15 +550,13 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      */
     private class CircuitBreakerAction implements CompilationPipeline.CompilationAction {
 
-        private final PackageDescriptor descriptor;
-        private final String sourceRootIdentifier;
+        private final CompilationKey key;
         private final AtomicInteger retryCount;
         private final AtomicBoolean circuitOpen;
         private volatile ScheduledFuture<?> retryTask;
 
-        CircuitBreakerAction(PackageDescriptor descriptor, String sourceRootIdentifier) {
-            this.descriptor = descriptor;
-            this.sourceRootIdentifier = sourceRootIdentifier;
+        CircuitBreakerAction(CompilationKey key) {
+            this.key = key;
             this.retryCount = new AtomicInteger(0);
             this.circuitOpen = new AtomicBoolean(false);
         }
@@ -524,7 +569,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         @Override
         public StableSnapshot compile(CompileTask task) throws Exception {
             if (circuitOpen.get()) {
-                throw new IllegalStateException("Circuit breaker is open for " + descriptorName(descriptor));
+                throw new IllegalStateException("Circuit breaker is open for " + descriptorName(key.descriptor()));
             }
 
             try {
@@ -569,7 +614,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         private void scheduleRetryOrOpenCircuit(FailureClass failureClass) {
             if (failureClass == FailureClass.TRANSIENT && retryCount.getAndIncrement() < 1) {
                 // Schedule a retry for the next compilation request
-                CompilationPipeline pipeline = pipelines.get(descriptor);
+                CompilationPipeline pipeline = pipelines.get(key);
                 if (pipeline != null) {
                     retryTask = retryScheduler.schedule(() -> {
                         ContentVersion nextVersion = new ContentVersion(versionCounter.getAndIncrement());
@@ -585,11 +630,11 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
         private void emitRecoveryExhausted() {
             try {
-                URI uri = parseSourceRootUri(sourceRootIdentifier);
+                URI uri = parseSourceRootUri(key.sourceRoot());
                 eventBus.publish(new CompilerEvent(EventKind.CE_RESOLUTION_EXHAUSTED, uri,
-                        descriptorName(descriptor)));
+                        descriptorName(key.descriptor())));
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to emit CE-E6 for " + descriptorName(descriptor), e);
+                LOG.log(Level.WARNING, "Failed to emit CE-E6 for " + descriptorName(key.descriptor()), e);
             }
         }
 

@@ -21,6 +21,7 @@ import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
 import io.ballerina.projects.PackageCompilation;
 import org.awaitility.Awaitility;
+import org.ballerinalang.langserver.workspace.compilerengine.CompilationKey;
 import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.InProgressSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
@@ -51,7 +52,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class DualSnapshotAcceptanceTest {
 
-    private static final PackageDescriptor TEST_ROOT = descriptor("acceptance-dual-snapshot");
+    private static final String TEST_SOURCE_ROOT = "/test/acceptance-dual-snapshot";
+    private static final CompilationKey TEST_ROOT = new CompilationKey(TEST_SOURCE_ROOT,
+            descriptor("acceptance-dual-snapshot"));
     private static final long LATENCY_THRESHOLD_MS = 5;
 
     private DualSnapshotStore store;

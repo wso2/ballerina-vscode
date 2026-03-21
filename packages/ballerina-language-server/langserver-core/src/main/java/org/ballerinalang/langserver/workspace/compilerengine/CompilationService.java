@@ -19,6 +19,7 @@
 package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.projects.PackageDescriptor;
+import io.ballerina.projects.Project;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import javax.annotation.Nonnull;
 
@@ -32,18 +33,32 @@ public interface CompilationService {
     /**
      * Returns the stable snapshot for the given package, blocking until one is available.
      *
-     * @param descriptor the package descriptor identifying the compilation unit
+     * <p>Both {@code project} and {@code descriptor} are required to uniquely identify a
+     * compilation unit: the project provides the source root (disambiguating two projects
+     * with identical descriptors), while the descriptor identifies the specific package
+     * within that project.
+     *
+     * @param project       the Ballerina project owning the package
+     * @param descriptor    the package descriptor identifying the compilation unit
      * @param cancelChecker cancel checker
      * @return stable snapshot, or {@code null} if the package is not tracked
      */
-    StableSnapshot stableSnapshot(@Nonnull PackageDescriptor descriptor, CancelChecker cancelChecker);
+    StableSnapshot stableSnapshot(@Nonnull Project project, @Nonnull PackageDescriptor descriptor,
+                                  CancelChecker cancelChecker);
 
     /**
      * Returns the latest available snapshot view for the given package.
      *
-     * @param descriptor the package descriptor identifying the compilation unit
+     * <p>Both {@code project} and {@code descriptor} are required to uniquely identify a
+     * compilation unit: the project provides the source root (disambiguating two projects
+     * with identical descriptors), while the descriptor identifies the specific package
+     * within that project.
+     *
+     * @param project       the Ballerina project owning the package
+     * @param descriptor    the package descriptor identifying the compilation unit
      * @param cancelChecker cancel checker
      * @return latest available snapshot view
      */
-    SnapshotView latestSnapshot(@Nonnull PackageDescriptor descriptor, CancelChecker cancelChecker);
+    SnapshotView latestSnapshot(@Nonnull Project project, @Nonnull PackageDescriptor descriptor,
+                                CancelChecker cancelChecker);
 }

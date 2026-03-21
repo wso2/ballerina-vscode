@@ -166,7 +166,7 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
         try {
             Project project = projectService.loadOrCreate(filePath, null);
             PackageDescriptor descriptor = project.currentPackage().descriptor();
-            StableSnapshot snapshot = compilationService.stableSnapshot(descriptor, null);
+            StableSnapshot snapshot = compilationService.stableSnapshot(project, descriptor, null);
             SyntaxTree tree = snapshot == null ? null : snapshot.syntaxTree(filePath);
             if (tree != null) {
                 return Optional.of(tree);
@@ -183,7 +183,7 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
         try {
             Project project = projectService.loadOrCreate(filePath, cancelChecker);
             PackageDescriptor descriptor = project.currentPackage().descriptor();
-            StableSnapshot snapshot = compilationService.stableSnapshot(descriptor, cancelChecker);
+            StableSnapshot snapshot = compilationService.stableSnapshot(project, descriptor, cancelChecker);
             SyntaxTree tree = snapshot == null ? null : snapshot.syntaxTree(filePath);
             if (tree != null) {
                 return Optional.of(tree);
@@ -200,13 +200,9 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
         try {
             Project project = projectService.loadOrCreate(filePath, null);
             PackageDescriptor descriptor = project.currentPackage().descriptor();
-            StableSnapshot snapshot = compilationService.stableSnapshot(descriptor, null);
+            StableSnapshot snapshot = compilationService.stableSnapshot(project, descriptor, null);
             SemanticModel semanticModel = snapshot == null ? null : snapshot.semanticModel(filePath);
-            if (semanticModel != null) {
-                return Optional.of(semanticModel);
-            }
-            DocumentId docId = project.documentId(filePath);
-            return Optional.of(project.currentPackage().getCompilation().getSemanticModel(docId.moduleId()));
+            return Optional.ofNullable(semanticModel);
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -217,13 +213,9 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
         try {
             Project project = projectService.loadOrCreate(filePath, cancelChecker);
             PackageDescriptor descriptor = project.currentPackage().descriptor();
-            StableSnapshot snapshot = compilationService.stableSnapshot(descriptor, cancelChecker);
+            StableSnapshot snapshot = compilationService.stableSnapshot(project, descriptor, cancelChecker);
             SemanticModel semanticModel = snapshot == null ? null : snapshot.semanticModel(filePath);
-            if (semanticModel != null) {
-                return Optional.of(semanticModel);
-            }
-            DocumentId docId = project.documentId(filePath);
-            return Optional.of(project.currentPackage().getCompilation().getSemanticModel(docId.moduleId()));
+            return Optional.ofNullable(semanticModel);
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -234,12 +226,9 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
         try {
             Project project = projectService.loadOrCreate(filePath, null);
             PackageDescriptor descriptor = project.currentPackage().descriptor();
-            StableSnapshot snapshot = compilationService.stableSnapshot(descriptor, null);
+            StableSnapshot snapshot = compilationService.stableSnapshot(project, descriptor, null);
             PackageCompilation compilation = snapshot == null ? null : snapshot.compilation();
-            if (compilation != null) {
-                return Optional.of(compilation);
-            }
-            return Optional.of(project.currentPackage().getCompilation());
+            return Optional.ofNullable(compilation);
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -250,12 +239,9 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
         try {
             Project project = projectService.loadOrCreate(filePath, cancelChecker);
             PackageDescriptor descriptor = project.currentPackage().descriptor();
-            StableSnapshot snapshot = compilationService.stableSnapshot(descriptor, cancelChecker);
+            StableSnapshot snapshot = compilationService.stableSnapshot(project, descriptor, cancelChecker);
             PackageCompilation compilation = snapshot == null ? null : snapshot.compilation();
-            if (compilation != null) {
-                return Optional.of(compilation);
-            }
-            return Optional.of(project.currentPackage().getCompilation());
+            return Optional.ofNullable(compilation);
         } catch (Exception e) {
             return Optional.empty();
         }
