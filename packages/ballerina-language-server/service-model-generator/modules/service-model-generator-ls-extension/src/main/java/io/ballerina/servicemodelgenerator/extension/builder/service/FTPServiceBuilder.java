@@ -112,11 +112,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     // Variable name prefix for FTP sources (produces ftpSource, ftpSource1, ftpSource2, ...)
     private static final String FTP_SOURCE_VAR_NAME = "ftpSource";
 
-    // Listener configuration property keys (path is service-level, not listener-level)
-    // designApproach contains protocol choice with nested listener properties (host, port, auth)
-    private static final List<String> LISTENER_CONFIG_KEYS = List.of(
-            KEY_LISTENER_VAR_NAME, "designApproach", "host", "portNumber", "authentication", "secureSocket"
-    );
     public static final String EVENT = "EVENT";
     private static final String SERVICE_CONFIG = "ServiceConfig";
 
@@ -141,11 +136,16 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
             ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
+
+            // Navigate into the pre-structured configureListener CHOICE
+            Value configureListener = serviceInitModel.getProperties().get(KEY_CONFIGURE_LISTENER);
+            Value createNewChoice = configureListener.getChoices().get(1);
+            Value sourceConfig = createNewChoice.getProperties().get("sourceConfig");
+
             // Generate a unique source name using the "ftpSource" prefix
             String sourceName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
                     context.document().syntaxTree().rootNode().lineRange().endLine(), FTP_SOURCE_VAR_NAME);
-            Value listener = serviceInitModel.getProperties().get(KEY_LISTENER_VAR_NAME);
-            listener.setValue(sourceName);
+            sourceConfig.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(sourceName);
 
             // Check for existing compatible FTP listeners (excluding legacy ones)
             Set<String> allListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
@@ -153,56 +153,35 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             Set<String> compatibleListeners = filterNonLegacyListeners(allListeners, context.semanticModel(),
                     context.project());
 
-            // Capture template metadata from the init model BEFORE properties are removed.
-            // The designApproach CHOICE contains nested properties (host, portNumber, etc.)
-            // with rich descriptions that we want to reuse for existing listener configs.
-            Map<String, Value> properties = serviceInitModel.getProperties();
-            Value designApproach = properties.get(PROPERTY_DESIGN_APPROACH);
-            Map<String, Value> templateProps = (designApproach != null
-                    && designApproach.getChoices() != null && !designApproach.getChoices().isEmpty())
-                    ? designApproach.getChoices().get(0).getProperties() : Map.of();
-
-            // Always build the choice property with "Use existing" and "Create new" source options
-            Map<String, Value> listenerProps =
-                    ListenerUtil.removeAndCollectListenerProperties(properties, LISTENER_CONFIG_KEYS);
-
-            // Wrap the listener properties in a GROUP_SECTION so the frontend renders them
-            // inside a collapsible FormSectionGroup
-            Value groupSection = new Value.ValueBuilder()
-                    .metadata("Source Configuration",
-                            "Configure the " + LABEL_FTP + " source connection")
-                    .types(List.of(PropertyType.types(Value.FieldType.GROUP_SECTION)))
-                    .enabled(true)
-                    .editable(true)
-                    .setProperties(listenerProps)
-                    .build();
-            Map<String, Value> wrappedListenerProps = new LinkedHashMap<>();
-            wrappedListenerProps.put("sourceConfig", groupSection);
-
-            Map<String, Map<String, Value>> listenerConfigs;
             if (!compatibleListeners.isEmpty()) {
+                // Extract template metadata from designApproach for consistent labels
+                Value designApproach = sourceConfig.getProperties().get(PROPERTY_DESIGN_APPROACH);
+                Map<String, Value> templateProps = (designApproach != null
+                        && designApproach.getChoices() != null && !designApproach.getChoices().isEmpty())
+                        ? designApproach.getChoices().get(0).getProperties() : Map.of();
+
                 // Extract actual configs from existing listener declarations
-                listenerConfigs = ListenerUtil.extractListenerConfigs(compatibleListeners,
-                        context.semanticModel(), context.project());
-                // Apply init model metadata so existing listener configs use the same
-                // labels/descriptions as the "Create new" source form
+                Map<String, Map<String, Value>> listenerConfigs = ListenerUtil.extractListenerConfigs(
+                        compatibleListeners, context.semanticModel(), context.project());
                 applyInitModelMetadata(listenerConfigs, templateProps, designApproach);
-            } else {
-                listenerConfigs = Map.of();
+
+                // Populate the "Use existing" choice
+                Value existingChoice = configureListener.getChoices().get(0);
+                existingChoice.setMetadata(new MetaData("Use existing",
+                        "Select an existing " + LABEL_FTP + " source"));
+                existingChoice.setEnabled(true);
+                existingChoice.setEditable(true);
+
+                // Build the SINGLE_SELECT dropdown and place it in the existing sourceConfig
+                Value listenerDropdown = buildListenerDropdown(listenerConfigs, compatibleListeners);
+                Map<String, Value> existingSourceProps = new LinkedHashMap<>();
+                existingSourceProps.put(ServiceInitModel.KEY_EXISTING_LISTENER, listenerDropdown);
+                existingChoice.getProperties().get("sourceConfig").setProperties(existingSourceProps);
+
+                // Set "Use existing" as default selection
+                configureListener.setValue("0");
+                createNewChoice.setEnabled(false);
             }
-
-            Value choicesProperty = ListenerUtil.buildAlwaysPresentListenerChoiceProperty(
-                    wrappedListenerProps, listenerConfigs, compatibleListeners, LABEL_FTP);
-
-            // Wrap the "Use existing" choice's config properties in a GROUP_SECTION too
-            wrapExistingChoiceInGroupSection(choicesProperty);
-
-            // Insert configureListener at the top of the form (LinkedHashMap preserves insertion order)
-            Map<String, Value> reordered = new LinkedHashMap<>();
-            reordered.put(KEY_CONFIGURE_LISTENER, choicesProperty);
-            reordered.putAll(properties);
-            properties.clear();
-            properties.putAll(reordered);
 
             return serviceInitModel;
         } catch (IOException e) {
@@ -226,8 +205,14 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         Map<String, String> keyMapping = Map.of(
                 "host", "host",
                 "portNumber", "portNumber",
-                "authentication", "authentication"
+                "authentication", "authentication",
+                "secureSocket", "secureSocket"
         );
+
+        // secureSocket metadata comes from the FTPS choice (index 2), not FTP (index 0)
+        Map<String, Value> ftpsTemplateProps = (designApproach != null
+                && designApproach.getChoices() != null && designApproach.getChoices().size() > 2)
+                ? designApproach.getChoices().get(2).getProperties() : Map.of();
 
         for (Map<String, Value> config : configs.values()) {
             // Build protocol radio button from designApproach choices
@@ -239,11 +224,27 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             // Apply metadata from template properties
             for (Map.Entry<String, String> mapping : keyMapping.entrySet()) {
                 Value configValue = config.get(mapping.getKey());
-                Value templateValue = templateProps.get(mapping.getValue());
+                // Use FTPS template props for secureSocket, default template for others
+                Map<String, Value> sourceProps = "secureSocket".equals(mapping.getKey())
+                        ? ftpsTemplateProps : templateProps;
+                Value templateValue = sourceProps.get(mapping.getValue());
                 if (configValue != null && templateValue != null && templateValue.getMetadata() != null) {
                     configValue.setMetadata(templateValue.getMetadata());
                 }
             }
+
+            // Reorder config to desired display order: protocol, host, portNumber, authentication, secureSocket
+            List<String> displayOrder = List.of("protocol", "host", "portNumber", "authentication", "secureSocket");
+            LinkedHashMap<String, Value> ordered = new LinkedHashMap<>();
+            for (String key : displayOrder) {
+                if (config.containsKey(key)) {
+                    ordered.put(key, config.remove(key));
+                }
+            }
+            // Append any remaining keys not in the display order
+            ordered.putAll(config);
+            config.clear();
+            config.putAll(ordered);
         }
     }
 
@@ -283,29 +284,45 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     }
 
     /**
-     * Wraps the "Use existing" choice's properties in a GROUP_SECTION, consistent with "Create new".
-     * Both choices use the same grouping model: a single GROUP_SECTION containing all fields.
+     * Builds a SINGLE_SELECT dropdown for selecting an existing listener.
+     * Each listener's configuration is stored as nested properties keyed by listener name,
+     * so the frontend can show read-only config when a listener is selected.
      */
-    private static void wrapExistingChoiceInGroupSection(Value choicesProperty) {
-        if (choicesProperty.getChoices() == null || choicesProperty.getChoices().isEmpty()) {
-            return;
-        }
-        Value existingChoice = choicesProperty.getChoices().get(0);
-        Map<String, Value> existingProps = existingChoice.getProperties();
-        if (existingProps == null || existingProps.isEmpty()) {
-            return;
+    private static Value buildListenerDropdown(Map<String, Map<String, Value>> listenerConfigs,
+                                                Set<String> listeners) {
+        List<String> listenerNames = new ArrayList<>(listeners);
+
+        Map<String, Value> perListenerConfigs = new LinkedHashMap<>();
+        for (String listenerName : listenerNames) {
+            Map<String, Value> config = listenerConfigs.getOrDefault(listenerName, new LinkedHashMap<>());
+
+            // Make all config properties read-only
+            Map<String, Value> readOnlyConfig = new LinkedHashMap<>();
+            for (Map.Entry<String, Value> entry : config.entrySet()) {
+                entry.getValue().setEditable(false);
+                readOnlyConfig.put(entry.getKey(), entry.getValue());
+            }
+
+            Value configGroup = new Value.ValueBuilder()
+                    .metadata(listenerName, LABEL_FTP + " source: " + listenerName)
+                    .value(listenerName)
+                    .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                    .enabled(true)
+                    .editable(false)
+                    .setProperties(readOnlyConfig)
+                    .build();
+            perListenerConfigs.put(listenerName, configGroup);
         }
 
-        Value groupSection = new Value.ValueBuilder()
-                .metadata("Source Configuration", "Existing source configuration")
-                .types(List.of(PropertyType.types(Value.FieldType.GROUP_SECTION)))
+        return new Value.ValueBuilder()
+                .metadata("Source Name", "Select an existing " + LABEL_FTP + " source")
+                .value(listenerNames.get(0))
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
                 .enabled(true)
-                .editable(false)
-                .setProperties(existingProps)
+                .editable(true)
+                .setItems(new ArrayList<Object>(listenerNames))
+                .setProperties(perListenerConfigs)
                 .build();
-        Map<String, Value> wrapped = new LinkedHashMap<>();
-        wrapped.put("sourceConfig", groupSection);
-        existingChoice.setProperties(wrapped);
     }
 
     /**
