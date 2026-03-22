@@ -504,6 +504,7 @@ export type NodeKind =
     | "AGENTS"
     | "AGENT"
     | "AGENT_CALL"
+    | "AGENT_ID_AUTH_CONFIG"
     | "AGENT_RUN"
     | "ASSIGN"
     | "AUTOMATION"

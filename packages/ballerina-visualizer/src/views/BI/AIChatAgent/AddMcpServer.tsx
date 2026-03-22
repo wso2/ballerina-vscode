@@ -119,7 +119,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         agentFileEndLineRangeRef.current = endLineRange;
 
         const template = await fetchMcpToolKitTemplate();
-        const scopesSupported = await checkAiPackageVersionSupport(rpcClient, visualizerLocation.projectPath);
+        const scopesSupported = await checkAiPackageVersionSupport(rpcClient, visualizerLocation.projectPath, "1.11.0");
         setShowScopes(scopesSupported);
 
         mcpToolKitNodeTemplateRef.current = template;
