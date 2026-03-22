@@ -296,7 +296,10 @@ const HTTPRequestDetail: React.FC<HTTPRequestDetailProps> = ({ request, output }
                 <UrlLabel>{request.url}</UrlLabel>
                 {statusCode !== undefined && <StatusBadge status={statusCode}>{statusCode}</StatusBadge>}
                 <ExpandButton onClick={() => setExpanded(p => !p)} title={expanded ? "Collapse" : "Expand"}>
-                    <span className={`codicon ${expanded ? "codicon-chevron-up" : "codicon-chevron-down"}`} />
+                    <span
+                        className="codicon codicon-chevron-down"
+                        style={{ display: "inline-flex", transform: expanded ? "rotate(0deg)" : "rotate(-90deg)", transition: "transform 0.2s ease" }}
+                    />
                 </ExpandButton>
             </RequestRow>
 
