@@ -331,7 +331,6 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
             case "file" -> new DocumentUri.FileUri(uri);
             case "expr" -> new DocumentUri.ExprUri(uri);
             case "ai" -> new DocumentUri.AiUri(uri);
-            case "untitled" -> new DocumentUri.UntitledUri(uri);
             default -> throw new IllegalArgumentException("Unknown URI scheme: " + uri.getScheme());
         };
     }

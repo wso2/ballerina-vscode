@@ -18,12 +18,10 @@
 
 package org.ballerinalang.langserver.commons.workspace;
 
-import java.util.Objects;
-
 /**
  * A {@link WorkspaceManagerProxy} implementation that delegates all calls to a single unified workspace manager.
  *
- * <p>Multi-scheme URI routing (e.g. {@code expr://}, {@code ai://}, {@code untitled:}) is handled internally
+ * <p>Multi-scheme URI routing (e.g. {@code expr://}, {@code ai://}) is handled internally
  * by the workspace manager facade, so both {@link #get()} and {@link #get(String)} return the same instance
  * regardless of URI scheme.
  *
@@ -43,7 +41,7 @@ public final class UnifiedWorkspaceManagerProxy implements WorkspaceManagerProxy
      * @param workspaceManager the unified workspace manager facade; must not be null
      */
     public UnifiedWorkspaceManagerProxy(WorkspaceManager workspaceManager) {
-        this.workspaceManager = Objects.requireNonNull(workspaceManager, "workspaceManager must not be null");
+        this.workspaceManager = workspaceManager;
     }
 
     /**

@@ -26,8 +26,7 @@ import javax.annotation.Nonnull;
  *
  * @since 1.7.0
  */
-public sealed interface DocumentUri permits DocumentUri.FileUri, DocumentUri.ExprUri, DocumentUri.AiUri,
-        DocumentUri.UntitledUri {
+public sealed interface DocumentUri permits DocumentUri.FileUri, DocumentUri.ExprUri, DocumentUri.AiUri {
 
     /**
      * Returns the URI identity.
@@ -89,22 +88,6 @@ public sealed interface DocumentUri permits DocumentUri.FileUri, DocumentUri.Exp
          */
         public AiUri {
             uri = validateScheme(uri, "ai");
-        }
-    }
-
-    /**
-     * Identity for {@code untitled:} documents.
-     *
-     * @param uri document URI
-     */
-    record UntitledUri(URI uri) implements DocumentUri {
-        /**
-         * Creates an untitled URI identity.
-         *
-         * @param uri untitled URI with {@code untitled} scheme
-         */
-        public UntitledUri {
-            uri = validateScheme(uri, "untitled");
         }
     }
 }

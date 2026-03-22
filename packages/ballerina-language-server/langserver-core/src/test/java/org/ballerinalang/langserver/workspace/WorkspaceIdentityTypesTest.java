@@ -42,12 +42,10 @@ public class WorkspaceIdentityTypesTest {
         DocumentUri.FileUri fileUri = new DocumentUri.FileUri(URI.create("file:///tmp/main.bal"));
         DocumentUri.ExprUri exprUri = new DocumentUri.ExprUri(URI.create("expr:///tmp/main.bal"));
         DocumentUri.AiUri aiUri = new DocumentUri.AiUri(URI.create("ai:///tmp/main.bal"));
-        DocumentUri.UntitledUri untitledUri = new DocumentUri.UntitledUri(URI.create("untitled:Untitled-1"));
 
         Assert.assertEquals(fileUri.uri().getScheme(), "file");
         Assert.assertEquals(exprUri.uri().getScheme(), "expr");
         Assert.assertEquals(aiUri.uri().getScheme(), "ai");
-        Assert.assertEquals(untitledUri.uri().getScheme(), "untitled");
     }
 
     /**
@@ -63,7 +61,6 @@ public class WorkspaceIdentityTypesTest {
                 case "file" -> new DocumentUri.FileUri(uri);
                 case "expr" -> new DocumentUri.ExprUri(uri);
                 case "ai" -> new DocumentUri.AiUri(uri);
-                case "untitled" -> new DocumentUri.UntitledUri(uri);
                 default -> throw new IllegalArgumentException("Unsupported test variant");
             }
         });
@@ -79,8 +76,7 @@ public class WorkspaceIdentityTypesTest {
         return new Object[][]{
                 {"file", URI.create("expr:///tmp/file.bal")},
                 {"expr", URI.create("ai:///tmp/file.bal")},
-                {"ai", URI.create("file:///tmp/file.bal")},
-                {"untitled", URI.create("file:///tmp/file.bal")}
+                {"ai", URI.create("file:///tmp/file.bal")}
         };
     }
 
