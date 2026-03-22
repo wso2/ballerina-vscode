@@ -22,13 +22,13 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.environment.PackageLockingMode;
 import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeApplier;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.BufferedChange;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeLayer;
@@ -59,6 +59,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for {@link ProjectServiceImpl} service layer implementation.
@@ -72,6 +75,8 @@ public class ProjectServiceTest {
     private EventSyncPubSubHolder eventBus;
     private ProjectServiceImpl service;
     private ChangeBuffer changeBuffer;
+    private ChangeApplier changeApplier;
+    private ScheduledExecutorService applyScheduler;
     private Path tempDir;
     private CancelChecker cancelChecker;
     private List<DomainEvent> publishedEvents;
@@ -98,7 +103,12 @@ public class ProjectServiceTest {
 
         ProjectLoader loader = (root, kind) -> mockBallerinaProject(root, kind);
         changeBuffer = new ChangeBuffer();
-        service = new ProjectServiceImpl(registry, uriResolver, eventBus, loader, changeBuffer);
+        changeApplier = Mockito.mock(ChangeApplier.class);
+        applyScheduler = Mockito.mock(ScheduledExecutorService.class);
+        Mockito.when(applyScheduler.schedule(Mockito.any(Runnable.class), Mockito.anyLong(), Mockito.eq(TimeUnit.MILLISECONDS)))
+                .thenReturn(Mockito.mock(ScheduledFuture.class));
+        service = new ProjectServiceImpl(registry, uriResolver, eventBus, loader, changeBuffer,
+                changeApplier, applyScheduler, 150L);
     }
 
     @AfterMethod
@@ -182,13 +192,13 @@ public class ProjectServiceTest {
 
     @Test(groups = "wiring")
     public void wiring_eventBusSubscriptionsRegistered() throws Exception {
-        // Verify event bus has subscriptions for document and compiler events
+        // Verify event bus is functional alongside ProjectService subscriptions.
         List<DomainEvent> capturedEvents = new CopyOnWriteArrayList<>();
         eventBus.subscribe("test-doc-opened", SubscriberTier.CRITICAL,
-                Set.of(EventKind.WM_DOCUMENT_OPENED), capturedEvents::add);
+                Set.of(EventKind.WORKSPACE_PROJECT_REGISTERED), capturedEvents::add);
 
-        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED, null,
-                URI.create("file:///test/main.bal")));
+        eventBus.publish(new org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent(
+                EventKind.WORKSPACE_PROJECT_REGISTERED, URI.create("file:///test")));
         // Wait for async event delivery
         Thread.sleep(200);
         Assert.assertEquals(capturedEvents.size(), 1, "Event should be published");
@@ -464,17 +474,18 @@ public class ProjectServiceTest {
     }
 
     // =========================================================================
-    // Event Subscription: DOCUMENT_OPENED Tests
+    // Direct Open/Close Tracking Tests
     // =========================================================================
 
     @Test(groups = "event-subscription-document-opened")
     public void documentOpened_incrementsOpenDocumentCount() throws Exception {
         Path projectPath = tempDir.toAbsolutePath().normalize();
-        service.loadOrCreate(projectPath, cancelChecker);
+        Path mainFile = tempDir.resolve("main.bal");
+        Files.writeString(mainFile, "function main() {}\n");
+        service.loadOrCreate(mainFile, cancelChecker);
         publishedEvents.clear();
 
-        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED,
-                projectPath.toUri(), projectPath.toUri()));
+        service.didOpen(new DocumentUri.FileUri(mainFile.toUri()), "function main() {}\n");
 
         // Allow async processing
         Thread.sleep(100);
@@ -488,11 +499,12 @@ public class ProjectServiceTest {
     @Test(groups = "event-subscription-document-opened")
     public void documentOpened_transitionsBACKGROUNDToACTIVE_publishesTierChangedEvent() throws Exception {
         Path projectPath = tempDir.toAbsolutePath().normalize();
-        service.loadOrCreate(projectPath, cancelChecker);
+        Path mainFile = tempDir.resolve("main.bal");
+        Files.writeString(mainFile, "function main() {}\n");
+        service.loadOrCreate(mainFile, cancelChecker);
         publishedEvents.clear();
 
-        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED,
-                projectPath.toUri(), projectPath.toUri()));
+        service.didOpen(new DocumentUri.FileUri(mainFile.toUri()), "function main() {}\n");
 
         // Allow async processing
         Thread.sleep(100);
@@ -507,10 +519,11 @@ public class ProjectServiceTest {
         Path unknownPath = tempDir.resolve("unknown").toAbsolutePath().normalize();
         publishedEvents.clear();
 
-        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED,
-                unknownPath.toUri(), unknownPath.toUri()));
+        service.didOpen(new DocumentUri.FileUri(unknownPath.toUri()), "function main() {}\n");
 
-        Assert.assertTrue(publishedEvents.isEmpty(), "No event should be published for unknown path");
+        Assert.assertTrue(publishedEvents.stream()
+                        .noneMatch(e -> e.eventKind() == EventKind.WORKSPACE_PROJECT_TIER_CHANGED),
+                "Unknown paths should not trigger tier changes");
     }
 
     // =========================================================================
@@ -520,18 +533,18 @@ public class ProjectServiceTest {
     @Test(groups = "event-subscription-document-closed")
     public void documentClosed_decrementsOpenDocumentCount() throws Exception {
         Path projectPath = tempDir.toAbsolutePath().normalize();
-        service.loadOrCreate(projectPath, cancelChecker);
+        Path mainFile = tempDir.resolve("main.bal");
+        Files.writeString(mainFile, "function main() {}\n");
+        service.loadOrCreate(mainFile, cancelChecker);
 
         // Open document
-        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED,
-                projectPath.toUri(), projectPath.toUri()));
+        service.didOpen(new DocumentUri.FileUri(mainFile.toUri()), "function main() {}\n");
         Thread.sleep(100);
 
         publishedEvents.clear();
 
         // Close document
-        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_CLOSED,
-                projectPath.toUri(), projectPath.toUri()));
+        service.didClose(new DocumentUri.FileUri(mainFile.toUri()));
         Thread.sleep(100);
 
         DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
@@ -543,18 +556,18 @@ public class ProjectServiceTest {
     @Test(groups = "event-subscription-document-closed")
     public void documentClosed_transitionsACTIVEToBACKGROUND_publishesTierChangedEvent() throws Exception {
         Path projectPath = tempDir.toAbsolutePath().normalize();
-        service.loadOrCreate(projectPath, cancelChecker);
+        Path mainFile = tempDir.resolve("main.bal");
+        Files.writeString(mainFile, "function main() {}\n");
+        service.loadOrCreate(mainFile, cancelChecker);
 
         // Open document
-        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED,
-                projectPath.toUri(), projectPath.toUri()));
+        service.didOpen(new DocumentUri.FileUri(mainFile.toUri()), "function main() {}\n");
         Thread.sleep(100);
 
         publishedEvents.clear();
 
         // Close document
-        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_CLOSED,
-                projectPath.toUri(), projectPath.toUri()));
+        service.didClose(new DocumentUri.FileUri(mainFile.toUri()));
         Thread.sleep(100);
 
         Assert.assertTrue(publishedEvents.stream()
@@ -730,8 +743,8 @@ public class ProjectServiceTest {
         Assert.assertEquals(bufferedChanges.size(), 1, "Cloud.toml should be buffered in the EDITOR layer");
         Assert.assertEquals(bufferedChanges.get(0).change().getText(), FileChangeType.Changed.name(),
                 "Watcher change type should be preserved in buffered TOML changes");
-        Assert.assertTrue(publishedEvents.stream().anyMatch(e -> e.eventKind() == EventKind.WM_FILE_WATCHED_CHANGED),
-                "WM_FILE_WATCHED_CHANGED event should be published for buffered TOML changes");
+        Assert.assertTrue(publishedEvents.isEmpty(),
+                "Watcher changes should stay internal and not publish document-level events");
     }
 
     @Test(groups = "watched-files")

@@ -20,7 +20,6 @@ package org.ballerinalang.langserver.workspace.observability;
 
 import org.ballerinalang.langserver.workspace.eventbus.event.BatchEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
@@ -331,9 +330,8 @@ public class ObservabilityComponentsTest {
 
         new WorkspaceTraceLogger(eventBus, event -> receivedCount.incrementAndGet());
 
-        URI docUri = URI.create("file:///workspace/main.bal");
         for (int i = 0; i < 500; i++) {
-            eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED, null, docUri));
+            eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, URI.create("file:///workspace")));
         }
 
         Thread.sleep(300);
@@ -360,7 +358,7 @@ public class ObservabilityComponentsTest {
 
         URI wsRoot = URI.create("file:///workspace-1");
         eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, wsRoot));
-        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED, wsRoot, URI.create("file:///workspace-1/main.bal")));
+        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, wsRoot));
         eventBus.publish(new CompilerEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED, wsRoot, "test-pkg"));
 
         Thread.sleep(300);
@@ -384,6 +382,7 @@ public class ObservabilityComponentsTest {
         URI doc = URI.create("file:///test-root/main.bal");
         return switch (kind) {
             case WORKSPACE_PROJECT_REGISTERED,
+                 WORKSPACE_PROJECT_UPDATED,
                  WORKSPACE_PROJECT_HEALTH_STATE_CHANGED,
                  WORKSPACE_PROJECT_TIER_CHANGED,
                  WORKSPACE_LOCKING_MODE_CHANGED,
@@ -391,8 +390,6 @@ public class ObservabilityComponentsTest {
             case WORKSPACE_PROJECT_EVICTED    -> new ProjectEvent(kind, root);
             case WORKSPACE_PROJECT_KIND_TRANSITIONED -> new ProjectEvent(kind, root);
             case WORKSPACE_BATCH_PROJECTS_REGISTERED -> new BatchEvent();
-            case WM_DOCUMENT_OPENED, WM_DOCUMENT_CHANGED, WM_DOCUMENT_CLOSED ->
-                    new DocumentEvent(kind, root, doc);
             case WM_FILE_WATCHED_CHANGED ->
                     new org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent(root, doc, "SOURCE");
             case COMPILER_SNAPSHOT_PUBLISHED, COMPILER_COMPILATION_FAILED, COMPILER_COMPILATION_CANCELLED,

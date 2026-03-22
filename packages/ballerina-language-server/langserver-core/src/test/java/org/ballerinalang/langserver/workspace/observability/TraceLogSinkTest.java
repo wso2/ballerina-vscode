@@ -83,15 +83,15 @@ public class TraceLogSinkTest {
         try (FileTraceLogSink sink = new FileTraceLogSink(tempFile)) {
             Map<String, String> fields = new LinkedHashMap<>();
             fields.put("timestamp", "2026-03-20T12:34:56Z");
-            fields.put("eventType", "WM_DOCUMENT_OPENED");
-            fields.put("eventId", "WM-E5");
+            fields.put("eventType", "WORKSPACE_PROJECT_UPDATED");
+            fields.put("eventId", "WM-E4");
             fields.put("sourceContext", "workspace-a");
             sink.write("DEBUG", fields);
         }
 
         String content = Files.readString(tempFile).trim();
         Assert.assertEquals(content,
-                "[DEBUG] 2026-03-20T12:34:56Z WM_DOCUMENT_OPENED eventId=WM-E5 sourceContext=workspace-a");
+                "[DEBUG] 2026-03-20T12:34:56Z WORKSPACE_PROJECT_UPDATED eventId=WM-E4 sourceContext=workspace-a");
         Files.deleteIfExists(tempFile);
     }
 

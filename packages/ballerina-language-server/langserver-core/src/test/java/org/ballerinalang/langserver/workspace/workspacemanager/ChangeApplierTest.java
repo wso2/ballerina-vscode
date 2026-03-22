@@ -443,4 +443,51 @@ public class ChangeApplierTest {
         // "line0\n" = 6 chars, "line1" = 5 chars => end offset = 6+5=11 → content[11..] = "\nline2\n"
         verify(mockDocModifier).withContent("X\nline2\n");
     }
+
+    @Test
+    // RED: this test should fail — ChangeApplier is still project-traversal based instead of buffer-driven
+    public void applyAll_multipleProjects_returnsAffectedRootsFromBufferedUris() {
+        DocumentUri uri1 = fileUri("/workspace/p1/main.bal");
+        DocumentUri uri2 = fileUri("/workspace/p2/main.bal");
+        BufferedChange change1 = makeChange("fn foo() {}", ChangeLayer.EDITOR, 1);
+        BufferedChange change2 = makeChange("fn bar() {}", ChangeLayer.EDITOR, 1);
+
+        Document mockDoc1 = mock(Document.class);
+        Document mockDoc2 = mock(Document.class);
+        Module mockModule1 = mock(Module.class);
+        Module mockModule2 = mock(Module.class);
+        Project mockProject1 = mock(Project.class);
+        Project mockProject2 = mock(Project.class);
+        Document.Modifier mockMod1 = mock(Document.Modifier.class);
+        Document.Modifier mockMod2 = mock(Document.Modifier.class);
+        TextDocument mockText1 = mock(TextDocument.class);
+        TextDocument mockText2 = mock(TextDocument.class);
+
+        when(changeBuffer.pendingUris()).thenReturn(Set.of(uri1, uri2));
+        when(changeBuffer.drain(uri1)).thenReturn(List.of(change1));
+        when(changeBuffer.drain(uri2)).thenReturn(List.of(change2));
+        when(uriResolver.document(uri1)).thenReturn(Optional.of(mockDoc1));
+        when(uriResolver.document(uri2)).thenReturn(Optional.of(mockDoc2));
+        when(mockDoc1.module()).thenReturn(mockModule1);
+        when(mockDoc2.module()).thenReturn(mockModule2);
+        when(mockModule1.project()).thenReturn(mockProject1);
+        when(mockModule2.project()).thenReturn(mockProject2);
+        when(mockProject1.sourceRoot()).thenReturn(Path.of("/workspace/p1"));
+        when(mockProject2.sourceRoot()).thenReturn(Path.of("/workspace/p2"));
+        when(mockDoc1.textDocument()).thenReturn(mockText1);
+        when(mockDoc2.textDocument()).thenReturn(mockText2);
+        when(mockText1.toString()).thenReturn("");
+        when(mockText2.toString()).thenReturn("");
+        when(mockDoc1.modify()).thenReturn(mockMod1);
+        when(mockDoc2.modify()).thenReturn(mockMod2);
+        when(mockMod1.withContent(any())).thenReturn(mockMod1);
+        when(mockMod2.withContent(any())).thenReturn(mockMod2);
+        when(mockMod1.apply()).thenReturn(mockDoc1);
+        when(mockMod2.apply()).thenReturn(mockDoc2);
+
+        ChangeApplier applier = new ChangeApplier(changeBuffer, uriResolver);
+        Set<DocumentUri> affectedRoots = applier.applyAll();
+
+        Assert.assertEquals(affectedRoots, Set.of(fileUri("/workspace/p1"), fileUri("/workspace/p2")));
+    }
 }

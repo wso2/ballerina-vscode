@@ -33,10 +33,8 @@ import org.ballerinalang.langserver.workspace.compilerengine.snapshot.SnapshotVi
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
-import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
@@ -161,7 +159,7 @@ public class CompilationServiceImplTest {
     }
 
     @Test
-    public void wme4_evictsThenRecreatesPipeline() throws InterruptedException {
+    public void wme3_evictsThenRecreatesPipeline() throws InterruptedException {
         AtomicInteger compileCount = new AtomicInteger(0);
         CountDownLatch firstComplete = new CountDownLatch(1);
         CountDownLatch secondStart = new CountDownLatch(1);
@@ -178,16 +176,16 @@ public class CompilationServiceImplTest {
         publishWmE1(testRoot);
         Assert.assertTrue(firstComplete.await(3, TimeUnit.SECONDS), "First compilation");
 
-        publishWmE4(testRoot);
+        publishWmE3(testRoot);
         Assert.assertTrue(secondStart.await(3, TimeUnit.SECONDS),
-                "WM-E4 should evict and recreate pipeline");
+                "WM-E3 should evict and recreate pipeline");
         Assert.assertEquals(compileCount.get(), 2, "Should compile twice");
     }
 
-    // ---- Document Events ----
+    // ---- Project Updated Events ----
 
     @Test
-    public void wmDocumentOpened_requestsCompilation() throws InterruptedException {
+    public void wmProjectUpdated_requestsCompilation() throws InterruptedException {
         CountDownLatch firstCompiled = new CountDownLatch(1);
         CountDownLatch secondCompiled = new CountDownLatch(1);
         AtomicInteger compileCount = new AtomicInteger(0);
@@ -204,36 +202,13 @@ public class CompilationServiceImplTest {
         publishWmE1(testRoot);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
 
-        publishWmDocumentOpened(testRoot);
+        publishWmE4(testRoot);
         Assert.assertTrue(secondCompiled.await(3, TimeUnit.SECONDS),
-                "WM_DOCUMENT_OPENED should request compilation");
+                "WORKSPACE_PROJECT_UPDATED should request compilation");
     }
 
     @Test
-    public void wmDocumentChanged_requestsCompilation() throws InterruptedException {
-        CountDownLatch firstCompiled = new CountDownLatch(1);
-        CountDownLatch secondCompiled = new CountDownLatch(1);
-        AtomicInteger compileCount = new AtomicInteger(0);
-        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
-            int count = compileCount.incrementAndGet();
-            if (count == 1) {
-                firstCompiled.countDown();
-            } else if (count == 2) {
-                secondCompiled.countDown();
-            }
-            return mockSnapshot;
-        }), 50);
-
-        publishWmE1(testRoot);
-        Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
-
-        publishWmDocumentChanged(testRoot);
-        Assert.assertTrue(secondCompiled.await(3, TimeUnit.SECONDS),
-                "WM_DOCUMENT_CHANGED should request compilation");
-    }
-
-    @Test
-    public void rmE1_throttlesDocumentTriggeredCompilationUntilWindowExpires() throws InterruptedException {
+    public void rmE1_throttlesProjectUpdatedTriggeredCompilationUntilWindowExpires() throws InterruptedException {
         CountDownLatch firstCompiled = new CountDownLatch(1);
         CountDownLatch throttledCompilation = new CountDownLatch(1);
         AtomicInteger compileCount = new AtomicInteger(0);
@@ -251,53 +226,12 @@ public class CompilationServiceImplTest {
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
 
         eventBus.publish(new HeapPressureEvent(HeapPressureLevel.WARNING));
-        publishWmDocumentChanged(testRoot);
+        publishWmE4(testRoot);
 
         Assert.assertFalse(throttledCompilation.await(150, TimeUnit.MILLISECONDS),
-                "RM-E1 should throttle immediate document-triggered recompilation");
+                "RM-E1 should throttle immediate project-updated recompilation");
         Assert.assertTrue(throttledCompilation.await(2, TimeUnit.SECONDS),
                 "Compilation should resume after the throttle window");
-    }
-
-    @Test
-    public void wmFileWatchedChanged_dependencyGraph_requestsCompilation() throws InterruptedException {
-        CountDownLatch firstCompiled = new CountDownLatch(1);
-        CountDownLatch secondCompiled = new CountDownLatch(1);
-        AtomicInteger compileCount = new AtomicInteger(0);
-        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
-            int count = compileCount.incrementAndGet();
-            if (count == 1) {
-                firstCompiled.countDown();
-            } else if (count == 2) {
-                secondCompiled.countDown();
-            }
-            return mockSnapshot;
-        }), 50);
-
-        publishWmE1(testRoot);
-        Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
-
-        publishWmFileWatchedChanged(testRoot, "DEPENDENCY_GRAPH");
-        Assert.assertTrue(secondCompiled.await(3, TimeUnit.SECONDS),
-                "WM_FILE_WATCHED_CHANGED with DEPENDENCY_GRAPH scope should request compilation");
-    }
-
-    @Test
-    public void wmFileWatchedChanged_configuration_doesNotRequest() throws InterruptedException {
-        CountDownLatch firstCompiled = new CountDownLatch(1);
-        service = new CompilationServiceImpl(snapshotStore, eventBus, actionWithDescribe(task -> {
-            firstCompiled.countDown();
-            return mockSnapshot;
-        }), 50);
-
-        publishWmE1(testRoot);
-        Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial compilation");
-
-        publishWmFileWatchedChanged(testRoot, "CONFIGURATION");
-        Thread.sleep(300);
-
-        // Verify no second compilation triggered
-        Assert.assertEquals(firstCompiled.getCount(), 0, "Only initial compilation should occur");
     }
 
     // ---- LSP Query Methods ----
@@ -372,7 +306,7 @@ public class CompilationServiceImplTest {
         publishWmE1(testRoot);
         Assert.assertTrue(firstCompiled.await(3, TimeUnit.SECONDS), "Initial stable snapshot should exist");
 
-        publishWmDocumentChanged(testRoot);
+        publishWmE4(testRoot);
         Assert.assertTrue(secondCompileStarted.await(3, TimeUnit.SECONDS), "Second compilation should start");
 
         InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(mockKey());
@@ -589,23 +523,12 @@ public class CompilationServiceImplTest {
         eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_EVICTED, sr.uri()));
     }
 
-    private void publishWmE4(DocumentUri sr) {
+    private void publishWmE3(DocumentUri sr) {
         eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED, sr.uri()));
     }
 
-    private void publishWmDocumentOpened(DocumentUri sr) {
-        URI docUri = Path.of(sr.uri()).resolve("main.bal").toUri();
-        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_OPENED, sr.uri(), docUri));
-    }
-
-    private void publishWmDocumentChanged(DocumentUri sr) {
-        URI docUri = Path.of(sr.uri()).resolve("main.bal").toUri();
-        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_CHANGED, sr.uri(), docUri));
-    }
-
-    private void publishWmFileWatchedChanged(DocumentUri sr, String scope) {
-        URI watchedFile = Path.of(sr.uri()).resolve("Dependencies.toml").toUri();
-        eventBus.publish(new FileWatchedChangedEvent(sr.uri(), watchedFile, scope));
+    private void publishWmE4(DocumentUri sr) {
+        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, sr.uri()));
     }
 
     private StableSnapshot createStableSnapshot(SyntaxTree syntaxTree, SemanticModel semanticModel,

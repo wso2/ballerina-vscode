@@ -19,17 +19,20 @@
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
 import io.ballerina.projects.Project;
-import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.BufferedChange;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeApplier;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeLayer;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.MemoryBudget;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectRegistry;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.UriResolver;
+import org.eclipse.lsp4j.FileChangeType;
+import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -44,14 +47,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Tests for document lifecycle operations on {@link ProjectService}.
- *
- * <p>Verifies didOpen/didChange/didClose operations through ProjectService
- * using ChangeBuffer as the document state intermediary per ADR-046 and ADR-047.
+ * Tests document lifecycle routing through {@link ProjectServiceImpl}.
  *
  * @since 1.7.0
  */
@@ -61,29 +63,46 @@ public class ProjectServiceDocumentTest {
     private UriResolver uriResolver;
     private EventSyncPubSubHolder eventBus;
     private ChangeBuffer changeBuffer;
+    private ChangeApplier changeApplier;
+    private ScheduledExecutorService applyScheduler;
     private ProjectServiceImpl service;
     private Path tempDir;
+    private Path secondProjectDir;
     private List<DomainEvent> publishedEvents;
+    private List<ScheduledTask> scheduledTasks;
 
     @BeforeMethod
     public void setUp() throws Exception {
         tempDir = Files.createTempDirectory("test-project-docs");
         Files.write(tempDir.resolve("Ballerina.toml"), new byte[0]);
+        secondProjectDir = Files.createTempDirectory("test-project-docs-2");
+        Files.write(secondProjectDir.resolve("Ballerina.toml"), new byte[0]);
 
         registry = new ProjectRegistry(MemoryBudget.ofMb(1024));
         uriResolver = new UriResolver();
         eventBus = new EventSyncPubSubHolder();
         changeBuffer = new ChangeBuffer();
+        changeApplier = Mockito.mock(ChangeApplier.class);
+        applyScheduler = Mockito.mock(ScheduledExecutorService.class);
         publishedEvents = new CopyOnWriteArrayList<>();
+        scheduledTasks = new CopyOnWriteArrayList<>();
 
-        // Capture all document lifecycle events
-        eventBus.subscribe("test-doc-events", SubscriberTier.CRITICAL,
-                Set.of(EventKind.WM_DOCUMENT_OPENED, EventKind.WM_DOCUMENT_CHANGED,
-                        EventKind.WM_DOCUMENT_CLOSED),
+        Mockito.when(applyScheduler.schedule(Mockito.any(Runnable.class), Mockito.anyLong(), Mockito.eq(TimeUnit.MILLISECONDS)))
+                .thenAnswer(invocation -> {
+                    Runnable task = invocation.getArgument(0);
+                    long delay = invocation.getArgument(1);
+                    ManualScheduledFuture future = new ManualScheduledFuture();
+                    scheduledTasks.add(new ScheduledTask(task, future, delay));
+                    return future;
+                });
+
+        eventBus.subscribe("test-project-updated", SubscriberTier.CRITICAL,
+                Set.of(EventKind.WORKSPACE_PROJECT_UPDATED, EventKind.WORKSPACE_PROJECT_TIER_CHANGED),
                 publishedEvents::add);
 
         ProjectLoader loader = (root, kind) -> Mockito.mock(Project.class);
-        service = new ProjectServiceImpl(registry, uriResolver, eventBus, loader, changeBuffer);
+        service = new ProjectServiceImpl(registry, uriResolver, eventBus, loader, changeBuffer,
+                changeApplier, applyScheduler, 150L);
     }
 
     @AfterMethod
@@ -93,32 +112,9 @@ public class ProjectServiceDocumentTest {
         registry.shutdown();
     }
 
-    // =========================================================================
-    // didOpen Tests
-    // =========================================================================
-
-    /**
-     * Verifies that didOpen creates a ChangeBuffer entry and publishes WM_DOCUMENT_OPENED.
-     */
     @Test
-    public void didOpen_createsChangeBufferEntryAndPublishesOpenedEvent() throws Exception {
-        DocumentUri uri = createTestUri("main.bal");
-        CountDownLatch latch = new CountDownLatch(1);
-        eventBus.subscribe("test-opened-latch", SubscriberTier.CRITICAL,
-                Set.of(EventKind.WM_DOCUMENT_OPENED), e -> latch.countDown());
-
-        service.didOpen(uri, "function main() {}");
-
-        Assert.assertTrue(latch.await(2, TimeUnit.SECONDS), "WM_DOCUMENT_OPENED event should be published");
-        Assert.assertTrue(changeBuffer.hasChanges(uri), "ChangeBuffer should have changes after didOpen");
-    }
-
-    /**
-     * Verifies that didOpen stores a full-text change with EDITOR layer and version 1.
-     */
-    @Test
-    public void didOpen_storesFullTextChangeWithEditorLayerAndVersion1() throws Exception {
-        DocumentUri uri = createTestUri("main.bal");
+    public void didOpen_storesFullTextChangeWithEditorLayerAndVersion1() {
+        DocumentUri uri = createTestUri(tempDir, "main.bal");
         String content = "function main() {}";
 
         service.didOpen(uri, content);
@@ -131,99 +127,40 @@ public class ProjectServiceDocumentTest {
         Assert.assertEquals(buffered.change().getText(), content, "Content should match");
     }
 
-    // =========================================================================
-    // didChange Tests
-    // =========================================================================
-
-    /**
-     * Verifies that didChange appends a BufferedChange and publishes WM_DOCUMENT_CHANGED.
-     */
     @Test
-    public void didChange_appendsBufferedChangeAndPublishesChangedEvent() throws Exception {
-        DocumentUri uri = createTestUri("main.bal");
+    // RED: this test should fail — ProjectServiceImpl does not debounce ChangeApplier scheduling yet
+    public void didChange_debounceWindow_emitsSingleProjectUpdated() throws Exception {
+        DocumentUri root = new DocumentUri.FileUri(tempDir.toUri());
+        DocumentUri uri = createTestUri(tempDir, "main.bal");
         CountDownLatch latch = new CountDownLatch(1);
-        eventBus.subscribe("test-changed-latch", SubscriberTier.CRITICAL,
-                Set.of(EventKind.WM_DOCUMENT_CHANGED), e -> latch.countDown());
+        List<DomainEvent> updatedEvents = new CopyOnWriteArrayList<>();
+        eventBus.subscribe("debounce-project-updated", SubscriberTier.CRITICAL,
+                Set.of(EventKind.WORKSPACE_PROJECT_UPDATED), event -> {
+                    updatedEvents.add(event);
+                    latch.countDown();
+                });
+        Mockito.when(changeApplier.applyAll()).thenReturn(Set.of(root));
 
-        // Open first
-        service.didOpen(uri, "initial");
-        publishedEvents.clear();
+        service.didChange(uri, List.of(new TextDocumentContentChangeEvent("change-1")));
+        service.didChange(uri, List.of(new TextDocumentContentChangeEvent("change-2")));
 
-        // Change
-        service.didChange(uri, List.of(new TextDocumentContentChangeEvent("updated content")));
+        Assert.assertEquals(scheduledTasks.size(), 2, "Second change should reschedule debounce task");
+        Assert.assertTrue(scheduledTasks.get(0).future().isCancelled(), "First task should be cancelled");
+        runScheduledTasks();
 
-        Assert.assertTrue(latch.await(2, TimeUnit.SECONDS), "WM_DOCUMENT_CHANGED event should be published");
-        Assert.assertTrue(changeBuffer.hasChanges(uri), "ChangeBuffer should have changes after didChange");
+        Assert.assertTrue(latch.await(2, TimeUnit.SECONDS), "A single project-updated event should be published");
+        Assert.assertEquals(updatedEvents.size(),
+                1,
+                "Rapid document edits should coalesce into one project-updated event");
     }
 
-    /**
-     * Verifies that multiple didChange calls accumulate changes in order.
-     */
     @Test
-    public void didChange_multipleChangesAccumulateInOrder() throws Exception {
-        DocumentUri uri = createTestUri("main.bal");
+    public void didClose_removesVersionCounter_reopenStartsAtVersion1() {
+        DocumentUri uri = createTestUri(tempDir, "main.bal");
 
-        // Open
         service.didOpen(uri, "initial");
-
-        // Three changes
-        String[] changes = {"change1", "change2", "change3"};
-        for (String change : changes) {
-            service.didChange(uri, List.of(new TextDocumentContentChangeEvent(change)));
-        }
-
-        // Drain all changes (1 open + 3 changes)
-        List<BufferedChange> drained = changeBuffer.drain(uri, ChangeLayer.EDITOR);
-
-        Assert.assertEquals(drained.size(), 4, "Should have 4 changes (1 open + 3 changes)");
-        Assert.assertEquals(drained.get(0).change().getText(), "initial");
-        Assert.assertEquals(drained.get(1).change().getText(), "change1");
-        Assert.assertEquals(drained.get(2).change().getText(), "change2");
-        Assert.assertEquals(drained.get(3).change().getText(), "change3");
-    }
-
-    // =========================================================================
-    // didClose Tests
-    // =========================================================================
-
-    /**
-     * Verifies that didClose clears the ChangeBuffer and publishes WM_DOCUMENT_CLOSED.
-     */
-    @Test
-    public void didClose_clearsChangeBufferAndPublishesClosedEvent() throws Exception {
-        DocumentUri uri = createTestUri("main.bal");
-        CountDownLatch latch = new CountDownLatch(1);
-        eventBus.subscribe("test-closed-latch", SubscriberTier.CRITICAL,
-                Set.of(EventKind.WM_DOCUMENT_CLOSED), e -> latch.countDown());
-
-        // Open and verify buffer has changes
-        service.didOpen(uri, "content");
-        Assert.assertTrue(changeBuffer.hasChanges(uri), "Should have changes before close");
-
-        // Close
-        service.didClose(uri);
-
-        Assert.assertTrue(latch.await(2, TimeUnit.SECONDS), "WM_DOCUMENT_CLOSED event should be published");
-        Assert.assertFalse(changeBuffer.hasChanges(uri), "ChangeBuffer should be empty after didClose");
-    }
-
-    /**
-     * Verifies that didClose removes the version counter, so re-open starts at version 1.
-     */
-    @Test
-    public void didClose_removesVersionCounter_reopenStartsAtVersion1() throws Exception {
-        DocumentUri uri = createTestUri("main.bal");
-
-        // Open with version 1
-        service.didOpen(uri, "initial");
-
-        // Change with version 2
         service.didChange(uri, List.of(new TextDocumentContentChangeEvent("change")));
-
-        // Close - clears buffer and removes version counter
         service.didClose(uri);
-
-        // Re-open - should start at version 1 again
         service.didOpen(uri, "new content");
 
         List<BufferedChange> drained = changeBuffer.drain(uri, ChangeLayer.EDITOR);
@@ -231,127 +168,117 @@ public class ProjectServiceDocumentTest {
         Assert.assertEquals(drained.get(0).version().value(), 1, "Re-open should start at version 1");
     }
 
-    // =========================================================================
-    // Full Lifecycle Test
-    // =========================================================================
-
-    /**
-     * Verifies the full lifecycle: open → change → close publishes all events in order.
-     */
     @Test
-    public void fullLifecycle_openChangeClose_publishesAllEventsInOrder() throws Exception {
-        DocumentUri uri = createTestUri("main.bal");
-        List<EventKind> receivedEvents = new CopyOnWriteArrayList<>();
-        CountDownLatch latch = new CountDownLatch(3);
-
-        eventBus.subscribe("test-lifecycle", SubscriberTier.CRITICAL,
-                Set.of(EventKind.WM_DOCUMENT_OPENED, EventKind.WM_DOCUMENT_CHANGED,
-                        EventKind.WM_DOCUMENT_CLOSED),
-                event -> {
-                    receivedEvents.add(event.eventKind());
+    // RED: this test should fail — open/close tracking still relies on document event round-trips
+    public void didOpenAndDidClose_updateOpenDocumentCountDirectly() throws Exception {
+        Path mainFile = tempDir.resolve("main.bal");
+        Files.writeString(mainFile, "function main() {}\n");
+        DocumentUri root = new DocumentUri.FileUri(tempDir.toUri());
+        DocumentUri uri = new DocumentUri.FileUri(mainFile.toUri());
+        CountDownLatch latch = new CountDownLatch(2);
+        List<DomainEvent> tierEvents = new CopyOnWriteArrayList<>();
+        eventBus.subscribe("tier-events", SubscriberTier.CRITICAL,
+                Set.of(EventKind.WORKSPACE_PROJECT_TIER_CHANGED), event -> {
+                    tierEvents.add(event);
                     latch.countDown();
                 });
 
-        // didOpen
-        service.didOpen(uri, "initial");
-
-        // didChange
-        service.didChange(uri, List.of(new TextDocumentContentChangeEvent("updated")));
-
-        // didClose
+        service.loadOrCreate(mainFile, null);
+        service.didOpen(uri, "function main() {}\n");
         service.didClose(uri);
 
-        Assert.assertTrue(latch.await(2, TimeUnit.SECONDS), "All three events should be published");
-        Assert.assertEquals(receivedEvents.size(), 3, "Should receive exactly 3 events");
-        Assert.assertEquals(receivedEvents.get(0), EventKind.WM_DOCUMENT_OPENED,
-                "First event should be WM_DOCUMENT_OPENED");
-        Assert.assertEquals(receivedEvents.get(1), EventKind.WM_DOCUMENT_CHANGED,
-                "Second event should be WM_DOCUMENT_CHANGED");
-        Assert.assertEquals(receivedEvents.get(2), EventKind.WM_DOCUMENT_CLOSED,
-                "Third event should be WM_DOCUMENT_CLOSED");
+        Assert.assertTrue(latch.await(2, TimeUnit.SECONDS), "Open and close should emit tier transitions");
+        Assert.assertEquals(registry.get(root).orElseThrow().openDocumentCount().count(), 0,
+                "Direct didOpen/didClose calls should maintain open document count");
+        Assert.assertEquals(tierEvents.size(),
+                2,
+                "Open and close should publish tier change transitions directly");
     }
 
-    // =========================================================================
-    // Error Cases - Graceful No-Ops
-    // =========================================================================
-
-    /**
-     * Verifies that didChange on an unopened document is a graceful no-op.
-     *
-     * <p>Note: Observability for this edge case may be added in future work.
-     */
     @Test
-    public void didChange_onUnopenedDocument_isGracefulNoOp() throws Exception {
-        DocumentUri uri = createTestUri("unopened.bal");
-        AtomicInteger eventCount = new AtomicInteger(0);
+    // RED: this test should fail — watcher-triggered drains do not emit one project-updated event per project yet
+    public void didChangeWatchedFiles_multipleProjects_emitsOneEventPerProject() throws Exception {
+        DocumentUri firstRoot = new DocumentUri.FileUri(tempDir.toUri());
+        DocumentUri secondRoot = new DocumentUri.FileUri(secondProjectDir.toUri());
+        CountDownLatch latch = new CountDownLatch(2);
+        List<DomainEvent> updatedEvents = new CopyOnWriteArrayList<>();
+        eventBus.subscribe("multi-project-updated", SubscriberTier.CRITICAL,
+                Set.of(EventKind.WORKSPACE_PROJECT_UPDATED), event -> {
+                    updatedEvents.add(event);
+                    latch.countDown();
+                });
+        Mockito.when(changeApplier.applyAll())
+                .thenReturn(Set.of(firstRoot, secondRoot))
+                .thenReturn(Set.of());
 
-        eventBus.subscribe("test-unopened-change", SubscriberTier.CRITICAL,
-                Set.of(EventKind.WM_DOCUMENT_CHANGED), e -> eventCount.incrementAndGet());
+        FileEvent firstEvent = new FileEvent(tempDir.resolve("Dependencies.toml").toUri().toString(), FileChangeType.Changed);
+        FileEvent secondEvent = new FileEvent(secondProjectDir.resolve("Dependencies.toml").toUri().toString(),
+                FileChangeType.Changed);
 
-        // didChange without didOpen - should be graceful, no exception
-        service.didChange(uri, List.of(new TextDocumentContentChangeEvent("orphan change")));
+        service.didChangeWatchedFiles(List.of(firstEvent, secondEvent));
+        runScheduledTasks();
 
-        // Wait briefly for any potential async events
-        Thread.sleep(100);
-
-        // The change is accepted into the buffer (no pre-validation)
-        Assert.assertTrue(changeBuffer.hasChanges(uri),
-                "ChangeBuffer accepts the change (no pre-validation of open state)");
-
-        // An event IS published by ProjectServiceImpl.didChange - verify it was received
-        Assert.assertEquals(eventCount.get(), 1,
-                "WM_DOCUMENT_CHANGED event should be published even for unopened document");
-
-        // TODO: Add observability tracking to distinguish didChange on unopened vs opened documents
+        Assert.assertTrue(latch.await(2, TimeUnit.SECONDS), "One update event should be emitted for each project");
+        Assert.assertEquals(updatedEvents.size(),
+                2,
+                "A single drain cycle should emit one project-updated event per affected project");
     }
 
-    /**
-     * Verifies that didClose on an already-closed document is a graceful no-op.
-     *
-     * <p>Note: Observability for this edge case may be added in future work.
-     */
-    @Test
-    public void didClose_onAlreadyClosedDocument_isGracefulNoOp() throws Exception {
-        DocumentUri uri = createTestUri("doubleclose.bal");
-        List<EventKind> receivedEvents = new CopyOnWriteArrayList<>();
-
-        eventBus.subscribe("test-double-close", SubscriberTier.CRITICAL,
-                Set.of(EventKind.WM_DOCUMENT_CLOSED), e -> receivedEvents.add(e.eventKind()));
-
-        // Open and close normally
-        service.didOpen(uri, "content");
-        service.didClose(uri);
-
-        Assert.assertFalse(changeBuffer.hasChanges(uri), "Buffer should be empty after first close");
-
-        // Wait for first close event
-        Thread.sleep(100);
-        int firstCloseEventCount = receivedEvents.size();
-
-        // Second close - should be a graceful no-op
-        service.didClose(uri);
-
-        // Wait for any potential second event
-        Thread.sleep(100);
-
-        // No exception should be thrown
-        Assert.assertFalse(changeBuffer.hasChanges(uri),
-                "Buffer should still be empty after second close");
-
-        // Second close also publishes an event (current implementation)
-        // This test documents the behavior
-        Assert.assertEquals(receivedEvents.size(), firstCloseEventCount + 1,
-                "Second close also publishes WM_DOCUMENT_CLOSED event");
-
-        // TODO: Add observability tracking for double-close operations
+    private void runScheduledTasks() {
+        scheduledTasks.forEach(ScheduledTask::runIfActive);
     }
 
-    // =========================================================================
-    // Helper Methods
-    // =========================================================================
-
-    private DocumentUri createTestUri(String fileName) {
-        URI fileUri = tempDir.resolve(fileName).toUri();
+    private DocumentUri createTestUri(Path projectDir, String fileName) {
+        URI fileUri = projectDir.resolve(fileName).toUri();
         return new DocumentUri.FileUri(fileUri);
+    }
+
+    private record ScheduledTask(Runnable runnable, ManualScheduledFuture future, long delayMs) {
+        private void runIfActive() {
+            if (!future.isCancelled()) {
+                runnable.run();
+            }
+        }
+    }
+
+    private static final class ManualScheduledFuture implements ScheduledFuture<Object> {
+
+        private volatile boolean cancelled;
+
+        @Override
+        public long getDelay(TimeUnit unit) {
+            return 0;
+        }
+
+        @Override
+        public int compareTo(Delayed other) {
+            return 0;
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            this.cancelled = true;
+            return true;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return cancelled;
+        }
+
+        @Override
+        public boolean isDone() {
+            return cancelled;
+        }
+
+        @Override
+        public Object get() {
+            return null;
+        }
+
+        @Override
+        public Object get(long timeout, TimeUnit unit) {
+            return null;
+        }
     }
 }

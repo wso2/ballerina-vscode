@@ -18,7 +18,6 @@
 
 package org.ballerinalang.langserver.workspace.eventbus;
 
-import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.ballerinalang.langserver.workspace.observability.TelemetryEmitter;
@@ -50,9 +49,10 @@ public class EventSyncPubSubHolderTest {
         Assert.assertEquals(List.of(EventKind.values()).stream().map(Enum::name).toList(), List.of(
                 "WORKSPACE_PROJECT_REGISTERED", "WORKSPACE_PROJECT_EVICTED",
                 "WORKSPACE_PROJECT_HEALTH_STATE_CHANGED", "WORKSPACE_PROJECT_KIND_TRANSITIONED",
+                "WORKSPACE_PROJECT_UPDATED",
                 "WORKSPACE_PROJECT_TIER_CHANGED", "WORKSPACE_BATCH_PROJECTS_REGISTERED",
                 "WORKSPACE_LOCKING_MODE_CHANGED",
-                "WM_DOCUMENT_OPENED", "WM_DOCUMENT_CHANGED", "WM_DOCUMENT_CLOSED", "WM_FILE_WATCHED_CHANGED",
+                "WM_FILE_WATCHED_CHANGED",
                 "COMPILER_SNAPSHOT_PUBLISHED", "COMPILER_COMPILATION_FAILED",
                 "COMPILER_COMPILATION_CANCELLED", "COMPILER_RESOLUTION_COMPLETED",
                 "CE_E5A_RESOLUTION_DIAGNOSTICS_READY", "CE_E5B_COMPILATION_DIAGNOSTICS_READY",
@@ -135,15 +135,16 @@ public class EventSyncPubSubHolderTest {
         CountDownLatch latch = new CountDownLatch(1);
         List<DomainEvent> delivered = new CopyOnWriteArrayList<>();
 
-        holder.subscribe("coalesce-sub", SubscriberTier.COALESCEABLE, Set.of(EventKind.WM_DOCUMENT_CHANGED), event -> {
+        holder.subscribe("coalesce-sub", SubscriberTier.COALESCEABLE,
+                Set.of(EventKind.WORKSPACE_PROJECT_UPDATED), event -> {
             delivered.add(event);
             latch.countDown();
         });
 
-        URI docUri = URI.create("file:///workspace/main.bal");
-        DomainEvent first = new DocumentEvent(EventKind.WM_DOCUMENT_CHANGED, null, docUri);
-        DomainEvent second = new DocumentEvent(EventKind.WM_DOCUMENT_CHANGED, null, docUri);
-        DomainEvent third = new DocumentEvent(EventKind.WM_DOCUMENT_CHANGED, null, docUri);
+        URI sourceRoot = URI.create("file:///workspace");
+        DomainEvent first = new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, sourceRoot);
+        DomainEvent second = new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, sourceRoot);
+        DomainEvent third = new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, sourceRoot);
         holder.publish(first);
         holder.publish(second);
         holder.publish(third);

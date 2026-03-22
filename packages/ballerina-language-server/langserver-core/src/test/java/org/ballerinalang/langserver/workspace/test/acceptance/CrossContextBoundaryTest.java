@@ -28,7 +28,6 @@ import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnap
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
@@ -109,7 +108,7 @@ public class CrossContextBoundaryTest {
     }
 
     @Test
-    public void wmDocumentChanged_crossesToCompilerEngineAndTriggersCompilation() throws Exception {
+    public void wmProjectUpdated_crossesToCompilerEngineAndTriggersCompilation() throws Exception {
         // RED: this test should fail — WM->CE compilation trigger wiring is not yet verified here
         AtomicInteger compileCount = new AtomicInteger();
         CountDownLatch secondCompilation = new CountDownLatch(1);
@@ -121,10 +120,10 @@ public class CrossContextBoundaryTest {
 
         Assert.assertTrue(awaitCompileCount(compileCount, 1, 3), "Project registration should trigger initial compile");
 
-        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_CHANGED, root.uri(), mainFile.toUri()));
+        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, root.uri()));
 
         Assert.assertTrue(secondCompilation.await(3, TimeUnit.SECONDS),
-                "WM_DOCUMENT_CHANGED should trigger a second compilation in CE");
+                "WORKSPACE_PROJECT_UPDATED should trigger a second compilation in CE");
     }
 
     @Test
@@ -159,7 +158,7 @@ public class CrossContextBoundaryTest {
         Assert.assertTrue(awaitCompileCount(compileCount, 1, 3), "Project registration should trigger initial compile");
 
         eventBus.publish(new HeapPressureEvent(HeapPressureLevel.WARNING));
-        eventBus.publish(new DocumentEvent(EventKind.WM_DOCUMENT_CHANGED, root.uri(), mainFile.toUri()));
+        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, root.uri()));
 
         Assert.assertFalse(throttledCompilation.await(150, TimeUnit.MILLISECONDS),
                 "RM_E1 should throttle immediate recompilation requests in CE");

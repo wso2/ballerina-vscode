@@ -27,15 +27,15 @@ import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnap
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProcessEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.ballerinalang.langserver.workspace.eventbus.ProjectEvictedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.eclipse.lsp4j.FileChangeType;
+import org.eclipse.lsp4j.FileEvent;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.EvictionReason;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.HeapEstimate;
@@ -131,11 +131,11 @@ public class WiringConfigurationTest {
     }
 
     // =========================================================================
-    // Chain 1: didChange → DS-E2 → CE debounce → CE-E1
+    // Chain 1: didChange → WM-E4 → CE debounce → CE-E1
     // =========================================================================
 
     @Test
-    public void chain1_documentChanged_triggersCompilationAndSnapshot() throws InterruptedException {
+    public void chain1_projectUpdated_triggersCompilationAndSnapshot() throws InterruptedException {
         CountDownLatch snapshotPublished = new CountDownLatch(1);
         eventBus.subscribe("chain1-observer", SubscriberTier.CRITICAL,
                 Set.of(EventKind.COMPILER_SNAPSHOT_PUBLISHED), event -> {
@@ -147,11 +147,11 @@ public class WiringConfigurationTest {
         publishEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, testRoot);
         Thread.sleep(500); // wait for initial compilation
 
-        // Then: simulate document change (DS-E2)
-        publishEvent(EventKind.WM_DOCUMENT_CHANGED, testRoot);
+        // Then: simulate project update after ChangeApplier drain (WM-E4)
+        publishEvent(EventKind.WORKSPACE_PROJECT_UPDATED, testRoot);
 
         Assert.assertTrue(snapshotPublished.await(5, TimeUnit.SECONDS),
-                "Chain 1: DS-E2 should trigger CE compilation and CE-E1 (SnapshotPublished)");
+                "Chain 1: WM-E4 should trigger CE compilation and CE-E1 (SnapshotPublished)");
         Assert.assertTrue(observedEvents.contains(EventKind.COMPILER_SNAPSHOT_PUBLISHED));
     }
 
@@ -183,8 +183,9 @@ public class WiringConfigurationTest {
         // Create Ballerina.toml on disk to simulate TOML creation (SINGLE_FILE → BUILD)
         Files.writeString(tempDir.resolve("Ballerina.toml"), "[package]\norg = \"test\"\nname = \"myproj\"\n");
 
-        // Simulate structural config file change (DS-E4 with STRUCTURAL tier → triggers WM-E4)
-        publishConfigEvent(testRoot, "STRUCTURAL");
+        // Simulate structural config file change through the project service watcher path.
+        wiring.projectService().didChangeWatchedFiles(List.of(
+                new FileEvent(tempDir.resolve("Ballerina.toml").toUri().toString(), FileChangeType.Created)));
 
         Assert.assertTrue(wmE4Received.await(5, TimeUnit.SECONDS),
                 "Chain 3: DS-E4 structural change should trigger WM-E4 (ProjectKindTransitioned)");
@@ -362,6 +363,7 @@ public class WiringConfigurationTest {
     private void publishEvent(EventKind kind, DocumentUri root) {
         DomainEvent event = switch (kind) {
             case WORKSPACE_PROJECT_REGISTERED, WORKSPACE_PROJECT_HEALTH_STATE_CHANGED,
+                 WORKSPACE_PROJECT_UPDATED,
                  WORKSPACE_PROJECT_TIER_CHANGED, WORKSPACE_LOCKING_MODE_CHANGED,
                  CACHE_INVALIDATION_REQUESTED ->
                     new ProjectEvent(kind, root.uri());
@@ -369,8 +371,6 @@ public class WiringConfigurationTest {
                     new ProjectEvictedEvent(root.uri(), EvictionReason.DOCUMENT_CLOSED);
             case WORKSPACE_PROJECT_KIND_TRANSITIONED ->
                     new ProjectEvent(kind, root.uri());
-            case WM_DOCUMENT_OPENED, WM_DOCUMENT_CHANGED, WM_DOCUMENT_CLOSED ->
-                    new DocumentEvent(kind, root.uri(), root.uri().resolve("main.bal"));
             case COMPILER_COMPILATION_FAILED, COMPILER_SNAPSHOT_PUBLISHED, COMPILER_COMPILATION_CANCELLED,
                  COMPILER_RESOLUTION_COMPLETED, CE_E5A_RESOLUTION_DIAGNOSTICS_READY,
                  CE_E5B_COMPILATION_DIAGNOSTICS_READY, CE_RESOLUTION_EXHAUSTED, CE_RESOLUTION_RECOVERED ->
@@ -380,11 +380,6 @@ public class WiringConfigurationTest {
             default -> new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, root.uri());
         };
         eventBus.publish(event);
-    }
-
-    private void publishConfigEvent(DocumentUri root, String reactivityTier) {
-        URI docUri = root.uri().resolve("Ballerina.toml");
-        eventBus.publish(new FileWatchedChangedEvent(root.uri(), docUri, reactivityTier));
     }
 
     private PackageDescriptor descriptor(String packageNameValue) {

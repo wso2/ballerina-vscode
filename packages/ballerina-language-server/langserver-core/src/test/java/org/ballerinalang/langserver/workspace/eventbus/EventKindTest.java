@@ -37,18 +37,22 @@ public class EventKindTest {
             .collect(Collectors.toSet());
 
     /**
-     * Verifies WM-scoped document events exist (ADR-046).
+     * Verifies workspace update routing events exist and document events are internal-only.
      */
     @Test
-    public void wmDocumentEvents_exist() {
-        Assert.assertTrue(ALL_EVENT_NAMES.contains("WM_DOCUMENT_OPENED"),
-                "WM_DOCUMENT_OPENED should exist");
-        Assert.assertTrue(ALL_EVENT_NAMES.contains("WM_DOCUMENT_CHANGED"),
-                "WM_DOCUMENT_CHANGED should exist");
-        Assert.assertTrue(ALL_EVENT_NAMES.contains("WM_DOCUMENT_CLOSED"),
-                "WM_DOCUMENT_CLOSED should exist");
+    public void workspaceUpdateEvents_existAndDocumentEventsAreRemoved() {
+        Assert.assertTrue(ALL_EVENT_NAMES.contains("WORKSPACE_PROJECT_KIND_TRANSITIONED"),
+                "WORKSPACE_PROJECT_KIND_TRANSITIONED should exist");
+        Assert.assertTrue(ALL_EVENT_NAMES.contains("WORKSPACE_PROJECT_UPDATED"),
+                "WORKSPACE_PROJECT_UPDATED should exist");
         Assert.assertTrue(ALL_EVENT_NAMES.contains("WM_FILE_WATCHED_CHANGED"),
                 "WM_FILE_WATCHED_CHANGED should exist");
+        Assert.assertFalse(ALL_EVENT_NAMES.contains("WM_DOCUMENT_OPENED"),
+                "WM_DOCUMENT_OPENED should be removed");
+        Assert.assertFalse(ALL_EVENT_NAMES.contains("WM_DOCUMENT_CHANGED"),
+                "WM_DOCUMENT_CHANGED should be removed");
+        Assert.assertFalse(ALL_EVENT_NAMES.contains("WM_DOCUMENT_CLOSED"),
+                "WM_DOCUMENT_CLOSED should be removed");
     }
 
     /**
@@ -102,13 +106,12 @@ public class EventKindTest {
     }
 
     /**
-     * Verifies new WM document events have correct event IDs.
+     * Verifies workspace change-routing events have correct event IDs.
      */
     @Test
-    public void wmDocumentEvents_haveCorrectEventIds() {
-        Assert.assertEquals(EventKind.WM_DOCUMENT_OPENED.eventId(), "WM-E8");
-        Assert.assertEquals(EventKind.WM_DOCUMENT_CHANGED.eventId(), "WM-E9");
-        Assert.assertEquals(EventKind.WM_DOCUMENT_CLOSED.eventId(), "WM-E10");
+    public void workspaceUpdateEvents_haveCorrectEventIds() {
+        Assert.assertEquals(EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED.eventId(), "WM-E3");
+        Assert.assertEquals(EventKind.WORKSPACE_PROJECT_UPDATED.eventId(), "WM-E4");
         Assert.assertEquals(EventKind.WM_FILE_WATCHED_CHANGED.eventId(), "WM-E11");
     }
 
