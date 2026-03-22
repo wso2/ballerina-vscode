@@ -19,16 +19,16 @@
 package org.ballerinalang.langserver.workspace.execution;
 
 import org.ballerinalang.langserver.commons.workspace.RunContext;
-import org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri;
-import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.ProjectEvictedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.ProjectKindTransitionedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
-import org.ballerinalang.langserver.workspace.workspacemanager.EvictionReason;
-import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.EvictionReason;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
 import static org.ballerinalang.langserver.workspace.execution.ExecutionProcess.ExecutionMode;
 import static org.ballerinalang.langserver.workspace.execution.ExecutionProcess.ProcessState;
 import org.testng.Assert;

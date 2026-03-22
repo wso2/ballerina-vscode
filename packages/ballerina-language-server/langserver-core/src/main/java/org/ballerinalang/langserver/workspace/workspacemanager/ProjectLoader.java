@@ -18,6 +18,9 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
+
 /**
  * Functional interface for loading Ballerina projects.
  *

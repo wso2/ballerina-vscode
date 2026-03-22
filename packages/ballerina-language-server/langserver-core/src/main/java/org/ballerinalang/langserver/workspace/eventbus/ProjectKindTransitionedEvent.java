@@ -18,7 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.eventbus;
 
-import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

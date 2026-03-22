@@ -18,6 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.eventbus;
 
+import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;

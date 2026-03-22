@@ -18,6 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.eventbus;
 
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.observability.TelemetryEmitter;
 
 import javax.annotation.Nonnull;

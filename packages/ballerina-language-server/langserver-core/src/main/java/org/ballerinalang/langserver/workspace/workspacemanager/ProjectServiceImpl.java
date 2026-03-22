@@ -22,19 +22,34 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
-import org.ballerinalang.langserver.workspace.eventbus.BatchEvent;
-import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
-import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.BatchEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent;
-import org.ballerinalang.langserver.workspace.eventbus.HeapPressureEvent;
-import org.ballerinalang.langserver.workspace.eventbus.ProjectEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.ballerinalang.langserver.workspace.eventbus.ProjectEvictedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.ProjectKindTransitionedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.BufferedChange;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeLayer;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
+import org.ballerinalang.langserver.workspace.workspacemanager.cache.CacheInvalidationEvent;
+import org.ballerinalang.langserver.workspace.workspacemanager.cache.CacheInvalidationListener;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.EvictionReason;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.HeapEstimate;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectHealthState;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectRegistry;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectTier;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.ResolvedEntry;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.UriResolver;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
@@ -169,9 +184,9 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         // Slow path: resolve root, get-or-create WM project (ADR-019 mandate 2)
         DocumentUri root = resolveSourceRoot(normalized);
         try {
-            org.ballerinalang.langserver.workspace.workspacemanager.Project wmProject =
+            org.ballerinalang.langserver.workspace.workspacemanager.project.Project wmProject =
                     registry.computeIfAbsent(root,
-                            () -> new org.ballerinalang.langserver.workspace.workspacemanager.Project(
+                            () -> new org.ballerinalang.langserver.workspace.workspacemanager.project.Project(
                                     root, detectKind(root), HeapEstimate.ofMb(DEFAULT_HEAP_MB)));
 
             // Load Ballerina project; publish event only on first creation
@@ -240,7 +255,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         }
 
         // Scan all workspace folders and collect projects to register
-        Map<DocumentUri, org.ballerinalang.langserver.workspace.workspacemanager.Project> toRegister =
+        Map<DocumentUri, org.ballerinalang.langserver.workspace.workspacemanager.project.Project> toRegister =
                 new HashMap<>();
 
         for (Path folder : workspaceFolders) {
@@ -262,7 +277,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
 
                 // Collect for batch registration in registry
                 toRegister.putIfAbsent(root,
-                        new org.ballerinalang.langserver.workspace.workspacemanager.Project(
+                        new org.ballerinalang.langserver.workspace.workspacemanager.project.Project(
                                 root, kind, HeapEstimate.ofMb(DEFAULT_HEAP_MB)));
 
                 // Register in UriResolver for fast-path resolution
@@ -781,7 +796,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         observedCompilerSignals.computeIfAbsent(root, ignored -> ConcurrentHashMap.newKeySet()).add(signal);
     }
 
-    private void transitionProject(org.ballerinalang.langserver.workspace.workspacemanager.Project project,
+    private void transitionProject(org.ballerinalang.langserver.workspace.workspacemanager.project.Project project,
                                    ProjectHealthState target) {
         try {
             if (project.healthState() != target) {

@@ -18,7 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.eventbus;
 
-import org.ballerinalang.langserver.workspace.workspacemanager.EvictionReason;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.EvictionReason;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

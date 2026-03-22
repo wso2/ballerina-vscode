@@ -19,7 +19,7 @@
 package org.ballerinalang.langserver.workspace.executionmanager;
 
 import org.ballerinalang.langserver.commons.workspace.RunContext;
-import org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 
 /**
  * Execution context service contract.

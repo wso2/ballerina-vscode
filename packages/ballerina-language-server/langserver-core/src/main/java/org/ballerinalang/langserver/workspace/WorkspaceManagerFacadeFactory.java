@@ -23,14 +23,14 @@ import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
-import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
+import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.lspgateway.ClientSession;
 import org.ballerinalang.langserver.workspace.lspgateway.WorkspaceManagerFacadeImpl;
-import org.ballerinalang.langserver.workspace.workspacemanager.MemoryBudget;
-import org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry;
-import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.MemoryBudget;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectRegistry;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.UriResolver;
 import org.eclipse.lsp4j.ClientCapabilities;
 
 import java.nio.file.Path;

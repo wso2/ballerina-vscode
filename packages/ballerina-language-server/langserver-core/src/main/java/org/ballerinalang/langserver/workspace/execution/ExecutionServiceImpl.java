@@ -19,18 +19,18 @@
 package org.ballerinalang.langserver.workspace.execution;
 
 import org.ballerinalang.langserver.commons.workspace.RunContext;
-import org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri;
-import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.eventbus.ProcessEvent;
-import org.ballerinalang.langserver.workspace.eventbus.ProcessOutputEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProcessEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProcessOutputEvent;
 import org.ballerinalang.langserver.workspace.eventbus.ProjectEvictedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.ProjectKindTransitionedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
-import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
 
 import java.io.BufferedReader;
 import java.io.IOException;

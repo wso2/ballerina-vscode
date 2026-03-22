@@ -21,14 +21,25 @@ package org.ballerinalang.langserver.workspace.workspacemanager;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.environment.PackageLockingMode;
-import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
-import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.eventbus.HeapPressureEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.BufferedChange;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeLayer;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.HeapEstimate;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.MemoryBudget;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectHealthState;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectRegistry;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.ResolvedEntry;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.UriResolver;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
@@ -121,13 +132,13 @@ public class ProjectServiceTest {
         DocumentUri root2 = new DocumentUri.FileUri(tempDir.resolve("subdir").toAbsolutePath().normalize().toUri());
 
         // Create two projects
-        org.ballerinalang.langserver.workspace.workspacemanager.Project project1 =
-                new org.ballerinalang.langserver.workspace.workspacemanager.Project(
-                        root1, org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind.SINGLE_FILE,
+        org.ballerinalang.langserver.workspace.workspacemanager.project.Project project1 =
+                new org.ballerinalang.langserver.workspace.workspacemanager.project.Project(
+                        root1, ProjectKind.SINGLE_FILE,
                         HeapEstimate.ofMb(64));
-        org.ballerinalang.langserver.workspace.workspacemanager.Project project2 =
-                new org.ballerinalang.langserver.workspace.workspacemanager.Project(
-                        root2, org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind.SINGLE_FILE,
+        org.ballerinalang.langserver.workspace.workspacemanager.project.Project project2 =
+                new org.ballerinalang.langserver.workspace.workspacemanager.project.Project(
+                        root2, ProjectKind.SINGLE_FILE,
                         HeapEstimate.ofMb(64));
 
         registry.register(root1, project1);
@@ -150,9 +161,9 @@ public class ProjectServiceTest {
     public void wiring_emergencyHeapPressureAlsoEvictsBackgroundProjects() throws Exception {
         DocumentUri root = new DocumentUri.FileUri(tempDir.resolve("subdir").toAbsolutePath().normalize().toUri());
 
-        org.ballerinalang.langserver.workspace.workspacemanager.Project project =
-                new org.ballerinalang.langserver.workspace.workspacemanager.Project(
-                        root, org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind.SINGLE_FILE,
+        org.ballerinalang.langserver.workspace.workspacemanager.project.Project project =
+                new org.ballerinalang.langserver.workspace.workspacemanager.project.Project(
+                        root, ProjectKind.SINGLE_FILE,
                         HeapEstimate.ofMb(64));
 
         registry.register(root, project);
@@ -346,17 +357,17 @@ public class ProjectServiceTest {
         DocumentUri root1 = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
         DocumentUri root2 = new DocumentUri.FileUri(tempDir.resolve("subdir").toAbsolutePath().normalize().toUri());
 
-        org.ballerinalang.langserver.workspace.workspacemanager.Project project1 =
-                new org.ballerinalang.langserver.workspace.workspacemanager.Project(
-                        root1, org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind.SINGLE_FILE,
+        org.ballerinalang.langserver.workspace.workspacemanager.project.Project project1 =
+                new org.ballerinalang.langserver.workspace.workspacemanager.project.Project(
+                        root1, ProjectKind.SINGLE_FILE,
                         HeapEstimate.ofMb(64));
-        org.ballerinalang.langserver.workspace.workspacemanager.Project project2 =
-                new org.ballerinalang.langserver.workspace.workspacemanager.Project(
-                        root2, org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind.SINGLE_FILE,
+        org.ballerinalang.langserver.workspace.workspacemanager.project.Project project2 =
+                new org.ballerinalang.langserver.workspace.workspacemanager.project.Project(
+                        root2, ProjectKind.SINGLE_FILE,
                         HeapEstimate.ofMb(64));
 
         publishedEvents.clear();
-        Map<DocumentUri, org.ballerinalang.langserver.workspace.workspacemanager.Project> map = new HashMap<>();
+        Map<DocumentUri, org.ballerinalang.langserver.workspace.workspacemanager.project.Project> map = new HashMap<>();
         map.put(root1, project1);
         map.put(root2, project2);
         registry.putAll(map);
@@ -469,7 +480,7 @@ public class ProjectServiceTest {
         Thread.sleep(100);
 
         DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
-        Optional<org.ballerinalang.langserver.workspace.workspacemanager.Project> proj = registry.get(root);
+        Optional<org.ballerinalang.langserver.workspace.workspacemanager.project.Project> proj = registry.get(root);
         Assert.assertTrue(proj.isPresent());
         Assert.assertEquals(proj.get().openDocumentCount().count(), 1, "Open document count should be 1");
     }
@@ -524,7 +535,7 @@ public class ProjectServiceTest {
         Thread.sleep(100);
 
         DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
-        Optional<org.ballerinalang.langserver.workspace.workspacemanager.Project> proj = registry.get(root);
+        Optional<org.ballerinalang.langserver.workspace.workspacemanager.project.Project> proj = registry.get(root);
         Assert.assertTrue(proj.isPresent());
         Assert.assertEquals(proj.get().openDocumentCount().count(), 0, "Open document count should be 0");
     }
@@ -566,7 +577,7 @@ public class ProjectServiceTest {
         Thread.sleep(100);
 
         DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
-        Optional<org.ballerinalang.langserver.workspace.workspacemanager.Project> proj = registry.get(root);
+        Optional<org.ballerinalang.langserver.workspace.workspacemanager.project.Project> proj = registry.get(root);
         Assert.assertTrue(proj.isPresent());
         Assert.assertEquals(proj.get().healthState(), ProjectHealthState.COMPILATION_CRASHED,
                 "Project should be in COMPILATION_CRASHED state");
@@ -608,7 +619,7 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
 
         DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
-        org.ballerinalang.langserver.workspace.workspacemanager.Project proj = registry.get(root).get();
+        org.ballerinalang.langserver.workspace.workspacemanager.project.Project proj = registry.get(root).get();
 
         // Transition to RECOVERING
         proj.notifySourceChanged();
@@ -630,7 +641,7 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
 
         DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
-        org.ballerinalang.langserver.workspace.workspacemanager.Project proj = registry.get(root).get();
+        org.ballerinalang.langserver.workspace.workspacemanager.project.Project proj = registry.get(root).get();
         Assert.assertEquals(proj.healthState(), ProjectHealthState.HEALTHY);
 
         publishedEvents.clear();
@@ -665,7 +676,7 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
 
         DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
-        org.ballerinalang.langserver.workspace.workspacemanager.Project project = registry.get(root).orElseThrow();
+        org.ballerinalang.langserver.workspace.workspacemanager.project.Project project = registry.get(root).orElseThrow();
         project.transitionTo(ProjectHealthState.PROJECT_CRASHED);
         project.transitionTo(ProjectHealthState.RECOVERING);
 
@@ -685,7 +696,7 @@ public class ProjectServiceTest {
         service.loadOrCreate(projectPath, cancelChecker);
 
         DocumentUri root = new DocumentUri.FileUri(projectPath.toUri());
-        org.ballerinalang.langserver.workspace.workspacemanager.Project project = registry.get(root).orElseThrow();
+        org.ballerinalang.langserver.workspace.workspacemanager.project.Project project = registry.get(root).orElseThrow();
         project.transitionTo(ProjectHealthState.PROJECT_CRASHED);
         project.transitionTo(ProjectHealthState.RECOVERING);
         project.transitionTo(ProjectHealthState.CIRCUIT_OPEN);
@@ -798,12 +809,12 @@ public class ProjectServiceTest {
         service.loadOrCreate(singleFileDir, cancelChecker);
 
         DocumentUri root = new DocumentUri.FileUri(singleFileDir.toAbsolutePath().normalize().toUri());
-        org.ballerinalang.langserver.workspace.workspacemanager.Project proj = registry.get(root).get();
-        Assert.assertEquals(proj.kind(), org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind.SINGLE_FILE);
+        org.ballerinalang.langserver.workspace.workspacemanager.project.Project proj = registry.get(root).get();
+        Assert.assertEquals(proj.kind(), ProjectKind.SINGLE_FILE);
 
         // Project is initially SINGLE_FILE, transition to BUILD
         publishedEvents.clear();
-        service.transitionKind(root, org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind.BUILD);
+        service.transitionKind(root, ProjectKind.BUILD);
 
         // Wait for async event delivery
         Thread.sleep(200);
@@ -819,11 +830,11 @@ public class ProjectServiceTest {
         service.loadOrCreate(singleFileDir, cancelChecker);
 
         DocumentUri root = new DocumentUri.FileUri(singleFileDir.toAbsolutePath().normalize().toUri());
-        org.ballerinalang.langserver.workspace.workspacemanager.Project proj = registry.get(root).get();
+        org.ballerinalang.langserver.workspace.workspacemanager.project.Project proj = registry.get(root).get();
 
         // Try to transition from SINGLE_FILE to SINGLE_FILE (same kind)
         Assert.assertThrows(IllegalStateException.class,
-                () -> service.transitionKind(root, org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind.SINGLE_FILE));
+                () -> service.transitionKind(root, ProjectKind.SINGLE_FILE));
     }
 
     // =========================================================================
@@ -831,7 +842,7 @@ public class ProjectServiceTest {
     // =========================================================================
 
     private Project mockBallerinaProject(DocumentUri root,
-                                        org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind kind) {
+                                        ProjectKind kind) {
         // Create a mock Ballerina project using Mockito
         Project mockProject = Mockito.mock(Project.class);
         return mockProject;

@@ -31,7 +31,11 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.environment.PackageLockingMode;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
-import org.ballerinalang.langserver.workspace.workspacemanager.ContentVersion;
+import org.ballerinalang.langserver.workspace.compilerengine.revovery.FailureType;
+import org.ballerinalang.langserver.workspace.compilerengine.revovery.RecoveryLadder;
+import org.ballerinalang.langserver.workspace.compilerengine.revovery.ResolutionResult;
+import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
 

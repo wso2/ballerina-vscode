@@ -18,6 +18,9 @@
 
 package org.ballerinalang.langserver.workspace.eventbus;
 
+import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.ballerinalang.langserver.workspace.observability.TelemetryEmitter;
 import org.ballerinalang.langserver.workspace.observability.TraceLogSink;
 import org.testng.Assert;

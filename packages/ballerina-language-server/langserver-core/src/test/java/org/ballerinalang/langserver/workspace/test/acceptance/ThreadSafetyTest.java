@@ -25,19 +25,19 @@ import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationKey;
-import org.ballerinalang.langserver.workspace.compilerengine.DualSnapshotStore;
-import org.ballerinalang.langserver.workspace.compilerengine.InProgressSnapshot;
-import org.ballerinalang.langserver.workspace.compilerengine.StableSnapshot;
-import org.ballerinalang.langserver.workspace.workspacemanager.ContentVersion;
-import org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri;
-import org.ballerinalang.langserver.workspace.workspacemanager.BufferedChange;
-import org.ballerinalang.langserver.workspace.workspacemanager.ChangeBuffer;
-import org.ballerinalang.langserver.workspace.workspacemanager.ChangeLayer;
-import org.ballerinalang.langserver.workspace.workspacemanager.HeapEstimate;
-import org.ballerinalang.langserver.workspace.workspacemanager.Project;
-import org.ballerinalang.langserver.workspace.workspacemanager.ProjectKind;
-import org.ballerinalang.langserver.workspace.workspacemanager.ResolvedEntry;
-import org.ballerinalang.langserver.workspace.workspacemanager.UriResolver;
+import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
+import org.ballerinalang.langserver.workspace.compilerengine.snapshot.InProgressSnapshot;
+import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.BufferedChange;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeLayer;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.HeapEstimate;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.Project;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.ResolvedEntry;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.UriResolver;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -120,14 +120,14 @@ public class ThreadSafetyTest {
 
     @Test
     public void testProjectLockIsReadWrite() throws Exception {
-        checkFieldType("org.ballerinalang.langserver.workspace.workspacemanager.ProjectLock", "lock",
+        checkFieldType("org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectLock", "lock",
                 ReentrantReadWriteLock.class);
     }
 
     @Test
     public void testNoRawCollectionsInMultiThreadedFields() throws Exception {
         String[] classesToCheck = {
-                "org.ballerinalang.langserver.workspace.workspacemanager.ProjectRegistry",
+                "org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectRegistry",
                 "org.ballerinalang.langserver.workspace.execution.ProcessRegistry"
         };
 

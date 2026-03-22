@@ -18,15 +18,16 @@
 
 package org.ballerinalang.langserver.workspace.observability;
 
-import org.ballerinalang.langserver.workspace.eventbus.BatchEvent;
-import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.DocumentEvent;
-import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.BatchEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.eventbus.HeapPressureEvent;
-import org.ballerinalang.langserver.workspace.eventbus.ProcessEvent;
-import org.ballerinalang.langserver.workspace.eventbus.ProjectEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProcessEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProcessOutputEvent;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -401,7 +402,7 @@ public class ObservabilityComponentsTest {
             case EXECUTION_PROCESS_STARTED, EXECUTION_PROCESS_TERMINATED ->
                     new ProcessEvent(kind, root, "pid-1");
             case EXECUTION_PROCESS_OUTPUT ->
-                    new org.ballerinalang.langserver.workspace.eventbus.ProcessOutputEvent(root, "pid-1", "stdout|line");
+                    new ProcessOutputEvent(root, "pid-1", "stdout|line");
             case RM_E1_HEAP_PRESSURE_DETECTED -> new HeapPressureEvent(HeapPressureLevel.WARNING);
         };
     }

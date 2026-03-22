@@ -18,6 +18,15 @@
 
 package org.ballerinalang.langserver.workspace.eventbus;
 
+import org.ballerinalang.langserver.workspace.eventbus.event.BatchEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProcessEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProcessOutputEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
+
 /**
  * Interface for type-safe dispatch of domain events using Java 17 pattern matching.
  *

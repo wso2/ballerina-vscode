@@ -18,8 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.acceptance;
 
-import org.ballerinalang.langserver.workspace.workspacemanager.HeapEstimate;
-import org.ballerinalang.langserver.workspace.workspacemanager.MemoryBudget;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.HeapEstimate;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.MemoryBudget;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

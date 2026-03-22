@@ -19,8 +19,13 @@
 package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.projects.PackageDescriptor;
-import org.ballerinalang.langserver.workspace.workspacemanager.ContentVersion;
-import org.ballerinalang.langserver.workspace.eventbus.CompilerEvent;
+import org.ballerinalang.langserver.workspace.compilerengine.revovery.CancellationToken;
+import org.ballerinalang.langserver.workspace.compilerengine.revovery.ResolutionResult;
+import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
+import org.ballerinalang.langserver.workspace.compilerengine.snapshot.InProgressSnapshot;
+import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
+import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;

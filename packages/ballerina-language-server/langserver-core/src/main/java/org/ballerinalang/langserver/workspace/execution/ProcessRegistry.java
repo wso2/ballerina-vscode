@@ -18,7 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.execution;
 
-import org.ballerinalang.langserver.workspace.workspacemanager.DocumentUri;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
 
 import javax.annotation.Nonnull;

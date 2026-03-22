@@ -20,6 +20,8 @@ package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
+import org.ballerinalang.langserver.workspace.compilerengine.snapshot.SnapshotView;
+import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import javax.annotation.Nonnull;
 

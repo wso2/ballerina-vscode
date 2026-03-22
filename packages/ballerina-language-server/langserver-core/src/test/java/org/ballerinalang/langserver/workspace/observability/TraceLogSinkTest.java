@@ -18,10 +18,9 @@
 
 package org.ballerinalang.langserver.workspace.observability;
 
-import org.ballerinalang.langserver.workspace.eventbus.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.eventbus.ProjectEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
