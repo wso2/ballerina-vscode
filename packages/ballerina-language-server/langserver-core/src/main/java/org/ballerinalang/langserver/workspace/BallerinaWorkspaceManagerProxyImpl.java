@@ -45,7 +45,6 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
     private final WorkspaceManager fileWorkspaceManager;
     private final WorkspaceManager exprWorkspaceManager;
     private final WorkspaceManager aiWorkspaceManager;
-    private final WorkspaceManager untitledWorkspaceManager;
 
     /**
      * Creates a new proxy with workspace managers for each URI scheme.
@@ -54,17 +53,14 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
      * @param fileWorkspaceManager     manager for file:// URIs
      * @param exprWorkspaceManager     manager for expr:// URIs
      * @param aiWorkspaceManager       manager for ai:// URIs
-     * @param untitledWorkspaceManager manager for untitled: URIs
      */
     public BallerinaWorkspaceManagerProxyImpl(
             @Nonnull WorkspaceManager fileWorkspaceManager,
             @Nonnull WorkspaceManager exprWorkspaceManager,
-            @Nonnull WorkspaceManager aiWorkspaceManager,
-            @Nonnull WorkspaceManager untitledWorkspaceManager) {
+            @Nonnull WorkspaceManager aiWorkspaceManager) {
         this.fileWorkspaceManager = fileWorkspaceManager;
         this.exprWorkspaceManager = exprWorkspaceManager;
         this.aiWorkspaceManager = aiWorkspaceManager;
-        this.untitledWorkspaceManager = untitledWorkspaceManager;
     }
 
     /**
@@ -77,7 +73,6 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
         this.fileWorkspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
         this.exprWorkspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
         this.aiWorkspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
-        this.untitledWorkspaceManager = WorkspaceManagerFacadeFactory.create(serverContext);
     }
 
     @Override
@@ -95,7 +90,6 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
         return switch (scheme) {
             case "expr" -> exprWorkspaceManager;
             case "ai" -> aiWorkspaceManager;
-            case "untitled" -> untitledWorkspaceManager;
             default -> fileWorkspaceManager;
         };
     }
@@ -181,11 +175,10 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
                 // For file URIs, use the standard Path conversion
                 return java.nio.file.Paths.get(parsedUri);
             } else {
-                // For non-file URIs (expr://, ai://, untitled:),
-                // extract the path component
+                 // For non-file URIs (expr://, ai://),
+                 // extract the path component
                 String path = parsedUri.getPath();
                 if (path == null || path.isEmpty()) {
-                    // For URIs like untitled:Untitled-1, use the scheme-specific part
                     path = parsedUri.getSchemeSpecificPart();
                 }
                 if (path == null || path.isEmpty()) {
