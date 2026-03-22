@@ -24,7 +24,6 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.TomlDocument;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.ResolvedEntry;
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.TargetType;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.UriResolver;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -166,18 +165,16 @@ public class UriResolverTest {
     }
 
     /**
-     * Verifies targeted unregister removes only the requested entry from a multi-entry node.
+     * Verifies registering the same path and scheme replaces the previous entry.
      */
     @Test
-    public void unregister_targetedEntry_preservesOtherEntriesAtSameNode() {
+    public void register_samePathSameScheme_replacesPreviousEntry() {
         DocumentUri rootUri = fileUri("/workspace/project");
         Project project = projectAt("/workspace/project");
         Module module = moduleOf(project);
 
         resolver.register(rootUri, new ResolvedEntry.ProjectEntry(project));
         resolver.register(rootUri, new ResolvedEntry.ModuleEntry(module));
-
-        resolver.unregister(rootUri, FILE_SCHEME, TargetType.PROJECT);
 
         Assert.assertEquals(resolver.project(rootUri), Optional.of(project));
         Assert.assertEquals(resolver.resolve(rootUri, FILE_SCHEME),
@@ -231,6 +228,29 @@ public class UriResolverTest {
 
         Assert.assertEquals(resolver.resolve(inScope), Optional.empty());
         Assert.assertEquals(resolver.resolve(outScope), Optional.of(outScopeEntry));
+    }
+
+    /**
+     * Verifies evictSubtree removes only the compressed branch below the given prefix.
+     */
+    @Test
+    public void evictSubtree_compressedBoundary_removesOnlyMatchingBranch() {
+        DocumentUri modulesRoot = fileUri("/workspace/project/modules");
+        DocumentUri authDoc = fileUri("/workspace/project/modules/auth/auth.bal");
+        DocumentUri dbDoc = fileUri("/workspace/project/modules/db/db.bal");
+        DocumentUri testDoc = fileUri("/workspace/project/tests/main_test.bal");
+        ResolvedEntry authEntry = new ResolvedEntry.DocumentEntry(mockDocument);
+        ResolvedEntry dbEntry = new ResolvedEntry.DocumentEntry(documentOf(moduleOf(mockProject)));
+        ResolvedEntry testEntry = new ResolvedEntry.DocumentEntry(documentOf(moduleOf(projectAt("/workspace/project"))));
+
+        resolver.register(authDoc, authEntry);
+        resolver.register(dbDoc, dbEntry);
+        resolver.register(testDoc, testEntry);
+        resolver.evictSubtree(modulesRoot);
+
+        Assert.assertEquals(resolver.resolve(authDoc), Optional.empty());
+        Assert.assertEquals(resolver.resolve(dbDoc), Optional.empty());
+        Assert.assertEquals(resolver.resolve(testDoc), Optional.of(testEntry));
     }
 
     /**

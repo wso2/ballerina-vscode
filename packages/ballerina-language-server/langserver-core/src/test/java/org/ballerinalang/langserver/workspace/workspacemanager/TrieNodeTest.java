@@ -18,11 +18,12 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.TargetType;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.TrieNode;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -49,10 +50,10 @@ public class TrieNodeTest {
      * Verifies lookup on an empty trie returns empty for keyed entries.
      */
     @Test
-    public void trieNode_lookup_keyedEmptyTrieReturnsEmpty() {
+    public void trieNode_lookup_schemeEmptyTrieReturnsEmpty() {
         TrieNode<String> root = new TrieNode<>();
 
-        Assert.assertEquals(root.lookup(segments("workspace", "main.bal"), FILE_SCHEME, TargetType.DOCUMENT),
+        Assert.assertEquals(root.lookup(segments("workspace", "main.bal"), FILE_SCHEME),
                 Optional.empty());
     }
 
@@ -122,8 +123,7 @@ public class TrieNodeTest {
                 .insert(segments("workspace", "modules", "db", "db.bal"), "db");
         TrieNode<String> updated = original.insert(segments("workspace", "modules", "auth", "service.bal"), "service");
 
-        Assert.assertSame(updated.child("workspace").child("modules").child("db"),
-                original.child("workspace").child("modules").child("db"));
+        Assert.assertSame(updated.child("workspace").child("db"), original.child("workspace").child("db"));
     }
 
     /**
@@ -133,106 +133,145 @@ public class TrieNodeTest {
     public void trieNode_remove_structurallySharesUnchangedSubtrees() {
         TrieNode<String> original = new TrieNode<String>()
                 .insert(segments("workspace", "modules", "auth", "auth.bal"), "auth")
+                .insert(segments("workspace", "modules", "auth", "service.bal"), "service")
                 .insert(segments("workspace", "modules", "db", "db.bal"), "db");
         TrieNode<String> updated = original.remove(segments("workspace", "modules", "auth", "auth.bal"));
 
-        Assert.assertSame(updated.child("workspace").child("modules").child("db"),
-                original.child("workspace").child("modules").child("db"));
+        Assert.assertSame(updated.child("workspace").child("db"), original.child("workspace").child("db"));
     }
 
     /**
-     * Verifies a node can store multiple entries distinguished by scheme and target type.
+     * Verifies a node can store multiple entries distinguished by scheme.
      */
     @Test
-    public void trieNode_insert_samePathDifferentKeysStoresMultipleEntries() {
+    public void trieNode_insert_samePathDifferentSchemesStoresMultipleEntries() {
         TrieNode<String> root = new TrieNode<String>()
-                .insert(segments("workspace", "project"), FILE_SCHEME, TargetType.PROJECT, "project")
-                .insert(segments("workspace", "project"), FILE_SCHEME, TargetType.MODULE, "module")
-                .insert(segments("workspace", "project"), EXPR_SCHEME, TargetType.PROJECT, "expr-project");
+                .insert(segments("workspace", "project"), FILE_SCHEME, "project")
+                .insert(segments("workspace", "project"), EXPR_SCHEME, "expr-project");
 
-        Assert.assertEquals(root.lookup(segments("workspace", "project"), FILE_SCHEME, TargetType.PROJECT),
-                Optional.of("project"));
-        Assert.assertEquals(root.lookup(segments("workspace", "project"), FILE_SCHEME, TargetType.MODULE),
-                Optional.of("module"));
-        Assert.assertEquals(root.lookup(segments("workspace", "project"), EXPR_SCHEME, TargetType.PROJECT),
+        Assert.assertEquals(root.lookup(segments("workspace", "project"), FILE_SCHEME), Optional.of("project"));
+        Assert.assertEquals(root.lookup(segments("workspace", "project"), EXPR_SCHEME),
                 Optional.of("expr-project"));
     }
 
     /**
-     * Verifies keyed insert replaces an existing entry with the same scheme and target type.
+     * Verifies scheme-keyed insert replaces an existing entry for the same scheme.
      */
     @Test
-    public void trieNode_insert_sameKeyReplacesExistingEntry() {
+    public void trieNode_insert_sameSchemeReplacesExistingEntry() {
         TrieNode<String> original = new TrieNode<String>()
-                .insert(segments("workspace", "main.bal"), FILE_SCHEME, TargetType.DOCUMENT, "doc-1")
-                .insert(segments("workspace", "main.bal"), FILE_SCHEME, TargetType.PROJECT, "project");
-        TrieNode<String> updated = original.insert(segments("workspace", "main.bal"), FILE_SCHEME,
-                TargetType.DOCUMENT, "doc-2");
+                .insert(segments("workspace", "main.bal"), FILE_SCHEME, "doc-1")
+                .insert(segments("workspace", "main.bal"), EXPR_SCHEME, "expr-doc");
+        TrieNode<String> updated = original.insert(segments("workspace", "main.bal"), FILE_SCHEME, "doc-2");
 
-        Assert.assertEquals(updated.lookup(segments("workspace", "main.bal"), FILE_SCHEME, TargetType.DOCUMENT),
-                Optional.of("doc-2"));
-        Assert.assertEquals(updated.lookup(segments("workspace", "main.bal"), FILE_SCHEME, TargetType.PROJECT),
-                Optional.of("project"));
-        Assert.assertEquals(original.lookup(segments("workspace", "main.bal"), FILE_SCHEME, TargetType.DOCUMENT),
-                Optional.of("doc-1"));
+        Assert.assertEquals(updated.lookup(segments("workspace", "main.bal"), FILE_SCHEME), Optional.of("doc-2"));
+        Assert.assertEquals(updated.lookup(segments("workspace", "main.bal"), EXPR_SCHEME),
+                Optional.of("expr-doc"));
+        Assert.assertEquals(original.lookup(segments("workspace", "main.bal"), FILE_SCHEME), Optional.of("doc-1"));
     }
 
     /**
-     * Verifies keyed remove only removes the matching chain entry and preserves siblings.
+     * Verifies keyed remove only removes the matching scheme entry and preserves siblings.
      */
     @Test
-    public void trieNode_remove_matchingKeyPreservesSiblingEntries() {
+    public void trieNode_remove_matchingSchemePreservesSiblingEntries() {
         TrieNode<String> original = new TrieNode<String>()
-                .insert(segments("workspace", "project"), FILE_SCHEME, TargetType.PROJECT, "project")
-                .insert(segments("workspace", "project"), FILE_SCHEME, TargetType.MODULE, "module");
-        TrieNode<String> updated = original.remove(segments("workspace", "project"), FILE_SCHEME,
-                TargetType.PROJECT);
+                .insert(segments("workspace", "project"), FILE_SCHEME, "project")
+                .insert(segments("workspace", "project"), EXPR_SCHEME, "expr-project");
+        TrieNode<String> updated = original.remove(segments("workspace", "project"), FILE_SCHEME);
 
-        Assert.assertEquals(updated.lookup(segments("workspace", "project"), FILE_SCHEME, TargetType.PROJECT),
-                Optional.empty());
-        Assert.assertEquals(updated.lookup(segments("workspace", "project"), FILE_SCHEME, TargetType.MODULE),
-                Optional.of("module"));
-        Assert.assertEquals(original.lookup(segments("workspace", "project"), FILE_SCHEME, TargetType.PROJECT),
-                Optional.of("project"));
+        Assert.assertEquals(updated.lookup(segments("workspace", "project"), FILE_SCHEME), Optional.empty());
+        Assert.assertEquals(updated.lookup(segments("workspace", "project"), EXPR_SCHEME),
+                Optional.of("expr-project"));
+        Assert.assertEquals(original.lookup(segments("workspace", "project"), FILE_SCHEME), Optional.of("project"));
     }
 
     /**
-     * Verifies removing the final entry compacts the leaf node out of the trie.
+     * Verifies removing the final scheme entry compacts the leaf node out of the trie.
      */
     @Test
-    public void trieNode_remove_lastEntryCompactsLeafNode() {
+    public void trieNode_remove_lastSchemeCompactsLeafNode() {
         TrieNode<String> original = new TrieNode<String>()
-                .insert(segments("main.bal"), FILE_SCHEME, TargetType.DOCUMENT, "doc");
-        TrieNode<String> updated = original.remove(segments("main.bal"), FILE_SCHEME, TargetType.DOCUMENT);
+                .insert(segments("main.bal"), FILE_SCHEME, "doc");
+        TrieNode<String> updated = original.remove(segments("main.bal"), FILE_SCHEME);
 
-        Assert.assertEquals(updated.lookup(segments("main.bal"), FILE_SCHEME, TargetType.DOCUMENT), Optional.empty());
+        Assert.assertEquals(updated.lookup(segments("main.bal"), FILE_SCHEME), Optional.empty());
         Assert.assertNull(updated.child("main.bal"));
         Assert.assertNotNull(original.child("main.bal"));
     }
 
     /**
-     * Verifies removeSubtree evicts all schemes and target types under the removed prefix.
+     * Verifies removeSubtree evicts all schemes under the removed prefix.
      */
     @Test
     public void trieNode_removeSubtree_keyedEntriesEvictsAllDescendants() {
         TrieNode<String> original = new TrieNode<String>()
-                .insert(segments("workspace", "project"), FILE_SCHEME, TargetType.PROJECT, "project")
-                .insert(segments("workspace", "project"), FILE_SCHEME, TargetType.MODULE, "module")
-                .insert(segments("workspace", "project", "main.bal"), FILE_SCHEME, TargetType.DOCUMENT, "doc")
-                .insert(segments("workspace", "project", "main.bal"), EXPR_SCHEME, TargetType.DOCUMENT, "expr-doc")
-                .insert(segments("workspace", "other", "util.bal"), FILE_SCHEME, TargetType.DOCUMENT, "other");
+                .insert(segments("workspace", "project"), FILE_SCHEME, "project")
+                .insert(segments("workspace", "project"), EXPR_SCHEME, "expr-project")
+                .insert(segments("workspace", "project", "main.bal"), FILE_SCHEME, "doc")
+                .insert(segments("workspace", "project", "main.bal"), EXPR_SCHEME, "expr-doc")
+                .insert(segments("workspace", "other", "util.bal"), FILE_SCHEME, "other");
         TrieNode<String> updated = original.removeSubtree(segments("workspace", "project"));
 
-        Assert.assertEquals(updated.lookup(segments("workspace", "project"), FILE_SCHEME, TargetType.PROJECT),
+        Assert.assertEquals(updated.lookup(segments("workspace", "project"), FILE_SCHEME), Optional.empty());
+        Assert.assertEquals(updated.lookup(segments("workspace", "project"), EXPR_SCHEME), Optional.empty());
+        Assert.assertEquals(updated.lookup(segments("workspace", "project", "main.bal"), FILE_SCHEME),
                 Optional.empty());
-        Assert.assertEquals(updated.lookup(segments("workspace", "project"), FILE_SCHEME, TargetType.MODULE),
+        Assert.assertEquals(updated.lookup(segments("workspace", "project", "main.bal"), EXPR_SCHEME),
                 Optional.empty());
-        Assert.assertEquals(updated.lookup(segments("workspace", "project", "main.bal"), FILE_SCHEME,
-                TargetType.DOCUMENT), Optional.empty());
-        Assert.assertEquals(updated.lookup(segments("workspace", "project", "main.bal"), EXPR_SCHEME,
-                TargetType.DOCUMENT), Optional.empty());
-        Assert.assertEquals(updated.lookup(segments("workspace", "other", "util.bal"), FILE_SCHEME,
-                TargetType.DOCUMENT), Optional.of("other"));
+        Assert.assertEquals(updated.lookup(segments("workspace", "other", "util.bal"), FILE_SCHEME),
+                Optional.of("other"));
+    }
+
+    /**
+     * Verifies insert splits a compressed edge at the divergence point.
+     */
+    @Test
+    public void trieNode_insert_midEdgeSplit_createsCompressedPrefixNode() {
+        TrieNode<String> root = new TrieNode<String>()
+                .insert(segments("workspace", "project", "modules", "auth", "auth.bal"), FILE_SCHEME, "auth")
+                .insert(segments("workspace", "project", "modules", "db", "db.bal"), FILE_SCHEME, "db");
+
+        TrieNode<String> sharedPrefix = root.child("workspace");
+
+        Assert.assertNotNull(sharedPrefix);
+        Assert.assertTrue(Arrays.equals(edgeOf(sharedPrefix), segments("workspace", "project", "modules")));
+        Assert.assertEquals(root.lookup(segments("workspace", "project", "modules", "auth", "auth.bal"),
+                FILE_SCHEME), Optional.of("auth"));
+        Assert.assertEquals(root.lookup(segments("workspace", "project", "modules", "db", "db.bal"), FILE_SCHEME),
+                Optional.of("db"));
+    }
+
+    /**
+     * Verifies lookup misses when traversal diverges inside a compressed edge.
+     */
+    @Test
+    public void trieNode_lookup_midEdgeMiss_returnsEmpty() {
+        TrieNode<String> root = new TrieNode<String>()
+                .insert(segments("workspace", "project", "modules", "auth", "auth.bal"), FILE_SCHEME, "auth")
+                .insert(segments("workspace", "project", "tests", "main_test.bal"), FILE_SCHEME, "test");
+
+        Assert.assertEquals(root.lookup(segments("workspace", "project", "generated", "main.bal"), FILE_SCHEME),
+                Optional.empty());
+    }
+
+    /**
+     * Verifies removeSubtree works when the removal prefix lands at a compressed edge boundary.
+     */
+    @Test
+    public void trieNode_removeSubtree_compressedBoundaryEvictsMatchingBranch() {
+        TrieNode<String> root = new TrieNode<String>()
+                .insert(segments("workspace", "project", "modules", "auth", "auth.bal"), FILE_SCHEME, "auth")
+                .insert(segments("workspace", "project", "modules", "db", "db.bal"), FILE_SCHEME, "db")
+                .insert(segments("workspace", "project", "tests", "main_test.bal"), FILE_SCHEME, "test");
+        TrieNode<String> updated = root.removeSubtree(segments("workspace", "project", "modules"));
+
+        Assert.assertEquals(updated.lookup(segments("workspace", "project", "modules", "auth", "auth.bal"),
+                FILE_SCHEME), Optional.empty());
+        Assert.assertEquals(updated.lookup(segments("workspace", "project", "modules", "db", "db.bal"),
+                FILE_SCHEME), Optional.empty());
+        Assert.assertEquals(updated.lookup(segments("workspace", "project", "tests", "main_test.bal"),
+                FILE_SCHEME), Optional.of("test"));
     }
 
     /**
@@ -304,5 +343,16 @@ public class TrieNodeTest {
 
     private String[] segments(String... segments) {
         return segments;
+    }
+
+    @SuppressWarnings("unchecked")
+    private String[] edgeOf(TrieNode<String> node) {
+        try {
+            Field edgeField = TrieNode.class.getDeclaredField("edge");
+            edgeField.setAccessible(true);
+            return ((String[]) edgeField.get(node)).clone();
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to read trie edge for assertions", e);
+        }
     }
 }

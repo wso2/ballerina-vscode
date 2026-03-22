@@ -24,10 +24,11 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.TomlDocument;
 import io.ballerina.projects.util.ProjectConstants;
 
+import javax.annotation.Nonnull;
+
 import java.net.URI;
 import java.nio.file.Path;
 import java.lang.reflect.Method;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -45,13 +46,6 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class UriResolver {
 
-    private static final TargetType[] RESOLUTION_ORDER = {
-            TargetType.DOCUMENT,
-            TargetType.CONFIG,
-            TargetType.MODULE,
-            TargetType.PROJECT
-    };
-
     private final AtomicReference<TrieNode<ResolvedEntry>> root = new AtomicReference<>(new TrieNode<>());
 
     /**
@@ -60,7 +54,7 @@ public final class UriResolver {
      * @param uri the document URI to resolve
      * @return the resolved entry, or empty if not cached
      */
-    public Optional<ResolvedEntry> resolve(DocumentUri uri) {
+    public @Nonnull Optional<ResolvedEntry> resolve(@Nonnull DocumentUri uri) {
         return resolve(uri, uri.uri().getScheme());
     }
 
@@ -71,19 +65,8 @@ public final class UriResolver {
      * @param scheme the scheme to discriminate by
      * @return the resolved entry, or empty if not cached
      */
-    public Optional<ResolvedEntry> resolve(DocumentUri uri, String scheme) {
-        Objects.requireNonNull(uri, "uri must not be null");
-        Objects.requireNonNull(scheme, "scheme must not be null");
-
-        TrieNode<ResolvedEntry> snapshot = root.get();
-        String[] segments = toSegments(uri.uri());
-        for (TargetType targetType : RESOLUTION_ORDER) {
-            Optional<ResolvedEntry> match = lookup(snapshot, segments, scheme, targetType);
-            if (match.isPresent()) {
-                return match;
-            }
-        }
-        return Optional.empty();
+    public @Nonnull Optional<ResolvedEntry> resolve(@Nonnull DocumentUri uri, @Nonnull String scheme) {
+        return root.get().lookup(toSegments(uri.uri()), scheme);
     }
 
     /**
@@ -92,7 +75,7 @@ public final class UriResolver {
      * @param uri the document URI
      * @return the cached document, or empty if unavailable
      */
-    public Optional<Document> document(DocumentUri uri) {
+    public @Nonnull Optional<Document> document(@Nonnull DocumentUri uri) {
         return document(uri, uri.uri().getScheme());
     }
 
@@ -103,12 +86,13 @@ public final class UriResolver {
      * @param scheme the scheme to discriminate by
      * @return the cached document, or empty if unavailable
      */
-    public Optional<Document> document(DocumentUri uri, String scheme) {
-        TrieNode<ResolvedEntry> snapshot = root.get();
-        return lookup(snapshot, toSegments(uri.uri()), scheme, TargetType.DOCUMENT)
-                .filter(ResolvedEntry.DocumentEntry.class::isInstance)
-                .map(ResolvedEntry.DocumentEntry.class::cast)
-                .map(ResolvedEntry.DocumentEntry::document);
+    public @Nonnull Optional<Document> document(@Nonnull DocumentUri uri, @Nonnull String scheme) {
+        return resolve(uri, scheme).flatMap(entry -> switch (entry) {
+            case ResolvedEntry.DocumentEntry documentEntry -> Optional.of(documentEntry.document());
+            case ResolvedEntry.ProjectEntry ignored -> Optional.empty();
+            case ResolvedEntry.ModuleEntry ignored -> Optional.empty();
+            case ResolvedEntry.ConfigEntry ignored -> Optional.empty();
+        });
     }
 
     /**
@@ -117,7 +101,7 @@ public final class UriResolver {
      * @param uri the document URI
      * @return the cached or derived module, or empty if unavailable
      */
-    public Optional<Module> module(DocumentUri uri) {
+    public @Nonnull Optional<Module> module(@Nonnull DocumentUri uri) {
         return module(uri, uri.uri().getScheme());
     }
 
@@ -128,18 +112,13 @@ public final class UriResolver {
      * @param scheme the scheme to discriminate by
      * @return the cached or derived module, or empty if unavailable
      */
-    public Optional<Module> module(DocumentUri uri, String scheme) {
-        TrieNode<ResolvedEntry> snapshot = root.get();
-        String[] segments = toSegments(uri.uri());
-        return lookup(snapshot, segments, scheme, TargetType.MODULE)
-                .filter(ResolvedEntry.ModuleEntry.class::isInstance)
-                .map(ResolvedEntry.ModuleEntry.class::cast)
-                .map(ResolvedEntry.ModuleEntry::module)
-                .or(() -> lookup(snapshot, segments, scheme, TargetType.DOCUMENT)
-                        .filter(ResolvedEntry.DocumentEntry.class::isInstance)
-                        .map(ResolvedEntry.DocumentEntry.class::cast)
-                        .map(ResolvedEntry.DocumentEntry::document)
-                        .map(Document::module));
+    public @Nonnull Optional<Module> module(@Nonnull DocumentUri uri, @Nonnull String scheme) {
+        return resolve(uri, scheme).flatMap(entry -> switch (entry) {
+            case ResolvedEntry.ModuleEntry moduleEntry -> Optional.of(moduleEntry.module());
+            case ResolvedEntry.DocumentEntry documentEntry -> Optional.of(documentEntry.document().module());
+            case ResolvedEntry.ProjectEntry ignored -> Optional.empty();
+            case ResolvedEntry.ConfigEntry ignored -> Optional.empty();
+        });
     }
 
     /**
@@ -148,7 +127,7 @@ public final class UriResolver {
      * @param uri the document URI
      * @return the cached or derived project, or empty if unavailable
      */
-    public Optional<Project> project(DocumentUri uri) {
+    public @Nonnull Optional<Project> project(@Nonnull DocumentUri uri) {
         return project(uri, uri.uri().getScheme());
     }
 
@@ -160,28 +139,13 @@ public final class UriResolver {
      * @param scheme the scheme to discriminate by
      * @return the cached or derived project, or empty if unavailable
      */
-    public Optional<Project> project(DocumentUri uri, String scheme) {
-        TrieNode<ResolvedEntry> snapshot = root.get();
-        String[] segments = toSegments(uri.uri());
-        return lookup(snapshot, segments, scheme, TargetType.PROJECT)
-                .filter(ResolvedEntry.ProjectEntry.class::isInstance)
-                .map(ResolvedEntry.ProjectEntry.class::cast)
-                .map(ResolvedEntry.ProjectEntry::project)
-                .or(() -> lookup(snapshot, segments, scheme, TargetType.MODULE)
-                        .filter(ResolvedEntry.ModuleEntry.class::isInstance)
-                        .map(ResolvedEntry.ModuleEntry.class::cast)
-                        .map(ResolvedEntry.ModuleEntry::module)
-                        .map(Module::project))
-                .or(() -> lookup(snapshot, segments, scheme, TargetType.DOCUMENT)
-                        .filter(ResolvedEntry.DocumentEntry.class::isInstance)
-                        .map(ResolvedEntry.DocumentEntry.class::cast)
-                        .map(ResolvedEntry.DocumentEntry::document)
-                        .map(Document::module)
-                        .map(Module::project))
-                .or(() -> lookup(snapshot, segments, scheme, TargetType.CONFIG)
-                        .filter(ResolvedEntry.ConfigEntry.class::isInstance)
-                        .map(ResolvedEntry.ConfigEntry.class::cast)
-                        .flatMap(ResolvedEntry.ConfigEntry::project));
+    public @Nonnull Optional<Project> project(@Nonnull DocumentUri uri, @Nonnull String scheme) {
+        return resolve(uri, scheme).flatMap(entry -> switch (entry) {
+            case ResolvedEntry.ProjectEntry projectEntry -> Optional.of(projectEntry.project());
+            case ResolvedEntry.ModuleEntry moduleEntry -> Optional.of(moduleEntry.module().project());
+            case ResolvedEntry.DocumentEntry documentEntry -> Optional.of(documentEntry.document().module().project());
+            case ResolvedEntry.ConfigEntry configEntry -> configEntry.project();
+        });
     }
 
     /**
@@ -190,7 +154,7 @@ public final class UriResolver {
      * @param uri the document URI
      * @return the cached config, or empty if unavailable
      */
-    public Optional<TomlDocument> config(DocumentUri uri) {
+    public @Nonnull Optional<TomlDocument> config(@Nonnull DocumentUri uri) {
         return config(uri, uri.uri().getScheme());
     }
 
@@ -201,12 +165,13 @@ public final class UriResolver {
      * @param scheme the scheme to discriminate by
      * @return the cached config, or empty if unavailable
      */
-    public Optional<TomlDocument> config(DocumentUri uri, String scheme) {
-        TrieNode<ResolvedEntry> snapshot = root.get();
-        return lookup(snapshot, toSegments(uri.uri()), scheme, TargetType.CONFIG)
-                .filter(ResolvedEntry.ConfigEntry.class::isInstance)
-                .map(ResolvedEntry.ConfigEntry.class::cast)
-                .map(ResolvedEntry.ConfigEntry::config);
+    public @Nonnull Optional<TomlDocument> config(@Nonnull DocumentUri uri, @Nonnull String scheme) {
+        return resolve(uri, scheme).flatMap(entry -> switch (entry) {
+            case ResolvedEntry.ConfigEntry configEntry -> Optional.of(configEntry.config());
+            case ResolvedEntry.ProjectEntry ignored -> Optional.empty();
+            case ResolvedEntry.ModuleEntry ignored -> Optional.empty();
+            case ResolvedEntry.DocumentEntry ignored -> Optional.empty();
+        });
     }
 
     /**
@@ -215,8 +180,8 @@ public final class UriResolver {
      * @param uri the document URI
      * @param entry the resolved back-references to store
      */
-    public void register(DocumentUri uri, ResolvedEntry entry) {
-        register(uri, uri.uri().getScheme(), entry.targetType(), entry);
+    public void register(@Nonnull DocumentUri uri, @Nonnull ResolvedEntry entry) {
+        register(uri, uri.uri().getScheme(), entry);
     }
 
     /**
@@ -226,25 +191,8 @@ public final class UriResolver {
      * @param scheme the scheme discriminator
      * @param entry the resolved back-references to store
      */
-    public void register(DocumentUri uri, String scheme, ResolvedEntry entry) {
-        register(uri, scheme, entry.targetType(), entry);
-    }
-
-    /**
-     * Registers a resolved entry for the given URI.
-     *
-     * @param uri the document URI
-     * @param scheme the scheme discriminator
-     * @param targetType the target type discriminator
-     * @param entry the resolved back-references to store
-     */
-    public void register(DocumentUri uri, String scheme, TargetType targetType, ResolvedEntry entry) {
-        Objects.requireNonNull(uri, "uri must not be null");
-        Objects.requireNonNull(scheme, "scheme must not be null");
-        Objects.requireNonNull(targetType, "targetType must not be null");
-        Objects.requireNonNull(entry, "entry must not be null");
-
-        root.set(root.get().insert(toSegments(uri.uri()), scheme, targetType, entry));
+    public void register(@Nonnull DocumentUri uri, @Nonnull String scheme, @Nonnull ResolvedEntry entry) {
+        root.set(root.get().insert(toSegments(uri.uri()), scheme, entry));
     }
 
     /**
@@ -252,23 +200,18 @@ public final class UriResolver {
      *
      * @param uri the document URI to remove
      */
-    public void unregister(DocumentUri uri) {
-        unregisterSchemeEntries(uri, uri.uri().getScheme());
+    public void unregister(@Nonnull DocumentUri uri) {
+        unregister(uri, uri.uri().getScheme());
     }
 
     /**
-     * Removes a single keyed entry at the given URI.
+     * Removes the cached entry at the given URI for the supplied scheme.
      *
      * @param uri the document URI to remove
      * @param scheme the scheme discriminator
-     * @param targetType the target type discriminator
      */
-    public void unregister(DocumentUri uri, String scheme, TargetType targetType) {
-        Objects.requireNonNull(uri, "uri must not be null");
-        Objects.requireNonNull(scheme, "scheme must not be null");
-        Objects.requireNonNull(targetType, "targetType must not be null");
-
-        root.set(root.get().remove(toSegments(uri.uri()), scheme, targetType));
+    public void unregister(@Nonnull DocumentUri uri, @Nonnull String scheme) {
+        root.set(root.get().remove(toSegments(uri.uri()), scheme));
     }
 
     /**
@@ -276,8 +219,7 @@ public final class UriResolver {
      *
      * @param sourceRootUri the source root URI whose subtree should be evicted
      */
-    public void evictSubtree(DocumentUri sourceRootUri) {
-        Objects.requireNonNull(sourceRootUri, "sourceRootUri must not be null");
+    public void evictSubtree(@Nonnull DocumentUri sourceRootUri) {
         root.set(root.get().removeSubtree(toSegments(sourceRootUri.uri())));
     }
 
@@ -288,19 +230,15 @@ public final class UriResolver {
      * @param scheme the scheme discriminator
      * @param newDocument the new document instance
      */
-    public void onDocumentUpdate(DocumentUri uri, String scheme, Document newDocument) {
-        Objects.requireNonNull(newDocument, "newDocument must not be null");
+    public void onDocumentUpdate(@Nonnull DocumentUri uri, @Nonnull String scheme, @Nonnull Document newDocument) {
         Module module = newDocument.module();
         Project project = module.project();
 
         TrieNode<ResolvedEntry> snapshot = root.get();
         TrieNode<ResolvedEntry> updated = snapshot
-                .insert(toSegments(project.sourceRoot()), scheme, TargetType.PROJECT,
-                        new ResolvedEntry.ProjectEntry(project))
-                .insert(toSegments(modulePath(uri, project)), scheme, TargetType.MODULE,
-                        new ResolvedEntry.ModuleEntry(module))
-                .insert(toSegments(uri.uri()), scheme, TargetType.DOCUMENT,
-                        new ResolvedEntry.DocumentEntry(newDocument));
+                .insert(toSegments(project.sourceRoot()), scheme, new ResolvedEntry.ProjectEntry(project))
+                .insert(toSegments(modulePath(uri, project)), scheme, new ResolvedEntry.ModuleEntry(module))
+                .insert(toSegments(uri.uri()), scheme, new ResolvedEntry.DocumentEntry(newDocument));
         root.set(updated);
     }
 
@@ -311,7 +249,7 @@ public final class UriResolver {
      * @param scheme the scheme discriminator
      * @param newDocument the new document instance
      */
-    public void onDocumentCreate(DocumentUri uri, String scheme, Document newDocument) {
+    public void onDocumentCreate(@Nonnull DocumentUri uri, @Nonnull String scheme, @Nonnull Document newDocument) {
         onDocumentUpdate(uri, scheme, newDocument);
     }
 
@@ -322,17 +260,14 @@ public final class UriResolver {
      * @param scheme the scheme discriminator
      * @param updatedModule the refreshed module after removal
      */
-    public void onDocumentRemove(DocumentUri uri, String scheme, Module updatedModule) {
-        Objects.requireNonNull(updatedModule, "updatedModule must not be null");
+    public void onDocumentRemove(@Nonnull DocumentUri uri, @Nonnull String scheme, @Nonnull Module updatedModule) {
         Project project = updatedModule.project();
 
         TrieNode<ResolvedEntry> snapshot = root.get();
         TrieNode<ResolvedEntry> updated = snapshot
-                .remove(toSegments(uri.uri()), scheme, TargetType.DOCUMENT)
-                .insert(toSegments(project.sourceRoot()), scheme, TargetType.PROJECT,
-                        new ResolvedEntry.ProjectEntry(project))
-                .insert(toSegments(modulePath(uri, project)), scheme, TargetType.MODULE,
-                        new ResolvedEntry.ModuleEntry(updatedModule));
+                .remove(toSegments(uri.uri()), scheme)
+                .insert(toSegments(project.sourceRoot()), scheme, new ResolvedEntry.ProjectEntry(project))
+                .insert(toSegments(modulePath(uri, project)), scheme, new ResolvedEntry.ModuleEntry(updatedModule));
         root.set(updated);
     }
 
@@ -343,11 +278,9 @@ public final class UriResolver {
      * @param scheme the scheme discriminator
      * @param project the project instance
      */
-    public void onProjectCreate(DocumentUri projectRootUri, String scheme, Project project) {
-        Objects.requireNonNull(projectRootUri, "projectRootUri must not be null");
-        Objects.requireNonNull(project, "project must not be null");
-        root.set(root.get().insert(toSegments(projectRootUri.uri()), scheme, TargetType.PROJECT,
-                new ResolvedEntry.ProjectEntry(project)));
+    public void onProjectCreate(@Nonnull DocumentUri projectRootUri, @Nonnull String scheme,
+                                @Nonnull Project project) {
+        root.set(root.get().insert(toSegments(projectRootUri.uri()), scheme, new ResolvedEntry.ProjectEntry(project)));
     }
 
     /**
@@ -357,14 +290,11 @@ public final class UriResolver {
      * @param scheme the scheme discriminator
      * @param newProject the refreshed project instance
      */
-    public void onProjectUpdate(DocumentUri projectRootUri, String scheme, Project newProject) {
-        Objects.requireNonNull(projectRootUri, "projectRootUri must not be null");
-        Objects.requireNonNull(newProject, "newProject must not be null");
-
+    public void onProjectUpdate(@Nonnull DocumentUri projectRootUri, @Nonnull String scheme,
+                                @Nonnull Project newProject) {
         TrieNode<ResolvedEntry> updated = root.get()
                 .removeSubtree(toSegments(projectRootUri.uri()))
-                .insert(toSegments(projectRootUri.uri()), scheme, TargetType.PROJECT,
-                        new ResolvedEntry.ProjectEntry(newProject));
+                .insert(toSegments(projectRootUri.uri()), scheme, new ResolvedEntry.ProjectEntry(newProject));
         root.set(updated);
     }
 
@@ -373,7 +303,7 @@ public final class UriResolver {
      *
      * @param projectRootUri the project root URI
      */
-    public void onProjectRemove(DocumentUri projectRootUri) {
+    public void onProjectRemove(@Nonnull DocumentUri projectRootUri) {
         evictSubtree(projectRootUri);
     }
 
@@ -384,19 +314,15 @@ public final class UriResolver {
      * @param scheme the scheme discriminator
      * @param newConfig the new config instance
      */
-    public void onConfigUpdate(DocumentUri uri, String scheme, TomlDocument newConfig) {
-        Objects.requireNonNull(uri, "uri must not be null");
-        Objects.requireNonNull(newConfig, "newConfig must not be null");
+    public void onConfigUpdate(@Nonnull DocumentUri uri, @Nonnull String scheme, @Nonnull TomlDocument newConfig) {
         Path projectRootPath = Path.of(uri.uri().getPath()).toAbsolutePath().normalize().getParent();
         Project project = resolveProjectForConfig(newConfig, scheme, projectRootPath)
                 .orElseThrow(() -> new IllegalArgumentException("Cannot determine project for config URI: "
                         + uri.uri()));
 
         TrieNode<ResolvedEntry> updated = root.get()
-                .insert(toSegments(project.sourceRoot()), scheme, TargetType.PROJECT,
-                        new ResolvedEntry.ProjectEntry(project))
-                .insert(toSegments(uri.uri()), scheme, TargetType.CONFIG,
-                        new ResolvedEntry.ConfigEntry(newConfig, project));
+                .insert(toSegments(project.sourceRoot()), scheme, new ResolvedEntry.ProjectEntry(project))
+                .insert(toSegments(uri.uri()), scheme, new ResolvedEntry.ConfigEntry(newConfig, project));
         root.set(updated);
     }
 
@@ -407,30 +333,11 @@ public final class UriResolver {
      * @param scheme the scheme discriminator
      * @param updatedProject the refreshed project instance
      */
-    public void onConfigRemove(DocumentUri uri, String scheme, Project updatedProject) {
-        Objects.requireNonNull(uri, "uri must not be null");
-        Objects.requireNonNull(updatedProject, "updatedProject must not be null");
-
+    public void onConfigRemove(@Nonnull DocumentUri uri, @Nonnull String scheme, @Nonnull Project updatedProject) {
         TrieNode<ResolvedEntry> updated = root.get()
-                .remove(toSegments(uri.uri()), scheme, TargetType.CONFIG)
-                .insert(toSegments(updatedProject.sourceRoot()), scheme, TargetType.PROJECT,
-                        new ResolvedEntry.ProjectEntry(updatedProject));
+                .remove(toSegments(uri.uri()), scheme)
+                .insert(toSegments(updatedProject.sourceRoot()), scheme, new ResolvedEntry.ProjectEntry(updatedProject));
         root.set(updated);
-    }
-
-    private void unregisterSchemeEntries(DocumentUri uri, String scheme) {
-        TrieNode<ResolvedEntry> snapshot = root.get();
-        String[] segments = toSegments(uri.uri());
-        TrieNode<ResolvedEntry> updated = snapshot;
-        for (TargetType targetType : RESOLUTION_ORDER) {
-            updated = updated.remove(segments, scheme, targetType);
-        }
-        root.set(updated);
-    }
-
-    private Optional<ResolvedEntry> lookup(TrieNode<ResolvedEntry> snapshot, String[] segments,
-                                           String scheme, TargetType targetType) {
-        return snapshot.lookup(segments, scheme, targetType);
     }
 
     private Optional<Project> resolveProjectForConfig(TomlDocument config, String scheme, Path projectRootPath) {
@@ -441,7 +348,7 @@ public final class UriResolver {
         if (projectRootPath == null) {
             return Optional.empty();
         }
-        return root.get().lookup(toSegments(projectRootPath), scheme, TargetType.PROJECT)
+        return root.get().lookup(toSegments(projectRootPath), scheme)
                 .filter(ResolvedEntry.ProjectEntry.class::isInstance)
                 .map(ResolvedEntry.ProjectEntry.class::cast)
                 .map(ResolvedEntry.ProjectEntry::project);
@@ -484,7 +391,7 @@ public final class UriResolver {
      * @param uri the URI whose path component should be normalized
      * @return the path string with no trailing slash, as produced by {@link Path#toString()}
      */
-    public static String pathOf(URI uri) {
+    public static @Nonnull String pathOf(@Nonnull URI uri) {
         return Path.of(uri.getPath()).toString();
     }
 

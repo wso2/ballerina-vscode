@@ -18,6 +18,9 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager.uri;
 
+import javax.annotation.Nonnull;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -35,22 +38,26 @@ import java.util.Optional;
 public final class TrieNode<V> {
 
     private static final String DEFAULT_SCHEME = "file";
-    private static final TargetType DEFAULT_TARGET_TYPE = TargetType.DOCUMENT;
-    private static final TrieNode<?> EMPTY = new TrieNode<>(Map.of(), null);
+    private static final String[] EMPTY_EDGE = new String[0];
+    private static final TrieNode<?> EMPTY = new TrieNode<>(EMPTY_EDGE, Map.of(), null, null);
 
+    private final String[] edge;
     private final Map<String, TrieNode<V>> children;
-    private final EntryChain<V> entries;
+    private final V fileValue;
+    private final Map<String, V> overflowValues;
 
     /**
      * Creates an empty trie node.
      */
     public TrieNode() {
-        this(Map.of(), null);
+        this(EMPTY_EDGE, Map.of(), null, null);
     }
 
-    private TrieNode(Map<String, TrieNode<V>> children, EntryChain<V> entries) {
+    private TrieNode(String[] edge, Map<String, TrieNode<V>> children, V fileValue, Map<String, V> overflowValues) {
+        this.edge = edge;
         this.children = children;
-        this.entries = entries;
+        this.fileValue = fileValue;
+        this.overflowValues = overflowValues;
     }
 
     /**
@@ -62,24 +69,22 @@ public final class TrieNode<V> {
      * @param newValue value to store at the target path
      * @return new trie root containing the inserted value
      */
-    public TrieNode<V> insert(String[] pathSegments, V newValue) {
-        return insert(pathSegments, DEFAULT_SCHEME, DEFAULT_TARGET_TYPE, newValue);
+    public @Nonnull TrieNode<V> insert(@Nonnull String[] pathSegments, @Nonnull V newValue) {
+        return insert(pathSegments, DEFAULT_SCHEME, newValue);
     }
 
     /**
-     * Returns a new trie root with the keyed value stored at the given path.
+     * Returns a new trie root with the scheme-keyed value stored at the given path.
      *
      * @param pathSegments path segments from root to leaf
      * @param scheme URI scheme discriminator
-     * @param targetType resolved target type discriminator
      * @param newValue value to store at the target path
      * @return new trie root containing the inserted value
      */
-    public TrieNode<V> insert(String[] pathSegments, String scheme, TargetType targetType, V newValue) {
+    public @Nonnull TrieNode<V> insert(@Nonnull String[] pathSegments, @Nonnull String scheme, @Nonnull V newValue) {
         validatePathSegments(pathSegments);
-        Objects.requireNonNull(scheme, "scheme must not be null");
-        Objects.requireNonNull(targetType, "targetType must not be null");
-        return insert(pathSegments, 0, scheme, targetType, newValue);
+        validateScheme(scheme);
+        return insert(pathSegments, 0, scheme, newValue);
     }
 
     /**
@@ -90,30 +95,37 @@ public final class TrieNode<V> {
      * @param pathSegments path segments from root to leaf
      * @return optional containing the stored value when present
      */
-    public Optional<V> lookup(String[] pathSegments) {
-        return lookup(pathSegments, DEFAULT_SCHEME, DEFAULT_TARGET_TYPE);
+    public @Nonnull Optional<V> lookup(@Nonnull String[] pathSegments) {
+        return lookup(pathSegments, DEFAULT_SCHEME);
     }
 
     /**
-     * Looks up the keyed value stored at the given path.
+     * Looks up the scheme-keyed value stored at the given path.
      *
      * @param pathSegments path segments from root to leaf
      * @param scheme URI scheme discriminator
-     * @param targetType resolved target type discriminator
      * @return optional containing the stored value when present
      */
-    public Optional<V> lookup(String[] pathSegments, String scheme, TargetType targetType) {
+    public @Nonnull Optional<V> lookup(@Nonnull String[] pathSegments, @Nonnull String scheme) {
         validatePathSegments(pathSegments);
-        Objects.requireNonNull(scheme, "scheme must not be null");
-        Objects.requireNonNull(targetType, "targetType must not be null");
+        validateScheme(scheme);
+
         TrieNode<V> node = this;
-        for (String segment : pathSegments) {
-            node = node.children.get(segment);
+        int depth = 0;
+        while (true) {
+            int matchLength = node.commonPrefixLength(pathSegments, depth);
+            if (matchLength < node.edge.length) {
+                return Optional.empty();
+            }
+            depth += matchLength;
+            if (depth == pathSegments.length) {
+                return node.lookupValue(scheme);
+            }
+            node = node.children.get(pathSegments[depth]);
             if (node == null) {
                 return Optional.empty();
             }
         }
-        return EntryChain.find(node.entries, scheme, targetType);
     }
 
     /**
@@ -124,23 +136,21 @@ public final class TrieNode<V> {
      * @param pathSegments path segments from root to leaf
      * @return new trie root without the removed value
      */
-    public TrieNode<V> remove(String[] pathSegments) {
-        return remove(pathSegments, DEFAULT_SCHEME, DEFAULT_TARGET_TYPE);
+    public @Nonnull TrieNode<V> remove(@Nonnull String[] pathSegments) {
+        return remove(pathSegments, DEFAULT_SCHEME);
     }
 
     /**
-     * Returns a new trie root with the keyed value at the given path removed.
+     * Returns a new trie root with the scheme-keyed value at the given path removed.
      *
      * @param pathSegments path segments from root to leaf
      * @param scheme URI scheme discriminator
-     * @param targetType resolved target type discriminator
      * @return new trie root without the removed value
      */
-    public TrieNode<V> remove(String[] pathSegments, String scheme, TargetType targetType) {
+    public @Nonnull TrieNode<V> remove(@Nonnull String[] pathSegments, @Nonnull String scheme) {
         validatePathSegments(pathSegments);
-        Objects.requireNonNull(scheme, "scheme must not be null");
-        Objects.requireNonNull(targetType, "targetType must not be null");
-        return remove(pathSegments, 0, scheme, targetType);
+        validateScheme(scheme);
+        return remove(pathSegments, 0, scheme);
     }
 
     /**
@@ -149,12 +159,12 @@ public final class TrieNode<V> {
      * @param prefixSegments prefix identifying the subtree root
      * @return new trie root without the removed subtree
      */
-    public TrieNode<V> removeSubtree(String[] prefixSegments) {
+    public @Nonnull TrieNode<V> removeSubtree(@Nonnull String[] prefixSegments) {
         validatePathSegments(prefixSegments);
         return removeSubtree(prefixSegments, 0);
     }
 
-    public TrieNode<V> child(String segment) {
+    public TrieNode<V> child(@Nonnull String segment) {
         return children.get(segment);
     }
 
@@ -166,100 +176,215 @@ public final class TrieNode<V> {
         if (!(obj instanceof TrieNode<?> other)) {
             return false;
         }
-        return Objects.equals(entries, other.entries) && Objects.equals(children, other.children);
+        return Arrays.equals(edge, other.edge)
+                && Objects.equals(children, other.children)
+                && Objects.equals(fileValue, other.fileValue)
+                && Objects.equals(overflowValues, other.overflowValues);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(children, entries);
+        return Objects.hash(Arrays.hashCode(edge), children, fileValue, overflowValues);
     }
 
     @Override
     public String toString() {
-        return "TrieNode[hasEntries=" + (entries != null) + ", children=" + children.keySet() + "]";
+        return "TrieNode[edge=" + Arrays.toString(edge) + ", hasValue=" + hasValue()
+                + ", children=" + children.keySet() + "]";
     }
 
-    private TrieNode<V> insert(String[] pathSegments, int depth, String scheme, TargetType targetType, V newValue) {
-        if (depth == pathSegments.length) {
-            return new TrieNode<>(children, EntryChain.upsert(entries, scheme, targetType, newValue));
+    private TrieNode<V> insert(String[] pathSegments, int depth, String scheme, V newValue) {
+        int matchLength = commonPrefixLength(pathSegments, depth);
+        if (matchLength < edge.length) {
+            return splitAndInsert(pathSegments, depth, scheme, newValue, matchLength);
         }
 
-        String segment = pathSegments[depth];
-        TrieNode<V> currentChild = children.get(segment);
-        TrieNode<V> baseChild = currentChild == null ? emptyNode() : currentChild;
-        TrieNode<V> updatedChild = baseChild.insert(pathSegments, depth + 1, scheme, targetType, newValue);
+        int nextDepth = depth + matchLength;
+        if (nextDepth == pathSegments.length) {
+            return withValue(scheme, newValue);
+        }
 
-        Map<String, TrieNode<V>> updatedChildren = new HashMap<>(children);
-        updatedChildren.put(segment, updatedChild);
-        return new TrieNode<>(Map.copyOf(updatedChildren), entries);
+        String nextSegment = pathSegments[nextDepth];
+        TrieNode<V> currentChild = children.get(nextSegment);
+        if (currentChild == null) {
+            return withUpdatedChild(nextSegment, leafNode(pathSegments, nextDepth, scheme, newValue));
+        }
+
+        TrieNode<V> updatedChild = currentChild.insert(pathSegments, nextDepth, scheme, newValue);
+        if (updatedChild == currentChild) {
+            return this;
+        }
+        return withUpdatedChild(nextSegment, updatedChild);
     }
 
-    private TrieNode<V> remove(String[] pathSegments, int depth, String scheme, TargetType targetType) {
-        if (depth == pathSegments.length) {
-            EntryChain<V> updatedEntries = EntryChain.remove(entries, scheme, targetType);
-            if (updatedEntries == entries) {
-                return this;
-            }
-            return compact(children, updatedEntries);
+    private TrieNode<V> remove(String[] pathSegments, int depth, String scheme) {
+        int matchLength = commonPrefixLength(pathSegments, depth);
+        if (matchLength < edge.length) {
+            return this;
         }
 
-        String segment = pathSegments[depth];
-        TrieNode<V> currentChild = children.get(segment);
+        int nextDepth = depth + matchLength;
+        if (nextDepth == pathSegments.length) {
+            return withoutValue(scheme);
+        }
+
+        String nextSegment = pathSegments[nextDepth];
+        TrieNode<V> currentChild = children.get(nextSegment);
         if (currentChild == null) {
             return this;
         }
 
-        TrieNode<V> updatedChild = currentChild.remove(pathSegments, depth + 1, scheme, targetType);
+        TrieNode<V> updatedChild = currentChild.remove(pathSegments, nextDepth, scheme);
         if (updatedChild == currentChild) {
             return this;
         }
-
-        Map<String, TrieNode<V>> updatedChildren = new HashMap<>(children);
-        if (updatedChild.isEmptyNode()) {
-            updatedChildren.remove(segment);
-        } else {
-            updatedChildren.put(segment, updatedChild);
-        }
-        return compact(updatedChildren, entries);
+        return withUpdatedChild(nextSegment, updatedChild);
     }
 
     private TrieNode<V> removeSubtree(String[] prefixSegments, int depth) {
-        if (depth == prefixSegments.length) {
+        int matchLength = commonPrefixLength(prefixSegments, depth);
+        if (matchLength < edge.length) {
+            return depth + matchLength == prefixSegments.length ? emptyNode() : this;
+        }
+
+        int nextDepth = depth + matchLength;
+        if (nextDepth == prefixSegments.length) {
             return emptyNode();
         }
 
-        String segment = prefixSegments[depth];
-        TrieNode<V> currentChild = children.get(segment);
+        String nextSegment = prefixSegments[nextDepth];
+        TrieNode<V> currentChild = children.get(nextSegment);
         if (currentChild == null) {
             return this;
         }
 
-        TrieNode<V> updatedChild = currentChild.removeSubtree(prefixSegments, depth + 1);
+        TrieNode<V> updatedChild = currentChild.removeSubtree(prefixSegments, nextDepth);
         if (updatedChild == currentChild) {
             return this;
         }
+        return withUpdatedChild(nextSegment, updatedChild);
+    }
 
+    private boolean isEmptyNode() {
+        return !hasValue() && children.isEmpty();
+    }
+
+    private boolean hasValue() {
+        return fileValue != null || overflowValues != null;
+    }
+
+    private Optional<V> lookupValue(String scheme) {
+        if (DEFAULT_SCHEME.equals(scheme)) {
+            return Optional.ofNullable(fileValue);
+        }
+        if (overflowValues == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(overflowValues.get(scheme));
+    }
+
+    private TrieNode<V> splitAndInsert(String[] pathSegments, int depth, String scheme, V newValue, int matchLength) {
+        String[] prefix = slice(edge, 0, matchLength);
+        TrieNode<V> existingChild = new TrieNode<>(slice(edge, matchLength, edge.length), children, fileValue,
+                overflowValues);
+
+        if (depth + matchLength == pathSegments.length) {
+            return compact(prefix, Map.of(existingChild.edge[0], existingChild), fileValueFor(scheme, newValue),
+                    overflowValuesFor(scheme, newValue));
+        }
+
+        TrieNode<V> newChild = leafNode(pathSegments, depth + matchLength, scheme, newValue);
+        Map<String, TrieNode<V>> splitChildren = new HashMap<>(2);
+        splitChildren.put(existingChild.edge[0], existingChild);
+        splitChildren.put(newChild.edge[0], newChild);
+        return compact(prefix, splitChildren, null, null);
+    }
+
+    private TrieNode<V> withValue(String scheme, V newValue) {
+        if (DEFAULT_SCHEME.equals(scheme)) {
+            if (Objects.equals(fileValue, newValue)) {
+                return this;
+            }
+            return new TrieNode<>(edge, children, newValue, overflowValues);
+        }
+
+        if (overflowValues != null && Objects.equals(overflowValues.get(scheme), newValue)) {
+            return this;
+        }
+        Map<String, V> updatedOverflow = overflowValues == null ? new HashMap<>() : new HashMap<>(overflowValues);
+        updatedOverflow.put(scheme, newValue);
+        return new TrieNode<>(edge, children, fileValue, Map.copyOf(updatedOverflow));
+    }
+
+    private TrieNode<V> withoutValue(String scheme) {
+        if (DEFAULT_SCHEME.equals(scheme)) {
+            if (fileValue == null) {
+                return this;
+            }
+            return compact(edge, children, null, overflowValues);
+        }
+
+        if (overflowValues == null || !overflowValues.containsKey(scheme)) {
+            return this;
+        }
+        Map<String, V> updatedOverflow = new HashMap<>(overflowValues);
+        updatedOverflow.remove(scheme);
+        return compact(edge, children, fileValue, updatedOverflow);
+    }
+
+    private TrieNode<V> withUpdatedChild(String segment, TrieNode<V> updatedChild) {
         Map<String, TrieNode<V>> updatedChildren = new HashMap<>(children);
         if (updatedChild.isEmptyNode()) {
             updatedChildren.remove(segment);
         } else {
             updatedChildren.put(segment, updatedChild);
         }
-        return compact(updatedChildren, entries);
+        return compact(edge, updatedChildren, fileValue, overflowValues);
     }
 
-    private boolean isEmptyNode() {
-        return entries == null && children.isEmpty();
+    private int commonPrefixLength(String[] pathSegments, int depth) {
+        int matchLength = 0;
+        while (matchLength < edge.length && depth + matchLength < pathSegments.length
+                && edge[matchLength].equals(pathSegments[depth + matchLength])) {
+            matchLength++;
+        }
+        return matchLength;
     }
 
-    private TrieNode<V> compact(Map<String, TrieNode<V>> candidateChildren, EntryChain<V> candidateEntries) {
-        if (candidateEntries == null && candidateChildren.isEmpty()) {
+    private static void validateScheme(String scheme) {
+        if (scheme == null) {
+            throw new NullPointerException("scheme must not be null");
+        }
+        if (scheme.isEmpty()) {
+            throw new IllegalArgumentException("scheme must not be empty");
+        }
+    }
+
+    private TrieNode<V> compact(String[] candidateEdge, Map<String, TrieNode<V>> candidateChildren,
+                                V candidateFileValue, Map<String, V> candidateOverflowValues) {
+        Map<String, TrieNode<V>> normalizedChildren = candidateChildren.isEmpty()
+                ? Map.of() : Map.copyOf(candidateChildren);
+        Map<String, V> normalizedOverflowValues = normalizeOverflowValues(candidateOverflowValues);
+
+        if (candidateFileValue == null && normalizedOverflowValues == null && normalizedChildren.isEmpty()) {
             return emptyNode();
         }
-        return new TrieNode<>(candidateChildren.isEmpty() ? Map.of() : Map.copyOf(candidateChildren), candidateEntries);
+
+        if (candidateEdge.length > 0 && candidateFileValue == null
+                && normalizedOverflowValues == null && normalizedChildren.size() == 1) {
+            TrieNode<V> onlyChild = normalizedChildren.values().iterator().next();
+            return new TrieNode<>(concat(candidateEdge, onlyChild.edge), onlyChild.children, onlyChild.fileValue,
+                    onlyChild.overflowValues);
+        }
+
+        return new TrieNode<>(candidateEdge.length == 0 ? EMPTY_EDGE : candidateEdge, normalizedChildren,
+                candidateFileValue, normalizedOverflowValues);
     }
 
     private static void validatePathSegments(String[] pathSegments) {
+        if (pathSegments == null) {
+            throw new NullPointerException("pathSegments must not be null");
+        }
         for (String segment : pathSegments) {
             if (segment == null) {
                 throw new NullPointerException("pathSegments must not contain null segments");
@@ -268,6 +393,36 @@ public final class TrieNode<V> {
                 throw new IllegalArgumentException("pathSegments must not contain empty segments");
             }
         }
+    }
+
+    private static <V> TrieNode<V> leafNode(String[] pathSegments, int start, String scheme, V value) {
+        return new TrieNode<>(slice(pathSegments, start, pathSegments.length), Map.of(), fileValueFor(scheme, value),
+                overflowValuesFor(scheme, value));
+    }
+
+    private static String[] slice(String[] source, int from, int to) {
+        return Arrays.copyOfRange(source, from, to);
+    }
+
+    private static String[] concat(String[] left, String[] right) {
+        String[] merged = Arrays.copyOf(left, left.length + right.length);
+        System.arraycopy(right, 0, merged, left.length, right.length);
+        return merged;
+    }
+
+    private static <V> V fileValueFor(String scheme, V value) {
+        return DEFAULT_SCHEME.equals(scheme) ? value : null;
+    }
+
+    private static <V> Map<String, V> overflowValuesFor(String scheme, V value) {
+        return DEFAULT_SCHEME.equals(scheme) ? null : Map.of(scheme, value);
+    }
+
+    private static <V> Map<String, V> normalizeOverflowValues(Map<String, V> candidateOverflowValues) {
+        if (candidateOverflowValues == null || candidateOverflowValues.isEmpty()) {
+            return null;
+        }
+        return Map.copyOf(candidateOverflowValues);
     }
 
     @SuppressWarnings("unchecked")
