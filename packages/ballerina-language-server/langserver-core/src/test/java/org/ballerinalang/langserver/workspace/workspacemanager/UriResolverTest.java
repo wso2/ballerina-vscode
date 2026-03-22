@@ -19,7 +19,10 @@
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
 import io.ballerina.projects.Document;
+import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
+import io.ballerina.projects.ModuleId;
+import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.TomlDocument;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
@@ -498,6 +501,120 @@ public class UriResolverTest {
 
         Assert.assertEquals(resolver.config(configUri), Optional.empty());
         Assert.assertSame(resolver.project(projectRootUri).orElseThrow(), updatedProject);
+    }
+
+    // ── Ancestor-resolution (project-entry derivation) ────────────────────────
+
+    /**
+     * Verifies that querying a document URI returns the cached project when only the project root is registered.
+     */
+    @Test
+    public void project_documentUriQueriedWithOnlyProjectRegistered_returnsAncestorProject() {
+        DocumentUri projectRoot = fileUri("/workspace/project");
+        DocumentUri documentUri = fileUri("/workspace/project/main.bal");
+
+        resolver.registerProject(projectRoot, mockProject);
+
+        Assert.assertEquals(resolver.project(documentUri), Optional.of(mockProject));
+    }
+
+    /**
+     * Verifies that querying a deep document URI returns the cached project when only the project root is registered.
+     */
+    @Test
+    public void project_deepDocumentUriQueriedWithOnlyProjectRegistered_returnsAncestorProject() {
+        DocumentUri projectRoot = fileUri("/workspace/project");
+        DocumentUri documentUri = fileUri("/workspace/project/modules/auth/auth.bal");
+
+        resolver.registerProject(projectRoot, mockProject);
+
+        Assert.assertEquals(resolver.project(documentUri), Optional.of(mockProject));
+    }
+
+    /**
+     * Verifies that project() derived from a sibling project root does not bleed into an unrelated path.
+     */
+    @Test
+    public void project_unrelatedPath_doesNotReturnSiblingProject() {
+        DocumentUri projectRoot = fileUri("/workspace/project-a");
+
+        resolver.registerProject(projectRoot, mockProject);
+
+        Assert.assertEquals(resolver.project(fileUri("/workspace/project-b/main.bal")), Optional.empty());
+    }
+
+    /**
+     * Verifies that querying a module URI returns a module derived from the ancestor project.
+     */
+    @Test
+    public void module_documentUriQueriedWithOnlyProjectRegistered_derivesModuleFromProject() {
+        DocumentUri projectRoot = fileUri("/workspace/project");
+        DocumentUri documentUri = fileUri("/workspace/project/main.bal");
+        Path filePath = Path.of("/workspace/project/main.bal").toAbsolutePath().normalize();
+
+        DocumentId docId = Mockito.mock(DocumentId.class);
+        ModuleId moduleId = Mockito.mock(ModuleId.class);
+        Package pkg = Mockito.mock(Package.class);
+        Mockito.when(docId.moduleId()).thenReturn(moduleId);
+        Mockito.when(mockProject.documentId(filePath)).thenReturn(docId);
+        Mockito.when(mockProject.currentPackage()).thenReturn(pkg);
+        Mockito.when(pkg.module(moduleId)).thenReturn(mockModule);
+
+        resolver.registerProject(projectRoot, mockProject);
+
+        Assert.assertEquals(resolver.module(documentUri), Optional.of(mockModule));
+    }
+
+    /**
+     * Verifies that querying a document URI derives the document from an ancestor project entry.
+     */
+    @Test
+    public void document_documentUriQueriedWithOnlyProjectRegistered_derivesDocumentFromProject() {
+        DocumentUri projectRoot = fileUri("/workspace/project");
+        DocumentUri documentUri = fileUri("/workspace/project/main.bal");
+        Path filePath = Path.of("/workspace/project/main.bal").toAbsolutePath().normalize();
+
+        DocumentId docId = Mockito.mock(DocumentId.class);
+        ModuleId moduleId = Mockito.mock(ModuleId.class);
+        Package pkg = Mockito.mock(Package.class);
+        Mockito.when(docId.moduleId()).thenReturn(moduleId);
+        Mockito.when(mockProject.documentId(filePath)).thenReturn(docId);
+        Mockito.when(mockProject.currentPackage()).thenReturn(pkg);
+        Mockito.when(pkg.module(moduleId)).thenReturn(mockModule);
+        Mockito.when(mockModule.document(docId)).thenReturn(mockDocument);
+
+        resolver.registerProject(projectRoot, mockProject);
+
+        Assert.assertEquals(resolver.document(documentUri), Optional.of(mockDocument));
+    }
+
+    /**
+     * Verifies that derivation returns empty when the project does not own the requested file path.
+     */
+    @Test
+    public void document_projectDoesNotOwnPath_returnsEmpty() {
+        DocumentUri projectRoot = fileUri("/workspace/project");
+        DocumentUri documentUri = fileUri("/workspace/project/main.bal");
+        Path filePath = Path.of("/workspace/project/main.bal").toAbsolutePath().normalize();
+
+        Mockito.when(mockProject.documentId(filePath)).thenThrow(new RuntimeException("not found"));
+
+        resolver.registerProject(projectRoot, mockProject);
+
+        Assert.assertEquals(resolver.document(documentUri), Optional.empty());
+    }
+
+    /**
+     * Verifies that a module entry ancestor allows project() to derive upward.
+     */
+    @Test
+    public void project_ancestorModuleEntry_derivesProjectFromModule() {
+        DocumentUri moduleUri = fileUri("/workspace/project/modules/auth");
+        DocumentUri documentUri = fileUri("/workspace/project/modules/auth/auth.bal");
+
+        resolver.register(moduleUri, new ResolvedEntry.ModuleEntry(mockModule));
+
+        Assert.assertEquals(resolver.project(documentUri), Optional.of(mockProject));
     }
 
     /**

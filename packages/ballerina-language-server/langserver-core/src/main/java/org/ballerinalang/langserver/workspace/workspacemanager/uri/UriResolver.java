@@ -23,6 +23,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.TomlDocument;
@@ -116,17 +117,30 @@ public final class UriResolver {
     /**
      * Resolves a cached document for the supplied scheme.
      *
+     * <p>If the exact URI is not cached but an ancestor project entry exists, the document
+     * is derived from the project using {@code project.documentId(filePath)}.</p>
+     *
      * @param uri the document URI
      * @param scheme the scheme to discriminate by
      * @return the cached document, or empty if unavailable
      */
     public @Nonnull Optional<Document> document(@Nonnull DocumentUri uri, @Nonnull String scheme) {
-        return resolve(uri, scheme).flatMap(entry -> switch (entry) {
-            case ResolvedEntry.DocumentEntry documentEntry -> Optional.of(documentEntry.document());
-            case ResolvedEntry.ProjectEntry ignored -> Optional.empty();
-            case ResolvedEntry.ModuleEntry ignored -> Optional.empty();
-            case ResolvedEntry.ConfigEntry ignored -> Optional.empty();
-        });
+        Optional<ResolvedEntry> exact = resolve(uri, scheme);
+        if (exact.isPresent()) {
+            return exact.flatMap(entry -> switch (entry) {
+                case ResolvedEntry.DocumentEntry documentEntry -> Optional.of(documentEntry.document());
+                case ResolvedEntry.ProjectEntry projectEntry ->
+                        deriveDocument(uri, projectEntry.project());
+                case ResolvedEntry.ModuleEntry ignored -> Optional.empty();
+                case ResolvedEntry.ConfigEntry ignored -> Optional.empty();
+            });
+        }
+        return resolveNearest(uri, scheme)
+                .flatMap(entry -> switch (entry) {
+                    case ResolvedEntry.ProjectEntry projectEntry ->
+                            deriveDocument(uri, projectEntry.project());
+                    default -> Optional.empty();
+                });
     }
 
     /**
@@ -140,19 +154,31 @@ public final class UriResolver {
     }
 
     /**
-     * Resolves a module for the supplied scheme, deriving upward from a cached document when possible.
+     * Resolves a module for the supplied scheme, deriving upward from a cached document or
+     * downward from an ancestor project when possible.
      *
      * @param uri the document URI
      * @param scheme the scheme to discriminate by
      * @return the cached or derived module, or empty if unavailable
      */
     public @Nonnull Optional<Module> module(@Nonnull DocumentUri uri, @Nonnull String scheme) {
-        return resolve(uri, scheme).flatMap(entry -> switch (entry) {
-            case ResolvedEntry.ModuleEntry moduleEntry -> Optional.of(moduleEntry.module());
-            case ResolvedEntry.DocumentEntry documentEntry -> Optional.of(documentEntry.document().module());
-            case ResolvedEntry.ProjectEntry ignored -> Optional.empty();
-            case ResolvedEntry.ConfigEntry ignored -> Optional.empty();
-        });
+        Optional<ResolvedEntry> exact = resolve(uri, scheme);
+        if (exact.isPresent()) {
+            return exact.flatMap(entry -> switch (entry) {
+                case ResolvedEntry.ModuleEntry moduleEntry -> Optional.of(moduleEntry.module());
+                case ResolvedEntry.DocumentEntry documentEntry ->
+                        Optional.of(documentEntry.document().module());
+                case ResolvedEntry.ProjectEntry projectEntry ->
+                        deriveModule(uri, projectEntry.project());
+                case ResolvedEntry.ConfigEntry ignored -> Optional.empty();
+            });
+        }
+        return resolveNearest(uri, scheme)
+                .flatMap(entry -> switch (entry) {
+                    case ResolvedEntry.ProjectEntry projectEntry ->
+                            deriveModule(uri, projectEntry.project());
+                    default -> Optional.empty();
+                });
     }
 
     /**
@@ -167,19 +193,31 @@ public final class UriResolver {
 
     /**
      * Resolves a project for the supplied scheme, deriving upward from cached module, document,
-     * or config entries when possible.
+     * or config entries, or from the nearest ancestor project entry when possible.
      *
      * @param uri the document URI
      * @param scheme the scheme to discriminate by
      * @return the cached or derived project, or empty if unavailable
      */
     public @Nonnull Optional<Project> project(@Nonnull DocumentUri uri, @Nonnull String scheme) {
-        return resolve(uri, scheme).flatMap(entry -> switch (entry) {
-            case ResolvedEntry.ProjectEntry projectEntry -> Optional.of(projectEntry.project());
-            case ResolvedEntry.ModuleEntry moduleEntry -> Optional.of(moduleEntry.module().project());
-            case ResolvedEntry.DocumentEntry documentEntry -> Optional.of(documentEntry.document().module().project());
-            case ResolvedEntry.ConfigEntry configEntry -> configEntry.project();
-        });
+        Optional<ResolvedEntry> exact = resolve(uri, scheme);
+        if (exact.isPresent()) {
+            return exact.flatMap(entry -> switch (entry) {
+                case ResolvedEntry.ProjectEntry projectEntry -> Optional.of(projectEntry.project());
+                case ResolvedEntry.ModuleEntry moduleEntry -> Optional.of(moduleEntry.module().project());
+                case ResolvedEntry.DocumentEntry documentEntry ->
+                        Optional.of(documentEntry.document().module().project());
+                case ResolvedEntry.ConfigEntry configEntry -> configEntry.project();
+            });
+        }
+        return resolveNearest(uri, scheme)
+                .flatMap(entry -> switch (entry) {
+                    case ResolvedEntry.ProjectEntry projectEntry ->
+                            Optional.of(projectEntry.project());
+                    case ResolvedEntry.ModuleEntry moduleEntry ->
+                            Optional.of(moduleEntry.module().project());
+                    default -> Optional.empty();
+                });
     }
 
     /**
@@ -436,6 +474,52 @@ public final class UriResolver {
                 .remove(toSegments(uri.uri()), scheme)
                 .insert(toSegments(updatedProject.sourceRoot()), scheme, new ResolvedEntry.ProjectEntry(updatedProject));
         root.set(updated);
+    }
+
+    /**
+     * Resolves the nearest ancestor entry for the given URI using {@code lookupNearest}.
+     *
+     * @param uri the document URI
+     * @param scheme the scheme discriminator
+     * @return the nearest ancestor entry, or empty if none found
+     */
+    private Optional<ResolvedEntry> resolveNearest(DocumentUri uri, String scheme) {
+        return root.get().lookupNearest(toSegments(uri.uri()), scheme);
+    }
+
+    /**
+     * Derives a document from a project using the URI's file path.
+     *
+     * @param uri the document URI
+     * @param project the project to derive the document from
+     * @return the derived document, or empty if the path does not belong to the project
+     */
+    private Optional<Document> deriveDocument(DocumentUri uri, Project project) {
+        try {
+            Path filePath = Path.of(uri.uri().getPath());
+            DocumentId docId = project.documentId(filePath);
+            Module module = project.currentPackage().module(docId.moduleId());
+            return Optional.of(module.document(docId));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Derives a module from a project using the URI's file path.
+     *
+     * @param uri the document URI
+     * @param project the project to derive the module from
+     * @return the derived module, or empty if the path does not belong to the project
+     */
+    private Optional<Module> deriveModule(DocumentUri uri, Project project) {
+        try {
+            Path filePath = Path.of(uri.uri().getPath());
+            DocumentId docId = project.documentId(filePath);
+            return Optional.of(project.currentPackage().module(docId.moduleId()));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     private Optional<Project> resolveProjectForConfig(TomlDocument config, String scheme, Path projectRootPath) {
