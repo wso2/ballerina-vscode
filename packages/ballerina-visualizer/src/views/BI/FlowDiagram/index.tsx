@@ -1244,7 +1244,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         closeSidePanelAndFetchUpdatedFlowModel();
     };
 
-    const handleOnSelectNode = async (nodeId: string, metadata?: any, fileName?: string) => {
+    const handleOnSelectNode = (nodeId: string, metadata?: any, fileName?: string) => {
         selectedNodeMetadata.current = { nodeId, metadata, fileName: model?.fileName || fileName };
         const { node, category } = metadata as { node: AvailableNode; category?: string };
 

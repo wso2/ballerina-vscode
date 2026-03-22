@@ -209,6 +209,8 @@ const MainPanel = () => {
     const [breakpointState, setBreakpointState] = useState<number>(0);
     const breakpointStateRef = useRef<number>(0);
     const navKeyRef = useRef<number>(0);
+    const remountKeyRef = useRef<number>(0);
+    const previousNavTargetRef = useRef<string | undefined>(undefined);
 
     const debounceFetchContext = useCallback(
         debounce(() => {
@@ -294,6 +296,13 @@ const MainPanel = () => {
             if (value.documentUri) {
                 defaultFunctionsFile = value.documentUri
             }
+            if (navKey !== navKeyRef.current) return;
+            const navTarget = `${value?.view ?? ''}-${value?.identifier ?? ''}-${value?.documentUri ?? ''}-${value?.projectPath ?? ''}`;
+            if (navTarget !== previousNavTargetRef.current) {
+                remountKeyRef.current += 1;
+                previousNavTargetRef.current = navTarget;
+            }
+            const remountKey = remountKeyRef.current;
             if (!value?.view) {
                 setViewComponent(<LoadingRing />);
             } else {
@@ -347,6 +356,7 @@ const MainPanel = () => {
                                 },
                             },
                         }).then((st) => {
+                            if (navKey !== navKeyRef.current) return;
                             setViewComponent(
                                 <DiagramWrapper
                                     key={value?.identifier}
@@ -359,6 +369,7 @@ const MainPanel = () => {
                             );
                         }).catch((error) => {
                             console.error("Error fetching ST:", error);
+                            if (navKey !== navKeyRef.current) return;
                             // Fallback to render without waiting
                             setViewComponent(
                                 <DiagramWrapper
@@ -377,7 +388,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.TypeDiagram:
                         setViewComponent(
                             <TypeDiagram
-                                key={navKey}
+                                key={remountKey}
                                 selectedTypeId={value?.identifier}
                                 addType={value?.addType}
                                 projectPath={value?.projectPath}
@@ -422,7 +433,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIDataMapperForm:
                         setViewComponent(
                             <FunctionForm
-                                key={navKey}
+                                key={remountKey}
                                 projectPath={value.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={value?.identifier}
@@ -443,6 +454,7 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.GraphQLDiagram:
                         const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
+                        if (navKey !== navKeyRef.current) return;
                         const project = projectStructure.projects.find(project => project.projectPath === value.projectPath);
                         const entryPoint = project
                             .directoryMap[DIRECTORY_MAP.SERVICE]
@@ -547,7 +559,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.AddConnectionWizard:
                         setViewComponent(
                             <AddConnectionPopup
-                                key={navKey}
+                                key={remountKey}
                                 projectPath={value.projectPath}
                                 fileName={value.documentUri || value.projectPath}
                                 onNavigateToOverview={handleNavigateToOverview}
@@ -557,7 +569,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.EditConnectionWizard:
                         setViewComponent(
                             <EditConnectionPopup
-                                key={navKey}
+                                key={remountKey}
                                 connectionName={value?.identifier}
                             />
                         );
@@ -584,7 +596,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BIFunctionForm:
                         setViewComponent(
                             <FunctionForm
-                                key={navKey}
+                                key={remountKey}
                                 projectPath={value.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={value?.identifier}
@@ -614,7 +626,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.ViewConfigVariables:
                         setViewComponent(
                             <ViewConfigurableVariables
-                                key={navKey}
+                                key={remountKey}
                                 projectPath={value?.projectPath}
                                 fileName={configFilePath}
                                 testsConfigTomlPath={testsConfigTomlPath}
@@ -625,7 +637,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.AddConfigVariables:
                         setViewComponent(
                             <ViewConfigurableVariables
-                                key={navKey}
+                                key={remountKey}
                                 projectPath={value?.projectPath}
                                 fileName={configFilePath}
                                 testsConfigTomlPath={testsConfigTomlPath}
