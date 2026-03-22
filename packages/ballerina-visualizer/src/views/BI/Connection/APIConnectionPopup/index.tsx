@@ -474,7 +474,7 @@ export function APIConnectionForm(props: APIConnectionFormProps) {
 
                 // If connector not found, retry after 2 second
                 if (!createdConnector) {
-                    console.warn(">>> Connector not found on first attempt, retrying after 1 second...");
+                    console.warn(">>> Connector not found on first attempt, retrying after 2 second...");
                     await new Promise(resolve => setTimeout(resolve, 2000));
                     createdConnector = await searchForConnector();
                 }
