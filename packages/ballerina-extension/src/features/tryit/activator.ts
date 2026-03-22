@@ -194,8 +194,9 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
                 agentServicesWithPorts.push({ service: agentService, port });
             }
 
-            const selectedPort: number = await getServicePort(projectPath, selectedService);
-            selectedService.port = selectedPort;
+            // Use the port already resolved in the loop above if the selected service is an agent
+            const existingEntry = agentServicesWithPorts.find(e => e.service === selectedService);
+            selectedService.port = existingEntry ? existingEntry.port : await getServicePort(projectPath, selectedService);
 
             await openChatView(selectedService, agentServicesWithPorts, wasServiceAlreadyRunning);
         }
@@ -397,7 +398,10 @@ async function getAvailableServices(projectDir: string): Promise<ServiceInfo[] |
                         .filter(Boolean)
                         .join(','),
                     port: attachedListeners
-                        .map(listenerId => response.designModel.listeners.find(l => l.uuid === listenerId)?.args.find(arg => arg.key === 'port')?.value)
+                        .map(listenerId => {
+                            const listener = response.designModel.listeners.find(l => l.uuid === listenerId);
+                            return listener?.args.find(arg => arg.key === 'port' || arg.key === 'listenOn')?.value;
+                        })
                         .filter(Boolean)
                         .join(','),
                 };
