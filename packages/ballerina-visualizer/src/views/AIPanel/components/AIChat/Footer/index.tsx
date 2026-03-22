@@ -32,12 +32,35 @@ export const FooterContainer = styled.footer({
     padding: "20px 20px 12px",
 });
 
-const SuggestedCommandsWrapper = styled.div({
-    marginTop: "16px",
-    marginBottom: "6px",
-    marginLeft: "2px",
-    color: "var(--vscode-descriptionForeground)",
-});
+const SuggestedCommandsWrapper = styled.div`
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 12px;
+`;
+
+const SuggestionChip = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+    background: var(--vscode-editor-background);
+    color: var(--vscode-descriptionForeground);
+    border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+
+    &:hover {
+        background: var(--vscode-list-hoverBackground);
+        border-color: var(--vscode-focusBorder, var(--vscode-widget-border));
+        color: var(--vscode-foreground);
+    }
+`;
 
 const bubbleAnimation = keyframes`
     0% {
@@ -104,18 +127,10 @@ const renderPrompt = (item: AIPanelPrompt, index: number, aiChatInputRef: React.
     }
 
     return (
-        <div key={index} style={{ marginBottom: "2px" }}>
-            <a
-                href="#"
-                style={{ textDecoration: "none", cursor: "pointer", outline: "none", boxShadow: "none" }}
-                onClick={(e) => {
-                    e.preventDefault();
-                    aiChatInputRef.current?.setInputContent(item);
-                }}
-            >
-                {text}
-            </a>
-        </div>
+        <SuggestionChip key={index} onClick={() => aiChatInputRef.current?.setInputContent(item)}>
+            <span className="codicon codicon-arrow-right" style={{ fontSize: "11px", opacity: 0.6 }} />
+            {text}
+        </SuggestionChip>
     );
 };
 
