@@ -114,6 +114,16 @@ export interface ExtendedAgentToolRequest extends AgentToolRequest {
     flowNode?: FlowNode;
 }
 
+// Reorder function categories: move "Imported Functions" to the end
+function reorderFunctionCategories(categories: PanelCategory[]): PanelCategory[] {
+    const importedIndex = categories.findIndex((cat) => cat.title?.includes("Imported"));
+    if (importedIndex !== -1) {
+        const [importedCategory] = categories.splice(importedIndex, 1);
+        categories.push(importedCategory);
+    }
+    return categories;
+}
+
 const INITIAL_FIELDS: FormField[] = [
     {
         key: `name`,
@@ -244,7 +254,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         // FUNCTION mode: skip getAvailableNodes entirely — connections are not needed
         if (mode === NewToolSelectionMode.FUNCTION) {
             const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
-            const categories = filteredFunctions || [];
+            const categories = reorderFunctionCategories(filteredFunctions || []);
             setCategories(categories);
             initialCategoriesRef.current = categories;
             setLoading(false);
@@ -291,7 +301,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             // ALL mode: also fetch functions — CONNECTION mode only needs connections
             if (mode !== NewToolSelectionMode.CONNECTION) {
                 const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
-                filteredCategories = convertedCategories.concat(filteredFunctions);
+                filteredCategories = convertedCategories.concat(reorderFunctionCategories(filteredFunctions));
             }
 
             setCategories(filteredCategories);
@@ -341,7 +351,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         }
 
         if (isSearching && searchText) {
-            setCategories(convertFunctionCategoriesToSidePanelCategories(filteredResponse, functionType));
+            setCategories(reorderFunctionCategories(convertFunctionCategoriesToSidePanelCategories(filteredResponse, functionType)));
             return;
         }
         if (!response || !filteredResponse) {
@@ -666,6 +676,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     title={"Functions"}
                     searchPlaceholder={searchPlaceholder}
                     panelBodySx={{ height: "calc(100vh - 140px)" }}
+                    alwaysCollapsedCategories={["Imported Functions"]}
                 />
             )}
             {sidePanelView === SidePanelView.TOOL_FORM && (

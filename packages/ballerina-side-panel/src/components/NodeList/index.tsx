@@ -359,6 +359,7 @@ interface NodeListProps {
     onRefreshDevantConnections?: () => void;
     searchText?: string;
     panelBodySx?: React.CSSProperties;
+    alwaysCollapsedCategories?: string[];
 }
 
 export function NodeList(props: NodeListProps) {
@@ -379,7 +380,8 @@ export function NodeList(props: NodeListProps) {
         onImportDevantConn,
         onLinkDevantProject,
         onRefreshDevantConnections,
-        panelBodySx
+        panelBodySx,
+        alwaysCollapsedCategories
     } = props;
 
     const [searchText, setSearchText] = useState<string>("");
@@ -414,6 +416,14 @@ export function NodeList(props: NodeListProps) {
             
             // Merge stored state with defaults, prioritizing stored state
             const mergedState = { ...defaultState, ...storedState };
+
+            // Force specified categories to always start collapsed
+            if (alwaysCollapsedCategories) {
+                alwaysCollapsedCategories.forEach((cat) => {
+                    mergedState[cat] = false;
+                });
+            }
+
             setExpandedCategoriesState(mergedState);
         }
     }, [categories]);
@@ -464,6 +474,11 @@ export function NodeList(props: NodeListProps) {
             [categoryTitle]: !expandedCategories[categoryTitle],
         };
         setExpandedCategoriesState(newExpandedState);
+
+        // Don't persist expanded state for always-collapsed categories
+        if (alwaysCollapsedCategories?.includes(categoryTitle)) {
+            return;
+        }
         setExpandedCategories(newExpandedState);
     };
 
