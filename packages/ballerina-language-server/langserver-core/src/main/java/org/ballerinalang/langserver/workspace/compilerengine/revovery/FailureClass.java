@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.compilerengine;
+package org.ballerinalang.langserver.workspace.compilerengine.revovery;
 
 /**
  * Classifies compilation failures per ADR-033.

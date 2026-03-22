@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.compilerengine;
+package org.ballerinalang.langserver.workspace.compilerengine.revovery;
 
 import io.ballerina.projects.PackageDescriptor;
 

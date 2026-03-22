@@ -16,13 +16,14 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.compilerengine;
+package org.ballerinalang.langserver.workspace.compilerengine.snapshot;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
+import org.ballerinalang.langserver.workspace.compilerengine.CompilationKey;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
@@ -117,7 +118,7 @@ public class DualSnapshotStore {
         }
     }
 
-    static final class StoreInProgressSnapshot implements InProgressSnapshot {
+    public static final class StoreInProgressSnapshot implements InProgressSnapshot {
 
         private final StableSnapshot fallbackStableSnapshot;
         private final ContentVersion contentVersion;
@@ -179,7 +180,7 @@ public class DualSnapshotStore {
             return fallbackStableSnapshot;
         }
 
-        CompletableFuture<StableSnapshot> publishedStableSnapshot() {
+        public CompletableFuture<StableSnapshot> publishedStableSnapshot() {
             return publishedStableSnapshot;
         }
 

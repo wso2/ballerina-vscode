@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.compilerengine;
+package org.ballerinalang.langserver.workspace.compilerengine.snapshot;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.projects.ModuleId;
