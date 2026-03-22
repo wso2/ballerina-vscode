@@ -19,7 +19,6 @@
 package org.ballerinalang.langserver.workspace.workspacemanager.project;
 
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
-import org.ballerinalang.langserver.workspace.workspacemanager.cache.OpenDocumentCount;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -30,10 +29,10 @@ import javax.annotation.Nonnull;
 
 /**
  * Aggregate root representing a single Ballerina project in the workspace.
- * Tracks the project's kind, health state, memory footprint, and active/background tier.
+ * Tracks the project's kind, health state, and active/background tier.
  *
  * <p>Health state transitions are governed by the FSM defined in ADR-014 and ADR-033.
- * Kind transitions are restricted per ADR-024. Lock ordering is documented in ADR-009.</p>
+ * Kind transitions are restricted per ADR-024.</p>
  *
  * <p>All state mutations (health transitions, kind transitions, source-change notification)
  * are serialised through a single {@code fsmLock}, preventing races between concurrent
@@ -46,9 +45,7 @@ public final class Project {
     private final DocumentUri sourceRoot;
     private final AtomicReference<ProjectKind> kind;
     private final AtomicReference<HealthState> healthState;
-    private final HeapEstimate heapEstimate;
     private final OpenDocumentCount openDocumentCount;
-    private final ProjectLock projectLock;
     private final ReentrantLock fsmLock = new ReentrantLock();
 
     /**
@@ -94,16 +91,13 @@ public final class Project {
      *
      * @param sourceRoot    the project source root URI
      * @param kind          initial project kind
-     * @param heapEstimate  initial heap-usage estimate
      * @throws NullPointerException if any argument is null
      */
-    public Project(@Nonnull DocumentUri sourceRoot, @Nonnull ProjectKind kind, @Nonnull HeapEstimate heapEstimate) {
+    public Project(@Nonnull DocumentUri sourceRoot, @Nonnull ProjectKind kind) {
         this.sourceRoot = sourceRoot;
         this.kind = new AtomicReference<>(kind);
         this.healthState = new AtomicReference<>(new HealthState(ProjectHealthState.HEALTHY, false));
-        this.heapEstimate = heapEstimate;
         this.openDocumentCount = new OpenDocumentCount();
-        this.projectLock = new ProjectLock();
     }
 
     // -------------------------------------------------------------------------
@@ -232,30 +226,12 @@ public final class Project {
     }
 
     /**
-     * Returns the heap estimate for this project.
-     *
-     * @return heap estimate
-     */
-    public HeapEstimate heapEstimate() {
-        return heapEstimate;
-    }
-
-    /**
      * Returns the open-document count tracker.
      *
      * @return open-document count
      */
     public OpenDocumentCount openDocumentCount() {
         return openDocumentCount;
-    }
-
-    /**
-     * Returns the per-project read/write lock (ADR-009).
-     *
-     * @return project lock
-     */
-    public ProjectLock projectLock() {
-        return projectLock;
     }
 
     // -------------------------------------------------------------------------

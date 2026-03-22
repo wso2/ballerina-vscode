@@ -18,8 +18,6 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager.project;
 
-import org.ballerinalang.langserver.workspace.workspacemanager.cache.OpenDocumentCount;
-
 /**
  * Classifies a project as active (has open documents) or background (no open documents).
  * Active projects are exempt from LRU eviction (ADR-013).

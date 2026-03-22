@@ -38,16 +38,11 @@ import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeAppl
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeLayer;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
-import org.ballerinalang.langserver.workspace.workspacemanager.cache.CacheInvalidationEvent;
-import org.ballerinalang.langserver.workspace.workspacemanager.cache.CacheInvalidationListener;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.EvictionReason;
-import org.ballerinalang.langserver.workspace.workspacemanager.project.HeapEstimate;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectHealthState;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
-import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectRegistry;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectTier;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.ResolvedEntry;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.UriResolver;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
@@ -58,16 +53,12 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -79,33 +70,24 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <p>Implements {@link ProjectService} and coordinates:
  * <ul>
- *   <li>Project lifecycle via {@link ProjectRegistry}</li>
- *   <li>Ballerina project caching via internal {@link ConcurrentHashMap}</li>
+ *   <li>Compiler project caching via {@link UriResolver}</li>
+ *   <li>Workspace-only lifecycle metadata via internal state maps</li>
  *   <li>URI resolution via {@link UriResolver} (lock-free trie cache per ADR-048)</li>
  *   <li>Heap pressure monitoring via {@link HeapPressureLevel} event subscriptions</li>
  *   <li>Domain event publishing and subscription via {@link EventSyncPubSubHolder}</li>
  * </ul>
  * </p>
  *
- * <p>Wiring order is critical (ADR-009):
- * <ol>
- *   <li>Register self as ProjectRegistry listener for eviction/batch events</li>
- *   <li>Subscribe to incoming domain events</li>
- *   <li>Subscribe to RM-E1 heap pressure events</li>
- * </ol>
- * </p>
- *
  * @since 1.7.0
  */
-public final class ProjectServiceImpl implements ProjectService, CacheInvalidationListener {
+public final class ProjectServiceImpl implements ProjectService {
 
     private static final long DEFAULT_DEBOUNCE_MS = 150L;
-    private static final int DEFAULT_HEAP_MB = 64;
+    private static final int DEFAULT_MAX_PROJECTS = 32;
     private static final String BALLERINA_TOML = "Ballerina.toml";
     private static final String DEPENDENCIES_TOML = "Dependencies.toml";
     private static final Set<String> BUFFERED_TOML_FILES = Set.of(BALLERINA_TOML, DEPENDENCIES_TOML, "Cloud.toml");
 
-    private final ProjectRegistry registry;
     private final UriResolver uriResolver;
     private final EventSyncPubSubHolder eventBus;
     private final ProjectLoader loader;
@@ -113,7 +95,8 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     private final ChangeApplier changeApplier;
     private final ScheduledExecutorService applyScheduler;
     private final long debounceMs;
-    private final ConcurrentHashMap<DocumentUri, Project> ballerinaProjects;
+    private final ConcurrentHashMap<DocumentUri,
+            org.ballerinalang.langserver.workspace.workspacemanager.project.Project> workspaceProjects;
     /** Per-URI monotonically increasing version counter for EDITOR-layer buffered changes. */
     private final ConcurrentHashMap<DocumentUri, AtomicInteger> versionCounters;
     private final ConcurrentHashMap<Path, AtomicInteger> dependenciesSelfWriteTokens;
@@ -123,39 +106,35 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     /**
      * Constructs a project service with full wiring of dependencies.
      *
-     * <p>Critical wiring order per ADR-009:
-     * <ol>
-     *   <li>Wire self as registry listener</li>
-     *   <li>Subscribe to domain events</li>
-     *   <li>Subscribe to RM-E1 heap pressure events</li>
-     * </ol>
-     * </p>
-     *
-     * @param registry project registry; must not be null
-     * @param uriResolver URI resolver for lock-free path resolution; must not be null
      * @param eventBus event bus; must not be null
      * @param loader Ballerina project loader; must not be null
      * @param changeBuffer per-URI, per-layer change buffer; must not be null
      * @throws NullPointerException if any argument is null
      */
-    public ProjectServiceImpl(@Nonnull ProjectRegistry registry, @Nonnull UriResolver uriResolver,
-                              @Nonnull EventSyncPubSubHolder eventBus, @Nonnull ProjectLoader loader,
+    public ProjectServiceImpl(@Nonnull EventSyncPubSubHolder eventBus, @Nonnull ProjectLoader loader,
                               @Nonnull ChangeBuffer changeBuffer) {
-        this(registry, uriResolver, eventBus, loader, changeBuffer,
-                new ChangeApplier(changeBuffer, uriResolver),
-                Executors.newSingleThreadScheduledExecutor(runnable -> {
-                    Thread thread = new Thread(runnable, "wm-change-apply-scheduler");
-                    thread.setDaemon(true);
-                    return thread;
-                }),
-                DEFAULT_DEBOUNCE_MS);
+        this.eventBus = eventBus;
+        this.loader = loader;
+        this.changeBuffer = changeBuffer;
+        this.applyScheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "wm-change-apply-scheduler");
+            thread.setDaemon(true);
+            return thread;
+        });
+        this.debounceMs = DEFAULT_DEBOUNCE_MS;
+        this.workspaceProjects = new ConcurrentHashMap<>();
+        this.versionCounters = new ConcurrentHashMap<>();
+        this.dependenciesSelfWriteTokens = new ConcurrentHashMap<>();
+        this.observedCompilerSignals = new ConcurrentHashMap<>();
+        this.pendingApplies = new ConcurrentHashMap<>();
+        this.uriResolver = new UriResolver(DEFAULT_MAX_PROJECTS, this::onImplicitProjectEviction);
+        this.changeApplier = new ChangeApplier(changeBuffer, this.uriResolver);
+        subscribeToEvents();
     }
 
     /**
      * Constructs a project service with injectable change-apply scheduling collaborators.
      *
-     * @param registry project registry
-     * @param uriResolver URI resolver
      * @param eventBus event bus
      * @param loader project loader
      * @param changeBuffer change buffer
@@ -163,41 +142,22 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * @param applyScheduler debounce scheduler
      * @param debounceMs debounce window in milliseconds
      */
-    public ProjectServiceImpl(@Nonnull ProjectRegistry registry, @Nonnull UriResolver uriResolver,
-                              @Nonnull EventSyncPubSubHolder eventBus, @Nonnull ProjectLoader loader,
+    public ProjectServiceImpl(@Nonnull EventSyncPubSubHolder eventBus, @Nonnull ProjectLoader loader,
                               @Nonnull ChangeBuffer changeBuffer, @Nonnull ChangeApplier changeApplier,
                               @Nonnull ScheduledExecutorService applyScheduler, long debounceMs) {
-        this.registry = registry;
-        this.uriResolver = uriResolver;
         this.eventBus = eventBus;
         this.loader = loader;
         this.changeBuffer = changeBuffer;
-        this.changeApplier = changeApplier;
         this.applyScheduler = applyScheduler;
         this.debounceMs = debounceMs;
-        this.ballerinaProjects = new ConcurrentHashMap<>();
+        this.workspaceProjects = new ConcurrentHashMap<>();
         this.versionCounters = new ConcurrentHashMap<>();
         this.dependenciesSelfWriteTokens = new ConcurrentHashMap<>();
         this.observedCompilerSignals = new ConcurrentHashMap<>();
         this.pendingApplies = new ConcurrentHashMap<>();
-
-        // 1. Wire self as registry listener for eviction and batch events
-        registry.addListener(this);
-
-        // 2. Subscribe to incoming domain events
-        eventBus.subscribe("wm-compilation-failed", SubscriberTier.CRITICAL,
-                Set.of(EventKind.COMPILER_COMPILATION_FAILED), this::onCompilationFailed);
-        eventBus.subscribe("wm-diagnostics-ready", SubscriberTier.CRITICAL,
-                Set.of(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY), this::onDiagnosticsReady);
-        eventBus.subscribe("wm-resolution-diagnostics-ready", SubscriberTier.CRITICAL,
-                Set.of(EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY), this::onResolutionDiagnosticsReady);
-        eventBus.subscribe("wm-resolution-recovered", SubscriberTier.CRITICAL,
-                Set.of(EventKind.CE_RESOLUTION_RECOVERED), this::onResolutionRecovered);
-        eventBus.subscribe("wm-resolution-exhausted", SubscriberTier.CRITICAL,
-                Set.of(EventKind.CE_RESOLUTION_EXHAUSTED), this::onResolutionExhausted);
-        eventBus.subscribe("rm-heap-pressure", SubscriberTier.CRITICAL,
-                Set.of(EventKind.RM_E1_HEAP_PRESSURE_DETECTED), this::onHeapPressureDetected);
-
+        this.uriResolver = new UriResolver(DEFAULT_MAX_PROJECTS, this::onImplicitProjectEviction);
+        this.changeApplier = changeApplier;
+        subscribeToEvents();
     }
 
     // =========================================================================
@@ -207,35 +167,22 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     @Override
     public Project loadOrCreate(@Nonnull Path path, CancelChecker cancelChecker) {
         Path normalized = path.toAbsolutePath().normalize();
-
-        // Fast path: check if already cached in UriResolver
-        DocumentUri docUri = toFileUri(normalized);
-        Optional<Project> cached = uriResolver.project(docUri);
+        DocumentUri root = resolveSourceRoot(normalized);
+        Optional<Project> cached = uriResolver.getProject(root);
         if (cached.isPresent()) {
             return cached.get();
         }
 
-        // Slow path: resolve root, get-or-create WM project (ADR-019 mandate 2)
-        DocumentUri root = resolveSourceRoot(normalized);
+        org.ballerinalang.langserver.workspace.workspacemanager.project.Project wmProject =
+                workspaceProjects.computeIfAbsent(root,
+                        ignored -> new org.ballerinalang.langserver.workspace.workspacemanager.project.Project(
+                                root, detectKind(root)));
         try {
-            org.ballerinalang.langserver.workspace.workspacemanager.project.Project wmProject =
-                    registry.computeIfAbsent(root,
-                            () -> new org.ballerinalang.langserver.workspace.workspacemanager.project.Project(
-                                    root, detectKind(root), HeapEstimate.ofMb(DEFAULT_HEAP_MB)));
-
-            // Load Ballerina project; publish event only on first creation
-            Project bp = loader.load(root, wmProject.kind());
-            Project prev = ballerinaProjects.putIfAbsent(root, bp);
-
-            if (prev == null) {
-                // First time: publish registration event
-                publishWm(EventKind.WORKSPACE_PROJECT_REGISTERED, root);
-            }
-
-            // Register in UriResolver for fast-path resolution
-            uriResolver.register(docUri, new ResolvedEntry.ProjectEntry(prev != null ? prev : bp));
-            return prev != null ? prev : bp;
-        } catch (ExecutionException e) {
+            Project loaded = loader.load(toFileUri(normalized), wmProject.kind());
+            uriResolver.registerProject(root, loaded);
+            publishWm(EventKind.WORKSPACE_PROJECT_REGISTERED, root);
+            return loaded;
+        } catch (Exception e) {
             throw new RuntimeException("Failed to load project for " + root, e);
         }
     }
@@ -263,7 +210,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
 
     @Override
     public Collection<Project> allProjects() {
-        return ballerinaProjects.values();
+        return uriResolver.allProjects();
     }
 
     @Override
@@ -287,70 +234,27 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         if (workspaceFolders.isEmpty()) {
             return; // No-op for empty list
         }
-
-        // Scan all workspace folders and collect projects to register
-        Map<DocumentUri, org.ballerinalang.langserver.workspace.workspacemanager.project.Project> toRegister =
-                new HashMap<>();
+        boolean registeredAny = false;
 
         for (Path folder : workspaceFolders) {
             Path normalized = folder.toAbsolutePath().normalize();
-
-            // Resolve the source root and detect kind
             DocumentUri root = resolveSourceRoot(normalized);
-            ProjectKind kind = detectKind(root);
-
-            // Check if already registered
-            if (ballerinaProjects.containsKey(root)) {
-                continue; // Skip already-registered projects
+            if (uriResolver.getProject(root).isPresent()) {
+                continue;
             }
-
-            // Load Ballerina project
             try {
-                Project bp = loader.load(root, kind);
-                ballerinaProjects.putIfAbsent(root, bp);
-
-                // Collect for batch registration in registry
-                toRegister.putIfAbsent(root,
-                        new org.ballerinalang.langserver.workspace.workspacemanager.project.Project(
-                                root, kind, HeapEstimate.ofMb(DEFAULT_HEAP_MB)));
-
-                // Register in UriResolver for fast-path resolution
-                DocumentUri docUri = toFileUri(normalized);
-                uriResolver.register(docUri, new ResolvedEntry.ProjectEntry(bp));
+                org.ballerinalang.langserver.workspace.workspacemanager.project.Project wmProject =
+                        workspaceProjects.computeIfAbsent(root,
+                                ignored -> new org.ballerinalang.langserver.workspace.workspacemanager.project.Project(
+                                        root, detectKind(root)));
+                uriResolver.registerProject(root, loader.load(root, wmProject.kind()));
+                registeredAny = true;
             } catch (Exception e) {
-                // Log and continue with next folder
                 System.err.println("Warning: Failed to register workspace project at " + root + ": " + e);
             }
         }
-
-        // Batch-register all collected projects in the registry
-        // This triggers BATCH_UPDATE → onCacheInvalidation → publishWmNoRoot(WM-E6)
-        if (!toRegister.isEmpty()) {
-            registry.putAll(toRegister);
-        }
-    }
-
-    // =========================================================================
-    // CacheInvalidationListener Implementation
-    // =========================================================================
-
-    @Override
-    public void onCacheInvalidation(@Nonnull CacheInvalidationEvent event) {
-        switch (event.type()) {
-            case PROJECT_REMOVED -> {
-                if (event.affectedRoot() != null) {
-                    ballerinaProjects.remove(event.affectedRoot());
-                    uriResolver.evictSubtree(event.affectedRoot());
-                    purgeEntriesForRoot(event.affectedRoot());
-                    EvictionReason reason = event.evictionReason() != null
-                            ? event.evictionReason() : EvictionReason.DOCUMENT_CLOSED;
-                    eventBus.publish(new ProjectEvictedEvent(event.affectedRoot().uri(), reason));
-                }
-            }
-            case BATCH_UPDATE -> eventBus.publish(new BatchEvent());
-            case PROJECT_ADDED -> {
-                // UriResolver updates happen during loadOrCreate; no action needed here
-            }
+        if (registeredAny) {
+            eventBus.publish(new BatchEvent());
         }
     }
 
@@ -363,13 +267,14 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             return;
         }
         DocumentUri root = new DocumentUri.FileUri(ce.sourceRoot());
-        registry.get(root).ifPresent(project -> {
+        workspaceProjects.computeIfPresent(root, (key, project) -> {
             try {
                 project.transitionTo(ProjectHealthState.COMPILATION_CRASHED);
                 publishWm(EventKind.WORKSPACE_PROJECT_HEALTH_STATE_CHANGED, project.sourceRoot());
-            } catch (IllegalStateException ignored) {
+            } catch (IllegalStateException stateError) {
                 // Already in that state or invalid arc — skip (ADR-033)
             }
+            return project;
         });
     }
 
@@ -379,15 +284,16 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         }
         DocumentUri root = new DocumentUri.FileUri(ce.sourceRoot());
         recordCompilerSignal(root, event.eventKind());
-        registry.get(root).ifPresent(project -> {
+        workspaceProjects.computeIfPresent(root, (key, project) -> {
             if (project.healthState() == ProjectHealthState.RECOVERING) {
                 try {
                     project.transitionTo(ProjectHealthState.HEALTHY);
                     publishWm(EventKind.WORKSPACE_PROJECT_HEALTH_STATE_CHANGED, project.sourceRoot());
-                } catch (IllegalStateException ignored) {
+                } catch (IllegalStateException stateError) {
                     // Invalid state transition — skip (ADR-033)
                 }
             }
+            return project;
         });
     }
 
@@ -404,7 +310,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         }
         DocumentUri root = new DocumentUri.FileUri(ce.sourceRoot());
         recordCompilerSignal(root, event.eventKind());
-        registry.get(root).ifPresent(project -> transitionProject(project, ProjectHealthState.RECOVERING));
+        workspaceProject(root).ifPresent(project -> transitionProject(project, ProjectHealthState.RECOVERING));
     }
 
     private void onResolutionExhausted(DomainEvent event) {
@@ -413,7 +319,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         }
         DocumentUri root = new DocumentUri.FileUri(ce.sourceRoot());
         recordCompilerSignal(root, event.eventKind());
-        registry.get(root).ifPresent(project -> transitionProject(project, ProjectHealthState.CIRCUIT_OPEN));
+        workspaceProject(root).ifPresent(project -> transitionProject(project, ProjectHealthState.CIRCUIT_OPEN));
     }
 
     private void onHeapPressureDetected(DomainEvent event) {
@@ -421,12 +327,17 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             return;
         }
         switch (hpe.pressureLevel()) {
-            case WARNING, CRITICAL, EMERGENCY -> registry.evictBackgroundProjects();
+            case WARNING, CRITICAL, EMERGENCY -> workspaceProjects.forEach((root, project) -> {
+                if (project.openDocumentCount().tier() == ProjectTier.BACKGROUND
+                        && uriResolver.getProject(root).isPresent()) {
+                    evictProject(root, EvictionReason.HEAP_PRESSURE);
+                }
+            });
             case NORMAL -> { }
         }
     }
 
-    boolean hasObservedCompilerSignal(@Nonnull DocumentUri root, @Nonnull EventKind signal) {
+    public boolean hasObservedCompilerSignal(@Nonnull DocumentUri root, @Nonnull EventKind signal) {
         return observedCompilerSignals.getOrDefault(root, Collections.emptySet()).contains(signal);
     }
 
@@ -442,7 +353,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * @throws IllegalStateException if the kind transition is invalid
      */
     public void transitionKind(@Nonnull DocumentUri root, @Nonnull ProjectKind target) {
-        registry.get(root).ifPresent(project -> {
+        workspaceProject(root).ifPresent(project -> {
             project.transitionKind(target);
             eventBus.publish(new ProjectKindTransitionedEvent(root.uri(), target));
         });
@@ -457,11 +368,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     public void evictProject(Path filePath) {
         Path normalized = filePath.toAbsolutePath().normalize();
         try {
-            DocumentUri docUri = toFileUri(normalized);
-            DocumentUri root = uriResolver.project(docUri)
-                    .map(this::findSourceRoot)
-                    .orElseGet(() -> resolveSourceRoot(normalized));
-            registry.remove(root);
+            evictProject(resolveSourceRoot(normalized), EvictionReason.DOCUMENT_CLOSED);
         } catch (Exception ignored) {
             // Path not resolvable — no-op.
         }
@@ -485,8 +392,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             DocumentId docId = project.documentId(normalized);
             Document document = project.currentPackage().module(docId.moduleId()).document(docId);
             Project updated = document.module().modify().removeDocument(docId).apply().project();
-            // Update the resolver with the new project
-            uriResolver.register(docUri, new ResolvedEntry.ProjectEntry(updated));
+            uriResolver.registerProject(resolveSourceRoot(normalized), updated);
         } catch (Exception ignored) {
             // Document may not be in project or project not loaded — skip.
         }
@@ -510,8 +416,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             Document document = module.document(docId);
             // Ballerina project API is immutable: apply() returns a new Document in a new Project.
             Document updated = document.modify().withContent(content).apply();
-            DocumentUri root = resolveSourceRoot(normalized);
-            ballerinaProjects.put(root, updated.module().project());
+            uriResolver.registerProject(resolveSourceRoot(normalized), updated.module().project());
         } catch (Exception ignored) {
             // File not yet in project or project not supporting this op — skip.
         }
@@ -598,12 +503,40 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     /**
+     * Returns the resolver-backed compiler project cache.
+     *
+     * @return URI resolver instance
+     */
+    public @Nonnull UriResolver uriResolver() {
+        return uriResolver;
+    }
+
+    /**
+     * Returns the change applier bound to this service's resolver.
+     *
+     * @return change applier
+     */
+    public @Nonnull ChangeApplier changeApplier() {
+        return changeApplier;
+    }
+
+    /**
+     * Returns workspace lifecycle metadata for the given source root.
+     *
+     * @param root source root URI
+     * @return workspace project metadata, if present
+     */
+    public @Nonnull Optional<org.ballerinalang.langserver.workspace.workspacemanager.project.Project> workspaceProject(
+            @Nonnull DocumentUri root) {
+        return Optional.ofNullable(workspaceProjects.get(root));
+    }
+
+    /**
      * Shuts down the service and releases resources.
      */
     public void shutdown() {
         pendingApplies.values().forEach(future -> future.cancel(false));
         applyScheduler.shutdownNow();
-        registry.shutdown();
     }
 
     // =========================================================================
@@ -758,7 +691,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     private void recordCompilerSignal(DocumentUri root, EventKind signal) {
-        if (registry.get(root).isEmpty()) {
+        if (!workspaceProjects.containsKey(root)) {
             return;
         }
         observedCompilerSignals.computeIfAbsent(root, ignored -> ConcurrentHashMap.newKeySet()).add(signal);
@@ -777,7 +710,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     private void incrementOpenDocumentCount(DocumentUri uri) {
-        resolveDebounceRoot(uri).flatMap(registry::get).ifPresent(project -> {
+        resolveDebounceRoot(uri).flatMap(this::workspaceProject).ifPresent(project -> {
             ProjectTier before = project.openDocumentCount().tier();
             project.openDocumentCount().increment();
             ProjectTier after = project.openDocumentCount().tier();
@@ -788,7 +721,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     private void decrementOpenDocumentCount(DocumentUri uri) {
-        resolveDebounceRoot(uri).flatMap(registry::get).ifPresent(project -> {
+        resolveDebounceRoot(uri).flatMap(this::workspaceProject).ifPresent(project -> {
             ProjectTier before = project.openDocumentCount().tier();
             project.openDocumentCount().decrement();
             ProjectTier after = project.openDocumentCount().tier();
@@ -830,10 +763,7 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         try {
             Optional<Project> project = uriResolver.project(uri);
             if (project.isPresent()) {
-                DocumentUri root = findSourceRoot(project.get());
-                if (root != null) {
-                    return Optional.of(root);
-                }
+                return Optional.of(sourceRootLike(uri, project.get().sourceRoot()));
             }
         } catch (Exception ignored) {
             // Fall back to path-based root resolution below.
@@ -873,23 +803,6 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     }
 
     /**
-     * Finds the DocumentUri (source root) for a Ballerina project by searching in ballerinaProjects.
-     * This is used when we have a Project but need to find its corresponding source root URI.
-     *
-     * @param project the Ballerina project
-     * @return the source root URI if found, or null if not found
-     */
-    @Nullable
-    private DocumentUri findSourceRoot(Project project) {
-        for (Map.Entry<DocumentUri, Project> entry : ballerinaProjects.entrySet()) {
-            if (entry.getValue() == project) {
-                return entry.getKey();
-            }
-        }
-        return null;
-    }
-
-    /**
      * Removes all secondary map entries associated with the given source root.
      *
      * <p>Cleans up per-document entries ({@code versionCounters}, {@code changeBuffer}) whose
@@ -912,5 +825,36 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         Path rootDir = Path.of(root.uri()).toAbsolutePath().normalize();
         dependenciesSelfWriteTokens.keySet().removeIf(path ->
                 path.toAbsolutePath().normalize().startsWith(rootDir));
+    }
+
+    private void subscribeToEvents() {
+        eventBus.subscribe("wm-compilation-failed", SubscriberTier.CRITICAL,
+                Set.of(EventKind.COMPILER_COMPILATION_FAILED), this::onCompilationFailed);
+        eventBus.subscribe("wm-diagnostics-ready", SubscriberTier.CRITICAL,
+                Set.of(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY), this::onDiagnosticsReady);
+        eventBus.subscribe("wm-resolution-diagnostics-ready", SubscriberTier.CRITICAL,
+                Set.of(EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY), this::onResolutionDiagnosticsReady);
+        eventBus.subscribe("wm-resolution-recovered", SubscriberTier.CRITICAL,
+                Set.of(EventKind.CE_RESOLUTION_RECOVERED), this::onResolutionRecovered);
+        eventBus.subscribe("wm-resolution-exhausted", SubscriberTier.CRITICAL,
+                Set.of(EventKind.CE_RESOLUTION_EXHAUSTED), this::onResolutionExhausted);
+        eventBus.subscribe("rm-heap-pressure", SubscriberTier.CRITICAL,
+                Set.of(EventKind.RM_E1_HEAP_PRESSURE_DETECTED), this::onHeapPressureDetected);
+    }
+
+    private void evictProject(@Nonnull DocumentUri root, @Nonnull EvictionReason reason) {
+        if (uriResolver.getProject(root).isEmpty()) {
+            return;
+        }
+        uriResolver.removeProject(root);
+        workspaceProjects.remove(root);
+        purgeEntriesForRoot(root);
+        eventBus.publish(new ProjectEvictedEvent(root.uri(), reason));
+    }
+
+    private void onImplicitProjectEviction(@Nonnull DocumentUri root) {
+        workspaceProjects.remove(root);
+        purgeEntriesForRoot(root);
+        eventBus.publish(new ProjectEvictedEvent(root.uri(), EvictionReason.LRU_EVICTION));
     }
 }

@@ -18,6 +18,10 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager.uri;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalCause;
+import com.google.common.cache.RemovalNotification;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
@@ -29,8 +33,11 @@ import javax.annotation.Nonnull;
 import java.net.URI;
 import java.nio.file.Path;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 /**
  * Lock-free URI resolution cache backed by an immutable persistent trie.
@@ -47,6 +54,33 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class UriResolver {
 
     private final AtomicReference<TrieNode<ResolvedEntry>> root = new AtomicReference<>(new TrieNode<>());
+    private final Cache<DocumentUri, ResolvedEntry> projectIndex;
+    private final Consumer<DocumentUri> onEviction;
+
+    /**
+     * Creates an unbounded resolver with no implicit-eviction callback.
+     */
+    public UriResolver() {
+        this.projectIndex = CacheBuilder.newBuilder()
+                .recordStats()
+                .build();
+        this.onEviction = ignored -> { };
+    }
+
+    /**
+     * Creates a resolver with a bounded project index and an implicit-eviction callback.
+     *
+     * @param maxProjects maximum number of indexed projects
+     * @param onEviction callback invoked for implicit evictions only
+     */
+    public UriResolver(int maxProjects, @Nonnull Consumer<DocumentUri> onEviction) {
+        this.projectIndex = CacheBuilder.newBuilder()
+                .maximumSize(maxProjects)
+                .recordStats()
+                .removalListener(this::onProjectIndexRemoval)
+                .build();
+        this.onEviction = onEviction;
+    }
 
     /**
      * Resolves the given URI using the URI's own scheme.
@@ -146,6 +180,69 @@ public final class UriResolver {
             case ResolvedEntry.DocumentEntry documentEntry -> Optional.of(documentEntry.document().module().project());
             case ResolvedEntry.ConfigEntry configEntry -> configEntry.project();
         });
+    }
+
+    /**
+     * Registers a project under its source root in both the trie and the bounded project index.
+     *
+     * @param rootUri the source root URI
+     * @param project the compiler project
+     */
+    public void registerProject(@Nonnull DocumentUri rootUri, @Nonnull Project project) {
+        ResolvedEntry.ProjectEntry entry = new ResolvedEntry.ProjectEntry(project);
+        projectIndex.put(rootUri, entry);
+        register(rootUri, entry);
+    }
+
+    /**
+     * Removes a project from the project index. Trie cleanup is performed by the removal listener.
+     *
+     * @param rootUri the source root URI
+     */
+    public void removeProject(@Nonnull DocumentUri rootUri) {
+        if (projectIndex.getIfPresent(rootUri) == null) {
+            evictSubtree(rootUri);
+            return;
+        }
+        projectIndex.invalidate(rootUri);
+    }
+
+    /**
+     * Returns the indexed project for the given source root.
+     *
+     * @param rootUri the source root URI
+     * @return the indexed project, if present
+     */
+    public @Nonnull Optional<Project> getProject(@Nonnull DocumentUri rootUri) {
+        ResolvedEntry entry = projectIndex.getIfPresent(rootUri);
+        if (entry instanceof ResolvedEntry.ProjectEntry projectEntry) {
+            return Optional.of(projectEntry.project());
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Returns all currently indexed projects.
+     *
+     * @return indexed projects
+     */
+    public @Nonnull Collection<Project> allProjects() {
+        Collection<Project> projects = new ArrayList<>();
+        for (ResolvedEntry entry : projectIndex.asMap().values()) {
+            if (entry instanceof ResolvedEntry.ProjectEntry projectEntry) {
+                projects.add(projectEntry.project());
+            }
+        }
+        return projects;
+    }
+
+    /**
+     * Returns the number of indexed projects.
+     *
+     * @return indexed project count
+     */
+    public long projectCount() {
+        return projectIndex.size();
     }
 
     /**
@@ -280,7 +377,7 @@ public final class UriResolver {
      */
     public void onProjectCreate(@Nonnull DocumentUri projectRootUri, @Nonnull String scheme,
                                 @Nonnull Project project) {
-        root.set(root.get().insert(toSegments(projectRootUri.uri()), scheme, new ResolvedEntry.ProjectEntry(project)));
+        registerProject(projectRootUri, project);
     }
 
     /**
@@ -296,6 +393,7 @@ public final class UriResolver {
                 .removeSubtree(toSegments(projectRootUri.uri()))
                 .insert(toSegments(projectRootUri.uri()), scheme, new ResolvedEntry.ProjectEntry(newProject));
         root.set(updated);
+        projectIndex.put(projectRootUri, new ResolvedEntry.ProjectEntry(newProject));
     }
 
     /**
@@ -304,7 +402,7 @@ public final class UriResolver {
      * @param projectRootUri the project root URI
      */
     public void onProjectRemove(@Nonnull DocumentUri projectRootUri) {
-        evictSubtree(projectRootUri);
+        removeProject(projectRootUri);
     }
 
     /**
@@ -412,5 +510,16 @@ public final class UriResolver {
             segments[i] = path.getName(i).toString();
         }
         return segments;
+    }
+
+    private void onProjectIndexRemoval(RemovalNotification<DocumentUri, ResolvedEntry> notification) {
+        DocumentUri rootUri = notification.getKey();
+        if (rootUri == null) {
+            return;
+        }
+        evictSubtree(rootUri);
+        if (notification.getCause() != RemovalCause.EXPLICIT) {
+            onEviction.accept(rootUri);
+        }
     }
 }

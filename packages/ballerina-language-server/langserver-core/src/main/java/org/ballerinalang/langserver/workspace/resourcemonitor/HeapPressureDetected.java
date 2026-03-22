@@ -24,7 +24,7 @@ package org.ballerinalang.langserver.workspace.resourcemonitor;
  *
  * <p>This event is published to the shared-kernel event bus when JVM heap usage
  * crosses a configured threshold. Consumers include Workspace Manager
- * (ProjectRegistry) and Compiler Engine (CompilationPipeline).
+ * ({@code UriResolver}) and Compiler Engine (CompilationPipeline).
  *
  * @since 1.7.0
  */

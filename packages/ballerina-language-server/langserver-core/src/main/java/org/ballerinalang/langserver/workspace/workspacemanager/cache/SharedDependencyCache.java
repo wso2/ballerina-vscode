@@ -18,8 +18,6 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager.cache;
 
-import org.ballerinalang.langserver.workspace.workspacemanager.project.MemoryBudget;
-
 import javax.annotation.Nonnull;
 
 import java.util.Optional;
@@ -56,10 +54,10 @@ public final class SharedDependencyCache {
     /**
      * Constructs a shared dependency cache bounded by the given budget.
      *
-     * @param budget maximum total weight in MB; must not be null
+     * @param budgetMb maximum total weight in MB
      */
-    public SharedDependencyCache(@Nonnull MemoryBudget budget) {
-        this.budgetMb = budget.toMb();
+    public SharedDependencyCache(long budgetMb) {
+        this.budgetMb = budgetMb;
     }
 
     /**
