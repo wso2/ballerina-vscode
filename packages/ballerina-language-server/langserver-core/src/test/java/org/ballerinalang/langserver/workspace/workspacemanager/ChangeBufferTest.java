@@ -18,6 +18,11 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import org.ballerinalang.langserver.workspace.workspacemanager.change.BufferedChange;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeLayer;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;

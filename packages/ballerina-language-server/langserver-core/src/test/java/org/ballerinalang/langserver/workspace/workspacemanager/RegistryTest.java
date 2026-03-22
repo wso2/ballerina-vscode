@@ -18,6 +18,14 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import org.ballerinalang.langserver.workspace.workspacemanager.cache.CacheInvalidationEvent;
+import org.ballerinalang.langserver.workspace.workspacemanager.cache.SharedDependencyCache;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.HeapEstimate;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.MemoryBudget;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.Project;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectRegistry;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

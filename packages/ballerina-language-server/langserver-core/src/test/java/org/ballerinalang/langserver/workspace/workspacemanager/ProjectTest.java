@@ -18,6 +18,14 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import org.ballerinalang.langserver.workspace.workspacemanager.cache.OpenDocumentCount;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.HeapEstimate;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.Project;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectHealthState;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectLock;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectTier;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

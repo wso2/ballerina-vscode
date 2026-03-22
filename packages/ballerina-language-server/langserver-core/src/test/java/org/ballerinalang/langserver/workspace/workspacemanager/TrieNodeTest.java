@@ -18,6 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager;
 
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.TargetType;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.TrieNode;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

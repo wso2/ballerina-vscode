@@ -1,0 +1,200 @@
+/*
+ *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
+ *
+ *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
+package org.ballerinalang.langserver.workspace.compilerengine;
+
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.projects.DocumentId;
+import io.ballerina.projects.ModuleId;
+import io.ballerina.projects.PackageCompilation;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
+import org.eclipse.lsp4j.jsonrpc.CancelChecker;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.Nonnull;
+
+/**
+ * Thread-safe per-package store for stable and in-progress snapshots.
+ *
+ * @since 1.7.0
+ */
+public class DualSnapshotStore {
+
+    private static final ContentVersion INITIAL_CONTENT_VERSION = new ContentVersion(0);
+
+    private final ConcurrentHashMap<CompilationKey, SnapshotPair> snapshots;
+
+    /**
+     * Creates an empty dual snapshot store.
+     */
+    public DualSnapshotStore() {
+        this.snapshots = new ConcurrentHashMap<>();
+    }
+
+    /**
+     * Returns the current stable snapshot for the given compilation key.
+     *
+     * @param key the compound compilation key (source root + package descriptor)
+     * @return the latest stable snapshot, or {@code null} when none has been published
+     */
+    public StableSnapshot getStable(@Nonnull CompilationKey key) {
+        SnapshotPair snapshotPair = snapshots.get(key);
+        return snapshotPair == null ? null : snapshotPair.stableSnapshot();
+    }
+
+    /**
+     * Returns the current in-progress snapshot for the given compilation key.
+     *
+     * @param key the compound compilation key (source root + package descriptor)
+     * @return the active in-progress snapshot, or {@code null} when none is running
+     */
+    public InProgressSnapshot getInProgress(@Nonnull CompilationKey key) {
+        SnapshotPair snapshotPair = snapshots.get(key);
+        return snapshotPair == null ? null : snapshotPair.inProgressSnapshot();
+    }
+
+    /**
+     * Starts a new compilation cycle for the given compilation key.
+     *
+     * @param key the compound compilation key (source root + package descriptor)
+     * @return the newly created in-progress snapshot
+     */
+    public InProgressSnapshot startCompilation(@Nonnull CompilationKey key) {
+        SnapshotPair snapshotPair = snapshots.computeIfAbsent(key, ignored -> new SnapshotPair());
+        return snapshotPair.startCompilation();
+    }
+
+    /**
+     * Publishes the latest stable snapshot for the given compilation key.
+     *
+     * @param key the compound compilation key (source root + package descriptor)
+     * @param stableSnapshot the stable snapshot to publish
+     */
+    public void publishStable(@Nonnull CompilationKey key, @Nonnull StableSnapshot stableSnapshot) {
+        SnapshotPair snapshotPair = snapshots.computeIfAbsent(key, ignored -> new SnapshotPair());
+        snapshotPair.publishStable(stableSnapshot);
+    }
+
+    /**
+     * Cancels the current in-progress compilation for the given compilation key.
+     *
+     * @param key the compound compilation key (source root + package descriptor)
+     */
+    public void cancelInProgress(@Nonnull CompilationKey key) {
+        SnapshotPair snapshotPair = snapshots.get(key);
+        if (snapshotPair != null) {
+            snapshotPair.cancelInProgress();
+        }
+    }
+
+    /**
+     * Removes all snapshot state for the given compilation key.
+     *
+     * @param key the compound compilation key (source root + package descriptor)
+     */
+    public void remove(@Nonnull CompilationKey key) {
+        SnapshotPair snapshotPair = snapshots.remove(key);
+        if (snapshotPair != null) {
+            snapshotPair.cancelInProgress();
+        }
+    }
+
+    static final class StoreInProgressSnapshot implements InProgressSnapshot {
+
+        private final StableSnapshot fallbackStableSnapshot;
+        private final ContentVersion contentVersion;
+        private final CompletableFuture<StableSnapshot> publishedStableSnapshot;
+        private final CompletableFuture<PackageCompilation> compilationFuture;
+
+        StoreInProgressSnapshot(StableSnapshot fallbackStableSnapshot) {
+            this.fallbackStableSnapshot = fallbackStableSnapshot;
+            this.contentVersion = fallbackStableSnapshot == null ? INITIAL_CONTENT_VERSION
+                    : fallbackStableSnapshot.contentVersion();
+            this.publishedStableSnapshot = new CompletableFuture<>();
+            this.compilationFuture = new CompletableFuture<>();
+        }
+
+        @Override
+        public SyntaxTree syntaxTree(@Nonnull DocumentId docId) {
+            if (fallbackStableSnapshot == null) {
+                return null;
+            }
+            return fallbackStableSnapshot.syntaxTree(docId);
+        }
+
+        @Override
+        public ContentVersion contentVersion() {
+            return contentVersion;
+        }
+
+        @Override
+        public CompletableFuture<SemanticModel> semanticModel(@Nonnull ModuleId moduleId, @Nonnull CancelChecker checker) {
+            checker.checkCanceled();
+            CompletableFuture<SemanticModel> semanticFuture = new CompletableFuture<>();
+            publishedStableSnapshot.whenComplete((snapshot, error) -> {
+                if (error != null) {
+                    propagate(error, semanticFuture);
+                    return;
+                }
+                try {
+                    checker.checkCanceled();
+                    semanticFuture.complete(snapshot.semanticModel(moduleId));
+                } catch (Throwable throwable) {
+                    semanticFuture.completeExceptionally(throwable);
+                }
+            });
+            return semanticFuture;
+        }
+
+        @Override
+        public CompletableFuture<PackageCompilation> compilation(@Nonnull CancelChecker checker) {
+            checker.checkCanceled();
+            return compilationFuture;
+        }
+
+        void complete(StableSnapshot stableSnapshot) {
+            publishedStableSnapshot.complete(stableSnapshot);
+            compilationFuture.complete(stableSnapshot.compilation());
+        }
+
+        StableSnapshot fallbackStableSnapshot() {
+            return fallbackStableSnapshot;
+        }
+
+        CompletableFuture<StableSnapshot> publishedStableSnapshot() {
+            return publishedStableSnapshot;
+        }
+
+        void cancel() {
+            publishedStableSnapshot.cancel(false);
+            compilationFuture.cancel(false);
+        }
+
+        private static <T> void propagate(Throwable error, CompletableFuture<T> targetFuture) {
+            Throwable cause = error.getCause() == null ? error : error.getCause();
+            if (cause instanceof java.util.concurrent.CancellationException) {
+                targetFuture.cancel(false);
+                return;
+            }
+            targetFuture.completeExceptionally(cause);
+        }
+    }
+}
