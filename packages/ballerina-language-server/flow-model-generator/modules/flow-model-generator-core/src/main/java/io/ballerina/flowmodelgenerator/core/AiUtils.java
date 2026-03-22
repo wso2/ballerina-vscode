@@ -786,7 +786,7 @@ public class AiUtils {
             return "string ``";
         }
         // Check if input is a string template
-        if (input.matches("string\\s+`.*`")) {
+        if (input.matches("(?s)string\\s+`.*`")) {
             int firstBacktick = input.indexOf('`');
             String prefix = input.substring(0, firstBacktick + 1);
             String content = input.substring(firstBacktick + 1, input.length() - 1);
