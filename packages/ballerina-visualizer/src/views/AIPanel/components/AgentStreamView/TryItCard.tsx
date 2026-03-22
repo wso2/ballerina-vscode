@@ -39,11 +39,9 @@ const METHOD_COLORS: Record<string, string> = {
 };
 
 const STATUS_COLOR_RANGES: { max: number; color: string }[] = [
-    { max: 199, color: "#95A5A6" },
-    { max: 299, color: "#2ECC71" },
-    { max: 399, color: "#3498DB" },
-    { max: 499, color: "#F39C12" },
-    { max: 599, color: "#E74C3C" },
+    { max: 399, color: "var(--vscode-descriptionForeground)" },
+    { max: 499, color: "var(--vscode-charts-orange, #F39C12)" },
+    { max: 599, color: "var(--vscode-errorForeground)" },
 ];
 
 const getStatusColor = (status: number): string => {
@@ -285,15 +283,15 @@ const HTTPRequestDetail: React.FC<HTTPRequestDetailProps> = ({ request, output }
     return (
         <>
             <RequestRow>
-                {isResult ? (
-                    <InlineCardIcon style={{ fontSize: 12, color: isError ? "var(--vscode-errorForeground)" : "var(--vscode-charts-green, #388a34)" }}>
-                        <span className={`codicon ${isError ? "codicon-chrome-close" : "codicon-check"}`} />
-                    </InlineCardIcon>
-                ) : (
+                {!isResult ? (
                     <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
                         <span className="codicon codicon-loading codicon-modifier-spin" />
                     </InlineCardIcon>
-                )}
+                ) : isError ? (
+                    <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-errorForeground)" }}>
+                        <span className="codicon codicon-chrome-close" />
+                    </InlineCardIcon>
+                ) : null}
                 <MethodBadge method={request.method}>{request.method}</MethodBadge>
                 <UrlLabel>{request.url}</UrlLabel>
                 {statusCode !== undefined && <StatusBadge status={statusCode}>{statusCode}</StatusBadge>}
@@ -371,10 +369,20 @@ interface TryItCardProps {
 const TryItCard: React.FC<TryItCardProps> = ({ input, output }) => {
     if (!input?.request) return null;
 
+    const isRunning = !output;
     const hasScenario = !!(input.scenario || output?.scenario);
     const scenario = input.scenario ?? output?.scenario;
 
-    const content = (
+    const runningRow = (
+        <RequestRow>
+            <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
+                <span className="codicon codicon-loading codicon-modifier-spin" />
+            </InlineCardIcon>
+            <span style={{ fontSize: 11, color: "var(--vscode-descriptionForeground)" }}>Running...</span>
+        </RequestRow>
+    );
+
+    const content = isRunning ? runningRow : (
         <HTTPRequestDetail
             request={output?.request ?? input.request}
             output={output?.output}
@@ -390,7 +398,7 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output }) => {
                 <InlineCardTitle>HTTP Request</InlineCardTitle>
             </InlineCardHeader>
 
-            {hasScenario ? (
+            {!isRunning && hasScenario ? (
                 <ScenarioGroup>
                     <ScenarioHeader>{scenario}</ScenarioHeader>
                     <ScenarioContent>{content}</ScenarioContent>

@@ -17,7 +17,7 @@
  */
 
 import styled from "@emotion/styled";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
     InlineCard,
     InlineCardHeader,
@@ -160,6 +160,7 @@ interface CommandOutputCardProps {
 
 const CommandOutputCard: React.FC<CommandOutputCardProps> = ({ toolName, toolInput, toolOutput, isResult = false }) => {
     const [expanded, setExpanded] = useState(false);
+    const prevStatusRef = useRef<string | undefined>(undefined);
 
     const title = TOOL_TITLES[toolName ?? ""] ?? "Command";
     const iconClass = TOOL_ICONS[toolName ?? ""] ?? "codicon-terminal";
@@ -167,6 +168,13 @@ const CommandOutputCard: React.FC<CommandOutputCardProps> = ({ toolName, toolInp
     const output = toolOutput?.output ?? toolOutput?.logs;
     const status = getStatus(isResult, toolName, toolOutput);
     const statusLabel = getStatusLabel(isResult, toolName, toolOutput);
+
+    useEffect(() => {
+        if (status === "error" && prevStatusRef.current !== "error") {
+            setExpanded(true);
+        }
+        prevStatusRef.current = status;
+    }, [status]);
 
     return (
         <InlineCard>
