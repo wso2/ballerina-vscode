@@ -45,7 +45,7 @@ const removeAgentNodesForServiceArtifact = async (
     component: ProjectStructureArtifactResponse,
     rpcClient: BiDiagramRpcManager
 ) => {
-    if (!component.position || !component.path) return;
+    if (!component.position || !component.path) { return; }
     try {
         const response = await rpcClient.getFlowModel({
             filePath: component.path,
@@ -56,10 +56,10 @@ const removeAgentNodesForServiceArtifact = async (
             const agentCallNodes = findAgentCallNodes(response.flowModel.nodes);
             for (const agentCallNode of agentCallNodes) {
                 const agentName = agentCallNode.properties?.connection?.value;
-                if (typeof agentName !== "string") continue;
+                if (typeof agentName !== "string") { continue; }
 
                 const lineRange = agentCallNode.codedata?.lineRange;
-                if (!lineRange?.fileName || !lineRange.startLine) continue;
+                if (!lineRange?.fileName || !lineRange.startLine) { continue; }
 
                 const searchResult = await rpcClient.searchNodes({
                     filePath: component.path,
@@ -94,7 +94,7 @@ export const handleAIAgentServiceDeletion = async (
 ) => {
     const designModel = await rpcClient.getDesignModel({});
     const service = designModel?.designModel?.services?.find((s) => {
-        if (s.type !== "ai:Service" || !component.position) return false;
+        if (s.type !== "ai:Service" || !component.position) { return false; }
         return s.location.startLine.line <= component.position.startLine &&
             s.location.endLine.line >= component.position.endLine;
     });

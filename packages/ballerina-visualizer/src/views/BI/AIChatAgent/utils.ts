@@ -16,11 +16,41 @@
  * under the License.
  */
 
-import { CodeData, ConfigVariable, FlowNode, LinePosition, LineRange, NodeKind, SearchNodesQueryParams } from "@wso2/ballerina-core";
+import { CodeData, ConfigVariable, FlowNode, LinePosition, LineRange, NodeKind, Property, SearchNodesQueryParams } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { cloneDeep } from "lodash";
 import { URI, Utils } from "vscode-uri";
 import { BALLERINA } from "../../../constants";
+
+export const AGENT_ID_AUTH_CONFIG_ID: CodeData = {
+    node: "AGENT_ID_AUTH_CONFIG" as any,
+    org: "ballerina",
+    module: "ai",
+    packageName: "ai",
+    symbol: "AgentIdAuthConfig",
+};
+
+export const fetchOAuthConfigProperties = async (
+    rpcClient: BallerinaRpcClient,
+    filePath: string,
+    position: LinePosition = { line: 0, offset: 0 }
+): Promise<{ key: string; property: Property }[]> => {
+    try {
+        const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            position,
+            filePath,
+            id: AGENT_ID_AUTH_CONFIG_ID,
+        });
+        if (!response?.flowNode?.properties) return [];
+        return Object.entries(response.flowNode.properties).map(([key, property]) => ({
+            key,
+            property: property as Property,
+        }));
+    } catch (error) {
+        console.error("Error fetching OAuth config properties:", error);
+        return [];
+    }
+};
 
 export const getNodeTemplate = async (
     rpcClient: BallerinaRpcClient,
