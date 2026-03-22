@@ -47,6 +47,7 @@ import { extension } from "../../BalExtensionContext";
 import { VisualizerWebview } from "../../views/visualizer/webview";
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from "../../utils/project-utils";
 import { selectPackageOrPrompt, needsProjectDiscovery, requiresPackageSelection } from "../../utils/command-utils";
+import { handleAIAgentServiceDeletion } from "../../utils/ai-service-utils";
 import { findWorkspaceTypeFromWorkspaceFolders } from "../../rpc-managers/common/utils";
 import { MESSAGES } from "../project";
 
@@ -423,6 +424,10 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
 
     for (const component of componentCategory) {
         if (component.name === itemLabel) {
+            if (component.name.startsWith("AI Agent Services")) {
+                await handleAIAgentServiceDeletion(component, rpcClient, filePath, deleteComponent);
+                return;
+            }
             const componentInfo: ComponentInfo = {
                 name: component.name,
                 filePath: component.path,
