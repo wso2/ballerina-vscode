@@ -30,6 +30,15 @@ export enum SuggestionType {
     Template = "template",
 }
 
+const COMMAND_META: Record<string, { icon: string; description: string }> = {
+    "/ask":                                { icon: "codicon-comment-discussion", description: "Ask a question without editing" },
+    "/doc":                                { icon: "codicon-book",               description: "Generate documentation" },
+    "/openapi":                            { icon: "codicon-file-code",          description: "Import OpenAPI specifications" },
+    "/typecreator":                        { icon: "codicon-symbol-class",       description: "Create custom types" },
+    "/datamap":                            { icon: "codicon-arrow-swap",         description: "Generate data mappings" },
+    "/natural-programming (experimental)": { icon: "codicon-sparkle",            description: "Experimental NL-to-code" },
+};
+
 interface BaseSuggestion {
     text: string;
     type: SuggestionType;
@@ -38,6 +47,8 @@ interface BaseSuggestion {
 export interface CommandSuggestion extends BaseSuggestion {
     type: SuggestionType.Command;
     command: Command;
+    icon: string;
+    description: string;
 }
 
 export interface TagSuggestion extends BaseSuggestion {
@@ -112,7 +123,9 @@ export function useCommands({ commandTemplate }: UseCommandsParams) {
                 filtered = commands.filter((cmd) => cmd.toLowerCase().startsWith(query)).map((cmd) => ({
                     text: cmd,
                     type: SuggestionType.Command,
-                    command: cmd,
+                    command: cmd as Command,
+                    icon: COMMAND_META[cmd]?.icon ?? "codicon-symbol-misc",
+                    description: COMMAND_META[cmd]?.description ?? "",
                 }));
             }
         }
