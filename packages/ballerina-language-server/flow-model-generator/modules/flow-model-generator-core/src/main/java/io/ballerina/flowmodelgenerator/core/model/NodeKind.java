@@ -99,5 +99,6 @@ public enum NodeKind {
     CHUNKER,
     MEMORY,
     MEMORY_STORE,
-    MCP_TOOL_KIT
+    MCP_TOOL_KIT,
+    AGENT_ID_AUTH_CONFIG
 }
