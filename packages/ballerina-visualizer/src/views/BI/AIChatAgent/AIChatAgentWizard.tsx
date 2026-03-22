@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { AvailableNode, CDModel, CodeData, EVENT_TYPE } from '@wso2/ballerina-core';
+import { AvailableNode, CDModel, CodeData, EVENT_TYPE, NodeKind } from '@wso2/ballerina-core';
 import { View, ViewContent, TextField, Button, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -76,7 +76,8 @@ const FormFields = styled.div`
 export interface AIChatAgentWizardProps {
 }
 
-const AI_CHAT_AGENT_LISTENER = "aiChatAgentListener";
+const AI_CHAT_AGENT_LISTENER = "chatAgentListener";
+const AI_WSO2_MODEL_PROVIDER = "wso2ModelProvider";
 const MODEL = "Model";
 const KNOWN_SUFFIXES = ["agent", "model", "listener", "service"];
 
@@ -218,13 +219,30 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                 ? WSO2_MODEL_PROVIDER_CODEDATA
                 : OPENAI_PROVIDER_CODEDATA;
 
-            // Get model node template
-            const modelNodeTemplate = await getNodeTemplate(rpcClient, modelProviderCodedata, projectPath.current);
+            let modelVarName: string;
 
-            // Generate source code for model provider
-            const modelVarName = `${baseName}` + MODEL;
-            modelNodeTemplate.properties.variable.value = modelVarName;
-            await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: projectPath.current, flowNode: modelNodeTemplate });
+            // For WSO2 model provider, reuse shared "aiWso2ModelProvider" if it already exists
+            if (aiModuleOrg.current === BALLERINA) {
+                modelVarName = AI_WSO2_MODEL_PROVIDER;
+                const existingModelProviders = await rpcClient.getBIDiagramRpcClient().searchNodes({
+                    filePath: projectPath.current,
+                    queryMap: { kind: "MODEL_PROVIDER" as NodeKind }
+                });
+                const existingProvider = existingModelProviders?.output?.find(
+                    node => String(node.properties?.variable?.value) === AI_WSO2_MODEL_PROVIDER
+                );
+
+                if (!existingProvider) {
+                    const modelNodeTemplate = await getNodeTemplate(rpcClient, modelProviderCodedata, projectPath.current);
+                    modelNodeTemplate.properties.variable.value = modelVarName;
+                    await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: projectPath.current, flowNode: modelNodeTemplate });
+                }
+            } else {
+                modelVarName = `${baseName}` + MODEL;
+                const modelNodeTemplate = await getNodeTemplate(rpcClient, modelProviderCodedata, projectPath.current);
+                modelNodeTemplate.properties.variable.value = modelVarName;
+                await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: projectPath.current, flowNode: modelNodeTemplate });
+            }
 
             // Search for agent node in the current file
             const agentSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
