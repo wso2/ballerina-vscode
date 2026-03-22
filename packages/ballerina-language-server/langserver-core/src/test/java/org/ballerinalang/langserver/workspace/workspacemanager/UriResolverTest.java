@@ -283,6 +283,83 @@ public class UriResolverTest {
     }
 
     /**
+     * Verifies registering a project indexes it by source root for direct lookup.
+     */
+    @Test
+    public void registerProject_getProject_returnsIndexedProject() {
+        DocumentUri sourceRoot = fileUri("/workspace/project");
+
+        resolver.registerProject(sourceRoot, mockProject);
+
+        Assert.assertEquals(resolver.getProject(sourceRoot), Optional.of(mockProject));
+        Assert.assertEquals(resolver.project(sourceRoot), Optional.of(mockProject));
+    }
+
+    /**
+     * Verifies project enumeration and count are driven by the bounded project index.
+     */
+    @Test
+    public void registerProject_allProjectsAndCount_trackRegisteredRoots() {
+        Project firstProject = projectAt("/workspace/first");
+        Project secondProject = projectAt("/workspace/second");
+        DocumentUri firstRoot = fileUri("/workspace/first");
+        DocumentUri secondRoot = fileUri("/workspace/second");
+
+        resolver.registerProject(firstRoot, firstProject);
+        resolver.registerProject(secondRoot, secondProject);
+
+        Assert.assertEquals(resolver.projectCount(), 2L);
+        Assert.assertEquals(resolver.allProjects().size(), 2);
+        Assert.assertTrue(resolver.allProjects().contains(firstProject));
+        Assert.assertTrue(resolver.allProjects().contains(secondProject));
+    }
+
+    /**
+     * Verifies explicit project removal evicts the trie subtree without invoking the implicit-eviction callback.
+     */
+    @Test
+    public void removeProject_explicitRemoval_evctsSubtreeWithoutCallback() {
+        List<DocumentUri> evictedRoots = new ArrayList<>();
+        resolver = new UriResolver(2, evictedRoots::add);
+        Project project = projectAt("/workspace/project");
+        DocumentUri sourceRoot = fileUri("/workspace/project");
+        DocumentUri documentUri = fileUri("/workspace/project/main.bal");
+
+        resolver.registerProject(sourceRoot, project);
+        resolver.register(documentUri, new ResolvedEntry.DocumentEntry(documentOf(moduleOf(project))));
+
+        resolver.removeProject(sourceRoot);
+
+        Assert.assertTrue(resolver.getProject(sourceRoot).isEmpty());
+        Assert.assertTrue(resolver.resolve(documentUri).isEmpty());
+        Assert.assertTrue(evictedRoots.isEmpty(), "Explicit removals must not trigger implicit-eviction callbacks");
+    }
+
+    /**
+     * Verifies bounded project-index eviction removes the eldest project subtree and invokes the callback.
+     */
+    @Test
+    public void registerProject_lruEviction_removesSubtreeAndInvokesCallback() {
+        List<DocumentUri> evictedRoots = new ArrayList<>();
+        resolver = new UriResolver(1, evictedRoots::add);
+
+        Project firstProject = projectAt("/workspace/first");
+        Project secondProject = projectAt("/workspace/second");
+        DocumentUri firstRoot = fileUri("/workspace/first");
+        DocumentUri secondRoot = fileUri("/workspace/second");
+        DocumentUri firstDocument = fileUri("/workspace/first/main.bal");
+
+        resolver.registerProject(firstRoot, firstProject);
+        resolver.register(firstDocument, new ResolvedEntry.DocumentEntry(documentOf(moduleOf(firstProject))));
+        resolver.registerProject(secondRoot, secondProject);
+
+        Assert.assertTrue(resolver.getProject(firstRoot).isEmpty(), "Least-recently-used project should be evicted");
+        Assert.assertEquals(resolver.getProject(secondRoot), Optional.of(secondProject));
+        Assert.assertTrue(resolver.resolve(firstDocument).isEmpty(), "Evicted project subtree should be removed");
+        Assert.assertEquals(evictedRoots, List.of(firstRoot));
+    }
+
+    /**
      * Verifies long common prefixes still resolve to independent entries.
      */
     @Test

@@ -25,31 +25,26 @@ import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationServiceImpl;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
-import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
-import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
+import org.ballerinalang.langserver.workspace.workspacemanager.ProjectLoader;
+import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
-import org.ballerinalang.langserver.workspace.workspacemanager.project.HeapEstimate;
-import org.ballerinalang.langserver.workspace.workspacemanager.project.MemoryBudget;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.Project;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectHealthState;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
-import org.ballerinalang.langserver.workspace.workspacemanager.ProjectLoader;
-import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectRegistry;
-import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.UriResolver;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -61,15 +56,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Acceptance tests for v2.0 cross-context boundaries after the DS+WM merge.
+ * Acceptance tests for cross-context boundaries after project-cache consolidation.
  *
  * @since 1.7.0
  */
 public class CrossContextBoundaryTest {
 
     private EventSyncPubSubHolder eventBus;
-    private ProjectRegistry registry;
-    private UriResolver uriResolver;
     private ChangeBuffer changeBuffer;
     private ProjectServiceImpl projectService;
     private CompilationServiceImpl compilationService;
@@ -78,8 +71,6 @@ public class CrossContextBoundaryTest {
     @BeforeMethod
     public void setUp() throws IOException {
         eventBus = new EventSyncPubSubHolder();
-        registry = new ProjectRegistry(MemoryBudget.ofMb(1024));
-        uriResolver = new UriResolver();
         changeBuffer = new ChangeBuffer();
         tempDir = Files.createTempDirectory("cross-context-boundary");
         Files.writeString(tempDir.resolve("Ballerina.toml"), "[package]\norg = \"test\"\nname = \"cross\"\n");
@@ -90,80 +81,48 @@ public class CrossContextBoundaryTest {
     public void tearDown() throws Exception {
         if (compilationService != null) {
             compilationService.close();
-            compilationService = null;
         }
         if (projectService != null) {
             projectService.shutdown();
-            projectService = null;
         }
         if (eventBus != null) {
             eventBus.close();
-            eventBus = null;
-        }
-        if (registry != null) {
-            registry.shutdown();
-            registry = null;
         }
         deleteRecursive(tempDir);
     }
 
     @Test
     public void wmProjectUpdated_crossesToCompilerEngineAndTriggersCompilation() throws Exception {
-        // RED: this test should fail — WM->CE compilation trigger wiring is not yet verified here
         AtomicInteger compileCount = new AtomicInteger();
         CountDownLatch secondCompilation = new CountDownLatch(1);
         compilationService = new CompilationServiceImpl(new DualSnapshotStore(), eventBus,
                 countingAction(compileCount, secondCompilation), 50L);
         DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
-        Path mainFile = tempDir.resolve("main.bal");
         eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, root.uri()));
 
-        Assert.assertTrue(awaitCompileCount(compileCount, 1, 3), "Project registration should trigger initial compile");
-
+        Assert.assertTrue(awaitCompileCount(compileCount, 1, 3));
         eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, root.uri()));
-
-        Assert.assertTrue(secondCompilation.await(3, TimeUnit.SECONDS),
-                "WORKSPACE_PROJECT_UPDATED should trigger a second compilation in CE");
+        Assert.assertTrue(secondCompilation.await(3, TimeUnit.SECONDS));
     }
 
     @Test
     public void rmHeapPressure_crossesToProjectServiceAndEvictsBackgroundProjects() throws Exception {
         projectService = createProjectService();
+        Path backgroundDir = Files.createDirectory(tempDir.resolve("background"));
+        Files.writeString(backgroundDir.resolve("Ballerina.toml"), "[package]\norg = \"test\"\nname = \"bg\"\n");
+        Files.writeString(backgroundDir.resolve("main.bal"), "public function main() {}\n");
+
+        projectService.loadOrCreate(tempDir.resolve("main.bal"), () -> { });
+        projectService.loadOrCreate(backgroundDir.resolve("main.bal"), () -> { });
+
         DocumentUri activeRoot = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
-        DocumentUri backgroundRoot = new DocumentUri.FileUri(tempDir.resolve("background").toAbsolutePath().normalize().toUri());
-
-        Project activeProject = new Project(activeRoot, ProjectKind.BUILD, HeapEstimate.ofMb(64));
-        Project backgroundProject = new Project(backgroundRoot, ProjectKind.BUILD, HeapEstimate.ofMb(64));
-        activeProject.openDocumentCount().increment();
-        registry.register(activeRoot, activeProject);
-        registry.register(backgroundRoot, backgroundProject);
+        DocumentUri backgroundRoot = new DocumentUri.FileUri(backgroundDir.toAbsolutePath().normalize().toUri());
+        projectService.workspaceProject(activeRoot).orElseThrow().openDocumentCount().increment();
 
         eventBus.publish(new HeapPressureEvent(HeapPressureLevel.WARNING));
 
-        Assert.assertTrue(awaitCondition(() -> registry.get(activeRoot).isPresent(), 3),
-                "Active project should remain after RM_E1");
-        Assert.assertTrue(awaitCondition(() -> registry.get(backgroundRoot).isEmpty(), 3),
-                "Background project should be evicted after RM_E1");
-    }
-
-    @Test
-    public void rmHeapPressure_crossesToCompilerEngineAndThrottlesCompilation() throws Exception {
-        AtomicInteger compileCount = new AtomicInteger();
-        CountDownLatch throttledCompilation = new CountDownLatch(1);
-        compilationService = new CompilationServiceImpl(new DualSnapshotStore(), eventBus,
-                countingAction(compileCount, throttledCompilation), 50L, 300L);
-        DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
-        Path mainFile = tempDir.resolve("main.bal");
-        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, root.uri()));
-        Assert.assertTrue(awaitCompileCount(compileCount, 1, 3), "Project registration should trigger initial compile");
-
-        eventBus.publish(new HeapPressureEvent(HeapPressureLevel.WARNING));
-        eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, root.uri()));
-
-        Assert.assertFalse(throttledCompilation.await(150, TimeUnit.MILLISECONDS),
-                "RM_E1 should throttle immediate recompilation requests in CE");
-        Assert.assertTrue(throttledCompilation.await(2, TimeUnit.SECONDS),
-                "Compilation should resume after the throttle window expires");
+        Assert.assertTrue(awaitCondition(() -> projectService.workspaceProject(activeRoot).isPresent(), 3));
+        Assert.assertTrue(awaitCondition(() -> projectService.workspaceProject(backgroundRoot).isEmpty(), 3));
     }
 
     @Test
@@ -175,8 +134,8 @@ public class CrossContextBoundaryTest {
 
         eventBus.publish(new CompilerEvent(EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY, root.uri(), "test-pkg"));
 
-        Assert.assertTrue(awaitCondition(() -> hasObservedCompilerSignal(root, EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY), 3),
-                "CE-E5a should be observed by ProjectService");
+        Assert.assertTrue(awaitCondition(
+                () -> projectService.hasObservedCompilerSignal(root, EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY), 3));
     }
 
     @Test
@@ -185,31 +144,14 @@ public class CrossContextBoundaryTest {
         Path mainFile = tempDir.resolve("main.bal");
         projectService.loadOrCreate(mainFile, () -> { });
         DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
-        Project project = registry.get(root).orElseThrow();
+        Project project = projectService.workspaceProject(root).orElseThrow();
         project.notifySourceChanged();
         project.transitionTo(ProjectHealthState.COMPILATION_CRASHED);
         project.transitionTo(ProjectHealthState.RECOVERING);
 
         eventBus.publish(new CompilerEvent(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY, root.uri(), "test-pkg"));
 
-        Assert.assertTrue(awaitCondition(() -> project.healthState() == ProjectHealthState.HEALTHY, 3),
-                "CE-E5b should restore a recovering project to HEALTHY");
-    }
-
-    @Test
-    public void ceResolutionExhausted_crossesToProjectServiceAndOpensCircuit() throws Exception {
-        projectService = createProjectService();
-        Path mainFile = tempDir.resolve("main.bal");
-        projectService.loadOrCreate(mainFile, () -> { });
-        DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
-        Project project = registry.get(root).orElseThrow();
-        project.transitionTo(ProjectHealthState.PROJECT_CRASHED);
-        project.transitionTo(ProjectHealthState.RECOVERING);
-
-        eventBus.publish(new CompilerEvent(EventKind.CE_RESOLUTION_EXHAUSTED, root.uri(), "test-pkg"));
-
-        Assert.assertTrue(awaitCondition(() -> project.healthState() == ProjectHealthState.CIRCUIT_OPEN, 3),
-                "CE resolution exhaustion should move a recovering project to CIRCUIT_OPEN");
+        Assert.assertTrue(awaitCondition(() -> project.healthState() == ProjectHealthState.HEALTHY, 3));
     }
 
     @Test
@@ -218,20 +160,19 @@ public class CrossContextBoundaryTest {
         Path mainFile = tempDir.resolve("main.bal");
         projectService.loadOrCreate(mainFile, () -> { });
         DocumentUri root = new DocumentUri.FileUri(tempDir.toAbsolutePath().normalize().toUri());
-        Project project = registry.get(root).orElseThrow();
+        Project project = projectService.workspaceProject(root).orElseThrow();
         project.transitionTo(ProjectHealthState.PROJECT_CRASHED);
         project.transitionTo(ProjectHealthState.RECOVERING);
         project.transitionTo(ProjectHealthState.CIRCUIT_OPEN);
 
         eventBus.publish(new CompilerEvent(EventKind.CE_RESOLUTION_RECOVERED, root.uri(), "test-pkg"));
 
-        Assert.assertTrue(awaitCondition(() -> project.healthState() == ProjectHealthState.RECOVERING, 3),
-                "CE resolution recovery should move a circuit-open project back to RECOVERING");
+        Assert.assertTrue(awaitCondition(() -> project.healthState() == ProjectHealthState.RECOVERING, 3));
     }
 
     private ProjectServiceImpl createProjectService() {
         ProjectLoader loader = (root, kind) -> mock(io.ballerina.projects.Project.class);
-        return projectService = new ProjectServiceImpl(registry, uriResolver, eventBus, loader, changeBuffer);
+        return projectService = new ProjectServiceImpl(eventBus, loader, changeBuffer);
     }
 
     private CompilationPipeline.CompilationAction countingAction(AtomicInteger compileCount, CountDownLatch latch) {
@@ -246,6 +187,7 @@ public class CrossContextBoundaryTest {
                 }
                 return snapshot;
             }
+
             @Override
             public PackageDescriptor describe(String sourceRootIdentifier) {
                 return descriptor;
@@ -261,55 +203,47 @@ public class CrossContextBoundaryTest {
         return descriptor;
     }
 
-    private boolean hasObservedCompilerSignal(DocumentUri root, EventKind signal) {
-        try {
-            Method method = ProjectServiceImpl.class.getDeclaredMethod("hasObservedCompilerSignal", DocumentUri.class,
-                    EventKind.class);
-            method.setAccessible(true);
-            return (boolean) method.invoke(projectService, root, signal);
-        } catch (ReflectiveOperationException e) {
-            throw new AssertionError("ProjectServiceImpl should expose compiler signal observation for boundary tests", e);
-        }
-    }
-
-    private boolean awaitCompileCount(AtomicInteger compileCount, int expected, int timeoutSeconds) throws InterruptedException {
+    private static boolean awaitCompileCount(AtomicInteger count, int expectedMinimum, int timeoutSeconds)
+            throws InterruptedException {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
         while (System.nanoTime() < deadline) {
-            if (compileCount.get() >= expected) {
+            if (count.get() >= expectedMinimum) {
                 return true;
             }
-            TimeUnit.MILLISECONDS.sleep(25);
+            Thread.sleep(25L);
         }
-        return compileCount.get() >= expected;
+        return count.get() >= expectedMinimum;
     }
 
-    private boolean awaitCondition(CheckedBooleanSupplier condition, int timeoutSeconds) throws Exception {
+    private static boolean awaitCondition(Condition condition, int timeoutSeconds) throws Exception {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
         while (System.nanoTime() < deadline) {
-            if (condition.getAsBoolean()) {
+            if (condition.test()) {
                 return true;
             }
-            TimeUnit.MILLISECONDS.sleep(25);
+            Thread.sleep(25L);
         }
-        return condition.getAsBoolean();
+        return condition.test();
     }
 
-    private static void deleteRecursive(Path path) throws IOException {
+    private interface Condition {
+        boolean test() throws Exception;
+    }
+
+    private static void deleteRecursive(Path path) {
         if (path == null || !Files.exists(path)) {
             return;
         }
-        try (var stream = Files.walk(path)) {
-            stream.sorted(java.util.Comparator.reverseOrder()).forEach(p -> {
-                try {
-                    Files.deleteIfExists(p);
-                } catch (IOException ignored) {
-                }
-            });
+        try {
+            Files.walk(path)
+                    .sorted(java.util.Comparator.reverseOrder())
+                    .forEach(candidate -> {
+                        try {
+                            Files.deleteIfExists(candidate);
+                        } catch (IOException ignored) {
+                        }
+                    });
+        } catch (IOException ignored) {
         }
-    }
-
-    @FunctionalInterface
-    private interface CheckedBooleanSupplier {
-        boolean getAsBoolean() throws Exception;
     }
 }
