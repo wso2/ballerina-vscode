@@ -51,8 +51,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -67,7 +65,6 @@ public class ProjectServiceTest {
     private ProjectServiceImpl service;
     private ChangeBuffer changeBuffer;
     private ChangeApplier changeApplier;
-    private ScheduledExecutorService applyScheduler;
     private Path tempDir;
     private CancelChecker cancelChecker;
     private List<DomainEvent> publishedEvents;
@@ -90,10 +87,7 @@ public class ProjectServiceTest {
         ProjectLoader loader = (root, kind) -> mockBallerinaProject(root, kind);
         changeBuffer = new ChangeBuffer();
         changeApplier = Mockito.mock(ChangeApplier.class);
-        applyScheduler = Mockito.mock(ScheduledExecutorService.class);
-        Mockito.when(applyScheduler.schedule(Mockito.any(Runnable.class), Mockito.anyLong(), Mockito.eq(TimeUnit.MILLISECONDS)))
-                .thenReturn(Mockito.mock(ScheduledFuture.class));
-        service = new ProjectServiceImpl(eventBus, loader, changeBuffer, changeApplier, applyScheduler, 150L);
+        service = new ProjectServiceImpl(eventBus, loader, changeBuffer, changeApplier);
         uriResolver = service.uriResolver();
     }
 
@@ -113,8 +107,10 @@ public class ProjectServiceTest {
     }
 
     @Test
-    public void loadOrCreate_secondCallIsIdempotent() {
+    public void loadOrCreate_secondCallIsIdempotent() throws Exception {
         Project first = service.loadOrCreate(tempDir, cancelChecker);
+        Assert.assertTrue(awaitCondition(() -> publishedEvents.stream()
+                .anyMatch(event -> event.eventKind() == EventKind.WORKSPACE_PROJECT_REGISTERED)));
         publishedEvents.clear();
 
         Project second = service.loadOrCreate(tempDir, cancelChecker);

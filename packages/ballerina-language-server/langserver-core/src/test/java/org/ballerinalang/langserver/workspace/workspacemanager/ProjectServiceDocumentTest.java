@@ -44,9 +44,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,12 +56,10 @@ public class ProjectServiceDocumentTest {
     private EventSyncPubSubHolder eventBus;
     private ChangeBuffer changeBuffer;
     private ChangeApplier changeApplier;
-    private ScheduledExecutorService applyScheduler;
     private ProjectServiceImpl service;
     private Path tempDir;
     private Path secondProjectDir;
     private List<DomainEvent> publishedEvents;
-    private List<ScheduledTask> scheduledTasks;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -76,25 +71,14 @@ public class ProjectServiceDocumentTest {
         eventBus = new EventSyncPubSubHolder();
         changeBuffer = new ChangeBuffer();
         changeApplier = Mockito.mock(ChangeApplier.class);
-        applyScheduler = Mockito.mock(ScheduledExecutorService.class);
         publishedEvents = new CopyOnWriteArrayList<>();
-        scheduledTasks = new CopyOnWriteArrayList<>();
-
-        Mockito.when(applyScheduler.schedule(Mockito.any(Runnable.class), Mockito.anyLong(), Mockito.eq(TimeUnit.MILLISECONDS)))
-                .thenAnswer(invocation -> {
-                    Runnable task = invocation.getArgument(0);
-                    long delay = invocation.getArgument(1);
-                    ManualScheduledFuture future = new ManualScheduledFuture();
-                    scheduledTasks.add(new ScheduledTask(task, future, delay));
-                    return future;
-                });
 
         eventBus.subscribe("test-project-updated", SubscriberTier.CRITICAL,
                 Set.of(EventKind.WORKSPACE_PROJECT_UPDATED, EventKind.WORKSPACE_PROJECT_TIER_CHANGED),
                 publishedEvents::add);
 
         ProjectLoader loader = (root, kind) -> Mockito.mock(Project.class);
-        service = new ProjectServiceImpl(eventBus, loader, changeBuffer, changeApplier, applyScheduler, 150L);
+        service = new ProjectServiceImpl(eventBus, loader, changeBuffer, changeApplier);
     }
 
     @AfterMethod
@@ -117,7 +101,7 @@ public class ProjectServiceDocumentTest {
     }
 
     @Test
-    public void didChange_debounceWindow_emitsSingleProjectUpdated() throws Exception {
+    public void didChange_appliesImmediatelyAndEmitsProjectUpdated() throws Exception {
         DocumentUri root = new DocumentUri.FileUri(tempDir.toUri());
         DocumentUri uri = createTestUri(tempDir, "main.bal");
         CountDownLatch latch = new CountDownLatch(1);
@@ -127,7 +111,6 @@ public class ProjectServiceDocumentTest {
 
         service.didChange(uri, List.of(new TextDocumentContentChangeEvent("change-1")));
         service.didChange(uri, List.of(new TextDocumentContentChangeEvent("change-2")));
-        runScheduledTasks();
 
         Assert.assertTrue(latch.await(2, TimeUnit.SECONDS));
     }
@@ -162,66 +145,12 @@ public class ProjectServiceDocumentTest {
                 FileChangeType.Changed);
 
         service.didChangeWatchedFiles(List.of(firstEvent, secondEvent));
-        runScheduledTasks();
 
         Assert.assertTrue(latch.await(2, TimeUnit.SECONDS));
-    }
-
-    private void runScheduledTasks() {
-        scheduledTasks.forEach(ScheduledTask::runIfActive);
     }
 
     private DocumentUri createTestUri(Path projectDir, String fileName) {
         URI fileUri = projectDir.resolve(fileName).toUri();
         return new DocumentUri.FileUri(fileUri);
-    }
-
-    private record ScheduledTask(Runnable runnable, ManualScheduledFuture future, long delayMs) {
-        private void runIfActive() {
-            if (!future.isCancelled()) {
-                runnable.run();
-            }
-        }
-    }
-
-    private static final class ManualScheduledFuture implements ScheduledFuture<Object> {
-
-        private volatile boolean cancelled;
-
-        @Override
-        public long getDelay(TimeUnit unit) {
-            return 0;
-        }
-
-        @Override
-        public int compareTo(Delayed other) {
-            return 0;
-        }
-
-        @Override
-        public boolean cancel(boolean mayInterruptIfRunning) {
-            this.cancelled = true;
-            return true;
-        }
-
-        @Override
-        public boolean isCancelled() {
-            return cancelled;
-        }
-
-        @Override
-        public boolean isDone() {
-            return cancelled;
-        }
-
-        @Override
-        public Object get() {
-            return null;
-        }
-
-        @Override
-        public Object get(long timeout, TimeUnit unit) {
-            return null;
-        }
     }
 }

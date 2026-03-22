@@ -106,7 +106,7 @@ public interface ProjectService {
      * Signals that a document has been opened in the editor.
      *
      * <p>Creates an EDITOR-layer entry in the {@link ChangeBuffer} for the given URI,
-     * updates direct open-document tracking, and schedules a debounced apply cycle.</p>
+     * updates direct open-document tracking, and applies buffered changes immediately.</p>
      *
      * @param uri     the document URI; must not be null
      * @param content the initial full-text content; must not be null
@@ -117,7 +117,7 @@ public interface ProjectService {
      * Signals that the content of an open document has changed.
      *
      * <p>Appends each change to the EDITOR layer of the {@link ChangeBuffer} for the
-     * given URI and schedules a debounced apply cycle.
+     * given URI and applies buffered changes immediately.
      *
      * @param uri     the document URI; must not be null
      * @param changes ordered list of LSP content-change events; must not be null or empty
@@ -137,8 +137,8 @@ public interface ProjectService {
     /**
      * Signals that one or more watched files have changed on the file system.
      *
-     * <p>Routes each {@link FileEvent} to the {@link ChangeBuffer} and schedules a debounced
-     * apply cycle for each affected source root.</p>
+     * <p>Routes each {@link FileEvent} to the {@link ChangeBuffer} and applies buffered
+     * changes immediately.</p>
      *
      * @param events the list of file-watcher events; must not be null
      */

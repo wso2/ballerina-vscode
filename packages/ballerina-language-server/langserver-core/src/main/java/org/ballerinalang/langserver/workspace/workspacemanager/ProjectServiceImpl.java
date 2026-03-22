@@ -59,10 +59,6 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -82,7 +78,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class ProjectServiceImpl implements ProjectService {
 
-    private static final long DEFAULT_DEBOUNCE_MS = 150L;
     private static final int DEFAULT_MAX_PROJECTS = 32;
     private static final String BALLERINA_TOML = "Ballerina.toml";
     private static final String DEPENDENCIES_TOML = "Dependencies.toml";
@@ -93,15 +88,12 @@ public final class ProjectServiceImpl implements ProjectService {
     private final ProjectLoader loader;
     private final ChangeBuffer changeBuffer;
     private final ChangeApplier changeApplier;
-    private final ScheduledExecutorService applyScheduler;
-    private final long debounceMs;
     private final ConcurrentHashMap<DocumentUri,
             org.ballerinalang.langserver.workspace.workspacemanager.project.Project> workspaceProjects;
     /** Per-URI monotonically increasing version counter for EDITOR-layer buffered changes. */
     private final ConcurrentHashMap<DocumentUri, AtomicInteger> versionCounters;
     private final ConcurrentHashMap<Path, AtomicInteger> dependenciesSelfWriteTokens;
     private final ConcurrentHashMap<DocumentUri, Set<EventKind>> observedCompilerSignals;
-    private final ConcurrentHashMap<DocumentUri, ScheduledFuture<?>> pendingApplies;
 
     /**
      * Constructs a project service with full wiring of dependencies.
@@ -116,45 +108,32 @@ public final class ProjectServiceImpl implements ProjectService {
         this.eventBus = eventBus;
         this.loader = loader;
         this.changeBuffer = changeBuffer;
-        this.applyScheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
-            Thread thread = new Thread(runnable, "wm-change-apply-scheduler");
-            thread.setDaemon(true);
-            return thread;
-        });
-        this.debounceMs = DEFAULT_DEBOUNCE_MS;
         this.workspaceProjects = new ConcurrentHashMap<>();
         this.versionCounters = new ConcurrentHashMap<>();
         this.dependenciesSelfWriteTokens = new ConcurrentHashMap<>();
         this.observedCompilerSignals = new ConcurrentHashMap<>();
-        this.pendingApplies = new ConcurrentHashMap<>();
         this.uriResolver = new UriResolver(DEFAULT_MAX_PROJECTS, this::onImplicitProjectEviction);
         this.changeApplier = new ChangeApplier(changeBuffer, this.uriResolver);
         subscribeToEvents();
     }
 
     /**
-     * Constructs a project service with injectable change-apply scheduling collaborators.
+     * Constructs a project service with an injectable change applier.
      *
      * @param eventBus event bus
      * @param loader project loader
      * @param changeBuffer change buffer
      * @param changeApplier change applier
-     * @param applyScheduler debounce scheduler
-     * @param debounceMs debounce window in milliseconds
      */
     public ProjectServiceImpl(@Nonnull EventSyncPubSubHolder eventBus, @Nonnull ProjectLoader loader,
-                              @Nonnull ChangeBuffer changeBuffer, @Nonnull ChangeApplier changeApplier,
-                              @Nonnull ScheduledExecutorService applyScheduler, long debounceMs) {
+                              @Nonnull ChangeBuffer changeBuffer, @Nonnull ChangeApplier changeApplier) {
         this.eventBus = eventBus;
         this.loader = loader;
         this.changeBuffer = changeBuffer;
-        this.applyScheduler = applyScheduler;
-        this.debounceMs = debounceMs;
         this.workspaceProjects = new ConcurrentHashMap<>();
         this.versionCounters = new ConcurrentHashMap<>();
         this.dependenciesSelfWriteTokens = new ConcurrentHashMap<>();
         this.observedCompilerSignals = new ConcurrentHashMap<>();
-        this.pendingApplies = new ConcurrentHashMap<>();
         this.uriResolver = new UriResolver(DEFAULT_MAX_PROJECTS, this::onImplicitProjectEviction);
         this.changeApplier = changeApplier;
         subscribeToEvents();
@@ -432,7 +411,7 @@ public final class ProjectServiceImpl implements ProjectService {
         int version = versionCounters.computeIfAbsent(uri, k -> new AtomicInteger(0)).incrementAndGet();
         changeBuffer.append(uri, new BufferedChange(fullText, ChangeLayer.EDITOR, new ContentVersion(version)));
         incrementOpenDocumentCount(uri);
-        scheduleApply(uri);
+        applyBufferedChanges();
     }
 
     @Override
@@ -442,7 +421,7 @@ public final class ProjectServiceImpl implements ProjectService {
             int version = counter.incrementAndGet();
             changeBuffer.append(uri, new BufferedChange(change, ChangeLayer.EDITOR, new ContentVersion(version)));
         }
-        scheduleApply(uri);
+        applyBufferedChanges();
     }
 
     @Override
@@ -468,7 +447,7 @@ public final class ProjectServiceImpl implements ProjectService {
                 } else {
                     changeBuffer.routeWatcherEvent(docUri, event);
                 }
-                scheduleApply(docUri);
+                applyBufferedChanges();
             } catch (Exception ignored) {
                 // Malformed or non-file URI — skip this event
             }
@@ -535,8 +514,6 @@ public final class ProjectServiceImpl implements ProjectService {
      * Shuts down the service and releases resources.
      */
     public void shutdown() {
-        pendingApplies.values().forEach(future -> future.cancel(false));
-        applyScheduler.shutdownNow();
     }
 
     // =========================================================================
@@ -710,7 +687,7 @@ public final class ProjectServiceImpl implements ProjectService {
     }
 
     private void incrementOpenDocumentCount(DocumentUri uri) {
-        resolveDebounceRoot(uri).flatMap(this::workspaceProject).ifPresent(project -> {
+        resolveProjectRoot(uri).flatMap(this::workspaceProject).ifPresent(project -> {
             ProjectTier before = project.openDocumentCount().tier();
             project.openDocumentCount().increment();
             ProjectTier after = project.openDocumentCount().tier();
@@ -721,7 +698,7 @@ public final class ProjectServiceImpl implements ProjectService {
     }
 
     private void decrementOpenDocumentCount(DocumentUri uri) {
-        resolveDebounceRoot(uri).flatMap(this::workspaceProject).ifPresent(project -> {
+        resolveProjectRoot(uri).flatMap(this::workspaceProject).ifPresent(project -> {
             ProjectTier before = project.openDocumentCount().tier();
             project.openDocumentCount().decrement();
             ProjectTier after = project.openDocumentCount().tier();
@@ -734,32 +711,14 @@ public final class ProjectServiceImpl implements ProjectService {
         });
     }
 
-    private void scheduleApply(DocumentUri uri) {
-        Optional<DocumentUri> sourceRoot = resolveDebounceRoot(uri);
-        if (sourceRoot.isEmpty()) {
-            return;
-        }
-
-        ScheduledFuture<?> existing = pendingApplies.remove(sourceRoot.get());
-        if (existing != null) {
-            existing.cancel(false);
-        }
-
-        ScheduledFuture<?> scheduled = applyScheduler.schedule(() -> {
-            pendingApplies.remove(sourceRoot.get());
-            drainAndApply();
-        }, debounceMs, TimeUnit.MILLISECONDS);
-        pendingApplies.put(sourceRoot.get(), scheduled);
-    }
-
-    private void drainAndApply() {
+    private void applyBufferedChanges() {
         Set<DocumentUri> affectedRoots = changeApplier.applyAll();
         for (DocumentUri root : affectedRoots) {
             eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, root.uri()));
         }
     }
 
-    private Optional<DocumentUri> resolveDebounceRoot(DocumentUri uri) {
+    private Optional<DocumentUri> resolveProjectRoot(DocumentUri uri) {
         try {
             Optional<Project> project = uriResolver.project(uri);
             if (project.isPresent()) {
