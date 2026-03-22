@@ -19,6 +19,9 @@
 package org.ballerinalang.langserver.workspace;
 
 import io.ballerina.projects.BuildOptions;
+import io.ballerina.projects.Project;
+import io.ballerina.projects.util.ProjectConstants;
+import io.ballerina.projects.util.ProjectPaths;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
@@ -28,13 +31,11 @@ import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.lspgateway.ClientSession;
 import org.ballerinalang.langserver.workspace.lspgateway.WorkspaceManagerFacadeImpl;
-import org.ballerinalang.langserver.workspace.workspacemanager.project.MemoryBudget;
-import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectRegistry;
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.UriResolver;
 import org.eclipse.lsp4j.ClientCapabilities;
 
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Factory that assembles a fully-wired {@link WorkspaceManagerFacadeImpl} from a
@@ -60,17 +61,12 @@ public final class WorkspaceManagerFacadeFactory {
 
         EventSyncPubSubHolder eventBus = new EventSyncPubSubHolder();
         DualSnapshotStore snapshotStore = new DualSnapshotStore();
-        ProjectRegistry projectRegistry = new ProjectRegistry(MemoryBudget.ofMb(512));
-        UriResolver uriResolver = new UriResolver();
         GracePeriod gracePeriod = GracePeriod.ofMillis(2000);
 
         WiringConfiguration config = WiringConfiguration.builder()
                 .eventBus(eventBus)
                 .snapshotStore(snapshotStore)
-                .projectRegistry(projectRegistry)
-                .uriResolver(uriResolver)
-                .projectLoader((root, kind) ->
-                        BallerinaCompilerApi.getInstance().loadProject(Path.of(root.uri()), buildOptions))
+                .projectLoader((requestUri, kind) -> loadProject(Path.of(requestUri.uri()), buildOptions))
                 .gracePeriod(gracePeriod)
                 .build();
 
@@ -84,5 +80,60 @@ public final class WorkspaceManagerFacadeFactory {
                 config.compilationService(),
                 config.executionService()
         );
+    }
+
+    private static Project loadProject(Path filePath, BuildOptions buildOptions) {
+        BallerinaCompilerApi compilerApi = BallerinaCompilerApi.getInstance();
+        Project project = compilerApi.loadProject(filePath, buildOptions);
+
+        if (compilerApi.hasOptimizedDependencyCompilation(project)) {
+            BuildOptions newOptions = BuildOptions.builder()
+                    .setOffline(CommonUtil.COMPILE_OFFLINE)
+                    .setSticky(false)
+                    .build();
+            project = compilerApi.loadProject(filePath, newOptions);
+        }
+
+        if (!compilerApi.isWorkspaceProject(project) && project.currentPackage().dependenciesToml().isPresent()) {
+            BuildOptions newOptions = BuildOptions.builder()
+                    .setOffline(CommonUtil.COMPILE_OFFLINE)
+                    .setSticky(true)
+                    .build();
+            project = compilerApi.loadProject(filePath, newOptions);
+        }
+
+        if (!compilerApi.isWorkspaceProject(project)) {
+            return project;
+        }
+
+        Path projectRoot = computeProjectRoot(filePath);
+        List<Project> workspacePackages = compilerApi.getWorkspaceProjectsInOrder(project);
+        for (Project workspacePackage : workspacePackages) {
+            if (workspacePackage.sourceRoot().equals(projectRoot)) {
+                return workspacePackage;
+            }
+        }
+        return project;
+    }
+
+    private static Path computeProjectRoot(Path path) {
+        if (ProjectPaths.isStandaloneBalFile(path)) {
+            return path;
+        }
+
+        BallerinaCompilerApi compilerApi = BallerinaCompilerApi.getInstance();
+        if (compilerApi.isWorkspaceProjectRoot(path)) {
+            return path;
+        }
+
+        Path parentDir = path.getParent();
+        if (path.getFileName() != null
+                && path.getFileName().toString().equals(ProjectConstants.BALLERINA_TOML)
+                && parentDir != null
+                && compilerApi.isWorkspaceProjectRoot(parentDir)) {
+            return parentDir;
+        }
+
+        return ProjectPaths.packageRoot(path);
     }
 }

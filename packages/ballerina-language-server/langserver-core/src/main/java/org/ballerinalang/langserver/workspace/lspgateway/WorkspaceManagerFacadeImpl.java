@@ -249,6 +249,7 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public void didOpen(Path filePath, DidOpenTextDocumentParams params) throws WorkspaceDocumentException {
+        projectService.loadOrCreate(filePath, null);
         String uriString = params.getTextDocument().getUri();
         String content = params.getTextDocument().getText();
         projectService.didOpen(toDocumentUri(uriString), content);
@@ -256,18 +257,21 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public void didChange(Path filePath, DidChangeTextDocumentParams params) throws WorkspaceDocumentException {
+        projectService.loadOrCreate(filePath, null);
         String uriString = params.getTextDocument().getUri();
         projectService.didChange(toDocumentUri(uriString), params.getContentChanges());
     }
 
     @Override
     public void didClose(Path filePath, DidCloseTextDocumentParams params) {
+        projectService.loadOrCreate(filePath, null);
         String uriString = params.getTextDocument().getUri();
         projectService.didClose(toDocumentUri(uriString));
     }
 
     @Override
     public void didChangeWatched(Path filePath, FileEvent fileEvent) throws WorkspaceDocumentException {
+        projectService.loadOrCreate(filePath, null);
         projectService.didChangeWatchedFiles(List.of(fileEvent));
     }
 

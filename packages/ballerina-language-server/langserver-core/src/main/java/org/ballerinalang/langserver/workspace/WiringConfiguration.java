@@ -31,9 +31,7 @@ import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureMonito
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeApplier;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectLoader;
-import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectRegistry;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.UriResolver;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
@@ -56,17 +54,14 @@ public final class WiringConfiguration implements AutoCloseable {
     private final ExecutionServiceImpl executionService;
     private final WorkspaceTraceLogger traceLogger;
     private final DualSnapshotStore snapshotStore;
-    private final ProjectRegistry projectRegistry;
 
     private WiringConfiguration(Builder builder) {
         this.eventBus = builder.eventBus;
         this.snapshotStore = builder.snapshotStore;
-        this.projectRegistry = builder.projectRegistry;
 
         // Construction order matters — services self-subscribe in constructors.
-        // 1. Shared infrastructure: ChangeBuffer and ChangeApplier (no subscriptions)
+        // 1. Shared infrastructure: ChangeBuffer
         this.changeBuffer = new ChangeBuffer();
-        this.changeApplier = new ChangeApplier(changeBuffer, builder.uriResolver);
 
         // 2. HeapPressureMonitor — started immediately; publishes RM-E1 via lambda bridge
         Consumer<HeapPressureDetected> hpdPublisher = hpd ->
@@ -74,10 +69,9 @@ public final class WiringConfiguration implements AutoCloseable {
         this.heapPressureMonitor = new HeapPressureMonitor(hpdPublisher, builder.heapPressurePollIntervalMs);
         this.heapPressureMonitor.start();
 
-        // 3. ProjectService (subscribes to WM-E8..E11, CE-E2, CE-E5b, RM-E1)
-        this.projectService = new ProjectServiceImpl(
-                builder.projectRegistry, builder.uriResolver, eventBus, builder.projectLoader,
-                changeBuffer);
+        // 3. ProjectService (subscribes to CE and RM events, owns UriResolver and ChangeApplier)
+        this.projectService = new ProjectServiceImpl(eventBus, builder.projectLoader, changeBuffer);
+        this.changeApplier = projectService.changeApplier();
 
         // 4. CompilationService (subscribes to WM-E1, WM-E2, WM-E4, WM-E9, WM-E11)
         this.compilationService = builder.compilationAction != null
@@ -129,10 +123,6 @@ public final class WiringConfiguration implements AutoCloseable {
         return snapshotStore;
     }
 
-    public ProjectRegistry projectRegistry() {
-        return projectRegistry;
-    }
-
     @Override
     public void close() throws Exception {
         heapPressureMonitor.stop();
@@ -149,8 +139,6 @@ public final class WiringConfiguration implements AutoCloseable {
 
         private @Nonnull EventSyncPubSubHolder eventBus;
         private @Nonnull DualSnapshotStore snapshotStore;
-        private @Nonnull ProjectRegistry projectRegistry;
-        private @Nonnull UriResolver uriResolver;
         private @Nonnull ProjectLoader projectLoader;
         private @Nonnull GracePeriod gracePeriod;
         private int maxActiveProcesses = 5;
@@ -164,16 +152,6 @@ public final class WiringConfiguration implements AutoCloseable {
 
         public Builder snapshotStore(DualSnapshotStore snapshotStore) {
             this.snapshotStore = snapshotStore;
-            return this;
-        }
-
-        public Builder projectRegistry(ProjectRegistry projectRegistry) {
-            this.projectRegistry = projectRegistry;
-            return this;
-        }
-
-        public Builder uriResolver(UriResolver uriResolver) {
-            this.uriResolver = uriResolver;
             return this;
         }
 
