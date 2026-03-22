@@ -16,7 +16,9 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.eventbus;
+package org.ballerinalang.langserver.workspace.eventbus.event;
+
+import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

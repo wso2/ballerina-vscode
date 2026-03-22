@@ -16,8 +16,9 @@
  *  under the License.
  */
 
-package org.ballerinalang.langserver.workspace.eventbus;
+package org.ballerinalang.langserver.workspace.eventbus.event;
 
+import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 
 import javax.annotation.Nonnull;
