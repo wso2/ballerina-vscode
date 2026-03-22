@@ -76,7 +76,7 @@ const FormFields = styled.div`
 export interface AIChatAgentWizardProps {
 }
 
-const LISTENER = "Listener";
+const AI_CHAT_AGENT_LISTENER = "aiChatAgentListener";
 const MODEL = "Model";
 const KNOWN_SUFFIXES = ["agent", "model", "listener", "service"];
 
@@ -184,14 +184,6 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                 setNameError(`"${modelName}" already exists. Please choose a different name.`);
                 return false;
             }
-            const listenerName = `${base}Listener`;
-            const isListenerExists = designModelRef.current.listeners.some(
-                listener => listener.symbol.toLowerCase() === listenerName.toLowerCase()
-            );
-            if (isListenerExists) {
-                setNameError(`A listener named "${listenerName}" already exists. Please choose a different name.`);
-                return false;
-            }
         }
         setNameError("");
         return true;
@@ -234,15 +226,6 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             modelNodeTemplate.properties.variable.value = modelVarName;
             await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: projectPath.current, flowNode: modelNodeTemplate });
 
-            // hack: Generate agent at module level for Ballerina versions under 2201.13.0
-            let ballerinaVersion: string | undefined;
-            try {
-                const versionResponse = await rpcClient.getLangClientRpcClient().getBallerinaVersion();
-                ballerinaVersion = versionResponse?.version;
-            } catch (error) {
-                console.warn("Unable to resolve Ballerina version; falling back to legacy agent generation.", error);
-            }
-
             // Search for agent node in the current file
             const agentSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
                 filePath: projectPath.current,
@@ -275,43 +258,49 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
             setCurrentStep(3);
 
-            const mainBalFile = `${projectPath.current}/main.bal`;
+            // Check if the shared listener already exists
+            const listenerExists = designModelRef.current?.listeners.some(
+                listener => listener.symbol.toLowerCase() === AI_CHAT_AGENT_LISTENER.toLowerCase()
+            );
 
-            const payload = {
-                codedata: {
-                    orgName: "ballerina",
-                    packageName: "ai",
-                    moduleName: "ai",
-                    version: "1.0.0",
-                },
-                filePath: mainBalFile
-            };
+            if (!listenerExists) {
+                const mainBalFile = `${projectPath.current}/main.bal`;
 
-            const listenerVariableName = baseName + LISTENER;
-            const listenerResponse = await rpcClient.getServiceDesignerRpcClient().getListenerModel(payload);
+                const payload = {
+                    codedata: {
+                        orgName: "ballerina",
+                        packageName: "ai",
+                        moduleName: "ai",
+                        version: "1.0.0",
+                    },
+                    filePath: mainBalFile
+                };
 
-            const listenerConfiguration = listenerResponse.listener;
-            listenerConfiguration.properties['variableNameKey'].value = listenerVariableName;
-            listenerConfiguration.properties['listenOn'].value = "check http:getDefaultListener()";
+                const listenerResponse = await rpcClient.getServiceDesignerRpcClient().getListenerModel(payload);
 
-            await rpcClient.getServiceDesignerRpcClient().addListenerSourceCode({
-                filePath: "",
-                listener: listenerConfiguration
-            });
+                const listenerConfiguration = listenerResponse.listener;
+                listenerConfiguration.properties['variableNameKey'].value = AI_CHAT_AGENT_LISTENER;
+                listenerConfiguration.properties['listenOn'].value = "check http:getDefaultListener()";
+
+                await rpcClient.getServiceDesignerRpcClient().addListenerSourceCode({
+                    filePath: "",
+                    listener: listenerConfiguration
+                });
+            }
 
             setCurrentStep(4);
 
             const serviceResponse = await rpcClient.getServiceDesignerRpcClient().getServiceModel({
                 filePath: "",
                 moduleName: type,
-                listenerName: listenerVariableName,
+                listenerName: AI_CHAT_AGENT_LISTENER,
                 orgName: aiModuleOrg.current,
             });
 
             const serviceConfiguration = serviceResponse.service;
             serviceConfiguration.properties["listener"].editable = true;
-            serviceConfiguration.properties["listener"].items = [listenerVariableName];
-            serviceConfiguration.properties["listener"].value = listenerVariableName;
+            serviceConfiguration.properties["listener"].items = [AI_CHAT_AGENT_LISTENER];
+            serviceConfiguration.properties["listener"].value = AI_CHAT_AGENT_LISTENER;
             serviceConfiguration.properties["basePath"].value = `/${baseName}`;
             serviceConfiguration.properties["agentName"].value = baseName;
 
