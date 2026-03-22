@@ -341,6 +341,114 @@ public class TrieNodeTest {
         Assert.assertSame(root.removeSubtree(segments("workspace")), root);
     }
 
+    // ── lookupNearest ─────────────────────────────────────────────────────────
+
+    /**
+     * Verifies lookupNearest on an empty trie returns empty.
+     */
+    @Test
+    public void trieNode_lookupNearest_emptyTrie_returnsEmpty() {
+        TrieNode<String> root = new TrieNode<>();
+
+        Assert.assertEquals(root.lookupNearest(segments("workspace", "project", "main.bal"), FILE_SCHEME),
+                Optional.empty());
+    }
+
+    /**
+     * Verifies lookupNearest returns the value when an exact match exists at the full path.
+     */
+    @Test
+    public void trieNode_lookupNearest_exactMatch_returnsValue() {
+        TrieNode<String> root = new TrieNode<String>()
+                .insert(segments("workspace", "project", "main.bal"), FILE_SCHEME, "doc");
+
+        Assert.assertEquals(root.lookupNearest(segments("workspace", "project", "main.bal"), FILE_SCHEME),
+                Optional.of("doc"));
+    }
+
+    /**
+     * Verifies lookupNearest returns the ancestor value when the queried path is deeper than any registered path.
+     */
+    @Test
+    public void trieNode_lookupNearest_ancestorRegistered_returnsAncestorValue() {
+        TrieNode<String> root = new TrieNode<String>()
+                .insert(segments("workspace", "project"), FILE_SCHEME, "project");
+
+        Assert.assertEquals(root.lookupNearest(segments("workspace", "project", "main.bal"), FILE_SCHEME),
+                Optional.of("project"));
+        Assert.assertEquals(root.lookupNearest(segments("workspace", "project", "modules", "auth", "auth.bal"),
+                FILE_SCHEME), Optional.of("project"));
+    }
+
+    /**
+     * Verifies lookupNearest returns the deepest ancestor when multiple ancestors have values.
+     */
+    @Test
+    public void trieNode_lookupNearest_multipleAncestors_returnsDeepest() {
+        TrieNode<String> root = new TrieNode<String>()
+                .insert(segments("workspace"), FILE_SCHEME, "workspace")
+                .insert(segments("workspace", "project"), FILE_SCHEME, "project");
+
+        Assert.assertEquals(root.lookupNearest(segments("workspace", "project", "main.bal"), FILE_SCHEME),
+                Optional.of("project"));
+    }
+
+    /**
+     * Verifies lookupNearest prefers an exact match over a shallower ancestor value.
+     */
+    @Test
+    public void trieNode_lookupNearest_exactMatchPreferredOverAncestor() {
+        TrieNode<String> root = new TrieNode<String>()
+                .insert(segments("workspace", "project"), FILE_SCHEME, "project")
+                .insert(segments("workspace", "project", "main.bal"), FILE_SCHEME, "doc");
+
+        Assert.assertEquals(root.lookupNearest(segments("workspace", "project", "main.bal"), FILE_SCHEME),
+                Optional.of("doc"));
+    }
+
+    /**
+     * Verifies lookupNearest discriminates by scheme — a value registered under one scheme is not
+     * visible under another.
+     */
+    @Test
+    public void trieNode_lookupNearest_schemeDiscrimination_returnsSchemeSpecificAncestor() {
+        TrieNode<String> root = new TrieNode<String>()
+                .insert(segments("workspace", "project"), FILE_SCHEME, "file-project")
+                .insert(segments("workspace", "project"), EXPR_SCHEME, "expr-project");
+
+        Assert.assertEquals(root.lookupNearest(segments("workspace", "project", "main.bal"), FILE_SCHEME),
+                Optional.of("file-project"));
+        Assert.assertEquals(root.lookupNearest(segments("workspace", "project", "main.bal"), EXPR_SCHEME),
+                Optional.of("expr-project"));
+    }
+
+    /**
+     * Verifies lookupNearest returns empty when the path diverges before any registered ancestor.
+     */
+    @Test
+    public void trieNode_lookupNearest_pathDivergesBeforeAnyValue_returnsEmpty() {
+        TrieNode<String> root = new TrieNode<String>()
+                .insert(segments("workspace", "project-a", "main.bal"), FILE_SCHEME, "doc");
+
+        Assert.assertEquals(root.lookupNearest(segments("workspace", "project-b", "main.bal"), FILE_SCHEME),
+                Optional.empty());
+    }
+
+    /**
+     * Verifies lookupNearest stops at the registered ancestor and does not pick up values from sibling branches.
+     */
+    @Test
+    public void trieNode_lookupNearest_siblingBranch_notReturnedForUnrelatedPath() {
+        TrieNode<String> root = new TrieNode<String>()
+                .insert(segments("workspace", "project"), FILE_SCHEME, "project")
+                .insert(segments("workspace", "project", "modules", "auth", "auth.bal"), FILE_SCHEME, "auth-doc");
+
+        // Querying a path that shares the project prefix but goes to a different leaf
+        // should return "project" not "auth-doc"
+        Assert.assertEquals(root.lookupNearest(segments("workspace", "project", "main.bal"), FILE_SCHEME),
+                Optional.of("project"));
+    }
+
     private String[] segments(String... segments) {
         return segments;
     }

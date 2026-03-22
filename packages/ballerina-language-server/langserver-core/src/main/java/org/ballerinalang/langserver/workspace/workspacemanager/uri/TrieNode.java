@@ -129,6 +129,46 @@ public final class TrieNode<V> {
     }
 
     /**
+     * Looks up the deepest ancestor value along the given path for the supplied scheme.
+     *
+     * <p>Traverses the trie following the path segments, tracking the most recently seen
+     * value. If no exact match exists at the full path depth, returns the deepest ancestor's
+     * value. This enables hierarchical resolution — e.g., finding a project entry when
+     * querying a document path that has not been explicitly registered.</p>
+     *
+     * @param pathSegments path segments from root to leaf
+     * @param scheme URI scheme discriminator
+     * @return optional containing the deepest ancestor value when present
+     */
+    public @Nonnull Optional<V> lookupNearest(@Nonnull String[] pathSegments, @Nonnull String scheme) {
+        validatePathSegments(pathSegments);
+        validateScheme(scheme);
+
+        TrieNode<V> node = this;
+        int depth = 0;
+        V nearest = null;
+        while (true) {
+            int matchLength = node.commonPrefixLength(pathSegments, depth);
+            if (matchLength < node.edge.length) {
+                break;
+            }
+            depth += matchLength;
+            V current = node.lookupValue(scheme).orElse(null);
+            if (current != null) {
+                nearest = current;
+            }
+            if (depth == pathSegments.length) {
+                break;
+            }
+            node = node.children.get(pathSegments[depth]);
+            if (node == null) {
+                break;
+            }
+        }
+        return Optional.ofNullable(nearest);
+    }
+
+    /**
      * Returns a new trie root with the value at the given path removed.
      *
      * <p>This compatibility overload uses the default `(file, DOCUMENT)` key.</p>
