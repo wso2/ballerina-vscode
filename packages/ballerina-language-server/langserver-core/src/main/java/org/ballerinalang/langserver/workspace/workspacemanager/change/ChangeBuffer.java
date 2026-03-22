@@ -23,9 +23,11 @@ import org.eclipse.lsp4j.FileEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
@@ -147,6 +149,25 @@ public class ChangeBuffer {
             }
         }
         return false;
+    }
+
+    /**
+     * Returns the set of URIs that currently have pending layered changes.
+     *
+     * @return pending URI set
+     */
+    public Set<DocumentUri> pendingUris() {
+        Set<DocumentUri> result = new HashSet<>();
+        for (Map.Entry<DocumentUri, ConcurrentHashMap<ChangeLayer, ConcurrentLinkedQueue<BufferedChange>>> entry
+                : layeredChanges.entrySet()) {
+            for (ConcurrentLinkedQueue<BufferedChange> queue : entry.getValue().values()) {
+                if (!queue.isEmpty()) {
+                    result.add(entry.getKey());
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     /**

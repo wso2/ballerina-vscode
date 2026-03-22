@@ -24,11 +24,9 @@ import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.workspace.eventbus.event.BatchEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.ballerinalang.langserver.workspace.eventbus.ProjectEvictedEvent;
@@ -36,6 +34,7 @@ import org.ballerinalang.langserver.workspace.eventbus.ProjectKindTransitionedEv
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.BufferedChange;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeApplier;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeLayer;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
@@ -69,6 +68,10 @@ import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -96,6 +99,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class ProjectServiceImpl implements ProjectService, CacheInvalidationListener {
 
+    private static final long DEFAULT_DEBOUNCE_MS = 150L;
     private static final int DEFAULT_HEAP_MB = 64;
     private static final String BALLERINA_TOML = "Ballerina.toml";
     private static final String DEPENDENCIES_TOML = "Dependencies.toml";
@@ -106,11 +110,15 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     private final EventSyncPubSubHolder eventBus;
     private final ProjectLoader loader;
     private final ChangeBuffer changeBuffer;
+    private final ChangeApplier changeApplier;
+    private final ScheduledExecutorService applyScheduler;
+    private final long debounceMs;
     private final ConcurrentHashMap<DocumentUri, Project> ballerinaProjects;
     /** Per-URI monotonically increasing version counter for EDITOR-layer buffered changes. */
     private final ConcurrentHashMap<DocumentUri, AtomicInteger> versionCounters;
     private final ConcurrentHashMap<Path, AtomicInteger> dependenciesSelfWriteTokens;
     private final ConcurrentHashMap<DocumentUri, Set<EventKind>> observedCompilerSignals;
+    private final ConcurrentHashMap<DocumentUri, ScheduledFuture<?>> pendingApplies;
 
     /**
      * Constructs a project service with full wiring of dependencies.
@@ -133,24 +141,50 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     public ProjectServiceImpl(@Nonnull ProjectRegistry registry, @Nonnull UriResolver uriResolver,
                               @Nonnull EventSyncPubSubHolder eventBus, @Nonnull ProjectLoader loader,
                               @Nonnull ChangeBuffer changeBuffer) {
+        this(registry, uriResolver, eventBus, loader, changeBuffer,
+                new ChangeApplier(changeBuffer, uriResolver),
+                Executors.newSingleThreadScheduledExecutor(runnable -> {
+                    Thread thread = new Thread(runnable, "wm-change-apply-scheduler");
+                    thread.setDaemon(true);
+                    return thread;
+                }),
+                DEFAULT_DEBOUNCE_MS);
+    }
+
+    /**
+     * Constructs a project service with injectable change-apply scheduling collaborators.
+     *
+     * @param registry project registry
+     * @param uriResolver URI resolver
+     * @param eventBus event bus
+     * @param loader project loader
+     * @param changeBuffer change buffer
+     * @param changeApplier change applier
+     * @param applyScheduler debounce scheduler
+     * @param debounceMs debounce window in milliseconds
+     */
+    public ProjectServiceImpl(@Nonnull ProjectRegistry registry, @Nonnull UriResolver uriResolver,
+                              @Nonnull EventSyncPubSubHolder eventBus, @Nonnull ProjectLoader loader,
+                              @Nonnull ChangeBuffer changeBuffer, @Nonnull ChangeApplier changeApplier,
+                              @Nonnull ScheduledExecutorService applyScheduler, long debounceMs) {
         this.registry = registry;
         this.uriResolver = uriResolver;
         this.eventBus = eventBus;
         this.loader = loader;
         this.changeBuffer = changeBuffer;
+        this.changeApplier = changeApplier;
+        this.applyScheduler = applyScheduler;
+        this.debounceMs = debounceMs;
         this.ballerinaProjects = new ConcurrentHashMap<>();
         this.versionCounters = new ConcurrentHashMap<>();
         this.dependenciesSelfWriteTokens = new ConcurrentHashMap<>();
         this.observedCompilerSignals = new ConcurrentHashMap<>();
+        this.pendingApplies = new ConcurrentHashMap<>();
 
         // 1. Wire self as registry listener for eviction and batch events
         registry.addListener(this);
 
         // 2. Subscribe to incoming domain events
-        eventBus.subscribe("wm-document-opened", SubscriberTier.CRITICAL,
-                Set.of(EventKind.WM_DOCUMENT_OPENED), this::onDocumentOpened);
-        eventBus.subscribe("wm-document-closed", SubscriberTier.CRITICAL,
-                Set.of(EventKind.WM_DOCUMENT_CLOSED), this::onDocumentClosed);
         eventBus.subscribe("wm-compilation-failed", SubscriberTier.CRITICAL,
                 Set.of(EventKind.COMPILER_COMPILATION_FAILED), this::onCompilationFailed);
         eventBus.subscribe("wm-diagnostics-ready", SubscriberTier.CRITICAL,
@@ -324,49 +358,6 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
     // Event Subscription Handlers
     // =========================================================================
 
-    private void onDocumentOpened(DomainEvent event) {
-        if (!(event instanceof DocumentEvent docEvent)) {
-            return;
-        }
-        Path path = parsePath(docEvent.documentUri().toString());
-        DocumentUri docUri = toFileUri(path);
-        uriResolver.project(docUri).ifPresent(project -> {
-                    // Find the WM project for tier tracking
-                    DocumentUri rootUri = toFileUri(path.toAbsolutePath().normalize());
-                    registry.get(rootUri).ifPresent(wmProject -> {
-                        ProjectTier before = wmProject.openDocumentCount().tier();
-                        wmProject.openDocumentCount().increment();
-                        ProjectTier after = wmProject.openDocumentCount().tier();
-                        if (before != after) {
-                            publishWm(EventKind.WORKSPACE_PROJECT_TIER_CHANGED, wmProject.sourceRoot());
-                        }
-                    });
-                });
-    }
-
-    private void onDocumentClosed(DomainEvent event) {
-        if (!(event instanceof DocumentEvent docEvent)) {
-            return;
-        }
-        Path path = parsePath(docEvent.documentUri().toString());
-        DocumentUri docUri = toFileUri(path);
-        uriResolver.project(docUri).ifPresent(project -> {
-                    // Find the WM project for tier tracking
-                    DocumentUri rootUri = toFileUri(path.toAbsolutePath().normalize());
-                    registry.get(rootUri).ifPresent(wmProject -> {
-                        ProjectTier before = wmProject.openDocumentCount().tier();
-                        wmProject.openDocumentCount().decrement();
-                        ProjectTier after = wmProject.openDocumentCount().tier();
-                        if (wmProject.kind() == ProjectKind.SINGLE_FILE) {
-                            evictProject(path);
-                        }
-                        if (before != after) {
-                            publishWm(EventKind.WORKSPACE_PROJECT_TIER_CHANGED, wmProject.sourceRoot());
-                        }
-                    });
-                });
-    }
-
     private void onCompilationFailed(DomainEvent event) {
         if (!(event instanceof CompilerEvent ce)) {
             return;
@@ -535,8 +526,8 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         TextDocumentContentChangeEvent fullText = new TextDocumentContentChangeEvent(content);
         int version = versionCounters.computeIfAbsent(uri, k -> new AtomicInteger(0)).incrementAndGet();
         changeBuffer.append(uri, new BufferedChange(fullText, ChangeLayer.EDITOR, new ContentVersion(version)));
-
-        publishDoc(EventKind.WM_DOCUMENT_OPENED, uri);
+        incrementOpenDocumentCount(uri);
+        scheduleApply(uri);
     }
 
     @Override
@@ -546,16 +537,14 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             int version = counter.incrementAndGet();
             changeBuffer.append(uri, new BufferedChange(change, ChangeLayer.EDITOR, new ContentVersion(version)));
         }
-
-        publishDoc(EventKind.WM_DOCUMENT_CHANGED, uri);
+        scheduleApply(uri);
     }
 
     @Override
     public void didClose(@Nonnull DocumentUri uri) {
         changeBuffer.clear(uri);
         versionCounters.remove(uri);
-
-        publishDoc(EventKind.WM_DOCUMENT_CLOSED, uri);
+        decrementOpenDocumentCount(uri);
     }
 
     @Override
@@ -565,20 +554,16 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
                 URI uri = URI.create(event.getUri());
                 DocumentUri docUri = new DocumentUri.FileUri(uri);
                 Path filePath = Path.of(uri).toAbsolutePath().normalize();
-                String changeScope;
                 if (isBufferedTomlFile(filePath)) {
                     if (isDependenciesToml(filePath) && consumeDependenciesTomlSelfWrite(filePath)) {
                         continue;
                     }
                     appendWatchedTomlChange(docUri, event.getType());
                     transitionProjectKindIfNeeded(filePath, event.getType());
-                    changeScope = "DEPENDENCY_GRAPH";
                 } else {
                     changeBuffer.routeWatcherEvent(docUri, event);
-                    changeScope = "SOURCE";
                 }
-                URI sourceRootUri = resolveSourceRootUri(docUri);
-                eventBus.publish(new FileWatchedChangedEvent(sourceRootUri, uri, changeScope));
+                scheduleApply(docUri);
             } catch (Exception ignored) {
                 // Malformed or non-file URI — skip this event
             }
@@ -616,6 +601,8 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
      * Shuts down the service and releases resources.
      */
     public void shutdown() {
+        pendingApplies.values().forEach(future -> future.cancel(false));
+        applyScheduler.shutdownNow();
         registry.shutdown();
     }
 
@@ -655,25 +642,6 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
             return new DocumentUri.FileUri(normalized.toUri());
         }
         return new DocumentUri.FileUri((currentCheck != null ? currentCheck : normalized).toUri());
-    }
-
-    /**
-     * Resolves the source root URI for a document URI. Returns null if not resolvable.
-     *
-     * @param docUri the document URI
-     * @return source root URI or null
-     */
-    @Nullable
-    private URI resolveSourceRootUri(DocumentUri docUri) {
-        try {
-            return uriResolver.project(docUri)
-                    .map(this::findSourceRoot)
-                    .filter(root -> root != null)
-                    .map(DocumentUri::uri)
-                    .orElse(null);
-        } catch (Exception ignored) {
-            return null;
-        }
     }
 
     /**
@@ -808,16 +776,89 @@ public final class ProjectServiceImpl implements ProjectService, CacheInvalidati
         }
     }
 
-    /**
-     * Publishes a workspace-manager document event with the document URI as the coalesce scope.
-     * The URI string is used so consumers can reconstruct the path via {@link URI} or {@link Path#of(URI)}.
-     *
-     * @param kind event kind
-     * @param uri  document URI
-     */
-    private void publishDoc(EventKind kind, DocumentUri uri) {
-        URI sourceRootUri = resolveSourceRootUri(uri);
-        eventBus.publish(new DocumentEvent(kind, sourceRootUri, uri.uri()));
+    private void incrementOpenDocumentCount(DocumentUri uri) {
+        resolveDebounceRoot(uri).flatMap(registry::get).ifPresent(project -> {
+            ProjectTier before = project.openDocumentCount().tier();
+            project.openDocumentCount().increment();
+            ProjectTier after = project.openDocumentCount().tier();
+            if (before != after) {
+                publishWm(EventKind.WORKSPACE_PROJECT_TIER_CHANGED, project.sourceRoot());
+            }
+        });
+    }
+
+    private void decrementOpenDocumentCount(DocumentUri uri) {
+        resolveDebounceRoot(uri).flatMap(registry::get).ifPresent(project -> {
+            ProjectTier before = project.openDocumentCount().tier();
+            project.openDocumentCount().decrement();
+            ProjectTier after = project.openDocumentCount().tier();
+            if (project.kind() == ProjectKind.SINGLE_FILE) {
+                evictProject(pathOf(uri));
+            }
+            if (before != after) {
+                publishWm(EventKind.WORKSPACE_PROJECT_TIER_CHANGED, project.sourceRoot());
+            }
+        });
+    }
+
+    private void scheduleApply(DocumentUri uri) {
+        Optional<DocumentUri> sourceRoot = resolveDebounceRoot(uri);
+        if (sourceRoot.isEmpty()) {
+            return;
+        }
+
+        ScheduledFuture<?> existing = pendingApplies.remove(sourceRoot.get());
+        if (existing != null) {
+            existing.cancel(false);
+        }
+
+        ScheduledFuture<?> scheduled = applyScheduler.schedule(() -> {
+            pendingApplies.remove(sourceRoot.get());
+            drainAndApply();
+        }, debounceMs, TimeUnit.MILLISECONDS);
+        pendingApplies.put(sourceRoot.get(), scheduled);
+    }
+
+    private void drainAndApply() {
+        Set<DocumentUri> affectedRoots = changeApplier.applyAll();
+        for (DocumentUri root : affectedRoots) {
+            eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_UPDATED, root.uri()));
+        }
+    }
+
+    private Optional<DocumentUri> resolveDebounceRoot(DocumentUri uri) {
+        try {
+            Optional<Project> project = uriResolver.project(uri);
+            if (project.isPresent()) {
+                DocumentUri root = findSourceRoot(project.get());
+                if (root != null) {
+                    return Optional.of(root);
+                }
+            }
+        } catch (Exception ignored) {
+            // Fall back to path-based root resolution below.
+        }
+
+        try {
+            Path path = pathOf(uri);
+            DocumentUri root = resolveSourceRoot(path);
+            return Optional.of(sourceRootLike(uri, Path.of(root.uri())));
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
+    }
+
+    private DocumentUri sourceRootLike(DocumentUri uri, Path rootPath) {
+        Path normalized = rootPath.toAbsolutePath().normalize();
+        return switch (uri) {
+            case DocumentUri.FileUri ignored -> new DocumentUri.FileUri(normalized.toUri());
+            case DocumentUri.ExprUri ignored -> new DocumentUri.ExprUri(URI.create("expr://" + normalized.toUri().getPath()));
+            case DocumentUri.AiUri ignored -> new DocumentUri.AiUri(URI.create("ai://" + normalized.toUri().getPath()));
+        };
+    }
+
+    private Path pathOf(DocumentUri uri) {
+        return Path.of(uri.uri().getPath()).toAbsolutePath().normalize();
     }
 
     /**

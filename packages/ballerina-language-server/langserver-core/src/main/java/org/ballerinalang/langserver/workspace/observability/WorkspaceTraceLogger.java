@@ -185,14 +185,12 @@ public class WorkspaceTraceLogger implements AutoCloseable {
             case WORKSPACE_PROJECT_REGISTERED,
                  WORKSPACE_PROJECT_EVICTED,
                  WORKSPACE_PROJECT_HEALTH_STATE_CHANGED,
-                 WORKSPACE_PROJECT_KIND_TRANSITIONED,
-                 COMPILER_COMPILATION_FAILED,
-                 CE_RESOLUTION_EXHAUSTED,
-                 EXECUTION_PROCESS_STARTED,
-                 EXECUTION_PROCESS_TERMINATED -> "INFO";
-            case WM_DOCUMENT_OPENED,
-                 WM_DOCUMENT_CLOSED,
-                 WM_DOCUMENT_CHANGED,
+                  WORKSPACE_PROJECT_KIND_TRANSITIONED,
+                  COMPILER_COMPILATION_FAILED,
+                  CE_RESOLUTION_EXHAUSTED,
+                  EXECUTION_PROCESS_STARTED,
+                  EXECUTION_PROCESS_TERMINATED -> "INFO";
+            case WORKSPACE_PROJECT_UPDATED,
                  WM_FILE_WATCHED_CHANGED,
                  COMPILER_SNAPSHOT_PUBLISHED,
                  COMPILER_COMPILATION_CANCELLED -> "DEBUG";

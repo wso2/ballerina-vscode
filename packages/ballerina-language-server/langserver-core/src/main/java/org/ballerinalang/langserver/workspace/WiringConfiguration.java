@@ -21,12 +21,8 @@ package org.ballerinalang.langserver.workspace;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationServiceImpl;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
-import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
-import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
-import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.execution.ExecutionServiceImpl;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.observability.WorkspaceTraceLogger;
@@ -34,20 +30,13 @@ import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureDetect
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureMonitor;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeApplier;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
-import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectLoader;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectRegistry;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.UriResolver;
 
-import java.nio.file.Path;
-import java.util.Set;
-
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Central wiring configuration that constructs and connects all bounded context services
@@ -57,9 +46,6 @@ import java.util.logging.Logger;
  * @since 1.7.0
  */
 public final class WiringConfiguration implements AutoCloseable {
-
-    private static final Logger LOG = Logger.getLogger(WiringConfiguration.class.getName());
-    private static final String STRUCTURAL_TIER = "STRUCTURAL";
 
     private final EventSyncPubSubHolder eventBus;
     private final ChangeBuffer changeBuffer;
@@ -105,63 +91,6 @@ public final class WiringConfiguration implements AutoCloseable {
         // 6. WorkspaceTraceLogger (subscribes to ALL event kinds with BEST_EFFORT)
         this.traceLogger = new WorkspaceTraceLogger(eventBus);
 
-        // 7. Wire cross-context event subscriptions not handled internally by services
-        wireCrossContextSubscriptions();
-    }
-
-    /**
-     * Wires cross-context event subscriptions that bridge bounded contexts.
-     * These are subscriptions required by domain-events.md that are not handled
-     * internally by individual service constructors.
-     */
-    private void wireCrossContextSubscriptions() {
-        // Bridge: WM_FILE_WATCHED_CHANGED (STRUCTURAL scope) → ProjectService kind transition → WM-E4
-        // When Ballerina.toml is created/deleted, the project kind must transition
-        // (SINGLE_FILE ↔ BUILD), triggering CE pipeline teardown/create.
-        // ProjectServiceImpl does not subscribe to WM_FILE_WATCHED_CHANGED internally,
-        // so this bridge is the sole handler for structural config transitions.
-        eventBus.subscribe("wiring-config-structural-bridge", SubscriberTier.CRITICAL,
-                Set.of(EventKind.WM_FILE_WATCHED_CHANGED), this::onStructuralConfigChange);
-    }
-
-    /**
-     * Handles DS-E4 events with STRUCTURAL reactivity tier by triggering
-     * project kind transitions in the workspace manager.
-     *
-     * <p>Only {@link FileWatchedChangedEvent} instances with a {@code changeScope} containing
-     * {@value #STRUCTURAL_TIER} trigger kind transitions (Ballerina.toml create/delete).
-     */
-    private void onStructuralConfigChange(DomainEvent event) {
-        if (!(event instanceof FileWatchedChangedEvent fwce)) {
-            return;
-        }
-        if (!fwce.changeScope().contains(STRUCTURAL_TIER)) {
-            return;
-        }
-
-        // Determine source root URI from the event
-        if (fwce.sourceRoot() == null) {
-            return;
-        }
-        Path rootPath;
-        try {
-            rootPath = Path.of(fwce.sourceRoot()).toAbsolutePath().normalize();
-        } catch (Exception e) {
-            LOG.log(Level.FINE, "Could not parse source root from DS-E4 event: " + fwce.sourceRoot(), e);
-            return;
-        }
-
-        DocumentUri root = new DocumentUri.FileUri(rootPath.toUri());
-
-        // Determine new kind: if Ballerina.toml exists → BUILD, otherwise → SINGLE_FILE
-        boolean tomlExists = rootPath.resolve("Ballerina.toml").toFile().exists();
-        ProjectKind newKind = tomlExists ? ProjectKind.BUILD : ProjectKind.SINGLE_FILE;
-
-        try {
-            projectService.transitionKind(root, newKind);
-        } catch (Exception e) {
-            LOG.log(Level.FINE, "Kind transition skipped for " + root + ": " + e.getMessage());
-        }
     }
 
     public static Builder builder() {

@@ -28,11 +28,9 @@ import org.ballerinalang.langserver.workspace.compilerengine.snapshot.SnapshotVi
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.eventbus.FileWatchedChangedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
@@ -318,14 +316,9 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         eventBus.subscribe("ce-workspace-events", SubscriberTier.CRITICAL,
                 Set.of(EventKind.WORKSPACE_PROJECT_REGISTERED,
                        EventKind.WORKSPACE_PROJECT_EVICTED,
-                       EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED),
+                       EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED,
+                       EventKind.WORKSPACE_PROJECT_UPDATED),
                 this::handleWorkspaceEvent);
-
-        eventBus.subscribe("ce-document-events", SubscriberTier.COALESCEABLE,
-                Set.of(EventKind.WM_DOCUMENT_OPENED,
-                       EventKind.WM_DOCUMENT_CHANGED,
-                       EventKind.WM_FILE_WATCHED_CHANGED),
-                this::handleDocumentEvent);
 
         eventBus.subscribe("ce-heap-pressure-events", SubscriberTier.CRITICAL,
                 Set.of(EventKind.RM_E1_HEAP_PRESSURE_DETECTED), this::handleHeapPressureEvent);
@@ -344,39 +337,14 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                 evictPipeline(sourceRootIdentifier);
                 createPipelineIfAbsent(sourceRootIdentifier);
             }
+            case WORKSPACE_PROJECT_UPDATED -> handleProjectUpdated(event);
             default -> {
                 // No-op for unexpected event kinds
             }
         }
     }
 
-    private void handleDocumentEvent(DomainEvent event) {
-        switch (event.eventKind()) {
-            case WM_DOCUMENT_OPENED -> handleDocumentOpened(event);
-            case WM_DOCUMENT_CHANGED -> handleDocumentChanged(event);
-            case WM_FILE_WATCHED_CHANGED -> handleFileWatchedChanged(event);
-            default -> {
-                // No-op for unexpected event kinds
-            }
-        }
-    }
-
-    private void handleDocumentOpened(DomainEvent event) {
-        handleDocumentChanged(event);
-    }
-
-    private void handleDocumentChanged(DomainEvent event) {
-        Set<CompilationKey> keys = resolveKeys(event);
-        if (keys != null) {
-            keys.forEach(this::requestCompilationWithThrottle);
-        }
-    }
-
-    private void handleFileWatchedChanged(DomainEvent event) {
-        if (!(event instanceof FileWatchedChangedEvent fwce) || !isDependencyGraphChange(fwce.changeScope())) {
-            return;
-            // "CONFIGURATION" scope is ignored
-        }
+    private void handleProjectUpdated(DomainEvent event) {
         Set<CompilationKey> keys = resolveKeys(event);
         if (keys != null) {
             keys.forEach(this::requestCompilationWithThrottle);
@@ -513,15 +481,10 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     private String sourceRootIdentifier(DomainEvent event) {
         URI uri = switch (event) {
             case ProjectEvent pe    -> pe.sourceRoot();
-            case DocumentEvent de   -> de.sourceRoot();
             case CompilerEvent ce   -> ce.sourceRoot();
             default                 -> null;
         };
         return uri == null ? null : UriResolver.pathOf(uri);
-    }
-
-    private boolean isDependencyGraphChange(String scope) {
-        return "DEPENDENCY_GRAPH".equals(scope) || scope.contains("|DEPENDENCY_GRAPH|");
     }
 
     private static Semaphore buildSemaphore(int maxConcurrentCompilations) {

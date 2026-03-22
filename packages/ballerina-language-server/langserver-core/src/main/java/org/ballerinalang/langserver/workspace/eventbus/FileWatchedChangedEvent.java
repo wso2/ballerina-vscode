@@ -18,11 +18,12 @@
 
 package org.ballerinalang.langserver.workspace.eventbus;
 
-import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
@@ -33,7 +34,11 @@ import java.util.UUID;
  *
  * @since 1.7.0
  */
-public final class FileWatchedChangedEvent extends DocumentEvent {
+public final class FileWatchedChangedEvent extends DomainEvent {
+
+    @Nullable
+    private final URI sourceRoot;
+    private final URI documentUri;
 
     private final String changeScope;
 
@@ -58,8 +63,35 @@ public final class FileWatchedChangedEvent extends DocumentEvent {
      */
     public FileWatchedChangedEvent(@Nullable URI sourceRoot, @Nonnull URI documentUri, @Nonnull String changeScope,
                                    @Nullable UUID causationId) {
-        super(EventKind.WM_FILE_WATCHED_CHANGED, sourceRoot, documentUri, causationId);
+        super(Instant.now(), EventKind.WM_FILE_WATCHED_CHANGED, causationId);
+        this.sourceRoot = sourceRoot;
+        this.documentUri = documentUri;
         this.changeScope = changeScope;
+    }
+
+    @Override
+    public String coalesceScope() {
+        return documentUri.toString();
+    }
+
+    /**
+     * Returns the project source root URI, or {@code null} if not resolved.
+     *
+     * @return source root URI or null
+     */
+    @Nullable
+    public URI sourceRoot() {
+        return sourceRoot;
+    }
+
+    /**
+     * Returns the watched document URI.
+     *
+     * @return watched document URI
+     */
+    @Nonnull
+    public URI documentUri() {
+        return documentUri;
     }
 
     /**
@@ -75,6 +107,10 @@ public final class FileWatchedChangedEvent extends DocumentEvent {
     @Override
     public Map<String, String> serialize() {
         Map<String, String> fields = super.serialize();
+        if (sourceRoot != null) {
+            fields.put("sourceRoot", sourceRoot.toString());
+        }
+        fields.put("documentUri", documentUri.toString());
         fields.put("changeScope", changeScope);
         return fields;
     }

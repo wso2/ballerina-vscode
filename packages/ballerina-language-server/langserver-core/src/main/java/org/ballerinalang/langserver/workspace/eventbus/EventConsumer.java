@@ -20,7 +20,6 @@ package org.ballerinalang.langserver.workspace.eventbus;
 
 import org.ballerinalang.langserver.workspace.eventbus.event.BatchEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.DocumentEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProcessEvent;
@@ -36,7 +35,6 @@ import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
  *
  * <p>Subtypes must appear before supertypes in the switch to ensure most-specific match:
  * {@link ProjectEvictedEvent} before {@link ProjectEvent},
- * {@link FileWatchedChangedEvent} before {@link DocumentEvent},
  * {@link ProcessOutputEvent} before {@link ProcessEvent}.
  *
  * @since 1.7.0
@@ -53,8 +51,6 @@ public interface EventConsumer {
             case ProjectEvictedEvent e          -> onProjectEvicted(e);
             case ProjectKindTransitionedEvent e -> onProjectKindTransitioned(e);
             case ProjectEvent e                 -> onProjectEvent(e);
-            case FileWatchedChangedEvent e      -> onFileWatchedChanged(e);
-            case DocumentEvent e                -> onDocumentEvent(e);
             case CompilerEvent e                -> onCompilerEvent(e);
             case ProcessOutputEvent e           -> onProcessOutput(e);
             case ProcessEvent e                 -> onProcessEvent(e);
@@ -84,20 +80,6 @@ public interface EventConsumer {
      * @param event the project kind transitioned event
      */
     default void onProjectKindTransitioned(ProjectKindTransitionedEvent event) { }
-
-    /**
-     * Called when a document is opened, changed, or closed.
-     *
-     * @param event the document event
-     */
-    default void onDocumentEvent(DocumentEvent event) { }
-
-    /**
-     * Called when a watched file changes on disk.
-     *
-     * @param event the file watched changed event
-     */
-    default void onFileWatchedChanged(FileWatchedChangedEvent event) { }
 
     /**
      * Called for all compilation engine events (CE-E1 through CE-E7).
