@@ -59,6 +59,30 @@ const RequestRow = styled.div`
     min-height: 22px;
 `;
 
+const RequestToggleRow = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0 2px;
+    min-height: 22px;
+    cursor: pointer;
+    border-radius: 2px;
+    &:hover {
+        background-color: var(--vscode-toolbar-hoverBackground);
+    }
+`;
+
+const ChevronIcon = styled.span<{ expanded: boolean }>`
+    font-size: 11px;
+    flex-shrink: 0;
+    color: var(--vscode-descriptionForeground);
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    transform: rotate(${(props: { expanded: boolean }) => props.expanded ? "0deg" : "-90deg"});
+    transition: transform 0.2s ease;
+`;
+
 const MethodBadge = styled.span<{ method: string }>`
     display: inline-block;
     padding: 1px 5px;
@@ -87,22 +111,6 @@ const StatusBadge = styled.span<{ status: number }>`
     flex-shrink: 0;
 `;
 
-const ExpandButton = styled.button`
-    background: none;
-    border: none;
-    color: var(--vscode-descriptionForeground);
-    cursor: pointer;
-    padding: 2px;
-    border-radius: 3px;
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    &:hover {
-        color: var(--vscode-foreground);
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
-`;
 
 const DetailsBlock = styled.div`
     border-top: 1px solid var(--vscode-panel-border);
@@ -282,7 +290,7 @@ const HTTPRequestDetail: React.FC<HTTPRequestDetailProps> = ({ request, output }
 
     return (
         <>
-            <RequestRow>
+            <RequestToggleRow onClick={() => setExpanded(p => !p)}>
                 {!isResult ? (
                     <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
                         <span className="codicon codicon-loading codicon-modifier-spin" />
@@ -295,13 +303,10 @@ const HTTPRequestDetail: React.FC<HTTPRequestDetailProps> = ({ request, output }
                 <MethodBadge method={request.method}>{request.method}</MethodBadge>
                 <UrlLabel>{request.url}</UrlLabel>
                 {statusCode !== undefined && <StatusBadge status={statusCode}>{statusCode}</StatusBadge>}
-                <ExpandButton onClick={() => setExpanded(p => !p)} title={expanded ? "Collapse" : "Expand"}>
-                    <span
-                        className="codicon codicon-chevron-down"
-                        style={{ display: "inline-flex", transform: expanded ? "rotate(0deg)" : "rotate(-90deg)", transition: "transform 0.2s ease" }}
-                    />
-                </ExpandButton>
-            </RequestRow>
+                <ChevronIcon expanded={expanded}>
+                    <span className="codicon codicon-chevron-down" />
+                </ChevronIcon>
+            </RequestToggleRow>
 
             {expanded && (
                 <DetailsBlock>
