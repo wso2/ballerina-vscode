@@ -117,7 +117,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <></>;
     } else if (fieldInputType.fieldType === "GROUP_SECTION") {
         return (
-            <FormSectionGroup title={field.label}>
+            <FormSectionGroup title={field.label} defaultExpanded={fieldInputType.selected !== false}>
                 {field.advanceProps?.map((childField) => (
                     <FieldFactory
                         key={childField.key}

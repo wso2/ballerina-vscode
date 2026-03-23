@@ -84,11 +84,17 @@ export function ChoiceForm(props: ChoiceFormProps) {
         const choiceProperty = convertConfig(property);
         setDynamicFields(choiceProperty);
         if (choiceProperty.length > 0) {
-            Object.entries(property.properties).forEach(([propKey, propValue]) => {
-                if (propValue.value !== undefined) {
-                    setValue(propKey, propValue.value);
-                }
-            });
+            const setPropertyValues = (properties: Record<string, PropertyModel>) => {
+                Object.entries(properties).forEach(([propKey, propValue]) => {
+                    const fieldType = getPrimaryInputType(propValue.types)?.fieldType;
+                    if (fieldType === "GROUP_SECTION" && propValue.properties) {
+                        setPropertyValues(propValue.properties);
+                    } else if (propValue.value !== undefined) {
+                        setValue(propKey, propValue.value);
+                    }
+                });
+            };
+            setPropertyValues(property.properties);
         }
     }, [selectedOption]);
 
@@ -116,6 +122,18 @@ export function ChoiceForm(props: ChoiceFormProps) {
                 }
             }
 
+            // For TEXT_SET fields, use the values array instead of value
+            let value: any = expression.value;
+            if (fieldType === "TEXT_SET") {
+                if (expression.values && expression.values.length > 0) {
+                    value = expression.values;
+                } else if (expression.value) {
+                    value = [expression.value];
+                } else {
+                    value = [];
+                }
+            }
+
             const formField: FormField = {
                 key: key,
                 label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
@@ -125,7 +143,7 @@ export function ChoiceForm(props: ChoiceFormProps) {
                 editable: expression.editable,
                 enabled: expression?.enabled ?? true,
                 optional: expression.optional,
-                value: expression.value,
+                value,
                 advanced: expression.advanced,
                 diagnostics: [],
                 items,
