@@ -207,6 +207,7 @@ const ChatHeader = styled.div`
     z-index: 2;
     border-bottom: 1px solid var(--vscode-panel-border);
     gap: 6px;
+    flex-wrap: wrap;
 `;
 
 const ClearChatButton = styled.button`
@@ -220,6 +221,7 @@ const ClearChatButton = styled.button`
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    white-space: nowrap;
 
     &:hover {
         background-color: var(--vscode-list-hoverBackground);
@@ -228,6 +230,12 @@ const ClearChatButton = styled.button`
     &:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+    }
+`;
+
+const ButtonLabel = styled.span`
+    @media (max-width: 400px) {
+        display: none;
     }
 `;
 
@@ -306,6 +314,7 @@ const AgentSelectorWrapper = styled.div`
     position: relative;
     display: inline-flex;
     align-items: center;
+    min-width: 0;
 `;
 
 const AgentSelectorButton = styled.button`
@@ -320,6 +329,7 @@ const AgentSelectorButton = styled.button`
     align-items: center;
     gap: 6px;
     max-width: 200px;
+    min-width: 0;
 
     &:hover {
         background-color: var(--vscode-list-hoverBackground);
@@ -331,6 +341,10 @@ const AgentSelectorName = styled.span`
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
+
+    @media (max-width: 500px) {
+        display: none;
+    }
 `;
 
 const AgentDropdown = styled.div`
@@ -872,12 +886,12 @@ const ChatInterface: React.FC = () => {
                         {isTracingEnabled && hasTraces && (
                             <ClearChatButton onClick={handleShowSessionLogs} disabled={isLoading} title="View traces for the entire conversation">
                                 <span className="codicon codicon-list-tree" />
-                                Session Traces
+                                <ButtonLabel>Session Traces</ButtonLabel>
                             </ClearChatButton>
                         )}
-                        <ClearChatButton onClick={handleClearChat} disabled={isLoading}>
+                        <ClearChatButton onClick={handleClearChat} disabled={isLoading} title="Clear chat">
                             <Icon name="bi-delete" sx={{ fontSize: 16, width: 16, height: 16 }} iconSx={{ fontSize: "16px" }} />
-                            Clear Chat
+                            <ButtonLabel>Clear Chat</ButtonLabel>
                         </ClearChatButton>
                     </>
                 )}
