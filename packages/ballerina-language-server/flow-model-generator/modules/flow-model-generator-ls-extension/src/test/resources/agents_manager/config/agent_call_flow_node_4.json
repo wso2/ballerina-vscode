@@ -748,7 +748,7 @@
                   "advanced": false,
                   "hidden": false
                 },
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
@@ -756,7 +756,92 @@
                 "selected": false
               }
             ],
-            "value": "[set, sum, mutiply]",
+            "value": [
+              {
+                "types": [
+                  {
+                    "fieldType": "RECORD_MAP_EXPRESSION",
+                    "ballerinaType": "ai:ToolConfig",
+                    "typeMembers": [
+                      {
+                        "type": "ToolConfig",
+                        "packageInfo": "ballerinax:ai:1.0.1",
+                        "packageName": "ai",
+                        "kind": "RECORD_TYPE",
+                        "selected": false
+                      }
+                    ],
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool",
+                    "selected": true
+                  }
+                ],
+                "value": "set",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              {
+                "types": [
+                  {
+                    "fieldType": "RECORD_MAP_EXPRESSION",
+                    "ballerinaType": "ai:ToolConfig",
+                    "typeMembers": [
+                      {
+                        "type": "ToolConfig",
+                        "packageInfo": "ballerinax:ai:1.0.1",
+                        "packageName": "ai",
+                        "kind": "RECORD_TYPE",
+                        "selected": false
+                      }
+                    ],
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool",
+                    "selected": true
+                  }
+                ],
+                "value": "sum",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              {
+                "types": [
+                  {
+                    "fieldType": "RECORD_MAP_EXPRESSION",
+                    "ballerinaType": "ai:ToolConfig",
+                    "typeMembers": [
+                      {
+                        "type": "ToolConfig",
+                        "packageInfo": "ballerinax:ai:1.0.1",
+                        "packageName": "ai",
+                        "kind": "RECORD_TYPE",
+                        "selected": false
+                      }
+                    ],
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool",
+                    "selected": true
+                  }
+                ],
+                "value": "mutiply",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            ],
             "placeholder": "[]",
             "optional": true,
             "editable": true,

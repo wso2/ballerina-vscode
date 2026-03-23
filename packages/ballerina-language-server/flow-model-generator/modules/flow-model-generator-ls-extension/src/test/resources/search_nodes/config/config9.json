@@ -136,7 +136,7 @@
                 "advanced": false,
                 "hidden": false
               },
-              "selected": false
+              "selected": true
             },
             {
               "fieldType": "EXPRESSION",
@@ -144,7 +144,7 @@
               "selected": false
             }
           ],
-          "value": "[]",
+          "value": [],
           "placeholder": "[]",
           "optional": true,
           "editable": true,
