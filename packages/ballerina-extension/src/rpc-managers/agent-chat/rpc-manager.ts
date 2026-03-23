@@ -475,6 +475,13 @@ export class AgentChatRpcManager implements AgentChatAPI {
             if (extension.agentChatContext) {
                 extension.agentChatContext.chatSessionId = newSessionId;
 
+                // Sync the new session ID to the active agent in the agents array
+                const activeAgentName = extension.agentChatContext.activeAgentName;
+                const activeAgent = extension.agentChatContext.agents?.find(a => a.name === activeAgentName);
+                if (activeAgent) {
+                    activeAgent.chatSessionId = newSessionId;
+                }
+
                 // Mark the new session as active
                 AgentChatRpcManager.activeSessions.add(newSessionId);
 
