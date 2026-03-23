@@ -20,81 +20,9 @@ import React, { useState, useEffect } from "react";
 import styled from "@emotion/styled";
 import { FooterContainer } from "./index";
 import { ActionButton } from "../../AgentStreamView/styles";
+import { FooterBox, FooterBoxPrompt, FooterDivider, FooterTextInputRow, FooterInput, FooterIconBtn } from "./styles";
 
-// ── Shared layout ─────────────────────────────────────────────────────────────
-
-const ApprovalContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-`;
-
-const PromptText = styled.div`
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--vscode-editor-foreground);
-    font-family: var(--vscode-font-family);
-    margin-bottom: 4px;
-    padding-left: 2px;
-`;
-
-// ── Plan / completion styles ───────────────────────────────────────────────────
-
-
-const InputContainer = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    background-color: var(--vscode-input-background);
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    padding: 8px 14px;
-    height: 36px;
-    box-sizing: border-box;
-
-    &:focus-within {
-        border-color: var(--vscode-focusBorder);
-    }
-`;
-
-const Input = styled.input`
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--vscode-input-foreground);
-    font-family: var(--vscode-font-family);
-    font-size: 12px;
-    outline: none;
-    padding: 0;
-
-    &::placeholder {
-        color: var(--vscode-input-placeholderForeground);
-    }
-`;
-
-const SendButton = styled.button`
-    background: transparent;
-    border: none;
-    color: var(--vscode-icon-foreground);
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 3px;
-
-    &:hover:not(:disabled) {
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
-
-    &:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-    }
-`;
-
-// ── Web tool styles ────────────────────────────────────────────────────────────
+// ── Web tool styles (footer-specific, not shared) ─────────────────────────────
 
 const WebToolHeader = styled.div`
     display: flex;
@@ -111,9 +39,12 @@ const WebToolContent = styled.div`
     color: var(--vscode-descriptionForeground);
     font-family: var(--vscode-font-family);
     word-break: break-all;
-    padding-left: 2px;
 `;
 
+const WebToolActions = styled.div`
+    display: flex;
+    gap: 8px;
+`;
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -148,15 +79,18 @@ const CommonApprovalFooter: React.FC<CommonApprovalFooterProps> = (props) => {
         const label = toolName === "web_search" ? "Web Search" : "Web Fetch";
         return (
             <FooterContainer>
-                <ApprovalContainer>
+                <FooterBox>
                     <WebToolHeader>
                         <span className="codicon codicon-globe" />
                         {label}
                     </WebToolHeader>
                     <WebToolContent>{content}</WebToolContent>
-                    <ActionButton onClick={onAllow}>Allow</ActionButton>
-                    <ActionButton variant="secondary" onClick={onDeny}>Deny</ActionButton>
-                </ApprovalContainer>
+                    <FooterDivider />
+                    <WebToolActions>
+                        <ActionButton onClick={onAllow}>Allow</ActionButton>
+                        <ActionButton variant="secondary" onClick={onDeny}>Deny</ActionButton>
+                    </WebToolActions>
+                </FooterBox>
             </FooterContainer>
         );
     }
@@ -165,6 +99,7 @@ const CommonApprovalFooter: React.FC<CommonApprovalFooterProps> = (props) => {
     const { type, onApprove, onReject, isSubmitting = false } = props;
 
     const promptText = type === "plan" ? "Does this plan look right?" : "Ready to continue?";
+    const approveIcon = type === "plan" ? "codicon-play" : "codicon-check";
     const approveButtonText = type === "plan" ? "Start building" : "Approve";
 
     const handleRejectSubmit = () => {
@@ -186,13 +121,19 @@ const CommonApprovalFooter: React.FC<CommonApprovalFooterProps> = (props) => {
 
     return (
         <FooterContainer>
-            <ApprovalContainer>
-                <PromptText>{promptText}</PromptText>
-                <ActionButton onClick={() => onApprove(false)} disabled={isSubmitting}>
+            <FooterBox>
+                <FooterBoxPrompt>{promptText}</FooterBoxPrompt>
+                <FooterDivider />
+                <ActionButton
+                    onClick={() => onApprove(false)}
+                    disabled={isSubmitting}
+                    style={{ justifyContent: "flex-start", gap: "6px" }}
+                >
+                    <span className={`codicon ${approveIcon}`} style={{ fontSize: "12px" }} />
                     {approveButtonText}
                 </ActionButton>
-                <InputContainer>
-                    <Input
+                <FooterTextInputRow>
+                    <FooterInput
                         type="text"
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
@@ -200,15 +141,15 @@ const CommonApprovalFooter: React.FC<CommonApprovalFooterProps> = (props) => {
                         placeholder="What should be different?"
                         disabled={isSubmitting}
                     />
-                    <SendButton
+                    <FooterIconBtn
                         onClick={handleRejectSubmit}
                         disabled={!comment.trim() || isSubmitting}
                         title="Request Revision"
                     >
-                        <span className="codicon codicon-send" />
-                    </SendButton>
-                </InputContainer>
-            </ApprovalContainer>
+                        <span className="codicon codicon-send" style={{ fontSize: "14px" }} />
+                    </FooterIconBtn>
+                </FooterTextInputRow>
+            </FooterBox>
         </FooterContainer>
     );
 };

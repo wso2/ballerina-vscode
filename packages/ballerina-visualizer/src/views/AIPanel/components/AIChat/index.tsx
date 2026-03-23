@@ -36,10 +36,11 @@ import {
     CodeContext,
     ApprovalOverlayState,
     WebToolToggle,
+    LoginMethod,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 
 import { AIChatInputRef } from "../AIChatInput";
 import ToolCallSegment from "../ToolCallSegment";
@@ -53,7 +54,7 @@ import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../C
 import CheckpointSeparator from "../CheckpointSeparator";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 
-import { AIChatView, Header, HeaderButtons, ChatMessage, TurnGroup, Badge, ResetsInBadge, ApprovalOverlay, OverlayMessage } from "../../styles";
+import { AIChatView, Header, HeaderButtons, ChatMessage, TurnGroup, AuthProviderChip, UsageBadge, ApprovalOverlay, OverlayMessage } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import MarkdownRenderer from "../MarkdownRenderer";
@@ -195,6 +196,7 @@ const AIChat: React.FC = () => {
 
     const [usage, setUsage] = useState<{ remainingUsagePercentage: number; resetsIn: number } | null>(null);
     const [isUsageExceeded, setIsUsageExceeded] = useState(false);
+    const [loginMethod, setLoginMethod] = useState<LoginMethod | null>(null);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -316,7 +318,16 @@ const AIChat: React.FC = () => {
         }
     };
 
-    useEffect(() => { fetchUsage(); }, []);
+    const fetchLoginMethod = async () => {
+        try {
+            const method = await rpcClient.getAiPanelRpcClient().getLoginMethod();
+            setLoginMethod(method);
+        } catch (e) {
+            console.error("Failed to fetch login method:", e);
+        }
+    };
+
+    useEffect(() => { fetchUsage(); fetchLoginMethod(); }, []);
 
     const handleCheckpointRestore = async (checkpointId: string) => {
         try {
@@ -1408,34 +1419,46 @@ const AIChat: React.FC = () => {
                         </ApprovalOverlay>
                     )}
                     <Header>
-                        <Badge>
-                            {usage ? (
-                                <>
-                                    Remaining Usage: {usage.resetsIn === -1 ? "Unlimited" : (isUsageExceeded ? "Exceeded" : `${Math.round(usage.remainingUsagePercentage)}%`)}
-                                    {usage.resetsIn !== -1 && (
-                                        <>
-                                            <br />
-                                            <ResetsInBadge title={formatResetsInExact(usage.resetsIn)}>{`Resets in: ${formatResetsIn(usage.resetsIn)}`}</ResetsInBadge>
-                                        </>
-                                    )}
-                                </>
-                            ) : (
-                                "Remaining Usage: N/A"
-                            )}
-                        </Badge>
+                        {loginMethod === LoginMethod.ANTHROPIC_KEY || loginMethod === LoginMethod.AWS_BEDROCK || loginMethod === LoginMethod.VERTEX_AI ? (
+                            <AuthProviderChip>
+                                <UsageBadge>
+                                    <span className="codicon codicon-key" style={{ fontSize: 11 }} />
+                                    {loginMethod === LoginMethod.ANTHROPIC_KEY ? "Anthropic (own key)"
+                                        : loginMethod === LoginMethod.AWS_BEDROCK ? "AWS Bedrock (own key)"
+                                        : "Vertex AI (own key)"}
+                                </UsageBadge>
+                            </AuthProviderChip>
+                        ) : (
+                            <AuthProviderChip>
+                                Remaining Usage:
+                                <UsageBadge>
+                                    {!usage ? "N/A"
+                                        : usage.resetsIn === -1 ? "Unlimited"
+                                        : isUsageExceeded ? "Exceeded"
+                                        : `${Math.round(usage.remainingUsagePercentage)}%`}
+                                </UsageBadge>
+                                {usage && usage.resetsIn !== -1 && (
+                                    <span style={{ fontSize: 10, opacity: 0.7 }} title={formatResetsInExact(usage.resetsIn)}>
+                                        Resets in: {formatResetsIn(usage.resetsIn)}
+                                    </span>
+                                )}
+                            </AuthProviderChip>
+                        )}
                         <HeaderButtons>
-                            <Button
-                                appearance="icon"
-                                onClick={() => handleClearChat()}
-                                tooltip="Clear Chat"
-                                disabled={isLoading}
-                            >
-                                <Codicon name="clear-all" />
-                                &nbsp;&nbsp;Clear
-                            </Button>
+                            {otherMessages.length > 0 && (
+                                <Button
+                                    appearance="icon"
+                                    onClick={() => handleClearChat()}
+                                    tooltip="Clear Chat"
+                                    disabled={isLoading}
+                                >
+                                    <Icon name="PlaylistRemove" sx={{ fontSize: "18px", marginRight: 6 }} iconSx={{ position: "relative"}} />
+                                    Clear
+                                </Button>
+                            )}
                             <Button appearance="icon" onClick={() => handleSettings()} tooltip="Settings">
-                                <Codicon name="settings-gear" />
-                                &nbsp;&nbsp;Settings
+                                <Icon name="SettingsRounded" sx={{ fontSize: "18px", marginRight: 6 }} iconSx={{ position: "relative" }} />
+                                Settings
                             </Button>
                         </HeaderButtons>
                     </Header>

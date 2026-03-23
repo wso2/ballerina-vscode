@@ -49,6 +49,45 @@ import { StreamEntry, StreamItem } from "./types";
 
 const COMMAND_OUTPUT_TOOLS = new Set(["runBallerinaPackage", "runTests", "getServiceLogs", "stopBallerinaService"]);
 
+// ── Tool icon mapping ─────────────────────────────────────────────────────────
+
+interface ToolIconEntry { loading: string; done?: string; }
+
+const TOOL_ICON_MAP: Record<string, ToolIconEntry> = {
+    file_read:                     { loading: "codicon-go-to-file" },
+    file_write:                    { loading: "codicon-edit" },
+    file_edit:                     { loading: "codicon-edit" },
+    file_batch_edit:               { loading: "codicon-edit" },
+    LibrarySearchTool:             { loading: "codicon-package" },
+    LibraryGetTool:                { loading: "codicon-package" },
+    HealthcareLibraryProviderTool: { loading: "codicon-package" },
+    web_search:                    { loading: "codicon-search" },
+    web_fetch:                     { loading: "codicon-globe" },
+    runTests:                      { loading: "codicon-beaker" },
+    runBallerinaPackage:           { loading: "codicon-play" },
+    getServiceLogs:                { loading: "codicon-output" },
+    stopBallerinaService:          { loading: "codicon-debug-stop" },
+    getCompilationErrors:          { loading: "codicon-pulse", done: "codicon-pass-filled" },
+    TaskWrite:                     { loading: "codicon-checklist" },
+    ConfigCollector:               { loading: "codicon-settings-gear" },
+    ConnectorGeneratorTool:        { loading: "codicon-plug" },
+};
+const DEFAULT_TOOL_ICON = "codicon-symbol-property";
+
+function getToolIcon(toolName: string | undefined, state: "loading" | "done" = "loading"): string {
+    const entry = toolName ? TOOL_ICON_MAP[toolName] : undefined;
+    if (!entry) return DEFAULT_TOOL_ICON;
+    return state === "done" ? (entry.done ?? entry.loading) : entry.loading;
+}
+
+function getToolResultIcon(toolName: string | undefined, toolOutput: any): string {
+    if (toolName === "getCompilationErrors") {
+        const count = toolOutput?.diagnostics?.length ?? 0;
+        return count > 0 ? "codicon-warning" : "codicon-pass-filled";
+    }
+    return getToolIcon(toolName, "done");
+}
+
 // ── Tool display helpers ───────────────────────────────────────────────────────
 
 function getFileName(filePath: string | undefined): string {
@@ -153,7 +192,7 @@ function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamAc
             return (
                 <ItemRow key={idx}>
                     <ToolIcon loading={streamActive}>
-                        <span className="codicon codicon-symbol-property" />
+                        <span className={`codicon ${getToolIcon(item.toolName, "loading")}`} />
                     </ToolIcon>
                     <ItemLabel loading={streamActive}>
                         {label}{detail && <ItemDetail title={detail}>{detail}</ItemDetail>}
@@ -173,7 +212,7 @@ function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamAc
             return (
                 <ItemRow key={idx}>
                     <ToolIcon loading={false} failed={item.failed}>
-                        <span className="codicon codicon-symbol-property" />
+                        <span className={`codicon ${getToolResultIcon(item.toolName, item.toolOutput)}`} />
                     </ToolIcon>
                     <ItemLabel loading={false} failed={item.failed}>
                         {label}{detail && <ItemDetail title={detail}>{detail}</ItemDetail>}
