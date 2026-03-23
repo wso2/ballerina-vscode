@@ -1261,7 +1261,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         }
 
         // If not a Record, remove the 'expression' entry from recordTypeFields and return
-        if (type?.labelDetails?.description !== "Record") {
+        if (type?.labelDetails?.description?.toLocaleLowerCase() !== "record") {
             if (type.labelDetails.detail === "Structural Types"
                 || type.labelDetails.detail === "Behaviour Types"
                 || isTypeExcludedFromValueTypeConstraint(type.label)
@@ -1295,6 +1295,18 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         const recordTypeField = createExpressionRecordTypeField(key, property, '', type);
         if (!recordTypeField) return;
 
+        setBaseFields(prevFields => prevFields.map(field => {
+            if (field.key === key) {
+                return {
+                    ...field,
+                    types: [
+                        { fieldType: "RECORD_MAP_EXPRESSION", selected: true },
+                        { fieldType: "EXPRESSION", selected: false },
+                    ]
+                };
+            }
+            return field;
+        }));
         setRecordTypeFields(prevFields => {
             const prevIndex = prevFields.findIndex(f => f.key === recordTypeField.key);
             if (prevIndex !== -1) {

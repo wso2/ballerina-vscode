@@ -660,12 +660,12 @@ export function NodeList(props: NodeListProps) {
         const content = (
             <>
                 {reorderedGroups.map((group, index) => {
-                    // If subcategory is inside "Current Project" (or legacy "Current Workspace"),
-                    // show "Current Integration" actions when the subcategory refers to the current integration.
-                    const categoryActions = (parentCategoryTitle === "Current Project" || parentCategoryTitle === "Current Workspace") ?
-                       ( group.title?.includes("(current)") ? getCategoryActions("Current Integration", title) : getCategoryActions(group.title, title)) 
-                    : 
-                    getCategoryActions(group.title, title);
+                    // Map subcategories whose title ends with "(Current Integration)" to the
+                    // "Current Integration" config so their actions render correctly.
+                    const isCurrentIntegrationSubcategory = group.title?.toLowerCase().endsWith("(current integration)");
+                    const categoryActions = isCurrentIntegrationSubcategory
+                        ? getCategoryActions("Current Integration", title)
+                        : getCategoryActions(group.title, title);
                     const config = categoryConfig[group.title] || { hasBackground: true };
                     const shouldShowSeparator = config.showSeparatorBefore;
 
