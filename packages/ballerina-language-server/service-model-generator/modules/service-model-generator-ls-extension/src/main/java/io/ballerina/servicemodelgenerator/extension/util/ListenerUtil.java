@@ -19,7 +19,6 @@
 package io.ballerina.servicemodelgenerator.extension.util;
 
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
@@ -27,31 +26,19 @@ import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
-import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
-import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.MappingFieldNode;
-import io.ballerina.compiler.syntax.tree.MetadataNode;
-import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.NewExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeFactory;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
-import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
-import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
@@ -60,7 +47,6 @@ import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
-import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;
@@ -106,7 +92,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_D
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP_DEFAULT_LISTENER_ITEM_LABEL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA_DEFAULT_LISTENER_EXPR;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MQTT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MQTT_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
@@ -185,173 +170,6 @@ public class ListenerUtil {
         }
 
         return listeners;
-    }
-
-    /**
-     * Filters FTP listeners by the requested service flow style.
-     *
-     * @param listeners        candidate listener names
-     * @param removeDeprecated true to keep only new-style listeners and hide deprecated properties
-     * @param semanticModel    semantic model for symbol checks
-     * @param project          project for source traversal
-     * @return filtered listeners
-     */
-    public static Set<String> filterFtpListenersByDeprecatedMode(Set<String> listeners,
-                                                                 boolean removeDeprecated,
-                                                                 SemanticModel semanticModel, Project project) {
-        Set<String> filtered = new LinkedHashSet<>();
-        for (String listenerName : listeners) {
-            if (isFtpListenerCompatibleWithFlow(listenerName, removeDeprecated, semanticModel, project)) {
-                filtered.add(listenerName);
-            }
-        }
-        return filtered;
-    }
-
-    /**
-     * Shapes FTP listener properties for legacy/new flows in attach-listener create flow.
-     */
-    public static void adjustFtpListenerModelForDeprecatedMode(Listener listenerModel,
-                                                               boolean removeDeprecated) {
-        adjustFtpListenerModelForDeprecatedMode(listenerModel, removeDeprecated, null, null);
-    }
-
-    /**
-     * Shapes FTP listener properties for legacy/new flows in attach-listener create flow.
-     * In addition, this method can suggest a unique listener name using semantic model + source document.
-     */
-    public static void adjustFtpListenerModelForDeprecatedMode(Listener listenerModel,
-                                                               boolean removeDeprecated,
-                                                               SemanticModel semanticModel,
-                                                               Document document) {
-        if (listenerModel == null || listenerModel.getProperties() == null) {
-            return;
-        }
-
-        Map<String, Value> props = new LinkedHashMap<>(listenerModel.getProperties());
-        if (removeDeprecated) {
-            props.remove("path");
-            props.remove("folderPath");
-        }
-
-        List<String> primaryKeys = new ArrayList<>(List.of("host", "port", "portNumber", "auth", "authentication"));
-        if (!removeDeprecated) {
-            primaryKeys.add("path");
-            primaryKeys.add("folderPath");
-        }
-
-        Map<String, Value> ordered = new LinkedHashMap<>();
-        for (String key : primaryKeys) {
-            addIfPresent(ordered, props, key);
-        }
-        addIfPresent(ordered, props, PROP_KEY_VARIABLE_NAME);
-        addIfPresent(ordered, props, PROP_KEY_LISTENER_TYPE);
-
-        for (Map.Entry<String, Value> entry : props.entrySet()) {
-            ordered.putIfAbsent(entry.getKey(), entry.getValue());
-        }
-
-        for (Map.Entry<String, Value> entry : ordered.entrySet()) {
-            entry.getValue().setAdvanced(!primaryKeys.contains(entry.getKey()));
-        }
-
-        if (semanticModel != null && document != null && ordered.containsKey(PROP_KEY_VARIABLE_NAME)) {
-            Value variableName = ordered.get(PROP_KEY_VARIABLE_NAME);
-            if (variableName != null && (variableName.getValue() == null || variableName.getValue().isBlank())) {
-                String moduleName = moduleName(listenerModel.getModuleName());
-                String suggestedName = Utils.generateVariableIdentifier(semanticModel, document,
-                        document.syntaxTree().rootNode().lineRange().endLine(),
-                        LISTENER_VAR_NAME.formatted(moduleName));
-                variableName.setValue(suggestedName);
-            }
-        }
-
-        listenerModel.setProperties(ordered);
-    }
-
-    private static void addIfPresent(Map<String, Value> target, Map<String, Value> source, String key) {
-        if (source.containsKey(key)) {
-            target.put(key, source.get(key));
-        }
-    }
-
-    private static boolean isFtpListenerCompatibleWithFlow(String listenerName,
-                                                           boolean removeDeprecated,
-                                                           SemanticModel semanticModel, Project project) {
-        Module defaultModule = project.currentPackage().getDefaultModule();
-        List<ServiceDeclarationNode> attachedServices = new ArrayList<>();
-
-        for (DocumentId documentId : defaultModule.documentIds()) {
-            Document document = defaultModule.document(documentId);
-            ModulePartNode modulePartNode = document.syntaxTree().rootNode();
-
-            for (ModuleMemberDeclarationNode member : modulePartNode.members()) {
-                if (member.kind() != SyntaxKind.SERVICE_DECLARATION) {
-                    continue;
-                }
-                ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) member;
-                if (isServiceAttachedToListener(serviceNode, listenerName)) {
-                    attachedServices.add(serviceNode);
-                }
-            }
-        }
-
-        if (attachedServices.isEmpty()) {
-            return true;
-        }
-
-        boolean allNewStyle = true;
-        boolean allLegacyStyle = true;
-        for (ServiceDeclarationNode serviceNode : attachedServices) {
-            boolean hasServiceConfig = hasFtpServiceConfigAnnotation(serviceNode, semanticModel);
-            allNewStyle &= hasServiceConfig;
-            allLegacyStyle &= !hasServiceConfig;
-        }
-
-        return removeDeprecated ? allNewStyle : allLegacyStyle;
-    }
-
-    private static boolean isServiceAttachedToListener(ServiceDeclarationNode serviceNode, String listenerName) {
-        for (ExpressionNode expr : serviceNode.expressions()) {
-            if (expr instanceof SimpleNameReferenceNode simpleRef && simpleRef.name().text().equals(listenerName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean hasFtpServiceConfigAnnotation(ServiceDeclarationNode serviceNode,
-                                                         SemanticModel semanticModel) {
-        Optional<MetadataNode> metadata = serviceNode.metadata();
-        if (metadata.isEmpty()) {
-            return false;
-        }
-
-        for (AnnotationNode annotation : metadata.get().annotations()) {
-            if (isMatchingFtpAnnotation(annotation, "ServiceConfig", semanticModel)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean isMatchingFtpAnnotation(AnnotationNode annotation, String annotationName,
-                                                   SemanticModel semanticModel) {
-        Optional<Symbol> symbol = semanticModel.symbol(annotation);
-        if (symbol.orElse(null) instanceof AnnotationSymbol annotationSymbol) {
-            Optional<ModuleSymbol> module = annotationSymbol.getModule();
-            if (module.isEmpty() || annotationSymbol.getName().isEmpty()
-                    || !annotationName.equals(annotationSymbol.getName().get())) {
-                return false;
-            }
-            String orgName = module.get().id().orgName();
-            String packageName = module.get().id().packageName();
-            String moduleName = module.get().id().moduleName();
-            return "ballerina".equals(orgName) && (FTP.equals(packageName) || FTP.equals(moduleName));
-        }
-
-        return annotation.annotReference().toString().trim().endsWith(":" + annotationName)
-                && annotation.annotReference().toString().trim().startsWith(FTP + ":");
     }
 
     public static Optional<String> getHttpDefaultListenerNameRef(SemanticModel semanticModel, Project project) {
@@ -780,45 +598,12 @@ public class ListenerUtil {
                                                         ModuleInfo moduleInfo) {
         SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
         boolean removeDeprecated = true;
-        if (FTP.equals(functionData.packageName()) && hasLegacyFtpPathArgument(arguments)) {
+        if (FTP.equals(functionData.packageName()) && FTPListenerUtil.hasLegacyFtpPathArgument(arguments)) {
             removeDeprecated = false;
         }
         ListenerDeclAnalyzer analyzer = new ListenerDeclAnalyzer(listener.getProperties(), semanticModel, moduleInfo,
                 removeDeprecated);
         analyzer.analyze(arguments, initSymbol, functionData);
-    }
-
-    private static boolean hasLegacyFtpPathArgument(SeparatedNodeList<FunctionArgumentNode> arguments) {
-        for (FunctionArgumentNode argument : arguments) {
-            if (argument.kind() == SyntaxKind.NAMED_ARG) {
-                NamedArgumentNode namedArg = (NamedArgumentNode) argument;
-                String argName = namedArg.argumentName().name().text().trim();
-                if ("path".equals(argName) || "folderPath".equals(argName)) {
-                    return true;
-                }
-            } else if (argument.kind() == SyntaxKind.POSITIONAL_ARG) {
-                PositionalArgumentNode positionalArg = (PositionalArgumentNode) argument;
-                if (positionalArg.expression() instanceof MappingConstructorExpressionNode mappingExpr
-                        && hasLegacyPathField(mappingExpr)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private static boolean hasLegacyPathField(MappingConstructorExpressionNode mappingExpr) {
-        for (MappingFieldNode field : mappingExpr.fields()) {
-            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
-                continue;
-            }
-            SpecificFieldNode specificField = (SpecificFieldNode) field;
-            String fieldName = specificField.fieldName().toSourceCode().trim();
-            if ("path".equals(fieldName) || "folderPath".equals(fieldName)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
