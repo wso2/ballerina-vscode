@@ -52,6 +52,7 @@ import java.util.Set;
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistDatabaseIcon;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
 
@@ -191,13 +192,18 @@ public class DesignModelGenerator {
                         String sortText = lineRange.fileName() + lineRange.startLine().line();
                         String icon = CommonUtils.generateIcon(variableSymbol.typeDescriptor());
                         boolean showConnection = !isHiddenAiClass; // Hide AI non-client classes
+                        ClassSymbol persistClassSymbol = null;
+                        if (objectTypeSymbol instanceof ClassSymbol cs &&
+                                isPersistClient(cs, semanticModel)) {
+                            persistClassSymbol = cs;
+                            icon = getPersistDatabaseIcon(cs).orElse(icon);
+                        }
                         Connection connection = new Connection(variableSymbol.getName().get(), sortText,
                                 getLocation(lineRange), Connection.Scope.GLOBAL, icon, showConnection,
                                 CommonUtils.getConnectionKind(objectTypeSymbol));
-                        if (objectTypeSymbol instanceof ClassSymbol objectClassSymbol &&
-                                isPersistClient(objectClassSymbol, semanticModel)) {
+                        if (persistClassSymbol != null) {
                             connection.addMetadata(CONNECTOR_TYPE, PERSIST);
-                            getPersistModelFilePath(rootPath, objectClassSymbol)
+                            getPersistModelFilePath(rootPath, persistClassSymbol)
                                     .ifPresent(modelFile -> connection.addMetadata(PERSIST_MODEL_FILE, modelFile));
                         }
                         intermediateModel.connectionMap.put(

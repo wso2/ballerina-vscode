@@ -36,7 +36,6 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
-import io.ballerina.flowmodelgenerator.core.model.node.NewConnectionBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Document;
@@ -75,7 +74,7 @@ public class DeleteNodeHandler {
     private final Path filePath;
     private static final String EXPECTED_PREFIX = "_";
     private static final String DRIVER_SUFFIX = ".driver";
-    private static final Set<String> DB_DRIVERS = NewConnectionBuilder.CONNECTION_DRIVERS.stream()
+    private static final Set<String> DB_DRIVERS = CommonUtils.PERSIST_DB_DRIVERS.stream()
             .map(driver -> driver.substring(driver.lastIndexOf('/') + 1))
             .collect(Collectors.toSet());
 

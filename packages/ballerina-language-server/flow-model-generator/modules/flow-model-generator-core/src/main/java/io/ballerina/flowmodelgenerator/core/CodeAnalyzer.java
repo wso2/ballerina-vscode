@@ -925,6 +925,10 @@ public class CodeAnalyzer extends NodeVisitor {
                 .properties()
                 .callConnection(expressionNode, Property.CONNECTION_KEY, metadataData)
                 .data(this.typedBindingPatternNode, false, new HashSet<>());
+        if (isPersistClient(classSymbol.get(), semanticModel)) {
+            CommonUtils.getPersistDatabaseIcon(classSymbol.get())
+                    .ifPresent(icon -> nodeBuilder.metadata().icon(icon));
+        }
         processFunctionSymbol(clientResourceAccessActionNode, argumentNodes, functionSymbol, functionData);
     }
 
@@ -1661,6 +1665,8 @@ public class CodeAnalyzer extends NodeVisitor {
                 .addData(CONNECTOR_TYPE, PERSIST);
         getPersistModelFilePath(project.sourceRoot(), classSymbol)
                 .ifPresent(modelPath -> nodeBuilder.metadata().addData(PERSIST_MODEL_FILE, modelPath));
+        CommonUtils.getPersistDatabaseIcon(classSymbol)
+                .ifPresent(icon -> nodeBuilder.metadata().icon(icon));
     }
 
     private NodeKind resolveNodeKind(ClassSymbol classSymbol) {
