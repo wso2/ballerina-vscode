@@ -136,7 +136,7 @@ public class AgentIdAuthConfigBuilder extends NodeBuilder {
                         .ballerinaType(SCOPES_BALLERINA_TYPE)
                         .stepOut();
             } else {
-                builder.typeWithExpression(fieldType, moduleInfo);
+                builder.typeWithExpression(fieldType, aiModuleInfo);
             }
 
             builder.stepOut().addProperty(FlowNodeUtil.getPropertyKey(fieldName));
