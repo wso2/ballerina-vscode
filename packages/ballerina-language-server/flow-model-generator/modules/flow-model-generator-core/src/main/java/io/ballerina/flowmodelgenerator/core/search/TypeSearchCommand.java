@@ -61,31 +61,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_ANY;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_ANYDATA;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_BOOLEAN;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_BYTE;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_BYTE_ARRAY;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_DECIMAL;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_ERROR;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_FLOAT;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_FUNCTION;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_FUTURE;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_HANDLE;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_INT;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_JSON;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_JSON_ARRAY;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_MAP_JSON;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_MAP_STRING;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_NIL;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_READONLY;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_RECORD;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_STREAM;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_STRING;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_STRING_ARRAY;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_TYPEDESC;
-import static io.ballerina.flowmodelgenerator.core.TypesGenerator.TYPE_XML;
-
 /**
  * Represents a command to search for types within a module. This class extends SearchCommand and provides functionality
  * to search for both project-specific and library types.
