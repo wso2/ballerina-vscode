@@ -259,12 +259,15 @@ public class ActivityCallBuilder extends CallBuilder {
             for (Map.Entry<?, ?> optionEntry : options.entrySet()) {
                 if (optionEntry.getKey() instanceof String paramName && !paramName.isEmpty() &&
                         optionEntry.getValue() instanceof Map<?, ?> option) {
-                    sourceBuilder.token()
-                            .keyword(SyntaxKind.COMMA_TOKEN)
-                            .name(paramName)
-                            .whiteSpace()
-                            .keyword(SyntaxKind.EQUAL_TOKEN)
-                            .name(Property.convertToProperty(option).toSourceCode());
+                    Property optionProp = Property.convertToProperty(option);
+                    if (optionProp.value() != null) {
+                        sourceBuilder.token()
+                                .keyword(SyntaxKind.COMMA_TOKEN)
+                                .name(paramName)
+                                .whiteSpace()
+                                .keyword(SyntaxKind.EQUAL_TOKEN)
+                                .param(optionProp);
+                    }
                 }
             }
         }
