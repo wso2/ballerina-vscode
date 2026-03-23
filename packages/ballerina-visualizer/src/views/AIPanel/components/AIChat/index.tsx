@@ -1423,9 +1423,9 @@ const AIChat: React.FC = () => {
                             <AuthProviderChip>
                                 <UsageBadge>
                                     <span className="codicon codicon-key" style={{ fontSize: 11 }} />
-                                    {loginMethod === LoginMethod.ANTHROPIC_KEY ? "Anthropic API"
-                                        : loginMethod === LoginMethod.AWS_BEDROCK ? "AWS Bedrock"
-                                        : "Vertex AI"}
+                                    {loginMethod === LoginMethod.ANTHROPIC_KEY ? "Anthropic (own key)"
+                                        : loginMethod === LoginMethod.AWS_BEDROCK ? "AWS Bedrock (own key)"
+                                        : "Vertex AI (own key)"}
                                 </UsageBadge>
                             </AuthProviderChip>
                         ) : (
