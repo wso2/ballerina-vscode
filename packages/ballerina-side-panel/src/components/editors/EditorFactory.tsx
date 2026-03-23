@@ -30,6 +30,7 @@ import { DropdownEditor } from "./DropdownEditor";
 import { FileSelect } from "./FileSelect";
 import { CheckBoxEditor } from "./CheckBoxEditor";
 import { ChoiceForm } from "./ChoiceForm";
+
 import { FormMapEditor } from "./FormMapEditor";
 import { TextAreaEditor } from "./TextAreaEditor";
 import { DropdownChoiceForm } from "./DropdownChoiceForm";
@@ -50,6 +51,8 @@ import { FormMapEditorWrapper } from "./FormMapEditorNewWrapper";
 import { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";
 import { ArgManagerEditor } from "../ParamManager/ArgManager";
 import { DependentTypeEditor } from "./DependentTypeEditor";
+import { FormSectionGroup } from "./FormSectionGroup";
+import { FieldFactory } from "./FieldFactory";
 
 export interface FormFieldEditorProps {
     field: FormField;
@@ -112,6 +115,31 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
 
     if (!field.enabled || field.hidden) {
         return <></>;
+    } else if (fieldInputType.fieldType === "GROUP_SECTION") {
+        return (
+            <FormSectionGroup title={field.label}>
+                {field.advanceProps?.map((childField) => (
+                    <FieldFactory
+                        key={childField.key}
+                        field={childField}
+                        selectedNode={selectedNode}
+                        openRecordEditor={openRecordEditor}
+                        openSubPanel={openSubPanel}
+                        subPanelView={subPanelView}
+                        handleOnFieldFocus={handleOnFieldFocus}
+                        onBlur={onBlur}
+                        handleOnTypeChange={handleOnTypeChange}
+                        recordTypeFields={recordTypeFields}
+                        onIdentifierEditingStateChange={onIdentifierEditingStateChange}
+                        setSubComponentEnabled={setSubComponentEnabled}
+                        handleNewTypeSelected={handleNewTypeSelected}
+                        isContextTypeEditorSupported={isContextTypeEditorSupported}
+                        openFormTypeEditor={openFormTypeEditor}
+                        updateImports={updateImports}
+                    />
+                ))}
+            </FormSectionGroup>
+        );
     } else if (fieldInputType.fieldType === "RECORD_FIELD_SELECTOR" && field.codedata?.kind === "PARAM_FOR_TYPE_INFER") {
         return <DependentTypeEditor field={field} />;
     } else if (fieldInputType.fieldType === "SLIDER") {
@@ -140,6 +168,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <CustomDropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (fieldInputType.fieldType === "FILE_SELECT" && field.editable) {
         return <FileSelect field={field} />;
+    } else if (fieldInputType.fieldType === "SINGLE_SELECT" && !showWithExpressionEditor && field.editable && field.dynamicFormFields) {
+        return <DropdownChoiceForm field={field} />;
     } else if (fieldInputType.fieldType === "SINGLE_SELECT" && !showWithExpressionEditor && field.editable) {
         return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (!field.items && (fieldInputType.fieldType === "ACTION_TYPE") && field.editable) {
