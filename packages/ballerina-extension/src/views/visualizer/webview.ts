@@ -30,6 +30,7 @@ import { refreshDataMapper } from "../../rpc-managers/data-mapper/utils";
 import { AiPanelWebview } from "../ai-panel/webview";
 import { approvalViewManager } from "../../features/ai/state/ApprovalViewManager";
 import { StateMachinePopup } from "../../stateMachinePopup";
+import { clearFormState } from "../../rpc-managers/bi-diagram/form-state";
 
 export class VisualizerWebview {
     public static currentPanel: VisualizerWebview | undefined;
@@ -300,6 +301,7 @@ export class VisualizerWebview {
 
     public dispose() {
         approvalViewManager.onVisualizerClosed();
+        clearFormState();
 
         VisualizerWebview.currentPanel = undefined;
         this._panel?.dispose();
