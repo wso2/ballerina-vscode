@@ -298,8 +298,10 @@ public class McpToolKitBuilder extends NodeBuilder {
                 // Use default agents.bal location
                 sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.MCP_PACKAGE);
                 sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.AI_PACKAGE);
-                sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.LOG_PACKAGE);
-                sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.HTTP_PACKAGE);
+                if (!toolScopesMap.isEmpty()) {
+                    sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.LOG_PACKAGE);
+                    sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.HTTP_PACKAGE);
+                }
 
                 sourceBuilder.token().source(sourceCode).skipFormatting().stepOut().textEdit();
             }
@@ -342,27 +344,39 @@ public class McpToolKitBuilder extends NodeBuilder {
                                                   Map<String, List<String>> toolScopesMap) {
         String initBody;
         String toolFunctions;
+        boolean hasAnyScopes = !toolScopesMap.isEmpty();
 
         if (permittedTools.equals("()") || permittedTools.isBlank()) {
             // Generate init body using self.callTool as function reference
-            initBody = "        do {" + NEW_LINE +
-                    "            ai:StreamableHttpClientTransportConfig{auth, ...configs} = config;" + NEW_LINE +
-                    "            mcp:StreamableHttpClientTransportConfig mcpConfig = {...configs};" + NEW_LINE +
-                    "            ai:AgentIdAuthConfig? agentIdAuth = ();" + NEW_LINE +
-                    "            if auth is http:ClientAuthConfig {" + NEW_LINE +
-                    "                mcpConfig.auth = auth;" + NEW_LINE +
-                    "                auth = ();" + NEW_LINE +
-                    "            } else {" + NEW_LINE +
-                    "                agentIdAuth = auth;" + NEW_LINE +
-                    "            }" + NEW_LINE +
-                    "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, mcpConfig);" +
-                    NEW_LINE +
-                    "            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info, " +
-                    "self.callTool, agentIdAuth).cloneReadOnly();" + NEW_LINE +
-                    "        } on fail error e {" + NEW_LINE +
-                    "            log:printError(\"Error initializing MCP toolkit\", e);" + NEW_LINE +
-                    "            return error ai:Error(\"Failed to initialize MCP toolkit\", e);" + NEW_LINE +
-                    "        }";
+            if (hasAnyScopes) {
+                initBody = "        do {" + NEW_LINE +
+                        "            ai:StreamableHttpClientTransportConfig{auth, ...configs} = config;" + NEW_LINE +
+                        "            mcp:StreamableHttpClientTransportConfig mcpConfig = {...configs};" + NEW_LINE +
+                        "            ai:AgentIdAuthConfig? agentIdAuth = ();" + NEW_LINE +
+                        "            if auth is http:ClientAuthConfig {" + NEW_LINE +
+                        "                mcpConfig.auth = auth;" + NEW_LINE +
+                        "                auth = ();" + NEW_LINE +
+                        "            } else {" + NEW_LINE +
+                        "                agentIdAuth = auth;" + NEW_LINE +
+                        "            }" + NEW_LINE +
+                        "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, mcpConfig);" +
+                        NEW_LINE +
+                        "            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info, " +
+                        "self.callTool, agentIdAuth).cloneReadOnly();" + NEW_LINE +
+                        "        } on fail error e {" + NEW_LINE +
+                        "            log:printError(\"Error initializing MCP toolkit\", e);" + NEW_LINE +
+                        "            return error ai:Error(\"Failed to initialize MCP toolkit\", e);" + NEW_LINE +
+                        "        }";
+            } else {
+                initBody = "        do {" + NEW_LINE +
+                        "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);" +
+                        NEW_LINE +
+                        "            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info, " +
+                        "self.callTool).cloneReadOnly();" + NEW_LINE +
+                        "        } on fail error e {" + NEW_LINE +
+                        "            return error ai:Error(\"Failed to initialize MCP toolkit\", e);" + NEW_LINE +
+                        "        }";
+            }
 
             // Generate callTool method
             List<String> callToolScopes = toolScopesMap.getOrDefault("callTool", List.of());
@@ -374,27 +388,41 @@ public class McpToolKitBuilder extends NodeBuilder {
                     .map(e -> "                " + e.getKey() + " : self." + e.getValue())
                     .collect(Collectors.joining("," + System.lineSeparator()));
 
-            initBody = "        final map<ai:FunctionTool> permittedTools = {" + NEW_LINE +
-                    permittedToolsMappingConstructorExp + NEW_LINE +
-                    "        };" + NEW_LINE + NEW_LINE +
-                    "        do {" + NEW_LINE +
-                    "            ai:StreamableHttpClientTransportConfig{auth, ...configs} = config;" + NEW_LINE +
-                    "            mcp:StreamableHttpClientTransportConfig mcpConfig = {...configs};" + NEW_LINE +
-                    "            ai:AgentIdAuthConfig? agentIdAuth = ();" + NEW_LINE +
-                    "            if auth is http:ClientAuthConfig {" + NEW_LINE +
-                    "                mcpConfig.auth = auth;" + NEW_LINE +
-                    "                auth = ();" + NEW_LINE +
-                    "            } else {" + NEW_LINE +
-                    "                agentIdAuth = auth;" + NEW_LINE +
-                    "            }" + NEW_LINE +
-                    "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, mcpConfig);" +
-                    NEW_LINE +
-                    "            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info, " +
-                    "permittedTools, agentIdAuth).cloneReadOnly();" + NEW_LINE +
-                    "        } on fail error e {" + NEW_LINE +
-                    "            log:printError(\"Error initializing MCP toolkit\", e);" + NEW_LINE +
-                    "            return error ai:Error(\"Failed to initialize MCP toolkit\", e);" + NEW_LINE +
-                    "        }";
+            if (hasAnyScopes) {
+                initBody = "        final map<ai:FunctionTool> permittedTools = {" + NEW_LINE +
+                        permittedToolsMappingConstructorExp + NEW_LINE +
+                        "        };" + NEW_LINE + NEW_LINE +
+                        "        do {" + NEW_LINE +
+                        "            ai:StreamableHttpClientTransportConfig{auth, ...configs} = config;" + NEW_LINE +
+                        "            mcp:StreamableHttpClientTransportConfig mcpConfig = {...configs};" + NEW_LINE +
+                        "            ai:AgentIdAuthConfig? agentIdAuth = ();" + NEW_LINE +
+                        "            if auth is http:ClientAuthConfig {" + NEW_LINE +
+                        "                mcpConfig.auth = auth;" + NEW_LINE +
+                        "                auth = ();" + NEW_LINE +
+                        "            } else {" + NEW_LINE +
+                        "                agentIdAuth = auth;" + NEW_LINE +
+                        "            }" + NEW_LINE +
+                        "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, mcpConfig);" +
+                        NEW_LINE +
+                        "            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info, " +
+                        "permittedTools, agentIdAuth).cloneReadOnly();" + NEW_LINE +
+                        "        } on fail error e {" + NEW_LINE +
+                        "            log:printError(\"Error initializing MCP toolkit\", e);" + NEW_LINE +
+                        "            return error ai:Error(\"Failed to initialize MCP toolkit\", e);" + NEW_LINE +
+                        "        }";
+            } else {
+                initBody = "        final map<ai:FunctionTool> permittedTools = {" + NEW_LINE +
+                        permittedToolsMappingConstructorExp + NEW_LINE +
+                        "        };" + NEW_LINE + NEW_LINE +
+                        "        do {" + NEW_LINE +
+                        "            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);" +
+                        NEW_LINE +
+                        "            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info, " +
+                        "permittedTools).cloneReadOnly();" + NEW_LINE +
+                        "        } on fail error e {" + NEW_LINE +
+                        "            return error ai:Error(\"Failed to initialize MCP toolkit\", e);" + NEW_LINE +
+                        "        }";
+            }
 
             // Generate individual tool methods
             toolFunctions = toolMapping.entrySet().stream()
@@ -410,13 +438,16 @@ public class McpToolKitBuilder extends NodeBuilder {
                     .collect(Collectors.joining(System.lineSeparator()));
         }
 
+        String configType = hasAnyScopes ? "ai:StreamableHttpClientTransportConfig"
+                : "mcp:StreamableHttpClientTransportConfig";
+
         return "isolated class " + className + " {" + NEW_LINE +
                 "    *ai:McpBaseToolKit;" + NEW_LINE +
                 "    private final mcp:StreamableHttpClient mcpClient;" + NEW_LINE +
                 "    private final readonly & ai:ToolConfig[] tools;" + NEW_LINE + NEW_LINE +
                 "    public isolated function init(string serverUrl," +
                 " mcp:Implementation info = {name: \"MCP\", version: \"1.0.0\"}," + NEW_LINE +
-                "            *ai:StreamableHttpClientTransportConfig config) returns ai:Error? {" + NEW_LINE +
+                "            *" + configType + " config) returns ai:Error? {" + NEW_LINE +
                 initBody +
                 NEW_LINE + "    }" + NEW_LINE + NEW_LINE +
                 "    public isolated function getTools() returns ai:ToolConfig[] => self.tools;" + NEW_LINE +
