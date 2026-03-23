@@ -114,6 +114,18 @@ export async function integrateCodeToWorkspace(
     }
 }
 
+export async function integrateAndClearModifiedFiles(
+    tempProjectPath: string,
+    modifiedFiles: string[],
+    allModifiedFiles: Set<string>,
+    ctx: ExecutionContext
+): Promise<void> {
+    const filesToIntegrate = new Set(modifiedFiles);
+    await integrateCodeToWorkspace(tempProjectPath, filesToIntegrate, ctx);
+    modifiedFiles.forEach(f => allModifiedFiles.add(f));
+    modifiedFiles.splice(0);
+}
+
 export function getCodeBlocks(updatedSourceFiles: SourceFile[], updatedFileNames: string[]): string {
     const codeBlocks = updatedFileNames
         .map((fileName) => {

@@ -27,6 +27,7 @@ import { getSystemPrompt, getUserPrompt } from './prompts';
 import { GenerationType } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
 import { getProjectSource, cleanupTempProject } from '../utils/project/temp-project';
+import { integrateCodeToWorkspace } from './utils';
 import { getWorkspaceTomlValues } from '../../../utils';
 import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
@@ -139,6 +140,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
         const tempProjectPath = this.config.executionContext.tempProjectPath!;
         const params = this.config.params; // Access params from config
         const modifiedFiles: string[] = [];
+        const allModifiedFiles: Set<string> = new Set();
         const generationStartTime = Date.now();
         const projectId = await getHashedProjectId(this.config.executionContext.workspacePath || this.config.executionContext.projectPath);
 
@@ -191,15 +193,17 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 eventHandler: this.config.eventHandler,
                 tempProjectPath,
                 modifiedFiles,
+                allModifiedFiles,
                 projects,
                 generationType: GenerationType.CODE_GENERATION,
                 projectRootPath: this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '',
                 generationId: this.config.generationId,
                 threadId: 'default',
                 runningServices: runningServicesManager,
+                webSearchEnabled: params.webSearchEnabled ?? false,
+                ctx: this.config.executionContext,
             });
 
-            // Stream LLM response
             const { fullStream, response, usage } = streamText({
                 model: await getAnthropicClient(ANTHROPIC_SONNET_4),
                 maxOutputTokens: 8192,
@@ -217,6 +221,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const streamContext: StreamContext = {
                 eventHandler: this.config.eventHandler,
                 modifiedFiles,
+                allModifiedFiles,
                 projects,
                 shouldCleanup: false, // Review mode - don't cleanup immediately
                 messageId: this.config.generationId,
@@ -248,31 +253,32 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                     console.log("[AgentExecutor] Aborted by user.");
 
                     // Get partial messages from SDK
-                    let messagesToSave: any[] = [];
+                    let partialLLMMessages: any[] = [];
                     try {
                         const partialResponse = await response;
-                        messagesToSave = partialResponse.messages || [];
+                        partialLLMMessages = partialResponse.messages || [];
                     } catch (e) {
                         console.warn("[AgentExecutor] Could not retrieve partial response messages:", e);
                     }
 
-                    // Add abort notification message
-                    messagesToSave.push({
-                        role: "user",
-                        content: `<abort_notification>
-Generation stopped by user. The last in-progress task was not saved. Files have been reverted to the previous completed task state. Please redo the last task if needed.
-</abort_notification>`,
-                    });
-
-                    // Update generation with user message + partial messages
+                    // Only save if LLM actually responded — user message without LLM response is meaningless
                     const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
                     const threadId = 'default';
-                    chatStateStorage.updateGeneration(projectRootPath, threadId, this.config.generationId, {
-                        modelMessages: [
-                            { role: "user", content: streamContext.userMessageContent },
-                            ...messagesToSave,
-                        ],
-                    });
+                    if (partialLLMMessages.length > 0) {
+                        chatStateStorage.updateGeneration(projectRootPath, threadId, this.config.generationId, {
+                            modelMessages: [
+                                { role: "user", content: streamContext.userMessageContent },
+                                ...partialLLMMessages,
+                                {
+                                    role: "user",
+                                    content: `<abort_notification>
+Generation stopped by user. The last in-progress task was not saved. Files have been reverted to the previous completed task state. Please redo the last task if needed.
+</abort_notification>`,
+                                },
+                            ],
+                        });
+                        updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
+                    }
 
                     // Clear review state
                     const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
@@ -412,6 +418,25 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             }
         );
 
+        // Save partial LLM messages to storage and emit save_chat (mirrors abort path)
+        let messagesToSave: any[] = [];
+        try {
+            const partialResponse = await context.response;
+            messagesToSave = partialResponse.messages || [];
+        } catch (e) {
+            console.warn("[AgentExecutor] Could not retrieve partial response messages on error:", e);
+        }
+
+        if (messagesToSave.length > 0) {
+            chatStateStorage.updateGeneration(projectRootPath, threadId, context.messageId, {
+                modelMessages: [
+                    { role: "user", content: context.userMessageContent },
+                    ...messagesToSave,
+                ],
+            });
+            updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
+        }
+
         context.eventHandler({
             type: "error",
             content: getErrorMessage(error)
@@ -467,6 +492,29 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         // Update chat state storage
         await this.updateChatState(context, assistantMessages, tempProjectPath);
 
+        // Integrate generated code into workspace immediately so user sees changes during review
+        const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, 'default');
+        if (pendingReview && pendingReview.reviewState.modifiedFiles.length > 0) {
+            const integrationCtx = { ...context.ctx };
+            // In workspace mode, resolve project path from modified files if not set
+            if (!integrationCtx.projectPath && integrationCtx.workspacePath && pendingReview.reviewState.modifiedFiles.length > 0) {
+                const firstBalFile = pendingReview.reviewState.modifiedFiles.find(f => f.endsWith('.bal'));
+                if (firstBalFile) {
+                    const packageName = firstBalFile.split('/')[0];
+                    if (packageName) {
+                        integrationCtx.projectPath = path.join(integrationCtx.workspacePath, packageName);
+                        StateMachine.context().projectPath = integrationCtx.projectPath;
+                    }
+                }
+            }
+            await integrateCodeToWorkspace(
+                pendingReview.reviewState.tempProjectPath!,
+                new Set(pendingReview.reviewState.modifiedFiles),
+                integrationCtx
+            );
+        }
+
         // Emit UI events
         await this.emitReviewActions(context);
     }
@@ -485,14 +533,13 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
         // Check if we're updating an existing review context
         const existingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
-        let accumulatedModifiedFiles = context.modifiedFiles;
+        const generationModifiedFiles = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
+        let accumulatedModifiedFiles = generationModifiedFiles;
 
         if (existingReview && existingReview.reviewState.tempProjectPath === tempProjectPath) {
-            // Accumulate modified files from previous prompts
             const existingFiles = new Set(existingReview.reviewState.modifiedFiles || []);
-            const newFiles = new Set(context.modifiedFiles);
-            accumulatedModifiedFiles = Array.from(new Set([...existingFiles, ...newFiles]));
-            console.log(`[AgentExecutor] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingReview.reviewState.modifiedFiles?.length || 0} existing + ${context.modifiedFiles.length} new)`);
+            accumulatedModifiedFiles = Array.from(new Set([...existingFiles, ...generationModifiedFiles]));
+            console.log(`[AgentExecutor] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingReview.reviewState.modifiedFiles?.length || 0} existing + ${generationModifiedFiles.length} new)`);
         }
 
         // Update chat state storage with user message + assistant messages
@@ -537,19 +584,21 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
         const threadId = 'default';
         const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        const generationModifiedFiles = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
         const accumulatedModifiedFiles = pendingReview
-            ? Array.from(new Set([...pendingReview.reviewState.modifiedFiles, ...context.modifiedFiles]))
-            : context.modifiedFiles;
+            ? Array.from(new Set([...pendingReview.reviewState.modifiedFiles, ...generationModifiedFiles]))
+            : generationModifiedFiles;
 
-        // Emit review component only if there are modified files
         if (accumulatedModifiedFiles.length > 0) {
             const semanticDiffs: SemanticDiff[] = [];
             let loadDesignDiagrams = false;
             let affectedPackages: string[] = [];
-            const diffPackageMap: string[] = []; // parallel array: diffPackageMap[i] = package name for semanticDiffs[i]
+            const diffPackageMap: string[] = [];
             const langClient = StateMachine.context().langClient;
             const tempDir = context.ctx.tempProjectPath!;
-            affectedPackages = await determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, tempDir);
+            affectedPackages = pendingReview?.reviewState.affectedPackagePaths?.length
+                ? pendingReview.reviewState.affectedPackagePaths
+                : await determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, tempDir);
             const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
             for (const pkg of affectedPackages) {
                 // Skip workspace root — it only contains Ballerina.toml, not a real package
@@ -585,12 +634,12 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             const hasSemanticResults = loadDesignDiagrams || semanticDiffs.length > 0;
             const isBI = StateMachine.context().isBI;
             const autoOpen = !!(isBI && hasSemanticResults);
-            approvalViewManager.openReviewMode(reviewData, autoOpen);
+            approvalViewManager.openReviewMode(reviewData, false);
 
             context.eventHandler({
                 type: "chat_component",
                 componentType: "review",
-                data: { modifiedFiles: accumulatedModifiedFiles, semanticDiffs, loadDesignDiagrams, affectedPackages, isWorkspace, diffPackageMap, status: "pending" }
+                data: { modifiedFiles: accumulatedModifiedFiles, semanticDiffs, loadDesignDiagrams, affectedPackages, isWorkspace, diffPackageMap }
             });
         }
 

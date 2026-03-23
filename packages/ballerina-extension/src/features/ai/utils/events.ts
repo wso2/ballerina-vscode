@@ -27,6 +27,7 @@ import {
     sendToolCallNotification,
     sendToolResultNotification,
     sendTaskApprovalRequestNotification,
+    sendWebToolApprovalNotification,
     sendAbortNotification,
     sendSaveChatNotification,
     sendConnectorGenerationNotification,
@@ -79,7 +80,7 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 sendToolCallNotification(event.toolName, event.toolInput, event.toolCallId);
                 break;
             case "tool_result":
-                sendToolResultNotification(event.toolName, event.toolOutput, event.toolCallId);
+                sendToolResultNotification(event.toolName, event.toolOutput, event.toolCallId, event.failed);
                 break;
             case "task_approval_request":
                 console.log("[Event Handler] Task approval request received:", event);
@@ -106,6 +107,9 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 break;
             case "chat_component":
                 sendChatComponentNotification(event.componentType, event.data);
+                break;
+            case "web_tool_approval_request":
+                sendWebToolApprovalNotification(event.requestId, event.toolName, event.content);
                 break;
             default:
                 console.warn(`Unhandled event type: ${event}`);

@@ -454,7 +454,7 @@ export interface MapWithFnRequest {
 export interface ResolveOutputRequest {
     filePath: string;
     codedata: CodeData;
-    varName?: string;
+    varName: string;
     targetField: string;
     subMappingName?: string;
 }
@@ -929,6 +929,7 @@ export interface BINodeTemplateRequest {
     filePath: string;
     id: CodeData;
     forceAssign?: boolean;
+    isLibrary?: boolean;
 }
 
 export type BINodeTemplateResponse = {

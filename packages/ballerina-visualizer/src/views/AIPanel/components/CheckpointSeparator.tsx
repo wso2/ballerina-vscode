@@ -16,74 +16,70 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useState } from "react";
 import styled from "@emotion/styled";
+import { Icon } from "@wso2/ui-toolkit";
 
 interface CheckpointSeparatorProps {
     checkpointId?: string;
     isAvailable: boolean;
     isDisabled: boolean;
     isCreating?: boolean;
+    isGroupHovered: boolean;
     onRestore: (checkpointId: string) => void;
 }
 
-const SeparatorContainer = styled.div<{ disabled: boolean }>`
+const SeparatorContainer = styled.div`
     position: relative;
     margin: 0 -20px 16px -20px;
-    padding: 0 20px;
-    cursor: ${(props: { disabled: boolean }) => props.disabled ? 'not-allowed' : 'pointer'};
-    opacity: ${(props: { disabled: boolean }) => props.disabled ? 0.5 : 1};
-
-    &:hover .separator-button {
-        opacity: 1;
-    }
-
-    @media (hover: none) {
-        .separator-button {
-            opacity: 1;
-        }
-    }
+    padding: 8px 20px;
 `;
 
-const SeparatorLine = styled.div`
-    border-top: 2px dashed var(--vscode-editorWidget-border);
-    position: relative;
-`;
-
-const RestoreButton = styled.button<{ disabled: boolean }>`
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: var(--vscode-button-secondaryBackground);
-    color: var(--vscode-button-secondaryForeground);
-    border: none;
-    padding: 4px 12px;
-    font-size: 12px;
-    border-radius: 3px;
-    cursor: ${(props: { disabled: boolean }) => props.disabled ? 'not-allowed' : 'pointer'};
-    opacity: 0;
+const SeparatorLine = styled.div<{ visible: boolean }>`
+    display: flex;
+    align-items: center;
+    opacity: ${(props: { visible: boolean }) => props.visible ? 1 : 0};
     transition: opacity 0.2s ease;
+`;
+
+const GradientLine = styled.div<{ direction: 'left' | 'right' }>`
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+        to ${(props: { direction: 'left' | 'right' }) => props.direction === 'left' ? 'right' : 'left'},
+        transparent 0%,
+        var(--vscode-editorWidget-border) 30%
+    );
+`;
+
+const RestoreLabel = styled.button<{ disabled: boolean }>`
+    background: none;
+    border: none;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    cursor: ${(props: { disabled: boolean }) => props.disabled ? 'not-allowed' : 'pointer'};
     white-space: nowrap;
     pointer-events: ${(props: { disabled: boolean }) => props.disabled ? 'none' : 'auto'};
-
-    &:hover:not(:disabled) {
-        background: var(--vscode-button-secondaryHoverBackground);
-    }
 `;
 
-const CreatingText = styled.div`
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: var(--vscode-badge-background);
-    color: var(--vscode-badge-foreground);
-    padding: 4px 12px;
+const LabelContent = styled.span<{ labelOpacity: number }>`
+    color: var(--vscode-descriptionForeground);
+    font-size: 13px;
+    font-family: var(--vscode-font-family);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: ${(props: { labelOpacity: number }) => props.labelOpacity};
+    transition: opacity 0.2s ease;
+`;
+
+const CreatingLabel = styled.div`
+    color: var(--vscode-descriptionForeground);
+    padding: 0 8px;
     font-size: 12px;
-    border-radius: 3px;
+    font-family: var(--vscode-font-family);
     white-space: nowrap;
-    opacity: 1;
 `;
 
 const CheckpointSeparator: React.FC<CheckpointSeparatorProps> = ({
@@ -91,8 +87,11 @@ const CheckpointSeparator: React.FC<CheckpointSeparatorProps> = ({
     isAvailable,
     isDisabled,
     isCreating = false,
+    isGroupHovered,
     onRestore
 }) => {
+    const [isLabelHovered, setIsLabelHovered] = useState(false);
+
     const handleClick = () => {
         if (!isDisabled && isAvailable && checkpointId) {
             onRestore(checkpointId);
@@ -101,25 +100,33 @@ const CheckpointSeparator: React.FC<CheckpointSeparatorProps> = ({
 
     const effectiveDisabled = isDisabled || !isAvailable;
 
+    const labelOpacity = isGroupHovered ? (isLabelHovered ? 1 : 0.5) : 0;
+
     return (
-        <SeparatorContainer disabled={effectiveDisabled} onClick={handleClick}>
-            <SeparatorLine>
+        <SeparatorContainer>
+            <SeparatorLine visible={isGroupHovered}>
+                <GradientLine direction="left" />
                 {isCreating ? (
-                    <CreatingText>
-                        Creating a checkpoint ...
-                    </CreatingText>
+                    <CreatingLabel>
+                        Creating a checkpoint...
+                    </CreatingLabel>
                 ) : (
-                    <RestoreButton
-                        className="separator-button"
+                    <RestoreLabel
                         disabled={effectiveDisabled}
+                        onMouseEnter={() => setIsLabelHovered(true)}
+                        onMouseLeave={() => setIsLabelHovered(false)}
                         onClick={(e) => {
                             e.stopPropagation();
                             handleClick();
                         }}
                     >
-                        ↺ Restore to checkpoint
-                    </RestoreButton>
+                        <LabelContent labelOpacity={labelOpacity}>
+                            Restore Checkpoint
+                            <Icon name="Restore" sx={{ height: "14px", width: "14px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ fontSize: "14px", lineHeight: "1", display: "block" }} />
+                        </LabelContent>
+                    </RestoreLabel>
                 )}
+                <GradientLine direction="right" />
             </SeparatorLine>
         </SeparatorContainer>
     );

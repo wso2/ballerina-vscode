@@ -249,6 +249,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     } = props;
 
     const { rpcClient } = useRpcContext();
+
     const [baseFields, setBaseFields] = useState<FormField[]>([]);
     const [formDiagnostics, setFormDiagnostics] = useState<DiagnosticMessage[]>([]);
     const [isAiUserAuthenticated, setIsAiUserAuthenticated] = useState(false);

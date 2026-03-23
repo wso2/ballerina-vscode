@@ -63,8 +63,11 @@ import {
     reviewModeClosed,
     approvalOverlayState,
     ApprovalOverlayState,
+    onIdentifierUpdated,
     traceAnimationChanged,
-    TraceAnimationEvent
+    TraceAnimationEvent,
+    webToolToggle,
+    WebToolToggle
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -102,6 +105,7 @@ export class BallerinaRpcClient {
     private _icpManager: ICPServiceRpcClient;
     private _agentChat: AgentChatRpcClient;
     private _platformExt: PlatformExtRpcClient;
+    private _identifierUpdatedCallbacks = new Set<(response: ProjectStructureArtifactResponse[]) => void>();
 
     constructor() {
         this.messenger = new Messenger(vscode);
@@ -125,6 +129,9 @@ export class BallerinaRpcClient {
         this._icpManager = new ICPServiceRpcClient(this.messenger);
         this._agentChat = new AgentChatRpcClient(this.messenger);
         this._platformExt = new PlatformExtRpcClient(this.messenger);
+        this.messenger.onNotification(onIdentifierUpdated, (response: ProjectStructureArtifactResponse[]) => {
+            this._identifierUpdatedCallbacks.forEach((callback) => callback(response));
+        });
     }
 
     getAIAgentRpcClient(): AiAgentRpcClient {
@@ -227,6 +234,13 @@ export class BallerinaRpcClient {
         this.messenger.onNotification(projectContentUpdated, callback);
     }
 
+    onIdentifierUpdated(callback: (response: ProjectStructureArtifactResponse[]) => void) {
+        this._identifierUpdatedCallbacks.add(callback);
+        return () => {
+            this._identifierUpdatedCallbacks.delete(callback);
+        };
+    }
+
     // <----- This is used to register given artifact updated callback notification ----->
     onArtifactUpdated(artifactData: ArtifactData, callback: (artifacts: ProjectStructureArtifactResponse[]) => void) {
         this.messenger.sendRequest(onArtifactUpdatedRequest, HOST_EXTENSION, artifactData);
@@ -299,6 +313,10 @@ export class BallerinaRpcClient {
 
     onApprovalOverlayState(callback: (data: ApprovalOverlayState) => void) {
         this.messenger.onNotification(approvalOverlayState, callback);
+    }
+
+    onWebToolToggle(callback: (data: WebToolToggle) => void) {
+        this.messenger.onNotification(webToolToggle, callback);
     }
 
     onTraceAnimationChanged(callback: (event: TraceAnimationEvent) => void) {
