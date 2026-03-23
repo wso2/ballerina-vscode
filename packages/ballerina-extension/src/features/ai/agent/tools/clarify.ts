@@ -46,11 +46,17 @@ export type ClarifyInput = z.infer<typeof ClarifyInputSchema>;
 
 export function createClarifyTool(eventHandler: CopilotEventHandler) {
     return tool({
-        description: `Use this tool to ask the user clarifying questions before starting implementation when the request leaves critical decisions unspecified and a wrong assumption would produce results the user did not want.
+        description: `Use this tool to ask the user clarifying questions when the request is ambiguous at the requirements level — where a wrong assumption would produce an integration the user did not want.
 
-Call this when the request does not specify key parameters that meaningfully affect the design — such as the data source, integration target, API contract, or architecture approach — and these cannot be reasonably inferred from the codebase or conversation.
+Call this ONLY for high-level requirement gaps that cannot be inferred from the codebase or conversation. Examples of valid cases:
+- The integration type is ambiguous (e.g. automation vs service)
+- The target system or database is not specified
+- The trigger or event source is unclear
 
-Do NOT call this for details you can infer from context, trivial stylistic choices, or anything that can be safely defaulted.
+Do NOT call this for:
+- Decisions handled by other tools (library selection, connector API contract, connector generation)
+- Implementation details that can be reasonably defaulted
+- Anything that can be inferred from the codebase or conversation context
 
 STRICT RULES:
 - Call AT MOST ONCE per task. Batch ALL questions into a single call.
