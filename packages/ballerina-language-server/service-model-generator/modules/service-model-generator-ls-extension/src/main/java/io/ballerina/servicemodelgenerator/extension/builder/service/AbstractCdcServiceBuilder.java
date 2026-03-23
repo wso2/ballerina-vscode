@@ -213,7 +213,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
 
             // Navigate into the pre-structured configureListener CHOICE
             Value configureListener = properties.get(KEY_CONFIGURE_LISTENER);
-            Value createNewChoice = configureListener.getChoices().get(1);
+            Value createNewChoice = configureListener.getChoices().get(0);
             Value listenerConfig = createNewChoice.getProperties().get("listenerConfig");
             Value advancedSection = listenerConfig.getProperties().get(KEY_ADVANCED_CONFIGURATIONS);
 
@@ -240,29 +240,56 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                 applyInitModelMetadata(listenerConfigs, templateProps);
 
                 // Populate "Use existing" choice
-                Value existingChoice = configureListener.getChoices().get(0);
+                Value existingChoice = configureListener.getChoices().get(1);
                 existingChoice.setMetadata(new MetaData("Use existing",
                         "Select an existing " + getDisplayLabel() + " listener"));
                 existingChoice.setEnabled(true);
                 existingChoice.setEditable(true);
+
+                // Determine which keys are "advanced" from the template
+                Set<String> advancedKeys = advancedSection.getProperties() != null
+                        ? advancedSection.getProperties().keySet() : Set.of();
 
                 // Build SINGLE_SELECT dropdown with per-listener configs
                 List<String> listenerNames = new ArrayList<>(compatibleListeners);
                 Map<String, Value> perListenerConfigs = new LinkedHashMap<>();
                 for (String name : listenerNames) {
                     Map<String, Value> config = listenerConfigs.getOrDefault(name, new LinkedHashMap<>());
-                    Map<String, Value> readOnlyConfig = new LinkedHashMap<>();
+                    Map<String, Value> basicProps = new LinkedHashMap<>();
+                    Map<String, Value> advancedProps = new LinkedHashMap<>();
                     for (Map.Entry<String, Value> entry : config.entrySet()) {
                         entry.getValue().setEditable(false);
-                        readOnlyConfig.put(entry.getKey(), entry.getValue());
+                        if (advancedKeys.contains(entry.getKey())) {
+                            advancedProps.put(entry.getKey(), entry.getValue());
+                        } else {
+                            basicProps.put(entry.getKey(), entry.getValue());
+                        }
                     }
+
+                    // Build "Advanced Configurations" GROUP_SECTION if there are advanced props
+                    if (!advancedProps.isEmpty()) {
+                        Value advancedGroup = new Value.ValueBuilder()
+                                .metadata("Advanced Configurations", "")
+                                .types(List.of(new PropertyType.Builder()
+                                        .fieldType(Value.FieldType.GROUP_SECTION)
+                                        .selected(false)
+                                        .build()))
+                                .enabled(true)
+                                .editable(false)
+                                .setProperties(advancedProps)
+                                .build();
+                        // Override selected after build, since ValueBuilder.types() auto-selects
+                        advancedGroup.getTypes().getFirst().selected(false);
+                        basicProps.put(KEY_ADVANCED_CONFIGURATIONS, advancedGroup);
+                    }
+
                     Value configGroup = new Value.ValueBuilder()
                             .metadata(name, getDisplayLabel() + " source: " + name)
                             .value(name)
                             .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                             .enabled(true)
                             .editable(false)
-                            .setProperties(readOnlyConfig)
+                            .setProperties(basicProps)
                             .build();
                     perListenerConfigs.put(name, configGroup);
                 }
@@ -282,7 +309,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                 existingChoice.getProperties().get("listenerConfig").setProperties(existingProps);
 
                 // Set "Use existing" as default selection
-                configureListener.setValue("0");
+                configureListener.setValue("1");
                 createNewChoice.setEnabled(false);
             }
 

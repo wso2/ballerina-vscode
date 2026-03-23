@@ -14,48 +14,13 @@
         "description": "Select an existing PostgreSQL CDC listener or create a new one"
       },
       "placeholder": "",
-      "value": "1",
+      "value": "0",
       "types": [
         {
           "fieldType": "CHOICE"
         }
       ],
       "choices": [
-        {
-          "metadata": {
-            "label": "Use existing (none available)",
-            "description": "Select an existing PostgreSQL CDC listener"
-          },
-          "placeholder": "true",
-          "value": "true",
-          "types": [
-            {
-              "fieldType": "FORM"
-            }
-          ],
-          "enabled": false,
-          "editable": false,
-          "optional": false,
-          "advanced": false,
-          "properties": {
-            "listenerConfig": {
-              "metadata": {
-                "label": "Listener Configurations",
-                "description": "Configure the PostgreSQL CDC listener"
-              },
-              "types": [
-                {
-                  "fieldType": "GROUP_SECTION",
-                  "selected": true
-                }
-              ],
-              "enabled": true,
-              "editable": false,
-              "advanced": false,
-              "properties": {}
-            }
-          }
-        },
         {
           "metadata": {
             "label": "Create new",
@@ -367,6 +332,41 @@
                   }
                 }
               }
+            }
+          }
+        },
+        {
+          "metadata": {
+            "label": "Use existing (none available)",
+            "description": "Select an existing PostgreSQL CDC listener"
+          },
+          "placeholder": "true",
+          "value": "true",
+          "types": [
+            {
+              "fieldType": "FORM"
+            }
+          ],
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false,
+          "properties": {
+            "listenerConfig": {
+              "metadata": {
+                "label": "Listener Configurations",
+                "description": "Configure the PostgreSQL CDC listener"
+              },
+              "types": [
+                {
+                  "fieldType": "GROUP_SECTION",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": false,
+              "advanced": false,
+              "properties": {}
             }
           }
         }
