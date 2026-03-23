@@ -132,6 +132,8 @@ task copyInbuiltTriggers(type: Copy) {
     into "${buildDir}/resources/test/inbuilt-triggers"
 }
 
+checkstyleTest.dependsOn copyInbuiltTriggers
+
 test {
     dependsOn copyStdlibs, copyInbuiltTriggers
     systemProperty "ballerina.home", balDistribution

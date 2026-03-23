@@ -397,23 +397,37 @@ public class ServiceLoader {
         JsonObject typeObj = new JsonObject();
         String prefix = packageName + ":";
 
-        // Build the resolved type name by stripping the package prefix from each component
-        String resolvedName = typeName;
-        JsonArray links = new JsonArray();
+        // Fast path for non-union types (the common case)
+        if (!typeName.contains("|")) {
+            if (typeName.startsWith(prefix)) {
+                String strippedName = typeName.substring(prefix.length());
+                String recordName = strippedName.endsWith("?") ?
+                        strippedName.substring(0, strippedName.length() - 1) : strippedName;
+                typeObj.addProperty("name", strippedName);
+                JsonArray links = new JsonArray();
+                JsonObject link = new JsonObject();
+                link.addProperty("category", "internal");
+                link.addProperty("recordName", recordName);
+                links.add(link);
+                typeObj.add("links", links);
+            } else {
+                typeObj.addProperty("name", typeName);
+            }
+            return typeObj;
+        }
 
-        // Split by "|" to handle union types
+        // Union type handling
+        JsonArray links = new JsonArray();
         String[] parts = typeName.split("\\|");
         StringBuilder resolvedBuilder = new StringBuilder();
         for (int i = 0; i < parts.length; i++) {
             String part = parts[i].trim();
-            String resolvedPart = part;
 
             if (part.startsWith(prefix)) {
                 String strippedName = part.substring(prefix.length());
-                // Remove trailing '?' for link record name
                 String recordName = strippedName.endsWith("?") ?
                         strippedName.substring(0, strippedName.length() - 1) : strippedName;
-                resolvedPart = strippedName;
+                part = strippedName;
 
                 JsonObject link = new JsonObject();
                 link.addProperty("category", "internal");
@@ -424,12 +438,10 @@ public class ServiceLoader {
             if (i > 0) {
                 resolvedBuilder.append("|");
             }
-            resolvedBuilder.append(resolvedPart);
+            resolvedBuilder.append(part);
         }
 
-        resolvedName = resolvedBuilder.toString();
-        typeObj.addProperty("name", resolvedName);
-
+        typeObj.addProperty("name", resolvedBuilder.toString());
         if (!links.isEmpty()) {
             typeObj.add("links", links);
         }
