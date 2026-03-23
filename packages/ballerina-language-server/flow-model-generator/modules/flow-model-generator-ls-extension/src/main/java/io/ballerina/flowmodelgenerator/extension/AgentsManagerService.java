@@ -368,7 +368,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                 }
 
                 // Fallback: resolve from local/distribution repo (offline, no network calls)
-                PackageResolver resolver = PackageUtil.getSampleProject()
+                PackageResolver resolver = project
                         .projectEnvironmentContext().getService(PackageResolver.class);
                 ResolutionRequest resolutionRequest = ResolutionRequest.from(
                         PackageDescriptor.from(PackageOrg.from(org), PackageName.from(packageName)));
