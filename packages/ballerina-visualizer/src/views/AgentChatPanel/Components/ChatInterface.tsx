@@ -394,7 +394,10 @@ const AgentItemPath = styled.span`
     color: var(--vscode-descriptionForeground);
     font-size: 11px;
     white-space: nowrap;
-    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 50%;
+    flex-shrink: 1;
 `;
 
 // ---------- WARNING POPUP ----------

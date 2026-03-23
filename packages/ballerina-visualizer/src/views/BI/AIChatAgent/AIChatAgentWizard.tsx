@@ -79,7 +79,7 @@ export interface AIChatAgentWizardProps {
 const AI_CHAT_AGENT_LISTENER = "chatAgentListener";
 const AI_WSO2_MODEL_PROVIDER = "wso2ModelProvider";
 const MODEL = "Model";
-const KNOWN_SUFFIXES = ["agent", "model", "listener", "service"];
+const KNOWN_SUFFIXES = ["agent", "model"];
 
 function toBaseName(name: string): string {
     // Split on spaces/underscores, convert to camelCase
