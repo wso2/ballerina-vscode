@@ -51,7 +51,7 @@ const SuggestionChip = styled.button`
     color: var(--vscode-descriptionForeground);
     border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
     border-radius: 8px;
-    cursor: pointer;
+    cursor: pointer !important;
     transition: all 0.15s ease;
     text-align: left;
 
