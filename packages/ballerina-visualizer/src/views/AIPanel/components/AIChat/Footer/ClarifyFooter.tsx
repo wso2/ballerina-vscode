@@ -21,14 +21,9 @@ import styled from "@emotion/styled";
 import { ClarifyQuestion } from "@wso2/ballerina-core";
 import { FooterContainer } from "./index";
 import { ActionButton } from "../../AgentStreamView/styles";
+import { FooterBox, FooterDivider, FooterTextInputRow, FooterInput } from "./styles";
 
-// ── Styled components ─────────────────────────────────────────────────────────
-
-const ApprovalContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-`;
+// ── Clarify-specific styled components ────────────────────────────────────────
 
 const TabRow = styled.div`
     display: flex;
@@ -125,43 +120,10 @@ const OptionLabel = styled.span<{ selected: boolean }>`
         selected ? "var(--vscode-editor-foreground)" : "var(--vscode-foreground)"};
 `;
 
-const InputContainer = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    background-color: var(--vscode-input-background);
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    padding: 8px 14px;
-    height: 36px;
-    box-sizing: border-box;
+const OtherInputRow = styled(FooterTextInputRow)`
     margin-top: 4px;
     margin-left: 18px;
     width: calc(100% - 18px);
-
-    &:focus-within {
-        border-color: var(--vscode-focusBorder);
-    }
-`;
-
-const Input = styled.input`
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--vscode-input-foreground);
-    font-family: var(--vscode-font-family);
-    font-size: 12px;
-    outline: none;
-    padding: 0;
-
-    &::placeholder {
-        color: var(--vscode-input-placeholderForeground);
-    }
-
-    &:disabled {
-        cursor: not-allowed;
-    }
 `;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -253,7 +215,7 @@ const ClarifyFooter: React.FC<ClarifyFooterProps> = ({ questions, requestId, rpc
 
     return (
         <FooterContainer>
-            <ApprovalContainer>
+            <FooterBox>
                 {questions.length > 1 && (
                     <TabRow>
                         {questions.map((qu, i) => (
@@ -315,8 +277,8 @@ const ClarifyFooter: React.FC<ClarifyFooterProps> = ({ questions, requestId, rpc
                         </OptionRow>
                     </OptionButton>
                     {isOtherActive && (
-                        <InputContainer>
-                            <Input
+                        <OtherInputRow>
+                            <FooterInput
                                 type="text"
                                 placeholder="Type your answer..."
                                 value={customTexts[page] ?? ""}
@@ -324,14 +286,23 @@ const ClarifyFooter: React.FC<ClarifyFooterProps> = ({ questions, requestId, rpc
                                 autoFocus
                                 onChange={e => setCustomTexts(prev => ({ ...prev, [page]: e.target.value }))}
                             />
-                        </InputContainer>
+                        </OtherInputRow>
                     )}
                 </OptionsList>
 
-                <ActionButton onClick={handleSubmit} disabled={!canSubmit || isSubmitting}>
-                    {isSubmitting ? "Submitting..." : "Submit"}
+                <FooterDivider />
+
+                <ActionButton
+                    onClick={handleSubmit}
+                    disabled={!canSubmit || isSubmitting}
+                    style={{ justifyContent: "flex-start", gap: "6px" }}
+                >
+                    {isSubmitting
+                        ? <><span className="codicon codicon-loading codicon-modifier-spin" style={{ fontSize: "12px" }} /> Submitting...</>
+                        : <><span className="codicon codicon-send" style={{ fontSize: "12px" }} /> Submit</>
+                    }
                 </ActionButton>
-            </ApprovalContainer>
+            </FooterBox>
         </FooterContainer>
     );
 };
