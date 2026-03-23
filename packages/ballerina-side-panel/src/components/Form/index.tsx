@@ -53,6 +53,7 @@ import {
     EditorDisplayMode,
     Imports,
 } from "@wso2/ballerina-core";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormContext, Provider } from "../../context";
 import {
     formatJSONLikeString,
@@ -470,6 +471,8 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         updateImports,
     } = props;
 
+    const { rpcClient } = useRpcContext();
+
     const {
         control,
         getValues,
@@ -481,8 +484,15 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         setValue,
         setError,
         clearErrors,
-        formState: { isValidating, isValid: formStateIsValid, errors, dirtyFields },
+        formState: { isValidating, isValid: formStateIsValid, errors, dirtyFields, isDirty },
     } = useForm<FormValues>();
+
+    useEffect(() => {
+        if (!fileName || !rpcClient) {
+            return;
+        }
+        rpcClient.getBIDiagramRpcClient().formDirtyDidChange({ filePath: fileName, isDirty });
+    }, [isDirty, fileName, rpcClient]);
 
     const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
     const [activeFormField, setActiveFormField] = useState<string | undefined>(undefined);

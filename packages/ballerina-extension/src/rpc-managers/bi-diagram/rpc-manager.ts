@@ -86,6 +86,7 @@ import {
     FormDiagnosticsResponse,
     FormDidCloseParams,
     FormDidOpenParams,
+    FormDirtyDidChangeParams,
     FunctionNodeRequest,
     FunctionNodeResponse,
     GeneratedClientSaveResponse,
@@ -203,7 +204,7 @@ import { getCurrentBallerinaProject } from "../../utils/project-utils";
 import { CommonRpcManager } from "../common/rpc-manager";
 import * as toml from "@iarna/toml";
 import { readOrWriteReadmeContent } from "./utils";
-import { registerFormOpen, registerFormClose } from "./form-state";
+import { registerFormOpen, registerFormClose, setFormDirtyState } from "./form-state";
 import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
 import { getRepoRoot } from "../platform-ext/platform-utils";
 import { WI_EXTENSION_ID } from "../../utils";
@@ -1603,6 +1604,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 }
             });
         });
+    }
+
+    formDirtyDidChange(params: FormDirtyDidChangeParams): void {
+        setFormDirtyState(params.filePath, params.isDirty);
     }
 
     async formDidClose(params: FormDidCloseParams): Promise<void> {

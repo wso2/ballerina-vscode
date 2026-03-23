@@ -73,6 +73,7 @@ import {
     FormDiagnosticsResponse,
     FormDidCloseParams,
     FormDidOpenParams,
+    FormDirtyDidChangeParams,
     FunctionNodeRequest,
     FunctionNodeResponse,
     GeneratedClientSaveResponse,
@@ -147,6 +148,7 @@ import {
     deployWorkspace,
     formDidClose,
     formDidOpen,
+    formDirtyDidChange,
     generateOpenApiClient,
     getAiSuggestions,
     getAvailableAgents,
@@ -421,6 +423,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     formDidClose(params: FormDidCloseParams): Promise<void> {
         return this._messenger.sendRequest(formDidClose, HOST_EXTENSION, params);
+    }
+
+    formDirtyDidChange(params: FormDirtyDidChangeParams): void {
+        this._messenger.sendNotification(formDirtyDidChange, HOST_EXTENSION, params);
     }
 
     getDesignModel(params: BIDesignModelRequest): Promise<BIDesignModelResponse> {
