@@ -126,6 +126,10 @@ export interface DiagramContextState {
     setLockCanvas?: (lock: boolean) => void;
     isUserAuthenticated?: boolean;
     expressionContext: ExpressionContextProps;
+    entrypointContext?: {
+        serviceName?: string;
+        functionName?: string;
+    };
 }
 
 export const DiagramContext = React.createContext<DiagramContextState>({
@@ -215,13 +219,17 @@ export type TraceAnimationState = {
     activeAgentToolNames: string[];
     entries: TraceAnimationEntry[];
     systemInstructions?: string;
+    entrypointServiceName?: string;
+    entrypointFunctionName?: string;
 } | undefined;
 
 const FADE_OUT_DURATION_MS = 400;
+const STALE_ENTRY_TIMEOUT_MS = 10_000; // Safety: auto-deactivate entries older than 10s
 
 let traceAnimationState: TraceAnimationState = undefined;
 const traceAnimationListeners = new Set<() => void>();
 const fadeOutTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const staleTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 function getTraceAnimationSnapshot(): TraceAnimationState {
     return traceAnimationState;
@@ -254,11 +262,33 @@ function cleanupFadedEntries(keyToClean: string) {
     notifyListeners();
 }
 
+function scheduleStaleCleanup(key: string, type: TraceAnimationEntry['type'], toolName?: string) {
+    const existing = staleTimers.get(key);
+    if (existing) {
+        clearTimeout(existing);
+    }
+    staleTimers.set(key, setTimeout(() => {
+        staleTimers.delete(key);
+        // Force-deactivate if still active
+        setTraceAnimationInactive(type, toolName);
+    }, STALE_ENTRY_TIMEOUT_MS));
+}
+
+function clearStaleTimer(key: string) {
+    const existing = staleTimers.get(key);
+    if (existing) {
+        clearTimeout(existing);
+        staleTimers.delete(key);
+    }
+}
+
 export function setTraceAnimationActive(
     toolNames: string[],
     type: 'invoke_agent' | 'chat' | 'execute_tool',
     activeToolName?: string,
     systemInstructions?: string,
+    entrypointServiceName?: string,
+    entrypointFunctionName?: string,
 ) {
     const key = entryKey(type, activeToolName);
 
@@ -297,11 +327,16 @@ export function setTraceAnimationActive(
     // Add the new active entry
     updatedEntries.push({ type, toolName: activeToolName, phase: 'active' });
 
+    // Schedule stale cleanup for the new active entry
+    scheduleStaleCleanup(key, type, activeToolName);
+
     traceAnimationState = {
         activeAgentToolNames: toolNames,
         entries: updatedEntries,
         // Persist systemInstructions from chat events; tool events inherit it
         systemInstructions: systemInstructions || traceAnimationState?.systemInstructions,
+        entrypointServiceName: entrypointServiceName ?? traceAnimationState?.entrypointServiceName,
+        entrypointFunctionName: entrypointFunctionName ?? traceAnimationState?.entrypointFunctionName,
     };
     notifyListeners();
 }
@@ -313,7 +348,7 @@ export function setTraceAnimationInactive(
     if (!traceAnimationState) return;
 
     const key = entryKey(type, activeToolName);
-    const wasActive = traceAnimationState.entries.some(e => entryKey(e.type, e.toolName) === key && e.phase === 'active');
+    clearStaleTimer(key);
 
     // Mark matching entry as fading-out
     const updatedEntries = traceAnimationState.entries.map(e => {

@@ -43,6 +43,7 @@ import { registerTestManagerRpcHandlers } from './rpc-managers/test-manager/rpc-
 import { registerIcpServiceRpcHandlers } from './rpc-managers/icp-service/rpc-handler';
 import { extension } from './BalExtensionContext';
 import { registerAgentChatRpcHandlers } from './rpc-managers/agent-chat/rpc-handler';
+import { activeAgentChanged } from '@wso2/ballerina-core';
 import { ArtifactsUpdated, ArtifactNotificationHandler } from './utils/project-artifacts-handler';
 import { registerMigrateIntegrationRpcHandlers } from './rpc-managers/migrate-integration/rpc-handler';
 import { registerPlatformExtRpcHandlers } from './rpc-managers/platform-ext/rpc-handler';
@@ -207,4 +208,8 @@ export function notifyApprovalOverlayState(state: ApprovalOverlayState) {
 
 export function notifyOnIdentifierUpdated(response: ProjectStructureArtifactResponse[]) {
     RPCLayer._messenger.sendNotification(onIdentifierUpdated, { type: 'webview', webviewType: VisualizerWebview.viewType }, response);
+}
+
+export function sendAgentChangedNotification(agentName: string) {
+    RPCLayer._messenger.sendNotification(activeAgentChanged, { type: 'webview', webviewType: 'ballerina.agent-chat-panel' }, agentName);
 }
