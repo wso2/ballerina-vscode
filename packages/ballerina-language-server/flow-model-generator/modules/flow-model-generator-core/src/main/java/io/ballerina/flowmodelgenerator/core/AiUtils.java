@@ -52,6 +52,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -461,7 +462,9 @@ public class AiUtils {
             return;
         }
 
-        for (Map.Entry<String, Property> targetPropertyEntry : targetNode.properties().entrySet()) {
+        Iterator<Map.Entry<String, Property>> iterator = targetNode.properties().entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, Property> targetPropertyEntry = iterator.next();
             String propertyName = targetPropertyEntry.getKey();
 
             // Skip copying variable and type properties
@@ -471,11 +474,14 @@ public class AiUtils {
 
             Optional<Property> sourceProperty = sourceNode.getProperty(propertyName);
 
-            // Only copy if source property exists and has a non-empty string value
             if (sourceProperty.isPresent()) {
                 Property srcProp = sourceProperty.get();
                 if (srcProp.value() != null && !srcProp.value().toString().isEmpty()) {
+                    // Copy non-empty source values to the target
                     copyPropertyValue(targetNode, sourceNode, propertyName, propertyName);
+                } else if (targetPropertyEntry.getValue().optional()) {
+                    // Remove optional properties that have been cleared
+                    iterator.remove();
                 }
             }
         }
@@ -779,7 +785,7 @@ public class AiUtils {
             return "string ``";
         }
         // Check if input is a string template
-        if (input.matches("string\\s+`.*`")) {
+        if (input.matches("(?s)string\\s+`.*`")) {
             int firstBacktick = input.indexOf('`');
             String prefix = input.substring(0, firstBacktick + 1);
             String content = input.substring(firstBacktick + 1, input.length() - 1);
