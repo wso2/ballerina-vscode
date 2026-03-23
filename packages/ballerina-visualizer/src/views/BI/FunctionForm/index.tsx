@@ -280,7 +280,12 @@ export function FunctionForm(props: FunctionFormProps) {
             // Add OAuth client configuration fields for agent tools
             let oauthSupported = false;
             if (isAgentTool || isExistingAgentTool) {
-                const oauthProperties = await fetchOAuthConfigProperties(rpcClient, filePath);
+                let oauthProperties: Awaited<ReturnType<typeof fetchOAuthConfigProperties>> = [];
+                try {
+                    oauthProperties = await fetchOAuthConfigProperties(rpcClient, filePath);
+                } catch (error) {
+                    console.error("Failed to fetch OAuth config properties:", error);
+                }
                 if (cancelled) return;
                 oauthConfigPropertiesRef.current = oauthProperties;
                 const oauthKeys = oauthProperties.map(({ key }) => key);
