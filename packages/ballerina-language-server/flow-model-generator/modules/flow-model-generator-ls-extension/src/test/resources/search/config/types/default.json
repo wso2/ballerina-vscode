@@ -26,7 +26,7 @@
             "description": ""
           },
           "codedata": {
-            "node": "TYPEDESC",
+            "node": "RECORD",
             "org": "nipunaf",
             "module": "proj",
             "packageName": "proj",
@@ -41,7 +41,7 @@
             "description": ""
           },
           "codedata": {
-            "node": "TYPEDESC",
+            "node": "RECORD",
             "org": "nipunaf",
             "module": "proj",
             "packageName": "proj",
@@ -56,7 +56,7 @@
             "description": ""
           },
           "codedata": {
-            "node": "TYPEDESC",
+            "node": "RECORD",
             "org": "nipunaf",
             "module": "proj",
             "packageName": "proj",
@@ -71,7 +71,7 @@
             "description": ""
           },
           "codedata": {
-            "node": "TYPEDESC",
+            "node": "RECORD",
             "org": "nipunaf",
             "module": "proj",
             "packageName": "proj",
@@ -86,7 +86,7 @@
             "description": ""
           },
           "codedata": {
-            "node": "TYPEDESC",
+            "node": "RECORD",
             "org": "nipunaf",
             "module": "proj",
             "packageName": "proj",
@@ -101,7 +101,7 @@
             "description": ""
           },
           "codedata": {
-            "node": "TYPEDESC",
+            "node": "RECORD",
             "org": "nipunaf",
             "module": "proj",
             "packageName": "proj",
@@ -116,11 +116,41 @@
             "description": ""
           },
           "codedata": {
-            "node": "TYPEDESC",
+            "node": "RECORD",
             "org": "nipunaf",
             "module": "proj",
             "packageName": "proj",
             "symbol": "MyAcceptRec",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Addresses",
+            "description": ""
+          },
+          "codedata": {
+            "node": "ARRAY",
+            "org": "nipunaf",
+            "module": "proj",
+            "packageName": "proj",
+            "symbol": "Addresses",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "JsonArray",
+            "description": ""
+          },
+          "codedata": {
+            "node": "ARRAY",
+            "org": "nipunaf",
+            "module": "proj",
+            "packageName": "proj",
+            "symbol": "JsonArray",
             "version": "0.1.0"
           },
           "enabled": true
