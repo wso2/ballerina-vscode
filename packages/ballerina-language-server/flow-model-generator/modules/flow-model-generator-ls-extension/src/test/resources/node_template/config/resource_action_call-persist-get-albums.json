@@ -217,7 +217,7 @@
                         "selected": true
                       }
                     ],
-                    "value": true,
+                    "value": "true",
                     "optional": true,
                     "editable": true,
                     "advanced": false,
@@ -551,7 +551,7 @@
                           "selected": true
                         }
                       ],
-                      "value": true,
+                      "value": "true",
                       "optional": true,
                       "editable": true,
                       "advanced": false,
@@ -730,7 +730,7 @@
                           "selected": true
                         }
                       ],
-                      "value": true,
+                      "value": "true",
                       "optional": true,
                       "editable": true,
                       "advanced": false,
@@ -909,7 +909,7 @@
                           "selected": true
                         }
                       ],
-                      "value": true,
+                      "value": "true",
                       "optional": true,
                       "editable": true,
                       "advanced": false,
