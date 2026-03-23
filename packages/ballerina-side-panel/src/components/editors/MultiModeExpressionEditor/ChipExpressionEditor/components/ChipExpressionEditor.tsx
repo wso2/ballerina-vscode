@@ -185,7 +185,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
     const handleChangeListner = buildOnChangeListner((newValue, cursor) => {
         completionsFetchScheduledRef.current = true;
-        console.log("[ChipEditor] handleChangeListner → onChange", { newValue, deserialised: configuration.deserializeValue(newValue) });
         props.onChange(configuration.deserializeValue(newValue), cursor.position.to);
         const textBeforeCursor = newValue.slice(0, cursor.position.to);
         const lastNonSpaceChar = textBeforeCursor.trimEnd().slice(-1);
