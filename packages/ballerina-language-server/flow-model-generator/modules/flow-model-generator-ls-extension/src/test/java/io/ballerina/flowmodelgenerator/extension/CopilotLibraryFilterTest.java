@@ -46,6 +46,7 @@ public class CopilotLibraryFilterTest extends AbstractLSTest {
                 {Path.of("get_filtered_libraries.json")},
                 {Path.of("get_filtered_libraries_trigger_salesforce.json")},
                 {Path.of("get_filtered_libraries_salesforce.json")},
+                {Path.of("get_filtered_libraries_trigger_github.json")},
         };
     }
 
