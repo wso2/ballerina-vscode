@@ -163,7 +163,7 @@
                                       "value": "\"default\"",
                                       "types": [
                                         {
-                                          "fieldType": "IDENTIFIER",
+                                          "fieldType": "TEXT",
                                           "ballerinaType": "string",
                                           "selected": true
                                         },
@@ -187,7 +187,7 @@
                                       "value": "\"default\"",
                                       "types": [
                                         {
-                                          "fieldType": "IDENTIFIER",
+                                          "fieldType": "TEXT",
                                           "ballerinaType": "string",
                                           "selected": true
                                         },
@@ -357,14 +357,11 @@
                                         "label": "Username",
                                         "description": "Remote server username for key-based authentication"
                                       },
-                                      "codedata": {
-                                        "type": "IDENTIFIER"
-                                      },
                                       "placeholder": "",
                                       "value": "",
                                       "types": [
                                         {
-                                          "fieldType": "IDENTIFIER",
+                                          "fieldType": "TEXT",
                                           "ballerinaType": "string",
                                           "selected": true
                                         },
@@ -498,14 +495,12 @@
                                         "label": "Username",
                                         "description": "Remote server username for authentication"
                                       },
-                                      "codedata": {
-                                        "type": "IDENTIFIER"
-                                      },
                                       "placeholder": "default",
                                       "value": "\"default\"",
                                       "types": [
                                         {
                                           "fieldType": "TEXT",
+                                          "ballerinaType": "string",
                                           "selected": true
                                         },
                                         {
@@ -532,6 +527,7 @@
                                       "types": [
                                         {
                                           "fieldType": "TEXT",
+                                          "ballerinaType": "string",
                                           "selected": true
                                         },
                                         {
