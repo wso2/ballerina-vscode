@@ -76,7 +76,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_K
 /**
  * FTP-specific listener utility methods.
  *
- * @since 1.5.0
+ * @since 1.7.0
  */
 public class FTPListenerUtil {
 
