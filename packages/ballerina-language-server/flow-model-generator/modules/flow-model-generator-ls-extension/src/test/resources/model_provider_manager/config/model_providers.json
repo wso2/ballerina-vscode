@@ -110,6 +110,21 @@
               "symbol": "init"
             },
             "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Openrouter Model Provider",
+              "description": "ModelProvider is a client class that provides an interface for interacting with\nLLMs via the OpenRouter unified API, which supports models from OpenAI, Anthropic,\nGoogle, Meta, Mistral, and many other providers."
+            },
+            "codedata": {
+              "node": "MODEL_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.openrouter",
+              "packageName": "ai.openrouter",
+              "object": "ModelProvider",
+              "symbol": "init"
+            },
+            "enabled": true
           }
         ]
       }
