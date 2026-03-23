@@ -24,6 +24,7 @@ import {
     InlineCardHeader,
     InlineCardIcon,
     InlineCardTitle,
+    InlineCardSubtitle,
 } from "./styles";
 
 // ── Styled components ─────────────────────────────────────────────────────────
@@ -215,27 +216,6 @@ const ErrorMessage = styled.span`
     font-weight: 600;
 `;
 
-const ScenarioGroup = styled.div`
-    background-color: var(--vscode-input-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
-    margin: 4px 0 2px;
-    overflow: hidden;
-`;
-
-const ScenarioHeader = styled.div`
-    color: var(--vscode-foreground);
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-`;
-
-const ScenarioContent = styled.div`
-    padding: 2px 8px 4px;
-`;
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const formatJson = (value: unknown): string => {
@@ -378,24 +358,7 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output }) => {
     if (!input?.request) return null;
 
     const isRunning = !output;
-    const hasScenario = !!(input.scenario || output?.scenario);
     const scenario = input.scenario ?? output?.scenario;
-
-    const runningRow = (
-        <RequestRow>
-            <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
-                <span className="codicon codicon-loading codicon-modifier-spin" />
-            </InlineCardIcon>
-            <span style={{ fontSize: 11, color: "var(--vscode-descriptionForeground)" }}>Running...</span>
-        </RequestRow>
-    );
-
-    const content = isRunning ? runningRow : (
-        <HTTPRequestDetail
-            request={output?.request ?? input.request}
-            output={output?.output}
-        />
-    );
 
     return (
         <InlineCard>
@@ -404,15 +367,21 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output }) => {
                     <span className="codicon codicon-send" />
                 </InlineCardIcon>
                 <InlineCardTitle>HTTP Request</InlineCardTitle>
+                {scenario && <InlineCardSubtitle>{scenario}</InlineCardSubtitle>}
             </InlineCardHeader>
 
-            {!isRunning && hasScenario ? (
-                <ScenarioGroup>
-                    <ScenarioHeader>{scenario}</ScenarioHeader>
-                    <ScenarioContent>{content}</ScenarioContent>
-                </ScenarioGroup>
+            {isRunning ? (
+                <RequestRow>
+                    <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
+                        <span className="codicon codicon-loading codicon-modifier-spin" />
+                    </InlineCardIcon>
+                    <span style={{ fontSize: 11, color: "var(--vscode-descriptionForeground)" }}>Running...</span>
+                </RequestRow>
             ) : (
-                content
+                <HTTPRequestDetail
+                    request={output?.request ?? input.request}
+                    output={output?.output}
+                />
             )}
         </InlineCard>
     );
