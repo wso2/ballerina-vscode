@@ -907,7 +907,13 @@
           }
         },
         "diagnostics": {
-          "hasDiagnostics": true
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "undefined parameter 'memoryManager'"
+            }
+          ]
         },
         "flags": 1
       },
