@@ -55,7 +55,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
 /**
  * Represents a builder for the AgentIdAuthConfig node template in the flow model.
  *
- * @since 1.3.1
+ * @since 1.7.0
  */
 public class AgentIdAuthConfigBuilder extends NodeBuilder {
 
