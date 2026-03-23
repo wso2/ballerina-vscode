@@ -136,6 +136,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
     const init = async () => {
         const designModelResponse = await rpcClient.getBIDiagramRpcClient().getDesignModel({});
         designModelRef.current = designModelResponse.designModel;
+        aiModuleOrg.current = await getAiModuleOrg(rpcClient);
     }
 
     useEffect(() => {
@@ -177,13 +178,15 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                 setNameError(`"${agentConnectionName}" already exists. Please choose a different name.`);
                 return false;
             }
-            const modelName = `${base}Model`;
-            const isModelExists = designModelRef.current.connections.some(
-                connection => connection.symbol.toLowerCase() === modelName.toLowerCase()
-            );
-            if (isModelExists) {
-                setNameError(`"${modelName}" already exists. Please choose a different name.`);
-                return false;
+            if (aiModuleOrg.current !== BALLERINA) {
+                const modelName = `${base}Model`;
+                const isModelExists = designModelRef.current.connections.some(
+                    connection => connection.symbol.toLowerCase() === modelName.toLowerCase()
+                );
+                if (isModelExists) {
+                    setNameError(`"${modelName}" already exists. Please choose a different name.`);
+                    return false;
+                }
             }
         }
         setNameError("");
@@ -201,7 +204,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             setCurrentStep(0);
 
             // Get AI module organization
-            aiModuleOrg.current = await getAiModuleOrg(rpcClient);
+            aiModuleOrg.current = aiModuleOrg.current || await getAiModuleOrg(rpcClient);
 
             const visualizerLocation = await rpcClient.getVisualizerLocation();
             projectPath.current = visualizerLocation.projectPath;
