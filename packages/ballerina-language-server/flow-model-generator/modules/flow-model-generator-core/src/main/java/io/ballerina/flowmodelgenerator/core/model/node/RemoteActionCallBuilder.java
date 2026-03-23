@@ -21,6 +21,7 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
@@ -52,11 +53,12 @@ public class RemoteActionCallBuilder extends CallBuilder {
     public void setConcreteTemplateData(TemplateContext context) {
         super.setConcreteTemplateData(context);
         Optional<Document> document = context.workspaceManager().document(context.filePath());
-        if (document.isPresent()) {
+        Optional<SemanticModel> model = context.workspaceManager().semanticModel(context.filePath());
+        if (document.isPresent() && model.isPresent()) {
             int txtPos = document.get().textDocument().textPositionFrom(context.position());
             NonTerminalNode node = ((ModulePartNode) document.get().syntaxTree().rootNode())
                     .findNode(TextRange.from(txtPos, 0));
-            if (WorkflowUtil.isInsideWorkflowFunction(semanticModel, node)) {
+            if (WorkflowUtil.isInsideWorkflowFunction(model.get(), node)) {
                 ActivityCallBuilder.addCallActivityOptions(context, moduleInfo, this);
             }
         }
