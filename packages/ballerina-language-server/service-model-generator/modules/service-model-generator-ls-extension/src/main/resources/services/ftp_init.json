@@ -587,6 +587,7 @@
                                   "types": [
                                     {
                                       "fieldType": "TEXT",
+                                      "ballerinaType": "string",
                                       "selected": true
                                     },
                                     {
@@ -600,10 +601,7 @@
                                   "isType": false,
                                   "placeholder": "default",
                                   "optional": true,
-                                  "advanced": false,
-                                  "codedata": {
-                                    "type": "IDENTIFIER"
-                                  }
+                                  "advanced": false
                                 },
                                 "password": {
                                   "metadata": {
@@ -616,6 +614,7 @@
                                   "types": [
                                     {
                                       "fieldType": "TEXT",
+                                      "ballerinaType": "string",
                                       "selected": true
                                     },
                                     {
