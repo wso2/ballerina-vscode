@@ -24,6 +24,7 @@ import * as vscode from 'vscode';
 import { BallerinaExtension } from "src/core";
 import Handlebars from "handlebars";
 import { clientManager, findRunningBallerinaProcesses, handleError, HTTPYAC_CONFIG_TEMPLATE, TRYIT_TEMPLATE, waitForBallerinaService } from "./utils";
+import { buildHurlCellsFromOASSpec } from "./hurl-builder";
 import { BIDesignModelResponse, EVENT_TYPE, MACHINE_VIEW, OpenAPISpec, ProjectInfo } from "@wso2/ballerina-core";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
 import { startDebugging } from "../editor-support/activator";
@@ -65,7 +66,52 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
             }
         });
 
-        return Disposable.from(disposable, {
+        // Command: start Ballerina service (no old Try It UI), then open WSO2 HTTP Client notebook
+        const startServiceDisposable = commands.registerCommand('ballerina.startService',
+            async (
+                content?: string | object[] | { oasSpec: any; baseUrl: string; serviceName: string; resourceMetadata?: { methodValue: string; pathValue: string } },
+                options?: { savable?: boolean },
+                serviceMetadata?: ServiceMetadata,
+                filePath?: string
+            ) => {
+                try {
+                    const projectAndServices = await getProjectPathAndServices(serviceMetadata, filePath);
+                    if (!projectAndServices) { return; }
+
+                    const { projectPath, services } = projectAndServices;
+                    const processesRunning = await checkBallerinaProcessRunning(projectPath);
+                    if (!processesRunning) { return; }
+
+                    if (content) {
+                        const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
+                        if (isOasDescriptor(content)) {
+                            // Resolve the actual running service port (same logic as Code Lens Try It)
+                            let descriptor = content;
+                            try {
+                                const matchingService = services.find(s =>
+                                    s.basePath === serviceMetadata?.basePath &&
+                                    (!serviceMetadata?.listener || compareListeners(s.listener, serviceMetadata.listener))
+                                ) ?? (services.length === 1 ? services[0] : undefined);
+                                if (matchingService) {
+                                    const actualPort = await getServicePort(projectPath, matchingService, content.oasSpec);
+                                    const bp = matchingService.basePath === '/' ? '' : sanitizePath(matchingService.basePath);
+                                    descriptor = { ...content, baseUrl: `http://localhost:${actualPort}${bp}` };
+                                }
+                            } catch {
+                                // Fall back to the static baseUrl already in the descriptor
+                            }
+                            await openHurlNotebook(descriptor, savePath, options);
+                        } else {
+                            await openTryItNotebook(content, { ...options, savePath });
+                        }
+                    }
+                } catch (error) {
+                    handleError(error, "Starting Ballerina service");
+                }
+            }
+        );
+
+        return Disposable.from(disposable, startServiceDisposable, {
             dispose: disposeErrorWatcher
         });
     } catch (error) {
@@ -166,8 +212,11 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             const selectedPort: number = await getServicePort(projectPath, selectedService, openapiSpec);
             selectedService.port = selectedPort;
 
-            const tryitFileUri = await generateTryItFileContent(targetDir, openapiSpec, selectedService, resourceMetadata);
-            await openInSplitView(tryitFileUri, 'http');
+            const basePath = selectedService.basePath === '/' ? '' : sanitizePath(selectedService.basePath);
+            const baseUrl = `http://localhost:${selectedPort}${basePath}`;
+            const serviceName = selectedService.name || selectedService.basePath;
+            const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
+            await openHurlNotebook({ oasSpec: openapiSpec, baseUrl, serviceName, resourceMetadata }, savePath, { savable: true });
         } else if (selectedService.type === ServiceType.GRAPHQL) {
             const selectedPort: number = await getServicePort(projectPath, selectedService);
             const port = selectedPort;
@@ -196,6 +245,39 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
     } catch (error) {
         handleError(error, "Opening Try It view");
     }
+}
+
+// ---------------------------------------------------------------------------
+// Hurl notebook helpers — shared by ballerina.startService and openTryItView
+// ---------------------------------------------------------------------------
+
+interface OasDescriptor {
+    oasSpec: any;
+    baseUrl: string;
+    serviceName: string;
+    resourceMetadata?: { methodValue: string; pathValue: string };
+}
+
+function isOasDescriptor(v: any): v is OasDescriptor {
+    return v !== null && typeof v === 'object' && !Array.isArray(v) && 'oasSpec' in v && 'baseUrl' in v && 'serviceName' in v;
+}
+
+async function openHurlNotebook(
+    descriptor: OasDescriptor,
+    savePath: string,
+    options?: { savable?: boolean }
+): Promise<void> {
+    const cells = buildHurlCellsFromOASSpec(descriptor.oasSpec, descriptor.baseUrl, descriptor.serviceName, descriptor.resourceMetadata);
+    await openTryItNotebook(cells, { ...options, savePath });
+}
+
+async function openTryItNotebook(
+    content: string | object[],
+    options?: { savable?: boolean; savePath?: string }
+): Promise<void> {
+    await vscode.commands.executeCommand('workbench.action.editorLayoutTwoColumns');
+    await vscode.commands.executeCommand('workbench.action.focusSecondEditorGroup');
+    await vscode.commands.executeCommand('HTTPClient.importHurlString', content, { ...options, viewColumn: 'active' });
 }
 
 // Generic utility function for opening files in split view

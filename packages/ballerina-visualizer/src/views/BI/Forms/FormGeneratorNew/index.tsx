@@ -162,6 +162,8 @@ export function FormGeneratorNew(props: FormProps) {
 
     const { rpcClient } = useRpcContext();
 
+
+
     const getAdjustedStartLine = (targetLineRange: LineRange | undefined, expressionOffset: number): LinePosition | undefined => {
         return targetLineRange ? updateLineRange(targetLineRange, expressionOffset).startLine : undefined;
     };
