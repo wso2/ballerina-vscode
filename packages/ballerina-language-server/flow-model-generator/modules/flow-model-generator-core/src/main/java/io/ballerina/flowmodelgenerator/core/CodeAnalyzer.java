@@ -407,6 +407,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(RemoteMethodCallActionNode remoteMethodCallActionNode) {
+        if (forceAssign) {
+            return;
+        }
         Optional<Symbol> symbol = semanticModel.symbol(remoteMethodCallActionNode);
         if (symbol.isEmpty() || (symbol.get().kind() != SymbolKind.METHOD)) {
             handleExpressionNode(remoteMethodCallActionNode);
@@ -839,6 +842,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(ClientResourceAccessActionNode clientResourceAccessActionNode) {
+        if (forceAssign) {
+            return;
+        }
         Optional<Symbol> symbol = semanticModel.symbol(clientResourceAccessActionNode);
         if (symbol.isEmpty() || (symbol.get().kind() != SymbolKind.METHOD &&
                 symbol.get().kind() != SymbolKind.RESOURCE_METHOD)) {
@@ -1792,27 +1798,29 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(TemplateExpressionNode templateExpressionNode) {
-        if (forceAssign) {
-            return;
-        }
-        if (templateExpressionNode.kind() == SyntaxKind.XML_TEMPLATE_EXPRESSION) {
-            startNode(NodeKind.XML_PAYLOAD, templateExpressionNode)
-                    .metadata()
-                    .description(XmlPayloadBuilder.DESCRIPTION)
-                    .stepOut()
-                    .properties().expression(templateExpressionNode);
-        }
+//        Treating these as variable nodes despite the force assign flag
+//        if (forceAssign) {
+//            return;
+//        }
+//        if (templateExpressionNode.kind() == SyntaxKind.XML_TEMPLATE_EXPRESSION) {
+//            startNode(NodeKind.XML_PAYLOAD, templateExpressionNode)
+//                    .metadata()
+//                    .description(XmlPayloadBuilder.DESCRIPTION)
+//                    .stepOut()
+//                    .properties().expression(templateExpressionNode);
+//        }
     }
 
     @Override
     public void visit(ByteArrayLiteralNode byteArrayLiteralNode) {
-        if (forceAssign) {
-            return;
-        }
-        startNode(NodeKind.BINARY_DATA, byteArrayLiteralNode)
-                .metadata()
-                .stepOut()
-                .properties().expression(byteArrayLiteralNode);
+//        Treating these as variable nodes despite the force assign flag
+//        if (forceAssign) {
+//            return;
+//        }
+//        startNode(NodeKind.BINARY_DATA, byteArrayLiteralNode)
+//                .metadata()
+//                .stepOut()
+//                .properties().expression(byteArrayLiteralNode);
     }
 
     @Override
@@ -1998,6 +2006,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(MethodCallExpressionNode methodCallExpressionNode) {
+        if (forceAssign) {
+            return;
+        }
         Optional<Symbol> symbol = semanticModel.symbol(methodCallExpressionNode);
         if (symbol.isEmpty() || !(symbol.get() instanceof FunctionSymbol functionSymbol)) {
             handleExpressionNode(methodCallExpressionNode);
@@ -2060,6 +2071,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(FunctionCallExpressionNode functionCallExpressionNode) {
+        if (forceAssign) {
+            return;
+        }
         Optional<Symbol> symbol = semanticModel.symbol(functionCallExpressionNode);
         if (symbol.isEmpty() || symbol.get().kind() != SymbolKind.FUNCTION) {
             handleExpressionNode(functionCallExpressionNode);
@@ -2610,15 +2624,19 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         Optional<Symbol> parentSymbol = semanticModel.symbol(parent);
-        if (parentSymbol.isPresent() && CommonUtils.getRawType(
-                ((VariableSymbol) parentSymbol.get()).typeDescriptor()).typeKind() == TypeDescKind.JSON &&
-                !forceAssign) {
-            startNode(NodeKind.JSON_PAYLOAD, constructorExprNode)
-                    .metadata()
-                    .description(JsonPayloadBuilder.DESCRIPTION)
-                    .stepOut()
-                    .properties().expression(constructorExprNode);
-        }
+        parentSymbol.ifPresent(symbol -> CommonUtils.getRawType(
+                ((VariableSymbol) symbol).typeDescriptor()).typeKind());
+
+        //Treating these as variable nodes despite the force assign flag
+//        if (parentSymbol.isPresent() && CommonUtils.getRawType(
+//                ((VariableSymbol) parentSymbol.get()).typeDescriptor()).typeKind() == TypeDescKind.JSON &&
+//                !forceAssign) {
+//            Treating these as variable nodes despite the force assign flag
+//            startNode(NodeKind.JSON_PAYLOAD, constructorExprNode)
+//                    .metadata()
+//                    .description(JsonPayloadBuilder.DESCRIPTION)
+//                    .stepOut()
+//                    .properties().expression(constructorExprNode);
     }
     // Utility methods
 
