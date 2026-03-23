@@ -842,7 +842,10 @@ export function convertItemsToCompletionItems(items: Item[]): CompletionItem[] {
         label: item.metadata.label,
         value: item.metadata.label,
         kind: COMPLETION_ITEM_KIND.TypeParameter,
-        insertText: item.metadata.label
+        insertText: item.metadata.label,
+        labelDetails: {
+            description: (item as AvailableNode).codedata?.node
+        }
     }));
 }
 
@@ -927,7 +930,7 @@ const isCategoryType = (item: Item): item is Category => {
 };
 
 export const getFunctionItemKind = (category: string): FunctionKind => {
-    if (category.toLocaleLowerCase().includes("current")) {
+    if (category.toLocaleLowerCase().includes("current") || category.toLocaleLowerCase().includes("within project")) {
         return functionKinds.CURRENT;
     } else if (category.toLocaleLowerCase().includes("imported")) {
         return functionKinds.IMPORTED;

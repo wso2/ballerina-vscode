@@ -75,7 +75,7 @@ export default ExpandableList;
 
 
 const ExpandableListSection = styled.div<{ level?: number }>`
-
+    ${({ level }: { level?: number }) => level && level > 0 ? `padding-left: ${level * 12}px;` : ''}
 `;
 
 
