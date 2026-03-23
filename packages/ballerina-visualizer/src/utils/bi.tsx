@@ -187,7 +187,7 @@ export function enrichCategoryWithDevant(
                 .map((conn) => ({
                     title: conn.name?.replaceAll("-","_").replaceAll(" ","_"),
                     items: [] as PanelItem[],
-                    description: "Unused Devant connection",
+                    description: "Unused WSO2 Cloud Connection",
                     devant: conn,
                     unusedDevantConn: true,
                     isLoading: importingConn?.name === conn.name,

@@ -53,7 +53,7 @@ import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../C
 import CheckpointSeparator from "../CheckpointSeparator";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 
-import { AIChatView, Header, HeaderButtons, ChatMessage, Badge, ResetsInBadge, ApprovalOverlay, OverlayMessage } from "../../styles";
+import { AIChatView, Header, HeaderButtons, ChatMessage, TurnGroup, Badge, ResetsInBadge, ApprovalOverlay, OverlayMessage } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import MarkdownRenderer from "../MarkdownRenderer";
@@ -162,6 +162,7 @@ const AIChat: React.FC = () => {
     };
 
     const [isLoading, setIsLoading] = useState(false);
+    const [hoveredTurnIndex, setHoveredTurnIndex] = useState<number | null>(null);
     const [lastQuestionIndex, setLastQuestionIndex] = useState(-1);
     const [isCodeLoading, setIsCodeLoading] = useState(false);
     const [currentGeneratingPromptIndex, setCurrentGeneratingPromptIndex] = useState(-1);
@@ -179,6 +180,7 @@ const AIChat: React.FC = () => {
     const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Edit);
 
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
+    const [hasActiveReview, setHasActiveReview] = useState(false);
 
     const [approvalRequest, setApprovalRequest] = useState<TaskApprovalRequest | null>(null);
     const [approvalOverlay, setApprovalOverlay] = useState<ApprovalOverlayState>({ show: false });
@@ -204,7 +206,7 @@ const AIChat: React.FC = () => {
 
     const isErrorChunkReceivedRef = useRef(false);
 
-    const messagesEndRef = React.createRef<HTMLDivElement>();
+    const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
     /* REFACTORED CODE START [2] */
     // custom hooks: commands + attachments
@@ -339,6 +341,7 @@ const AIChat: React.FC = () => {
             setCurrentFileArray([]);
             setLastQuestionIndex(-1);
             setCurrentGeneratingPromptIndex(-1);
+            setHasActiveReview(false);
         } catch (error) {
             console.error("Failed to restore checkpoint:", error);
         }
@@ -653,6 +656,9 @@ const AIChat: React.FC = () => {
                 msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
+            if (componentType === "review") {
+                setHasActiveReview(true);
+            }
 
         } else if (type === "messages") {
             messagesRef.current = response.messages;
@@ -684,12 +690,8 @@ const AIChat: React.FC = () => {
 
         } else if (type === "save_chat") {
             console.log("Received save_chat signal");
-            let contentToSave: string | undefined;
-            setMessages(prevMessages => {
-                const assistantIndex = getLatestAssistantMessageIndex(prevMessages);
-                contentToSave = assistantIndex >= 0 ? prevMessages[assistantIndex]?.content : undefined;
-                return prevMessages;
-            });
+            const assistantIndex = getLatestAssistantMessageIndex(messages);
+            const contentToSave = assistantIndex >= 0 ? messages[assistantIndex]?.content : messages[messages.length - 1]?.content;
             await rpcClient.getAiPanelRpcClient().updateChatMessage({
                 messageId: response.messageId,
                 content: contentToSave || "",
@@ -779,11 +781,19 @@ const AIChat: React.FC = () => {
     }, [isReqFileExists]);
 
     useEffect(() => {
-        // Step 2: Scroll into view when messages state changes
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+        // Step 2: Scroll into view when messages state changes or review bar appears
+        // Use a small delay when the review bar just appeared to let the DOM settle
+        const doScroll = () => {
+            if (messagesEndRef.current) {
+                messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+            }
+        };
+        if (hasActiveReview) {
+            setTimeout(doScroll, 50);
+        } else {
+            doScroll();
         }
-    }, [messages]);
+    }, [messages, hasActiveReview]);
 
     async function handleSendQuery(content: {
         input: Input[];
@@ -824,6 +834,12 @@ const AIChat: React.FC = () => {
         if (content.input.length === 0) {
             return;
         }
+        if (hasActiveReview) {
+            await rpcClient.getAiPanelRpcClient().acceptChanges().catch((e: unknown) => console.warn("[AIChat] auto-accept failed:", e));
+            setHasActiveReview(false);
+        }
+        // Clear until onCheckpointCaptured repopulates with the new set
+        setAvailableCheckpointIds(new Set());
         rpcClient.getAiPanelRpcClient().clearInitialPrompt();
         setMessages((prevMessages) => prevMessages.filter((message) => message.type !== "label"));
         setMessages((prevMessages) => prevMessages.filter((message) => message.type !== "question"));
@@ -1187,7 +1203,7 @@ const AIChat: React.FC = () => {
     }, [otherMessages.length]);
 
 
-    const updateReviewStatus = (message: { role: string; content: string; type: string }, newStatus: "accepted" | "discarded") => {
+    const updateReviewStatus = (message: { role: string; content: string; type: string }, newStatus: "discarded") => {
         setMessages(prevMessages => {
             const msgs = [...prevMessages];
             const idx = msgs.findIndex(m => m === message);
@@ -1427,22 +1443,35 @@ const AIChat: React.FC = () => {
                         {Array.isArray(otherMessages) && otherMessages.length === 0 && (
                             <WelcomeMessage isOnboarding={getOnboardingOpens() <= 3.0} />
                         )}
-                        {otherMessages.map((message, index) => {
-                            const isLastResponse = index === currentGeneratingPromptIndex;
-                            const isUserMessage = message.role === "User";
-                            const isAssistantMessage = message.role === "Copilot";
+                        {(() => {
+                            // Group flat message list into [userMsg, assistantMsg | undefined] pairs for turn-level hover
+                            const turns: Array<[typeof otherMessages[0], number, typeof otherMessages[0] | undefined, number | undefined]> = [];
+                            let i = 0;
+                            while (i < otherMessages.length) {
+                                const msg = otherMessages[i];
+                                if (msg.role === "User") {
+                                    const next = otherMessages[i + 1];
+                                    const hasAssistant = next?.role === "Copilot";
+                                    turns.push([msg, i, hasAssistant ? next : undefined, hasAssistant ? i + 1 : undefined]);
+                                    i += hasAssistant ? 2 : 1;
+                                } else {
+                                    turns.push([msg, i, undefined, undefined]);
+                                    i++;
+                                }
+                            }
                             const lastAssistantIndex = otherMessages.map((m) => m.role).lastIndexOf("Copilot");
-                            const isLatestAssistantMessage = isAssistantMessage && index === lastAssistantIndex;
+
+                            return turns.map(([userMsg, userIndex, assistantMsg, assistantIndex], turnIndex) => {
+                                const renderMessage = (message: typeof otherMessages[0], index: number) => {
+                                    const isLastResponse = index === currentGeneratingPromptIndex;
+                                    const isUserMessage = message.role === "User";
+                                    const isAssistantMessage = message.role === "Copilot";
+                                    const isLatestAssistantMessage = isAssistantMessage && index === lastAssistantIndex;
 
                             // Note: Cannot use useMemo here as it's inside map() callback
                             // The stateless regex implementation in splitContent() ensures no corruption during streaming
                             const segmentedContent = splitContent(message.content);
-                            const hasReviewActions = segmentedContent.some(segment =>
-                                segment.type === SegmentType.AgentStream &&
-                                (segment.stream ?? []).flatMap((e: StreamEntry) => e.items).some(
-                                    (item: StreamItem) => item.kind === "component" && (item as any).componentType === "review" && (item as any).data.status === "pending"
-                                )
-                            );
+                            const hasReviewActions = isLatestAssistantMessage && hasActiveReview;
                             return (
                                 <ChatMessage key={index}>
                                     {/* Checkpoint separator before user messages */}
@@ -1462,6 +1491,7 @@ const AIChat: React.FC = () => {
                                                         isAvailable={false}
                                                         isDisabled={true}
                                                         isCreating={true}
+                                                        isGroupHovered={hoveredTurnIndex === turnIndex}
                                                         onRestore={handleCheckpointRestore}
                                                     />
                                                 )}
@@ -1472,6 +1502,7 @@ const AIChat: React.FC = () => {
                                                         isAvailable={availableCheckpointIds.has(message.checkpointId)}
                                                         isDisabled={isLoading}
                                                         isCreating={false}
+                                                        isGroupHovered={hoveredTurnIndex === turnIndex}
                                                         onRestore={handleCheckpointRestore}
                                                     />
                                                 )}
@@ -1500,10 +1531,13 @@ const AIChat: React.FC = () => {
                                                                 loadDesignDiagrams={(reviewItem as any).data.loadDesignDiagrams}
                                                                 isWorkspace={(reviewItem as any).data.isWorkspace}
                                                                 diffPackageMap={(reviewItem as any).data.diffPackageMap}
-                                                                status={(reviewItem as any).data.status ?? "pending"}
+                                                                isDiscarded={(reviewItem as any)?.data?.status === "discarded"}
                                                                 rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
-                                                                isActive={isLatestAssistantMessage && !isLoading}
-                                                                onStatusChange={(newStatus) => updateReviewStatus(message, newStatus)}
+                                                                isActive={isLatestAssistantMessage && !isLoading && hasActiveReview}
+                                                                onDiscarded={() => {
+                                                                    updateReviewStatus(message, "discarded");
+                                                                    setHasActiveReview(false);
+                                                                }}
                                                             />
                                                         )}
                                                         {buttonItems.map((item: StreamItem, ci: number) => {
@@ -1720,7 +1754,20 @@ const AIChat: React.FC = () => {
                                     )}
                                 </ChatMessage>
                             );
-                        })}
+                        };
+
+                                return (
+                                    <TurnGroup
+                                        key={userIndex}
+                                        onMouseEnter={() => setHoveredTurnIndex(turnIndex)}
+                                        onMouseLeave={() => setHoveredTurnIndex(null)}
+                                    >
+                                        {renderMessage(userMsg, userIndex)}
+                                        {assistantMsg !== undefined && renderMessage(assistantMsg, assistantIndex!)}
+                                    </TurnGroup>
+                                );
+                            });
+                        })()}
                         <div ref={messagesEndRef} />
                     </main>
                     {webToolApprovalRequest ? (

@@ -71,7 +71,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
     }, []);
 
     const { data: devantConsoleUrl = "" } = useQuery({
-        queryKey: ["devant-url"],
+        queryKey: ["console-url"],
         queryFn: () => platformRpcClient.getDevantConsoleUrl(),
     });
 
@@ -99,7 +99,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
             rpcClient
                 .getCommonRpcClient()
                 .showInformationModal({
-                    message: "Please login to Devant in order to use Devant Connections",
+                    message: "Please login to WSO2 Integration Platform in order to use WSO2 Cloud connections",
                     items: ["Login"],
                 })
                 .then((resp) => {
@@ -114,7 +114,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                 .getCommonRpcClient()
                 .showInformationModal({
                     message:
-                        "To use Devant connections, you can either deploy your source code now or associate this directory with an existing Devant project where you plan to deploy later.",
+                        "To use WSO2 Cloud connections, you can either deploy your source code now or associate this directory with an existing WSO2 Cloud project where you plan to deploy later.",
                     items: ["Deploy Now", "Associate Project"],
                 })
                 .then(async (resp) => {

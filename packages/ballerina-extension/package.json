@@ -30,7 +30,7 @@
         "onUri"
     ],
     "extensionDependencies": [
-        "anweber.httpbook"
+        "wso2.wso2-platform"
     ],
     "contributes": {
         "languages": [
@@ -324,7 +324,7 @@
                                 "description": "Indicates the terminal kind to launch the debugging process in."
                             },
                             "choreoConnect": {
-                                "description": "Connect with Choreo/Devant when launching the app"
+                                "description": "Connect with WSO2 Cloud when launching the app"
                             }
                         }
                     },
@@ -547,7 +547,7 @@
             },
             {
                 "command": "ballerina.open.ai.panel",
-                "title": "Open AI Panel",
+                "title": "Open WSO2 Integrator Copilot",
                 "category": "Ballerina",
                 "icon": {
                     "dark": "./resources/icons/light-ai-chat.svg",
@@ -1004,7 +1004,7 @@
                     "command": "ballerina.open.ai.panel",
                     "group": "navigation@1",
                     "when": "resourceLangId == ballerina || isBallerinaDiagram || (isBalVisualizerActive && isBIProject)",
-                    "title": "Open AI Panel"
+                    "title": "Open WSO2 Integrator Copilot"
                 },
                 {
                     "command": "BI.project.run",

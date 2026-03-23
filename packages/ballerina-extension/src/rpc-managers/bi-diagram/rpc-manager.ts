@@ -195,6 +195,7 @@ import {
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
+import { isLibraryProject } from "../../utils/config";
 import { PlatformExtRpcManager } from "../platform-ext/rpc-manager";
 import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
@@ -658,6 +659,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getNodeTemplate(params: BINodeTemplateRequest): Promise<BINodeTemplateResponse> {
         console.log(">>> requesting bi node template from ls", params);
         params.forceAssign = true; // TODO: remove this
+        const projectPath = StateMachine.context().projectPath;
+        params.isLibrary = projectPath ? await isLibraryProject(projectPath) : false;
 
         // Check if the file exists
         if (!fs.existsSync(params.filePath)) {
@@ -1171,7 +1174,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             window.showWarningMessage("No deployable projects found in the workspace.");
             return { isCompleted: true };
         }
-        const deploymentParams: ICreateNewIntegrationCmdIntegrations[] = [];
+        const integrations: ICreateNewIntegrationCmdIntegrations[]= [];
 
         // If there is only one project in the workspace and it has multiple integration types,
         // ask the user to pick the type similar to the single project deploy flow.
@@ -1184,7 +1187,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 return { isCompleted: true };
             }
 
-            deploymentParams.push({ fsPath: projectPath, supportedIntegrationTypes: [integrationType] });
+            integrations.push({fsPath: projectPath, supportedIntegrationTypes: [integrationType] });
         } else {
             for (const projectScope of projectScopes) {
                 const { projectPath, integrationTypes } = projectScope;
@@ -1193,17 +1196,17 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     continue;
                 }
 
-                deploymentParams.push({ fsPath: projectPath, supportedIntegrationTypes: integrationTypes });
+                integrations.push({fsPath: projectPath, supportedIntegrationTypes: integrationTypes });
             }
         }
 
-        if (deploymentParams.length === 0) {
+        if (integrations.length === 0) {
             return { isCompleted: true };
         }
 
         await commands.executeCommand(
             WICommandIds.CreateNewComponent,
-            deploymentParams,
+            { buildPackLang: 'ballerina', integrations, workspaceDir: StateMachine.context().workspacePath } as ICreateNewIntegrationCmdParams,
             params.rootDirectory
         );
         return { isCompleted: true };

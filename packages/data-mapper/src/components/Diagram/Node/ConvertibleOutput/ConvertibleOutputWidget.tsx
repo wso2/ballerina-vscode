@@ -178,7 +178,7 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
                         {label}
                         {outputType.category === InputCategory.ConvertedVariable && (
                             <FieldActionButton
-                                id={"field-action-edit-" + id}
+                                id={"edit-" + id}
                                 tooltip="Edit"
                                 iconName="edit"
                                 onClick={async () => await context.createConvertedVariable(outputType.name, false, outputType.typeName)}

@@ -276,9 +276,13 @@ const stateMachine = createMachine<MachineContext>(
                     src: 'registerProjectArtifactsStructure',
                     onDone: {
                         target: "extensionReady",
-                        actions: assign({
-                            projectStructure: (context, event) => event.data.projectStructure
-                        })
+                        actions: [
+                            assign({
+                                projectStructure: (context, event) => event.data.projectStructure
+                            }),
+                            () => {
+                            }
+                        ]
                     },
                     onError: {
                         target: "lsError",
