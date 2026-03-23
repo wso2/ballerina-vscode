@@ -18,11 +18,11 @@
         "fileName": "functions.bal",
         "startLine": {
           "line": 13,
-          "offset": 4
+          "offset": 0
         },
         "endLine": {
           "line": 13,
-          "offset": 4
+          "offset": 0
         }
       },
       "isNew": true
@@ -135,11 +135,11 @@
         "range": {
           "start": {
             "line": 13,
-            "character": 4
+            "character": 0
           },
           "end": {
             "line": 13,
-            "character": 4
+            "character": 0
           }
         },
         "newText": "\njson result = check context->callRemoteActivity(httpClient, \"get\", {path: \"/api/users\", headers: ()});"

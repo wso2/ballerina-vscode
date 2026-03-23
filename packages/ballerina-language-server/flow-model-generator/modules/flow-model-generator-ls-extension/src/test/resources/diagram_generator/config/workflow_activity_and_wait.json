@@ -94,7 +94,7 @@
         "metadata": {
           "label": "callActivity",
           "description": "Executes an activity function within the workflow context.\n\nActivities are non-deterministic operations (I/O, database calls, external APIs)\nthat should only be executed once during workflow execution and not during replay.\nThe workflow runtime ensures exactly-once execution semantics for activities.\n\nThe return type is determined by the `T` typedesc parameter, allowing compile-time\ntype checking when the expected return type is specified. The compiler plugin\nvalidates that the activity function's return type is compatible with `T`.\n\nBy default, if the activity function returns an error, it is treated as a failure\nand the engine will retry the activity based on the retry policy. To treat errors\nas normal completion values, set `failOnError` to `false` in the options.\n\nExample:\n```ballerina\n// Basic activity call (errors cause failure + retry by default)\nstring result = check ctx->callActivity(sendEmailActivity, {email: recipientEmail, subject: subject});\n// With custom retry policy\nstring result = check ctx->callActivity(sendEmailActivity, {email: recipientEmail}, \n    options = {retryPolicy: {maximumAttempts: 3, initialIntervalInSeconds: 2}});\n// Treat errors as normal completion (no retry on error)\nstring|error result = ctx->callActivity(riskyActivity, {data: input}, options = {failOnError: false});\n```\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.2.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.0.png"
         },
         "codedata": {
           "node": "ACTIVITY_CALL",
@@ -103,7 +103,7 @@
           "packageName": "workflow",
           "object": "Context",
           "symbol": "callActivity",
-          "version": "0.2.0",
+          "version": "0.3.0",
           "lineRange": {
             "fileName": "workflow_operations.bal",
             "startLine": {
@@ -214,7 +214,7 @@
                 "typeMembers": [
                   {
                     "type": "ActivityOptions",
-                    "packageInfo": "ballerina:workflow:0.2.0",
+                    "packageInfo": "ballerina:workflow:0.3.0",
                     "packageName": "workflow",
                     "kind": "RECORD_TYPE",
                     "selected": false

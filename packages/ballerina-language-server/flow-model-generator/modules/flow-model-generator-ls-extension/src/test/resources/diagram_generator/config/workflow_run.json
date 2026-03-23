@@ -92,7 +92,7 @@
         "metadata": {
           "label": "Run Workflow",
           "description": "Run a workflow instance",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.2.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.0.png"
         },
         "codedata": {
           "node": "WORKFLOW_RUN",
@@ -100,7 +100,7 @@
           "module": "workflow",
           "packageName": "workflow",
           "symbol": "run",
-          "version": "0.2.0",
+          "version": "0.3.0",
           "lineRange": {
             "fileName": "workflow_operations.bal",
             "startLine": {
@@ -381,7 +381,7 @@
         "metadata": {
           "label": "Send Data",
           "description": "Send data to an existing workflow instance",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.2.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.0.png"
         },
         "codedata": {
           "node": "SEND_DATA",
@@ -389,7 +389,7 @@
           "module": "workflow",
           "packageName": "workflow",
           "symbol": "sendData",
-          "version": "0.2.0",
+          "version": "0.3.0",
           "lineRange": {
             "fileName": "workflow_operations.bal",
             "startLine": {

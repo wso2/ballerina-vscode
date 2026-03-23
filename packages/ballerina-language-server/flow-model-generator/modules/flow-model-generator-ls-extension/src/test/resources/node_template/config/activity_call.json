@@ -167,7 +167,7 @@
                 "typeMembers": [
                   {
                     "type": "ActivityOptions",
-                    "packageInfo": "ballerina:workflow:0.2.0",
+                    "packageInfo": "ballerina:workflow:0.3.0",
                     "packageName": "workflow",
                     "kind": "RECORD_TYPE",
                     "selected": false

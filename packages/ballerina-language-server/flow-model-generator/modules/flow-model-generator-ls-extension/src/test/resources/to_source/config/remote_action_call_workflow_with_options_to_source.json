@@ -18,11 +18,11 @@
         "fileName": "functions.bal",
         "startLine": {
           "line": 13,
-          "offset": 4
+          "offset": 0
         },
         "endLine": {
           "line": 13,
-          "offset": 4
+          "offset": 0
         }
       },
       "isNew": true
@@ -133,7 +133,7 @@
                 "typeMembers": [
                   {
                     "type": "ActivityOptions",
-                    "packageInfo": "ballerina:workflow:0.2.0",
+                    "packageInfo": "ballerina:workflow:0.3.0",
                     "packageName": "workflow",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -174,11 +174,11 @@
         "range": {
           "start": {
             "line": 13,
-            "character": 4
+            "character": 0
           },
           "end": {
             "line": 13,
-            "character": 4
+            "character": 0
           }
         },
         "newText": "\njson result = check context->callRemoteActivity(httpClient, \"get\", {path: \"/api/users\", headers: ()}, options = {retryPolicy: {maximumAttempts: 3, initialIntervalInSeconds: 2}});"
