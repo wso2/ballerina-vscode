@@ -73,7 +73,8 @@ const NODE_COLOR_GROUPS = {
         "FUNCTION_CALL", 
         "DATA_MAPPER_CALL",
         "REMOTE_ACTION_CALL", 
-        "RESOURCE_ACTION_CALL"
+        "RESOURCE_ACTION_CALL",
+        "METHOD_CALL"
     ],
     
     // AI/NP function group - cyan variants
@@ -210,6 +211,8 @@ const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string; isPer
         isPersistConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CallIcon />,
     RESOURCE_ACTION_CALL: ({ size, color, isPersistConnection }) =>
         isPersistConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CallIcon />,
+    METHOD_CALL: ({ size, color, isPersistConnection }) =>
+        isPersistConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CodeIcon />,
     RETURN: ({ size, color }) => <ReturnIcon />,
     VARIABLE: ({ size, color }) => <VarIcon />,
     NEW_DATA: ({ size, color }) => <VarIcon />,
