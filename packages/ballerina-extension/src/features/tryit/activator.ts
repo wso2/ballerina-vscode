@@ -566,6 +566,11 @@ async function getServicePort(projectDir: string, service: ServiceInfo, openapiS
             return parseInt(service.listener.port);
         }
 
+        // If the listener uses http:getDefaultListener(), resolve to the default port (9090)
+        if (service.listener.port?.includes('getDefaultListener')) {
+            return 9090;
+        }
+
         // Try to get default port from OpenAPI spec first
         let portInSpec: number;
         const portInSpecStr = openapiSpec?.servers?.[0]?.variables?.port?.default;
