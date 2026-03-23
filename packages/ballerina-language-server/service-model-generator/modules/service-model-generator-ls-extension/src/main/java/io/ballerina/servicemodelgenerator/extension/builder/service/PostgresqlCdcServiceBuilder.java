@@ -207,10 +207,6 @@ public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder
 
             switch (argName) {
                 case "database" -> extractDatabaseConfigFields(namedArg, config);
-                case "secure" -> config.put(KEY_SECURE_SOCKET,
-                        ListenerUtil.buildReadOnlyTextValue("Secure Socket",
-                                "SSL/TLS configuration for secure connection",
-                                namedArg.expression().toSourceCode().trim()));
                 case "options" -> config.put(KEY_OPTIONS,
                         ListenerUtil.buildReadOnlyTextValue("Options",
                                 "Additional options for the CDC engine",
@@ -259,6 +255,10 @@ public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder
                                     "A list of regular expressions that match names of schemas to capture changes from",
                                     items));
                 }
+                case "secure" -> config.put(KEY_SECURE_SOCKET,
+                        ListenerUtil.buildReadOnlyTextValue("Secure Socket",
+                                "SSL/TLS configuration for secure connection",
+                                field.valueExpr().map(expr -> expr.toSourceCode().trim()).orElse("")));
                 default -> {
                 }
             }

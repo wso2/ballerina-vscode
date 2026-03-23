@@ -210,12 +210,6 @@ public final class MssqlCdcServiceBuilder extends AbstractCdcServiceBuilder {
 
             switch (argName) {
                 case "database" -> extractDatabaseConfigFields(namedArg, config);
-                case "databaseInstance" -> config.put(KEY_DATABASE_INSTANCE,
-                        ListenerUtil.buildReadOnlyTextValue("Database Instance",
-                                "Microsoft SQL Server instance name", argValue));
-                case "secure" -> config.put(KEY_SECURE_SOCKET,
-                        ListenerUtil.buildReadOnlyTextValue("Secure Socket",
-                                "SSL/TLS configuration for secure connection", argValue));
                 case "options" -> config.put(KEY_OPTIONS,
                         ListenerUtil.buildReadOnlyTextValue("Options",
                                 "Additional options for the CDC engine", argValue));
@@ -266,6 +260,13 @@ public final class MssqlCdcServiceBuilder extends AbstractCdcServiceBuilder {
                                     "A list of regular expressions that match names of schemas to capture changes from",
                                     items));
                 }
+                case "databaseInstance" -> config.put(KEY_DATABASE_INSTANCE,
+                        ListenerUtil.buildReadOnlyTextValue("Database Instance",
+                                "Microsoft SQL Server instance name", fieldValue));
+                case "secure" -> config.put(KEY_SECURE_SOCKET,
+                        ListenerUtil.buildReadOnlyTextValue("Secure Socket",
+                                "SSL/TLS configuration for secure connection",
+                                field.valueExpr().map(expr -> expr.toSourceCode().trim()).orElse("")));
                 default -> {
                 }
             }
