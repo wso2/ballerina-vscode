@@ -54,7 +54,7 @@ const COMMAND_OUTPUT_TOOLS = new Set(["runBallerinaPackage", "runTests", "getSer
 interface ToolIconEntry { loading: string; done?: string; }
 
 const TOOL_ICON_MAP: Record<string, ToolIconEntry> = {
-    file_read:                     { loading: "codicon-eye" },
+    file_read:                     { loading: "codicon-go-to-file" },
     file_write:                    { loading: "codicon-edit" },
     file_edit:                     { loading: "codicon-edit" },
     file_batch_edit:               { loading: "codicon-edit" },
