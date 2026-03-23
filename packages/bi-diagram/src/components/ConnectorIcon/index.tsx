@@ -35,11 +35,6 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
     const { url, fallbackIcon, className, style, codedata, connectorType } = props;
     const [imageError, setImageError] = React.useState(false);
 
-    // use custom icon for persist connections (database)
-    if (connectorType === "persist") {
-        return <Icon name="bi-db" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
-    }
-
     // use custom icon for http
     if (url?.includes("ballerina_http_")) {
         return <Icon name="bi-globe" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
@@ -73,6 +68,10 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
 
     if (url && isValidUrl(url) && !imageError) {
         return <img src={url} className={className} onError={() => setImageError(true)} style={{ ...style }} />;
+    }
+
+    if (url && (!isValidUrl(url) || imageError) && connectorType === "persist") {
+        return <Icon name="bi-db" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
     if (fallbackIcon) {
