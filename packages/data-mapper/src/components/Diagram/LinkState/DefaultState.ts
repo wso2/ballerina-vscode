@@ -27,7 +27,7 @@ import {
 import { DiagramEngine, DragDiagramItemsState, PortModel } from '@projectstorm/react-diagrams-core';
 
 import { DMCanvasContainerID } from "../Canvas/DataMapperCanvasWidget";
-import { ArrayOutputNode, InputNode, ObjectOutputNode, QueryOutputNode, SubMappingNode } from '../Node';
+import { ArrayOutputNode, ConvertibleOutputNode, InputNode, ObjectOutputNode, QueryOutputNode, SubMappingNode } from '../Node';
 import { DataMapperNodeModel } from "../Node/commons/DataMapperNode";
 import { LinkOverayContainerID } from '../OverriddenLinkLayer/LinkOverlayPortal';
 import { CreateLinkState } from './CreateLinkState';
@@ -84,13 +84,14 @@ export class DefaultState extends State<DiagramEngine> {
 				fire: (actionEvent: ActionEvent<MouseEvent>) => {
 					const element = this.engine.getActionEventBus().getModelForEvent(actionEvent);
 					const isFieldAction = (actionEvent.event.target as Element)
-						.closest('div[id^="expand-or-collapse"], div[id^="add-array-element"], [id^="field-action"]');
+						.closest('div[id^="expand-or-collapse"], div[id^="add-array-element"], [data-field-action]');
 
 					if (!isFieldAction
 						&& (element instanceof PortModel
 							|| element instanceof ObjectOutputNode
 							|| element instanceof ArrayOutputNode
 							|| element instanceof QueryOutputNode
+							|| element instanceof ConvertibleOutputNode
 							|| element instanceof InputNode
 							|| element instanceof SubMappingNode
 						)

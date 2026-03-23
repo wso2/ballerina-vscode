@@ -236,6 +236,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     } = props;
 
     const { rpcClient } = useRpcContext();
+
     const [baseFields, setBaseFields] = useState<FormField[]>([]);
     const formImportsRef = useRef<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });

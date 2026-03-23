@@ -18,7 +18,7 @@
 
 import { useState, useRef, KeyboardEvent, useEffect, useLayoutEffect, useImperativeHandle, forwardRef } from "react";
 import styled from "@emotion/styled";
-import { Codicon } from "@wso2/ui-toolkit";
+import { Icon } from "@wso2/ui-toolkit";
 import { AIPanelPrompt, Attachment, AttachmentStatus, Command, ExtendedDataMapperMetadata, TemplateId } from "@wso2/ballerina-core";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
 import { StyledInputComponent, StyledInputRef } from "./StyledInput";
@@ -579,6 +579,8 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                 {onToggleWebSearch && (
                                     <WebSearchToggle isActive={isWebToolsEnabled} onToggle={onToggleWebSearch} />
                                 )}
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center" }}>
                                 <ActionButton
                                     title="Chat with Command"
                                     disabled={inputValue.text !== ""}
@@ -597,18 +599,18 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                     onChange={onAttachmentSelection}
                                 />
                                 <ActionButton title="Attach Context" onClick={handleAttachClick}>
-                                    <Codicon name="new-file" />
+                                    <Icon name="Paperclip" sx={{ fontSize: "16px" }} />
                                 </ActionButton>
-                            </div>
-                            <div>
+                                <div style={{ width: "1px", height: "16px", background: "var(--vscode-panel-border)", margin: "0 2px" }} />
                                 <ActionButton
                                     title={isLoading ? "Stop (Escape)" : "Send (Enter)"}
                                     disabled={(inputValue.text.trim() === "" && !isLoading) || disabled}
                                     onClick={isLoading ? handleStop : handleSend}
                                 >
-                                    <span
-                                        className={`codicon ${isLoading ? "codicon-stop-circle" : "codicon-send"}`}
-                                    ></span>
+                                    {isLoading
+                                        ? <span className="codicon codicon-stop-circle"></span>
+                                        : <Icon name="Send" sx={{ fontSize: "16px" }} />
+                                    }
                                 </ActionButton>
                             </div>
                         </ActionRow>
