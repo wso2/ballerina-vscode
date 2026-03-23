@@ -40,7 +40,7 @@ import {
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 
 import { AIChatInputRef } from "../AIChatInput";
 import ToolCallSegment from "../ToolCallSegment";
@@ -1445,18 +1445,20 @@ const AIChat: React.FC = () => {
                             </AuthProviderChip>
                         )}
                         <HeaderButtons>
-                            <Button
-                                appearance="icon"
-                                onClick={() => handleClearChat()}
-                                tooltip="Clear Chat"
-                                disabled={isLoading}
-                            >
-                                <Codicon name="clear-all" />
-                                &nbsp;&nbsp;Clear
-                            </Button>
+                            {otherMessages.length > 0 && (
+                                <Button
+                                    appearance="icon"
+                                    onClick={() => handleClearChat()}
+                                    tooltip="Clear Chat"
+                                    disabled={isLoading}
+                                >
+                                    <Icon name="PlaylistRemove" sx={{ fontSize: "18px", marginRight: 6 }} iconSx={{ position: "relative"}} />
+                                    Clear
+                                </Button>
+                            )}
                             <Button appearance="icon" onClick={() => handleSettings()} tooltip="Settings">
-                                <Codicon name="settings-gear" />
-                                &nbsp;&nbsp;Settings
+                                <Icon name="SettingsRounded" sx={{ fontSize: "18px", marginRight: 6 }} iconSx={{ position: "relative" }} />
+                                Settings
                             </Button>
                         </HeaderButtons>
                     </Header>
