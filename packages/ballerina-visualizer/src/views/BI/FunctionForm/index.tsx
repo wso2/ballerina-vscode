@@ -545,8 +545,8 @@ export function FunctionForm(props: FunctionFormProps) {
             };
         }
 
-        // Update annotations.value with the auth block
-        if (functionNodeCopy.properties?.annotations) {
+        // Update annotations.value with the auth block (only if OAuth fields were loaded)
+        if (showOAuthConfig && functionNodeCopy.properties?.annotations) {
             let annotationStr = functionNodeCopy.properties.annotations.value as string;
             if (annotationStr.includes("@ai:AgentTool")) {
                 const configBlock = buildAuthAnnotation(oauthConfig);

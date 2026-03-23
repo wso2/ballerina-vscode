@@ -23,6 +23,7 @@ import {
     ProjectStructureArtifactResponse
 } from "@wso2/ballerina-core";
 import { BiDiagramRpcManager } from "../rpc-managers/bi-diagram/rpc-manager";
+import { StateMachine } from "../stateMachine";
 
 const findAgentCallNodes = (nodes: FlowNode[]): FlowNode[] => {
     const result: FlowNode[] = [];
@@ -71,7 +72,7 @@ const removeAgentNodesForServiceArtifact = async (
                     for (const agentNode of searchResult.output) {
                         const agentFileName = agentNode.codedata?.lineRange?.fileName;
                         const agentFilePath = agentFileName
-                            ? path.join(path.dirname(component.path), agentFileName)
+                            ? path.join(StateMachine.context().projectPath, agentFileName)
                             : component.path;
                         await rpcClient.deleteFlowNode({
                             filePath: agentFilePath,
