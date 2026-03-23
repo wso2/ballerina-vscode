@@ -31,6 +31,7 @@ import { OAUTH_CLIENT_CONFIG_PROPERTIES } from "../AIChatAgent/AIAgentSidePanel"
 import { BodyText, LoadingContainer, TopBar } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
 
+
 const FormContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -194,7 +195,7 @@ export function FunctionForm(props: FunctionFormProps) {
             nodeKind = 'AUTOMATION';
             formType.current = "Automation";
             setTitleSubtitle('An automation that can be invoked periodically or manually');
-            setFormSubtitle('Periodic invocation should be scheduled in an external system such as cronjob, k8s, or Devant');
+            setFormSubtitle('Periodic invocation should be scheduled in an external system such as cronjob, k8s, or WSO2 Cloud');
         } else if (isDataMapper) {
             nodeKind = 'DATA_MAPPER_DEFINITION';
             formType.current = 'Data Mapper';
@@ -346,13 +347,12 @@ export function FunctionForm(props: FunctionFormProps) {
     const getFunctionNode = async (kind: NodeKind) => {
         setIsLoading(true);
         const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
-        const res = await rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: { line: 0, offset: 0 },
-                filePath: filePath,
-                id: { node: kind },
-            });
+
+        const res = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            position: { line: 0, offset: 0 },
+            filePath: filePath,
+            id: { node: kind },
+        });
         let flowNode = res.flowNode;
         if (isNpFunction) {
             /* 

@@ -77,15 +77,13 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     };
 
     const fetchMcpToolKitTemplate = async () => {
-        const response = await rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: { line: agentFileEndLineRangeRef.current.endLine.line, offset: agentFileEndLineRangeRef.current.endLine.offset },
-                filePath: agentFilePathRef.current,
-                id: {
-                    node: "MCP_TOOL_KIT",
-                }
-            });
+        const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            position: { line: agentFileEndLineRangeRef.current.endLine.line, offset: agentFileEndLineRangeRef.current.endLine.offset },
+            filePath: agentFilePathRef.current,
+            id: {
+                node: "MCP_TOOL_KIT",
+            },
+        });
         return response.flowNode;
     };
 
