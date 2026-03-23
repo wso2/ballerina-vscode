@@ -145,7 +145,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
             documentation: "Name of the connector",
             enabled: true,
             value: "",
-            types: [{fieldType: "STRING", selected: false}],
+            types: [{ fieldType: "STRING", selected: false }],
             diagnostics: [],
         },
         {
@@ -157,7 +157,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
             documentation: "",
             enabled: true,
             value: "",
-            types: [{fieldType: "FILE_SELECT", selected: false}],
+            types: [{ fieldType: "FILE_SELECT", selected: false }],
         },
     ]);
 
@@ -209,7 +209,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 // If it timed out, set status to SUCCESS
                 setPullingStatus(PullingStatus.SUCCESS);
             }
-
+            
             console.log(">>> FlowNode template", response);
             selectedNodeRef.current = response.flowNode;
             const formProperties = getFormProperties(response.flowNode);

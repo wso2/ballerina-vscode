@@ -929,6 +929,7 @@ export interface BINodeTemplateRequest {
     filePath: string;
     id: CodeData;
     forceAssign?: boolean;
+    isLibrary?: boolean;
 }
 
 export type BINodeTemplateResponse = {
