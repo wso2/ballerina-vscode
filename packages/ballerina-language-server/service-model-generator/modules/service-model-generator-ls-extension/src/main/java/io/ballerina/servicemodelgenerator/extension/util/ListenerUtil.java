@@ -615,7 +615,7 @@ public class ListenerUtil {
         listenerModel.getProperties().forEach((k, v) -> v.setAdvanced(false));
     }
 
-    private static SeparatedNodeList<FunctionArgumentNode> getArgList(NewExpressionNode newExpressionNode) {
+    public static SeparatedNodeList<FunctionArgumentNode> getArgList(NewExpressionNode newExpressionNode) {
         if (newExpressionNode instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
             return explicitNewExpressionNode.parenthesizedArgList().arguments();
         } else {
@@ -774,6 +774,177 @@ public class ListenerUtil {
         }
         Value existingListener = properties.get(ServiceInitModel.KEY_EXISTING_LISTENER);
         return Optional.ofNullable(existingListener.getValue());
+    }
+
+    /**
+     * Builds a CHOICE property that is always present, with "Use existing" and "Create new" options.
+     * When existing listeners are present, "Use existing" is default and shows read-only config.
+     * When no existing listeners, "Use existing" is disabled and "Create new" is default.
+     *
+     * @param newListenerProperties    Map of properties needed to create a new listener
+     * @param listenerConfigs          Map of listener name to its extracted config properties (read-only)
+     * @param existingListeners        Set of existing listener variable names
+     * @param moduleName               Module name for display (e.g., "MSSQL CDC")
+     * @return Value configured as CHOICE with two options always present.
+     */
+    public static Value buildAlwaysPresentListenerChoiceProperty(Map<String, Value> newListenerProperties,
+                                                                 Map<String, Map<String, Value>> listenerConfigs,
+                                                                 Set<String> existingListeners,
+                                                                 String moduleName) {
+        boolean hasExisting = !existingListeners.isEmpty();
+
+        Value choicesProperty = new Value.ValueBuilder()
+                .setMetadata(new MetaData("Configure " + moduleName + " Listener",
+                        "Select an existing " + moduleName + " listener or create a new one"))
+                .value(hasExisting ? "0" : "1")
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
+                .enabled(true)
+                .editable(true)
+                .setAdvanced(false)
+                .build();
+
+        Value existingChoice = buildExistingSourceChoice(listenerConfigs, existingListeners, moduleName,
+                hasExisting);
+        Value newChoice = buildNewSourceChoice(newListenerProperties, moduleName, !hasExisting);
+
+        choicesProperty.setChoices(List.of(existingChoice, newChoice));
+        return choicesProperty;
+    }
+
+    /**
+     * Builds the "Use existing" source choice with an inline SINGLE_SELECT dropdown for listener
+     * selection. Each listener's configuration is stored as nested properties on the dropdown
+     * property, keyed by listener name, so the frontend can show read-only config when a
+     * listener is selected.
+     */
+    private static Value buildExistingSourceChoice(Map<String, Map<String, Value>> listenerConfigs,
+                                                    Set<String> listeners, String moduleName,
+                                                    boolean enabled) {
+        Map<String, Value> existingServerProps = new LinkedHashMap<>();
+
+        if (enabled && !listeners.isEmpty()) {
+            List<String> listenerNames = new ArrayList<>(listeners);
+
+            Map<String, Value> perListenerConfigs = new LinkedHashMap<>();
+            for (String listenerName : listenerNames) {
+                Map<String, Value> config = listenerConfigs.getOrDefault(
+                        listenerName, new LinkedHashMap<>());
+
+                Map<String, Value> readOnlyConfig = new LinkedHashMap<>();
+                for (Map.Entry<String, Value> entry : config.entrySet()) {
+                    Value prop = entry.getValue();
+                    prop.setEditable(false);
+                    readOnlyConfig.put(entry.getKey(), prop);
+                }
+
+                Value configGroup = new Value.ValueBuilder()
+                        .metadata(listenerName, moduleName + " source: " + listenerName)
+                        .value(listenerName)
+                        .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                        .enabled(true)
+                        .editable(false)
+                        .setProperties(readOnlyConfig)
+                        .build();
+                perListenerConfigs.put(listenerName, configGroup);
+            }
+
+            Value listenerDropdown = new Value.ValueBuilder()
+                    .metadata("Listener Name", "Select an existing " + moduleName + " listener")
+                    .value(listenerNames.get(0))
+                    .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
+                    .enabled(true)
+                    .editable(true)
+                    .setItems(new ArrayList<Object>(listenerNames))
+                    .setProperties(perListenerConfigs)
+                    .build();
+
+            existingServerProps.put(ServiceInitModel.KEY_EXISTING_LISTENER, listenerDropdown);
+
+            String firstListener = listenerNames.get(0);
+            Map<String, Value> firstConfig = listenerConfigs.getOrDefault(
+                    firstListener, new LinkedHashMap<>());
+            for (Map.Entry<String, Value> entry : firstConfig.entrySet()) {
+                Value prop = entry.getValue();
+                prop.setEditable(false);
+                existingServerProps.put(entry.getKey(), prop);
+            }
+        }
+
+        String label = enabled ? "Use existing" : "Use existing (none available)";
+        return new Value.ValueBuilder()
+                .metadata(label, "Select an existing " + moduleName + " listener")
+                .value("true")
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(enabled)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(existingServerProps)
+                .build();
+    }
+
+    /**
+     * Builds the "Create new" source choice with editable configuration properties.
+     */
+    private static Value buildNewSourceChoice(Map<String, Value> listenerProperties,
+                                               String moduleName, boolean enabled) {
+        return new Value.ValueBuilder()
+                .metadata("Create new",
+                        String.format("Create a new %s source", moduleName))
+                .value("true")
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(enabled)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(listenerProperties)
+                .build();
+    }
+
+    /**
+     * Builds a read-only text Value for displaying listener config information.
+     */
+    public static Value buildReadOnlyTextValue(String label, String description, String value) {
+        return new Value.ValueBuilder()
+                .metadata(label, description)
+                .value(value)
+                .types(List.of(PropertyType.types(Value.FieldType.TEXT, "string"),
+                        PropertyType.types(Value.FieldType.EXPRESSION, "string")))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+    }
+
+    /**
+     * Builds a read-only number Value for displaying listener config information.
+     */
+    public static Value buildReadOnlyNumberValue(String label, String description, String value) {
+        return new Value.ValueBuilder()
+                .metadata(label, description)
+                .value(value)
+                .types(List.of(PropertyType.types(Value.FieldType.NUMBER, "int"),
+                        PropertyType.types(Value.FieldType.EXPRESSION, "int")))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+    }
+
+    /**
+     * Builds a read-only TEXT_SET Value for displaying multi-valued listener config fields.
+     */
+    public static Value buildReadOnlyTextSetValue(String label, String description, List<String> values) {
+        return new Value.ValueBuilder()
+                .metadata(label, description)
+                .setValues(values.stream().map(v -> (Object) v).toList())
+                .types(List.of(new PropertyType.Builder()
+                        .fieldType(Value.FieldType.TEXT_SET)
+                        .ballerinaType("string")
+                        .selected(true)
+                        .build()))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
     }
 
     public record DefaultListener(String moduleName, String variableName, LinePosition linePosition) {

@@ -44,7 +44,8 @@
               },
               "types": [
                 {
-                  "fieldType": "GROUP_SECTION"
+                  "fieldType": "GROUP_SECTION",
+                  "selected": true
                 }
               ],
               "enabled": true,
@@ -700,7 +701,8 @@
               },
               "types": [
                 {
-                  "fieldType": "GROUP_SECTION"
+                  "fieldType": "GROUP_SECTION",
+                  "selected": true
                 }
               ],
               "enabled": true,

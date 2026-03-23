@@ -211,49 +211,80 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
             ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
             Map<String, Value> properties = serviceInitModel.getProperties();
 
+            // Navigate into the pre-structured configureListener CHOICE
+            Value configureListener = properties.get(KEY_CONFIGURE_LISTENER);
+            Value createNewChoice = configureListener.getChoices().get(1);
+            Value listenerConfig = createNewChoice.getProperties().get("listenerConfig");
+            Value advancedSection = listenerConfig.getProperties().get(KEY_ADVANCED_CONFIGURATIONS);
+
             // Generate a unique listener variable name
             String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
                     context.document().syntaxTree().rootNode().lineRange().endLine(),
-                    properties.get(KEY_LISTENER_VAR_NAME).getValue());
-            properties.get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
+                    advancedSection.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
+            advancedSection.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
 
             // Check for existing compatible listeners
             Set<String> compatibleListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
                     context.semanticModel(), context.project());
 
-            // Capture template metadata before properties are removed
-            Map<String, Value> templateProps = new LinkedHashMap<>(properties);
-
-            // Remove listener properties from main map and collect them
-            Map<String, Value> listenerProps =
-                    ListenerUtil.removeAndCollectListenerProperties(properties, getListenerFields());
-
-            // Wrap advanced listener fields into a GROUP_SECTION
-            wrapAdvancedFieldsInGroupSection(listenerProps);
-
-            // Extract read-only configs from existing listeners if any
-            Map<String, Map<String, Value>> listenerConfigs;
             if (!compatibleListeners.isEmpty()) {
-                listenerConfigs = extractListenerConfigs(compatibleListeners,
+                // Build template props by flattening listener fields for metadata mapping
+                Map<String, Value> templateProps = new LinkedHashMap<>(listenerConfig.getProperties());
+                if (advancedSection.getProperties() != null) {
+                    templateProps.putAll(advancedSection.getProperties());
+                }
+
+                // Extract configs from existing listener declarations
+                Map<String, Map<String, Value>> listenerConfigs = extractListenerConfigs(compatibleListeners,
                         context.semanticModel(), context.project());
                 applyInitModelMetadata(listenerConfigs, templateProps);
-            } else {
-                listenerConfigs = Map.of();
+
+                // Populate "Use existing" choice
+                Value existingChoice = configureListener.getChoices().get(0);
+                existingChoice.setMetadata(new MetaData("Use existing",
+                        "Select an existing " + getDisplayLabel() + " listener"));
+                existingChoice.setEnabled(true);
+                existingChoice.setEditable(true);
+
+                // Build SINGLE_SELECT dropdown with per-listener configs
+                List<String> listenerNames = new ArrayList<>(compatibleListeners);
+                Map<String, Value> perListenerConfigs = new LinkedHashMap<>();
+                for (String name : listenerNames) {
+                    Map<String, Value> config = listenerConfigs.getOrDefault(name, new LinkedHashMap<>());
+                    Map<String, Value> readOnlyConfig = new LinkedHashMap<>();
+                    for (Map.Entry<String, Value> entry : config.entrySet()) {
+                        entry.getValue().setEditable(false);
+                        readOnlyConfig.put(entry.getKey(), entry.getValue());
+                    }
+                    Value configGroup = new Value.ValueBuilder()
+                            .metadata(name, getDisplayLabel() + " source: " + name)
+                            .value(name)
+                            .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                            .enabled(true)
+                            .editable(false)
+                            .setProperties(readOnlyConfig)
+                            .build();
+                    perListenerConfigs.put(name, configGroup);
+                }
+
+                Value listenerDropdown = new Value.ValueBuilder()
+                        .metadata("Listener Name", "Select an existing " + getDisplayLabel() + " listener")
+                        .value(listenerNames.get(0))
+                        .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
+                        .enabled(true)
+                        .editable(true)
+                        .setItems(new ArrayList<>(listenerNames))
+                        .setProperties(perListenerConfigs)
+                        .build();
+
+                Map<String, Value> existingProps = new LinkedHashMap<>();
+                existingProps.put(ServiceInitModel.KEY_EXISTING_LISTENER, listenerDropdown);
+                existingChoice.getProperties().get("listenerConfig").setProperties(existingProps);
+
+                // Set "Use existing" as default selection
+                configureListener.setValue("0");
+                createNewChoice.setEnabled(false);
             }
-
-            // Build always-present CHOICE with "Use existing" and "Create new" options
-            Value choicesProperty = ListenerUtil.buildAlwaysPresentListenerChoiceProperty(
-                    listenerProps, listenerConfigs, compatibleListeners, getDisplayLabel());
-
-            // Remove the old JSON template configureListener before inserting the dynamic one
-            properties.remove(KEY_CONFIGURE_LISTENER);
-
-            // Insert configureListener at the top of properties
-            Map<String, Value> reordered = new LinkedHashMap<>();
-            reordered.put(KEY_CONFIGURE_LISTENER, choicesProperty);
-            reordered.putAll(properties);
-            properties.clear();
-            properties.putAll(reordered);
 
             return serviceInitModel;
         } catch (IOException e) {
@@ -431,32 +462,6 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         }
     }
 
-    private void wrapAdvancedFieldsInGroupSection(Map<String, Value> listenerProps) {
-        Map<String, Value> advancedProps = new LinkedHashMap<>();
-        List<String> advancedKeys = new ArrayList<>();
-        for (Map.Entry<String, Value> entry : listenerProps.entrySet()) {
-            if (entry.getValue().isAdvanced()) {
-                entry.getValue().setAdvanced(false);
-                advancedProps.put(entry.getKey(), entry.getValue());
-                advancedKeys.add(entry.getKey());
-            }
-        }
-        if (advancedProps.isEmpty()) {
-            return;
-        }
-        advancedKeys.forEach(listenerProps::remove);
-        Value groupSection = new Value.ValueBuilder()
-                .metadata("Advanced Configurations", "")
-                .value("")
-                .types(List.of(PropertyType.types(Value.FieldType.GROUP_SECTION)))
-                .enabled(true)
-                .editable(false)
-                .setAdvanced(false)
-                .setProperties(advancedProps)
-                .build();
-        listenerProps.put(KEY_ADVANCED_CONFIGURATIONS, groupSection);
-    }
-
     private void unwrapGroupSections(Map<String, Value> properties) {
         List<String> groupKeys = new ArrayList<>();
         Map<String, Value> childProps = new LinkedHashMap<>();
@@ -466,6 +471,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                     .anyMatch(t -> t.fieldType() == Value.FieldType.GROUP_SECTION)) {
                 groupKeys.add(entry.getKey());
                 if (value.getProperties() != null) {
+                    unwrapGroupSections(value.getProperties());
                     childProps.putAll(value.getProperties());
                 }
             }
