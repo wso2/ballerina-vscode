@@ -719,10 +719,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) &&
                                             rawExpression ? rawExpression(typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue)) : updatedValue;
 
-                                        const currentFormValue = watch(key);
-                                        if (rawValue !== currentFormValue) {
-                                            onChange(rawValue);
-                                        }
+                                        onChange(rawValue);
                                         if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE)) {
                                             getExpressionEditorDiagnostics(
                                                 (required ?? !field.optional) || updatedValue !== '',
