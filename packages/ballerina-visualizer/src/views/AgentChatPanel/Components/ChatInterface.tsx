@@ -481,7 +481,6 @@ const ClearChatWarningPopup: React.FC<ClearChatWarningPopupProps> = ({ isOpen, o
     );
 };
 
-// Preprocess LaTeX delimiters to convert \(...\) and \[...\] to $...$ and $$...$$
 function toDisplayName(name: string): string {
     return name
         .replace(/\\/g, '')
@@ -491,6 +490,7 @@ function toDisplayName(name: string): string {
         .replace(/\b\w/g, c => c.toUpperCase());
 }
 
+// Preprocess LaTeX delimiters to convert \(...\) and \[...\] to $...$ and $$...$$
 export function preprocessLatex(text: string): string {
     if (!text || typeof text !== 'string') return text;
 
