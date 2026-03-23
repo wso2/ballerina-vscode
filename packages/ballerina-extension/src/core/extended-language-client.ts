@@ -290,7 +290,9 @@ import {
     IntrospectCredentialsRequest,
     IntrospectCredentialsResponse,
     GetSimpleTypeOfExpressionResponse,
-    GetSimpleTypeOfExpressionRequest
+    GetSimpleTypeOfExpressionRequest,
+    AIGetPackageVersionRequest,
+    AIGetPackageVersionResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -469,6 +471,7 @@ enum EXTENDED_APIS {
     BI_AI_GET_TOOL = 'agentManager/getTool',
     BI_AI_GET_MCP_TOOLS = 'agentManager/getMcpTools',
     BI_AI_GEN_TOOLS = 'agentManager/genTool',
+    BI_AI_GET_PACKAGE_VERSION = 'agentManager/getPackageVersion',
     BI_GET_SEMANTIC_DIFF = 'copilotAgentService/getSemanticDiff',
     BI_IS_ICP_ENABLED = 'icpService/isIcpEnabled',
     BI_ADD_ICP = 'icpService/addICP',
@@ -881,7 +884,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
     async resolveOutput(params: ResolveOutputRequest): Promise<DataMapperSourceResponse> {
         return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_RESOLVE_OUTPUT, params);
     }
-    
+
     async getDataMapperCodedata(params: GetDataMapperCodedataRequest): Promise<GetDataMapperCodedataResponse> {
         return this.sendRequest<GetDataMapperCodedataResponse>(EXTENDED_APIS.DATA_MAPPER_CODEDATA, params);
     }
@@ -1435,6 +1438,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<AIGentToolsResponse>(EXTENDED_APIS.BI_AI_GEN_TOOLS, params);
     }
 
+    async getPackageVersion(params: AIGetPackageVersionRequest): Promise<AIGetPackageVersionResponse> {
+        return this.sendRequest<AIGetPackageVersionResponse>(EXTENDED_APIS.BI_AI_GET_PACKAGE_VERSION, params);
+    }
+
     async search(params: BISearchRequest): Promise<BISearchResponse> {
         return this.sendRequest<BISearchResponse>(EXTENDED_APIS.BI_SEARCH, params);
     }
@@ -1483,7 +1490,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
         return this.sendRequest<SemanticDiffResponse>(EXTENDED_APIS.BI_GET_SEMANTIC_DIFF, params);
-    }   
+    }
 
     // <------------ BI APIS END --------------->
 
