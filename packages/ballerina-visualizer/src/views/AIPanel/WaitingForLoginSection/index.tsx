@@ -289,7 +289,7 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                 <AlertContainer variant="primary">
                     <Title>Connect with Anthropic API Key</Title>
                     <SubTitle>
-                        Enter your Anthropic API key to connect to BI Copilot. Your API key will be securely stored
+                        Enter your Anthropic API key to connect to WSO2 Integrator Copilot. Your API key will be securely stored
                         and used for authentication.
                     </SubTitle>
 
@@ -351,7 +351,7 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                 <AlertContainer variant="primary">
                     <Title>Connect with AWS Bedrock</Title>
                     <SubTitle>
-                        Enter your AWS credentials to connect to BI Copilot via AWS Bedrock. Your credentials will be securely stored
+                        Enter your AWS credentials to connect to WSO2 Integrator Copilot via AWS Bedrock. Your credentials will be securely stored
                         and used for authentication.
                     </SubTitle>
 
@@ -466,7 +466,7 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                 <AlertContainer variant="primary">
                     <Title>Connect with Google Vertex AI</Title>
                     <SubTitle>
-                        Enter your GCP service account credentials to connect to BI Copilot via Google Vertex AI. Your credentials will be securely stored
+                        Enter your GCP service account credentials to connect to WSO2 Integrator Copilot via Google Vertex AI. Your credentials will be securely stored
                         and used for authentication.
                     </SubTitle>
 
@@ -570,7 +570,7 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                 buttonTitle="Cancel"
                 onClick={cancelLogin}
                 subTitle={
-                    "Waiting for the login credentials. Please sign in to your BI Copilot account in the browser window to continue."
+                    "Waiting for the login credentials. Please sign in to your WSO2 Integrator Copilot account in the browser window to continue."
                 }
                 title={"Waiting for Login"}
             />
