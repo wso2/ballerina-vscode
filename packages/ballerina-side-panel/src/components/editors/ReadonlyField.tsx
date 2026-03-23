@@ -51,7 +51,7 @@ const Description = styled.div`
 
 const InputContainer = styled.div`
     display: flex;
-    align-items: center;
+    align-items: stretch;
     color: var(--input-foreground);
     background: var(--input-background);
     border-radius: calc(var(--corner-radius)* 1px);
@@ -67,10 +67,11 @@ const ExpressionRibbon = styled.div`
     opacity: 0.6;
     width: 24px;
     min-width: 24px;
-    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+    border-top-left-radius: 2px;
+    border-bottom-left-radius: 2px;
 `;
 
 const ReadonlyChip = styled.span`
@@ -93,21 +94,29 @@ const ReadonlyChip = styled.span`
 const ChipIcon = styled.i`
     display: flex;
     align-items: center;
-    color: var(--vscode-editor-foreground);
-    font-size: 16px;
+    color: var(--vscode-editorInfo-foreground, var(--vscode-list-deemphasizedForeground));
+    font-size: 14px;
 `;
 
 const Value = styled.span`
     flex: 1;
-    padding: 0 calc(var(--design-unit) * 2px + 1px);
+    display: flex;
+    align-items: center;
+    align-self: center;
+    flex-wrap: wrap;
+    padding: 4px calc(var(--design-unit) * 2px + 1px);
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+`;
+
+const LockContainer = styled.div`
+    display: flex;
+    align-items: center;
+    align-self: center;
+    margin-right: 4px;
 `;
 
 const StyledButton = styled(Button)`
     padding: 0;
-    margin-right: 4px;
     cursor: not-allowed;
 
     :host([disabled]) {
@@ -120,7 +129,7 @@ const StyledButton = styled(Button)`
 
     & .codicon {
         opacity: 1 !important;
-        color: var(--vscode-input-foreground) !important;
+        color: var(--vscode-editor-foreground) !important;
     }
 `;
 
@@ -134,13 +143,57 @@ function getDisplayInfo(field: FormField): { displayValue: string; isExpression:
     const fieldType = selectedType?.fieldType ?? field.type;
     const isExpression = fieldType === "EXPRESSION";
 
-    // Strip surrounding quotes from string literal values for cleaner display
+    // Strip surrounding quotes only from simple string literals (no internal unescaped quotes)
     let displayValue = value;
     if (!isExpression && displayValue.startsWith('"') && displayValue.endsWith('"') && displayValue.length >= 2) {
-        displayValue = displayValue.slice(1, -1);
+        const inner = displayValue.slice(1, -1);
+        // Only strip if there are no unescaped quotes inside
+        if (!inner.match(/(?<!\\)"/)) {
+            displayValue = inner;
+        }
     }
 
     return { displayValue, isExpression };
+}
+
+/**
+ * Renders an expression value, wrapping only ${...} interpolations in chips
+ * and leaving surrounding text as plain text.
+ */
+function renderExpressionValue(value: string): React.ReactNode {
+    const regex = /\$\{([^}]+)\}/g;
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(value)) !== null) {
+        if (match.index > lastIndex) {
+            parts.push(value.slice(lastIndex, match.index));
+        }
+        parts.push(
+            <ReadonlyChip key={match.index}>
+                <ChipIcon className="fw-bi-variable" />
+                {match[1]}
+            </ReadonlyChip>
+        );
+        lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < value.length) {
+        parts.push(value.slice(lastIndex));
+    }
+
+    // No interpolations found — render entire value as a single chip
+    if (parts.length === 0 || (parts.length === 1 && typeof parts[0] === "string")) {
+        return (
+            <ReadonlyChip>
+                <ChipIcon className="fw-bi-variable" />
+                {value}
+            </ReadonlyChip>
+        );
+    }
+
+    return <>{parts}</>;
 }
 
 export function ReadonlyField(props: ReadonlyFieldProps) {
@@ -172,20 +225,15 @@ export function ReadonlyField(props: ReadonlyFieldProps) {
                     </ExpressionRibbon>
                 )}
                 <Value>
-                    {isExpression ? (
-                        <ReadonlyChip>
-                            <ChipIcon className="fw-bi-variable" />
-                            {displayValue}
-                        </ReadonlyChip>
-                    ) : (
-                        displayValue
-                    )}
+                    {isExpression ? renderExpressionValue(displayValue) : displayValue}
                 </Value>
-                <Tooltip content="Read only field">
-                    <StyledButton appearance="icon" disabled>
-                        <Icon name="bi-lock" sx={{ fontSize: 16, width: 16, height: 16}} />
-                    </StyledButton>
-                </Tooltip>
+                <LockContainer>
+                    <Tooltip content="Read only field">
+                        <StyledButton appearance="icon" disabled>
+                            <Icon name="bi-lock" sx={{ fontSize: 16, width: 16, height: 16}} />
+                        </StyledButton>
+                    </Tooltip>
+                </LockContainer>
             </InputContainer>
         </Container>
     );
