@@ -124,7 +124,7 @@ export function ListenerEditView(props: ListenerEditViewProps) {
     return (
         <View>
             <TopNavigationBar projectPath={projectPath} />
-            <TitleBar title={listenerModel?.name || "" + " Configuration"} subtitle="Configure Listener" />
+            <TitleBar title={listenerModel?.name + " Configuration"} subtitle="Configure Listener" />
             <ViewContent padding>
                 {!listenerModel &&
                     <LoadingContainer>
