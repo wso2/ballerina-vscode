@@ -31,6 +31,7 @@ import { OAUTH_CLIENT_CONFIG_PROPERTIES } from "../AIChatAgent/AIAgentSidePanel"
 import { BodyText, LoadingContainer, TopBar } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
 
+
 const FormContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -174,6 +175,19 @@ export function FunctionForm(props: FunctionFormProps) {
 
     const fileName = filePath.split(/[\\/]/).pop();
     const formType = useRef("Function");
+    const isMountedRef = useRef(true);
+    const functionNodeRef = useRef<FunctionNode>();
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    useEffect(() => {
+        functionNodeRef.current = functionNode;
+    }, [functionNode]);
 
     useEffect(() => {
         let nodeKind: NodeKind;
@@ -181,7 +195,7 @@ export function FunctionForm(props: FunctionFormProps) {
             nodeKind = 'AUTOMATION';
             formType.current = "Automation";
             setTitleSubtitle('An automation that can be invoked periodically or manually');
-            setFormSubtitle('Periodic invocation should be scheduled in an external system such as cronjob, k8s, or Devant');
+            setFormSubtitle('Periodic invocation should be scheduled in an external system such as cronjob, k8s, or WSO2 Cloud');
         } else if (isDataMapper) {
             nodeKind = 'DATA_MAPPER_DEFINITION';
             formType.current = 'Data Mapper';
@@ -291,16 +305,54 @@ export function FunctionForm(props: FunctionFormProps) {
         setFunctionFields(fields);
     }, [functionNode]);
 
+    useEffect(() => {
+        const subscription = rpcClient.onIdentifierUpdated(async (response) => {
+            if (!isMountedRef.current || !response?.length) return;
+            console.log("Identifier Updated: ", response);
+
+            const artifact = response.length > 1
+                ? response.find(res => res.name === functionName || res.context === functionName)
+                : response[0];
+            if (!artifact?.name) return;
+
+            const changedFunctionNode = await rpcClient
+                .getBIDiagramRpcClient()
+                .getFunctionNode({
+                    functionName: artifact.name,
+                    fileName,
+                    projectPath
+                });
+            if (!isMountedRef.current) return;
+
+            const flowNode = changedFunctionNode.functionDefinition;
+            const currentFunctionNode = functionNodeRef.current;
+            if (!currentFunctionNode?.codedata?.lineRange || !flowNode?.codedata?.lineRange) return;
+
+            setFunctionNode({
+                ...currentFunctionNode,
+                codedata: {
+                    ...currentFunctionNode.codedata,
+                    lineRange: {
+                        ...flowNode.codedata.lineRange
+                    }
+                }
+            });
+        });
+
+        return () => {
+            subscription?.();
+        };
+    }, [rpcClient, functionName, fileName, projectPath]);
+
     const getFunctionNode = async (kind: NodeKind) => {
         setIsLoading(true);
         const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
-        const res = await rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: { line: 0, offset: 0 },
-                filePath: filePath,
-                id: { node: kind },
-            });
+
+        const res = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            position: { line: 0, offset: 0 },
+            filePath: filePath,
+            id: { node: kind },
+        });
         let flowNode = res.flowNode;
         if (isNpFunction) {
             /* 

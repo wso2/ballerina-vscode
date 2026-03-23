@@ -294,6 +294,22 @@ export class ChatStateStorage {
     }
 
     /**
+     * Remove a generation from a thread
+     * @param projectRootPath Workspace identifier
+     * @param threadId Thread identifier
+     * @param generationId Generation identifier
+     */
+    removeGeneration(projectRootPath: string, threadId: string, generationId: string): void {
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
+        const index = thread.generations.findIndex(g => g.id === generationId);
+        if (index !== -1) {
+            thread.generations.splice(index, 1);
+            thread.updatedAt = Date.now();
+            console.log(`[ChatStateStorage] Removed generation: ${generationId}`);
+        }
+    }
+
+    /**
      * Get a specific generation
      * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier

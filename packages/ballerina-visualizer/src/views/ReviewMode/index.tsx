@@ -309,7 +309,7 @@ export function ReviewMode(): JSX.Element {
             pendingIndexRef.current = null;
             setCurrentIndex(idx >= 0 && idx < allViews.length ? idx : 0);
         } catch (error) {
-            console.error("[Review Mode] Error loading review data:", error);
+            console.error("[Reviewing Changes] Error loading review data:", error);
         } finally {
             setIsLoading(false);
         }
@@ -349,7 +349,7 @@ export function ReviewMode(): JSX.Element {
             setCurrentItemMetadata(null); // Clear metadata when navigating
             setShowOldVersion(false); // Reset toggle when navigating
         } else {
-            console.log("[Review Mode] Already at first view");
+            console.log("[Reviewing Changes] Already at first view");
         }
     };
 
@@ -360,7 +360,7 @@ export function ReviewMode(): JSX.Element {
             setCurrentItemMetadata(null); // Clear metadata when navigating
             setShowOldVersion(false); // Reset toggle when navigating
         } else {
-            console.log("[Review Mode] Already at last view");
+            console.log("[Reviewing Changes] Already at last view");
         }
     };
 
@@ -377,7 +377,7 @@ export function ReviewMode(): JSX.Element {
             await rpcClient.getAiPanelRpcClient().acceptChanges();
             rpcClient.getVisualizerRpcClient().reviewAccepted();
         } catch (error) {
-            console.error("[Review Mode] Error accepting changes:", error);
+            console.error("[Reviewing Changes] Error accepting changes:", error);
             rpcClient.getVisualizerRpcClient().reviewAccepted();
         }
     };
@@ -387,7 +387,7 @@ export function ReviewMode(): JSX.Element {
             await rpcClient.getAiPanelRpcClient().declineChanges();
             rpcClient.getVisualizerRpcClient().goBack();
         } catch (error) {
-            console.error("[Review Mode] Error declining changes:", error);
+            console.error("[Reviewing Changes] Error declining changes:", error);
             rpcClient.getVisualizerRpcClient().goBack();
         }
     };
@@ -445,7 +445,7 @@ export function ReviewMode(): JSX.Element {
             <ReviewContainer>
                 <TitleBar
                     title="Loading..."
-                    actions={<ReviewModeBadge>Review Mode</ReviewModeBadge>}
+                    actions={<ReviewModeBadge>Reviewing Changes</ReviewModeBadge>}
                     hideBack={true}
                     hideUndoRedo={true}
                 />
@@ -463,8 +463,8 @@ export function ReviewMode(): JSX.Element {
                     title="No Changes"
                     actions={
                         <>
-                            <ReviewModeBadge>Review Mode</ReviewModeBadge>
-                            <CloseButton onClick={handleClose} title="Close Review Mode">
+                            <ReviewModeBadge>Reviewing Changes</ReviewModeBadge>
+                            <CloseButton onClick={handleClose} title="Close Reviewing Changes">
                                 <Icon name="bi-close" />
                             </CloseButton>
                         </>
@@ -530,8 +530,8 @@ export function ReviewMode(): JSX.Element {
                     {currentPackageName}
                 </CurrentPackageBadge>
             )}
-            <ReviewModeBadge>Review Mode</ReviewModeBadge>
-            <CloseButton onClick={handleClose} title="Close Review Mode">
+            <ReviewModeBadge>Reviewing Changes</ReviewModeBadge>
+            <CloseButton onClick={handleClose} title="Close Reviewing Changes">
                 <Icon name="bi-close" />
             </CloseButton>
         </>

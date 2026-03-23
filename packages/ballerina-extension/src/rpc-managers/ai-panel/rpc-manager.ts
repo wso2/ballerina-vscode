@@ -44,6 +44,7 @@ import {
     UIChatMessage,
     UpdateChatMessageRequest,
     UsageResponse,
+    WebToolApprovalRequest,
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";
@@ -73,8 +74,7 @@ import {
 } from "./constants";
 import { addToIntegration, searchDocumentation } from "./utils";
 
-import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent, resolveProjectRootPath } from '../../features/ai/agent/index';
-import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
+import { createExecutorConfig, generateAgent, resolveProjectRootPath } from '../../features/ai/agent/index';
 import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
 import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
@@ -419,7 +419,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async acceptChanges(): Promise<void> {
         try {
             // Get project root path and thread ID
-            const ctx = createExecutionContextFromStateMachine();
             const projectRootPath = resolveProjectRootPath();
             const threadId = 'default';
 
@@ -437,29 +436,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             // Get LATEST generation for integration
             const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
             console.log(`[Review Actions] Accepting generation ${latestReview.id} with ${latestReview.reviewState.modifiedFiles.length} modified file(s)`);
-
-            // In workspace mode, if no active project is set, resolve it from the modified files
-            // so that artifact notifications can find the correct project in the structure.
-            if (!ctx.projectPath && ctx.workspacePath && latestReview.reviewState.modifiedFiles.length > 0) {
-                const firstBalFile = latestReview.reviewState.modifiedFiles.find(f => f.endsWith('.bal'));
-                if (firstBalFile) {
-                    const packageName = firstBalFile.split('/')[0];
-                    if (packageName) {
-                        StateMachine.context().projectPath = path.join(ctx.workspacePath, packageName);
-                    }
-                }
-            }
-
-            // Integrate LATEST generation's code to workspace
-            if (latestReview.reviewState.modifiedFiles.length > 0) {
-                const modifiedFilesSet = new Set(latestReview.reviewState.modifiedFiles);
-                await integrateCodeToWorkspace(
-                    latestReview.reviewState.tempProjectPath!,
-                    modifiedFilesSet,
-                    ctx
-                );
-                console.log(`[Review Actions] Integrated ${latestReview.reviewState.modifiedFiles.length} file(s) to workspace`);
-            }
 
             // Cleanup ALL under_review temp projects (prevents memory leak)
             if (!process.env.AI_TEST_ENV) {
@@ -514,6 +490,15 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
             console.log(`[Review Actions] Declining ${underReviewGenerations.length} generation(s)`);
 
+            // Restore workspace to state before the latest generation ran
+            const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
+            const checkpoint = latestReview.checkpoint;
+            if (checkpoint) {
+                await restoreWorkspaceSnapshot(checkpoint, true);
+            } else {
+                console.warn("[Review Actions] No checkpoint found for generation — workspace changes will not be reverted");
+            }
+
             // Cleanup ALL under_review temp projects (prevents memory leak)
             if (!process.env.AI_TEST_ENV) {
                 for (const generation of underReviewGenerations) {
@@ -528,7 +513,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             console.log("[Review Actions] Marked all under_review generations as declined");
 
             // Send telemetry for generation discard
-            const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
             sendGenerationDiscardTelemetry(latestReview.id);
 
             // Clear affectedPackagePaths from all completed reviews to prevent stale data
@@ -579,6 +563,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async cancelConfiguration(params: { requestId: string; comment?: string }): Promise<void> {
         approvalManager.resolveConfiguration(params.requestId, false, undefined, params.comment);
+    }
+
+    async approveWebTool(params: WebToolApprovalRequest): Promise<void> {
+        approvalManager.resolveWebToolApproval(params.requestId, true);
+    }
+
+    async declineWebTool(params: WebToolApprovalRequest): Promise<void> {
+        approvalManager.resolveWebToolApproval(params.requestId, false);
     }
 
     async restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
@@ -743,10 +735,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async openFileDiff(params: OpenFileDiffRequest): Promise<void> {
         AiPanelRpcManager.registerDiffContentProvider();
 
-        // Resolve roots on the host — never trust webview-supplied absolute paths
         const context = StateMachine.context();
-        // Use workspace root when available; modifiedFiles are relative to the workspace root in workspace mode
-        const originalRoot = context.workspacePath || context.projectPath;
         const workspaceId = context.workspacePath || context.projectPath;
         const threadId = 'default';
         const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
@@ -757,24 +746,18 @@ export class AiPanelRpcManager implements AIPanelAPI {
             return;
         }
 
-        const originalFilePath = path.resolve(originalRoot, params.relativePath);
         const modifiedFilePath = path.resolve(tempProjectPath, params.relativePath);
 
-        // Reject paths that escape the project roots
-        if (!originalFilePath.startsWith(originalRoot + path.sep) || !modifiedFilePath.startsWith(tempProjectPath + path.sep)) {
-            console.error("[openFileDiff] Path escapes project root, rejecting");
+        if (!modifiedFilePath.startsWith(tempProjectPath + path.sep)) {
+            console.error("[openFileDiff] Path escapes temp project root, rejecting");
             return;
         }
 
         // Clear previous diff entries to prevent unbounded memory growth
         AiPanelRpcManager.diffContentMap.clear();
 
-        let originalContent = '';
-        try {
-            originalContent = fs.readFileSync(originalFilePath, 'utf8');
-        } catch {
-            // File doesn't exist (new file) — left side will be empty
-        }
+        // Read original content from checkpoint snapshot — workspace already has generated code
+        const originalContent = pendingReview?.checkpoint?.workspaceSnapshot[params.relativePath] ?? '';
 
         let modifiedContent = '';
         try {
@@ -793,6 +776,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
         AiPanelRpcManager.diffContentMap.set(modifiedUri.toString(), modifiedContent);
 
         const title = `${fileName} (Review Diff)`;
-        await vscode.commands.executeCommand('vscode.diff', originalUri, modifiedUri, title);
+        await vscode.commands.executeCommand('vscode.diff', originalUri, modifiedUri, title, {
+            viewColumn: vscode.ViewColumn.One,
+        });
     }
 }

@@ -21,15 +21,21 @@ import styled from "@emotion/styled";
 import { SemanticDiff, ChangeTypeEnum, MACHINE_VIEW, VisualizerLocation } from "@wso2/ballerina-core";
 import { getColorByMethod } from "../../../BI/ServiceDesigner/components/ResourceAccordion";
 
-const Container = styled.div`
+const Container = styled.div<{ subtle?: boolean; expanded?: boolean }>`
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 10px 14px;
-    background-color: var(--vscode-editor-background);
-    border: 1px solid var(--vscode-panel-border);
+    gap: 6px;
+    padding: 6px 10px;
+    background-color: ${(p: { subtle?: boolean }) =>
+        p.subtle
+            ? "color-mix(in srgb, var(--vscode-editor-background) 60%, transparent)"
+            : "var(--vscode-editor-background)"};
+    border: 1px solid ${(p: { subtle?: boolean; expanded?: boolean }) =>
+        p.subtle && !p.expanded
+            ? "color-mix(in srgb, var(--vscode-panel-border) 60%, transparent)"
+            : "var(--vscode-panel-border)"};
     border-radius: 4px;
-    margin: 8px 0 4px;
+    margin: 6px 0 2px;
 `;
 
 const TitleBarRow = styled.div`
@@ -38,11 +44,6 @@ const TitleBarRow = styled.div`
     justify-content: space-between;
 `;
 
-const Title = styled.div`
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--vscode-foreground);
-`;
 
 const ReviewIconButton = styled.button`
     display: flex;
@@ -204,29 +205,19 @@ const ActionRow = styled.div`
     gap: 6px;
 `;
 
-interface ActionButtonProps {
-    $variant: "accept" | "discard";
-}
-
-const ActionButton = styled.button<ActionButtonProps>`
+const ActionButton = styled.button`
     display: flex;
     align-items: center;
     gap: 4px;
     padding: 3px 10px;
     border-radius: 3px;
-    border: none;
+    border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
     font-size: 12px;
     font-weight: 500;
     font-family: var(--vscode-font-family);
     cursor: pointer;
-    background-color: ${({ $variant }: ActionButtonProps) =>
-        $variant === "accept"
-            ? "var(--vscode-button-background)"
-            : "var(--vscode-button-secondaryBackground)"};
-    color: ${({ $variant }: ActionButtonProps) =>
-        $variant === "accept"
-            ? "var(--vscode-button-foreground)"
-            : "var(--vscode-button-secondaryForeground)"};
+    background-color: var(--vscode-button-secondaryBackground, transparent);
+    color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
     &:hover:not(:disabled) {
         opacity: 0.85;
     }
@@ -236,17 +227,6 @@ const ActionButton = styled.button<ActionButtonProps>`
     }
 `;
 
-const CompactContainer = styled.div`
-    display: inline-flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 6px 10px;
-    background-color: var(--vscode-editor-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
-    margin: 4px 0;
-    align-self: flex-start;
-`;
 
 const TitleRow = styled.button`
     display: flex;
@@ -347,10 +327,10 @@ interface ReviewBarProps {
     loadDesignDiagrams?: boolean;
     isWorkspace?: boolean;
     diffPackageMap?: string[];
-    status: "pending" | "accepted" | "discarded";
+    isDiscarded?: boolean;
     rpcClient?: any;
     isActive?: boolean;
-    onStatusChange?: (status: "accepted" | "discarded") => void;
+    onDiscarded?: () => void;
 }
 
 function getFileName(filePath: string): string {
@@ -690,14 +670,19 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     loadDesignDiagrams,
     isWorkspace,
     diffPackageMap,
-    status,
+    isDiscarded = false,
     rpcClient,
     isActive = false,
-    onStatusChange,
+    onDiscarded,
 }) => {
+    const status = isDiscarded ? "discarded" : isActive ? "pending" : "accepted";
     const [isProcessing, setIsProcessing] = useState(false);
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(isActive);
     const [isReviewModeOpen, setIsReviewModeOpen] = useState(false);
+
+    useEffect(() => {
+        setIsExpanded(isActive);
+    }, [isActive]);
 
     const hasDiagramView = !!(semanticDiffs && semanticDiffs.length > 0);
     const [viewMode, setViewMode] = useState<ViewMode>(hasDiagramView ? "diagram" : "code");
@@ -741,28 +726,13 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
         rpcClient.getAiPanelRpcClient().openFileDiff({ relativePath });
     };
 
-    const handleAccept = async () => {
-        if (!rpcClient) return;
-        try {
-            setIsProcessing(true);
-            await rpcClient.getAiPanelRpcClient().acceptChanges();
-            onStatusChange?.("accepted");
-            rpcClient.getVisualizerRpcClient().reviewAccepted();
-        } catch (error) {
-            console.error("[ReviewBar] Error accepting changes:", error);
-            rpcClient.getVisualizerRpcClient().reviewAccepted();
-        } finally {
-            setIsProcessing(false);
-        }
-    };
-
     const handleDiscard = async () => {
         if (!rpcClient) return;
         try {
             setIsProcessing(true);
             await rpcClient.getAiPanelRpcClient().declineChanges();
             rpcClient.getVisualizerRpcClient().goBack();
-            onStatusChange?.("discarded");
+            onDiscarded?.();
         } catch (error) {
             console.error("[ReviewBar] Error discarding changes:", error);
             rpcClient.getVisualizerRpcClient().goBack();
@@ -776,17 +746,17 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
             <ToggleOption
                 active={viewMode === "diagram"}
                 disabled={!hasDiagramView}
-                title={hasDiagramView ? "Diagram View" : "No diagram changes available"}
+                title={hasDiagramView ? "Diagram" : "No diagram changes available"}
                 onClick={() => hasDiagramView && setViewMode("diagram")}
             >
-                Diagram View
+                Diagram
             </ToggleOption>
             <ToggleOption
                 active={viewMode === "code"}
-                title="Code View"
+                title="Code"
                 onClick={() => setViewMode("code")}
             >
-                Code View
+                Code
             </ToggleOption>
         </ToggleGroup>
     );
@@ -820,32 +790,34 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
         );
     };
 
-    if (status !== "pending") {
-        return (
-            <CompactContainer>
-                <TitleRow onClick={() => setIsExpanded(v => !v)}>
+    const titleColor = status !== "pending" ? "var(--vscode-descriptionForeground)" : "var(--vscode-foreground)";
+    const titleWeight = 400;
+    const titleText = status === "pending" ? "Changes made" : status === "accepted" ? "Changes made" : "Changes reverted";
+
+    const renderContent = () => {
+        if (viewMode === "diagram" && packageGroups && packageGroups.length > 0) {
+            return <PackageGroupList packageGroups={packageGroups} onClickEntry={isActive ? (viewIndex: number) => navigateReviewMode(viewIndex) : undefined} />;
+        }
+        if (viewMode === "diagram" && groups && groups.length > 0) {
+            return <CollapsibleGroupList groups={groups} onClickEntry={isActive ? (viewIndex: number) => navigateReviewMode(viewIndex) : undefined} />;
+        }
+        if (modifiedFiles.length > 0) {
+            return renderCodeView(!isActive);
+        }
+        return null;
+    };
+
+    return (
+        <Container subtle={status !== "pending"} expanded={isExpanded}>
+            <TitleBarRow>
+                <TitleRow onClick={() => setIsExpanded(v => !v)} style={{ fontSize: "13px", fontWeight: titleWeight, color: titleColor, opacity: status !== "pending" && !isExpanded ? 0.5 : 1 }}>
                     <span
                         className={`codicon ${isExpanded ? "codicon-chevron-down" : "codicon-chevron-right"}`}
                         style={{ fontSize: "11px" }}
                     />
-                    {status === "accepted" ? "Changes accepted" : "Changes discarded"}
+                    {titleText}
                 </TitleRow>
-                {isExpanded && (
-                    packageGroups && packageGroups.length > 0
-                        ? <PackageGroupList packageGroups={packageGroups} />
-                        : groups && groups.length > 0
-                            ? <CollapsibleGroupList groups={groups} />
-                            : modifiedFiles.length > 0 && renderCodeView(true)
-                )}
-            </CompactContainer>
-        );
-    }
-
-    return (
-        <Container>
-            <TitleBarRow>
-                <Title>Changes ready to review</Title>
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 4, visibility: isExpanded ? "visible" : "hidden" }}>
                     {isActive && !isReviewModeOpen && hasDiagramView && (
                         <ReviewIconButton
                             onClick={() => navigateReviewMode(0)}
@@ -856,28 +828,21 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
                             <span>Review</span>
                         </ReviewIconButton>
                     )}
-                    {renderViewToggle()}
+                    {hasDiagramView && renderViewToggle()}
                 </div>
             </TitleBarRow>
-            {viewMode === "diagram" && packageGroups && packageGroups.length > 0
-                ? <PackageGroupList packageGroups={packageGroups} onClickEntry={(viewIndex: number) => navigateReviewMode(viewIndex)} />
-                : viewMode === "diagram" && groups && groups.length > 0
-                    ? <CollapsibleGroupList groups={groups} onClickEntry={(viewIndex: number) => navigateReviewMode(viewIndex)} />
-                    : viewMode === "code" && modifiedFiles.length > 0
-                        ? renderCodeView()
-                        : null
-            }
-            {isActive && (
-                <ActionRow>
-                    <ActionButton $variant="discard" onClick={handleDiscard} disabled={isProcessing} title="Discard changes">
-                        <span className="codicon codicon-discard" style={{ fontSize: "11px" }} />
-                        Discard
-                    </ActionButton>
-                    <ActionButton $variant="accept" onClick={handleAccept} disabled={isProcessing} title="Accept changes">
-                        <span className="codicon codicon-check" style={{ fontSize: "11px" }} />
-                        Keep
-                    </ActionButton>
-                </ActionRow>
+            {isExpanded && (
+                <>
+                    {renderContent()}
+                    {isActive && (
+                        <ActionRow>
+                            <ActionButton onClick={handleDiscard} disabled={isProcessing} title="Revert changes">
+                                <span className="codicon codicon-discard" style={{ fontSize: "11px" }} />
+                                Revert
+                            </ActionButton>
+                        </ActionRow>
+                    )}
+                </>
             )}
         </Container>
     );

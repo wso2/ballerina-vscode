@@ -363,6 +363,7 @@ export type ChatNotify =
     | EvalsToolResult
     | UsageMetricsEvent
     | TaskApprovalRequest
+    | WebToolApprovalEvent
     | GeneratedSourcesEvent
     | ConnectorGenerationNotification
     | ConfigurationCollectionEvent
@@ -428,6 +429,7 @@ export interface ToolResult {
     toolName: string;
     toolOutput?: any;
     toolCallId?: string;
+    failed?: boolean;
 }
 
 export interface EvalsToolResult {
@@ -454,6 +456,13 @@ export interface TaskApprovalRequest {
     tasks: Task[];
     taskDescription?: string;
     message?: string;
+}
+
+export interface WebToolApprovalEvent {
+    type: "web_tool_approval_request";
+    requestId: string;
+    toolName: "web_search" | "web_fetch";
+    content: string;
 }
 
 export interface GeneratedSourcesEvent {
@@ -523,6 +532,7 @@ export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrat
 export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
 export const onMigratedProject: NotificationType<ProjectMigrationResult> = { method: 'onMigratedProject' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
+export const onIdentifierUpdated: NotificationType<ProjectStructureArtifactResponse[]> = { method: 'onIdentifierUpdated' };
 export const promptUpdated: NotificationType<void> = { method: 'promptUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };
