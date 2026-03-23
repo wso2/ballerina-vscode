@@ -34,9 +34,12 @@ export async function discoverTestFunctionsInProject(ballerinaExtInstance: Balle
     const workspaceRoot = getWorkspaceRoot();
     const projectInfo = await ballerinaExtInstance.langClient?.getProjectInfo({ projectPath: workspaceRoot });
 
-    // Handle workspace with multiple child projects
+    // Handle project with multiple integrations/libraries
     if (projectInfo?.children?.length > 0) {
         await discoverTestsInWorkspace(projectInfo.children, ballerinaExtInstance, testController);
+        return;
+    } else if (projectInfo?.children?.length === 0) {
+        // empty project
         return;
     }
 
