@@ -122,6 +122,18 @@ export function ChoiceForm(props: ChoiceFormProps) {
                 }
             }
 
+            // For TEXT_SET fields, use the values array instead of value
+            let value: any = expression.value;
+            if (fieldType === "TEXT_SET") {
+                if (expression.values && expression.values.length > 0) {
+                    value = expression.values;
+                } else if (expression.value) {
+                    value = [expression.value];
+                } else {
+                    value = [];
+                }
+            }
+
             const formField: FormField = {
                 key: key,
                 label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
@@ -131,7 +143,7 @@ export function ChoiceForm(props: ChoiceFormProps) {
                 editable: expression.editable,
                 enabled: expression?.enabled ?? true,
                 optional: expression.optional,
-                value: expression.value,
+                value,
                 advanced: expression.advanced,
                 diagnostics: [],
                 items,
