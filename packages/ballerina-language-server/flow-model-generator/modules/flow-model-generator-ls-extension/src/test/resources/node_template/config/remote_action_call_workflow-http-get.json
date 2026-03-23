@@ -1,0 +1,286 @@
+{
+  "source": "workflow_remote_activity/functions.bal",
+  "position": {
+    "line": 13,
+    "offset": 0
+  },
+  "description": "Remote action call node template inside workflow function",
+  "codedata": {
+    "node": "REMOTE_ACTION_CALL",
+    "org": "ballerina",
+    "module": "http",
+    "packageName": "http",
+    "object": "Client",
+    "symbol": "get",
+    "version": "2.12.0",
+    "parentSymbol": "httpClient"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "get",
+      "description": "The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.12.0.png"
+    },
+    "codedata": {
+      "node": "REMOTE_ACTION_CALL",
+      "org": "ballerina",
+      "module": "http",
+      "packageName": "http",
+      "object": "Client",
+      "symbol": "get",
+      "version": "2.12.0",
+      "isNew": true,
+      "inferredReturnType": "targetType"
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:Client",
+            "selected": false
+          }
+        ],
+        "value": "httpClient",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "path": {
+        "metadata": {
+          "label": "Path",
+          "description": "Request path"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "path"
+        }
+      },
+      "headers": {
+        "metadata": {
+          "label": "Headers",
+          "description": "The entity headers"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_MAP",
+            "ballerinaType": "map<string|string[]>",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "REPEATABLE_LIST",
+                  "ballerinaType": "string[]",
+                  "template": {
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "ballerinaType": "string",
+                        "selected": false
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string",
+                        "selected": false
+                      }
+                    ],
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string|string[]",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "map<string|string[]>?",
+            "selected": false
+          }
+        ],
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "headers"
+        },
+        "defaultValue": "()"
+      },
+      "targetType": {
+        "metadata": {
+          "label": "Target Type",
+          "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "selected": false
+          }
+        ],
+        "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "targetType"
+        },
+        "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "targetType",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "var1",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "options": {
+        "metadata": {
+          "label": "Activity call configurations",
+          "description": "Activity call configurations"
+        },
+        "types": [
+          {
+            "fieldType": "ADVANCE_PARAM_LIST",
+            "selected": false
+          }
+        ],
+        "value": {
+          "options": {
+            "metadata": {
+              "label": "Options",
+              "description": "Optional activity options for retry policy and error handling behavior"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "workflow:ActivityOptions",
+                "typeMembers": [
+                  {
+                    "type": "ActivityOptions",
+                    "packageInfo": "ballerina:workflow:0.2.0",
+                    "packageName": "workflow",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "workflow:ActivityOptions?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "options"
+            },
+            "defaultValue": "()"
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

@@ -74,7 +74,7 @@ public class ActivityCallBuilder extends CallBuilder {
     public static final String DESCRIPTION = "Call a workflow activity function";
     public static final String CALL_ACTIVITY_METHOD = "callActivity";
     public static final String DEFAULT_RETURN_TYPE = "anydata";
-    public static final String OPTIONS_PARAM_NAME = "options";
+    public static final String OPTIONS_PARAM_KEY = "options";
     public static final String ADVANCE_CONFIGURATIONS = "Activity call configurations";
     private static final Set<String> EXCLUDED_CALL_ACTIVITY_PARAMS = Set.of("activityFunction", "args", "T");
 
@@ -91,10 +91,11 @@ public class ActivityCallBuilder extends CallBuilder {
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
         super.setConcreteTemplateData(context);
-        addCallActivityOptions(context);
+        addCallActivityOptions(context, moduleInfo, this);
     }
 
-    private void addCallActivityOptions(TemplateContext context) {
+    public static void addCallActivityOptions(TemplateContext context, ModuleInfo moduleInfo,
+                                               CallBuilder builder) {
         ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
         FunctionData callActivityData = new FunctionDataBuilder()
                 .name(CALL_ACTIVITY_METHOD)
@@ -113,9 +114,9 @@ public class ActivityCallBuilder extends CallBuilder {
 
         Module module = context.workspaceManager().module(context.filePath()).orElse(null);
 
-        properties().nestedProperty();
-        setParameterProperties(callActivityData, module);
-        properties().endNestedProperty(Property.ValueType.ADVANCE_PARAM_LIST, OPTIONS_PARAM_NAME,
+        builder.properties().nestedProperty();
+        builder.setParameterProperties(callActivityData, module);
+        builder.properties().endNestedProperty(Property.ValueType.ADVANCE_PARAM_LIST, OPTIONS_PARAM_KEY,
                 ADVANCE_CONFIGURATIONS, ADVANCE_CONFIGURATIONS);
     }
 
@@ -134,28 +135,7 @@ public class ActivityCallBuilder extends CallBuilder {
                 .map(p -> p.value().toString())
                 .orElse("result");
 
-        try {
-            sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to load the project for file: " + sourceBuilder.filePath, e);
-        }
-        SemanticModel semanticModel = FileSystemUtils.getSemanticModel(sourceBuilder.workspaceManager,
-                sourceBuilder.filePath);
-
-        // Get the context param name from the enclosing workflow function parameters
-        FunctionDefinitionNode functionNode = WorkflowUtil.findEnclosingWorkflowFunction(sourceBuilder);
-        if (functionNode == null) {
-            throw new IllegalStateException("Activity call must be inside a workflow process function");
-        }
-
-        Optional<String> optCtxParamName = getContextParamName(functionNode, semanticModel);
-        String ctxParamName;
-        if (optCtxParamName.isPresent()) {
-            ctxParamName = optCtxParamName.get();
-        } else {
-            addContextParameterToFunction(sourceBuilder, functionNode);
-            ctxParamName = DEFAULT_CTX_PARAM_NAME;
-        }
+        String ctxParamName = resolveContextParamName(sourceBuilder);
 
         // Get activity function from codedata.symbol()
         Codedata codedata = flowNode.codedata();
@@ -183,12 +163,58 @@ public class ActivityCallBuilder extends CallBuilder {
                 .name(qualifiedActivityFunction)
                 .keyword(SyntaxKind.COMMA_TOKEN);
 
-        // Add activity function parameters as a map {key: value, ...}
-        // Exclude variable, type, checkError, and the options named arg (handled separately below)
-        Set<String> excludedKeys = Set.of(Property.VARIABLE_KEY, Property.TYPE_KEY,
-                Property.CHECK_ERROR_KEY, OPTIONS_PARAM_NAME);
-        sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
         Map<String, Property> properties = flowNode.properties();
+        Set<String> excludedKeys = Set.of(Property.VARIABLE_KEY, Property.TYPE_KEY,
+                Property.CHECK_ERROR_KEY, OPTIONS_PARAM_KEY);
+        emitArgsMap(sourceBuilder, properties, excludedKeys);
+        emitOptionsNamedArgs(sourceBuilder, properties);
+
+        sourceBuilder.token()
+                .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
+                .endOfStatement();
+
+        return sourceBuilder.textEdit().build();
+    }
+
+    /**
+     * Resolves the workflow context parameter name from the enclosing workflow function.
+     * If no context parameter exists, one is added automatically.
+     *
+     * @param sourceBuilder the source builder
+     * @return the context parameter name
+     */
+    public static String resolveContextParamName(SourceBuilder sourceBuilder) {
+        try {
+            sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to load the project for file: " + sourceBuilder.filePath, e);
+        }
+        SemanticModel semanticModel = FileSystemUtils.getSemanticModel(sourceBuilder.workspaceManager,
+                sourceBuilder.filePath);
+
+        FunctionDefinitionNode functionNode = WorkflowUtil.findEnclosingWorkflowFunction(sourceBuilder);
+        if (functionNode == null) {
+            throw new IllegalStateException("Activity call must be inside a workflow function");
+        }
+
+        Optional<String> optCtxParamName = getContextParamName(functionNode, semanticModel);
+        if (optCtxParamName.isPresent()) {
+            return optCtxParamName.get();
+        }
+        addContextParameterToFunction(sourceBuilder, functionNode);
+        return DEFAULT_CTX_PARAM_NAME;
+    }
+
+    /**
+     * Emits a map of activity function parameters as {@code {key: value, ...}} into the source builder.
+     *
+     * @param sourceBuilder the source builder
+     * @param properties    the flow node properties
+     * @param excludedKeys  property keys to exclude from the map
+     */
+    public static void emitArgsMap(SourceBuilder sourceBuilder, Map<String, Property> properties,
+                                   Set<String> excludedKeys) {
+        sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
         if (properties != null) {
             boolean isFirstArg = true;
             for (Map.Entry<String, Property> entry : properties.entrySet()) {
@@ -214,34 +240,34 @@ public class ActivityCallBuilder extends CallBuilder {
                         .name(value.toString());
             }
         }
-
         sourceBuilder.token()
                 .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
+    }
 
-        // Emit options = <value> as a named arg when the user has provided a non-default value.
-        // navigate: properties["options"] (GROUP) -> value (Map) -> get("options") -> inner Property.
-        if (properties != null) {
-            Property optionsProp = properties.get(OPTIONS_PARAM_NAME);
-            if (optionsProp != null && optionsProp.value() instanceof Map<?, ?> options) {
-                    for (Map.Entry<?, ?> optionEntry : options.entrySet()) {
-                        if (optionEntry.getKey() instanceof String paramName && !paramName.isEmpty() &&
-                                optionEntry.getValue() instanceof Map<?, ?> option) {
-                            sourceBuilder.token()
-                                    .keyword(SyntaxKind.COMMA_TOKEN)
-                                    .name(paramName)
-                                    .whiteSpace()
-                                    .keyword(SyntaxKind.EQUAL_TOKEN)
-                                    .name(Property.convertToProperty(option).toSourceCode());
-                        }
-                    }
+    /**
+     * Emits activity call options as named arguments into the source builder.
+     *
+     * @param sourceBuilder the source builder
+     * @param properties    the flow node properties
+     */
+    public static void emitOptionsNamedArgs(SourceBuilder sourceBuilder, Map<String, Property> properties) {
+        if (properties == null) {
+            return;
+        }
+        Property optionsProp = properties.get(OPTIONS_PARAM_KEY);
+        if (optionsProp != null && optionsProp.value() instanceof Map<?, ?> options) {
+            for (Map.Entry<?, ?> optionEntry : options.entrySet()) {
+                if (optionEntry.getKey() instanceof String paramName && !paramName.isEmpty() &&
+                        optionEntry.getValue() instanceof Map<?, ?> option) {
+                    sourceBuilder.token()
+                            .keyword(SyntaxKind.COMMA_TOKEN)
+                            .name(paramName)
+                            .whiteSpace()
+                            .keyword(SyntaxKind.EQUAL_TOKEN)
+                            .name(Property.convertToProperty(option).toSourceCode());
+                }
             }
         }
-
-        sourceBuilder.token()
-                .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
-                .endOfStatement();
-
-        return sourceBuilder.textEdit().build();
     }
 
     public static Optional<String> getContextParamName(FunctionDefinitionNode functionNode,
