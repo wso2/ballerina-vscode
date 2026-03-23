@@ -461,7 +461,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const initForm = (node: FlowNode) => {
-        setFormDiagnostics(nodeFormTemplate?.diagnostics?.diagnostics ?? node.diagnostics?.diagnostics ?? []);
+        setFormDiagnostics(node.diagnostics?.diagnostics ?? []);
         const formProperties = getFormProperties(node);
         let enrichedNodeProperties;
         if (nodeFormTemplate) {
