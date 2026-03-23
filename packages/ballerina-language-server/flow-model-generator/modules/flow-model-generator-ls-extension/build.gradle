@@ -105,6 +105,7 @@ task copyStdlibs() {
 test.dependsOn rootProject.pullBallerinaModule('redis', ballerinaxRedisVersion)
 test.dependsOn rootProject.pullBallerinaModule('postgresql', ballerinaxPostgresqlVersion)
 test.dependsOn rootProject.pullBallerinaModule('postgresql.driver', ballerinaxPostgresqlDriverVersion)
+test.dependsOn rootProject.pullBallerinaModule('salesforce', ballerinaxSalesforceVersion)
 test.dependsOn rootProject.pullBallerinaModule('trigger.salesforce', ballerinaxTriggerSalesforceVersion)
 test.dependsOn rootProject.pullBallerinaModule('github', ballerinaxGithubVersion)
 test.dependsOn rootProject.pullBallerinaModule('snowflake', ballerinaxSnowflakeVersion)
@@ -126,10 +127,15 @@ test.dependsOn rootProject.pullBallerinaModule('ai', ballerinaAiVersion, "baller
 // TODO: Re-enable this once the `np` module is available on central
 //test.dependsOn rootProject.pullBallerinaModule('np')
 
+task copyInbuiltTriggers(type: Copy) {
+    from "${rootDir}/misc/ls-extensions/modules/trigger-service/src/main/resources/inbuilt-triggers"
+    into "${buildDir}/resources/test/inbuilt-triggers"
+}
+
+checkstyleTest.dependsOn copyInbuiltTriggers
+
 test {
-    dependsOn {
-        copyStdlibs
-    }
+    dependsOn copyStdlibs, copyInbuiltTriggers
     systemProperty "ballerina.home", balDistribution
     useTestNG() {
         suites "src/test/resources/testng.xml"
