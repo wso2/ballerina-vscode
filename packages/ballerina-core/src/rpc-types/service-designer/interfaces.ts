@@ -27,3 +27,10 @@ export interface ExportOASResponse {
 export interface SourceUpdateResponse {
     artifacts: ProjectStructureArtifactResponse[]
 }
+export interface GetOASSpecRequest {
+    documentFilePath?: string;
+    basePath?: string;
+}
+export interface GetOASSpecResponse {
+    spec: any | null;
+}
