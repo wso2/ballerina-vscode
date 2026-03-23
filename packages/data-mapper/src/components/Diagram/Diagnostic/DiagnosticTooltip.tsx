@@ -39,8 +39,11 @@ export function DiagnosticTooltip(props: Partial<Props>) {
 
     const handleOnClick = async () => {
         setInProgress(true);
-        await onClick();
-        setInProgress(false);
+        try {
+            await onClick();
+        } finally {
+            setInProgress(false);
+        }
     };
 
     const Code = () => (
