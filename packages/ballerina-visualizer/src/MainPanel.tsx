@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { createRef, useCallback, useEffect, useRef, useState } from "react";
 import {
     KeyboardNavigationManager,
     MachineStateValue,
@@ -52,7 +52,7 @@ import {
 import { handleRedo, handleUndo } from "./utils/utils";
 import { STKindChecker } from "@wso2/syntax-tree";
 import { URI, Utils } from "vscode-uri";
-import { ThemeColors, Typography } from "@wso2/ui-toolkit";
+import { ErrorBoundary, ThemeColors, Typography } from "@wso2/ui-toolkit";
 import { PanelType, useModalStack, useVisualizerContext } from "./Context";
 import { ConstructPanel } from "./views/ConstructPanel";
 import { EditPanel } from "./views/EditPanel";
@@ -202,6 +202,7 @@ const MainPanel = () => {
     const { rpcClient } = useRpcContext();
     const { sidePanel, setSidePanel, popupMessage, setPopupMessage, activePanel, showOverlay, setShowOverlay } = useVisualizerContext();
     const { modalStack, closeModal } = useModalStack()
+    const errorBoundaryRef = createRef<any>();
     const [viewComponent, setViewComponent] = useState<React.ReactNode>();
     const [navActive, setNavActive] = useState<boolean>(true);
     const [showHome, setShowHome] = useState<boolean>(true);
@@ -211,6 +212,9 @@ const MainPanel = () => {
     const navKeyRef = useRef<number>(0);
     const remountKeyRef = useRef<number>(0);
     const previousNavTargetRef = useRef<string | undefined>(undefined);
+
+
+    const gitIssueUrl = "https://github.com/wso2/product-integrator/issues";
 
     const debounceFetchContext = useCallback(
         debounce(() => {
@@ -731,62 +735,64 @@ const MainPanel = () => {
         <>
             <Global styles={globalStyles} />
             <VisualizerContainer id="visualizer-container">
-                {/* {navActive && <NavigationBar showHome={showHome} />} */}
-                {(showOverlay || modalStack.length > 0) && <Overlay />}
-                {viewComponent && <ComponentViewWrapper>{viewComponent}</ComponentViewWrapper>}
-                {!viewComponent && (
-                    <ComponentViewWrapper>
-                        <LoadingViewContainer>
-                            <LoadingContent>
-                                <ProgressRing />
-                                <LoadingTitle>Loading Integration</LoadingTitle>
-                                <LoadingSubtitle>Setting up your integration environment</LoadingSubtitle>
-                                <LoadingText>
-                                    <span className="loading-dots">Please wait</span>
-                                </LoadingText>
-                            </LoadingContent>
-                        </LoadingViewContainer>
-                    </ComponentViewWrapper>
-                )}
-                {sidePanel !== "EMPTY" && sidePanel === "ADD_CONNECTION" && (
-                    <ConnectorList applyModifications={applyModifications} />
-                )}
+                <ErrorBoundary goHome={handleNavigateToOverview} errorMsg="An error occurred in the visualizer" issueUrl={gitIssueUrl} ref={errorBoundaryRef} resetKeys={[viewComponent]}>
+                    {/* {navActive && <NavigationBar showHome={showHome} />} */}
+                    {(showOverlay || modalStack.length > 0) && <Overlay />}
+                    {viewComponent && <ComponentViewWrapper>{viewComponent}</ComponentViewWrapper>}
+                    {!viewComponent && (
+                        <ComponentViewWrapper>
+                            <LoadingViewContainer>
+                                <LoadingContent>
+                                    <ProgressRing />
+                                    <LoadingTitle>Loading Integration</LoadingTitle>
+                                    <LoadingSubtitle>Setting up your integration environment</LoadingSubtitle>
+                                    <LoadingText>
+                                        <span className="loading-dots">Please wait</span>
+                                    </LoadingText>
+                                </LoadingContent>
+                            </LoadingViewContainer>
+                        </ComponentViewWrapper>
+                    )}
+                    {sidePanel !== "EMPTY" && sidePanel === "ADD_CONNECTION" && (
+                        <ConnectorList applyModifications={applyModifications} />
+                    )}
 
-                {popupMessage && (
-                    <PopupMessage onClose={handleOnCloseMessage}>
-                        <Typography variant="h3">This feature is coming soon!</Typography>
-                    </PopupMessage>
-                )}
-                {sidePanel === "RECORD_EDITOR" && (
-                    <RecordEditor
-                        isRecordEditorOpen={sidePanel === "RECORD_EDITOR"}
-                        onClose={() => setSidePanel("EMPTY")}
-                        rpcClient={rpcClient}
-                    />
-                )}
-                {activePanel?.isActive && activePanel.name === PanelType.CONSTRUCTPANEL && (
-                    <ConstructPanel applyModifications={applyModifications} />
-                )}
-                {activePanel?.isActive && activePanel.name === PanelType.STATEMENTEDITOR && (
-                    <EditPanel applyModifications={applyModifications} />
-                )}
-                {typeof popupState === "object" && "open" in popupState && (
-                    <PopUpContainer>
-                        <PopupPanel onClose={handleOnClose} formState={popupState} handleNavigateToOverview={handleNavigateToOverview} />
-                    </PopUpContainer>
-                )}
-                {sidePanel !== "EMPTY" && sidePanel === "ADD_ACTION" && (
-                    <EndpointList stSymbolInfo={getSymbolInfo()} applyModifications={applyModifications} />
-                )}
-                {
-                    modalStack.map((modal) => (
-                        <Popup title={modal.title} onClose={() => {
-                            modal.onClose && modal.onClose();
-                            handlePopupClose(modal.id)
-                        }} key={modal.id} width={modal.width} height={modal.height}>{modal.modal}</Popup>
-                    ))
-                }
-                </VisualizerContainer>
+                    {popupMessage && (
+                        <PopupMessage onClose={handleOnCloseMessage}>
+                            <Typography variant="h3">This feature is coming soon!</Typography>
+                        </PopupMessage>
+                    )}
+                    {sidePanel === "RECORD_EDITOR" && (
+                        <RecordEditor
+                            isRecordEditorOpen={sidePanel === "RECORD_EDITOR"}
+                            onClose={() => setSidePanel("EMPTY")}
+                            rpcClient={rpcClient}
+                        />
+                    )}
+                    {activePanel?.isActive && activePanel.name === PanelType.CONSTRUCTPANEL && (
+                        <ConstructPanel applyModifications={applyModifications} />
+                    )}
+                    {activePanel?.isActive && activePanel.name === PanelType.STATEMENTEDITOR && (
+                        <EditPanel applyModifications={applyModifications} />
+                    )}
+                    {typeof popupState === "object" && "open" in popupState && (
+                        <PopUpContainer>
+                            <PopupPanel onClose={handleOnClose} formState={popupState} handleNavigateToOverview={handleNavigateToOverview} />
+                        </PopUpContainer>
+                    )}
+                    {sidePanel !== "EMPTY" && sidePanel === "ADD_ACTION" && (
+                        <EndpointList stSymbolInfo={getSymbolInfo()} applyModifications={applyModifications} />
+                    )}
+                    {
+                        modalStack.map((modal) => (
+                            <Popup title={modal.title} onClose={() => {
+                                modal.onClose && modal.onClose();
+                                handlePopupClose(modal.id)
+                            }} key={modal.id} width={modal.width} height={modal.height}>{modal.modal}</Popup>
+                        ))
+                    }
+                </ErrorBoundary>
+            </VisualizerContainer>
         </>
     );
 };
