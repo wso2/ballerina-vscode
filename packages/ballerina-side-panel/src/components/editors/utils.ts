@@ -133,7 +133,7 @@ export const getValueForTextModeEditor = (value: string | any[] | Record<string,
         }
         return value;
     }
-    return value;
+    return value ?? "";
 }
 
 export function isExpandableMode(mode: InputMode): mode is EditorMode {

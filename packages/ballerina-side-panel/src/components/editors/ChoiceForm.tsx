@@ -84,11 +84,17 @@ export function ChoiceForm(props: ChoiceFormProps) {
         const choiceProperty = convertConfig(property);
         setDynamicFields(choiceProperty);
         if (choiceProperty.length > 0) {
-            Object.entries(property.properties).forEach(([propKey, propValue]) => {
-                if (propValue.value !== undefined) {
-                    setValue(propKey, propValue.value);
-                }
-            });
+            const setPropertyValues = (properties: Record<string, PropertyModel>) => {
+                Object.entries(properties).forEach(([propKey, propValue]) => {
+                    const fieldType = getPrimaryInputType(propValue.types)?.fieldType;
+                    if (fieldType === "GROUP_SECTION" && propValue.properties) {
+                        setPropertyValues(propValue.properties);
+                    } else if (propValue.value !== undefined) {
+                        setValue(propKey, propValue.value);
+                    }
+                });
+            };
+            setPropertyValues(property.properties);
         }
     }, [selectedOption]);
 
