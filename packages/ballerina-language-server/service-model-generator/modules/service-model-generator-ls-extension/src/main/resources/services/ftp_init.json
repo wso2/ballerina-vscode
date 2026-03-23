@@ -218,7 +218,7 @@
                                   "value": "\"default\"",
                                   "types": [
                                     {
-                                      "fieldType": "IDENTIFIER",
+                                      "fieldType": "TEXT",
                                       "ballerinaType": "string",
                                       "selected": true
                                     },
@@ -245,7 +245,7 @@
                                   "value": "\"default\"",
                                   "types": [
                                     {
-                                      "fieldType": "IDENTIFIER",
+                                      "fieldType": "TEXT",
                                       "ballerinaType": "string",
                                       "selected": true
                                     },
@@ -434,7 +434,7 @@
                                   "value": "",
                                   "types": [
                                     {
-                                      "fieldType": "IDENTIFIER",
+                                      "fieldType": "TEXT",
                                       "ballerinaType": "string",
                                       "selected": true
                                     },
@@ -449,10 +449,7 @@
                                   "isType": false,
                                   "placeholder": "",
                                   "optional": true,
-                                  "advanced": false,
-                                  "codedata": {
-                                    "type": "IDENTIFIER"
-                                  }
+                                  "advanced": false
                                 }
                               }
                             }

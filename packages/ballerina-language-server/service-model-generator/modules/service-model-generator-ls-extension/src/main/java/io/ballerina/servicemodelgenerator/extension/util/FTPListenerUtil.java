@@ -22,6 +22,7 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
@@ -44,6 +45,9 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.ExplicitNewExpressionNode;
+import io.ballerina.compiler.syntax.tree.InterpolationNode;
+import io.ballerina.compiler.syntax.tree.TemplateExpressionNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
@@ -376,18 +380,19 @@ public class FTPListenerUtil {
         for (FunctionArgumentNode argument : arguments) {
             if (argument instanceof NamedArgumentNode namedArg) {
                 String argName = namedArg.argumentName().name().text().trim();
-                String argValue = namedArg.expression().toSourceCode().trim();
+                ExpressionNode argExpr = namedArg.expression();
 
                 switch (argName) {
-                    case "protocol" -> config.put("protocol", buildProtocolSelectValue(argValue));
+                    case "protocol" -> config.put("protocol",
+                            buildProtocolSelectValue(argExpr.toSourceCode().trim()));
                     case "host" -> config.put("host", buildReadOnlyTextValue("Host",
-                            "Server hostname", argValue));
-                    case "port", "portNumber" -> config.put("portNumber", buildReadOnlyNumericValue("Port",
-                            "Server port", argValue, "int"));
+                            "Server hostname", argExpr));
+                    case "port", "portNumber" -> config.put("portNumber", buildReadOnlyNumericValue(
+                            "Port", "Server port", argExpr, "int"));
                     case "auth" -> config.put("authentication",
-                            buildAuthChoiceValue(namedArg.expression(), protocol));
+                            buildAuthChoiceValue(argExpr, protocol));
                     case "secureSocket" -> config.put("secureSocket",
-                            buildReadOnlySecureSocketValue(argValue));
+                            buildReadOnlySecureSocketValue(argExpr));
                     default -> {
                         // Skip other arguments
                     }
@@ -430,9 +435,9 @@ public class FTPListenerUtil {
         boolean isSftp = "SFTP".equalsIgnoreCase(protocol);
 
         // Parse auth fields from the mapping constructor
-        String username = "";
-        String password = "";
-        String privateKey = "";
+        ExpressionNode usernameExpr = null;
+        ExpressionNode passwordExpr = null;
+        ExpressionNode privateKeyExpr = null;
         boolean hasCredentials = false;
         boolean hasPrivateKey = false;
 
@@ -440,8 +445,6 @@ public class FTPListenerUtil {
             for (MappingFieldNode fieldNode : mapping.fields()) {
                 if (fieldNode instanceof SpecificFieldNode field) {
                     String fieldName = field.fieldName().toSourceCode().trim();
-                    String fieldValue = field.valueExpr()
-                            .map(expr -> expr.toSourceCode().trim()).orElse("");
 
                     switch (fieldName) {
                         case "credentials" -> {
@@ -454,12 +457,10 @@ public class FTPListenerUtil {
                                     if (credField instanceof SpecificFieldNode credSpecific) {
                                         String credFieldName =
                                                 credSpecific.fieldName().toSourceCode().trim();
-                                        String credFieldValue = credSpecific.valueExpr()
-                                                .map(expr -> expr.toSourceCode().trim()).orElse("");
                                         if ("username".equals(credFieldName)) {
-                                            username = credFieldValue;
+                                            usernameExpr = credSpecific.valueExpr().orElse(null);
                                         } else if ("password".equals(credFieldName)) {
-                                            password = credFieldValue;
+                                            passwordExpr = credSpecific.valueExpr().orElse(null);
                                         }
                                     }
                                 }
@@ -467,7 +468,7 @@ public class FTPListenerUtil {
                         }
                         case "privateKey" -> {
                             hasPrivateKey = true;
-                            privateKey = fieldValue;
+                            privateKeyExpr = field.valueExpr().orElse(null);
                         }
                         default -> {
                             // Skip other fields
@@ -498,14 +499,14 @@ public class FTPListenerUtil {
         if (isSftp) {
             // SFTP uses Certificate Based Authentication
             Map<String, Value> certProps = new LinkedHashMap<>();
-            if (hasPrivateKey) {
+            if (hasPrivateKey && privateKeyExpr != null) {
                 certProps.put("privateKey", buildReadOnlyRecordValue("Private Key",
                         "Private key configuration for SSH-based authentication",
-                        privateKey, "ftp:PrivateKey", "PrivateKey", false));
+                        privateKeyExpr, "ftp:PrivateKey", "PrivateKey", false));
             }
-            if (!username.isEmpty()) {
+            if (usernameExpr != null) {
                 certProps.put("userName", buildReadOnlyTextValue("Username",
-                        "Remote server username for key-based authentication", username));
+                        "Remote server username for key-based authentication", usernameExpr));
             }
             Value certChoice = new Value.ValueBuilder()
                     .metadata("Certificate Based Authentication", "")
@@ -520,13 +521,13 @@ public class FTPListenerUtil {
         } else {
             // FTP/FTPS uses Basic Authentication
             Map<String, Value> basicProps = new LinkedHashMap<>();
-            if (!username.isEmpty()) {
+            if (usernameExpr != null) {
                 basicProps.put("userName", buildReadOnlyTextValue("Username",
-                        "Remote server username for authentication", username));
+                        "Remote server username for authentication", usernameExpr));
             }
-            if (!password.isEmpty()) {
+            if (passwordExpr != null) {
                 basicProps.put("password", buildReadOnlyTextValue("Password",
-                        "Remote server password for authentication", password));
+                        "Remote server password for authentication", passwordExpr));
             }
             Value basicChoice = new Value.ValueBuilder()
                     .metadata("Basic Authentication", "")
@@ -554,12 +555,34 @@ public class FTPListenerUtil {
 
     /**
      * Builds a read-only text Value for displaying listener config information.
-     * Detects whether the value is a string literal or an expression and sets the
-     * selected type accordingly.
+     * Uses the AST node kind to determine whether the value is a string literal
+     * or an expression. For string templates with a single interpolation
+     * (e.g. {@code string `${test}`}), extracts the inner expression via the AST.
      */
-    static Value buildReadOnlyTextValue(String label, String description, String value) {
-        String displayValue = cleanStringTemplateValue(value);
-        boolean isExpression = !displayValue.isEmpty() && !displayValue.startsWith("\"");
+    static Value buildReadOnlyTextValue(String label, String description, ExpressionNode expression) {
+        String displayValue;
+        boolean isExpression;
+
+        if (expression instanceof BasicLiteralNode) {
+            displayValue = expression.toSourceCode().trim();
+            isExpression = false;
+        } else if (expression instanceof TemplateExpressionNode template
+                && template.kind() == SyntaxKind.STRING_TEMPLATE_EXPRESSION) {
+            // Check if template has exactly one member and it is an interpolation
+            if (template.content().size() == 1
+                    && template.content().get(0) instanceof InterpolationNode interpolation) {
+                // Single interpolation only: string `${expr}` → show expr as expression
+                displayValue = interpolation.expression().toSourceCode().trim();
+            } else {
+                // Plain text or mixed content: show full template as expression
+                displayValue = expression.toSourceCode().trim();
+            }
+            isExpression = true;
+        } else {
+            displayValue = expression.toSourceCode().trim();
+            isExpression = true;
+        }
+
         return new Value.ValueBuilder()
                 .metadata(label, description)
                 .value(displayValue)
@@ -581,38 +604,14 @@ public class FTPListenerUtil {
     }
 
     /**
-     * Strips Ballerina string template syntax from a value for clean display.
-     * e.g. {@code string `${test}`} becomes {@code test},
-     *      {@code string `hello`} becomes {@code "hello"},
-     *      {@code "literal"} and plain expressions pass through unchanged.
-     */
-    private static String cleanStringTemplateValue(String value) {
-        if (value == null || value.isEmpty()) {
-            return value;
-        }
-        // Match string template: string `...`
-        if (value.startsWith("string `") && value.endsWith("`")) {
-            String inner = value.substring("string `".length(), value.length() - 1);
-            // Single interpolation: ${expr} → expr
-            if (inner.startsWith("${") && inner.endsWith("}") && inner.indexOf("${", 2) == -1) {
-                return inner.substring(2, inner.length() - 1);
-            }
-            // Plain text inside template: wrap as string literal
-            if (!inner.contains("${")) {
-                return "\"" + inner + "\"";
-            }
-        }
-        return value;
-    }
-
-    /**
      * Builds a read-only numeric Value for displaying listener config information.
-     * Detects whether the value is a numeric literal or an expression and sets the
-     * selected type accordingly.
+     * Uses the AST node kind to determine whether the value is a numeric literal
+     * or an expression.
      */
     static Value buildReadOnlyNumericValue(String label, String description,
-                                                    String value, String ballerinaType) {
-        boolean isExpression = !value.isEmpty() && !value.matches("-?\\d+");
+                                           ExpressionNode expression, String ballerinaType) {
+        String value = expression.toSourceCode().trim();
+        boolean isExpression = !(expression instanceof BasicLiteralNode);
         return new Value.ValueBuilder()
                 .metadata(label, description)
                 .value(value)
@@ -637,21 +636,22 @@ public class FTPListenerUtil {
      * Builds a read-only secure socket Value for displaying the secureSocket configuration
      * of an existing FTPS listener, mirroring the structure in ftp_init.json.
      */
-    static Value buildReadOnlySecureSocketValue(String value) {
+    static Value buildReadOnlySecureSocketValue(ExpressionNode expression) {
         return buildReadOnlyRecordValue("Secure Socket (SecureSocket)",
                 "Configure SSL/TLS configuration for secure connection.",
-                value, "ftp:SecureSocket", "SecureSocket", true);
+                expression, "ftp:SecureSocket", "SecureSocket", true);
     }
 
     /**
      * Builds a read-only record Value for displaying record-type listener config information.
-     * Detects whether the value is a mapping constructor (record literal) or an expression
-     * and sets the selected type accordingly.
+     * Uses the AST node kind to determine whether the value is a mapping constructor
+     * (record literal) or an expression.
      */
-    static Value buildReadOnlyRecordValue(String label, String description, String value,
-                                                   String ballerinaType, String typeName,
-                                                   boolean advanced) {
-        boolean isExpression = !value.isEmpty() && !value.startsWith("{");
+    static Value buildReadOnlyRecordValue(String label, String description,
+                                          ExpressionNode expression, String ballerinaType,
+                                          String typeName, boolean advanced) {
+        String value = expression.toSourceCode().trim();
+        boolean isExpression = !(expression instanceof MappingConstructorExpressionNode);
 
         List<PropertyTypeMemberInfo> typeMembers = List.of(
                 new PropertyTypeMemberInfo(typeName, "ballerina:ftp", FTP, "RECORD_TYPE", true)
