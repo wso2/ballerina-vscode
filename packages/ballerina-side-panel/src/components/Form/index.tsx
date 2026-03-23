@@ -22,6 +22,7 @@ import ReactMarkdown from "react-markdown";
 import {
     Button,
     Codicon,
+    ErrorBanner,
     LinkButton,
     ThemeColors,
     SidePanelBody,
@@ -252,6 +253,19 @@ namespace S {
         margin-bottom: -12px;
     `;
 
+    export const FormDiagnosticsContainer = styled.div`
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    `;
+
+    export const FormDiagnosticsActionContainer = styled.div`
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+    `;
+
     export const MarkdownContainer = styled.div<{ isExpanded: boolean }>`
         width: 100%;
         ${({ isExpanded }) =>
@@ -391,6 +405,8 @@ export interface FormProps {
         removeLastPopup: () => void;
         closePopup: (id: string) => void;
     }
+    formDiagnostics?: { message: string; severity: "ERROR" | "WARNING" | "INFO" }[];
+    formDiagnosticsAction?: React.ReactNode;
     preserveOrder?: boolean;
     handleSelectedTypeChange?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
@@ -434,6 +450,8 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         recordTypeFields,
         nestedForm,
         popupManager,
+        formDiagnostics,
+        formDiagnosticsAction,
         compact = false,
         isInferredReturnType,
         concertRequired = true,
@@ -1006,6 +1024,16 @@ export const Form = forwardRef((props: FormProps, _ref) => {
             )}
             {!preserveOrder && !compact && (
                 <FormDescription formFields={formFields} selectedNode={selectedNode} />
+            )}
+            {formDiagnostics && formDiagnostics.length > 0 && (
+                <S.FormDiagnosticsContainer>
+                    <ErrorBanner errorMsg={formDiagnostics.map((diagnostic) => diagnostic.message).join("\n")} />
+                    {formDiagnosticsAction && (
+                        <S.FormDiagnosticsActionContainer>
+                            {formDiagnosticsAction}
+                        </S.FormDiagnosticsActionContainer>
+                    )}
+                </S.FormDiagnosticsContainer>
             )}
 
             {/*
