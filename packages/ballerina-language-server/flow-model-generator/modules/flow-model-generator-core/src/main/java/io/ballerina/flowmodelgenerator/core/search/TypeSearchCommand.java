@@ -109,16 +109,6 @@ class TypeSearchCommand extends SearchCommand {
 
     private final List<String> moduleNames;
 
-    private static final Map<String, List<String>> categoryMap = Map.of(
-            "Primitive Types",
-            List.of(TYPE_STRING, TYPE_INT, TYPE_FLOAT, TYPE_DECIMAL, TYPE_BOOLEAN, TYPE_NIL, TYPE_BYTE),
-            "Data Types", List.of(TYPE_JSON, TYPE_XML, TYPE_ANYDATA),
-            "Structural Types",
-            List.of(TYPE_BYTE_ARRAY, TYPE_MAP_JSON, TYPE_MAP_STRING, TYPE_JSON_ARRAY, TYPE_STRING_ARRAY, TYPE_RECORD),
-            "Error Types", List.of(TYPE_ERROR),
-            "Behaviour Types", List.of(TYPE_FUNCTION, TYPE_FUTURE, TYPE_TYPEDESC, TYPE_HANDLE, TYPE_STREAM),
-            "Other Types", List.of(TYPE_ANY, TYPE_READONLY));
-
     public TypeSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
 
@@ -437,6 +427,11 @@ class TypeSearchCommand extends SearchCommand {
             case INTERSECTION -> NodeKind.INTERSECTION;
             case TABLE -> NodeKind.TABLE;
             case MAP -> NodeKind.MAP;
+            case ERROR -> NodeKind.ERROR;
+            case OBJECT -> NodeKind.OBJECT;
+            case TUPLE -> NodeKind.TUPLE;
+            case STREAM -> NodeKind.STREAM;
+            case FUTURE -> NodeKind.FUTURE;
             default -> NodeKind.TYPEDESC;
         };
     }
