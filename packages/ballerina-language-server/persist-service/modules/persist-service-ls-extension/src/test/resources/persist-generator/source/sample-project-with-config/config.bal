@@ -1,5 +1,5 @@
-// This file demonstrates an existing config file with pre-existing configuration
-// The test will append new configuration to this file
-
-configurable string apiKey = ?;
-configurable int timeout = 30;
+configurable string appHost = "localhost";
+configurable int appPort = 8080;
+configurable string appUser = "admin";
+configurable string appPassword = ?;
+configurable string appDatabase = "appdb";

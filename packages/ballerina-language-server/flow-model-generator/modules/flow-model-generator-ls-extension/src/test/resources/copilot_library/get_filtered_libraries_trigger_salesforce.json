@@ -1,0 +1,7 @@
+{
+  "description": "Test that trigger.salesforce is excluded from filtered libraries",
+  "libNames": [
+    "ballerinax/trigger.salesforce"
+  ],
+  "expectedLibraries": []
+}

@@ -1,17 +1,83 @@
 {
   "description": "PostgreSQL persist client generation - append to existing config.bal with existing configuration",
   "testProjectFolder": "sample-project-with-config",
-  "name": "testdb",
-  "dbSystem": "postgresql",
-  "host": "localhost",
-  "port": 5432,
-  "user": "postgres",
-  "password": "postgres",
-  "database": "testdb",
-  "selectedTables": [
-    "departments"
+  "targetModule": "sample_project_with_config.departments",
+  "connection": "testdb",
+  "properties": {
+    "dbSystem": {
+      "metadata": {
+        "label": "Database System",
+        "description": "The database system type (e.g., mysql, postgresql, mssql)"
+      },
+      "value": "postgresql",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "Database server host address"
+      },
+      "value": "localhost",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "port": {
+      "metadata": {
+        "label": "Port",
+        "description": "Database server port number"
+      },
+      "value": "5432",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "user": {
+      "metadata": {
+        "label": "User",
+        "description": "Database username"
+      },
+      "value": "postgres",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "password": {
+      "metadata": {
+        "label": "Password",
+        "description": "Database user password"
+      },
+      "value": "postgres",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "database": {
+      "metadata": {
+        "label": "Database",
+        "description": "Name of the database to connect"
+      },
+      "value": "testdb",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    }
+  },
+  "tables": [
+    {
+      "table": "departments",
+      "selected": true,
+      "existing": false
+    }
   ],
-  "module": "departments",
   "output": {
     "sample-project-with-config/generated/departments/persist_types.bal": [
       {
@@ -40,7 +106,7 @@
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"sample_project_with_config.departments\"\ntargetModule = \"sample_project_with_config.departments\"\nfilePath = \"persist/testdb/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.9.0\"\n"
+        "newText": "\n[[tool.persist]]\nid = \"sample_project_with_config.departments\"\ntargetModule = \"sample_project_with_config.departments\"\nfilePath = \"persist/testdb/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.9.1\"\n"
       }
     ],
     "sample-project-with-config/persist/testdb/model.bal": [

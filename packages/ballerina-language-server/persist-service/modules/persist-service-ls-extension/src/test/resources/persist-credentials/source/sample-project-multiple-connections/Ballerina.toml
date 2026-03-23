@@ -1,0 +1,25 @@
+[package]
+org = "test"
+name = "sample_project_multiple_connections"
+version = "0.1.0"
+
+[[tool.persist]]
+id = "sample_project_multiple_connections.mysqldb"
+targetModule = "sample_project_multiple_connections.mysqldb"
+filePath = "persist/mysqldb/model.bal"
+options.datastore = "mysql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[tool.persist]]
+id = "sample_project_multiple_connections.postgresdb"
+targetModule = "sample_project_multiple_connections.postgresdb"
+filePath = "persist/postgresdb/model.bal"
+options.datastore = "postgresql"
+options.eagerLoading = true
+options.withInitParams = true
+
+[[dependency]]
+org = "ballerina"
+name = "tool.persist"
+version = "1.9.0"

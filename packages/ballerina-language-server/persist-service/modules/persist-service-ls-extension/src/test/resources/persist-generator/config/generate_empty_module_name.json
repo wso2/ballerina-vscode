@@ -1,17 +1,83 @@
 {
   "description": "Persist client generation - empty module name (should auto-generate from database name)",
   "testProjectFolder": "sample-project-empty-module",
-  "name": "testdb",
-  "dbSystem": "mysql",
-  "host": "localhost",
-  "port": 3307,
-  "user": "root",
-  "password": "Test123#",
-  "database": "testdb",
-  "selectedTables": [
-    "employees"
+  "targetModule": "",
+  "connection": "testdb",
+  "properties": {
+    "dbSystem": {
+      "metadata": {
+        "label": "Database System",
+        "description": "The database system type (e.g., mysql, postgresql, mssql)"
+      },
+      "value": "mysql",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "Database server host address"
+      },
+      "value": "localhost",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "port": {
+      "metadata": {
+        "label": "Port",
+        "description": "Database server port number"
+      },
+      "value": "3307",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "user": {
+      "metadata": {
+        "label": "User",
+        "description": "Database username"
+      },
+      "value": "root",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "password": {
+      "metadata": {
+        "label": "Password",
+        "description": "Database user password"
+      },
+      "value": "Test123#",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "database": {
+      "metadata": {
+        "label": "Database",
+        "description": "Name of the database to connect"
+      },
+      "value": "testdb",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    }
+  },
+  "tables": [
+    {
+      "table": "employees",
+      "selected": true,
+      "existing": false
+    }
   ],
-  "module": "",
   "output": {
     "sample-project-empty-module/generated/testdb/persist_client.bal": [
       {
@@ -47,15 +113,15 @@
       {
         "range": {
           "start": {
-            "line": 6,
+            "line": 25,
             "character": 0
           },
           "end": {
-            "line": 6,
+            "line": 25,
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"sample_project.testdb\"\ntargetModule = \"sample_project.testdb\"\nfilePath = \"persist/testdb/model.bal\"\noptions.datastore = \"mysql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.9.0\"\n"
+        "newText": "\n[[tool.persist]]\nid = \"sample_project.testdb\"\ntargetModule = \"sample_project.testdb\"\nfilePath = \"persist/testdb/model.bal\"\noptions.datastore = \"mysql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
       }
     ],
     "sample-project-empty-module/config.bal": [

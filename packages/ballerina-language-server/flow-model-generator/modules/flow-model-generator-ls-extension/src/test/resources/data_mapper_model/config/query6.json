@@ -269,6 +269,7 @@
         "typeName": "l2Item",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

@@ -1,18 +1,88 @@
 {
   "description": "MSSQL persist client generation - generate from all tables",
   "testProjectFolder": "sample-project",
-  "name": "testdb",
-  "dbSystem": "mssql",
-  "host": "localhost",
-  "port": 1434,
-  "user": "SA",
-  "password": "Test123#",
-  "database": "testdb",
-  "selectedTables": [
-    "employees",
-    "departments"
+  "targetModule": "sample_project.testdb_mssql",
+  "connection": "testdb",
+  "properties": {
+    "dbSystem": {
+      "metadata": {
+        "label": "Database System",
+        "description": "The database system type (e.g., mysql, postgresql, mssql)"
+      },
+      "value": "mssql",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "Database server host address"
+      },
+      "value": "localhost",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "port": {
+      "metadata": {
+        "label": "Port",
+        "description": "Database server port number"
+      },
+      "value": "1434",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "user": {
+      "metadata": {
+        "label": "User",
+        "description": "Database username"
+      },
+      "value": "SA",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "password": {
+      "metadata": {
+        "label": "Password",
+        "description": "Database user password"
+      },
+      "value": "Test123#",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "database": {
+      "metadata": {
+        "label": "Database",
+        "description": "Name of the database to connect"
+      },
+      "value": "testdb",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    }
+  },
+  "tables": [
+    {
+      "table": "employees",
+      "selected": true,
+      "existing": false
+    },
+    {
+      "table": "departments",
+      "selected": true,
+      "existing": false
+    }
   ],
-  "module": "testdb_mssql",
   "output": {
     "sample-project/generated/testdb_mssql/persist_types.bal": [
       {
@@ -78,15 +148,15 @@
       {
         "range": {
           "start": {
-            "line": 4,
+            "line": 57,
             "character": 0
           },
           "end": {
-            "line": 4,
+            "line": 57,
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"sample_project.testdb_mssql\"\ntargetModule = \"sample_project.testdb_mssql\"\nfilePath = \"persist/testdb/model.bal\"\noptions.datastore = \"mssql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.9.0\"\n"
+        "newText": "\n[[tool.persist]]\nid = \"sample_project.testdb_mssql\"\ntargetModule = \"sample_project.testdb_mssql\"\nfilePath = \"persist/testdb/model.bal\"\noptions.datastore = \"mssql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
       }
     ],
     "sample-project/config.bal": [

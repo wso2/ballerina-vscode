@@ -1244,7 +1244,16 @@
             "optional": false,
             "editable": true,
             "advanced": false,
-            "hidden": false
+            "hidden": false,
+            "diagnostics": {
+              "hasDiagnostics": true,
+              "diagnostics": [
+                {
+                  "severity": "ERROR",
+                  "message": "cannot assign a value to function argument 'c'"
+                }
+              ]
+            }
           }
         },
         "diagnostics": {

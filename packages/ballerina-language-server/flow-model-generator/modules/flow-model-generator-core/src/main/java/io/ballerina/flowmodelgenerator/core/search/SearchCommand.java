@@ -36,7 +36,7 @@ import java.util.Optional;
  * Abstract base class for search command operations that handles different types of searches in a module context. This
  * class provides the foundation for specific search implementations for the search API.
  *
- * <p>Search commands can be created using the factory method {@link #from(Kind, Project, LineRange, Map)}
+ * <p>Search commands can be created using the factory method
  * which returns the appropriate implementation based on the specified kind. The class follows the command design
  * pattern allowing to execute various search strategies depending on the commands.</p>
  *
@@ -55,6 +55,8 @@ public abstract class SearchCommand {
     final DefaultViewHolder defaultViewHolder;
 
     protected static final String DATA_MAPPER_FILE_NAME = "data_mappings.bal";
+    protected static final String CURRENT_INTEGRATION_INDICATOR = " (Current Integration)";
+
     private static final Gson GSON = new Gson();
     private static final int DEFAULT_LIMIT = 20;
     private static final int DEFAULT_OFFSET = 0;
@@ -79,6 +81,7 @@ public abstract class SearchCommand {
             case MEMORY_STORE -> new MemoryStoreSearchCommand(module, position, queryMap);
             case AGENT_TOOL -> new AgentToolSearchCommand(module, position, queryMap);
             case KNOWLEDGE_BASE -> new KnowledgeBaseSearchCommand(module, position, queryMap);
+            case ALL -> new AllKindsSearchCommand(module, position, queryMap, functionsDoc);
             case WORKFLOW_RUN -> new WorkflowSearchCommand(module, position, queryMap);
             case ACTIVITY_CALL -> new ActivitySearchCommand(module, position, queryMap);
         };
@@ -211,6 +214,7 @@ public abstract class SearchCommand {
         MEMORY_STORE,
         AGENT_TOOL,
         KNOWLEDGE_BASE,
+        ALL,
         WORKFLOW_RUN,
         ACTIVITY_CALL
     }

@@ -1,17 +1,83 @@
 {
   "description": "PostgreSQL persist client generation - append to existing connections.bal",
   "testProjectFolder": "sample-project-with-connections",
-  "name": "productdb",
-  "dbSystem": "postgresql",
-  "host": "localhost",
-  "port": 5432,
-  "user": "postgres",
-  "password": "postgres",
-  "database": "testdb",
-  "selectedTables": [
-    "departments"
+  "targetModule": "sample_project_with_connections.products",
+  "connection": "productdb",
+  "properties": {
+    "dbSystem": {
+      "metadata": {
+        "label": "Database System",
+        "description": "The database system type (e.g., mysql, postgresql, mssql)"
+      },
+      "value": "postgresql",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "Database server host address"
+      },
+      "value": "localhost",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "port": {
+      "metadata": {
+        "label": "Port",
+        "description": "Database server port number"
+      },
+      "value": "5432",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "user": {
+      "metadata": {
+        "label": "User",
+        "description": "Database username"
+      },
+      "value": "postgres",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "password": {
+      "metadata": {
+        "label": "Password",
+        "description": "Database user password"
+      },
+      "value": "postgres",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "database": {
+      "metadata": {
+        "label": "Database",
+        "description": "Name of the database to connect"
+      },
+      "value": "testdb",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    }
+  },
+  "tables": [
+    {
+      "table": "departments",
+      "selected": true,
+      "existing": false
+    }
   ],
-  "module": "products",
   "output": {
     "sample-project-with-connections/generated/products/persist_types.bal": [
       {
@@ -36,11 +102,11 @@
             "character": 0
           },
           "end": {
-            "line": 8,
-            "character": 67
+            "line": 2,
+            "character": 102
           }
         },
-        "newText": "// This file demonstrates an existing connections file with a pre-existing client\n// The test will append a new client to this file\n\nimport sample_project_with_connections.products;\n\nimport ballerina/http;\nimport ballerinax/mysql;\nimport ballerinax/mysql.driver as _;\n\nfinal mysql:Client mysqlClient = check new (\"localhost\", \"root\", \"root@123\", \"demo\", 3306);\nfinal http:Client httpClient = check new (\"http://localhost:8080\");\nfinal products:Client productdb = check new (productdbHost, productdbPort, productdbUser, productdbPassword, productdbDatabase);\n"
+        "newText": "import sample_project_with_connections.first.testdb;\nimport sample_project_with_connections.products;\n\nfinal testdb:Client first = check new (firstHost, firstPort, firstUser, firstPassword, firstDatabase);\nfinal products:Client productdb = check new (productdbHost, productdbPort, productdbUser, productdbPassword, productdbDatabase);\n"
       }
     ],
     "sample-project-with-connections/generated/products/persist_client.bal": [
@@ -62,11 +128,11 @@
       {
         "range": {
           "start": {
-            "line": 0,
+            "line": 5,
             "character": 0
           },
           "end": {
-            "line": 0,
+            "line": 5,
             "character": 0
           }
         },
@@ -92,15 +158,15 @@
       {
         "range": {
           "start": {
-            "line": 4,
+            "line": 17,
             "character": 0
           },
           "end": {
-            "line": 4,
+            "line": 17,
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"sample_project_with_connections.products\"\ntargetModule = \"sample_project_with_connections.products\"\nfilePath = \"persist/productdb/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.9.0\"\n"
+        "newText": "\n[[tool.persist]]\nid = \"sample_project_with_connections.products\"\ntargetModule = \"sample_project_with_connections.products\"\nfilePath = \"persist/productdb/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
       }
     ]
   },

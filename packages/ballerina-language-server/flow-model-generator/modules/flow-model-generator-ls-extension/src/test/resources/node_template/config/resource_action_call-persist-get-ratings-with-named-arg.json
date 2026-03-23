@@ -413,17 +413,9 @@
                   },
                   "codedata": {
                     "node": "RECORD",
-                    "lineRange": {
-                      "fileName": "types.bal",
-                      "startLine": {
-                        "line": 52,
-                        "offset": 12
-                      },
-                      "endLine": {
-                        "line": 52,
-                        "offset": 29
-                      }
-                    }
+                    "id": 0,
+                    "isNew": false,
+                    "data": {}
                   },
                   "properties": {
                     "name": {
@@ -592,17 +584,9 @@
                   },
                   "codedata": {
                     "node": "RECORD",
-                    "lineRange": {
-                      "fileName": "types.bal",
-                      "startLine": {
-                        "line": 30,
-                        "offset": 12
-                      },
-                      "endLine": {
-                        "line": 30,
-                        "offset": 35
-                      }
-                    }
+                    "id": 0,
+                    "isNew": false,
+                    "data": {}
                   },
                   "properties": {
                     "name": {

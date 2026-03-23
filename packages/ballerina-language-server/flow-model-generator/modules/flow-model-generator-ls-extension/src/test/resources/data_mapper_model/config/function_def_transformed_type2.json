@@ -70,6 +70,7 @@
         "typeName": "Foo",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

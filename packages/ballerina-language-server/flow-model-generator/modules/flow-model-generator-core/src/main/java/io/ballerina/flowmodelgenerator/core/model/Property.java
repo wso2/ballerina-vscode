@@ -633,18 +633,27 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo, String defaultValue) {
-            return typeWithExpression(typeSymbol, moduleInfo, null, null, defaultValue, this);
+            return typeWithExpression(typeSymbol, moduleInfo, null, null, defaultValue, this, null);
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
                                              Node value, SemanticModel semanticModel,
                                              Property.Builder<?> builder) {
-            return typeWithExpression(typeSymbol, moduleInfo, value, semanticModel, null, builder);
+            return typeWithExpression(typeSymbol, moduleInfo, value, semanticModel, null, builder, null);
+        }
+
+        public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
+                                             Node value, SemanticModel semanticModel,
+                                             Property.Builder<?> builder,
+                                             DiagnosticHandler diagnosticHandler) {
+            return typeWithExpression(typeSymbol, moduleInfo, value, semanticModel, null, builder,
+                    diagnosticHandler);
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
                                              Node value, SemanticModel semanticModel, String defaultValue,
-                                             Property.Builder<?> builder) {
+                                             Property.Builder<?> builder,
+                                             DiagnosticHandler diagnosticHandler) {
             if (typeSymbol == null) {
                 return this;
             }
@@ -733,10 +742,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                     Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
                     boolean hasRecordValue = handleRecordValue(value, semanticModel, builder, paramType);
                     if (!hasRecordValue && value instanceof MappingBindingPatternNode bindingPatternNode) {
-                        handleMapValue(typeSymbol, moduleInfo, builder, bindingPatternNode, paramType);
+                        handleMapValue(typeSymbol, moduleInfo, builder, bindingPatternNode, paramType,
+                                diagnosticHandler);
                     }
                 } else if (matchingValueType == ValueType.REPEATABLE_LIST) {
-                    handleListValue(typeSymbol, moduleInfo, builder, value, semanticModel);
+                    handleListValue(typeSymbol, moduleInfo, builder, value, semanticModel, diagnosticHandler);
                 } else if (matchingValueType == ValueType.EXPRESSION) {
                     boolean foundMatch = false;
                     PropertyType expressionPropType = null;
@@ -774,7 +784,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         private void handleListValue(TypeSymbol typeSymbol, ModuleInfo moduleInfo, Builder<?> builder,
-                                    Node value, SemanticModel semanticModel) {
+                                    Node value, SemanticModel semanticModel,
+                                    DiagnosticHandler diagnosticHandler) {
             Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
             if (paramType.isEmpty() || !(value instanceof ListBindingPatternNode bindingPatternNode)) {
                 return;
@@ -830,6 +841,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                                     .findFirst()
                                     .ifPresent(pt -> pt.selected(true));
                             templateBuilder.value(bindingValue);
+                            if (diagnosticHandler != null) {
+                                diagnosticHandler.handle(templateBuilder, bindingNode.lineRange(), true);
+                            }
 
                             valueList.add(templateBuilder.build());
                         }
@@ -838,7 +852,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                     });
         }
 
-        public void handleRestArguments(Builder<?> builder, List<Node> values) {
+        public void handleRestArguments(Builder<?> builder, List<Node> values,
+                                        DiagnosticHandler diagnosticHandler) {
             // Find and update the matching property type
             builder.types.stream()
                     .filter(propType -> propType.fieldType().equals(ValueType.REPEATABLE_LIST))
@@ -862,14 +877,19 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                                     .findFirst()
                                     .ifPresent(pt -> pt.selected(true));
                             templateBuilder.value(expr);
-
+                            // TODO: Handle per value diagnostics related to restArguments, includedRecordRestArgs etc.
+                            //  in a single location
+                            if (diagnosticHandler != null) {
+                                diagnosticHandler.handle(templateBuilder, value.lineRange(), true);
+                            }
                             valueList.add(templateBuilder.build());
                         }
                         builder.value(valueList);
                     });
         }
 
-        public void handleIncludedRecordRestArgs(Builder<?> builder, List<LinkedHashMap<String, Node>> values) {
+        public void handleIncludedRecordRestArgs(Builder<?> builder, List<LinkedHashMap<String, Node>> values,
+                                                  DiagnosticHandler diagnosticHandler) {
             // Find and update the matching property type
             builder.types.stream()
                     .filter(propType -> propType.fieldType().equals(ValueType.REPEATABLE_MAP))
@@ -895,6 +915,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                                         .findFirst()
                                         .ifPresent(pt -> pt.selected(true));
                                 templateBuilder.value(fieldValueNode.toSourceCode().trim());
+                                if (diagnosticHandler != null) {
+                                    diagnosticHandler.handle(templateBuilder, fieldValueNode.lineRange(), true);
+                                }
 
                                 valueMap.put(fieldKey, templateBuilder.build());
                                 break; // Only process the first entry since we expect one entry per map
@@ -907,7 +930,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
         private void handleMapValue(TypeSymbol typeSymbol, ModuleInfo moduleInfo, Builder<?> builder,
                                     MappingBindingPatternNode bindingPatternNode,
-                                    Optional<TypeSymbol> paramType) {
+                                    Optional<TypeSymbol> paramType,
+                                    DiagnosticHandler diagnosticHandler) {
             if (paramType.isEmpty()) {
                 return;
             }
@@ -963,6 +987,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                                         .findFirst()
                                         .ifPresent(pt -> pt.selected(true));
                                 templateBuilder.value(fieldValue);
+                                if (diagnosticHandler != null) {
+                                    diagnosticHandler.handle(templateBuilder, fieldBinding.lineRange(), true);
+                                }
 
                                 valueMap.put(fieldKey, templateBuilder.build());
                             }

@@ -100,5 +100,8 @@
         "name": "registerProcess"
       }
     ]
+  },
+  {
+    "name": "ballerinax/trigger.salesforce"
   }
 ]

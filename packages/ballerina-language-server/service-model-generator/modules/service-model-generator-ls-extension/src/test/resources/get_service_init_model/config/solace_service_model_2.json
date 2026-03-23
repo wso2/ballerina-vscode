@@ -80,7 +80,7 @@
                   "codedata": {
                     "type": "LISTENER_VAR_NAME"
                   },
-                  "value": "solaceListenerResult",
+                  "value": "solaceListener1",
                   "types": [
                     {
                       "fieldType": "IDENTIFIER",

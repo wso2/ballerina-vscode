@@ -1,0 +1,36 @@
+{
+  "source": "variable1.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1.bal",
+      "startLine": {
+        "line": 27,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 27,
+        "offset": 62
+      }
+    }
+  },
+  "targetField": "student",
+  "output": {
+    "variable1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 27,
+            "character": 30
+          },
+          "end": {
+            "line": 27,
+            "character": 61
+          }
+        },
+        "newText": "{}"
+      }
+    ]
+  }
+}
