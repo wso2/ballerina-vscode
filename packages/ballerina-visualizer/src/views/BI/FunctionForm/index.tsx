@@ -281,6 +281,7 @@ export function FunctionForm(props: FunctionFormProps) {
             let oauthSupported = false;
             if (isAgentTool || isExistingAgentTool) {
                 const oauthProperties = await fetchOAuthConfigProperties(rpcClient, filePath);
+                if (cancelled) return;
                 oauthConfigPropertiesRef.current = oauthProperties;
                 const oauthKeys = oauthProperties.map(({ key }) => key);
                 const existingConfig = isExistingAgentTool
@@ -543,6 +544,8 @@ export function FunctionForm(props: FunctionFormProps) {
                 ...functionNodeCopy.codedata.data,
                 auth: JSON.stringify(oauthConfig),
             };
+        } else if (showOAuthConfig && functionNodeCopy.codedata?.data) {
+            delete functionNodeCopy.codedata.data.auth;
         }
 
         // Update annotations.value with the auth block (only if OAuth fields were loaded)
@@ -551,10 +554,17 @@ export function FunctionForm(props: FunctionFormProps) {
             if (annotationStr.includes("@ai:AgentTool")) {
                 const configBlock = buildAuthAnnotation(oauthConfig);
                 if (annotationStr.match(/auth\s*:\s*\{[^}]*\}/s)) {
-                    // Replace existing auth block
-                    functionNodeCopy.properties.annotations.value = configBlock
-                        ? annotationStr.replace(/auth\s*:\s*\{[^}]*\}/s, configBlock)
-                        : annotationStr.replace(/,?\s*auth\s*:\s*\{[^}]*\}/s, "");
+                    if (configBlock) {
+                        // Replace existing auth block
+                        annotationStr = annotationStr.replace(/auth\s*:\s*\{[^}]*\}/s, configBlock);
+                    } else {
+                        // Remove auth block along with surrounding comma
+                        annotationStr = annotationStr.replace(/,\s*auth\s*:\s*\{[^}]*\}/s, "");
+                        annotationStr = annotationStr.replace(/auth\s*:\s*\{[^}]*\}\s*,?/s, "");
+                        // Clean up empty braces: "@ai:AgentTool { }" -> "@ai:AgentTool"
+                        annotationStr = annotationStr.replace(/@ai:AgentTool\s*\{\s*\}/, "@ai:AgentTool");
+                    }
+                    functionNodeCopy.properties.annotations.value = annotationStr;
                 } else if (configBlock) {
                     // Insert auth into existing @ai:AgentTool { ... }
                     if (annotationStr.match(/@ai:AgentTool\s*\{/)) {
