@@ -332,6 +332,7 @@ export type TargetMetadata = {
 };
 
 export enum DIRECTORY_MAP {
+    ACTIVITY = "ACTIVITY",
     AGENTS = "agents",
     AUTOMATION = "AUTOMATION",
     CONFIGURABLE = "CONFIGURABLE",
@@ -372,6 +373,8 @@ export type ProjectDirectoryMap = {
     [DIRECTORY_MAP.NP_FUNCTION]: ProjectStructureArtifactResponse[];
     [DIRECTORY_MAP.AGENTS]: ProjectStructureArtifactResponse[];
     [DIRECTORY_MAP.LOCAL_CONNECTORS]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.WORKFLOW]?: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.ACTIVITY]?: ProjectStructureArtifactResponse[];
 };
 
 /**
@@ -465,7 +468,6 @@ export type NodePropertyKey =
     | "modelProvider"
     | "msg"
     | "name"
-    | "options"
     | "parameters"
     | "path"
     | "patterns"

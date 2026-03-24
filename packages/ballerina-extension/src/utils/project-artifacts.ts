@@ -83,6 +83,8 @@ async function buildProjectArtifactsStructure(
             [DIRECTORY_MAP.NP_FUNCTION]: [],
             [DIRECTORY_MAP.AGENTS]: [],
             [DIRECTORY_MAP.LOCAL_CONNECTORS]: [],
+            [DIRECTORY_MAP.WORKFLOW]: [],
+            [DIRECTORY_MAP.ACTIVITY]: [],
         }
     };
     const designArtifacts = await langClient.getProjectArtifacts({ projectPath });
@@ -136,8 +138,8 @@ async function traverseComponents(artifacts: Artifacts, projectPath: string, res
     response.directoryMap[DIRECTORY_MAP.SERVICE].push(...await getComponents(artifacts[ARTIFACT_TYPE.EntryPoints], projectPath, DIRECTORY_MAP.SERVICE, "http-service"));
     response.directoryMap[DIRECTORY_MAP.LISTENER].push(...await getComponents(artifacts[ARTIFACT_TYPE.Listeners], projectPath, DIRECTORY_MAP.LISTENER, "http-service"));
     response.directoryMap[DIRECTORY_MAP.FUNCTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.Functions], projectPath, DIRECTORY_MAP.FUNCTION, "function"));
-    response.directoryMap[DIRECTORY_MAP.FUNCTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.Workflows], projectPath, DIRECTORY_MAP.FUNCTION, "function"));
-    response.directoryMap[DIRECTORY_MAP.FUNCTION] = dedupeArtifactsById(response.directoryMap[DIRECTORY_MAP.FUNCTION]);
+    response.directoryMap[DIRECTORY_MAP.WORKFLOW].push(...await getComponents(artifacts[ARTIFACT_TYPE.Workflows], projectPath, DIRECTORY_MAP.WORKFLOW, "function"));
+    response.directoryMap[DIRECTORY_MAP.ACTIVITY].push(...await getComponents(artifacts[ARTIFACT_TYPE.Workflows], projectPath, DIRECTORY_MAP.ACTIVITY, "function"));
     response.directoryMap[DIRECTORY_MAP.DATA_MAPPER].push(...await getComponents(artifacts[ARTIFACT_TYPE.DataMappers], projectPath, DIRECTORY_MAP.DATA_MAPPER, "dataMapper"));
     response.directoryMap[DIRECTORY_MAP.CONNECTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.Connections], projectPath, DIRECTORY_MAP.CONNECTION, "connection"));
     response.directoryMap[DIRECTORY_MAP.TYPE].push(...await getComponents(artifacts[ARTIFACT_TYPE.Types], projectPath, DIRECTORY_MAP.TYPE, "type"));
@@ -166,8 +168,7 @@ async function getComponents(
     // Loop though the artifact records and create the project structure artifact response
     for (const [key, artifact] of Object.entries(artifacts)) {
         // Skip the entry to the entries array if the artifact type does not match the requested artifact type
-        const isWorkflowArtifactMappedToFunction = artifactType === DIRECTORY_MAP.FUNCTION && artifact.type === DIRECTORY_MAP.WORKFLOW;
-        if (artifact.type !== artifactType && !isWorkflowArtifactMappedToFunction) {
+        if (artifact.type !== artifactType) {
             continue;
         }
         const entryValue = await getEntryValue(artifact, projectPath, icon, moduleName);
@@ -307,7 +308,10 @@ function getDirectoryMapKeyAndIcon(artifact: BaseArtifact, artifactCategoryKey: 
         case ARTIFACT_TYPE.Functions:
             return { mapKey: DIRECTORY_MAP.FUNCTION, icon: "function" };
         case ARTIFACT_TYPE.Workflows:
-            return { mapKey: DIRECTORY_MAP.FUNCTION, icon: "function" };
+            if (artifact.type === DIRECTORY_MAP.ACTIVITY) {
+                return { mapKey: DIRECTORY_MAP.ACTIVITY, icon: "function" };
+            }
+            return { mapKey: DIRECTORY_MAP.WORKFLOW, icon: "function" };
         case ARTIFACT_TYPE.DataMappers:
             return { mapKey: DIRECTORY_MAP.DATA_MAPPER, icon: "dataMapper" };
         case ARTIFACT_TYPE.Connections:
