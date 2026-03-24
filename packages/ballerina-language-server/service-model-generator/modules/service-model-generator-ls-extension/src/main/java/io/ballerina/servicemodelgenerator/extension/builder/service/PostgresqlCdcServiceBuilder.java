@@ -46,6 +46,7 @@ import io.ballerina.tools.text.TextRange;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,10 @@ public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder
     private static final String CDC_POSTGRESQL_SERVICE_MODEL_LOCATION = "services/cdc_postgresql.json";
     private static final String POSTGRESQL_CDC_DRIVER_MODULE_NAME = "postgresql.cdc.driver";
     private static final String DISPLAY_LABEL = "PostgreSQL CDC";
+    private static final Set<String> METADATA_KEYS = Set.of(
+            KEY_HOST, KEY_PORT, KEY_USERNAME, KEY_PASSWORD,
+            KEY_DATABASE, KEY_SCHEMAS, KEY_SECURE_SOCKET, KEY_OPTIONS
+    );
 
     @Override
     protected String getCdcServiceModelLocation() {
@@ -120,21 +125,10 @@ public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder
     @Override
     protected void applyInitModelMetadata(Map<String, Map<String, Value>> configs,
                                            Map<String, Value> templateProps) {
-        Map<String, String> keyMapping = Map.of(
-                KEY_HOST, KEY_HOST,
-                KEY_PORT, KEY_PORT,
-                KEY_USERNAME, KEY_USERNAME,
-                KEY_PASSWORD, KEY_PASSWORD,
-                KEY_DATABASE, KEY_DATABASE,
-                KEY_SCHEMAS, KEY_SCHEMAS,
-                KEY_SECURE_SOCKET, KEY_SECURE_SOCKET,
-                KEY_OPTIONS, KEY_OPTIONS
-        );
-
         for (Map<String, Value> config : configs.values()) {
-            for (Map.Entry<String, String> mapping : keyMapping.entrySet()) {
-                Value configValue = config.get(mapping.getKey());
-                Value templateValue = templateProps.get(mapping.getValue());
+            for (String key : METADATA_KEYS) {
+                Value configValue = config.get(key);
+                Value templateValue = templateProps.get(key);
                 if (configValue != null && templateValue != null && templateValue.getMetadata() != null) {
                     configValue.setMetadata(templateValue.getMetadata());
                 }
@@ -156,7 +150,7 @@ public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder
             }
         }
         if (listenerSymbol.isEmpty() || listenerSymbol.get().getLocation().isEmpty()) {
-            return null;
+            return Collections.emptyMap();
         }
 
         Location location = listenerSymbol.get().getLocation().get();
@@ -181,6 +175,7 @@ public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder
             ListenerDeclarationNode listenerNode = (ListenerDeclarationNode) foundNode;
             return extractConfigFromPostgresqlListenerDeclaration(listenerNode);
         } catch (RuntimeException e) {
+            LOGGER.warning("Failed to extract listener config for '" + listenerName + "': " + e.getMessage());
             return null;
         }
     }
