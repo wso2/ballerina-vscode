@@ -615,7 +615,7 @@ public class ListenerUtil {
         listenerModel.getProperties().forEach((k, v) -> v.setAdvanced(false));
     }
 
-    private static SeparatedNodeList<FunctionArgumentNode> getArgList(NewExpressionNode newExpressionNode) {
+    public static SeparatedNodeList<FunctionArgumentNode> getArgList(NewExpressionNode newExpressionNode) {
         if (newExpressionNode instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
             return explicitNewExpressionNode.parenthesizedArgList().arguments();
         } else {
@@ -774,6 +774,54 @@ public class ListenerUtil {
         }
         Value existingListener = properties.get(ServiceInitModel.KEY_EXISTING_LISTENER);
         return Optional.ofNullable(existingListener.getValue());
+    }
+
+    /**
+     * Builds a read-only text Value for displaying listener config information.
+     */
+    public static Value buildReadOnlyTextValue(String label, String description, String value) {
+        return new Value.ValueBuilder()
+                .metadata(label, description)
+                .value(value)
+                .types(List.of(PropertyType.types(Value.FieldType.TEXT, "string"),
+                        PropertyType.types(Value.FieldType.EXPRESSION, "string")))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+    }
+
+    /**
+     * Builds a read-only number Value for displaying listener config information.
+     */
+    public static Value buildReadOnlyNumberValue(String label, String description, String value) {
+        return new Value.ValueBuilder()
+                .metadata(label, description)
+                .value(value)
+                .types(List.of(PropertyType.types(Value.FieldType.NUMBER, "int"),
+                        PropertyType.types(Value.FieldType.EXPRESSION, "int")))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+    }
+
+    /**
+     * Builds a read-only TEXT_SET Value for displaying multi-valued listener config fields.
+     */
+    public static Value buildReadOnlyTextSetValue(String label, String description, List<String> values) {
+        return new Value.ValueBuilder()
+                .metadata(label, description)
+                .setValues(values.stream().map(v -> (Object) v).toList())
+                .types(List.of(new PropertyType.Builder()
+                        .fieldType(Value.FieldType.TEXT_SET)
+                        .ballerinaType("string")
+                        .selected(true)
+                        .build()))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
     }
 
     public record DefaultListener(String moduleName, String variableName, LinePosition linePosition) {

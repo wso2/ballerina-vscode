@@ -15,174 +15,380 @@
       "version": "1.16.2",
       "type": "event",
       "properties": {
-        "host": {
+        "configureListener": {
           "metadata": {
-            "label": "Host",
-            "description": "The hostname of the PostgreSQL Server"
-          },
-          "codedata": {
-            "argType": "databaseConfig",
-            "originalName": "hostname"
-          },
-          "placeholder": "localhost",
-          "value": "\"localhost\"",
-          "types": [
-            {
-              "fieldType": "TEXT",
-              "ballerinaType": "string",
-              "selected": true
-            },
-            {
-              "fieldType": "EXPRESSION",
-              "ballerinaType": "string",
-              "selected": false
-            }
-          ],
-          "enabled": true,
-          "editable": true,
-          "optional": true,
-          "advanced": false
-        },
-        "port": {
-          "metadata": {
-            "label": "Port",
-            "description": "The port number of the PostgreSQL Server"
-          },
-          "codedata": {
-            "argType": "databaseConfig",
-            "originalName": "port"
-          },
-          "placeholder": "5432",
-          "value": "5432",
-          "types": [
-            {
-              "fieldType": "NUMBER",
-              "ballerinaType": "int",
-              "selected": true
-            },
-            {
-              "fieldType": "EXPRESSION",
-              "ballerinaType": "int",
-              "selected": false
-            }
-          ],
-          "enabled": true,
-          "editable": true,
-          "optional": true,
-          "advanced": false
-        },
-        "username": {
-          "metadata": {
-            "label": "Username",
-            "description": "The username for the PostgreSQL Server connection"
-          },
-          "codedata": {
-            "argType": "databaseConfig",
-            "originalName": "username"
+            "label": "Configure PostgreSQL CDC Listener",
+            "description": "Select an existing PostgreSQL CDC listener or create a new one"
           },
           "placeholder": "",
-          "value": "",
-          "types": [
+          "value": "0",
+          "choices": [
             {
-              "fieldType": "TEXT",
-              "ballerinaType": "string",
-              "selected": true,
-              "pattern": "^string `.+`$|^\".+\"$",
-              "patternErrorMessage": "Username cannot be empty"
+              "metadata": {
+                "label": "Create new",
+                "description": "Create a new PostgreSQL CDC listener"
+              },
+              "placeholder": "true",
+              "value": "true",
+              "properties": {
+                "listenerConfig": {
+                  "metadata": {
+                    "label": "Listener Configurations",
+                    "description": "Configure the PostgreSQL CDC listener"
+                  },
+                  "properties": {
+                    "host": {
+                      "metadata": {
+                        "label": "Host",
+                        "description": "The hostname of the PostgreSQL Server"
+                      },
+                      "codedata": {
+                        "argType": "databaseConfig",
+                        "originalName": "hostname"
+                      },
+                      "placeholder": "localhost",
+                      "value": "\"localhost\"",
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "ballerinaType": "string",
+                          "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": true,
+                      "advanced": false
+                    },
+                    "port": {
+                      "metadata": {
+                        "label": "Port",
+                        "description": "The port number of the PostgreSQL Server"
+                      },
+                      "codedata": {
+                        "argType": "databaseConfig",
+                        "originalName": "port"
+                      },
+                      "placeholder": "5432",
+                      "value": "5432",
+                      "types": [
+                        {
+                          "fieldType": "NUMBER",
+                          "ballerinaType": "int",
+                          "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "int",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": true,
+                      "advanced": false
+                    },
+                    "username": {
+                      "metadata": {
+                        "label": "Username",
+                        "description": "The username for the PostgreSQL Server connection"
+                      },
+                      "codedata": {
+                        "argType": "databaseConfig",
+                        "originalName": "username"
+                      },
+                      "placeholder": "",
+                      "value": "",
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "ballerinaType": "string",
+                          "selected": true,
+                          "pattern": "^string `.+`$|^\".+\"$",
+                          "patternErrorMessage": "Username cannot be empty"
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    },
+                    "password": {
+                      "metadata": {
+                        "label": "Password",
+                        "description": "The password for the PostgreSQL Server connection"
+                      },
+                      "codedata": {
+                        "argType": "databaseConfig",
+                        "originalName": "password"
+                      },
+                      "placeholder": "",
+                      "value": "",
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "ballerinaType": "string",
+                          "selected": true,
+                          "pattern": "^string `.+`$|^\".+\"$",
+                          "patternErrorMessage": "Password cannot be empty"
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    },
+                    "database": {
+                      "metadata": {
+                        "label": "Database",
+                        "description": "The PostgreSQL database name to capture changes from"
+                      },
+                      "codedata": {
+                        "argType": "databaseConfig",
+                        "originalName": "databaseName"
+                      },
+                      "placeholder": "",
+                      "value": "",
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "ballerinaType": "string",
+                          "selected": true,
+                          "pattern": "^string `.+`$|^\".+\"$",
+                          "patternErrorMessage": "Database name cannot be empty"
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    },
+                    "schemas": {
+                      "metadata": {
+                        "label": "Schemas",
+                        "description": "A list of regular expressions that match names of schemas to capture changes from"
+                      },
+                      "codedata": {
+                        "argType": "databaseConfig",
+                        "originalName": "includedSchemas"
+                      },
+                      "placeholder": "",
+                      "types": [
+                        {
+                          "fieldType": "TEXT_SET",
+                          "ballerinaType": "string",
+                          "selected": false,
+                          "minItems": 0,
+                          "defaultItems": 0
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": true,
+                      "advanced": false
+                    },
+                    "advancedConfigurations": {
+                      "metadata": {
+                        "label": "Advanced Configurations",
+                        "description": ""
+                      },
+                      "properties": {
+                        "listenerVarName": {
+                          "metadata": {
+                            "label": "Listener Name",
+                            "description": "Provide a name for the listener being created"
+                          },
+                          "codedata": {
+                            "argType": "LISTENER_VAR_NAME"
+                          },
+                          "placeholder": "postgresqlCdcListener",
+                          "value": "postgresqlCdcListener",
+                          "types": [
+                            {
+                              "fieldType": "IDENTIFIER",
+                              "ballerinaType": "CdcListener",
+                              "selected": false
+                            }
+                          ],
+                          "enabled": true,
+                          "editable": true,
+                          "optional": true,
+                          "advanced": false
+                        },
+                        "secureSocket": {
+                          "metadata": {
+                            "label": "Secure Socket",
+                            "description": "Configure SSL/TLS configuration for secure connection"
+                          },
+                          "codedata": {
+                            "argType": "databaseConfig",
+                            "originalName": "secure"
+                          },
+                          "placeholder": "",
+                          "types": [
+                            {
+                              "fieldType": "RECORD_MAP_EXPRESSION",
+                              "ballerinaType": "cdc:SecureDatabaseConnection",
+                              "typeMembers": [
+                                {
+                                  "type": "SecureDatabaseConnection",
+                                  "packageInfo": "ballerinax:cdc:1.0.3",
+                                  "packageName": "cdc",
+                                  "kind": "RECORD_TYPE",
+                                  "selected": false
+                                }
+                              ],
+                              "selected": true
+                            },
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "cdc:SecureDatabaseConnection",
+                              "selected": false
+                            }
+                          ],
+                          "enabled": true,
+                          "editable": true,
+                          "optional": true,
+                          "advanced": false
+                        },
+                        "options": {
+                          "metadata": {
+                            "label": "Options",
+                            "description": "Additional options for the CDC engine"
+                          },
+                          "codedata": {
+                            "argType": "LISTENER_PARAM_INCLUDED_FIELD"
+                          },
+                          "placeholder": "",
+                          "types": [
+                            {
+                              "fieldType": "RECORD_MAP_EXPRESSION",
+                              "ballerinaType": "cdc:Options",
+                              "typeMembers": [
+                                {
+                                  "type": "Options",
+                                  "packageInfo": "ballerinax:cdc:1.0.3",
+                                  "packageName": "cdc",
+                                  "kind": "RECORD_TYPE",
+                                  "selected": true
+                                }
+                              ],
+                              "selected": true
+                            },
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "cdc:Options",
+                              "selected": false
+                            }
+                          ],
+                          "enabled": true,
+                          "editable": true,
+                          "optional": true,
+                          "advanced": false
+                        }
+                      },
+                      "types": [
+                        {
+                          "fieldType": "GROUP_SECTION",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": false,
+                      "optional": false,
+                      "advanced": false
+                    }
+                  },
+                  "types": [
+                    {
+                      "fieldType": "GROUP_SECTION",
+                      "selected": true
+                    }
+                  ],
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": false
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
             },
             {
-              "fieldType": "EXPRESSION",
-              "ballerinaType": "string",
+              "metadata": {
+                "label": "Use existing (none available)",
+                "description": "Select an existing PostgreSQL CDC listener"
+              },
+              "placeholder": "true",
+              "value": "true",
+              "properties": {
+                "listenerConfig": {
+                  "metadata": {
+                    "label": "Listener Configurations",
+                    "description": "Configure the PostgreSQL CDC listener"
+                  },
+                  "properties": {},
+                  "types": [
+                    {
+                      "fieldType": "GROUP_SECTION",
+                      "selected": true
+                    }
+                  ],
+                  "enabled": true,
+                  "editable": false,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": false
+                }
+              ],
+              "enabled": false,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            }
+          ],
+          "types": [
+            {
+              "fieldType": "CHOICE",
               "selected": false
             }
           ],
           "enabled": true,
           "editable": true,
           "optional": false,
-          "advanced": false
-        },
-        "password": {
-          "metadata": {
-            "label": "Password",
-            "description": "The password for the PostgreSQL Server connection"
-          },
-          "codedata": {
-            "argType": "databaseConfig",
-            "originalName": "password"
-          },
-          "placeholder": "",
-          "value": "",
-          "types": [
-            {
-              "fieldType": "TEXT",
-              "ballerinaType": "string",
-              "selected": true,
-              "pattern": "^string `.+`$|^\".+\"$",
-              "patternErrorMessage": "Password cannot be empty"
-            },
-            {
-              "fieldType": "EXPRESSION",
-              "ballerinaType": "string",
-              "selected": false
-            }
-          ],
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
-        "database": {
-          "metadata": {
-            "label": "Database",
-            "description": "The PostgreSQL database name to capture changes from"
-          },
-          "codedata": {
-            "argType": "databaseConfig",
-            "originalName": "databaseName"
-          },
-          "placeholder": "",
-          "value": "",
-          "types": [
-            {
-              "fieldType": "TEXT",
-              "ballerinaType": "string",
-              "selected": true,
-              "pattern": "^string `.+`$|^\".+\"$",
-              "patternErrorMessage": "Database name cannot be empty"
-            },
-            {
-              "fieldType": "EXPRESSION",
-              "ballerinaType": "string",
-              "selected": false
-            }
-          ],
-          "enabled": true,
-          "editable": true,
-          "optional": false,
-          "advanced": false
-        },
-        "schemas": {
-          "metadata": {
-            "label": "Schemas",
-            "description": "A list of regular expressions that match names of schemas to capture changes from"
-          },
-          "codedata": {
-            "argType": "databaseConfig",
-            "originalName": "includedSchemas"
-          },
-          "placeholder": "",
-          "types": [
-            {
-              "fieldType": "TEXT_SET",
-              "ballerinaType": "string",
-              "selected": false,
-              "minItems": 0,
-              "defaultItems": 0
-            }
-          ],
-          "enabled": true,
-          "editable": true,
-          "optional": true,
           "advanced": false
         },
         "table": {
@@ -214,99 +420,6 @@
           "editable": true,
           "optional": true,
           "advanced": false
-        },
-        "listenerVarName": {
-          "metadata": {
-            "label": "Listener Name",
-            "description": "Provide a name for the listener being created"
-          },
-          "codedata": {
-            "argType": "LISTENER_VAR_NAME"
-          },
-          "placeholder": "postgresqlCdcListener",
-          "value": "postgresqlCdcListener",
-          "types": [
-            {
-              "fieldType": "IDENTIFIER",
-              "ballerinaType": "CdcListener",
-              "selected": false
-            }
-          ],
-          "enabled": true,
-          "editable": true,
-          "optional": true,
-          "advanced": true
-        },
-        "secureSocket": {
-          "metadata": {
-            "label": "Secure Socket",
-            "description": "Configure SSL/TLS configuration for secure connection"
-          },
-          "codedata": {
-            "argType": "databaseConfig",
-            "originalName": "secure"
-          },
-          "placeholder": "",
-          "value": "",
-          "types": [
-            {
-              "fieldType": "RECORD_MAP_EXPRESSION",
-              "ballerinaType": "cdc:SecureDatabaseConnection",
-              "typeMembers": [
-                {
-                  "type": "SecureDatabaseConnection",
-                  "packageInfo": "ballerinax:cdc:1.0.3",
-                  "kind": "RECORD_TYPE",
-                  "selected": false
-                }
-              ],
-              "selected": true
-            },
-            {
-              "fieldType": "EXPRESSION",
-              "ballerinaType": "cdc:SecureDatabaseConnection",
-              "selected": false
-            }
-          ],
-          "enabled": true,
-          "editable": true,
-          "optional": true,
-          "advanced": true
-        },
-        "options": {
-          "metadata": {
-            "label": "Options",
-            "description": "Additional options for the CDC engine"
-          },
-          "codedata": {
-            "argType": "LISTENER_PARAM_INCLUDED_FIELD"
-          },
-          "placeholder": "",
-          "value": "",
-          "types": [
-            {
-              "fieldType": "RECORD_MAP_EXPRESSION",
-              "ballerinaType": "cdc:Options",
-              "typeMembers": [
-                {
-                  "type": "Options",
-                  "packageInfo": "ballerinax:cdc:1.0.3",
-                  "kind": "RECORD_TYPE",
-                  "selected": true
-                }
-              ],
-              "selected": true
-            },
-            {
-              "fieldType": "EXPRESSION",
-              "ballerinaType": "cdc:Options",
-              "selected": false
-            }
-          ],
-          "enabled": true,
-          "editable": true,
-          "optional": true,
-          "advanced": true
         }
       }
     }

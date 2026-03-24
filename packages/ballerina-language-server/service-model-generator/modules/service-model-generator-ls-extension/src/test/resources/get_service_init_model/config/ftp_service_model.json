@@ -617,7 +617,7 @@
                   "types": [
                     {
                       "fieldType": "GROUP_SECTION",
-                      "selected": false
+                      "selected": true
                     }
                   ],
                   "enabled": true,
@@ -647,7 +647,7 @@
                   "types": [
                     {
                       "fieldType": "GROUP_SECTION",
-                      "selected": false
+                      "selected": true
                     }
                   ],
                   "enabled": true,
