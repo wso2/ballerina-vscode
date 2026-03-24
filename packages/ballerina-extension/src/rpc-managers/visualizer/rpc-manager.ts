@@ -61,6 +61,12 @@ export class VisualizerRpcManager implements VisualizerAPI {
                     openPopupView(params.type, params.location as PopupVisualizerLocation);
                 }
             } else {
+                if (params.resetHistory) {
+                    // Clear history directly without calling setReadyMode() — that resets the
+                    // state machine to extensionReady which can crash updateView when the
+                    // project-structure context is still live.
+                    history.clear();
+                }
                 openView(params.type, params.location as VisualizerLocation);
             }
         });
