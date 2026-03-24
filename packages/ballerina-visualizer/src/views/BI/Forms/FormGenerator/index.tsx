@@ -187,12 +187,16 @@ const StyledActionButton = styled(Button)`
 const DiagnosticsActionButton = styled(Button)`
     display: flex;
     align-items: center;
+    flex-shrink: 0;
 `;
 
 const DiagnosticsActionContent = styled.span`
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
+    white-space: nowrap;
+    width: 100%;
 `;
 
 export const BreadcrumbContainer = styled.div`
@@ -1795,9 +1799,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     formDiagnosticsAction={formDiagnostics.length > 0 ? (
                         <Tooltip content={formDiagnosticsFixTooltip}>
                             <span>
-                                <DiagnosticsActionButton appearance="primary" disabled={!canFixFormDiagnostics} onClick={handleFixFormDiagnostics}>
+                                <DiagnosticsActionButton appearance="primary" buttonSx={{ width: 116, minWidth: 116 }} disabled={!canFixFormDiagnostics} onClick={handleFixFormDiagnostics}>
                                     <DiagnosticsActionContent>
-                                        <Icon name="bi-ai-agent" sx={{ width: 14, height: 14, fontSize: 14 }} />
+                                        <Icon name="bi-ai-chat" sx={{ width: 14, height: 14, fontSize: 14 }} />
                                         <span>Fix with AI</span>
                                     </DiagnosticsActionContent>
                                 </DiagnosticsActionButton>
