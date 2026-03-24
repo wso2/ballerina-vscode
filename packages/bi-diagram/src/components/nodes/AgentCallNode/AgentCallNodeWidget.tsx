@@ -831,7 +831,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             <NodeStyles.Header onClick={handleOnClick}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "6px", lineHeight: 1, maxWidth: `${NODE_WIDTH - 80}px` }}>
                                     <NodeStyles.Title>{nodeTitle}</NodeStyles.Title>
-                                    {model.node.properties?.agentCredential?.value && (
+                                    {model.node.properties?.credential?.value && (
                                         <NodeStyles.AgentIdBadge
                                             title=""
                                             onMouseEnter={() => setAgentIdHovered(true)}
