@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getArgList;
 
@@ -61,6 +62,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.get
  */
 public final class MssqlCdcServiceBuilder extends AbstractCdcServiceBuilder {
 
+    private static final Logger LOGGER = Logger.getLogger(MssqlCdcServiceBuilder.class.getName());
     private static final String CDC_MSSQL_SERVICE_MODEL_LOCATION = "services/cdc_mssql.json";
     private static final String MSSQL_CDC_DRIVER_MODULE_NAME = "mssql.cdc.driver";
     private static final String KEY_DATABASE_INSTANCE = "databaseInstance";
@@ -191,9 +193,18 @@ public final class MssqlCdcServiceBuilder extends AbstractCdcServiceBuilder {
         Node initializer = listenerNode.initializer();
         NewExpressionNode newExpressionNode;
         if (initializer instanceof CheckExpressionNode checkExpressionNode) {
-            newExpressionNode = (NewExpressionNode) checkExpressionNode.expression();
+            if (!(checkExpressionNode.expression() instanceof NewExpressionNode newExpr)) {
+                LOGGER.severe("Unexpected expression type inside CheckExpressionNode: "
+                        + checkExpressionNode.expression().getClass().getName());
+                return config;
+            }
+            newExpressionNode = newExpr;
+        } else if (initializer instanceof NewExpressionNode newExpr) {
+            newExpressionNode = newExpr;
         } else {
-            newExpressionNode = (NewExpressionNode) initializer;
+            LOGGER.severe("Unexpected initializer type in MSSQL listener declaration: "
+                    + initializer.getClass().getName());
+            return config;
         }
 
         SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
@@ -246,7 +257,7 @@ public final class MssqlCdcServiceBuilder extends AbstractCdcServiceBuilder {
                                 "The username for the Microsoft SQL Server connection", fieldValue));
                 case "password" -> config.put(KEY_PASSWORD,
                         ListenerUtil.buildReadOnlyTextValue("Password",
-                                "The password for the Microsoft SQL Server connection", fieldValue));
+                                "Thxe password for the Microsoft SQL Server connection", fieldValue));
                 case "databaseNames" -> {
                     List<String> items = extractListValues(field);
                     config.put(KEY_DATABASES,

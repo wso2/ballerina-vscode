@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.POSTGRESQL;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getArgList;
@@ -62,6 +63,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.get
  */
 public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder {
 
+    private static final Logger LOGGER = Logger.getLogger(PostgresqlCdcServiceBuilder.class.getName());
     private static final String CDC_POSTGRESQL_SERVICE_MODEL_LOCATION = "services/cdc_postgresql.json";
     private static final String POSTGRESQL_CDC_DRIVER_MODULE_NAME = "postgresql.cdc.driver";
     private static final String DISPLAY_LABEL = "PostgreSQL CDC";
@@ -189,9 +191,18 @@ public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder
         Node initializer = listenerNode.initializer();
         NewExpressionNode newExpressionNode;
         if (initializer instanceof CheckExpressionNode checkExpressionNode) {
-            newExpressionNode = (NewExpressionNode) checkExpressionNode.expression();
+            if (!(checkExpressionNode.expression() instanceof NewExpressionNode newExpr)) {
+                LOGGER.severe("Unexpected expression type inside CheckExpressionNode: "
+                        + checkExpressionNode.expression().getClass().getName());
+                return config;
+            }
+            newExpressionNode = newExpr;
+        } else if (initializer instanceof NewExpressionNode newExpr) {
+            newExpressionNode = newExpr;
         } else {
-            newExpressionNode = (NewExpressionNode) initializer;
+            LOGGER.severe("Unexpected initializer type in PostgreSQL listener declaration: "
+                    + initializer.getClass().getName());
+            return config;
         }
 
         SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
