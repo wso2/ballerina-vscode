@@ -277,93 +277,17 @@ export function convertMemoryStoreCategoriesToSidePanelCategories(categories: Ca
     ));
 }
 
-export function convertNodePropertiesToFormFields(
-    nodeProperties: NodeProperties,
-    connections?: FlowNode[],
-    clientName?: string
-): FormField[] {
-    const formFields: FormField[] = [];
-
-    for (const key in nodeProperties) {
-        if (nodeProperties.hasOwnProperty(key)) {
-            const expression = nodeProperties[key as NodePropertyKey];
-            if (expression) {
-                const formField: FormField = convertNodePropertyToFormField(key, expression, connections, clientName);
-
-                if (getPrimaryInputType(expression.types)?.fieldType === "REPEATABLE_PROPERTY") {
-                    handleRepeatableProperty(expression, formField);
-                }
-
-                formFields.push(formField);
-            }
-        }
-    }
-
-    return formFields;
-}
-
-export function convertNodePropertyToFormField(
-    key: string,
-    property: Property,
-    connections?: FlowNode[],
-    clientName?: string
-): FormField {
-    const formField: FormField = {
-        key,
-        label: property.metadata?.label || "",
-        type: getPrimaryInputType(property.types)?.fieldType ?? "",
-        optional: property.optional,
-        advanced: property.advanced,
-        placeholder: property.placeholder,
-        defaultValue: property.defaultValue as string,
-        editable: isFieldEditable(property, connections, clientName),
-        enabled: true,
-        hidden: property.hidden,
-        documentation: property.metadata?.description || "",
-        value: getFormFieldValue(property, clientName),
-        advanceProps: convertNodePropertiesToFormFields(property.advanceProperties),
-        items: getFormFieldItems(property, connections),
-        itemOptions: property.itemOptions,
-        diagnostics: property.diagnostics?.diagnostics || [],
-        types: property.types,
-        lineRange: property?.codedata?.lineRange,
-        metadata: property.metadata,
-        codedata: property.codedata,
-        imports: property.imports
-    };
-    return formField;
-}
-
-function isFieldEditable(expression: Property, connections?: FlowNode[], clientName?: string) {
-    if (
-        connections &&
-        clientName &&
-        getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" &&
-        expression.metadata.label === "Connection"
-    ) {
-        return false;
-    }
-    return expression.editable;
-}
-
-function getFormFieldValue(expression: Property, clientName?: string) {
-    if (clientName && getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" && expression.metadata.label === "Connection") {
-        console.log(">>> client name as set field value", clientName);
-        return clientName;
-    }
-    return expression.value as string;
-}
-
-function getFormFieldItems(expression: Property, connections: FlowNode[]): string[] {
-    if (getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" && expression.metadata.label === "Connection") {
-        return connections.map((connection) => connection.properties?.variable?.value as string);
-    } else if (expression.types?.length > 1 && (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT")) {
-        return expression.types?.map(inputType => inputType.ballerinaType) as string[];
-    } else if (expression.types?.length === 1 && isDropDownType(expression.types[0])) {
-        return (expression.types[0] as DropdownType).options.map((option) => option.value);
-    }
-    return undefined;
-}
+import {
+    convertNodePropertiesToFormFields,
+    convertNodePropertyToFormField,
+    updateNodeProperties,
+    handleRepeatableProperty,
+} from "./node-property-utils";
+export {
+    convertNodePropertiesToFormFields,
+    convertNodePropertyToFormField,
+    updateNodeProperties,
+} from "./node-property-utils";
 
 export function getFormProperties(flowNode: FlowNode): NodeProperties {
     if (flowNode.properties) {
@@ -388,46 +312,6 @@ export function getDataMappingFunctions(functions: Category[]): Category[] {
         .filter((category) => category.items.length > 0);
 }
 
-export function updateNodeProperties(
-    values: FormValues,
-    nodeProperties: NodeProperties,
-    formImports: FormImports,
-    dirtyFields?: any
-): NodeProperties {
-    const updatedNodeProperties: NodeProperties = { ...nodeProperties };
-
-    for (const key in values) {
-        if (values.hasOwnProperty(key) && updatedNodeProperties.hasOwnProperty(key)) {
-            const expression = updatedNodeProperties[key as NodePropertyKey];
-            if (expression) {
-                expression.imports = formImports?.[key];
-                expression.modified = dirtyFields?.hasOwnProperty(key);
-
-                const dataValue = values[key];
-                const primaryType = getPrimaryInputType(expression.types);
-                if (primaryType?.fieldType === "REPEATABLE_PROPERTY" && isTemplateType(primaryType)) {
-                    const template = primaryType?.template;
-                    expression.value = {};
-                    // Go through the parameters array
-                    for (const [repeatKey, repeatValue] of Object.entries(dataValue)) {
-                        // Create a deep copy for each iteration
-                        const valueConstraint = JSON.parse(JSON.stringify(template));
-                        // Fill the values of the parameter constraint
-                        for (const [paramKey, param] of Object.entries((valueConstraint as any).value as NodeProperties)) {
-                            param.value = (repeatValue as any).formValues[paramKey] || "";
-                        }
-                        (expression.value as any)[(repeatValue as any).key] = valueConstraint;
-                    }
-                } else {
-                    expression.value = dataValue;
-                }
-
-            }
-        }
-    }
-
-    return updatedNodeProperties;
-}
 
 function getConnectionDisplayName(connectionKind?: ConnectionKind): string {
     if (!connectionKind) return 'Connection';
@@ -971,69 +855,6 @@ export function extractFunctionInsertText(template: string): CompletionInsertTex
     };
 }
 
-function createParameterValue(index: number, paramValueKey: string, paramValue: ParameterValue): Parameter {
-    const name = paramValue.value.variable.value;
-    const type = paramValue.value.type.value;
-    const variableLineRange = (paramValue.value.variable as any).codedata?.lineRange;
-    const variableEditable = (paramValue.value.variable as any).editable;
-    const parameterDescription = paramValue.value.parameterDescription?.value;
-
-    return {
-        id: index,
-        icon: "",
-        key: paramValueKey,
-        value: `${type} ${name}`,
-        identifierEditable: variableEditable,
-        identifierRange: variableLineRange,
-        formValues: {
-            variable: name,
-            type: type,
-            parameterDescription: parameterDescription,
-        },
-    };
-}
-
-function handleRepeatableProperty(property: Property, formField: FormField): void {
-    const paramFields: FormField[] = [];
-
-    // Create parameter fields
-    const primaryInputType = getPrimaryInputType(property.types);
-    if (isTemplateType(primaryInputType)) {
-        for (const [paramKey, param] of Object.entries((primaryInputType.template).value as NodeProperties)) {
-            const paramField = convertNodePropertyToFormField(paramKey, param);
-            paramFields.push(paramField);
-        }
-    }
-
-    // Create existing parameter values
-    const paramValues = Object.entries(property.value as NodeProperties).map(([paramValueKey, paramValue], index) =>
-        createParameterValue(index, paramValueKey, paramValue as any) // TODO: Fix this any type with actual type
-    );
-
-    formField.paramManagerProps = {
-        paramValues,
-        formFields: paramFields,
-        handleParameter: handleParamChange,
-    };
-
-    formField.value = paramValues;
-
-    function handleParamChange(param: Parameter) {
-        const name = `${param.formValues["variable"]}`;
-        const type = `${param.formValues["type"]} `;
-        const defaultValue =
-            Object.keys(param.formValues).indexOf("defaultable") > -1 && `${param.formValues["defaultable"]} `;
-        let value = `${type} ${name} `;
-        if (defaultValue) {
-            value += ` = ${defaultValue} `;
-        }
-        return {
-            ...param,
-            key: name,
-            value: value,
-        };
-    }
-}
 
 export function convertConfig(properties: NodeProperties, skipKeys: string[] = [], sortKeys: boolean = true): FormField[] {
     const formFields: FormField[] = [];

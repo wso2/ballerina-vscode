@@ -171,7 +171,8 @@ export type FormFieldInputType = "TEXT" |
     "NUMBER" |
     "REPEATABLE_LIST" |
     "CONDITIONAL_FIELDS" |
-    "DOC_TEXT"
+    "DOC_TEXT" |
+    "ADVANCE_PARAM_LIST"
     ;
 
 export interface BaseType {
@@ -464,6 +465,7 @@ export type NodePropertyKey =
     | "modelProvider"
     | "msg"
     | "name"
+    | "options"
     | "parameters"
     | "path"
     | "patterns"
