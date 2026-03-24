@@ -8,21 +8,105 @@
   "categories": [
     {
       "metadata": {
-        "label": "Solace MessageProducer",
-        "description": "MessageProducer for synchronous (blocking) message publishing to Solace.\n\nSupports both guaranteed (PERSISTENT/NON_PERSISTENT) and direct (DIRECT) message delivery modes.\nMessages are published to specified destinations (topics or queues).\n\nExample usage:\n```ballerina\nfinal smf:MessageProducer producer = check new (\n    host = \"tcp://broker:55555\",\n    auth = {username: \"default\"}\n);\nsmf:Message message = {\n    payload: \"Hello Solace\".toBytes(),\n    deliveryMode: smf:PERSISTENT,\n    priority: 4\n};\ncheck producer->send(message, {topicName: \"orders/created\"});\ncheck producer->close();\n```",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/xlibb_solace_0.2.2.png",
+        "label": "Persist SQL",
+        "description": "This package provides relational database support for the `bal persist` feature, which provides functionality to store and query data from a relational database through a data model instead of writing SQL.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_persist.sql_1.7.2.png",
         "data": {
           "isAgentSupport": false
         }
       },
       "codedata": {
         "node": "NEW_CONNECTION",
-        "org": "xlibb",
-        "module": "solace",
-        "packageName": "solace",
-        "object": "MessageProducer",
+        "org": "ballerinax",
+        "module": "persist.sql",
+        "packageName": "persist.sql",
+        "object": "SQLClient",
         "symbol": "init",
-        "version": "0.2.2",
+        "version": "1.7.2",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Persist SQL",
+        "description": "This package includes Ballerina `persist` Tooling, which provides functionality to store and query data conveniently through a data model instead of SQL query language.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_persist_0.3.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "persist",
+        "packageName": "persist",
+        "object": "SQLClient",
+        "symbol": "init",
+        "version": "0.3.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Persist InMemory",
+        "description": "This package provides in-memory table support for the `bal persist` feature, which provides functionality to store and query data from in-memory tables conveniently through a data model.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_persist.inmemory_1.6.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "persist.inmemory",
+        "packageName": "persist.inmemory",
+        "object": "InMemoryClient",
+        "symbol": "init",
+        "version": "1.6.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Persist GoogleSheets",
+        "description": "This package provides Google sheets support for the `bal persist` feature, which provides functionality to store and query data from a Google sheets conveniently through a data model.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_persist.googlesheets_1.6.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "persist.googlesheets",
+        "packageName": "persist.googlesheets",
+        "object": "GoogleSheetsClient",
+        "symbol": "init",
+        "version": "1.6.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Persist Redis",
+        "description": "This package provides Redis database support for the `bal persist` feature, which provides functionality to store and query data from a Redis database through a data model instead of writing Redis commands.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_persist.redis_0.4.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "persist.redis",
+        "packageName": "persist.redis",
+        "object": "RedisClient",
+        "symbol": "init",
+        "version": "0.4.0",
         "isGenerated": false
       },
       "enabled": true

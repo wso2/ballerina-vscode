@@ -9,8 +9,8 @@
     {
       "metadata": {
         "label": "FHIR FHIRConnector",
-        "description": "This connector allows you to connect and interact with any FHIR server",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir_3.0.1.png",
+        "description": "A generic FHIR client module for Ballerina, enabling seamless integration with FHIR servers for healthcare applications. This connector supports all standard FHIR operations, including CRUD, conditional interactions, and bulk data export, with support for various authentication mechanisms. It is suitable for building healthcare applications that need to communicate with FHIR-compliant systems.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir_3.0.5.png",
         "data": {
           "isAgentSupport": false
         }
@@ -22,7 +22,7 @@
         "packageName": "health.clients.fhir",
         "object": "FHIRConnector",
         "symbol": "init",
-        "version": "3.0.1",
+        "version": "3.0.5",
         "isGenerated": false
       },
       "enabled": true
@@ -30,8 +30,8 @@
     {
       "metadata": {
         "label": "Epic FHIRClientConnector",
-        "description": "This connector allows you to connect and interact with any FHIR server",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir.epic_1.0.0.png",
+        "description": "The Epic FHIR connector provides a client for connecting to Epic FHIR server Sandbox(https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4) and performing common FHIR interactions and operations.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir.epic_1.0.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -43,7 +43,91 @@
         "packageName": "health.clients.fhir.epic",
         "object": "FHIRClientConnector",
         "symbol": "init",
-        "version": "1.0.0",
+        "version": "1.0.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "FHIRClient FhirConnector",
+        "description": "This package contains a generic FHIR client connector that can be used to connect to a FHIR server that supports Oauth2. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/thishanidev_FHIRClient_0.1.3.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "thishanidev",
+        "module": "FHIRClient",
+        "packageName": "FHIRClient",
+        "object": "FhirConnector",
+        "symbol": "init",
+        "version": "0.1.3",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Fhir_client_connector FhirConnector",
+        "description": "This package containes a generic FHIR client connector that can be used to connect to a FHIR server that supports Oauth2. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/thishanidev_fhir_client_connector_0.1.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "thishanidev",
+        "module": "fhir_client_connector",
+        "packageName": "fhir_client_connector",
+        "object": "FhirConnector",
+        "symbol": "init",
+        "version": "0.1.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Cerner FHIRClientConnector",
+        "description": "The Cerner FHIR connector provides a client for connecting to Cerner FHIR servers and performing common FHIR interactions and operations.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir.cerner_1.0.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "health.clients.fhir.cerner",
+        "packageName": "health.clients.fhir.cerner",
+        "object": "FHIRClientConnector",
+        "symbol": "init",
+        "version": "1.0.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Athenahealth FHIRClientConnector",
+        "description": "The AthenaHealth FHIR connector provides a client for connecting to AthenaHealth FHIR servers and performing common FHIR interactions and operations.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir.athenahealth_1.0.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "health.clients.fhir.athenahealth",
+        "packageName": "health.clients.fhir.athenahealth",
+        "object": "FHIRClientConnector",
+        "symbol": "init",
+        "version": "1.0.1",
         "isGenerated": false
       },
       "enabled": true

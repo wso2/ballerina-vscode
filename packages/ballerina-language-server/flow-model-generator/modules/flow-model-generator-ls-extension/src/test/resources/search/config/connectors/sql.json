@@ -8,8 +8,218 @@
   "categories": [
     {
       "metadata": {
+        "label": "Jdbc",
+        "description": "This package provides the functionality that is required to access and manipulate data stored in any type of relational database,",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_java.jdbc_1.14.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "java.jdbc",
+        "packageName": "java.jdbc",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.14.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "MySQL",
+        "description": "This module provides the functionality required to access and manipulate data stored in a MySQL database. It enables seamless integration with MySQL, supporting various data types and advanced database features.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.4.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "mysql",
+        "packageName": "mysql",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.16.4",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "PostgreSQL",
+        "description": "This module provides the functionality required to access and manipulate data stored in a PostgreSQL database. It enables seamless integration with PostgreSQL, supporting various data types and advanced database features.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.16.4.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "postgresql",
+        "packageName": "postgresql",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.16.4",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "MS SQL",
+        "description": "This module provides the functionality required to access and manipulate data stored in an MSSQL database. It enables seamless integration with Microsoft SQL Server, supporting various data types and advanced database features.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.6.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "mssql",
+        "packageName": "mssql",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.16.6",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Persist SQL",
+        "description": "This package provides relational database support for the `bal persist` feature, which provides functionality to store and query data from a relational database through a data model instead of writing SQL.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_persist.sql_1.7.2.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "persist.sql",
+        "packageName": "persist.sql",
+        "object": "SQLClient",
+        "symbol": "init",
+        "version": "1.7.2",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "MongoDB Database",
+        "description": "[MongoDB](https://docs.mongodb.com/v4.2/) is a general purpose, document-based, distributed database built for modern application developers and for the cloud era. MongoDB offers both a Community and an Enterprise version of the database.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.3.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "mongodb",
+        "packageName": "mongodb",
+        "object": "Database",
+        "symbol": "init",
+        "version": "5.2.3",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "MongoDB",
+        "description": "[MongoDB](https://docs.mongodb.com/v4.2/) is a general purpose, document-based, distributed database built for modern application developers and for the cloud era. MongoDB offers both a Community and an Enterprise version of the database.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.3.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "mongodb",
+        "packageName": "mongodb",
+        "object": "Client",
+        "symbol": "init",
+        "version": "5.2.3",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "MongoDB Collection",
+        "description": "[MongoDB](https://docs.mongodb.com/v4.2/) is a general purpose, document-based, distributed database built for modern application developers and for the cloud era. MongoDB offers both a Community and an Enterprise version of the database.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.3.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "mongodb",
+        "packageName": "mongodb",
+        "object": "Collection",
+        "symbol": "init",
+        "version": "5.2.3",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "OracleDB",
+        "description": "This package provides the functionality required to access and manipulate data stored in an Oracle database.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_oracledb_1.15.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "oracledb",
+        "packageName": "oracledb",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.15.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Persist SQL",
+        "description": "This package includes Ballerina `persist` Tooling, which provides functionality to store and query data conveniently through a data model instead of SQL query language.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_persist_0.3.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "persist",
+        "packageName": "persist",
+        "object": "SQLClient",
+        "symbol": "init",
+        "version": "0.3.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
         "label": "SQLDB",
-        "description": "This is a generated connector from [Azure SQL DB API v1.0](https://docs.microsoft.com/en-us/azure/azure-sql/database/sql-database-paas-overview)  OpenAPI specification.\nThis Azure SQL Database management API provides a RESTful set of web APIs that interact with Azure SQL Database services to manage your databases. The API enables users to create, retrieve, update, and delete databases, servers, and other entities.",
+        "description": "Connects to [Azure SQL DB API 2017-03-01-preview](https://docs.microsoft.com/en-us/azure/azure-sql/database/sql-database-paas-overview) from Ballerina",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.sqldb_1.5.1.png",
         "data": {
           "isAgentSupport": false
@@ -29,105 +239,21 @@
     },
     {
       "metadata": {
-        "label": "MS SQL",
-        "description": "MSSQL (Microsoft SQL) client that enables interaction with MSSQL servers and supports standard SQL operations.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.2.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "mssql",
-        "packageName": "mssql",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.16.2",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Connect",
-        "description": "The [Ballerina](https://ballerina.io/) connector for [CData Connect](https://cloud.cdata.com/docs/JDBC.html) \nallows you to programmatically access all of the CData Connect applications, databases, APIs, and services\nacross an organization via the Java Database Connectivity (JDBC) API using [Ballerina](https://ballerina.io/). \nFor detailed information on working with each data source, see [Data Sources](https://cloud.cdata.com/docs/Data-Sources.html).\nCData Connect supports a wide range of standard DDL commands, SQL commands, and SQL functions to query data sources. \nFor reference information on all the CData Connect SQL commands (i.e., DDL, DML, and query syntax), \nsee the [SQL Reference](https://cloud.cdata.com/docs/SQL-Reference.html).",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_cdata.connect_1.2.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "cdata.connect",
-        "packageName": "cdata.connect",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.2.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
         "label": "MySQL",
-        "description": "MySQL database client that enables interaction with MySQL servers and supports standard SQL operations.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.1.png",
+        "description": "This module provides the functionality required to access and manipulate data stored in a MySQL database.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/scannertest_mysql_1.16.3.png",
         "data": {
           "isAgentSupport": false
         }
       },
       "codedata": {
         "node": "NEW_CONNECTION",
-        "org": "ballerinax",
+        "org": "scannertest",
         "module": "mysql",
         "packageName": "mysql",
         "object": "Client",
         "symbol": "init",
-        "version": "1.16.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Azure CosmosDB DataPlane",
-        "description": "This is the Azure Cosmos DB SQL API, a fast NoSQL database servic offers rich querying over diverse data, helps \ndeliver configurable and reliable performance, is globally distributed, and enables rapid development. ",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure_cosmosdb_4.2.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "azure_cosmosdb",
-        "packageName": "azure_cosmosdb",
-        "object": "DataPlaneClient",
-        "symbol": "init",
-        "version": "4.2.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Azure CosmosDB Management",
-        "description": "This is the Azure Cosmos DB SQL API, a fast NoSQL database servic offers rich querying over diverse data, helps \ndeliver configurable and reliable performance, is globally distributed, and enables rapid development. \n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure_cosmosdb_4.2.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "azure_cosmosdb",
-        "packageName": "azure_cosmosdb",
-        "object": "ManagementClient",
-        "symbol": "init",
-        "version": "4.2.0",
+        "version": "1.16.3",
         "isGenerated": false
       },
       "enabled": true

@@ -8,9 +8,9 @@
   "categories": [
     {
       "metadata": {
-        "label": "MongoDB Database",
-        "description": "Represents a MongoDB database.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.3.png",
+        "label": "Jdbc",
+        "description": "This package provides the functionality that is required to access and manipulate data stored in any type of relational database,",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_java.jdbc_1.14.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -18,20 +18,20 @@
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "mongodb",
-        "packageName": "mongodb",
-        "object": "Database",
+        "module": "java.jdbc",
+        "packageName": "java.jdbc",
+        "object": "Client",
         "symbol": "init",
-        "version": "5.2.3",
+        "version": "1.14.1",
         "isGenerated": false
       },
       "enabled": true
     },
     {
       "metadata": {
-        "label": "SQLDB",
-        "description": "This is a generated connector from [Azure SQL DB API v1.0](https://docs.microsoft.com/en-us/azure/azure-sql/database/sql-database-paas-overview)  OpenAPI specification.\nThis Azure SQL Database management API provides a RESTful set of web APIs that interact with Azure SQL Database services to manage your databases. The API enables users to create, retrieve, update, and delete databases, servers, and other entities.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.sqldb_1.5.1.png",
+        "label": "MySQL",
+        "description": "This module provides the functionality required to access and manipulate data stored in a MySQL database. It enables seamless integration with MySQL, supporting various data types and advanced database features.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.4.png",
         "data": {
           "isAgentSupport": false
         }
@@ -39,11 +39,32 @@
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "azure.sqldb",
-        "packageName": "azure.sqldb",
+        "module": "mysql",
+        "packageName": "mysql",
         "object": "Client",
         "symbol": "init",
-        "version": "1.5.1",
+        "version": "1.16.4",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Redis",
+        "description": "[Redis](https://redis.io/) is an open-source, in-memory data structure store that can be used as a database,",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.2.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "redis",
+        "packageName": "redis",
+        "object": "Client",
+        "symbol": "init",
+        "version": "3.2.0",
         "isGenerated": false
       },
       "enabled": true
@@ -51,8 +72,8 @@
     {
       "metadata": {
         "label": "PostgreSQL",
-        "description": "Represents a PostgreSQL database client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.16.2.png",
+        "description": "This module provides the functionality required to access and manipulate data stored in a PostgreSQL database. It enables seamless integration with PostgreSQL, supporting various data types and advanced database features.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.16.4.png",
         "data": {
           "isAgentSupport": false
         }
@@ -64,7 +85,70 @@
         "packageName": "postgresql",
         "object": "Client",
         "symbol": "init",
-        "version": "1.16.2",
+        "version": "1.16.4",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Cregistry",
+        "description": "[Confluent Schema Registry](https://docs.confluent.io/platform/current/schema-registry/) serves as a centralized repository for managing Avro schemas, ensuring data consistency and compatibility in serialization and deserialization processes.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_confluent.cregistry_0.4.3.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "confluent.cregistry",
+        "packageName": "confluent.cregistry",
+        "object": "Client",
+        "symbol": "init",
+        "version": "0.4.3",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "MS SQL",
+        "description": "This module provides the functionality required to access and manipulate data stored in an MSSQL database. It enables seamless integration with Microsoft SQL Server, supporting various data types and advanced database features.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.6.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "mssql",
+        "packageName": "mssql",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.16.6",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Snowflake",
+        "description": "The [Snowflake](https://www.snowflake.com/) is a cloud-based data platform that provides a data warehouse as a service designed for the cloud, providing a single integrated platform with a single SQL-based data warehouse for all data workloads.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "snowflake",
+        "packageName": "snowflake",
+        "object": "Client",
+        "symbol": "init",
+        "version": "2.2.1",
         "isGenerated": false
       },
       "enabled": true
@@ -72,7 +156,7 @@
     {
       "metadata": {
         "label": "Snowflake Advanced",
-        "description": "Represents a Snowflake database client.",
+        "description": "The [Snowflake](https://www.snowflake.com/) is a cloud-based data platform that provides a data warehouse as a service designed for the cloud, providing a single integrated platform with a single SQL-based data warehouse for all data workloads.",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.1.png",
         "data": {
           "isAgentSupport": false
@@ -92,9 +176,9 @@
     },
     {
       "metadata": {
-        "label": "Snowflake",
-        "description": "Represents a Snowflake database client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.1.png",
+        "label": "MongoDB Database",
+        "description": "[MongoDB](https://docs.mongodb.com/v4.2/) is a general purpose, document-based, distributed database built for modern application developers and for the cloud era. MongoDB offers both a Community and an Enterprise version of the database.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.3.png",
         "data": {
           "isAgentSupport": false
         }
@@ -102,20 +186,20 @@
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "snowflake",
-        "packageName": "snowflake",
-        "object": "Client",
+        "module": "mongodb",
+        "packageName": "mongodb",
+        "object": "Database",
         "symbol": "init",
-        "version": "2.2.1",
+        "version": "5.2.3",
         "isGenerated": false
       },
       "enabled": true
     },
     {
       "metadata": {
-        "label": "Themoviedb",
-        "description": "This is a generated connector for [The Movie Database (TMDB) API v3](https://www.themoviedb.org/documentation/api) OpenAPI specification.\nThe Movie Database (TMDB) API provide data about movies and tv shows around the world.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_themoviedb_1.5.1.png",
+        "label": "MongoDB",
+        "description": "[MongoDB](https://docs.mongodb.com/v4.2/) is a general purpose, document-based, distributed database built for modern application developers and for the cloud era. MongoDB offers both a Community and an Enterprise version of the database.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.3.png",
         "data": {
           "isAgentSupport": false
         }
@@ -123,20 +207,20 @@
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "themoviedb",
-        "packageName": "themoviedb",
+        "module": "mongodb",
+        "packageName": "mongodb",
         "object": "Client",
         "symbol": "init",
-        "version": "1.5.1",
+        "version": "5.2.3",
         "isGenerated": false
       },
       "enabled": true
     },
     {
       "metadata": {
-        "label": "Index",
-        "description": "This is a generated connector for the `Index Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) OpenAPI specification. Pinecone is a fully managed vector database which supports building developer-friendly, easily scalable, and high-performance vector search applications without infrastructure hassles.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.index_1.0.2.png",
+        "label": "MongoDB Collection",
+        "description": "[MongoDB](https://docs.mongodb.com/v4.2/) is a general purpose, document-based, distributed database built for modern application developers and for the cloud era. MongoDB offers both a Community and an Enterprise version of the database.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.3.png",
         "data": {
           "isAgentSupport": false
         }
@@ -144,20 +228,20 @@
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "pinecone.index",
-        "packageName": "pinecone.index",
-        "object": "Client",
+        "module": "mongodb",
+        "packageName": "mongodb",
+        "object": "Collection",
         "symbol": "init",
-        "version": "1.0.2",
+        "version": "5.2.3",
         "isGenerated": false
       },
       "enabled": true
     },
     {
       "metadata": {
-        "label": "Vector",
-        "description": "This is a generated connector for the `Vector Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) OpenAPI specification. Pinecone is a fully managed vector database which supports building developer-friendly, easily scalable, and high-performance vector search applications without infrastructure hassles.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.vector_1.0.2.png",
+        "label": "OracleDB",
+        "description": "This package provides the functionality required to access and manipulate data stored in an Oracle database.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_oracledb_1.15.0.png",
         "data": {
           "isAgentSupport": false
         }
@@ -165,137 +249,11 @@
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "pinecone.vector",
-        "packageName": "pinecone.vector",
+        "module": "oracledb",
+        "packageName": "oracledb",
         "object": "Client",
         "symbol": "init",
-        "version": "1.0.2",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "MySQL",
-        "description": "MySQL database client that enables interaction with MySQL servers and supports standard SQL operations.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "mysql",
-        "packageName": "mysql",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.16.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Milvus",
-        "description": "Milvus is a high-performance, cloud-native vector database built for scalable vector ANN search.\n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_milvus_1.1.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "milvus",
-        "packageName": "milvus",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.1.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Bintable",
-        "description": "This is a generated connector from [BINTable API v1](https://bintable.com/get-api) OpenAPI Specification. \nBIN lookup API, the free api service from bintable.com to lookup card information using it's BIN. \nThe service maintains updated database based on the comunity and other third party services to make sure all BINs in the database are accurate and up to date.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_bintable_1.5.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "bintable",
-        "packageName": "bintable",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.5.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Redis",
-        "description": "Ballerina Redis connector provides the capability to access Redis cache.\nThis connector lets you to perform operations to access and manipulate key-value data stored in a Redis database. \n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "redis",
-        "packageName": "redis",
-        "object": "Client",
-        "symbol": "init",
-        "version": "3.1.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Geonames",
-        "description": "This is a generated connector for [Geonames API](https://www.geonames.org/export/JSON-webservices.html) OpenAPI specification.\nGeonames is a geographical database where users can retrieve geo location information.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_geonames_1.3.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "geonames",
-        "packageName": "geonames",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.3.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Azure CosmosDB DataPlane",
-        "description": "This is the Azure Cosmos DB SQL API, a fast NoSQL database servic offers rich querying over diverse data, helps \ndeliver configurable and reliable performance, is globally distributed, and enables rapid development. ",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure_cosmosdb_4.2.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "azure_cosmosdb",
-        "packageName": "azure_cosmosdb",
-        "object": "DataPlaneClient",
-        "symbol": "init",
-        "version": "4.2.0",
+        "version": "1.15.0",
         "isGenerated": false
       },
       "enabled": true
@@ -303,7 +261,7 @@
     {
       "metadata": {
         "label": "Azure CosmosDB Management",
-        "description": "This is the Azure Cosmos DB SQL API, a fast NoSQL database servic offers rich querying over diverse data, helps \ndeliver configurable and reliable performance, is globally distributed, and enables rapid development. \n",
+        "description": "Connects to [Azure Cosmos DB(SQL) API](https://docs.microsoft.com/en-us/rest/api/cosmos-db/)  from Ballerina.",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure_cosmosdb_4.2.0.png",
         "data": {
           "isAgentSupport": false
@@ -323,9 +281,9 @@
     },
     {
       "metadata": {
-        "label": "Mailchimp",
-        "description": "This is a generated connector for [Mailchimp Marketing API v3.0.52](https://mailchimp.com/developer/marketing/) OpenAPI Specification. \nThe Mailchimp Marketing API allow to manage audiences, control automation workflows, sync email activity with your database and more.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mailchimp_1.5.1.png",
+        "label": "Azure CosmosDB DataPlane",
+        "description": "Connects to [Azure Cosmos DB(SQL) API](https://docs.microsoft.com/en-us/rest/api/cosmos-db/)  from Ballerina.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure_cosmosdb_4.2.0.png",
         "data": {
           "isAgentSupport": false
         }
@@ -333,8 +291,113 @@
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "mailchimp",
-        "packageName": "mailchimp",
+        "module": "azure_cosmosdb",
+        "packageName": "azure_cosmosdb",
+        "object": "DataPlaneClient",
+        "symbol": "init",
+        "version": "4.2.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "DynamoDB",
+        "description": "Connects to AWS DynamoDB from Ballerina",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.dynamodb_2.1.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "aws.dynamodb",
+        "packageName": "aws.dynamodb",
+        "object": "Client",
+        "symbol": "init",
+        "version": "2.1.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Milvus",
+        "description": "[Milvus](https://milvus.io/) is an open-source vector database built for scalable similarity search and AI applications. It provides high-performance vector storage and retrieval capabilities, making it ideal for applications involving machine learning, deep learning, and similarity search scenarios.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_milvus_1.1.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "milvus",
+        "packageName": "milvus",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.1.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Vector",
+        "description": "Connects to the `Vector Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) from Ballerina.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.vector_1.0.2.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "pinecone.vector",
+        "packageName": "pinecone.vector",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.0.2",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Weaviate",
+        "description": "Connects to the [Weaviate Vector Search Engine API](https://weaviate.io/developers/weaviate/api) from Ballerina.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_weaviate_1.0.2.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "weaviate",
+        "packageName": "weaviate",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.0.2",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Themoviedb",
+        "description": "Connects to [The Movie Database(TMDB) API](https://developers.themoviedb.org/3/getting-started/introduction) from Ballerina",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_themoviedb_1.5.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "themoviedb",
+        "packageName": "themoviedb",
         "object": "Client",
         "symbol": "init",
         "version": "1.5.1",
@@ -344,9 +407,9 @@
     },
     {
       "metadata": {
-        "label": "Rest",
-        "description": "This is a generated connector for [Zoho CRM](https://www.zoho.com/crm/developer/docs/api/v2/modules-api.html) OpenAPI specification.\nZoho CRM REST API provides the capability to unify customer data from across different applications and databases.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zoho.crm.rest_1.3.1.png",
+        "label": "Redshift",
+        "description": "[Amazon Redshift](https://aws.amazon.com/redshift/) is a powerful and fully-managed data warehouse service provided by Amazon Web Services (AWS), designed to efficiently analyze large datasets with high performance and scalability.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.redshift_1.2.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -354,74 +417,11 @@
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "zoho.crm.rest",
-        "packageName": "zoho.crm.rest",
+        "module": "aws.redshift",
+        "packageName": "aws.redshift",
         "object": "Client",
         "symbol": "init",
-        "version": "1.3.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Cloud Datastore",
-        "description": "This is a generated connector for [Google Cloud Datastore REST API v1](https://cloud.google.com/datastore/docs/reference/data/rest) OpenAPI specification.\nThe Google Cloud Datastore API provides the capability to access the schemaless NoSQL database to provide fully managed, robust, scalable storage for your application.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.clouddatastore_1.5.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "googleapis.clouddatastore",
-        "packageName": "googleapis.clouddatastore",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.5.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Com",
-        "description": "This is a generated connector from [Files.com API v1.0](https://www.files.com/) OpenAPI specification.\nWelcome to the Files.com API. Our REST API are designed for people who require the highest level of integration between Files.com and their own application, website, or database.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_files.com_1.5.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "files.com",
-        "packageName": "files.com",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.5.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Connect",
-        "description": "The [Ballerina](https://ballerina.io/) connector for [CData Connect](https://cloud.cdata.com/docs/JDBC.html) \nallows you to programmatically access all of the CData Connect applications, databases, APIs, and services\nacross an organization via the Java Database Connectivity (JDBC) API using [Ballerina](https://ballerina.io/). \nFor detailed information on working with each data source, see [Data Sources](https://cloud.cdata.com/docs/Data-Sources.html).\nCData Connect supports a wide range of standard DDL commands, SQL commands, and SQL functions to query data sources. \nFor reference information on all the CData Connect SQL commands (i.e., DDL, DML, and query syntax), \nsee the [SQL Reference](https://cloud.cdata.com/docs/SQL-Reference.html).",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_cdata.connect_1.2.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "cdata.connect",
-        "packageName": "cdata.connect",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.2.0",
+        "version": "1.2.1",
         "isGenerated": false
       },
       "enabled": true

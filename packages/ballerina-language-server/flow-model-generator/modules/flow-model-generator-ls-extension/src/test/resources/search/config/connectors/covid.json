@@ -9,7 +9,7 @@
     {
       "metadata": {
         "label": "Covid19",
-        "description": "This is a generated connector from [Novel COVID-19 API version 3.0.0](https://disease.sh/docs/) OpenAPI Specification.\nBallerina connector for COVID-19 provides easy access to latest COVID-19 related data across the world. Please refer to [API documentation](https://disease.sh) for more detail.",
+        "description": "Connects to [Novel COVID-19 API](https://disease.sh/docs/) from Ballerina.",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_covid19_1.5.1.png",
         "data": {
           "isAgentSupport": false
@@ -23,6 +23,195 @@
         "object": "Client",
         "symbol": "init",
         "version": "1.5.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Covid19",
+        "description": "Connects to [Novel COVID-19 API](https://disease.sh/docs/) from Ballerina.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/shammi_covid19_0.1.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "shammi",
+        "module": "covid19",
+        "packageName": "covid19",
+        "object": "Client",
+        "symbol": "init",
+        "version": "0.1.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Use_covid19",
+        "description": "This is a testing package to test private connector with Ballerina low-code editor.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/kanushkagayan_use_covid19_0.1.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "kanushkagayan",
+        "module": "use_covid19",
+        "packageName": "use_covid19",
+        "object": "Client",
+        "symbol": "init",
+        "version": "0.1.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Covid_19_statistics",
+        "description": "1. Access the Choreo <a target=\"_blank\" href=\"https://devportal.choreo.dev/geek\">Developer Portal</a> as a member of the organization `geek`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/geek_covid_19_statistics_1.0.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "geek",
+        "module": "covid_19_statistics",
+        "packageName": "covid_19_statistics",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.0.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Covidapi",
+        "description": "1. Access the Choreo <a target=\"_blank\" href=\"https://devportal.choreo.dev/wso2sa\">Developer Portal</a> as a member of the organization `wso2sa`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/wso2sa_covidapi_1.0.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "wso2sa",
+        "module": "covidapi",
+        "packageName": "covidapi",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.0.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Covidanalysisapi",
+        "description": "1. Access the Choreo <a target=\"_blank\" href=\"https://devportal.choreo.dev\">Developer Portal</a> as a member of the organization `dushanabeyruwan`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/dushanabeyruwan_covidanalysisapi_1.0.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "dushanabeyruwan",
+        "module": "covidanalysisapi",
+        "packageName": "covidanalysisapi",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.0.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Covid_19stats",
+        "description": "1. Access the Choreo <a target=\"_blank\" href=\"https://devportal.choreo.dev/apisevolution\">Developer Portal</a> as a member of the organization `apisevolution`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/apisevolution_covid_19stats_1.0.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "apisevolution",
+        "module": "covid_19stats",
+        "packageName": "covid_19stats",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.0.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Covidapitestdelete",
+        "description": "1. Access the Choreo <a target=\"_blank\" href=\"https://devportal.choreo.dev/ramindudesilva\">Developer Portal</a> as a member of the organization `ramindudesilva`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ramindudesilva_covidapitestdelete_1.0.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ramindudesilva",
+        "module": "covidapitestdelete",
+        "packageName": "covidapitestdelete",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.0.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Coviddashboardapi",
+        "description": "1. Access the Choreo <a target=\"_blank\" href=\"https://devportal.choreo.dev/ramindudesilva\">Developer Portal</a> as a member of the organization `ramindudesilva`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ramindudesilva_coviddashboardapi_1.0.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ramindudesilva",
+        "module": "coviddashboardapi",
+        "packageName": "coviddashboardapi",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.0.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Covid19",
+        "description": "1. Access the Choreo <a target=\"_blank\" href=\"https://devportal.choreo.dev\">Developer Portal</a> as a member of the organization `omkarmayekar`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/omkarmayekar_covid19_1.0.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "omkarmayekar",
+        "module": "covid19",
+        "packageName": "covid19",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.0.0",
         "isGenerated": false
       },
       "enabled": true

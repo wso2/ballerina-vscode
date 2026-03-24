@@ -5,5 +5,216 @@
   "queryMap": {
     "q": "grpc"
   },
-  "categories": []
+  "categories": [
+    {
+      "metadata": {
+        "label": "gRPC ClientOAuth2Handler",
+        "description": "This module provides APIs for connecting and interacting with gRPC endpoints. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.4.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "grpc",
+        "packageName": "grpc",
+        "object": "ClientOAuth2Handler",
+        "symbol": "init",
+        "version": "1.14.4",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "gRPC Streaming",
+        "description": "This module provides APIs for connecting and interacting with gRPC endpoints. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.4.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "grpc",
+        "packageName": "grpc",
+        "object": "StreamingClient",
+        "symbol": "init",
+        "version": "1.14.4",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "gRPC ServerReflectionServerReflectionResponseCaller",
+        "description": "This module provides APIs for connecting and interacting with gRPC endpoints. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.4.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "grpc",
+        "packageName": "grpc",
+        "object": "ServerReflectionServerReflectionResponseCaller",
+        "symbol": "init",
+        "version": "1.14.4",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "gRPC ListenerOAuth2Handler",
+        "description": "This module provides APIs for connecting and interacting with gRPC endpoints. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.4.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "grpc",
+        "packageName": "grpc",
+        "object": "ListenerOAuth2Handler",
+        "symbol": "init",
+        "version": "1.14.4",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "gRPC",
+        "description": "This module provides APIs for connecting and interacting with gRPC endpoints. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.4.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "grpc",
+        "packageName": "grpc",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.14.4",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "gRPC Caller",
+        "description": "This module provides APIs for connecting and interacting with gRPC endpoints. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.4.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "grpc",
+        "packageName": "grpc",
+        "object": "Caller",
+        "symbol": "init",
+        "version": "1.14.4",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "gRPC ListenerLdapUserStoreBasicAuthHandler",
+        "description": "This module provides APIs for connecting and interacting with gRPC endpoints. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.4.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "grpc",
+        "packageName": "grpc",
+        "object": "ListenerLdapUserStoreBasicAuthHandler",
+        "symbol": "init",
+        "version": "1.14.4",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "GRPCComponent HelloWorldStringCaller",
+        "description": "A simple GRPC Service implementation.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/architecturecomponents_GRPCComponent_1.1.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "architecturecomponents",
+        "module": "GRPCComponent",
+        "packageName": "GRPCComponent",
+        "object": "HelloWorldStringCaller",
+        "symbol": "init",
+        "version": "1.1.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "GRPCComponent HelloWorld",
+        "description": "A simple GRPC Service implementation.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/architecturecomponents_GRPCComponent_1.1.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "architecturecomponents",
+        "module": "GRPCComponent",
+        "packageName": "GRPCComponent",
+        "object": "HelloWorldClient",
+        "symbol": "init",
+        "version": "1.1.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Grpc_client UserService",
+        "description": "gRPC sample client",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/sumudunissanka_grpc_client_0.1.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "sumudunissanka",
+        "module": "grpc_client",
+        "packageName": "grpc_client",
+        "object": "UserServiceClient",
+        "symbol": "init",
+        "version": "0.1.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    }
+  ]
 }

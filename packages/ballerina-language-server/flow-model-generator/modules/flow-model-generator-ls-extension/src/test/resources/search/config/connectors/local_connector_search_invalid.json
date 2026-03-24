@@ -8,30 +8,9 @@
   "categories": [
     {
       "metadata": {
-        "label": "Trello",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_trello_2.0.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "trello",
-        "packageName": "trello",
-        "object": "Client",
-        "symbol": "init",
-        "version": "2.0.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Dayforce",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_dayforce_0.1.0.png",
+        "label": "Twilio",
+        "description": "Twilio is a cloud communications platform that allows software developers to programmatically make and receive phone calls, send and receive text messages, and perform other communication functions using its web service APIs. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_twilio_5.0.1.png",
         "data": {
           "isAgentSupport": true
         }
@@ -39,20 +18,188 @@
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "dayforce",
-        "packageName": "dayforce",
+        "module": "twilio",
+        "packageName": "twilio",
         "object": "Client",
         "symbol": "init",
-        "version": "0.1.0",
+        "version": "5.0.1",
         "isGenerated": false
       },
       "enabled": true
     },
     {
       "metadata": {
-        "label": "Ctg",
-        "description": "IBM CTG client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ibm.ctg_0.1.1.png",
+        "label": "HTTP ClientOAuth2Handler",
+        "description": "This module provides APIs for connecting and interacting with HTTP and HTTP2 endpoints. It facilitates two types of network entry points as the `Client` and `Listener`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "http",
+        "packageName": "http",
+        "object": "ClientOAuth2Handler",
+        "symbol": "init",
+        "version": "2.16.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "HTTP StatusCode",
+        "description": "This module provides APIs for connecting and interacting with HTTP and HTTP2 endpoints. It facilitates two types of network entry points as the `Client` and `Listener`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "http",
+        "packageName": "http",
+        "object": "StatusCodeClient",
+        "symbol": "init",
+        "version": "2.16.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "HTTP Failover",
+        "description": "This module provides APIs for connecting and interacting with HTTP and HTTP2 endpoints. It facilitates two types of network entry points as the `Client` and `Listener`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "http",
+        "packageName": "http",
+        "object": "FailoverClient",
+        "symbol": "init",
+        "version": "2.16.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "HTTP ListenerOAuth2Handler",
+        "description": "This module provides APIs for connecting and interacting with HTTP and HTTP2 endpoints. It facilitates two types of network entry points as the `Client` and `Listener`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "http",
+        "packageName": "http",
+        "object": "ListenerOAuth2Handler",
+        "symbol": "init",
+        "version": "2.16.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "HTTP LoadBalance",
+        "description": "This module provides APIs for connecting and interacting with HTTP and HTTP2 endpoints. It facilitates two types of network entry points as the `Client` and `Listener`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "http",
+        "packageName": "http",
+        "object": "LoadBalanceClient",
+        "symbol": "init",
+        "version": "2.16.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "HTTP Caller",
+        "description": "This module provides APIs for connecting and interacting with HTTP and HTTP2 endpoints. It facilitates two types of network entry points as the `Client` and `Listener`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "http",
+        "packageName": "http",
+        "object": "Caller",
+        "symbol": "init",
+        "version": "2.16.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "HTTP",
+        "description": "This module provides APIs for connecting and interacting with HTTP and HTTP2 endpoints. It facilitates two types of network entry points as the `Client` and `Listener`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "http",
+        "packageName": "http",
+        "object": "Client",
+        "symbol": "init",
+        "version": "2.16.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "HTTP ListenerLdapUserStoreBasicAuthHandler",
+        "description": "This module provides APIs for connecting and interacting with HTTP and HTTP2 endpoints. It facilitates two types of network entry points as the `Client` and `Listener`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "http",
+        "packageName": "http",
+        "object": "ListenerLdapUserStoreBasicAuthHandler",
+        "symbol": "init",
+        "version": "2.16.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Sheets",
+        "description": "The [Google Sheets](https://developers.google.com/sheets/api) connector allows you to programmatically interact with Google Sheets, facilitating tasks such as data manipulation, analysis, and automation. It is compatible with [Google Sheets API v4](https://developers.google.com/sheets/api).",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_googleapis.sheets_3.5.2.png",
         "data": {
           "isAgentSupport": false
         }
@@ -60,242 +207,32 @@
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "ibm.ctg",
-        "packageName": "ibm.ctg",
+        "module": "googleapis.sheets",
+        "packageName": "googleapis.sheets",
         "object": "Client",
         "symbol": "init",
-        "version": "0.1.1",
+        "version": "3.5.2",
         "isGenerated": false
       },
       "enabled": true
     },
     {
       "metadata": {
-        "label": "OracleDB",
-        "description": "Represents a OracleDB client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_oracledb_1.14.1.png",
+        "label": "Twitter",
+        "description": "[Twitter(X)](https://about.twitter.com/) is a widely-used social networking service provided by X Corp., enabling users to post and interact with messages known as \"tweets\".",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_twitter_5.0.0.png",
         "data": {
-          "isAgentSupport": false
+          "isAgentSupport": true
         }
       },
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "oracledb",
-        "packageName": "oracledb",
+        "module": "twitter",
+        "packageName": "twitter",
         "object": "Client",
         "symbol": "init",
-        "version": "1.14.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Redshift",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.redshift_1.2.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "aws.redshift",
-        "packageName": "aws.redshift",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.2.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Onedrive",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_microsoft.onedrive_3.0.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "microsoft.onedrive",
-        "packageName": "microsoft.onedrive",
-        "object": "Client",
-        "symbol": "init",
-        "version": "3.0.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Marketing",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mailchimp.marketing_1.0.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "mailchimp.marketing",
-        "packageName": "mailchimp.marketing",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.0.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Transactional",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mailchimp.transactional_1.0.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "mailchimp.transactional",
-        "packageName": "mailchimp.transactional",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.0.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Secretmanager",
-        "description": "AWS Secret Manager client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.secretmanager_0.3.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "aws.secretmanager",
-        "packageName": "aws.secretmanager",
-        "object": "Client",
-        "symbol": "init",
-        "version": "0.3.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "PostgreSQL",
-        "description": "Represents a PostgreSQL database client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.16.2.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "postgresql",
-        "packageName": "postgresql",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.16.2",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Jdbc",
-        "description": "Represents a JDBC client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_java.jdbc_1.14.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "java.jdbc",
-        "packageName": "java.jdbc",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.14.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Snowflake",
-        "description": "Represents a Snowflake database client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "snowflake",
-        "packageName": "snowflake",
-        "object": "Client",
-        "symbol": "init",
-        "version": "2.2.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Mpe",
-        "description": "AWS Marketplace entitlement client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.marketplace.mpe_0.2.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "aws.marketplace.mpe",
-        "packageName": "aws.marketplace.mpe",
-        "object": "Client",
-        "symbol": "init",
-        "version": "0.2.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Mpm",
-        "description": "AWS Marketplace metering client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.marketplace.mpm_0.2.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "aws.marketplace.mpm",
-        "packageName": "aws.marketplace.mpm",
-        "object": "Client",
-        "symbol": "init",
-        "version": "0.2.0",
+        "version": "5.0.0",
         "isGenerated": false
       },
       "enabled": true
@@ -303,7 +240,7 @@
     {
       "metadata": {
         "label": "Websocket",
-        "description": "Represents a WebSocket synchronous client endpoint.",
+        "description": "This module provides APIs for connecting and interacting with WebSocket endpoints. ",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_websocket_2.15.1.png",
         "data": {
           "isAgentSupport": false
@@ -323,72 +260,30 @@
     },
     {
       "metadata": {
-        "label": "Forms",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_hubspot.marketing.forms_1.0.0.png",
+        "label": "Websocket Caller",
+        "description": "This module provides APIs for connecting and interacting with WebSocket endpoints. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_websocket_2.15.1.png",
         "data": {
-          "isAgentSupport": true
+          "isAgentSupport": false
         }
       },
       "codedata": {
         "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "hubspot.marketing.forms",
-        "packageName": "hubspot.marketing.forms",
-        "object": "Client",
+        "org": "ballerina",
+        "module": "websocket",
+        "packageName": "websocket",
+        "object": "Caller",
         "symbol": "init",
-        "version": "1.0.0",
+        "version": "2.15.1",
         "isGenerated": false
       },
       "enabled": true
     },
     {
       "metadata": {
-        "label": "Import",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_hubspot.crm.import_4.0.0.png",
-        "data": {
-          "isAgentSupport": true
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "hubspot.crm.import",
-        "packageName": "hubspot.crm.import",
-        "object": "Client",
-        "symbol": "init",
-        "version": "4.0.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Emails",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_hubspot.marketing.emails_1.0.0.png",
-        "data": {
-          "isAgentSupport": true
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "hubspot.marketing.emails",
-        "packageName": "hubspot.marketing.emails",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.0.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Associations",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_hubspot.crm.associations_2.0.0.png",
+        "label": "Jdbc",
+        "description": "This package provides the functionality that is required to access and manipulate data stored in any type of relational database,",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_java.jdbc_1.14.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -396,32 +291,137 @@
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "hubspot.crm.associations",
-        "packageName": "hubspot.crm.associations",
+        "module": "java.jdbc",
+        "packageName": "java.jdbc",
         "object": "Client",
         "symbol": "init",
-        "version": "2.0.0",
+        "version": "1.14.1",
         "isGenerated": false
       },
       "enabled": true
     },
     {
       "metadata": {
-        "label": "Campaigns",
-        "description": "",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_hubspot.marketing.campaigns_2.0.0.png",
+        "label": "GraphQL",
+        "description": "This module provides APIs for connecting and interacting with GraphQL endpoints.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.17.0.png",
         "data": {
-          "isAgentSupport": true
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerina",
+        "module": "graphql",
+        "packageName": "graphql",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.17.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Bulkv2",
+        "description": "Salesforce Sales Cloud is one of the leading Customer Relationship Management(CRM) software, provided by Salesforce.Inc. Salesforce enable users to efficiently manage sales and customer relationships through its APIs, robust and secure databases, and analytics services. Sales cloud provides serveral API packages to make operations on sObjects and metadata, execute queries and searches, and listen to change events through API calls using REST, SOAP, and CometD protocols. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.4.0.png",
+        "data": {
+          "isAgentSupport": false
         }
       },
       "codedata": {
         "node": "NEW_CONNECTION",
         "org": "ballerinax",
-        "module": "hubspot.marketing.campaigns",
-        "packageName": "hubspot.marketing.campaigns",
+        "module": "salesforce.bulkv2",
+        "packageName": "salesforce",
         "object": "Client",
         "symbol": "init",
-        "version": "2.0.0",
+        "version": "8.4.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Soap",
+        "description": "Salesforce Sales Cloud is one of the leading Customer Relationship Management(CRM) software, provided by Salesforce.Inc. Salesforce enable users to efficiently manage sales and customer relationships through its APIs, robust and secure databases, and analytics services. Sales cloud provides serveral API packages to make operations on sObjects and metadata, execute queries and searches, and listen to change events through API calls using REST, SOAP, and CometD protocols. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.4.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "salesforce.soap",
+        "packageName": "salesforce",
+        "object": "Client",
+        "symbol": "init",
+        "version": "8.4.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Apex",
+        "description": "Salesforce Sales Cloud is one of the leading Customer Relationship Management(CRM) software, provided by Salesforce.Inc. Salesforce enable users to efficiently manage sales and customer relationships through its APIs, robust and secure databases, and analytics services. Sales cloud provides serveral API packages to make operations on sObjects and metadata, execute queries and searches, and listen to change events through API calls using REST, SOAP, and CometD protocols. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.4.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "salesforce.apex",
+        "packageName": "salesforce",
+        "object": "Client",
+        "symbol": "init",
+        "version": "8.4.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Bulk",
+        "description": "Salesforce Sales Cloud is one of the leading Customer Relationship Management(CRM) software, provided by Salesforce.Inc. Salesforce enable users to efficiently manage sales and customer relationships through its APIs, robust and secure databases, and analytics services. Sales cloud provides serveral API packages to make operations on sObjects and metadata, execute queries and searches, and listen to change events through API calls using REST, SOAP, and CometD protocols. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.4.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "salesforce.bulk",
+        "packageName": "salesforce",
+        "object": "Client",
+        "symbol": "init",
+        "version": "8.4.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Salesforce",
+        "description": "Salesforce Sales Cloud is one of the leading Customer Relationship Management(CRM) software, provided by Salesforce.Inc. Salesforce enable users to efficiently manage sales and customer relationships through its APIs, robust and secure databases, and analytics services. Sales cloud provides serveral API packages to make operations on sObjects and metadata, execute queries and searches, and listen to change events through API calls using REST, SOAP, and CometD protocols. ",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.4.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "salesforce",
+        "packageName": "salesforce",
+        "object": "Client",
+        "symbol": "init",
+        "version": "8.4.0",
         "isGenerated": false
       },
       "enabled": true
