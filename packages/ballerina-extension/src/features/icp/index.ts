@@ -1,1 +1,1 @@
-export { activateICP } from './activator';
+export { activateICP, isICPServerRunning, ensureICPServerRunning } from './activator';

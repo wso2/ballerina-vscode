@@ -49,6 +49,7 @@ import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from "../../utils/p
 import { selectPackageOrPrompt, needsProjectDiscovery, requiresPackageSelection } from "../../utils/command-utils";
 import { findWorkspaceTypeFromWorkspaceFolders } from "../../rpc-managers/common/utils";
 import { MESSAGES } from "../project";
+import { ensureICPServerRunning } from "../icp";
 
 const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 const TRACE_SERVER_OFF = "off";
@@ -60,11 +61,27 @@ export function activate(context: BallerinaExtension) {
     // Set context for command visibility
     commands.executeCommand('setContext', 'ballerina.bi.workspaceSupported', isWorkspaceSupported);
 
-    commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, () => {
+    commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, async () => {
         const stateMachineContext = StateMachine.context();
         const { workspacePath, view, projectPath, projectInfo } = stateMachineContext;
         const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
         const hasActiveTextEditor = !!window.activeTextEditor;
+
+        // Check if ICP is enabled for this project
+        if (projectPath && stateMachineContext.langClient) {
+            try {
+                const icpStatus = await stateMachineContext.langClient.isIcpEnabled({ projectPath });
+                if (icpStatus && 'enabled' in icpStatus && icpStatus.enabled) {
+                    const proceed = await ensureICPServerRunning();
+                    if (!proceed) {
+                        return;
+                    }
+                }
+            } catch (error) {
+                // ICP check failed, continue with run
+                console.error('[ICP] Error checking ICP status:', error);
+            }
+        }
 
         const needsPackageSelection = requiresPackageSelection(
             workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor
