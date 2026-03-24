@@ -129,6 +129,67 @@ function buildTestCommand(test: TestItem, executor: string, projectName: string 
     }
 }
 
+async function handleEvalReport(run: TestRun, testItems: TestItem[], timeElapsed: number, projectPath: string, individualTest: boolean = false) {
+    const reportPath = await findLatestEvaluationReport(projectPath);
+
+    if (!reportPath) {
+        testItems.forEach(item => run.failed(item, new TestMessage('No evaluation report found'), timeElapsed));
+        return;
+    }
+
+    // Read evaluation report for individual test results
+    const reportJson = await readTestJson(reportPath);
+
+    // moduleStatus can be at top level or nested under packages[]
+    let moduleStatus;
+    if (reportJson && reportJson["packages"]) {
+        const projectName = path.basename(projectPath);
+        const packages = reportJson["packages"];
+        const matchingPackage = packages.find((pkg: any) => pkg["projectName"] === projectName);
+        moduleStatus = matchingPackage?.["moduleStatus"] || packages[0]?.["moduleStatus"];
+    } else if (reportJson) {
+        moduleStatus = reportJson["moduleStatus"];
+    }
+
+    if (moduleStatus) {
+        for (const test of testItems) {
+            let found = false;
+            for (const status of moduleStatus) {
+                const testResults = status["tests"] || [];
+                for (const testResult of testResults) {
+                    if (testResult.name !== test.label && !testResult.name.startsWith(`${test.label}#`)) {
+                        continue;
+                    }
+                    if (testResult.status === TEST_STATUS.PASSED) {
+                        run.passed(test, timeElapsed);
+                        found = true;
+                    } else if (testResult.status === TEST_STATUS.FAILED) {
+                        run.failed(test, new TestMessage(testResult.failureMessage || 'Evaluation failed'), timeElapsed);
+                        found = true;
+                    } else if (testResult.status === TEST_STATUS.SKIPPED) {
+                        run.skipped(test);
+                        found = true;
+                    }
+                }
+                if (found) { break; }
+            }
+            if (!found && !individualTest) {
+                run.failed(test, new TestMessage('Test not found in evaluation results'), timeElapsed);
+            }
+        }
+    } else {
+        testItems.forEach(item => run.failed(item, new TestMessage('Could not read evaluation results'), timeElapsed));
+    }
+
+    // Post-process and open the report
+    try {
+        await postProcessEvaluationReport(reportPath, projectPath);
+        await openEvaluationReport(reportPath);
+    } catch (error) {
+        console.error('Error processing evaluation report:', error);
+    }
+}
+
 async function postProcessEvaluationReport(reportPath: string, workingDirectory: string): Promise<void> {
     const gitState = await captureGitState(workingDirectory);
 
@@ -227,18 +288,11 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 if (isAiEvaluations(test)) {
-                    testItems.forEach(item => run.passed(item, timeElapsed));
-
-                    endGroup(test, true, run);
-                    try {
-                        const reportPath = await findLatestEvaluationReport(projectPath);
-                        if (reportPath) {
-                            await postProcessEvaluationReport(reportPath, projectPath);
-                            await openEvaluationReport(reportPath);
-                        }
-                    } catch (error) {
-                        console.error('Error processing evaluation report:', error);
-                    }
+                    handleEvalReport(run, testItems, timeElapsed, projectPath).then(() => {
+                        endGroup(test, true, run);
+                    }).catch(() => {
+                        endGroup(test, false, run);
+                    });
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                         endGroup(test, true, run);
@@ -251,17 +305,11 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 if (isAiEvaluations(test)) {
-                    testItems.forEach(item => run.failed(item, new TestMessage('Evaluation failed'), timeElapsed));
-                    endGroup(test, false, run);
-                    try {
-                        const reportPath = await findLatestEvaluationReport(projectPath);
-                        if (reportPath) {
-                            await postProcessEvaluationReport(reportPath, projectPath);
-                            await openEvaluationReport(reportPath);
-                        }
-                    } catch (error) {
-                        console.error('Error processing evaluation report:', error);
-                    }
+                    handleEvalReport(run, testItems, timeElapsed, projectPath).then(() => {
+                        endGroup(test, true, run);
+                    }).catch(() => {
+                        endGroup(test, false, run);
+                    });
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                         endGroup(test, true, run);
@@ -290,17 +338,11 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 if (isAiEvaluations(test)) {
-                    testItems.forEach(item => run.passed(item, timeElapsed));
-                    endGroup(test, true, run);
-                    try {
-                        const reportPath = await findLatestEvaluationReport(projectPath);
-                        if (reportPath) {
-                            await postProcessEvaluationReport(reportPath, projectPath);
-                            await openEvaluationReport(reportPath);
-                        }
-                    } catch (error) {
-                        console.error('Error processing evaluation report:', error);
-                    }
+                    handleEvalReport(run, testItems, timeElapsed, projectPath).then(() => {
+                        endGroup(test, true, run);
+                    }).catch(() => {
+                        endGroup(test, false, run);
+                    });
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                         endGroup(test, true, run);
@@ -313,17 +355,11 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 if (isAiEvaluations(test)) {
-                    testItems.forEach(item => run.failed(item, new TestMessage('Evaluation failed'), timeElapsed));
-                    endGroup(test, false, run);
-                    try {
-                        const reportPath = await findLatestEvaluationReport(projectPath);
-                        if (reportPath) {
-                            await postProcessEvaluationReport(reportPath, projectPath);
-                            await openEvaluationReport(reportPath);
-                        }
-                    } catch (error) {
-                        console.error('Error processing evaluation report:', error);
-                    }
+                    handleEvalReport(run, testItems, timeElapsed, projectPath).then(() => {
+                        endGroup(test, true, run);
+                    }).catch(() => {
+                        endGroup(test, false, run);
+                    });
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
                         endGroup(test, true, run);
@@ -353,17 +389,11 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 if (isAiEvaluations(test)) {
-                    run.passed(test, timeElapsed);
-                    endGroup(test, true, run);
-                    try {
-                        const reportPath = await findLatestEvaluationReport(projectPath);
-                        if (reportPath) {
-                            await postProcessEvaluationReport(reportPath, projectPath);
-                            await openEvaluationReport(reportPath);
-                        }
-                    } catch (error) {
-                        console.error('Error processing evaluation report:', error);
-                    }
+                    handleEvalReport(run, testItems, timeElapsed, projectPath, true).then(() => {
+                        endGroup(test, true, run);
+                    }).catch(() => {
+                        endGroup(test, false, run);
+                    });
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
                         endGroup(test, true, run);
@@ -376,17 +406,11 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 if (isAiEvaluations(test)) {
-                    run.failed(test, new TestMessage('Evaluation failed'), timeElapsed);
-                    endGroup(test, false, run);
-                    try {
-                        const reportPath = await findLatestEvaluationReport(projectPath);
-                        if (reportPath) {
-                            await postProcessEvaluationReport(reportPath, projectPath);
-                            await openEvaluationReport(reportPath);
-                        }
-                    } catch (error) {
-                        console.error('Error processing evaluation report:', error);
-                    }
+                    handleEvalReport(run, testItems, timeElapsed, projectPath, true).then(() => {
+                        endGroup(test, true, run);
+                    }).catch(() => {
+                        endGroup(test, false, run);
+                    });
                 } else {
                     reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
                         endGroup(test, true, run);
