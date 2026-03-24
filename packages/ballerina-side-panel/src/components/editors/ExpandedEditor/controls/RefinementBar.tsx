@@ -98,37 +98,6 @@ const SendButton = styled.button`
     }
 `;
 
-const ChipsRow = styled.div`
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    align-items: center;
-`;
-
-const Chip = styled.button`
-    padding: 4px 8px;
-    font-size: 11px;
-    border-radius: 4px;
-    border: 1px solid var(--vscode-button-secondaryHoverBackground);
-    background-color: transparent;
-    color: var(--vscode-descriptionForeground);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-
-    &:hover:not(:disabled) {
-        background-color: var(--vscode-button-secondaryHoverBackground);
-        color: var(--vscode-foreground);
-        border-color: var(--vscode-button-secondaryHoverBackground);
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-`;
-
 const FooterRow = styled.div`
     display: flex;
     align-items: center;
@@ -171,31 +140,6 @@ const ActionGroup = styled.div`
     display: flex;
     gap: 8px;
 `;
-
-type QuickChip = { label: string; instruction: string };
-
-const CHIPS_BY_MODE: Record<PromptMode, QuickChip[]> = {
-    [PromptMode.ROLE]: [
-        { label: "Shorten", instruction: "Make it shorter and more concise" },
-        { label: "Clarify Persona", instruction: "Clarify the persona and identity" },
-        { label: "Adjust Tone", instruction: "Adjust the tone" },
-    ],
-    [PromptMode.INSTRUCTIONS]: [
-        { label: "Shorten", instruction: "Make it shorter and more concise" },
-        { label: "Elaborate", instruction: "Make it more detailed and elaborate" },
-        { label: "Add Steps", instruction: "Add step-by-step reasoning" },
-    ],
-    [PromptMode.QUERY]: [
-        { label: "Be Specific", instruction: "Be more specific about what's expected" },
-        { label: "Add Context", instruction: "Add more context to the query" },
-        { label: "Simplify", instruction: "Simplify the query" },
-    ],
-    [PromptMode.DEFAULT]: [
-        { label: "Shorten", instruction: "Make it shorter and more concise" },
-        { label: "Elaborate", instruction: "Make it more detailed and elaborate" },
-        { label: "Add Examples", instruction: "Add concrete examples" },
-    ],
-};
 
 export const RefinementBar: React.FC<RefinementBarProps> = ({
     onRefine,
@@ -245,18 +189,6 @@ export const RefinementBar: React.FC<RefinementBarProps> = ({
                         <Icon name="bi-send" sx={{ fontSize: "16px", width: "16px", height: "16px" }} />
                     </SendButton>
                 </InputWrapper>
-
-                <ChipsRow>
-                    {CHIPS_BY_MODE[promptMode].map((chip) => (
-                        <Chip
-                            key={chip.label}
-                            onClick={() => onRefine(chip.instruction)}
-                            disabled={isEnhancing}
-                        >
-                            {chip.label}
-                        </Chip>
-                    ))}
-                </ChipsRow>
             </InputSection>
 
             <FooterRow>

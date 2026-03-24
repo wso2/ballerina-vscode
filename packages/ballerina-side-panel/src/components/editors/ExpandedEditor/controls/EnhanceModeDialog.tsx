@@ -127,98 +127,11 @@ const DialogActions = styled.div`
     border-top: 1px solid ${ThemeColors.OUTLINE_VARIANT};
 `;
 
-const DisclaimerText = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 10px;
-    color: var(--vscode-descriptionForeground);
-    opacity: 0.7;
-`;
-
-const SuggestionsSection = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-`;
-
-const SuggestionsLabel = styled.div`
-    font-size: 11px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    opacity: 0.8;
-`;
-
-const SuggestionPills = styled.div`
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-`;
-
-const SuggestionPill = styled.button<{ isSelected?: boolean }>`
-    padding: 4px 10px;
-    font-size: 11px;
-    border-radius: 6px;
-    border: 1px solid ${props => props.isSelected ? ThemeColors.PRIMARY : 'var(--vscode-panel-border)'};
-    background-color: ${props => props.isSelected
-        ? `color-mix(in srgb, ${ThemeColors.PRIMARY} 14%, transparent)`
-        : ThemeColors.SURFACE};
-    color: ${props => props.isSelected ? ThemeColors.PRIMARY : ThemeColors.ON_SURFACE};
-    cursor: pointer;
-    transition: all 0.15s ease;
-    font-family: inherit;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-
-    &:hover:not(:disabled) {
-        background-color: ${props => props.isSelected
-        ? `color-mix(in srgb, ${ThemeColors.PRIMARY} 20%, transparent)`
-        : 'var(--vscode-list-hoverBackground)'};
-        border-color: ${ThemeColors.PRIMARY};
-    }
-
-    &:disabled {
-        cursor: not-allowed;
-        opacity: 0.5;
-    }
-`;
-
 const DescriptionText = styled.div`
     font-size: 13px;
     color: ${ThemeColors.ON_SURFACE_VARIANT};
     margin-bottom: 4px;
 `;
-
-const SUGGESTIONS_BY_MODE: Record<PromptMode, string[]> = {
-    [PromptMode.ROLE]: [
-        "Make it more concise",
-        "Clarify the persona",
-        "Add domain expertise",
-        "Adjust the tone"
-    ],
-    [PromptMode.INSTRUCTIONS]: [
-        "Make it shorter",
-        "Make it more detailed",
-        "Add step-by-step reasoning",
-        "Define output format",
-        "Add error handling",
-        "Fix vague instructions"
-    ],
-    [PromptMode.QUERY]: [
-        "Be more specific",
-        "Add context",
-        "Break into sub-questions",
-        "Define expected output"
-    ],
-    [PromptMode.DEFAULT]: [
-        "Make it shorter",
-        "Make it more detailed",
-        "Add examples",
-        "Add step-by-step reasoning",
-        "Define output format",
-        "Fix vague instructions"
-    ]
-};
 
 export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
     isOpen,
@@ -228,23 +141,18 @@ export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
     promptMode = PromptMode.DEFAULT
 }) => {
     const [customInstructions, setCustomInstructions] = useState("");
-    const [selectedSuggestions, setSelectedSuggestions] = useState<Set<string>>(new Set());
     const [selectedMode, setSelectedMode] = useState<PromptMode>(promptMode);
 
     // Reset state when dialog opens
     useEffect(() => {
         if (isOpen) {
             setCustomInstructions("");
-            setSelectedSuggestions(new Set());
             setSelectedMode(promptMode);
         }
     }, [isOpen, promptMode]);
 
     const handleEnhanceTrigger = () => {
         const parts: string[] = [];
-        if (selectedSuggestions.size > 0) {
-            parts.push([...selectedSuggestions].join(". "));
-        }
         if (customInstructions.trim()) {
             parts.push(customInstructions.trim());
         }
@@ -255,22 +163,8 @@ export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
     const handleClose = () => {
         if (!isLoading) {
             setCustomInstructions("");
-            setSelectedSuggestions(new Set());
             onClose();
         }
-    };
-
-    const handleSuggestionClick = (suggestion: string) => {
-        if (isLoading) return;
-        setSelectedSuggestions(prev => {
-            const next = new Set(prev);
-            if (next.has(suggestion)) {
-                next.delete(suggestion);
-            } else {
-                next.add(suggestion);
-            }
-            return next;
-        });
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -313,25 +207,6 @@ export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
                             Let AI polish and refine your prompt. Select any quick options below, or add your own instructions.
                         </DescriptionText>
 
-                        <SuggestionsSection>
-                            <SuggestionsLabel>Quick options</SuggestionsLabel>
-                            <SuggestionPills>
-                                {SUGGESTIONS_BY_MODE[selectedMode].map((suggestion) => (
-                                    <SuggestionPill
-                                        key={suggestion}
-                                        isSelected={selectedSuggestions.has(suggestion)}
-                                        onClick={() => handleSuggestionClick(suggestion)}
-                                        disabled={isLoading}
-                                    >
-                                        {selectedSuggestions.has(suggestion) && (
-                                            <Icon name="bi-check" sx={{ fontSize: '12px', width: '12px', height: '12px' }} />
-                                        )}
-                                        {suggestion}
-                                    </SuggestionPill>
-                                ))}
-                            </SuggestionPills>
-                        </SuggestionsSection>
-
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <SectionTitle>
                                 <span style={{ fontWeight: 600 }}>Custom instructions</span> (Optional)
@@ -345,10 +220,6 @@ export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
                                 style={{ fontSize: '13px', fontFamily: 'inherit', width: '100%' }}
                             />
                         </div>
-
-                        <DisclaimerText>
-                            <span>AI-generated enhancements may differ from your original. Review before accepting.</span>
-                        </DisclaimerText>
                     </PopupContent>
 
                     <DialogActions>
