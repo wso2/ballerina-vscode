@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { EditorView as CodeMirrorView } from "@codemirror/view";
 import { EditorView as ProseMirrorView } from "prosemirror-view";
 import { EditorState as ProseMirrorState } from "prosemirror-state";
@@ -67,7 +67,8 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
     rawExpression,
     error,
     formDiagnostics,
-    inputMode
+    inputMode,
+    onAIStatusChange
 }) => {
     const isSimpleMode = SIMPLE_PROMPT_FIELDS.includes(field.key) && !getHelperPane;
     const detectedMode = getPromptModeForField(field.key);
@@ -89,6 +90,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
     const enhancedPromptRef = useRef<string>("");
     const lastModeRef = useRef<PromptModeEnum>(PromptModeEnum.DEFAULT);
     const lastInstructionsRef = useRef<string | undefined>(undefined);
+    const isGenerationRef = useRef<boolean>(false);
     const { rpcClient } = useRpcContext();
 
     // Version history
@@ -97,6 +99,21 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
 
     // Diff view
     const [showDiff, setShowDiff] = useState<boolean>(false);
+
+    // Notify parent of AI status for header pill
+    useEffect(() => {
+        if (!onAIStatusChange) return;
+        if (enhancementState.mode === 'preview') {
+            const isOnOriginal = !isGenerationRef.current && currentVersionIndex === 0;
+            if (isOnOriginal) {
+                onAIStatusChange("Original");
+            } else {
+                onAIStatusChange(isGenerationRef.current ? "AI Generated" : "AI Enhanced");
+            }
+        } else {
+            onAIStatusChange(null);
+        }
+    }, [enhancementState.mode, currentVersionIndex, onAIStatusChange]);
 
     const handleChange = (updatedValue: string, updatedCursorPosition: number) => {
         onChange(updatedValue, updatedCursorPosition);
@@ -150,7 +167,6 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
 
     const handleEnhanceClick = async () => {
         const currentPrompt = getCurrentPrompt();
-        if (!currentPrompt.trim()) return;
 
         // Check authentication before opening the dialog
         try {
@@ -164,6 +180,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
             return;
         }
 
+        isGenerationRef.current = !currentPrompt.trim();
         originalPromptRef.current = currentPrompt;
         setEnhancementState({ mode: 'selecting' });
     };
@@ -174,11 +191,17 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
         setEnhancementState({ mode: 'enhancing' });
 
         try {
-            const request: PromptEnhancementRequest = {
-                originalPrompt: originalPromptRef.current,
-                additionalInstructions: instructions,
-                mode: mode
-            };
+            const request: PromptEnhancementRequest = isGenerationRef.current
+                ? {
+                    originalPrompt: instructions || "",
+                    mode: mode,
+                    isGeneration: true
+                }
+                : {
+                    originalPrompt: originalPromptRef.current,
+                    additionalInstructions: instructions,
+                    mode: mode
+                };
 
             const result = await rpcClient.getAiPanelRpcClient().enhancePrompt(request);
 
@@ -192,9 +215,15 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                 : proseMirrorView?.state.selection.head || 0;
             onChange(result.enhancedPrompt, cursorPos);
 
-            // Initialize version history: [original, enhanced]
-            versionHistoryRef.current = [originalPromptRef.current, result.enhancedPrompt];
-            setCurrentVersionIndex(1);
+            // Initialize version history
+            if (isGenerationRef.current) {
+                // No original to go back to for generation
+                versionHistoryRef.current = [result.enhancedPrompt];
+                setCurrentVersionIndex(0);
+            } else {
+                versionHistoryRef.current = [originalPromptRef.current, result.enhancedPrompt];
+                setCurrentVersionIndex(1);
+            }
 
             setEnhancementState({
                 mode: 'preview',
@@ -273,6 +302,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
         originalPromptRef.current = "";
         enhancedPromptRef.current = "";
         lastInstructionsRef.current = undefined;
+        isGenerationRef.current = false;
         versionHistoryRef.current = [];
         setCurrentVersionIndex(0);
 
@@ -298,13 +328,17 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
         originalPromptRef.current = "";
         enhancedPromptRef.current = "";
         lastInstructionsRef.current = undefined;
+        isGenerationRef.current = false;
         versionHistoryRef.current = [];
         setCurrentVersionIndex(0);
     };
 
     const handleCloseDialog = () => {
         setEnhancementState({ mode: 'normal' });
+        isGenerationRef.current = false;
     };
+
+    const isEditorEmpty = !value || !value.trim();
 
     return (
         <>
@@ -320,6 +354,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                     onEnhanceClick={handleEnhanceClick}
                     isEnhancing={enhancementState.mode === 'enhancing'}
                     isInPreviewMode={enhancementState.mode === 'preview'}
+                    isEditorEmpty={isEditorEmpty}
                 />
             ) : (
                 <RichTemplateMarkdownToolbar
@@ -332,6 +367,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                     onEnhanceClick={handleEnhanceClick}
                     isEnhancing={enhancementState.mode === 'enhancing'}
                     isInPreviewMode={enhancementState.mode === 'preview'}
+                    isEditorEmpty={isEditorEmpty}
                 />
             )}
 
@@ -382,7 +418,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                             placeholder={field.placeholder}
                         />
                     )}
-                    {enhancementState.mode === 'enhancing' && <EnhancingOverlay />}
+                    {enhancementState.mode === 'enhancing' && <EnhancingOverlay label={isGenerationRef.current ? "Generating Prompt" : "Enhancing Prompt"} />}
                 </ConditionalEditorContainer>
             )}
 
@@ -417,6 +453,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                 onEnhance={handleEnhance}
                 onClose={handleCloseDialog}
                 promptMode={detectedMode}
+                isGeneration={isGenerationRef.current}
             />
         </>
     );

@@ -122,16 +122,20 @@ const LoadingText = styled.div`
     }
 `;
 
-export const EnhancingOverlay: React.FC = () => {
+interface EnhancingOverlayProps {
+    label?: string;
+}
+
+export const EnhancingOverlay: React.FC<EnhancingOverlayProps> = ({ label = "Enhancing Prompt" }) => {
     return (
-        <OverlayContainer role="status" aria-label="Enhancing prompt">
+        <OverlayContainer role="status" aria-label={label}>
             <ContentWrapper>
                 <ProgressRing
                     sx={{ width: "16px", height: "16px" }}
                     color={ThemeColors.ON_SURFACE}
                 />
                 <LoadingText>
-                    Enhancing Prompt
+                    {label}
                 </LoadingText>
             </ContentWrapper>
         </OverlayContainer>

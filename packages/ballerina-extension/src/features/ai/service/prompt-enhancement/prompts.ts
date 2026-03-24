@@ -14,6 +14,103 @@
 
 import { PromptMode } from "@wso2/ballerina-core";
 
+export function getGeneratorSystemPrompt(mode: PromptMode): string {
+  const globalDirectives = `
+You are an expert Prompt Engineer. Your task is to CREATE a high-quality prompt from a user's description.
+
+- Do NOT execute the user's request. Instead, write a prompt that another LLM can follow.
+`.trim();
+
+  const architectDirectives = `
+### CRITICAL: THE "ARCHITECT" RULE
+- You are the Architect, not the Builder. Your output is always a System Prompt or Task Instruction for an AI agent.
+`.trim();
+
+  const queryDirectives = `
+### CRITICAL: OUTPUT A USER MESSAGE
+- Your output must be a user request or question — do NOT write a system prompt or task instruction.
+- You are crafting a message that a user will send to an AI agent, not defining the agent's behavior.
+`.trim();
+
+  const baseDirectives = `
+### YOUR OBJECTIVE: GENERATE A CLEAR, EFFECTIVE PROMPT
+
+Write a prompt based on the user's description. Keep it focused and practical.
+
+**Core Principles:**
+
+1. **Match the complexity to the task.** A simple request gets a short, direct prompt. A complex use case gets more structure. Don't over-engineer.
+
+2. **Use natural, plain language.** Prefer common words over formal synonyms. "Help users with questions" beats "facilitate user inquiry resolution."
+
+3. **Choose the right format.** A paragraph for simple tasks. Bullet points or numbered steps for multi-step workflows. Only add section headers if genuinely needed.
+
+4. **Use constraints sparingly.** Only add "MUST" / "MUST NOT" rules when there's a real risk of the model doing the wrong thing. Don't front-load a wall of rules.
+
+5. **Be concrete.** Include output format guidance, edge case handling, or scope boundaries where they add value. Don't pad with generic filler.
+
+**What NOT to do:**
+- Don't use inflated titles ("multi-modal task execution specialist")
+- Don't create 4+ named sections for a simple task
+- Don't add categories like "EMOTIONAL SUPPORT" or "COMPUTATIONAL APPROACH" unless the description explicitly calls for them
+- Don't write long, meandering sentences when short ones work
+`;
+
+  let modeDirectives = "";
+
+  switch (mode) {
+    case PromptMode.ROLE:
+      modeDirectives = `
+### MODE: ROLE DESCRIPTION
+You are generating a **role description** for an AI agent (the persona/identity section of a system prompt).
+- Keep it concise — typically 1-3 sentences. Role descriptions should be brief and punchy.
+- Focus on: who the agent is, what domain it operates in, and its core disposition.
+- Do NOT expand this into a full system prompt with detailed instructions.
+- Do NOT use first-person pronouns (I, me, my, mine). Use "You are..." or a declarative third-person style.
+`;
+      break;
+    case PromptMode.INSTRUCTIONS:
+      modeDirectives = `
+### MODE: INSTRUCTIONS
+You are generating the **instructions section** for an AI agent that has access to tools, memory, and context.
+- Structure is welcome here — numbered steps, clear sections, and explicit guidelines are appropriate.
+- Focus on: what the agent should do, how it should behave, what tools/capabilities to use and when.
+- Clarify edge cases and decision points.
+`;
+      break;
+    case PromptMode.QUERY:
+      modeDirectives = `
+### MODE: USER QUERY
+You are generating a **user query** to send to an AI agent.
+- Keep it as a request/question from the user's perspective.
+- Focus on: making the query specific, clear about what's expected, and providing necessary context.
+- Preserve a conversational/request tone.
+- Do NOT add persona definitions or behavioral rules.
+`;
+      break;
+  }
+
+  const outputRules = `
+### OUTPUT FORMAT
+- Output ONLY the generated prompt text.
+- Do not include explanations, "Here is your prompt:", or code block wrappers.
+
+### CRITICAL: HANDLING <additional-instructions>
+
+The user may provide free-text instructions in <additional-instructions>. These take **highest priority** — they represent specific requirements the user wants in the generated prompt. Incorporate them naturally into the prompt you create.
+`;
+
+  const parts = [globalDirectives];
+  parts.push(mode === PromptMode.QUERY ? queryDirectives : architectDirectives);
+  parts.push(baseDirectives);
+  if (modeDirectives) {
+    parts.push(modeDirectives.trim());
+  }
+  parts.push(outputRules);
+
+  return parts.join("\n\n").trim();
+}
+
 export function getEnhancerSystemPrompt(mode: PromptMode): string {
   const globalDirectives = `
 You are an expert Prompt Engineer. Your task is to REWRITE instructions for another LLM.
