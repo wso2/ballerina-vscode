@@ -218,6 +218,8 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
     const helperPaneToggleButtonRef = useRef<HTMLButtonElement>(null);
     const toolbarRef = useRef<HTMLDivElement>(null);
     const pendingTokenFetchRef = useRef(false);
+    const readOnlyRef = useRef(readOnly);
+    readOnlyRef.current = readOnly;
 
     const { expressionEditor } = useFormContext();
     const rpcManager = expressionEditor?.rpcManager;
@@ -329,7 +331,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
         // Trigger onChange to update parent
         const serialized = customMarkdownSerializer.serialize(view.state.doc);
         const newEditorValue = sanitizeText(configuration.deserializeValue(serialized));
-        onChange(newEditorValue, cursorPosition);
+        onChange?.(newEditorValue, cursorPosition);
     };
 
     const fetchAndUpdateTokens = async (editorView: EditorView) => {
@@ -492,13 +494,13 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
             transformPastedText(text) {
                 return sanitizeText(text);
             },
-            editable: () => !readOnly,
+            editable: () => !readOnlyRef.current,
             dispatchTransaction(transaction) {
                 const newState = view.state.apply(transaction);
                 view.updateState(newState);
 
                 // Check if we should fetch tokens based on what was typed
-                if ((transaction as any).docChanged && !readOnly) {
+                if ((transaction as any).docChanged && !readOnlyRef.current) {
                     // Check if this is undo/redo
                     const meta = (transaction as any).getMeta('history$');
                     if (meta) {
@@ -526,7 +528,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                     const serialized = customMarkdownSerializer.serialize(newState.doc);
                     const newValue = sanitizeText(configuration.deserializeValue(serialized));
                     const cursorPos = (newState.selection as any).$head?.pos || 0;
-                    onChange(newValue, cursorPos);
+                    onChange?.(newValue, cursorPos);
                 }
             },
             handleDOMEvents: {

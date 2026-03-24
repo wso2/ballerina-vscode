@@ -539,20 +539,35 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, onViewSessio
     };
 
     // Compute actual start/end from span data for accurate timeline positioning
-    let earliestStart = new Date(traceData.firstSeen).getTime();
-    let latestEnd = new Date(traceData.lastSeen).getTime();
+    let earliestStart = Infinity;
+    let latestEnd = -Infinity;
     traceData.spans.forEach(span => {
         if (span.startTime) {
             const start = new Date(span.startTime).getTime();
-            if (start < earliestStart) earliestStart = start;
+            if (isFinite(start)) {
+                if (start < earliestStart) earliestStart = start;
+                if (start > latestEnd) latestEnd = start;
+            }
         }
         if (span.endTime) {
             const end = new Date(span.endTime).getTime();
-            if (end > latestEnd) latestEnd = end;
+            if (isFinite(end)) {
+                if (end > latestEnd) latestEnd = end;
+                if (end < earliestStart) earliestStart = end;
+            }
         }
     });
+    // Fall back to envelope times if no valid span timestamps were found
+    if (!isFinite(earliestStart)) {
+        const fallback = new Date(traceData.firstSeen).getTime();
+        earliestStart = isFinite(fallback) ? fallback : 0;
+    }
+    if (!isFinite(latestEnd)) {
+        const fallback = new Date(traceData.lastSeen).getTime();
+        latestEnd = isFinite(fallback) ? fallback : earliestStart;
+    }
     const traceStartTime = new Date(earliestStart).toISOString();
-    const duration = latestEnd - earliestStart;
+    const duration = Math.max(0, latestEnd - earliestStart);
 
     // Build span hierarchy
     const spanMap = new Map<string, SpanData>();

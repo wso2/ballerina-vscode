@@ -47,11 +47,11 @@ export const AIEnhancedEditorContainer = styled.div`
     padding: 1px;
     background: linear-gradient(
         90deg,
-        color-mix(in srgb, var(--vscode-button-background) 90%, var(--vscode-button-background) 10%) 0%,
-        color-mix(in srgb, var(--vscode-button-background) 80%, var(--vscode-button-background) 30%) 25%,
-        color-mix(in srgb, var(--vscode-button-background) 60%, var(--vscode-button-background) 20%) 50%,
-        color-mix(in srgb, var(--vscode-button-background) 40%, var(--vscode-button-background) 15%) 75%,
-        color-mix(in srgb, var(--vscode-button-background) 30%, var(--vscode-button-background) 10%) 100%
+        color-mix(in srgb, var(--vscode-button-background) 90%, transparent) 0%,
+        color-mix(in srgb, var(--vscode-button-background) 80%, transparent) 25%,
+        color-mix(in srgb, var(--vscode-button-background) 60%, transparent) 50%,
+        color-mix(in srgb, var(--vscode-button-background) 40%, transparent) 75%,
+        color-mix(in srgb, var(--vscode-button-background) 30%, transparent) 100%
     );
     background-size: 300% 300%;
     border-radius: 2px;

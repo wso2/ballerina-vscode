@@ -143,37 +143,37 @@ async function handleEvalReport(run: TestRun, testItems: TestItem[], timeElapsed
     // moduleStatus can be at top level or nested under packages[]
     let moduleStatus;
     if (reportJson && reportJson["packages"]) {
-        const projectName = path.basename(projectPath);
         const packages = reportJson["packages"];
-        const matchingPackage = packages.find((pkg: any) => pkg["projectName"] === projectName);
-        moduleStatus = matchingPackage?.["moduleStatus"] || packages[0]?.["moduleStatus"];
+        moduleStatus = packages.flatMap((pkg: any) => pkg["moduleStatus"] ?? []);
     } else if (reportJson) {
         moduleStatus = reportJson["moduleStatus"];
     }
 
     if (moduleStatus) {
         for (const test of testItems) {
-            let found = false;
+            const matches: { status: string; failureMessage?: string }[] = [];
             for (const status of moduleStatus) {
                 const testResults = status["tests"] || [];
                 for (const testResult of testResults) {
-                    if (testResult.name !== test.label && !testResult.name.startsWith(`${test.label}#`)) {
-                        continue;
-                    }
-                    if (testResult.status === TEST_STATUS.PASSED) {
-                        run.passed(test, timeElapsed);
-                        found = true;
-                    } else if (testResult.status === TEST_STATUS.FAILED) {
-                        run.failed(test, new TestMessage(testResult.failureMessage || 'Evaluation failed'), timeElapsed);
-                        found = true;
-                    } else if (testResult.status === TEST_STATUS.SKIPPED) {
-                        run.skipped(test);
-                        found = true;
+                    if (testResult.name === test.label || testResult.name.startsWith(`${test.label}#`)) {
+                        matches.push(testResult);
                     }
                 }
-                if (found) { break; }
             }
-            if (!found && !individualTest) {
+            if (matches.length > 0) {
+                const hasFailed = matches.some(m => m.status === TEST_STATUS.FAILED);
+                const hasSkipped = matches.some(m => m.status === TEST_STATUS.SKIPPED);
+                if (hasFailed) {
+                    const failureMessages = matches
+                        .filter(m => m.status === TEST_STATUS.FAILED)
+                        .map(m => m.failureMessage || 'Evaluation failed');
+                    run.failed(test, new TestMessage(failureMessages.join('\n')), timeElapsed);
+                } else if (hasSkipped) {
+                    run.skipped(test);
+                } else {
+                    run.passed(test, timeElapsed);
+                }
+            } else if (!individualTest) {
                 run.failed(test, new TestMessage('Test not found in evaluation results'), timeElapsed);
             }
         }

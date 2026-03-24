@@ -78,7 +78,10 @@ export async function enhancePrompt(
                     AIStateMachine.service().send(AIMachineEventType.LOGIN);
                 }
             });
-            throw new Error("Authentication expired. Please log in again.");
+            const errorMsg = error.message?.includes("Unsupported login method")
+                ? "Unsupported login method. Please use a supported sign-in method."
+                : "Authentication expired. Please log in again.";
+            throw new Error(errorMsg);
         }
 
         if (error.message?.includes("Network") || error.message?.includes("timeout") || error.message?.includes("Cannot connect to API")) {
