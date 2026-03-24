@@ -143,7 +143,7 @@
         "advanced": true,
         "hidden": true
       },
-      "options": {
+      "advanced": {
         "metadata": {
           "label": "Activity call configurations",
           "description": "Activity call configurations"

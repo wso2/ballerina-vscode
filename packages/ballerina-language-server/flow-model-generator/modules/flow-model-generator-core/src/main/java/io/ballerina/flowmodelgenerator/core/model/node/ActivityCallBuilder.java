@@ -74,7 +74,7 @@ public class ActivityCallBuilder extends CallBuilder {
     public static final String DESCRIPTION = "Call a workflow activity function";
     public static final String CALL_ACTIVITY_METHOD = "callActivity";
     public static final String DEFAULT_RETURN_TYPE = "anydata";
-    public static final String OPTIONS_PARAM_KEY = "options";
+    public static final String ADVANCED_PARAM_KEY = "advanced";
     public static final String ADVANCE_CONFIGURATIONS = "Activity call configurations";
     private static final Set<String> EXCLUDED_CALL_ACTIVITY_PARAMS = Set.of("activityFunction", "args", "T");
 
@@ -116,7 +116,7 @@ public class ActivityCallBuilder extends CallBuilder {
 
         builder.properties().nestedProperty();
         builder.setParameterProperties(callActivityData, module);
-        builder.properties().endNestedProperty(Property.ValueType.ADVANCE_PARAM_LIST, OPTIONS_PARAM_KEY,
+        builder.properties().endNestedProperty(Property.ValueType.ADVANCE_PARAM_LIST, ADVANCED_PARAM_KEY,
                 ADVANCE_CONFIGURATIONS, ADVANCE_CONFIGURATIONS);
     }
 
@@ -165,7 +165,7 @@ public class ActivityCallBuilder extends CallBuilder {
 
         Map<String, Property> properties = flowNode.properties();
         Set<String> excludedKeys = Set.of(Property.VARIABLE_KEY, Property.TYPE_KEY,
-                Property.CHECK_ERROR_KEY, OPTIONS_PARAM_KEY);
+                Property.CHECK_ERROR_KEY, ADVANCED_PARAM_KEY);
         emitArgsMap(sourceBuilder, properties, excludedKeys);
         emitOptionsNamedArgs(sourceBuilder, properties);
 
@@ -254,19 +254,19 @@ public class ActivityCallBuilder extends CallBuilder {
         if (properties == null) {
             return;
         }
-        Property optionsProp = properties.get(OPTIONS_PARAM_KEY);
-        if (optionsProp != null && optionsProp.value() instanceof Map<?, ?> options) {
-            for (Map.Entry<?, ?> optionEntry : options.entrySet()) {
-                if (optionEntry.getKey() instanceof String paramName && !paramName.isEmpty() &&
-                        optionEntry.getValue() instanceof Map<?, ?> option) {
-                    Property optionProp = Property.convertToProperty(option);
-                    if (optionProp.value() != null) {
+        Property advanceProp = properties.get(ADVANCED_PARAM_KEY);
+        if (advanceProp != null && advanceProp.value() instanceof Map<?, ?> advance) {
+            for (Map.Entry<?, ?> param : advance.entrySet()) {
+                if (param.getKey() instanceof String paramName && !paramName.isEmpty() &&
+                        param.getValue() instanceof Map<?, ?> paramProp) {
+                    Property paramData = Property.convertToProperty(paramProp);
+                    if (paramData.value() != null) {
                         sourceBuilder.token()
                                 .keyword(SyntaxKind.COMMA_TOKEN)
                                 .name(paramName)
                                 .whiteSpace()
                                 .keyword(SyntaxKind.EQUAL_TOKEN)
-                                .param(optionProp);
+                                .param(paramData);
                     }
                 }
             }

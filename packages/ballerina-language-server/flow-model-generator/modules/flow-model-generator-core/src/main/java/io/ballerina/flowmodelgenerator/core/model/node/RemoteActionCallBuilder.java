@@ -69,7 +69,7 @@ public class RemoteActionCallBuilder extends CallBuilder {
         FlowNode flowNode = sourceBuilder.flowNode;
         Map<String, Property> properties = flowNode.properties();
         boolean isWorkflowCall = properties != null
-                && properties.containsKey(ActivityCallBuilder.OPTIONS_PARAM_KEY);
+                && properties.containsKey(ActivityCallBuilder.ADVANCED_PARAM_KEY);
 
         if (isWorkflowCall) {
             return toActivityCallSource(sourceBuilder, flowNode, properties);
@@ -125,7 +125,7 @@ public class RemoteActionCallBuilder extends CallBuilder {
                 .keyword(SyntaxKind.COMMA_TOKEN);
 
         Set<String> excludedKeys = Set.of(Property.VARIABLE_KEY, Property.TYPE_KEY,
-                Property.CHECK_ERROR_KEY, Property.CONNECTION_KEY, ActivityCallBuilder.OPTIONS_PARAM_KEY);
+                Property.CHECK_ERROR_KEY, Property.CONNECTION_KEY, ActivityCallBuilder.ADVANCED_PARAM_KEY);
         ActivityCallBuilder.emitArgsMap(sourceBuilder, properties, excludedKeys);
         ActivityCallBuilder.emitOptionsNamedArgs(sourceBuilder, properties);
 
