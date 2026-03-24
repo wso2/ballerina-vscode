@@ -538,7 +538,21 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, onViewSessio
         setExpandedSpans(newExpanded);
     };
 
-    const duration = new Date(traceData.lastSeen).getTime() - new Date(traceData.firstSeen).getTime();
+    // Compute actual start/end from span data for accurate timeline positioning
+    let earliestStart = new Date(traceData.firstSeen).getTime();
+    let latestEnd = new Date(traceData.lastSeen).getTime();
+    traceData.spans.forEach(span => {
+        if (span.startTime) {
+            const start = new Date(span.startTime).getTime();
+            if (start < earliestStart) earliestStart = start;
+        }
+        if (span.endTime) {
+            const end = new Date(span.endTime).getTime();
+            if (end > latestEnd) latestEnd = end;
+        }
+    });
+    const traceStartTime = new Date(earliestStart).toISOString();
+    const duration = latestEnd - earliestStart;
 
     // Build span hierarchy
     const spanMap = new Map<string, SpanData>();
@@ -923,7 +937,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, onViewSessio
                                     selectedSpanId={selectedSpanId}
                                     onSpanSelect={selectSpan}
                                     getChildSpans={shouldShowAdvancedView ? getChildSpans : getAIChildSpans}
-                                    traceStartTime={traceData.firstSeen}
+                                    traceStartTime={traceStartTime}
                                     traceDuration={duration}
                                     collapsedSpanIds={waterfallCollapsedSpanIds}
                                     setCollapsedSpanIds={setWaterfallCollapsedSpanIds}
