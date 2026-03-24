@@ -512,26 +512,47 @@ const isExtendedEvent = <K extends AIMachineEventType>(
  * When user logs in via platform extension, we exchange the token and complete auth.
  */
 let platformListenerSetUp = false;
+let platformListenerSetupInProgress = false;
+let disposePlatformLoginListener: (() => void) | undefined;
 let extensionChangeDisposable: vscode.Disposable | undefined;
 
+const watchForPlatformExtension = () => {
+    if (!extensionChangeDisposable) {
+        extensionChangeDisposable = vscode.extensions.onDidChange(() => {
+            if (!platformListenerSetUp && !platformListenerSetupInProgress) {
+                setupPlatformExtensionListener();
+            }
+        });
+    }
+};
+
 const setupPlatformExtensionListener = () => {
+    if (platformListenerSetupInProgress) {
+        return;
+    }
+    platformListenerSetupInProgress = true;
     getPlatformExtensionAPI().then(
         (api) => {
             if (!api || !api.subscribeIsLoggedIn) {
-                // Extension not yet installed — watch for it to appear
-                if (!extensionChangeDisposable) {
-                    extensionChangeDisposable = vscode.extensions.onDidChange(() => {
-                        if (!platformListenerSetUp) {
-                            setupPlatformExtensionListener();
-                        }
-                    });
-                }
+                platformListenerSetupInProgress = false;
+                watchForPlatformExtension();
                 return;
             }
-            platformListenerSetUp = true;
-            extensionChangeDisposable?.dispose();
-            extensionChangeDisposable = undefined;
-            api.subscribeIsLoggedIn(async (isLoggedIn: boolean) => {
+
+            // Verify auth provider is actually ready by attempting subscription.
+            // When ext.authProvider is null, subscribeIsLoggedIn returns a no-op (() => {}).
+            // Confirm readiness by checking getAuthState returns a real state object.
+            try {
+                api.getAuthState();
+            } catch {
+                // Auth provider not initialized yet — keep watching
+                platformListenerSetupInProgress = false;
+                watchForPlatformExtension();
+                return;
+            }
+
+            disposePlatformLoginListener?.();
+            const dispose = api.subscribeIsLoggedIn(async (isLoggedIn: boolean) => {
                 const currentState = aiStateService.getSnapshot().value;
 
                 // Only handle login events when we're in the SSO authentication flow
@@ -555,8 +576,14 @@ const setupPlatformExtensionListener = () => {
                     }
                 }
             });
+            disposePlatformLoginListener = dispose;
+            platformListenerSetUp = true;
+            platformListenerSetupInProgress = false;
+            extensionChangeDisposable?.dispose();
+            extensionChangeDisposable = undefined;
         },
         (error) => {
+            platformListenerSetupInProgress = false;
             console.error('Failed to activate platform extension for login listener:', error);
         }
     );
