@@ -148,7 +148,12 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
                 return false;
             }
             if ((item as PanelCategory).items !== undefined) {
-                // For categories, use recursive check to see if they have any functions
+                // Always keep subcategories that represent the current integration, even if empty
+                const title = (item as PanelCategory).title;
+                if (title?.toLowerCase().endsWith("(current integration)")) {
+                    return true;
+                }
+                // For other categories, use recursive check to see if they have any functions
                 return (item as PanelCategory).items.length > 0;
             }
             return true;
