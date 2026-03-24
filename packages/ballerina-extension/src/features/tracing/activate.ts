@@ -42,8 +42,33 @@ let treeDataProvider: TraceTreeDataProvider | undefined;
 let treeView: vscode.TreeView<vscode.TreeItem> | undefined;
 
 export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
-    // Initialize TracerMachine
-    TracerMachine.initialize(StateMachine.context().projectPath);
+    // Initialize TracerMachine with child project paths for workspace projects
+    const { projectPath, projectInfo } = StateMachine.context();
+    const childProjectPaths = projectInfo?.children
+        ?.map((child: any) => child.projectPath)
+        .filter(Boolean) as string[] | undefined;
+    TracerMachine.initialize(projectPath, childProjectPaths);
+
+    // When project info isn't available yet (e.g. workspace still loading),
+    // listen for StateMachine transitions and refresh once it becomes available.
+    if (!projectPath && !childProjectPaths?.length) {
+        let hasRefreshed = false;
+        StateMachine.service().onTransition((state) => {
+            if (hasRefreshed) {
+                return;
+            }
+            const ctx = state.context;
+            const newProjectPath = ctx?.projectPath;
+            const newChildPaths = ctx?.projectInfo?.children
+                ?.map((child: any) => child.projectPath)
+                .filter(Boolean) as string[] | undefined;
+
+            if (newProjectPath || newChildPaths?.length) {
+                hasRefreshed = true;
+                TracerMachine.refresh(newProjectPath, newChildPaths);
+            }
+        });
+    }
 
     // Create TreeDataProvider
     treeDataProvider = new TraceTreeDataProvider();
