@@ -23,10 +23,51 @@ import { resolveICPPath } from './detect';
 const ICP_START_COMMAND = 'ballerina.icp.start';
 const ICP_STOP_COMMAND = 'ballerina.icp.stop';
 const ICP_TERMINAL_NAME = 'ICP Server';
+const ICP_SERVER_URL = 'https://localhost:9445';
 
 let icpTerminal: vscode.Terminal | undefined;
 let isRunning = false;
 let statusBarItem: vscode.StatusBarItem;
+
+/**
+ * Returns whether the ICP server is currently running.
+ */
+export function isICPServerRunning(): boolean {
+    return isRunning;
+}
+
+/**
+ * Prompts the user to start the ICP server if it's not running.
+ * Returns true if the server is running (or was just started), false if the user declined.
+ */
+export async function ensureICPServerRunning(): Promise<boolean> {
+    if (isRunning) {
+        return true;
+    }
+
+    const action = await vscode.window.showWarningMessage(
+        'ICP is enabled for this project but the ICP server is not running.',
+        'Start ICP Server',
+        'Run Anyway'
+    );
+
+    if (action === 'Start ICP Server') {
+        await vscode.commands.executeCommand(ICP_START_COMMAND);
+        if (isRunning) {
+            vscode.window.showInformationMessage(
+                `ICP server started. Access it at ${ICP_SERVER_URL} (default credentials: admin/admin)`,
+                'Open in Browser'
+            ).then((selection) => {
+                if (selection === 'Open in Browser') {
+                    vscode.env.openExternal(vscode.Uri.parse(ICP_SERVER_URL));
+                }
+            });
+        }
+        return isRunning;
+    }
+
+    return action === 'Run Anyway';
+}
 
 function updateStatusBar(): void {
     if (isRunning) {

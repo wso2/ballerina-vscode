@@ -16,18 +16,65 @@
  * under the License.
  */
 
-import { existsSync } from 'fs';
+import { existsSync, readdirSync } from 'fs';
+import { homedir } from 'os';
+import * as path from 'path';
 import { workspace, window, commands, ConfigurationTarget, env, Uri } from 'vscode';
 import { ICP_PATH } from '../../core/preferences';
 
-const DEFAULT_PATHS: Record<string, string> = {
-    linux: '/usr/share/wso2-integrator/components/icp/bin/icp.sh',
-    darwin: '/usr/local/share/wso2-integrator/components/icp/bin/icp.sh', // TODO: confirm macOS path
-    win32: 'C:\\Program Files\\WSO2\\Integrator\\components\\icp\\bin\\icp.bat', // TODO: confirm Windows path
+const ICP_BIN_RELATIVE = 'components/icp/bin';
+const ICP_SCRIPT_UNIX = 'icp.sh';
+const ICP_SCRIPT_WIN = 'icp.bat';
+
+/**
+ * Default base directories where WSO2 Integrator is installed per OS.
+ * The integrator directory name may include a version suffix (e.g., wso2-integrator-1.0.0),
+ * so we search within these base directories for a matching folder.
+ */
+const BASE_DIRS: Record<string, string[]> = {
+    linux: ['/usr/share'],
+    darwin: [path.join(homedir(), 'Applications')],
+    win32: [
+        path.join(process.env.LOCALAPPDATA || '', 'WSO2', 'Integrator'),
+        path.join(process.env.PROGRAMFILES || '', 'WSO2', 'Integrator'),
+    ],
 };
 
 function getDefaultPath(): string | undefined {
-    return DEFAULT_PATHS[process.platform];
+    const script = process.platform === 'win32' ? ICP_SCRIPT_WIN : ICP_SCRIPT_UNIX;
+    const baseDirs = BASE_DIRS[process.platform];
+    if (!baseDirs) {
+        return undefined;
+    }
+
+    for (const baseDir of baseDirs) {
+        if (!existsSync(baseDir)) {
+            continue;
+        }
+
+        // Direct check: baseDir/components/icp/bin/icp.sh
+        const directPath = path.join(baseDir, ICP_BIN_RELATIVE, script);
+        if (existsSync(directPath)) {
+            return directPath;
+        }
+
+        // Search for wso2-integrator* directories within baseDir
+        try {
+            const entries = readdirSync(baseDir);
+            for (const entry of entries) {
+                if (entry.startsWith('wso2-integrator')) {
+                    const candidatePath = path.join(baseDir, entry, ICP_BIN_RELATIVE, script);
+                    if (existsSync(candidatePath)) {
+                        return candidatePath;
+                    }
+                }
+            }
+        } catch {
+            // Permission denied or other error, skip this base dir
+        }
+    }
+
+    return undefined;
 }
 
 /**
