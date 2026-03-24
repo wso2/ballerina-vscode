@@ -663,6 +663,8 @@ const stateMachine = createMachine<MachineContext>(
                             documentUri: context.documentUri,
                             position: context.position,
                             identifier: context.identifier,
+                            parentIdentifier: context.parentIdentifier,
+                            artifactType: context.artifactType,
                             org: orgName || context.org,
                             package: packageName || context.package,
                             type: context?.type,
@@ -882,8 +884,8 @@ export function updateView(refreshTreeView?: boolean, updatedIdentifier?: string
         let currentArtifact: ProjectStructureArtifactResponse;
         let targetedArtifactType = lastView.location?.artifactType;
 
-        if (targetedArtifactType === DIRECTORY_MAP.RESOURCE) {
-            // If the artifact type is resource, we need to target the service
+        if (targetedArtifactType === DIRECTORY_MAP.RESOURCE || targetedArtifactType === DIRECTORY_MAP.REMOTE) {
+            // If the artifact type is resource/remote, we need to target the service
             targetedArtifactType = DIRECTORY_MAP.SERVICE;
         }
 
