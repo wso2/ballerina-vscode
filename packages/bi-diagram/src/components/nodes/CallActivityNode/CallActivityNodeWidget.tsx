@@ -28,20 +28,31 @@ import { useDiagramContext } from "../../DiagramContext";
 import { nodeHasError } from "../../../utils/node";
 
 namespace CallActivityStyles {
+    const SIDE_FILL_WIDTH = 8;
+
     export const Wrapper = styled.div`
         position: relative;
         width: ${NODE_WIDTH}px;
     `;
 
-    export const Stripe = styled.div<{ side: "left" | "right"; color: string }>`
+    export const SideFill = styled.div<{ side: "left" | "right"; color: string }>`
         position: absolute;
-        top: 3px;
-        bottom: 3px;
-        width: ${NODE_BORDER_WIDTH}px;
+        top: ${NODE_BORDER_WIDTH/2}px;
+        bottom: ${NODE_BORDER_WIDTH/2}px;
+        width: ${SIDE_FILL_WIDTH}px;
         background-color: ${({ color }) => color};
         pointer-events: none;
         z-index: 1;
-        ${({ side }) => (side === "left" ? "left: 8px;" : "right: 8px;")}
+        ${({ side }) =>
+            side === "left"
+                ? `
+                    left: ${NODE_BORDER_WIDTH/2}px;
+                    border-radius: 8px 0 0 8px;
+                  `
+                : `
+                    right: ${NODE_BORDER_WIDTH/2}px;
+                    border-radius: 0 8px 8px 0;
+                  `}
     `;
 }
 
@@ -59,7 +70,7 @@ export function CallActivityNodeWidget(props: CallActivityNodeWidgetProps) {
     const isDisabled = model.node.suggested;
     const hasError = nodeHasError(model.node);
 
-    const stripeColor = hasError
+    const sideFillColor = hasError
         ? ThemeColors.ERROR
         : isSelected && !isDisabled
             ? ThemeColors.SECONDARY
@@ -70,8 +81,8 @@ export function CallActivityNodeWidget(props: CallActivityNodeWidgetProps) {
     return (
         <CallActivityStyles.Wrapper onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
             <BaseNodeWidget {...props} />
-            <CallActivityStyles.Stripe side="left" color={stripeColor} />
-            <CallActivityStyles.Stripe side="right" color={stripeColor} />
+            <CallActivityStyles.SideFill side="left" color={sideFillColor} />
+            <CallActivityStyles.SideFill side="right" color={sideFillColor} />
         </CallActivityStyles.Wrapper>
     );
 }
