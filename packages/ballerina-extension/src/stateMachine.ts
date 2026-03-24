@@ -1066,8 +1066,8 @@ function notifyTreeView(
     view?: MACHINE_VIEW
 ) {
     try {
-        const biExtension = extensions.getExtension('wso2.ballerina-integrator');
-        if (biExtension && !biExtension.isActive) {
+        const integratorExtension = extensions.getExtension('wso2.wso2-integrator');
+        if (integratorExtension && !integratorExtension.isActive) {
             return;
         }
 
