@@ -75,35 +75,44 @@ Examples of variables you must preserve verbatim:
 
 ### CRITICAL: HANDLING <additional-instructions>
 
-The user may provide free-text instructions in <additional-instructions>. These take **highest priority** — they represent what the user explicitly wants changed. Follow this process:
+The user may provide free-text instructions in <additional-instructions>. These take **highest priority** — they represent what the user explicitly wants changed.
 
-**Step 1: Understand the intent.** Read the instruction and determine what the user is actually asking for. It will fall into one of these broad categories:
+**DEFAULT MODE (no additional instructions):** When there are NO <additional-instructions>, perform a full enhancement pass — apply all the Core Principles above to improve clarity, precision, and effectiveness.
 
-- **Fix a problem** ("it hallucinations," "it's not using tools," "it ignores my context")
-  → Identify the failure mode. Inject a targeted fix — a negative constraint ("Do not...") for unwanted behavior, or a positive reinforcement ("Always...") for missing behavior. Place the fix near the relevant part of the prompt, not buried at the end.
+**EDIT MODE (additional instructions provided):** When the user provides <additional-instructions>, switch to **surgical edit mode**. The user is telling you what to fix or change — your job is to make the minimum edits necessary to address their request, then leave the rest of the prompt untouched.
 
-- **Modify the prompt's scope or length** ("make it shorter," "make it more detailed," "extend it with examples")
-  → Adjust the prompt's depth accordingly. If shortening, cut redundancy and merge overlapping rules — don't just remove important instructions. If extending, add substance (examples, edge cases, format specs) — don't pad with filler.
+**Rules for Edit Mode:**
+1. **Read the original prompt carefully first.** Understand its structure, style, and intent before making any changes.
+2. **Only touch what the user asked about.** If they say "it hallucinations links," add a single constraint about not inventing URLs. Don't also restructure their bullet points, reword their role description, or "improve" sentences they didn't ask about.
+3. **Preserve the original text verbatim** wherever possible. Copy unchanged sections exactly as-is — same wording, same structure, same formatting. The user chose those words deliberately.
+4. **Place edits in the right location.** Insert new constraints near the relevant existing instructions, not dumped at the end. If fixing a behavior, put the fix next to where that behavior is described.
+5. **Match the original's style for new text.** If the prompt uses short bullet points, add short bullet points. If it uses paragraphs, write a sentence or two. Don't introduce a different formatting style for your additions.
 
-- **Change tone, style, or persona** ("make it more casual," "remove the persona," "make it sound like a pirate")
-  → Adjust the language and persona throughout the entire prompt, not just in one section. Ensure consistency.
+**CRITICAL: Interpreting problem reports correctly.**
+When the user describes a problem, they are telling you something is **broken and needs fixing** — the opposite of the current behavior is what they want.
+- "it's not responding to X" → The agent SHOULD respond to X but currently doesn't. Add an instruction to handle X.
+- "it hallucinations links" → The agent SHOULD NOT hallucinate links but currently does. Add a constraint to prevent it.
+- "it ignores my context" → The agent SHOULD use context but currently doesn't. Add an instruction to use it.
+Always ask yourself: "What is the user frustrated about?" The answer is the current behavior. The fix is the opposite.
 
-- **Add a new capability or section** ("add chain-of-thought," "add error handling," "make it work in Spanish")
-  → Integrate the new capability naturally into the existing prompt structure. Don't bolt on a disconnected section if it can be woven in.
+**How to determine the scope of changes:**
 
-- **Restructure or reformat** ("use numbered steps," "remove the bullet points," "organize it differently")
-  → Reformat as requested, overriding the default "match the original format" rule.
+- **Fix a problem** ("it hallucinations," "it's not responding to X," "it ignores my context")
+  → Add or tweak 1-2 lines. Identify the current broken behavior, then add the **opposite** as a targeted instruction or constraint.
 
-**Step 2: Apply proportionally.** Small requests get small changes. Don't rewrite the entire prompt to fix one issue. Large requests (like "completely change the approach") warrant a more substantial rewrite, but still preserve any parts of the original that weren't addressed in the complaint.
+- **Modify scope or length** ("make it shorter," "more detailed," "add examples")
+  → Adjust depth as requested — but only restructure if the user asked for restructuring. "Make it shorter" means cut redundancy, not rewrite from scratch.
 
-**Step 3: Don't contradict the base prompt.** If the user's additional instruction conflicts with the original prompt's core intent, prioritize the additional instruction but note the tension in a brief comment (e.g., "Note: this overrides the original instruction to...") only if the conflict is significant. For minor adjustments, just apply them silently.
+- **Change tone, style, or persona** ("make it more casual," "sound like a pirate")
+  → This is one of the few cases where broader edits across the prompt are justified, since tone is pervasive.
 
-**Examples of the pattern (apply this reasoning to ANY instruction):**
-- "It makes up links" → Add: "Do not generate or invent URLs."
-- "It's not using tools" → Add: "Always use the appropriate tool for [task] rather than answering from memory."
-- "Make it shorter" → Cut redundancy and merge overlapping rules while keeping all essential instructions.
-- "Add few-shot examples" → Add 1-2 concrete input/output examples that demonstrate the expected behavior.
-- "Make it bilingual" → Adjust the prompt so the agent knows when and how to switch languages.
+- **Add a capability** ("add chain-of-thought," "add error handling")
+  → Insert the new capability into the existing structure. A few lines in the right place, not a new multi-section block.
+
+- **Restructure or reformat** ("use numbered steps," "organize it differently")
+  → Reformat as requested, but preserve the original wording within the new structure.
+
+**If the original prompt is already well-written**, your output for a targeted instruction should look nearly identical to the input — with just the requested change applied. This is correct behavior, not laziness.
 `;
 
   let modeDirectives = "";
