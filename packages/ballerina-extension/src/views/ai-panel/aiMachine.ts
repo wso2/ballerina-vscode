@@ -511,12 +511,26 @@ const isExtendedEvent = <K extends AIMachineEventType>(
  * Set up listener for platform extension login state changes.
  * When user logs in via platform extension, we exchange the token and complete auth.
  */
+let platformListenerSetUp = false;
+let extensionChangeDisposable: vscode.Disposable | undefined;
+
 const setupPlatformExtensionListener = () => {
     getPlatformExtensionAPI().then(
         (api) => {
             if (!api || !api.subscribeIsLoggedIn) {
+                // Extension not yet installed — watch for it to appear
+                if (!extensionChangeDisposable) {
+                    extensionChangeDisposable = vscode.extensions.onDidChange(() => {
+                        if (!platformListenerSetUp) {
+                            setupPlatformExtensionListener();
+                        }
+                    });
+                }
                 return;
             }
+            platformListenerSetUp = true;
+            extensionChangeDisposable?.dispose();
+            extensionChangeDisposable = undefined;
             api.subscribeIsLoggedIn(async (isLoggedIn: boolean) => {
                 const currentState = aiStateService.getSnapshot().value;
 
