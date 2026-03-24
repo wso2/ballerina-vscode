@@ -85,7 +85,8 @@ public class ActivityCreationBuilder extends NodeBuilder {
                 .nestedProperty()
                 .endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, Property.PARAMETERS_KEY, PARAMETERS_LABEL,
                         PARAMETERS_DOC, getParameterSchema(), false, false)
-                .data(ACTIVITY_RESULT, context.getAllVisibleSymbolNames(), Property.RESULT_NAME, Property.RESULT_DOC);
+                .data(ACTIVITY_RESULT, context.getAllVisibleSymbolNames(), Property.RESULT_NAME, Property.RESULT_DOC,
+                        false);
     }
 
     @Override
