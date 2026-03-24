@@ -266,7 +266,7 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
                             <span>
                                 <FixButton appearance="primary" disabled={!canFix} onClick={handleOnFix}>
                                     <FixButtonContent>
-                                        <Icon name="bi-ai-agent" sx={{ width: 14, height: 14, fontSize: 14 }} />
+                                        <Icon name="bi-ai-chat" sx={{ width: 14, height: 14, fontSize: 14 }} />
                                         <span>Fix with AI</span>
                                     </FixButtonContent>
                                 </FixButton>
