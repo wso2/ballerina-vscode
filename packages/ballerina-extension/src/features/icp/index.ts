@@ -1,0 +1,1 @@
+export { activateICP } from './activator';

@@ -84,6 +84,11 @@
                     "default": "",
                     "description": "Specify the Ballerina home directory path."
                 },
+                "ballerina.icpPath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Path to the ICP binary. If empty, the extension will attempt to auto-detect from the default installation location."
+                },
                 "ballerina.isBI": {
                     "type": "boolean",
                     "default": false,
@@ -726,6 +731,18 @@
                 "group": "navigation",
                 "category": "BI",
                 "enablement": "isBIProject && devant.editor"
+            },
+            {
+                "command": "ballerina.icp.start",
+                "title": "Start ICP",
+                "category": "Ballerina",
+                "enablement": "isSupportedProject && !ballerina.icpRunning"
+            },
+            {
+                "command": "ballerina.icp.stop",
+                "title": "Stop ICP",
+                "category": "Ballerina",
+                "enablement": "isSupportedProject && ballerina.icpRunning"
             },
             {
                 "command": "ballerina.showTraceWindow",
