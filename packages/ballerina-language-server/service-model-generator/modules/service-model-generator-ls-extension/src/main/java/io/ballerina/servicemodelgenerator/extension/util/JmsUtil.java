@@ -307,7 +307,7 @@ public final class JmsUtil {
                 .value("true")
                 .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(true)
-                .editable(false)
+                .editable(true)
                 .setProperties(queueProps)
                 .build();
 
@@ -336,7 +336,7 @@ public final class JmsUtil {
                 .value("true")
                 .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(false)
-                .editable(false)
+                .editable(true)
                 .setProperties(topicProps)
                 .build();
 
@@ -474,7 +474,7 @@ public final class JmsUtil {
                 .value("true")
                 .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(true)
-                .editable(false)
+                .editable(true)
                 .setProperties(basicAuthProps)
                 .build();
 
@@ -509,7 +509,7 @@ public final class JmsUtil {
                 .value("true")
                 .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(false)
-                .editable(false)
+                .editable(true)
                 .setProperties(kerberosAuthProps)
                 .build();
 
@@ -529,7 +529,7 @@ public final class JmsUtil {
                 .value("true")
                 .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(false)
-                .editable(false)
+                .editable(true)
                 .setProperties(oauth2AuthProps)
                 .build();
 
