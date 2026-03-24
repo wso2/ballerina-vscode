@@ -184,9 +184,14 @@ async function handleEvalReport(run: TestRun, testItems: TestItem[], timeElapsed
     // Post-process and open the report
     try {
         await postProcessEvaluationReport(reportPath, projectPath);
-        await openEvaluationReport(reportPath);
     } catch (error) {
         console.error('Error processing evaluation report:', error);
+    }
+
+    try {
+        await openEvaluationReport(reportPath);
+    } catch (error) {
+        console.error('Error opening evaluation report:', error);
     }
 }
 
