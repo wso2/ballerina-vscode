@@ -41,9 +41,9 @@
           "org": "ballerinax",
           "packageName": "redis",
           "moduleName": "redis",
-          "version": "3.2.0"
+          "version": "3.1.0"
         },
-        "ref": "-269328905",
+        "ref": "1527622454",
         "typeInfo": {
           "orgName": "ballerinax",
           "moduleName": "redis"
@@ -60,9 +60,9 @@
         "org": "ballerinax",
         "packageName": "redis",
         "moduleName": "redis",
-        "version": "3.2.0"
+        "version": "3.1.0"
       },
-      "ref": "-269328905",
+      "ref": "1527622454",
       "typeInfo": {
         "orgName": "ballerinax",
         "moduleName": "redis"
@@ -70,34 +70,7 @@
     },
     "mappings": [],
     "refs": {
-      "14389404": {
-        "fields": [
-          {
-            "name": "idle",
-            "displayName": "idle",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          },
-          {
-            "name": "interval",
-            "displayName": "interval",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          },
-          {
-            "name": "count",
-            "displayName": "count",
-            "typeName": "int",
-            "kind": "int",
-            "optional": false
-          }
-        ],
-        "typeName": "redis:KeepAliveConfig?",
-        "kind": "record"
-      },
-      "-269328905": {
+      "1527622454": {
         "fields": [
           {
             "name": "clientName",
@@ -119,19 +92,6 @@
             "typeName": "int",
             "kind": "int",
             "optional": false
-          },
-          {
-            "fields": [],
-            "name": "keepAlive",
-            "displayName": "keepAlive",
-            "typeName": "redis:KeepAliveConfig?",
-            "kind": "record",
-            "optional": false,
-            "ref": "14389404",
-            "typeInfo": {
-              "orgName": "ballerinax",
-              "moduleName": "redis"
-            }
           }
         ],
         "typeName": "redis:Options",
