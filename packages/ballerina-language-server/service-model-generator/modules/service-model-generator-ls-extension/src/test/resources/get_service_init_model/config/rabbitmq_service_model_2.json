@@ -92,7 +92,7 @@
                 }
               ],
               "enabled": true,
-              "editable": false,
+              "editable": true,
               "optional": false,
               "advanced": false
             },
@@ -185,7 +185,7 @@
                 }
               ],
               "enabled": false,
-              "editable": false,
+              "editable": true,
               "optional": false,
               "advanced": false
             }

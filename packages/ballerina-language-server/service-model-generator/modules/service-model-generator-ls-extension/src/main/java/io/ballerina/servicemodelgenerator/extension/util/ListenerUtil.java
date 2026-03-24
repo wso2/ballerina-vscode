@@ -706,7 +706,7 @@ public class ListenerUtil {
                 .value("true")
                 .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(true)
-                .editable(false)
+                .editable(true)
                 .setAdvanced(false)
                 .setProperties(existingListenerProps)
                 .build();
@@ -727,7 +727,7 @@ public class ListenerUtil {
                 .value("true")
                 .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(false)
-                .editable(false)
+                .editable(true)
                 .setAdvanced(false)
                 .setProperties(existingListenerProps)
                 .build();
