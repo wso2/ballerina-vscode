@@ -85,6 +85,10 @@ export class OveriddenLabelWidget extends React.Component<LabelWidgetProps> {
 	};
 
 	calculateLabelPosition = () => {
+		if (!this.ref.current) {
+			return;
+		}
+
 		const found = this.findPathAndRelativePositionToRenderLabel(this.props.index + 1);
 		if (!found) {
 			return;
