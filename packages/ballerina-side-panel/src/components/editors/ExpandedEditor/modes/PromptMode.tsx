@@ -314,9 +314,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
     };
 
     const handleReject = () => {
-        if (!isSourceView && proseMirrorView) {
-            applyPrompt(originalPromptRef.current);
-        }
+        applyPrompt(originalPromptRef.current);
 
         const cursorPos = isSourceView && codeMirrorView
             ? codeMirrorView.state.selection.main.head

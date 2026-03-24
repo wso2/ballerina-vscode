@@ -512,6 +512,7 @@ export const TracerMachine = {
         const updatedProjectPath = projectPath || currentProjectPath;
         const updatedChildPaths = childProjectPaths || context.childProjectPaths;
         const machine = createTracerMachine(updatedProjectPath, updatedChildPaths);
+        tracerService.stop();
         tracerService = interpret(machine) as ReturnType<typeof interpret>;
         // Re-subscribe persistent callbacks to the new service
         for (const callback of persistentSubscribers) {
