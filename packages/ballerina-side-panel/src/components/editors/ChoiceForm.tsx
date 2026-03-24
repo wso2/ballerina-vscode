@@ -171,14 +171,14 @@ export function ChoiceForm(props: ChoiceFormProps) {
                         id: index.toString(),
                         value: index + 1,
                         content: choice.metadata.label,
-                        disabled: field.editable === false || (!choice.editable && !choice.enabled)
+                        disabled: field.editable === false || !choice.editable
                     }))}
                     onChange={(e) => {
                         if (field.editable === false) return;
                         const checkedValue = Number(e.target.value);
                         const realValue = checkedValue - 1;
                         const choice = field.choices[realValue];
-                        if (choice && !choice.editable && !choice.enabled) {
+                        if (choice && !choice.editable) {
                             return;
                         }
                         setSelectedOption(checkedValue);
