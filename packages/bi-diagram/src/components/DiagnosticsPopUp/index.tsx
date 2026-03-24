@@ -34,8 +34,7 @@ const PopupContainer = styled.div`
     max-width: ${NODE_WIDTH}px;
     font-family: "GilmerMedium";
     font-size: 12px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
 
     background-color: ${ThemeColors.SURFACE_DIM};
     color: ${ThemeColors.ON_SURFACE};
@@ -82,12 +81,16 @@ const FixButton = styled(Button)`
     display: flex;
     align-items: center;
     gap: 4px;
+    flex-shrink: 0;
 `;
 
 const FixButtonContent = styled.span`
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
+    white-space: nowrap;
+    width: 100%;
 `;
 
 export interface DiagnosticsPopUpProps {
