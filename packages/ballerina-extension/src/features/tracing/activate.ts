@@ -24,6 +24,7 @@ import { TraceDetailsWebview } from './trace-details-webview';
 import { StateMachine } from '../../stateMachine';
 import { VisualizerWebview } from '../../views/visualizer/webview';
 import { initTraceAnimation, disposeTraceAnimation } from './trace-animation';
+import { executeTraceServerTask } from './trace-server-task';
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from '../../utils/project-utils';
 import { findBallerinaPackageRoot } from '../../utils';
 import { requiresPackageSelection, selectPackageOrPrompt } from '../../utils/command-utils';
@@ -34,6 +35,7 @@ export const DISABLE_TRACING_COMMAND = 'ballerina.disableTracing';
 export const CLEAR_TRACES_COMMAND = 'ballerina.clearTraces';
 export const SHOW_TRACE_DETAILS_COMMAND = 'ballerina.showTraceDetails';
 export const TOGGLE_AGENT_FILTER_COMMAND = 'ballerina.toggleAgentFilter';
+export const START_TRACE_SERVER_COMMAND = 'ballerina.startTraceServer';
 export const TRACE_VIEW_ID = 'ballerina-traceView';
 
 let treeDataProvider: TraceTreeDataProvider | undefined;
@@ -111,6 +113,14 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
         }
     );
 
+    const startTraceServerCommand = vscode.commands.registerCommand(START_TRACE_SERVER_COMMAND, async () => {
+        if (TraceServer.isRunning()) {
+            vscode.window.showInformationMessage('Trace server is already running.');
+            return;
+        }
+        await executeTraceServerTask();
+    });
+
     const toggleAgentFilterCommand = vscode.commands.registerCommand(
         TOGGLE_AGENT_FILTER_COMMAND,
         async () => {
@@ -133,6 +143,7 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
         disableTracingCommand,
         clearTracesCommand,
         showTraceDetailsCommand,
+        startTraceServerCommand,
         toggleAgentFilterCommand,
         treeDataProvider
     );
