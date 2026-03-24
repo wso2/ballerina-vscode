@@ -875,7 +875,7 @@ export function WorkspaceOverview() {
                                 <SectionTitle>Integrations & Libraries</SectionTitle>
                                 {!isEmptyProject && (
                                     <SectionActions>
-                                        <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "6px 12px" }}>
+                                        <Button appearance="secondary" onClick={handleGenerate}>
                                             <Icon name="bi-ai-chat" sx={{ marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} /> Generate with AI
                                         </Button>
                                     </SectionActions>
@@ -896,7 +896,7 @@ export function WorkspaceOverview() {
                                         <Button appearance="secondary" onClick={handleAddResource}>
                                             <Codicon name="add" sx={{ marginRight: 8 }} /> Add Integration or Library
                                         </Button>
-                                        <Button appearance="primary" onClick={handleGenerate}>
+                                        <Button appearance="secondary" onClick={handleGenerate}>
                                             <Icon name="bi-ai-chat" sx={{ marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} /> Generate with AI
                                         </Button>
                                     </ButtonContainer>
