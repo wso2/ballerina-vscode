@@ -26,7 +26,7 @@ import {
     InlineCardTitle,
 } from "./styles";
 
-const HURL_IMPORT_VSCODE_COMMAND = "http-book.importHurlString";
+const HURL_IMPORT_VSCODE_COMMAND = "HTTPClient.importHurlString";
 // ── Styled components ─────────────────────────────────────────────────────────
 
 const METHOD_COLORS: Record<string, string> = {
