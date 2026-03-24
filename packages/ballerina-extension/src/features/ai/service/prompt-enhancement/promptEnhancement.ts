@@ -15,7 +15,7 @@
 // under the License.
 
 import { generateText } from "ai";
-import { getEnhancerSystemPrompt } from "./prompts";
+import { getEnhancerSystemPrompt, getGeneratorSystemPrompt } from "./prompts";
 import { ANTHROPIC_HAIKU, getAnthropicClient } from "../../utils/ai-client";
 import { PromptMode, AIMachineEventType } from "@wso2/ballerina-core";
 import { window } from "vscode";
@@ -26,6 +26,7 @@ export interface PromptEnhancementRequest {
     originalPrompt: string;
     additionalInstructions?: string;
     mode: PromptMode;
+    isGeneration?: boolean;
 }
 
 export interface PromptEnhancementResponse {
@@ -35,8 +36,12 @@ export interface PromptEnhancementResponse {
 export async function enhancePrompt(
     params: PromptEnhancementRequest
 ): Promise<PromptEnhancementResponse> {
-    const systemPrompt = getEnhancerSystemPrompt(params.mode);
-    const userPrompt = buildUserPrompt(params);
+    const systemPrompt = params.isGeneration
+        ? getGeneratorSystemPrompt(params.mode)
+        : getEnhancerSystemPrompt(params.mode);
+    const userPrompt = params.isGeneration
+        ? buildGenerationPrompt(params)
+        : buildUserPrompt(params);
 
     try {
         const result = await generateText({
@@ -91,7 +96,9 @@ export async function enhancePrompt(
         }
 
         // Generic error
-        const errorMsg = "Failed to enhance prompt. Please try again.";
+        const errorMsg = params.isGeneration
+            ? "Failed to generate prompt. Please try again."
+            : "Failed to enhance prompt. Please try again.";
         window.showErrorMessage(errorMsg);
         throw new Error(errorMsg);
     }
@@ -102,6 +109,16 @@ export async function enhancePrompt(
  */
 function buildUserPrompt(params: PromptEnhancementRequest): string {
     let prompt = `Please enhance the following prompt:\n\n${params.originalPrompt}`;
+
+    if (params.additionalInstructions && params.additionalInstructions.trim()) {
+        prompt += `\n\n<additional-instructions>${params.additionalInstructions}</additional-instructions>`;
+    }
+
+    return prompt;
+}
+
+function buildGenerationPrompt(params: PromptEnhancementRequest): string {
+    let prompt = `Please generate a prompt for the following use case:\n\n${params.originalPrompt}`;
 
     if (params.additionalInstructions && params.additionalInstructions.trim()) {
         prompt += `\n\n<additional-instructions>${params.additionalInstructions}</additional-instructions>`;

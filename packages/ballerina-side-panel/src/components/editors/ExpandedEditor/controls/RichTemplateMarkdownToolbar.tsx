@@ -183,6 +183,7 @@ interface RichTemplateMarkdownToolbarProps {
     onEnhanceClick: () => void;
     isEnhancing: boolean;
     isInPreviewMode?: boolean;
+    isEditorEmpty?: boolean;
 }
 
 export const RichTemplateMarkdownToolbar = React.forwardRef<HTMLDivElement, RichTemplateMarkdownToolbarProps>(({
@@ -193,7 +194,8 @@ export const RichTemplateMarkdownToolbar = React.forwardRef<HTMLDivElement, Rich
     helperPaneToggle,
     onEnhanceClick,
     isEnhancing,
-    isInPreviewMode = false
+    isInPreviewMode = false,
+    isEditorEmpty = false
 }, ref) => {
     const [, forceUpdate] = React.useReducer(x => x + 1, 0);
     const [currentHeadingLevel, setCurrentHeadingLevel] = useState(1);
@@ -438,7 +440,7 @@ export const RichTemplateMarkdownToolbar = React.forwardRef<HTMLDivElement, Rich
                 <ToolbarDivider />
 
                 <ToolbarButton
-                    title="Enhance Prompt with AI"
+                    title={isEditorEmpty ? "Generate Prompt with AI" : "Enhance Prompt with AI"}
                     disabled={!editorView || isEnhancing || isInPreviewMode}
                     onClick={onEnhanceClick}
                     onMouseDown={handleMouseDown}

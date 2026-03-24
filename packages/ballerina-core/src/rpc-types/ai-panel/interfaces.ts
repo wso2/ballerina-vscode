@@ -526,6 +526,7 @@ export interface PromptEnhancementRequest {
     originalPrompt: string;
     additionalInstructions?: string;
     mode: PromptMode;
+    isGeneration?: boolean;
 }
 
 export interface PromptEnhancementResponse {

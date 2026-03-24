@@ -28,6 +28,7 @@ interface EnhanceModeDialogProps {
     onEnhance: (mode: PromptMode, instructions?: string) => void;
     onClose: () => void;
     promptMode?: PromptMode;
+    isGeneration?: boolean;
 }
 
 const fadeIn = keyframes`
@@ -83,12 +84,13 @@ const PopupBox = styled.div`
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border-radius: 3px;
+    border-radius: 6px;
     background-color: var(--vscode-editor-background);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
     z-index: 30001;
     font-family: var(--font-family);
     pointer-events: auto;
+    outline: none;
     animation: ${slideUp} 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     will-change: transform, opacity;
 `;
@@ -130,7 +132,23 @@ const DialogActions = styled.div`
 const DescriptionText = styled.div`
     font-size: 13px;
     color: ${ThemeColors.ON_SURFACE_VARIANT};
+    line-height: 1.5;
     margin-bottom: 4px;
+`;
+
+const CloseButton = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background-color: color-mix(in srgb, ${ThemeColors.ON_SURFACE_VARIANT} 12%, transparent);
+    }
 `;
 
 export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
@@ -138,21 +156,25 @@ export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
     isLoading = false,
     onEnhance,
     onClose,
-    promptMode = PromptMode.DEFAULT
+    promptMode = PromptMode.DEFAULT,
+    isGeneration = false
 }) => {
     const [customInstructions, setCustomInstructions] = useState("");
 
     const popupBoxRef = useRef<HTMLDivElement>(null);
+    const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
     // Reset state and focus when dialog opens
     useEffect(() => {
         if (isOpen) {
             setCustomInstructions("");
-            popupBoxRef.current?.focus();
+            // Focus textarea so user can start typing immediately
+            setTimeout(() => textAreaRef.current?.focus(), 50);
         }
     }, [isOpen]);
 
     const handleEnhanceTrigger = () => {
+        if (isGeneration && !customInstructions.trim()) return;
         const parts: string[] = [];
         if (customInstructions.trim()) {
             parts.push(customInstructions.trim());
@@ -187,33 +209,43 @@ export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
                 <PopupBox ref={popupBoxRef} onKeyDown={handleKeyDown} tabIndex={-1}>
                     <PopupHeader>
                         <Typography variant="h3" sx={{ margin: 0, gap: "8px", display: "flex", alignItems: "center" }}>
-                            <Icon name="wand-magic-sparkles-solid" sx={{ width: "14px", height: "14px", fontSize: "14px" }} />
-                            Enhance Prompt with AI
+                            <Icon name="wand-magic-sparkles-solid" sx={{ width: "14px", height: "14px", fontSize: "14px", color: "var(--vscode-button-background)" }} />
+                            {isGeneration ? "Generate Prompt with AI" : "Enhance Prompt with AI"}
                         </Typography>
-                        <Icon
-                            name="bi-close"
-                            onClick={handleClose}
-                            sx={{
-                                fontSize: '16px',
-                                width: '16px',
-                                height: '16px',
-                                color: ThemeColors.ON_SURFACE_VARIANT,
-                                opacity: isLoading ? 0.5 : 1
-                            }}
-                        />
+                        <CloseButton onClick={handleClose} style={{ opacity: isLoading ? 0.5 : 1 }}>
+                            <Icon
+                                name="bi-close"
+                                sx={{
+                                    fontSize: '16px',
+                                    width: '16px',
+                                    height: '16px',
+                                    color: ThemeColors.ON_SURFACE_VARIANT,
+                                }}
+                            />
+                        </CloseButton>
                     </PopupHeader>
 
                     <PopupContent>
                         <DescriptionText>
-                            Let AI polish and refine your prompt. Click enhance to do a quick refinement, or add your own instructions.
+                            {isGeneration
+                                ? "Describe what you'd like the prompt to do, and AI will generate one for you."
+                                : "Let AI enhance and refine your prompt. Add custom instructions below, or click Enhance for a quick improvement."
+                            }
                         </DescriptionText>
 
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <SectionTitle>
-                                <span style={{ fontWeight: 600 }}>Custom instructions</span> (Optional)
+                                {isGeneration
+                                    ? <span style={{ fontWeight: 600 }}>What should this prompt do?</span>
+                                    : <><span style={{ fontWeight: 600 }}>Custom instructions</span> (Optional)</>
+                                }
                             </SectionTitle>
                             <TextArea
-                                placeholder="Describe how you'd like the prompt improved..."
+                                ref={textAreaRef}
+                                placeholder={isGeneration
+                                    ? "e.g., A customer support agent that handles refund requests politely..."
+                                    : "Describe how you'd like the prompt improved..."
+                                }
                                 value={customInstructions}
                                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCustomInstructions(e.target.value)}
                                 rows={3}
@@ -227,8 +259,11 @@ export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
                         <Button appearance="secondary" onClick={handleClose} disabled={isLoading}>
                             Cancel
                         </Button>
-                        <Button appearance="primary" onClick={handleEnhanceTrigger} disabled={isLoading}>
-                            {isLoading ? "Optimizing..." : "Enhance"}
+                        <Button appearance="primary" onClick={handleEnhanceTrigger} disabled={isLoading || (isGeneration && !customInstructions.trim())}>
+                            {isLoading
+                                ? (isGeneration ? "Generating..." : "Optimizing...")
+                                : (isGeneration ? "Generate" : "Enhance")
+                            }
                         </Button>
                     </DialogActions>
                 </PopupBox>

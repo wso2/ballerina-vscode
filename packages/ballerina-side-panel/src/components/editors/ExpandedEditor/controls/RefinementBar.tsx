@@ -19,7 +19,6 @@
 import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { Button, Icon, ThemeColors } from "@wso2/ui-toolkit";
-import { PromptMode } from "@wso2/ballerina-core";
 
 interface RefinementBarProps {
     onRefine: (instructions: string) => void;
@@ -30,7 +29,6 @@ interface RefinementBarProps {
     versionCount: number;
     currentVersionIndex: number;
     onVersionNavigate: (index: number) => void;
-    promptMode?: PromptMode;
     showDiff: boolean;
     onToggleDiff: () => void;
 }
@@ -104,7 +102,6 @@ const FooterRow = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-top: 4px;
     border-top: 1px solid var(--vscode-panel-border);
     margin-top: 4px;
     padding-top: 12px;
@@ -174,7 +171,6 @@ export const RefinementBar: React.FC<RefinementBarProps> = ({
     versionCount,
     currentVersionIndex,
     onVersionNavigate,
-    promptMode = PromptMode.DEFAULT,
     showDiff,
     onToggleDiff,
 }) => {
@@ -236,7 +232,7 @@ export const RefinementBar: React.FC<RefinementBarProps> = ({
                                 <Icon name="chevron-left" isCodicon sx={{ fontSize: "14px" }} />
                             </NavButton>
                             <span>
-                                Version {currentVersionIndex + 1} / {versionCount}
+                                {currentVersionIndex === 0 ? "Original" : `Version ${currentVersionIndex}`} / {versionCount - 1}
                             </span>
                             <NavButton
                                 onClick={() => onVersionNavigate(currentVersionIndex + 1)}

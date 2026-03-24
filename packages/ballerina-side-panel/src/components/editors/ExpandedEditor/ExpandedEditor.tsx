@@ -16,12 +16,12 @@
  * under the License.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
 import { ThemeColors, Divider, Typography, CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { FormField, HelperpaneOnChangeOptions } from "../../Form/types";
-import { EditorMode } from "./modes/types";
+import { EditorMode, AIStatusLabel } from "./modes/types";
 import { TextMode } from "./modes/TextMode";
 import { PromptMode } from "./modes/PromptMode";
 import { ExpressionMode } from "./modes/ExpressionMode";
@@ -138,10 +138,26 @@ const MinimizeButton = styled.div`
 
 const TitleWrapper = styled.div`
     margin: 12px 0;
-    
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
     h3 {
         margin: 0;
     }
+`;
+
+const AIPill = styled.span`
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 4px;
+    border: 1px solid color-mix(in srgb, var(--vscode-button-background) 40%, transparent);
+    background-color: color-mix(in srgb, var(--vscode-button-background) 10%, transparent);
+    color: var(--vscode-button-background);
+    white-space: nowrap;
 `;
 
 /**
@@ -187,6 +203,8 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
 
     const [mode, setMode] = useState<EditorMode>(defaultMode);
     const [mouseDownTarget, setMouseDownTarget] = useState<EventTarget | null>(null);
+    const [aiStatus, setAIStatus] = useState<AIStatusLabel>(null);
+    const handleAIStatusChange = useCallback((status: AIStatusLabel) => setAIStatus(status), []);
 
     useEffect(() => {
         setMode(defaultMode);
@@ -229,7 +247,8 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             getHelperPane,
             error,
             formDiagnostics,
-            inputMode
+            inputMode,
+            onAIStatusChange: handleAIStatusChange
         }),
         // Props for expression mode
         ...(mode === InputMode.EXP && {
@@ -269,6 +288,9 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
                 <ModalHeaderSection>
                     <TitleWrapper>
                         <Typography variant="h3">{field.label}</Typography>
+                        {aiStatus && (
+                            <AIPill>{aiStatus}</AIPill>
+                        )}
                     </TitleWrapper>
                     <MinimizeButton onClick={handleMinimize} title="Minimize">
                         <MinimizeIcon />
