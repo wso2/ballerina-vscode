@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/react";
 import { TextArea, Button, Typography, ThemeColors, Icon } from "@wso2/ui-toolkit";
@@ -141,15 +141,16 @@ export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
     promptMode = PromptMode.DEFAULT
 }) => {
     const [customInstructions, setCustomInstructions] = useState("");
-    const [selectedMode, setSelectedMode] = useState<PromptMode>(promptMode);
 
-    // Reset state when dialog opens
+    const popupBoxRef = useRef<HTMLDivElement>(null);
+
+    // Reset state and focus when dialog opens
     useEffect(() => {
         if (isOpen) {
             setCustomInstructions("");
-            setSelectedMode(promptMode);
+            popupBoxRef.current?.focus();
         }
-    }, [isOpen, promptMode]);
+    }, [isOpen]);
 
     const handleEnhanceTrigger = () => {
         const parts: string[] = [];
@@ -157,7 +158,7 @@ export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
             parts.push(customInstructions.trim());
         }
         const combined = parts.join(". ") || undefined;
-        onEnhance(selectedMode, combined);
+        onEnhance(promptMode, combined);
     };
 
     const handleClose = () => {
@@ -183,7 +184,7 @@ export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
         <>
             <Overlay onClick={handleClose} />
             <PopupContainer>
-                <PopupBox onKeyDown={handleKeyDown} tabIndex={-1} autoFocus>
+                <PopupBox ref={popupBoxRef} onKeyDown={handleKeyDown} tabIndex={-1}>
                     <PopupHeader>
                         <Typography variant="h3" sx={{ margin: 0, gap: "8px", display: "flex", alignItems: "center" }}>
                             <Icon name="wand-magic-sparkles-solid" sx={{ width: "14px", height: "14px", fontSize: "14px" }} />
@@ -227,13 +228,7 @@ export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
                             Cancel
                         </Button>
                         <Button appearance="primary" onClick={handleEnhanceTrigger} disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <span style={{ marginLeft: '8px' }}>Optimizing...</span>
-                                </>
-                            ) : (
-                                "Enhance"
-                            )}
+                            {isLoading ? "Optimizing..." : "Enhance"}
                         </Button>
                     </DialogActions>
                 </PopupBox>

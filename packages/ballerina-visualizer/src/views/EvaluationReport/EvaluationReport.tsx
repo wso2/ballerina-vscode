@@ -223,15 +223,28 @@ export function EvaluationReport() {
     const [data, setData] = useState<EvaluationReportData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [reportPath, setReportPath] = useState("");
+
     const handleBackToHistory = () => {
+        // Derive project path from report path: <projectPath>/tests/evaluation-reports/<file>.json
+        const testsIdx = reportPath.lastIndexOf("/tests/evaluation-reports/");
+        const backslashIdx = reportPath.lastIndexOf("\\tests\\evaluation-reports\\");
+        const idx = Math.max(testsIdx, backslashIdx);
+        const projectPath = idx > 0 ? reportPath.substring(0, idx) : undefined;
+
         rpcClient
             .getCommonRpcClient()
-            .executeCommand({ commands: ["ballerina.openEvaluationHistory"] });
+            .executeCommand({
+                commands: projectPath
+                    ? ["ballerina.openEvaluationHistory", projectPath]
+                    : ["ballerina.openEvaluationHistory"],
+            });
     };
 
     useEffect(() => {
         const container = document.getElementById("webview-container");
         const rPath = container?.getAttribute("data-report-path") ?? "";
+        setReportPath(rPath);
 
         rpcClient
             .getTestManagerRpcClient()

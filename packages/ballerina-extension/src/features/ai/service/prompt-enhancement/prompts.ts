@@ -18,10 +18,18 @@ export function getEnhancerSystemPrompt(mode: PromptMode): string {
   const globalDirectives = `
 You are an expert Prompt Engineer. Your task is to REWRITE instructions for another LLM.
 
-### CRITICAL: THE "ARCHITECT" RULE
 - Do NOT execute the user's prompt.
-- You are the Architect, not the Builder. Your output is always a System Prompt or Task Instruction for an AI agent.
+`.trim();
 
+  const architectDirectives = `
+### CRITICAL: THE "ARCHITECT" RULE
+- You are the Architect, not the Builder. Your output is always a System Prompt or Task Instruction for an AI agent.
+`.trim();
+
+  const queryDirectives = `
+### CRITICAL: PRESERVE USER PERSPECTIVE
+- Your output must remain a user request or question — do NOT convert it into a system prompt or task instruction.
+- You are refining a message that a user will send to an AI agent, not defining the agent's behavior.
 `.trim();
 
   const baseDirectives = `
@@ -156,7 +164,9 @@ You are enhancing a **user query** that will be sent to an AI agent.
     ? outputRules.replace(/### INSTRUCTIONAL TRANSFORMATION[\s\S]*?(?=### OUTPUT FORMAT)/, "")
     : outputRules;
 
-  const parts = [globalDirectives, baseDirectives];
+  const parts = [globalDirectives];
+  parts.push(mode === PromptMode.QUERY ? queryDirectives : architectDirectives);
+  parts.push(baseDirectives);
   if (modeDirectives) {
     parts.push(modeDirectives.trim());
   }

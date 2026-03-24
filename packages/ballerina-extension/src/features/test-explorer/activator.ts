@@ -82,9 +82,11 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
     // Register command to open evaluation history summary webview
     // When invoked from the test explorer inline button, the TestItem is passed as the first arg.
     const openEvalHistoryCommand = commands.registerCommand('ballerina.openEvaluationHistory', async (testItem?: any) => {
-        // Try to resolve the project path from the clicked test item
+        // Try to resolve the project path from the argument
         let projectPath: string | undefined;
-        if (testItem?.uri?.fsPath) {
+        if (typeof testItem === 'string') {
+            projectPath = testItem;
+        } else if (testItem?.uri?.fsPath) {
             projectPath = testItem.uri.fsPath;
         } else if (testItem?.parent?.uri?.fsPath) {
             projectPath = testItem.parent.uri.fsPath;

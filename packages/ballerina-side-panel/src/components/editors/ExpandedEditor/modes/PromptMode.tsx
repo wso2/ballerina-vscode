@@ -161,6 +161,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
             }
         } catch (error) {
             console.error("Error checking authentication:", error);
+            return;
         }
 
         originalPromptRef.current = currentPrompt;
@@ -183,9 +184,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
 
             enhancedPromptRef.current = result.enhancedPrompt;
 
-            if (!isSourceView && proseMirrorView) {
-                applyPrompt(result.enhancedPrompt);
-            }
+            applyPrompt(result.enhancedPrompt);
 
             // Trigger onChange to update parent state and trigger token fetching
             const cursorPos = isSourceView && codeMirrorView
@@ -223,9 +222,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
 
             enhancedPromptRef.current = result.enhancedPrompt;
 
-            if (!isSourceView && proseMirrorView) {
-                applyPrompt(result.enhancedPrompt);
-            }
+            applyPrompt(result.enhancedPrompt);
 
             const cursorPos = isSourceView && codeMirrorView
                 ? codeMirrorView.state.selection.main.head

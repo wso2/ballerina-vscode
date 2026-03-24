@@ -138,12 +138,22 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
         }
     );
 
+    let traceServerStarting = false;
     const startTraceServerCommand = vscode.commands.registerCommand(START_TRACE_SERVER_COMMAND, async () => {
         if (TraceServer.isRunning()) {
             vscode.window.showInformationMessage('Trace server is already running.');
             return;
         }
-        await executeTraceServerTask();
+        if (traceServerStarting) {
+            vscode.window.showInformationMessage('Trace server is already starting.');
+            return;
+        }
+        traceServerStarting = true;
+        try {
+            await executeTraceServerTask();
+        } finally {
+            traceServerStarting = false;
+        }
     });
 
     const toggleAgentFilterCommand = vscode.commands.registerCommand(
