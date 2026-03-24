@@ -222,14 +222,21 @@ async function postProcessEvaluationReport(reportPath: string, workingDirectory:
 }
 
 export async function runHandler(request: TestRunRequest, token: CancellationToken) {
-    if (!request.include) {
-        return;
+    // When request.include is undefined, it means "run all tests" (e.g. top bar Run Tests button)
+    let include = request.include;
+    if (!include) {
+        const allItems: TestItem[] = [];
+        testController.items.forEach((item) => allItems.push(item));
+        if (allItems.length === 0) {
+            return;
+        }
+        include = allItems;
     }
     const run = testController.createTestRun(request);
 
     if (request.profile?.kind == TestRunProfileKind.Debug) {
         const testFuncs: string[] = [];
-        request.include.forEach((test) => {
+        include.forEach((test) => {
             if (isTestFunctionItem(test)) {
                 testFuncs.push(test.label);
             } else if (isTestGroupItem(test)) {
@@ -243,7 +250,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
     }
 
     // Handle Test Run
-    request.include.forEach((test) => {
+    include.forEach((test) => {
         if (token.isCancellationRequested) {
             run.skipped(test);
             return;
