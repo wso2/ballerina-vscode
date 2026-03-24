@@ -63,8 +63,11 @@ export async function enhancePrompt(
         console.error("Error during prompt enhancement:", error);
 
         // Handle specific error types
-        if (error.name === "UsageLimitError" || error.statusCode === 429) {
-            const errorMsg = "Usage limit exceeded. Please try again later or set your own API key.";
+        if (error.name === "UsageLimitError" || error.statusCode === 429 ||
+            error.statusCode === 400 && error.message?.includes("usage limit")) {
+            const errorMsg = error.message?.match(/You .+UTC\./)
+                ? error.message.match(/You .+UTC\./)[0]
+                : "Usage limit exceeded. Please try again later or set your own API key.";
             window.showErrorMessage(errorMsg);
             throw new Error(errorMsg);
         }

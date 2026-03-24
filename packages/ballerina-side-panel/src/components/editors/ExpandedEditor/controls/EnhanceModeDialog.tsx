@@ -204,7 +204,7 @@ export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
 
                     <PopupContent>
                         <DescriptionText>
-                            Let AI polish and refine your prompt. Select any quick options below, or add your own instructions.
+                            Let AI polish and refine your prompt. Click enhance to do a quick refinement, or add your own instructions.
                         </DescriptionText>
 
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
