@@ -792,7 +792,8 @@ public class AiUtils {
             String replacedContent = content.replace("`", "${\"`\"}");
             return prefix + replacedContent + "`";
         }
-        return input;
+        String escaped = input.replace("`", "${\"`\"}");
+        return "string `" + escaped + "`";
     }
 
     /**

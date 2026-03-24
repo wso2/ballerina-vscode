@@ -510,14 +510,24 @@ public class AgentCallBuilder extends CallBuilder {
         String role = agentCallNode.getProperty(ROLE).map(Property::value).orElse("").toString();
         String instructions = agentCallNode.getProperty(INSTRUCTIONS).map(Property::value).orElse("").toString();
 
-        String escapedRole = AiUtils.replaceBackticksForStringTemplate(role);
-        String escapedInstructions = AiUtils.replaceBackticksForStringTemplate(instructions);
+        String escapedRole = isPromptTypeSelected(agentCallNode.getProperty(ROLE).orElse(null))
+                ? AiUtils.replaceBackticksForStringTemplate(role) : role;
+        String escapedInstructions = isPromptTypeSelected(agentCallNode.getProperty(INSTRUCTIONS).orElse(null))
+                ? AiUtils.replaceBackticksForStringTemplate(instructions) : instructions;
 
         String systemPromptValue =
                 "{role: " + escapedRole + ", instructions: " + escapedInstructions + "}";
 
         Property updatedProperty = AiUtils.createUpdatedProperty(systemPrompt, systemPromptValue);
         agentNode.properties().put(SYSTEM_PROMPT, updatedProperty);
+    }
+
+    private boolean isPromptTypeSelected(Property property) {
+        if (property == null || property.types() == null) {
+            return false;
+        }
+        return property.types().stream()
+                .anyMatch(type -> type.fieldType() == Property.ValueType.PROMPT && type.selected());
     }
 
     private FlowNode findExistingAgentNode(TemplateContext agentTemplateContext) {
