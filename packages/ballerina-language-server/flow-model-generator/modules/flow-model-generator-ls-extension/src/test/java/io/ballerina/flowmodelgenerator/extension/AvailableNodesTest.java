@@ -53,7 +53,7 @@ public class AvailableNodesTest extends AbstractLSTest {
             TestConfig updateConfig =
                     new TestConfig(testConfig.description(), testConfig.position(), testConfig.source(), categories,
                             testConfig.queryMap());
-            updateConfig(configJsonPath, updateConfig);
+//            updateConfig(configJsonPath, updateConfig);
             compareJsonElements(categories, testConfig.categories());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }

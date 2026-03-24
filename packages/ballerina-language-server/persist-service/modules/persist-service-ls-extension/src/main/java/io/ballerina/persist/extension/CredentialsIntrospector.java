@@ -19,8 +19,11 @@
 package io.ballerina.persist.extension;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.BasicLiteralNode;
 import io.ballerina.compiler.syntax.tree.CaptureBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
@@ -42,6 +45,7 @@ import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.toml.syntax.tree.DocumentMemberDeclarationNode;
@@ -173,7 +177,8 @@ public class CredentialsIntrospector {
 
         String dbSystem = tomlInfo != null ? tomlInfo.datastore() : null;
         String description = dbSystem != null ? dbSystem + " connection" : "Database connection";
-        MetaData metadata = new MetaData(connectionInfo.connectionName(), description);
+        String icon = resolveDbIcon(semanticModel).orElse(null);
+        MetaData metadata = new MetaData(connectionInfo.connectionName(), description, null, icon);
 
         return new IntrospectCredentialsResponse.CredentialsData(
                 metadata,
@@ -634,6 +639,34 @@ public class CredentialsIntrospector {
         Value existing = properties.get(propertyKey);
         if (existing != null) {
             existing.setValue(value);
+        }
+    }
+
+    /**
+     * Resolves the database driver icon URL by looking up the persist client's ClassSymbol
+     * in the semantic model and extracting the icon from its {@code dbClient} field type.
+     */
+    private Optional<String> resolveDbIcon(SemanticModel semanticModel) {
+        if (semanticModel == null) {
+            return Optional.empty();
+        }
+        try {
+            return semanticModel.moduleSymbols().stream()
+                    .filter(s -> s.kind() == SymbolKind.VARIABLE)
+                    .filter(s -> connectionName.equals(s.getName().orElse(null)))
+                    .findFirst()
+                    .flatMap(s -> {
+                        try {
+                            TypeReferenceTypeSymbol typeRef =
+                                    (TypeReferenceTypeSymbol) ((VariableSymbol) s).typeDescriptor();
+                            ClassSymbol classSymbol = (ClassSymbol) typeRef.typeDescriptor();
+                            return CommonUtils.getPersistDatabaseIcon(classSymbol);
+                        } catch (ClassCastException e) {
+                            return Optional.empty();
+                        }
+                    });
+        } catch (RuntimeException e) {
+            return Optional.empty();
         }
     }
 

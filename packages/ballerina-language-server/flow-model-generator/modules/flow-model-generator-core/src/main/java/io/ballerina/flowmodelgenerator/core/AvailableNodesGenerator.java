@@ -80,6 +80,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.NaturalFunctions;
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistDatabaseIcon;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
@@ -510,6 +511,9 @@ public class AvailableNodesGenerator {
                 }
             }
 
+            Optional<String> persistIcon = isPersistClient(classSymbol, semanticModel)
+                    ? getPersistDatabaseIcon(classSymbol) : Optional.empty();
+
             List<Item> methods = new ArrayList<>();
             for (FunctionData methodFunction : methodFunctionsData) {
                 String org = methodFunction.org();
@@ -542,10 +546,11 @@ public class AvailableNodesGenerator {
                     }
                 }
 
+                String icon = persistIcon.orElse(CommonUtils.generateIcon(org, packageName, version));
                 nodeBuilder
                         .metadata()
                         .label(label)
-                        .icon(CommonUtils.generateIcon(org, packageName, version))
+                        .icon(icon)
                         .description(methodFunction.description())
                         .stepOut()
                         .codedata()
@@ -570,6 +575,7 @@ public class AvailableNodesGenerator {
             Metadata.Builder<?> metadataBuilder = new Metadata.Builder<>(null)
                     .label(parentSymbolName);
             if (isPersistClient(classSymbol, semanticModel)) {
+                persistIcon.ifPresent(metadataBuilder::icon);
                 metadataBuilder.addData(CONNECTOR_TYPE, PERSIST);
                 getPersistModelFilePath(
                         resolvedPackage.map(p -> p.project().sourceRoot())

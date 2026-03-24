@@ -78,8 +78,8 @@ public class ServiceLoader {
             return services; // No inbuilt trigger for this library
         }
 
-        try (InputStream inputStream = ServiceLoader.class.getResourceAsStream("/inbuilt-triggers/" +
-                triggerFileName)) {
+        try (InputStream inputStream = ServiceLoader.class.getResourceAsStream(
+                "/inbuilt-triggers/" + triggerFileName)) {
             if (inputStream == null) {
                 return services; // File not found
             }
@@ -100,6 +100,10 @@ public class ServiceLoader {
                     return services;
                 }
 
+                // Extract package name from library name for link resolution
+                String packageName = libraryName.contains("/") ?
+                        libraryName.substring(libraryName.indexOf("/") + 1) : libraryName;
+
                 // For each service type, create a service object
                 for (JsonElement serviceTypeElement : serviceTypes) {
                     JsonObject serviceType = serviceTypeElement.getAsJsonObject();
@@ -110,7 +114,7 @@ public class ServiceLoader {
                     serviceObj.addProperty("type", "fixed");
 
                     // Build listener object
-                    JsonObject listenerObj = buildListenerFromTriggerData(listener);
+                    JsonObject listenerObj = buildListenerFromTriggerData(listener, packageName);
                     serviceObj.add("listener", listenerObj);
 
                     // Extract functions from service type and add as methods for fixed services
@@ -119,7 +123,7 @@ public class ServiceLoader {
                         JsonArray transformedMethods = new JsonArray();
                         for (JsonElement funcElement : functionsFromService) {
                             JsonObject func = funcElement.getAsJsonObject();
-                            JsonObject transformedMethod = transformServiceMethod(func);
+                            JsonObject transformedMethod = transformServiceMethod(func, packageName);
                             transformedMethods.add(transformedMethod);
                         }
                         serviceObj.add("methods", transformedMethods);
@@ -222,7 +226,7 @@ public class ServiceLoader {
      * @param listenerData the listener JSON object from triggers file
      * @return JsonObject representing the listener
      */
-    private static JsonObject buildListenerFromTriggerData(JsonObject listenerData) {
+    private static JsonObject buildListenerFromTriggerData(JsonObject listenerData, String packageName) {
         JsonObject listenerObj = new JsonObject();
 
         // Get listener name from valueTypeConstraint
@@ -236,7 +240,7 @@ public class ServiceLoader {
             JsonObject properties = listenerData.getAsJsonObject("properties");
             for (String propKey : properties.keySet()) {
                 JsonObject prop = properties.getAsJsonObject(propKey);
-                JsonObject paramObj = buildParameterFromProperty(propKey, prop);
+                JsonObject paramObj = buildParameterFromProperty(propKey, prop, packageName);
                 parametersArray.add(paramObj);
             }
         }
@@ -252,7 +256,8 @@ public class ServiceLoader {
      * @param property the property JSON object
      * @return JsonObject representing the parameter
      */
-    private static JsonObject buildParameterFromProperty(String propertyName, JsonObject property) {
+    private static JsonObject buildParameterFromProperty(String propertyName, JsonObject property,
+                                                          String packageName) {
         JsonObject paramObj = new JsonObject();
 
         // Parameter name
@@ -269,14 +274,14 @@ public class ServiceLoader {
         paramObj.addProperty("description", description);
 
         // Parameter type
-        JsonObject typeObj = new JsonObject();
         String typeName = property.has("valueTypeConstraint") ?
                 property.get("valueTypeConstraint").getAsString() : "string";
-        typeObj.addProperty("name", typeName);
+        JsonObject typeObj = resolveTypeWithLinks(typeName, packageName);
         paramObj.add("type", typeObj);
 
         // Default value if present
-        if (property.has("placeholder") && !property.get("placeholder").isJsonNull()) {
+        if (property.has("placeholder") && !property.get("placeholder").isJsonNull()
+                && !property.get("placeholder").getAsString().isEmpty()) {
             paramObj.addProperty("default", property.get("placeholder").getAsString());
         }
 
@@ -290,7 +295,7 @@ public class ServiceLoader {
      * @param functionData the function JSON object from triggers file
      * @return JsonObject representing the transformed service method
      */
-    private static JsonObject transformServiceMethod(JsonObject functionData) {
+    private static JsonObject transformServiceMethod(JsonObject functionData, String packageName) {
         JsonObject method = new JsonObject();
 
         // Determine method type
@@ -328,7 +333,7 @@ public class ServiceLoader {
                 }
 
                 // Parameter type
-                JsonObject typeObj = extractTypeObject(param);
+                JsonObject typeObj = extractTypeObject(param, packageName);
                 transformedParam.add("type", typeObj);
 
                 // Optional flag
@@ -345,7 +350,7 @@ public class ServiceLoader {
         if (functionData.has("returnType")) {
             JsonObject returnTypeData = functionData.getAsJsonObject("returnType");
             JsonObject returnObj = new JsonObject();
-            JsonObject returnTypeObj = extractTypeObject(returnTypeData);
+            JsonObject returnTypeObj = extractTypeObject(returnTypeData, packageName);
             returnObj.add("type", returnTypeObj);
             method.add("return", returnObj);
         }
@@ -360,21 +365,85 @@ public class ServiceLoader {
      * @param typeData the JSON object containing type information
      * @return JsonObject with "name" property containing the type name
      */
-    private static JsonObject extractTypeObject(JsonObject typeData) {
-        JsonObject typeObj = new JsonObject();
+    private static JsonObject extractTypeObject(JsonObject typeData, String packageName) {
+        String typeName = null;
 
         if (typeData.has("typeName")) {
-            typeObj.addProperty("name", typeData.get("typeName").getAsString());
+            typeName = typeData.get("typeName").getAsString();
         } else if (typeData.has("type")) {
             JsonElement typeElement = typeData.get("type");
             if (typeElement.isJsonArray()) {
                 JsonArray typeArray = typeElement.getAsJsonArray();
                 if (!typeArray.isEmpty()) {
-                    typeObj.addProperty("name", typeArray.get(0).getAsString());
+                    typeName = typeArray.get(0).getAsString();
                 }
             } else {
-                typeObj.addProperty("name", typeElement.getAsString());
+                typeName = typeElement.getAsString();
             }
+        }
+
+        return resolveTypeWithLinks(typeName != null ? typeName : "", packageName);
+    }
+
+    /**
+     * Resolves a type name by stripping the package prefix if it matches the current library,
+     * and adding internal links for each non-primitive type component.
+     *
+     * @param typeName the raw type name (e.g., "salesforce:ListenerConfig", "error?")
+     * @param packageName the current package name (e.g., "salesforce")
+     * @return JsonObject with "name" and optionally "links"
+     */
+    private static JsonObject resolveTypeWithLinks(String typeName, String packageName) {
+        JsonObject typeObj = new JsonObject();
+        String prefix = packageName + ":";
+
+        // Fast path for non-union types (the common case)
+        if (!typeName.contains("|")) {
+            if (typeName.startsWith(prefix)) {
+                String strippedName = typeName.substring(prefix.length());
+                String recordName = strippedName.endsWith("?") ?
+                        strippedName.substring(0, strippedName.length() - 1) : strippedName;
+                typeObj.addProperty("name", strippedName);
+                JsonArray links = new JsonArray();
+                JsonObject link = new JsonObject();
+                link.addProperty("category", "internal");
+                link.addProperty("recordName", recordName);
+                links.add(link);
+                typeObj.add("links", links);
+            } else {
+                typeObj.addProperty("name", typeName);
+            }
+            return typeObj;
+        }
+
+        // Union type handling
+        JsonArray links = new JsonArray();
+        String[] parts = typeName.split("\\|");
+        StringBuilder resolvedBuilder = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i].trim();
+
+            if (part.startsWith(prefix)) {
+                String strippedName = part.substring(prefix.length());
+                String recordName = strippedName.endsWith("?") ?
+                        strippedName.substring(0, strippedName.length() - 1) : strippedName;
+                part = strippedName;
+
+                JsonObject link = new JsonObject();
+                link.addProperty("category", "internal");
+                link.addProperty("recordName", recordName);
+                links.add(link);
+            }
+
+            if (i > 0) {
+                resolvedBuilder.append("|");
+            }
+            resolvedBuilder.append(part);
+        }
+
+        typeObj.addProperty("name", resolvedBuilder.toString());
+        if (!links.isEmpty()) {
+            typeObj.add("links", links);
         }
 
         return typeObj;

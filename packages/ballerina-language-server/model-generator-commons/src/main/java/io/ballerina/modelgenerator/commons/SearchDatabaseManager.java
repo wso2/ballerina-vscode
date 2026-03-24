@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 public class SearchDatabaseManager {
 
     private static final String INDEX_FILE_NAME = "search-index.sqlite";
+    private static final String LIKE_MATCH_RANK = "100000000.0";
     private static final Logger LOGGER = Logger.getLogger(SearchDatabaseManager.class.getName());
     private final String dbPath;
 
@@ -105,32 +106,80 @@ public class SearchDatabaseManager {
      */
     public List<SearchResult> searchFunctions(String q, int limit, int offset) {
         List<SearchResult> results = new ArrayList<>();
-        String sql = """
-                SELECT
-                    f.id,
-                    f.name AS function_name,
-                    f.description AS function_description,
-                    f.package_id,
-                    p.name AS module_name,
-                    p.package_name,
-                    p.org AS package_org,
-                    p.version AS package_version,
-                    fts.rank
-                FROM FunctionFTS AS fts
-                JOIN Function AS f ON fts.rowid = f.id
-                JOIN Package AS p ON f.package_id = p.id
-                WHERE fts.FunctionFTS MATCH ?
-                ORDER BY fts.rank
-                LIMIT ?
-                OFFSET ?;
-                """;
+        String sanitizedQuery = sanitizeQuery(q);
+        String sql;
+        if (sanitizedQuery.isEmpty()) {
+            // When the sanitized query is empty, query the base table directly
+            // since FTS rank is only meaningful with a MATCH clause.
+            sql = """
+                    SELECT
+                        f.id,
+                        f.name AS function_name,
+                        f.description AS function_description,
+                        f.package_id,
+                        p.name AS module_name,
+                        p.package_name,
+                        p.org AS package_org,
+                        p.version AS package_version
+                    FROM Function AS f
+                    JOIN Package AS p ON f.package_id = p.id
+                    ORDER BY f.name
+                    LIMIT ?
+                    OFFSET ?;
+                    """;
+        } else {
+            sql = """
+                    SELECT id, function_name, function_description, package_id,
+                           module_name, package_name, package_org, package_version,
+                           MIN(rank) AS rank
+                    FROM (
+                        SELECT
+                            f.id,
+                            f.name AS function_name,
+                            f.description AS function_description,
+                            f.package_id,
+                            p.name AS module_name,
+                            p.package_name,
+                            p.org AS package_org,
+                            p.version AS package_version,
+                            fts.rank
+                        FROM FunctionFTS AS fts
+                        JOIN Function AS f ON fts.rowid = f.id
+                        JOIN Package AS p ON f.package_id = p.id
+                        WHERE fts.FunctionFTS MATCH ?
+                        UNION ALL
+                        SELECT
+                            f.id,
+                            f.name AS function_name,
+                            f.description AS function_description,
+                            f.package_id,
+                            p.name AS module_name,
+                            p.package_name,
+                            p.org AS package_org,
+                            p.version AS package_version,
+                            %LIKE_MATCH_RANK AS rank
+                        FROM Function AS f
+                        JOIN Package AS p ON f.package_id = p.id
+                        WHERE f.name LIKE ? COLLATE NOCASE
+                    )
+                    GROUP BY id
+                    ORDER BY rank, function_name
+                    LIMIT ?
+                    OFFSET ?;""".replace("%LIKE_MATCH_RANK", LIKE_MATCH_RANK);
+        }
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, sanitizeQuery(q) + "*");
-            stmt.setInt(2, limit);
-            stmt.setInt(3, offset);
+            if (sanitizedQuery.isEmpty()) {
+                stmt.setInt(1, limit);
+                stmt.setInt(2, offset);
+            } else {
+                stmt.setString(1, sanitizedQuery + "*");
+                stmt.setString(2, "%" + sanitizedQuery + "%");
+                stmt.setInt(3, limit);
+                stmt.setInt(4, offset);
+            }
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -167,7 +216,27 @@ public class SearchDatabaseManager {
      */
     public List<SearchResult> searchConnectors(String q, int limit, int offset) {
         List<SearchResult> results = new ArrayList<>();
-        String sql = """
+        String sanitizedQuery = sanitizeQuery(q);
+        String sql;
+        if (sanitizedQuery.isEmpty()) {
+            sql = """
+                SELECT
+                    c.id,
+                    c.name AS connector_name,
+                    c.description AS connector_description,
+                    c.package_id,
+                    p.name AS module_name,
+                    p.package_name,
+                    p.org AS package_org,
+                    p.version AS package_version
+                FROM Connector AS c
+                JOIN Package AS p ON c.package_id = p.id
+                ORDER BY c.name
+                LIMIT ?
+                OFFSET ?;
+                """;
+        } else {
+            sql = """
                 SELECT
                     c.id,
                     c.name AS connector_name,
@@ -186,13 +255,19 @@ public class SearchDatabaseManager {
                 LIMIT ?
                 OFFSET ?;
                 """;
+        }
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, sanitizeQuery(q) + "*");
-            stmt.setInt(2, limit);
-            stmt.setInt(3, offset);
+            if (sanitizedQuery.isEmpty()) {
+                stmt.setInt(1, limit);
+                stmt.setInt(2, offset);
+            } else {
+                stmt.setString(1, sanitizedQuery + "*");
+                stmt.setInt(2, limit);
+                stmt.setInt(3, offset);
+            }
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -383,7 +458,27 @@ public class SearchDatabaseManager {
      */
     public List<SearchResult> searchTypes(String q, int limit, int offset) {
         List<SearchResult> results = new ArrayList<>();
-        String sql = """
+        String sanitizedQuery = sanitizeQuery(q);
+        String sql;
+        if (sanitizedQuery.isEmpty()) {
+            sql = """
+                SELECT
+                    t.id,
+                    t.name AS type_name,
+                    t.description AS type_description,
+                    t.package_id,
+                    p.name AS module_name,
+                    p.package_name,
+                    p.org AS package_org,
+                    p.version AS package_version
+                FROM Type AS t
+                JOIN Package AS p ON t.package_id = p.id
+                ORDER BY t.name
+                LIMIT ?
+                OFFSET ?;
+                """;
+        } else {
+            sql = """
                 SELECT
                     t.id,
                     t.name AS type_name,
@@ -402,13 +497,19 @@ public class SearchDatabaseManager {
                 LIMIT ?
                 OFFSET ?;
                 """;
+        }
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, sanitizeQuery(q) + "*");
-            stmt.setInt(2, limit);
-            stmt.setInt(3, offset);
+            if (sanitizedQuery.isEmpty()) {
+                stmt.setInt(1, limit);
+                stmt.setInt(2, offset);
+            } else {
+                stmt.setString(1, sanitizedQuery + "*");
+                stmt.setInt(2, limit);
+                stmt.setInt(3, offset);
+            }
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -444,6 +545,9 @@ public class SearchDatabaseManager {
      * @throws RuntimeException if there is an error executing the search or if the limit or offset values are invalid
      */
     public List<SearchResult> searchTypesByPackages(List<String> packageNames, int limit, int offset) {
+        if (packageNames.isEmpty()) {
+            return Collections.emptyList();
+        }
         List<SearchResult> results = new ArrayList<>();
 
         StringBuilder sqlBuilder = new StringBuilder();
@@ -512,7 +616,49 @@ public class SearchDatabaseManager {
         List<UnifiedSearchResult> results = new ArrayList<>();
         String sanitizedQuery = sanitizeQuery(q);
 
-        String sql = """
+        String sql;
+        if (sanitizedQuery.isEmpty()) {
+            // When the query is empty, query base tables directly
+            // since FTS rank is only meaningful with a MATCH clause.
+            sql = """
+                WITH FunctionResults AS (
+                    SELECT 'function' as result_type,
+                           f.name,
+                           f.description,
+                           p.org,
+                           p.name AS module_name,
+                           p.package_name,
+                           p.version,
+                           0 as relevance_score
+                    FROM Function f
+                    JOIN Package p ON f.package_id = p.id
+                    ORDER BY f.name
+                    LIMIT ?
+                ),
+                ConnectorResults AS (
+                    SELECT 'connector' as result_type,
+                           c.name,
+                           c.description,
+                           p.org,
+                           p.name AS module_name,
+                           p.package_name,
+                           p.version,
+                           0 as relevance_score
+                    FROM Connector c
+                    JOIN Package p ON c.package_id = p.id
+                    ORDER BY c.name
+                    LIMIT ?
+                )
+                SELECT * FROM (
+                    SELECT * FROM FunctionResults
+                    UNION ALL
+                    SELECT * FROM ConnectorResults
+                    ORDER BY result_type, name
+                )
+                LIMIT ? OFFSET ?
+                """;
+        } else {
+            sql = """
                 WITH FunctionResults AS (
                     SELECT 'function' as result_type,
                            f.name,
@@ -553,18 +699,23 @@ public class SearchDatabaseManager {
                 )
                 LIMIT ? OFFSET ?
                 """;
+        }
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             int paramIndex = 1;
-            String ftsQuery = sanitizedQuery.isEmpty() ? "*" : sanitizedQuery + "*";
             int functionsLimit = limit / 2;
             int connectorsLimit = limit - functionsLimit;
-            stmt.setString(paramIndex++, ftsQuery);
-            stmt.setInt(paramIndex++, functionsLimit);
-            stmt.setString(paramIndex++, ftsQuery);
-            stmt.setInt(paramIndex++, connectorsLimit);
+            if (sanitizedQuery.isEmpty()) {
+                stmt.setInt(paramIndex++, functionsLimit);
+                stmt.setInt(paramIndex++, connectorsLimit);
+            } else {
+                stmt.setString(paramIndex++, sanitizedQuery + "*");
+                stmt.setInt(paramIndex++, functionsLimit);
+                stmt.setString(paramIndex++, sanitizedQuery + "*");
+                stmt.setInt(paramIndex++, connectorsLimit);
+            }
             stmt.setInt(paramIndex++, limit);
             stmt.setInt(paramIndex, offset);
 

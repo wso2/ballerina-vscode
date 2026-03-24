@@ -407,6 +407,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(RemoteMethodCallActionNode remoteMethodCallActionNode) {
+        if (forceAssign) {
+            return;
+        }
         Optional<Symbol> symbol = semanticModel.symbol(remoteMethodCallActionNode);
         if (symbol.isEmpty() || (symbol.get().kind() != SymbolKind.METHOD)) {
             handleExpressionNode(remoteMethodCallActionNode);
@@ -839,6 +842,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(ClientResourceAccessActionNode clientResourceAccessActionNode) {
+        if (forceAssign) {
+            return;
+        }
         Optional<Symbol> symbol = semanticModel.symbol(clientResourceAccessActionNode);
         if (symbol.isEmpty() || (symbol.get().kind() != SymbolKind.METHOD &&
                 symbol.get().kind() != SymbolKind.RESOURCE_METHOD)) {
@@ -925,6 +931,10 @@ public class CodeAnalyzer extends NodeVisitor {
                 .properties()
                 .callConnection(expressionNode, Property.CONNECTION_KEY, metadataData)
                 .data(this.typedBindingPatternNode, false, new HashSet<>());
+        if (isPersistClient(classSymbol.get(), semanticModel)) {
+            CommonUtils.getPersistDatabaseIcon(classSymbol.get())
+                    .ifPresent(icon -> nodeBuilder.metadata().icon(icon));
+        }
         processFunctionSymbol(clientResourceAccessActionNode, argumentNodes, functionSymbol, functionData);
     }
 
@@ -1661,6 +1671,8 @@ public class CodeAnalyzer extends NodeVisitor {
                 .addData(CONNECTOR_TYPE, PERSIST);
         getPersistModelFilePath(project.sourceRoot(), classSymbol)
                 .ifPresent(modelPath -> nodeBuilder.metadata().addData(PERSIST_MODEL_FILE, modelPath));
+        CommonUtils.getPersistDatabaseIcon(classSymbol)
+                .ifPresent(icon -> nodeBuilder.metadata().icon(icon));
     }
 
     private NodeKind resolveNodeKind(ClassSymbol classSymbol) {
@@ -1786,27 +1798,29 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(TemplateExpressionNode templateExpressionNode) {
-        if (forceAssign) {
-            return;
-        }
-        if (templateExpressionNode.kind() == SyntaxKind.XML_TEMPLATE_EXPRESSION) {
-            startNode(NodeKind.XML_PAYLOAD, templateExpressionNode)
-                    .metadata()
-                    .description(XmlPayloadBuilder.DESCRIPTION)
-                    .stepOut()
-                    .properties().expression(templateExpressionNode);
-        }
+//        Treating these as variable nodes despite the force assign flag
+//        if (forceAssign) {
+//            return;
+//        }
+//        if (templateExpressionNode.kind() == SyntaxKind.XML_TEMPLATE_EXPRESSION) {
+//            startNode(NodeKind.XML_PAYLOAD, templateExpressionNode)
+//                    .metadata()
+//                    .description(XmlPayloadBuilder.DESCRIPTION)
+//                    .stepOut()
+//                    .properties().expression(templateExpressionNode);
+//        }
     }
 
     @Override
     public void visit(ByteArrayLiteralNode byteArrayLiteralNode) {
-        if (forceAssign) {
-            return;
-        }
-        startNode(NodeKind.BINARY_DATA, byteArrayLiteralNode)
-                .metadata()
-                .stepOut()
-                .properties().expression(byteArrayLiteralNode);
+//        Treating these as variable nodes despite the force assign flag
+//        if (forceAssign) {
+//            return;
+//        }
+//        startNode(NodeKind.BINARY_DATA, byteArrayLiteralNode)
+//                .metadata()
+//                .stepOut()
+//                .properties().expression(byteArrayLiteralNode);
     }
 
     @Override
@@ -1992,6 +2006,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(MethodCallExpressionNode methodCallExpressionNode) {
+        if (forceAssign) {
+            return;
+        }
         Optional<Symbol> symbol = semanticModel.symbol(methodCallExpressionNode);
         if (symbol.isEmpty() || !(symbol.get() instanceof FunctionSymbol functionSymbol)) {
             handleExpressionNode(methodCallExpressionNode);
@@ -2054,6 +2071,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(FunctionCallExpressionNode functionCallExpressionNode) {
+        if (forceAssign) {
+            return;
+        }
         Optional<Symbol> symbol = semanticModel.symbol(functionCallExpressionNode);
         if (symbol.isEmpty() || symbol.get().kind() != SymbolKind.FUNCTION) {
             handleExpressionNode(functionCallExpressionNode);
@@ -2604,15 +2624,19 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         Optional<Symbol> parentSymbol = semanticModel.symbol(parent);
-        if (parentSymbol.isPresent() && CommonUtils.getRawType(
-                ((VariableSymbol) parentSymbol.get()).typeDescriptor()).typeKind() == TypeDescKind.JSON &&
-                !forceAssign) {
-            startNode(NodeKind.JSON_PAYLOAD, constructorExprNode)
-                    .metadata()
-                    .description(JsonPayloadBuilder.DESCRIPTION)
-                    .stepOut()
-                    .properties().expression(constructorExprNode);
-        }
+        parentSymbol.ifPresent(symbol -> CommonUtils.getRawType(
+                ((VariableSymbol) symbol).typeDescriptor()).typeKind());
+
+        //Treating these as variable nodes despite the force assign flag
+//        if (parentSymbol.isPresent() && CommonUtils.getRawType(
+//                ((VariableSymbol) parentSymbol.get()).typeDescriptor()).typeKind() == TypeDescKind.JSON &&
+//                !forceAssign) {
+//            Treating these as variable nodes despite the force assign flag
+//            startNode(NodeKind.JSON_PAYLOAD, constructorExprNode)
+//                    .metadata()
+//                    .description(JsonPayloadBuilder.DESCRIPTION)
+//                    .stepOut()
+//                    .properties().expression(constructorExprNode);
     }
     // Utility methods
 
@@ -2621,6 +2645,7 @@ public class CodeAnalyzer extends NodeVisitor {
      * only adds the node to the diagram if there is no active parent node which is building its branches.
      */
     private void endNode(Node node) {
+        diagnosticHandler.resolveUnconsumed(nodeBuilder);
         nodeBuilder.codedata().nodeInfo(node);
         endNode();
     }
@@ -3038,6 +3063,7 @@ public class CodeAnalyzer extends NodeVisitor {
         return mapping;
     }
 
+    // TODO: Clean this up, and move to AiUtils
     /**
      * Extracts OAuth scopes from an {@code @ai:AgentTool} annotation on a function definition.
      */
@@ -3059,26 +3085,26 @@ public class CodeAnalyzer extends NodeVisitor {
                 continue;
             }
 
-            // Look for agentIdConfig field
+            // Look for auth field
             for (MappingFieldNode field : optAnnotValue.get().fields()) {
                 if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
                     continue;
                 }
                 SpecificFieldNode specificField = (SpecificFieldNode) field;
                 String fieldName = specificField.fieldName().toSourceCode().trim();
-                if (!fieldName.equals("agentIdConfig") || specificField.valueExpr().isEmpty()) {
+                if (!fieldName.equals("auth") || specificField.valueExpr().isEmpty()) {
                     continue;
                 }
 
-                ExpressionNode agentIdConfigExpr = specificField.valueExpr().get();
-                if (agentIdConfigExpr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+                ExpressionNode authExpr = specificField.valueExpr().get();
+                if (authExpr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
                     continue;
                 }
 
-                // Look for scopes field inside agentIdConfig
-                MappingConstructorExpressionNode agentIdConfigMapping =
-                        (MappingConstructorExpressionNode) agentIdConfigExpr;
-                for (MappingFieldNode innerField : agentIdConfigMapping.fields()) {
+                // Look for scopes field inside auth
+                MappingConstructorExpressionNode authMapping =
+                        (MappingConstructorExpressionNode) authExpr;
+                for (MappingFieldNode innerField : authMapping.fields()) {
                     if (innerField.kind() != SyntaxKind.SPECIFIC_FIELD) {
                         continue;
                     }

@@ -92,5 +92,8 @@
         ]
       }
     ]
+  },
+  {
+    "name": "ballerinax/trigger.salesforce"
   }
 ]

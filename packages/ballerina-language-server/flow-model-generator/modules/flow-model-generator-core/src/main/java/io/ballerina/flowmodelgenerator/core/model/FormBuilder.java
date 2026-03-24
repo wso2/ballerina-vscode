@@ -1092,7 +1092,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .editable(editable)
                 .optional(optional)
                 .advanced(advanced)
-                .value(value)
+                .value(String.valueOf(value))
                 .type()
                     .fieldType(Property.ValueType.FLAG)
                     .selected(true)

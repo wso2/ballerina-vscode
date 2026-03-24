@@ -18,9 +18,13 @@
 
 package io.ballerina.servicemodelgenerator.extension.model;
 
-public record MetaData(String label, String description, String notice) {
+public record MetaData(String label, String description, String notice, String icon) {
 
     public MetaData(String label, String description) {
-        this(label, description, null);
+        this(label, description, null, null);
+    }
+
+    public MetaData(String label, String description, String notice) {
+        this(label, description, notice, null);
     }
 }

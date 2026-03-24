@@ -29,7 +29,7 @@
       "items": [
         {
           "metadata": {
-            "label": "package1 (current)",
+            "label": "package1 (Current Integration)",
             "description": "",
             "keywords": []
           },
@@ -47,10 +47,10 @@
     },
     {
       "metadata": {
-        "label": "Current Workspace",
-        "description": "Components available in the current workspace",
+        "label": "Within Project",
+        "description": "Components available in the current workspace project",
         "keywords": [
-          "Workspace",
+          "Workspace Project",
           "Local",
           "Function",
           "Types",
@@ -60,7 +60,7 @@
       "items": [
         {
           "metadata": {
-            "label": "package1 (current)",
+            "label": "package1 (Current Integration)",
             "description": "",
             "keywords": []
           },

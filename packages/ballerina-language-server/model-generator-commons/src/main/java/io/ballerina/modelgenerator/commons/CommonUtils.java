@@ -21,6 +21,7 @@ package io.ballerina.modelgenerator.commons;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.ClassFieldSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.ConstantSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
@@ -132,9 +133,11 @@ public class CommonUtils {
     public static final String CONNECTOR_TYPE = "connectorType";
     public static final String PERSIST = "persist";
     public static final String PERSIST_MODEL_FILE = "persistModelFile";
+    public static final String PERSIST_DB_CLIENT_FIELD = "dbClient";
     public static final String DEFAULT_PERSIST_MODEL_FILE = "model.bal";
     public static final String ABSTRACT_PERSIST_CLIENT = "AbstractPersistClient";
-
+    public static final List<String> PERSIST_DB_DRIVERS = List.of("ballerinax/mysql", "ballerinax/postgresql",
+            "ballerinax/oracledb", "ballerinax/mssql");
     public static final String AI_OPENAI = "ai.openai";
     public static final String AI_ANTHROPIC = "ai.anthropic";
     public static final String AI_DEEPSEEK = "ai.deepseek";
@@ -523,6 +526,38 @@ public class CommonUtils {
      */
     public static String generateIcon(String orgName, String packageName, String versionName) {
         return String.format(CENTRAL_ICON_URL, orgName, packageName, versionName);
+    }
+
+    /**
+     * Extracts the database-specific icon URL from the persist client class by inspecting its fields.
+     * The persist-generated client always has a private field (e.g., {@code private final postgresql:Client dbClient})
+     * whose type's module carries the DB driver package info (org, packageName, version).
+     *
+     * @param persistClientClassSymbol the ClassSymbol of the persist-generated Client class
+     * @return an Optional containing the icon URL for the underlying DB driver, or empty if not found
+     */
+    public static Optional<String> getPersistDatabaseIcon(ClassSymbol persistClientClassSymbol) {
+        for (Map.Entry<String, ClassFieldSymbol> entry : persistClientClassSymbol.fieldDescriptors().entrySet()) {
+            if (!PERSIST_DB_CLIENT_FIELD.equals(entry.getKey())) {
+                continue;
+            }
+            ClassFieldSymbol fieldSymbol = entry.getValue();
+            TypeSymbol fieldType = getRawType(fieldSymbol.typeDescriptor());
+            if (!(fieldType instanceof ClassSymbol)) {
+                continue;
+            }
+            Optional<ModuleSymbol> moduleOpt = fieldType.getModule();
+            if (moduleOpt.isEmpty()) {
+                continue;
+            }
+            ModuleID id = moduleOpt.get().id();
+            if (!PERSIST_DB_DRIVERS.contains(id.orgName() + "/" + id.packageName())) {
+                continue;
+            }
+            return Optional.of(generateIcon(id.orgName(), id.packageName(), id.version()));
+
+        }
+        return Optional.empty();
     }
 
     /**

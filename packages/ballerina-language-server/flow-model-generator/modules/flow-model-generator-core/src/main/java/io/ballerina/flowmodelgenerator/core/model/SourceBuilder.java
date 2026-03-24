@@ -242,9 +242,16 @@ public class SourceBuilder {
             String typeNamePrefix = capitalize(variable.toSourceCode());
             inferredType = String.format("%sType", typeNamePrefix);
 
-            List<PropertyType> propertyTypes = inferredProperty.valueAsType(PROPERTY_TYPE_LIST_TYPE_TOKEN);
-            if (propertyTypes != null && !propertyTypes.isEmpty()) {
-                RecordSelectorType recordSelectorType = propertyTypes.getFirst().recordSelectorType();
+            RecordSelectorType recordSelectorType = null;
+            try {
+                List<PropertyType> propertyTypes = inferredProperty.valueAsType(PROPERTY_TYPE_LIST_TYPE_TOKEN);
+                if (propertyTypes != null && !propertyTypes.isEmpty()) {
+                    recordSelectorType = propertyTypes.getFirst().recordSelectorType();
+                }
+            } catch (IllegalArgumentException | ClassCastException e) {
+                // The property value is not properly set as a type; skip record selector type generation.
+            }
+            if (recordSelectorType != null) {
                 Path typesFilePath = filePath.resolveSibling("types.bal");
                 Document document = FileSystemUtils.getDocument(workspaceManager, typesFilePath);
                 if (document != null) {

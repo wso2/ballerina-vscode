@@ -677,22 +677,22 @@ public class AgentsGenerator {
     // TODO: The agent tool annotation form is currently in the extension side, need to move to LS
     private void genAgentToolAnnotation(FlowNode flowNode, SourceBuilder sourceBuilder) {
         Map<String, Object> data = flowNode.codedata().data();
-        if (data == null || !data.containsKey("agentIdConfig")) {
+        if (data == null || !data.containsKey("auth")) {
             sourceBuilder.token()
                     .name("@ai:AgentTool")
                     .name(System.lineSeparator());
             return;
         }
 
-        String agentIdConfigStr = data.get("agentIdConfig").toString();
-        JsonObject agentIdConfig = gson.fromJson(agentIdConfigStr, JsonObject.class);
+        String authStr = data.get("auth").toString();
+        JsonObject authConfig = gson.fromJson(authStr, JsonObject.class);
 
         StringBuilder sb = new StringBuilder();
         sb.append("@ai:AgentTool {").append(System.lineSeparator());
-        sb.append("    agentIdConfig: {").append(System.lineSeparator());
+        sb.append("    auth: {").append(System.lineSeparator());
 
         List<String> fields = new ArrayList<>();
-        for (Map.Entry<String, JsonElement> entry : agentIdConfig.entrySet()) {
+        for (Map.Entry<String, JsonElement> entry : authConfig.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue().getAsString();
 

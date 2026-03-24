@@ -250,7 +250,7 @@
             "selected": true
           }
         ],
-        "value": true,
+        "value": "true",
         "optional": false,
         "editable": true,
         "advanced": false,

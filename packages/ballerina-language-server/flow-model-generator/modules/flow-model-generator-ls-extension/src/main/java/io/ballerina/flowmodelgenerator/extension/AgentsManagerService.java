@@ -30,6 +30,7 @@ import io.ballerina.flowmodelgenerator.extension.request.GetAllMemoryManagersReq
 import io.ballerina.flowmodelgenerator.extension.request.GetAllModelsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetConnectorActionsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetModelsRequest;
+import io.ballerina.flowmodelgenerator.extension.request.GetPackageVersionRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.McpToolsRequest;
@@ -40,11 +41,22 @@ import io.ballerina.flowmodelgenerator.extension.response.GetConnectorActionsRes
 import io.ballerina.flowmodelgenerator.extension.response.GetMcpToolsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetMemoryManagersResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetModelsResponse;
+import io.ballerina.flowmodelgenerator.extension.response.GetPackageVersionResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetToolResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetToolsResponse;
 import io.ballerina.modelgenerator.commons.PackageUtil;
+import io.ballerina.projects.DependenciesToml;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.PackageDescriptor;
+import io.ballerina.projects.PackageName;
+import io.ballerina.projects.PackageOrg;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.TomlDocument;
+import io.ballerina.projects.environment.PackageMetadataResponse;
+import io.ballerina.projects.environment.PackageResolver;
+import io.ballerina.projects.environment.ResolutionOptions;
+import io.ballerina.projects.environment.ResolutionRequest;
+import io.ballerina.projects.environment.ResolutionResponse;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -53,6 +65,9 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
 import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -322,6 +337,50 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                         optProject.get(), document, this.workspaceManager, filePath));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<GetPackageVersionResponse> getPackageVersion(GetPackageVersionRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            GetPackageVersionResponse response = new GetPackageVersionResponse();
+            try {
+                String org = request.org();
+                String packageName = request.packageName();
+                Path projectPath = Path.of(request.projectPath());
+                Project project = this.workspaceManager.loadProject(projectPath);
+
+                // First, check Dependencies.toml for the pinned version
+                Optional<String> depsVersion = project.currentPackage().dependenciesToml()
+                        .map(DependenciesToml::tomlDocument)
+                        .map(TomlDocument::toml)
+                        .map(toml -> toml.getTables("package")).orElse(List.of()).stream()
+                        .filter(pkg -> org.equals(pkg.get("org").map(Object::toString).orElse(""))
+                                && packageName.equals(pkg.get("name").map(Object::toString).orElse("")))
+                        .findFirst()
+                        .flatMap(pkg -> pkg.get("version").map(Object::toString));
+
+                if (depsVersion.isPresent()) {
+                    response.setVersion(depsVersion.get());
+                    return response;
+                }
+
+                // Fallback: resolve from local/distribution repo (offline, no network calls)
+                PackageResolver resolver = project
+                        .projectEnvironmentContext().getService(PackageResolver.class);
+                ResolutionRequest resolutionRequest = ResolutionRequest.from(
+                        PackageDescriptor.from(PackageOrg.from(org), PackageName.from(packageName)));
+                Collection<PackageMetadataResponse> metadataResponses = resolver.resolvePackageMetadata(
+                        Collections.singletonList(resolutionRequest),
+                        ResolutionOptions.builder().setOffline(true).build());
+                metadataResponses.stream().findFirst()
+                        .filter(meta -> meta.resolutionStatus() != ResolutionResponse.ResolutionStatus.UNRESOLVED)
+                        .map(PackageMetadataResponse::resolvedDescriptor)
+                        .ifPresent(descriptor -> response.setVersion(descriptor.version().value().toString()));
+            } catch (Throwable e) {
+                response.setError(e);
             }
             return response;
         });
