@@ -176,6 +176,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewVectorKnowledgeBase = useRef<boolean>(false);
     const isCreatingNewDataLoader = useRef<boolean>(false);
     const isCreatingNewChunker = useRef<boolean>(false);
+    const isCreatingNewWorkflow = useRef<boolean>(false);
     const isCreatingNewActivity = useRef<boolean>(false);
 
     const { platformExtState, platformRpcClient, onLinkDevantProject,  importConnection: importDevantConn } = usePlatformExtContext()
@@ -547,6 +548,41 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
+    const handleWorkflowAdded = async () => {
+        // Try to navigate back to WORKFLOW_LIST in the stack
+        const foundInStack = popNavigationStackUntilView(SidePanelView.WORKFLOW_LIST);
+
+        if (foundInStack) {
+            setShowProgressIndicator(true);
+            try {
+                const response = await rpcClient.getBIDiagramRpcClient().search({
+                    position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                    filePath: model?.fileName,
+                    queryMap: undefined,
+                    searchKind: "WORKFLOW_RUN",
+                });
+                const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                    response.categories as Category[],
+                    FUNCTION_TYPE.REGULAR
+                );
+                const projectCategory = panelCategories.find((category) => category.title === "Project");
+                if (projectCategory && !projectCategory.items.length) {
+                    projectCategory.description = "No workflows defined. Click below to create a new workflow.";
+                }
+                setCategories(panelCategories);
+                setSidePanelView(SidePanelView.WORKFLOW_LIST);
+                setShowSidePanel(true);
+            } catch (error) {
+                console.error(">>> Error refreshing workflows", error);
+            } finally {
+                setShowProgressIndicator(false);
+            }
+        } else {
+            console.log(">>> WORKFLOW_LIST not found in navigation stack, closing panel");
+            closeSidePanelAndFetchUpdatedFlowModel();
+        }
+    };
+
     const getFlowModel = () => {
         setShowProgressIndicator(true);
         onUpdate();
@@ -815,6 +851,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingNewVectorKnowledgeBase.current = false;
         isCreatingNewDataLoader.current = false;
         isCreatingNewChunker.current = false;
+        isCreatingNewWorkflow.current = false;
         isCreatingNewActivity.current = false;
         clearNavigationStack();
     };
@@ -1118,6 +1155,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         if (isCreatingNewChunker.current) {
             isCreatingNewChunker.current = false;
             await handleChunkerAdded();
+            return;
+        }
+        if (isCreatingNewWorkflow.current) {
+            isCreatingNewWorkflow.current = false;
+            await handleWorkflowAdded();
             return;
         }
         if (isCreatingNewActivity.current) {
@@ -1940,6 +1982,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleOnAddWorkflow = () => {
+        isCreatingNewWorkflow.current = true;
         setShowProgressIndicator(true);
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
 
