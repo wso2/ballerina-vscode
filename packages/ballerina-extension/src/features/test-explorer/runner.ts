@@ -50,11 +50,7 @@ function getProjectPathFromTestItem(test: TestItem): string | undefined {
         });
         return projectPath;
     } else if (isTestGroupItem(test)) {
-        // For test groups, check if they have a parent project or extract from children
-        if (test.parent && isProjectGroupItem(test.parent)) {
-            return getProjectPathFromTestItem(test.parent);
-        }
-        // Otherwise extract from children
+        // Extract from children (test functions) to avoid infinite recursion with parent project group
         let projectPath: string | undefined;
         test.children.forEach((child) => {
             if (!projectPath) {
