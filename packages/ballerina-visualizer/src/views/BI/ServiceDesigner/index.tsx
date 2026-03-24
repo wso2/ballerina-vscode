@@ -28,10 +28,11 @@ import {
     ServiceModel,
     Protocol
 } from "@wso2/ballerina-core";
+import { buildBaseUrl } from "./buildHurlString";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { NodePosition } from "@wso2/syntax-tree";
-import { Button, Codicon, Icon, LinkButton, TextField, Typography, View } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, TextField, Typography, View } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { LoadingRing } from "../../../components/Loader";
@@ -721,11 +722,32 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         setIsNew(false);
     };
 
-    const handleServiceTryIt = () => {
+    const handleServiceTryIt = async () => {
         const basePath = serviceModel.properties?.basePath?.value?.trim();
-        const listener = serviceModel.properties?.listener?.value?.trim();
-        const commands = ["ballerina.tryIt", false, undefined, { basePath, listener }];
-        rpcClient.getCommonRpcClient().executeCommand({ commands });
+        const listenerProperty = serviceModel.properties?.listener;
+        const listener = (listenerProperty?.value ?? listenerProperty?.values?.[0] ?? '').trim();
+
+        const baseUrl = buildBaseUrl(listener, basePath);
+        const serviceName = basePath?.replace(/^\//, "") || serviceModel.name || "Service";
+
+        const firstPath = resources.find(r => r.type === DIRECTORY_MAP.RESOURCE && r.path)?.path;
+
+        let oasSpec: any | undefined;
+        try {
+            const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
+                documentFilePath: firstPath,
+                basePath
+            });
+            oasSpec = oasResult.spec ?? undefined;
+        } catch {
+            // spec unavailable — extension will fall back to minimal placeholders
+        }
+
+        // Delegate cell-building to the extension so both Service Try It and Code Lens Try It
+        // share the same buildHurlCellsFromOASSpec logic via ballerina.startService
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: ["ballerina.startService", { oasSpec, baseUrl, serviceName }, { savable: true }, { basePath, listener }]
+        });
     }
 
     const handleExportOAS = () => {
@@ -864,7 +886,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         serviceModel && (isHttpService || isMcpService) && (
                                             <>
                                                 <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
-                                                    <Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText>
+                                                    <><Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText></>
                                                 </Button>
                                             </>
                                         )

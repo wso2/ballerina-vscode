@@ -86,6 +86,7 @@ import {
     FormDiagnosticsResponse,
     FormDidCloseParams,
     FormDidOpenParams,
+    FormDirtyDidChangeParams,
     FunctionNodeRequest,
     FunctionNodeResponse,
     GeneratedClientSaveResponse,
@@ -195,6 +196,7 @@ import {
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
+import { isLibraryProject } from "../../utils/config";
 import { PlatformExtRpcManager } from "../platform-ext/rpc-manager";
 import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
@@ -202,7 +204,7 @@ import { getCurrentBallerinaProject } from "../../utils/project-utils";
 import { CommonRpcManager } from "../common/rpc-manager";
 import * as toml from "@iarna/toml";
 import { readOrWriteReadmeContent } from "./utils";
-import { registerFormOpen, registerFormClose } from "./form-state";
+import { registerFormOpen, registerFormClose, setFormDirtyState } from "./form-state";
 import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
 import { getRepoRoot } from "../platform-ext/platform-utils";
 import { WI_EXTENSION_ID } from "../../utils";
@@ -658,6 +660,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getNodeTemplate(params: BINodeTemplateRequest): Promise<BINodeTemplateResponse> {
         console.log(">>> requesting bi node template from ls", params);
         params.forceAssign = true; // TODO: remove this
+        const projectPath = StateMachine.context().projectPath;
+        params.isLibrary = projectPath ? await isLibraryProject(projectPath) : false;
 
         // Check if the file exists
         if (!fs.existsSync(params.filePath)) {
@@ -1602,6 +1606,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
+    formDirtyDidChange(params: FormDirtyDidChangeParams): void {
+        setFormDirtyState(params.filePath, params.isDirty);
+    }
+
     async formDidClose(params: FormDidCloseParams): Promise<void> {
         return new Promise(async (resolve, reject) => {
             try {
@@ -1768,7 +1776,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async promptGithubCopilotAuthNotificaiton(): Promise<void> {
         //TODO: Prevent multiple notifications
         vscode.window.showInformationMessage(
-            'WSO2 Integrator: BI supports visual completions with GitHub Copilot.',
+            'WSO2 Integrator supports visual completions with GitHub Copilot.',
             'Authorize using GitHub Copilot'
         ).then(selection => {
             if (selection === 'Authorize using GitHub Copilot') {

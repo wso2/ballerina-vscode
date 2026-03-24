@@ -30,7 +30,6 @@
         "onUri"
     ],
     "extensionDependencies": [
-        "anweber.httpbook"
     ],
     "contributes": {
         "languages": [

@@ -178,6 +178,11 @@ export interface FormDidCloseParams {
     filePath: string;
 }
 
+export interface FormDirtyDidChangeParams {
+    filePath: string;
+    isDirty: boolean;
+}
+
 export interface EndOfFileRequest {
     filePath: string;
 }

@@ -192,7 +192,11 @@ export const getFilteredTypesByKind = (types: Category[], kind: FunctionKind) =>
                         insertText: item.metadata.label,
                         type: COMPLETION_ITEM_KIND.TypeParameter,
                         codedata: (item as AvailableNode).codedata,
-                        kind: subCategoryKind
+                        kind: subCategoryKind,
+                        labelDetails: {
+                            description: (item as AvailableNode).codedata.node,
+                            detail: ""
+                        }
                     }))
                 });
             } else {
@@ -201,7 +205,11 @@ export const getFilteredTypesByKind = (types: Category[], kind: FunctionKind) =>
                     insertText: categoryItem.metadata.label,
                     type: COMPLETION_ITEM_KIND.TypeParameter,
                     codedata: categoryItem.codedata,
-                    kind: categoryKind
+                    kind: categoryKind,
+                    labelDetails: {
+                        description: categoryItem.codedata.node,
+                        detail: ""
+                    }
                 });
             }
         }

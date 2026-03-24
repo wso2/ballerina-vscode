@@ -162,6 +162,8 @@ export function FormGeneratorNew(props: FormProps) {
 
     const { rpcClient } = useRpcContext();
 
+
+
     const getAdjustedStartLine = (targetLineRange: LineRange | undefined, expressionOffset: number): LinePosition | undefined => {
         return targetLineRange ? updateLineRange(targetLineRange, expressionOffset).startLine : undefined;
     };
@@ -359,7 +361,7 @@ export function FormGeneratorNew(props: FormProps) {
 
     const isParamTypePublicByDefault = () => {
         const isPublicField = fieldsValuesRef.current.find(field => field.key === "isPublic");
-        const isPublicFieldValue =  typeof isPublicField?.value === "string" ? isPublicField.value.toLowerCase() === "true" : Boolean(isPublicField?.value);
+        const isPublicFieldValue = typeof isPublicField?.value === "string" ? isPublicField.value.toLowerCase() === "true" : Boolean(isPublicField?.value);
         return (
             isFunctionParameterForm() && isPublicFieldValue
         );

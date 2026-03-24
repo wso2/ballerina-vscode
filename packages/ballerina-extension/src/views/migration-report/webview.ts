@@ -107,8 +107,8 @@ export class MigrationReportWebview {
         );
 
         panel.iconPath = {
-            light: Uri.file(path.join(extension.context.extensionPath, "resources", "icons", "light-icon.svg")),
-            dark: Uri.file(path.join(extension.context.extensionPath, "resources", "icons", "dark-icon.svg")),
+            light: Uri.file(path.join(extension.context.extensionPath, "resources", "icons", "wso2-dark.svg")),
+            dark: Uri.file(path.join(extension.context.extensionPath, "resources", "icons", "wso2-light.svg")),
         };
 
         const webview = new MigrationReportWebview(panel, reportContent);

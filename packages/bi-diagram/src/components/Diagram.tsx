@@ -96,6 +96,10 @@ export interface DiagramProps {
     }
     isUserAuthenticated?: boolean;
     expressionContext?: ExpressionContextProps;
+    entrypointContext?: {
+        serviceName?: string;
+        functionName?: string;
+    };
 }
 
 export function Diagram(props: DiagramProps) {
@@ -123,6 +127,7 @@ export function Diagram(props: DiagramProps) {
         overlay,
         isUserAuthenticated,
         expressionContext,
+        entrypointContext,
     } = props;
 
     const [showErrorFlow, setShowErrorFlow] = useState(false);
@@ -334,6 +339,7 @@ export function Diagram(props: DiagramProps) {
             retrieveCompletions: () => Promise.resolve(),
             getHelperPane: undefined,
         },
+        entrypointContext,
     };
 
     const getActiveBreakpointNode = (nodes: NodeModel[]): NodeModel => {

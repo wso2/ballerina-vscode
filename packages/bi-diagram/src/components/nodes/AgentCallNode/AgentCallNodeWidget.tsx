@@ -149,6 +149,7 @@ export namespace NodeStyles {
     `;
 
     export const Title = styled(StyledText)`
+        height: 18px !important; 
         max-width: ${NODE_WIDTH - 80}px;
         white-space: nowrap;
         overflow: hidden;
@@ -167,6 +168,7 @@ export namespace NodeStyles {
         -webkit-box-orient: vertical;
         color: ${ThemeColors.ON_SURFACE};
         opacity: 0.7;
+        margin-top: -2px;
     `;
 
     const MarkdownContent = styled.div`
@@ -430,6 +432,50 @@ export namespace NodeStyles {
         color: ${ThemeColors.ON_SURFACE};
         opacity: 0.7;
     `;
+
+    export const AgentIdBadge = styled.div`
+        margin-left: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        cursor: default;
+        position: relative;
+        overflow: visible;
+        z-index: 10;
+
+        &:hover {
+            opacity: 0.8;
+        }
+    `;
+
+    export const AgentIdTooltip = styled.div`
+        position: absolute;
+        left: 50%;
+        top: calc(100% + 8px);
+        transform: translateX(-50%);
+        padding: 6px 10px;
+        background: ${ThemeColors.SURFACE_DIM};
+        color: ${ThemeColors.ON_SURFACE};
+        border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+        border-radius: 6px;
+        font-size: 11px;
+        font-family: "GilmerRegular";
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        pointer-events: none;
+        z-index: 1000;
+
+        &::before {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-bottom-color: ${ThemeColors.OUTLINE_VARIANT};
+        }
+    `;
 }
 
 interface AgentCallNodeWidgetProps {
@@ -442,13 +488,14 @@ export interface NodeWidgetProps extends Omit<AgentCallNodeWidgetProps, "childre
 
 export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId } =
+    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId, entrypointContext } =
         useDiagramContext();
     const traceAnimation = useTraceAnimation();
 
     const isSelected = selectedNodeId === model.node.id;
 
     const [isBoxHovered, setIsBoxHovered] = useState(false);
+    const [agentIdHovered, setAgentIdHovered] = useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const [toolAnchorEl, setToolAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const [selectedTool, setSelectedTool] = useState<ToolData | null>(null);
@@ -674,13 +721,28 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const nodeInstructions = nodeMetadata?.agent?.instructions || '';
 
     const isTraceMatch = traceAnimation && (() => {
+        // Guard: only animate if the trace's entrypoint matches the current flow diagram's service/function
+        if (entrypointContext) {
+            const traceService = traceAnimation.entrypointServiceName ?? '';
+            const traceFunction = traceAnimation.entrypointFunctionName ?? '';
+            const ctxService = entrypointContext.serviceName ?? '';
+            const ctxFunction = entrypointContext.functionName ?? '';
+            if (traceService !== ctxService || traceFunction !== ctxFunction) {
+                return false;
+            }
+        }
+
         const sysInstr = traceAnimation.systemInstructions;
         if (sysInstr) {
             const extractedRole = sysInstr.match(/(?:^|\n)#\s*Role[ \t]*\r?\n([\s\S]*?)(?=\r?\n#\s*Instructions|$)/i)?.[1]?.trim();
-            const extractedInstructions = sysInstr.match(/(?:^|\n)#\s*Instructions[ \t]*\r?\n([\s\S]*)$/i)?.[1]?.trim();
+            const extractedInstructions = sysInstr.match(/(?:^|\n)#\s*Instructions[ \t]*\r?\n([\s\S]*?)(?=\r?\n#\s*Instructions for Tool Validation Failure Handling|$)/i)?.[1]?.trim();
 
             const roleMatch = nodeRole != null && extractedRole === nodeRole.trim();
-            const instrMatch = nodeInstructions != null && extractedInstructions === nodeInstructions.trim();
+            const cleanedInstructions = extractedInstructions
+                ?.replace(/\n#\s*Instructions for Tool Validation Failure Handling[^\n]*\n[\s\S]*$/, '')
+                ?.trim();
+            const instrMatch = nodeInstructions != null && cleanedInstructions === nodeInstructions.trim();
+
 
             if (nodeRole != null && nodeInstructions != null) {
                 return roleMatch && instrMatch;
@@ -767,7 +829,23 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         </NodeStyles.Icon>
                         <NodeStyles.Row readOnly={readOnly}>
                             <NodeStyles.Header onClick={handleOnClick}>
-                                <NodeStyles.Title>{nodeTitle}</NodeStyles.Title>
+                                <div style={{ display: "flex", alignItems: "center", gap: "6px", lineHeight: 1, maxWidth: `${NODE_WIDTH - 80}px` }}>
+                                    <NodeStyles.Title>{nodeTitle}</NodeStyles.Title>
+                                    {model.node.properties?.credential?.value && (
+                                        <NodeStyles.AgentIdBadge
+                                            title=""
+                                            onMouseEnter={() => setAgentIdHovered(true)}
+                                            onMouseLeave={() => setAgentIdHovered(false)}
+                                        >
+                                            <Icon name="workspace-trusted" isCodicon={true} iconSx={{ fontSize: "14px" }} sx={{ color: "#0e8a6e" }} />
+                                            {agentIdHovered && (
+                                                <NodeStyles.AgentIdTooltip>
+                                                    Agent ID Enabled
+                                                </NodeStyles.AgentIdTooltip>
+                                            )}
+                                        </NodeStyles.AgentIdBadge>
+                                    )}
+                                </div>
                                 <NodeStyles.Description>
                                     {model.node.properties.variable?.value as ReactNode}
                                 </NodeStyles.Description>
@@ -1229,14 +1307,14 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                     </Menu>
                 </Popover>
 
-                {/* Add "Add new tool" button below all tools */}
-                <g
+                {/* Add "Add new tool" button below all tools — hidden in read-only mode */}
+                {!readOnly && <g
                     transform={`translate(-11, ${tools.length > 0
                         ? (tools.length + 1) * (NODE_HEIGHT + AGENT_NODE_TOOL_GAP) + AGENT_NODE_TOOL_SECTION_GAP
                         : NODE_HEIGHT + AGENT_NODE_TOOL_SECTION_GAP
                         })`}
                     onClick={onAddToolClick}
-                    style={{ cursor: readOnly ? "default" : "pointer" }}
+                    style={{ cursor: "pointer" }}
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -1287,7 +1365,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             Add New Tool / MCP Server
                         </div>
                     </foreignObject>
-                </g>
+                </g>}
 
                 <defs>
                     <marker
